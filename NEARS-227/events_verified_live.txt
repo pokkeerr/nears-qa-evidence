@@ -1,0 +1,22 @@
+NEARS-227 VendorApp re-QA — events verified LIVE (emulator-5554, debug.firebase.analytics.app=com.izzes.nearsvendor)
+Commit 1c2ccdc. Date 2026-06-07.
+
+CRITICAL FIX (boot past splash): app launched cold, NO [core/no-app] crash, NO FATAL.
+  Logging event: origin=auto,name=first_open
+  Logging event: origin=app,name=app_open,params=Bundle[{...ga_screen_class=MainActivity}]
+  -> reached Language screen -> Sign In screen -> dashboard. Previously hung on splash.
+
+app_open      : origin=app,name=app_open                          [LIVE]
+screen_view   : origin=app,name=screen_view ... ga_screen=/sign-in, /my-subscription, /expense, /  [LIVE - nav observer]
+login_failed  : origin=app,name=login_failed,params={method=owner}   (NO email/PII)  [LIVE]
+login         : origin=app,name=login,params={method=owner}          (NO email/PII)  [LIVE]
+setUserId     : Setting user property: user_id(_id), 9   (non-null, from store id)   [LIVE - the setUserId fix]
+dashboard_view: origin=app,name=dashboard_view                      [LIVE]
+report_view   : origin=app,name=report_view,params={report_type=expense}  [LIVE]
+subscription_view : origin=app,name=subscription_view (on Change Business Plan sheet)  [LIVE]
+disbursement_view : logDisbursementView() wired in disbursement_screen.dart initState  [CODE-REVIEW - no disbursement entry reachable w/o seeded payout; non-destructive screen, value correct]
+chat_start    : fires only on sending FIRST msg in NEW conversation (conversationId==null) -> would persist to shared DB; no seeded conversation. [CODE-REVIEW NOT DRIVEN - DB-safety]
+notifications_view : AnalyticsEvents.notificationOpen = 'notifications_view'; fired from notification_helper.dart on push-tap handler (needs real FCM push). VendorApp notification SCREEN does NOT fire it on open (unlike DeliveryApp/UserApp). [CODE-REVIEW - value correct, trigger is push-tap]
+
+PII: every event carries method/report_type/type only; user_id set to numeric store id; never email/name. PASS.
+Regression: dashboard, menu, orders, reports, subscription, conversation all load; ui_errors clean; no crash/freeze.

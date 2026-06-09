@@ -1,0 +1,26 @@
+06-07 00:13:44.334 27411 27411 E flutter : [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+06-07 00:13:44.334 27411 27411 E flutter : #2      FirebaseAnalytics.instance (package:firebase_analytics/src/firebase_analytics.dart:52:47)
+06-07 00:13:44.334 27411 27411 E flutter : #3      new AnalyticsService (package:sixam_mart_store/helper/analytics_service.dart:28:53)
+06-07 00:13:44.334 27411 27411 E flutter : #4      init (package:sixam_mart_store/helper/get_di.dart:174:11)
+06-07 00:13:44.334 27411 27411 E flutter : #5      main (package:sixam_mart_store/main.dart:27:57)
+06-07 00:20:28.688 29938 29938 E flutter : [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+06-07 00:20:28.688 29938 29938 E flutter : #2      FirebaseAnalytics.instance (package:firebase_analytics/src/firebase_analytics.dart:52:47)
+06-07 00:20:28.688 29938 29938 E flutter : #3      new AnalyticsService (package:sixam_mart_store/helper/analytics_service.dart:28:53)
+06-07 00:20:28.688 29938 29938 E flutter : #4      init (package:sixam_mart_store/helper/get_di.dart:174:11)
+06-07 00:20:28.688 29938 29938 E flutter : #5      main (package:sixam_mart_store/main.dart:27:57)
+
+--- ANALYSIS (NEARS-227 QA) ---
+FATAL init-order bug introduced by this change. VendorApp hangs on splash, never reaches login.
+main.dart:27  -> await di.init()   (runs BEFORE Firebase.initializeApp() at main.dart:31)
+get_di.dart:174 -> Get.put(AnalyticsService(), permanent: true)   (FIRST line of di.init())
+analytics_service.dart:28 -> AnalyticsService ctor reads FirebaseAnalytics.instance
+  => throws [core/no-app] No Firebase App '[DEFAULT]' has been created.
+Base (pre-227) VendorApp boots fine: di.init() did not touch FirebaseAnalytics before 227.
+Contrast: NEARS-226 DeliveryApp fixed exactly this by initialising Firebase BEFORE di.init()
+  (and using a lazy `get instance`). 227 did NOT adopt that ordering.
+
+Fix options for engineer:
+  (a) move Firebase.initializeApp() above di.init() in VendorApp/lib/main.dart (the 226 pattern), and/or
+  (b) make AnalyticsService NOT resolve FirebaseAnalytics.instance in its constructor (lazy field).
+Consequence: app_open never fires; login/screen_view/dashboard_view/setUserId-on-login and ALL
+instrumented flows are UNREACHABLE because the app never gets past splash. AC-breaking -> FAIL.

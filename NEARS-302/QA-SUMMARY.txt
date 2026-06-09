@@ -1,0 +1,36 @@
+NEARS-302 QA EVIDENCE SUMMARY
+Worktree: /Users/Apple/Projects/nears-NEARS-302-dashboard-commonjs (commit 526aafe4)
+Booted: php artisan serve 127.0.0.1:8081 (APP_URL overridden to :8081 so asset() resolves from THIS worktree)
+Driver: Playwright 1.60 (chromium headless) with console + network listeners. Login <demo-admin> via /login/admin
+        (custom math captcha auto-satisfied: APP_MODE=dev pre-fills the captcha field with session value).
+
+CORE AC RESULT (dashboard-only capture, dashboard-only-capture.json):
+  - "$ is not a function" errors on /admin dashboard: 0   <-- PASS (pre-fix state threw this)
+  - common.js-related console errors: 0
+  - common.js network requests on /admin dashboard: 1  (http://127.0.0.1:8081/public/assets/admin/js/view-pages/common.js)
+  - common.js occurrences in dashboard HTML source: 1  (footer app.blade.php:340, AFTER jQuery)
+
+The default /admin dashboard for the seeded data is the GROCERY/FOOD dashboard
+(View: admin-views.dashboard-grocery), which INCLUDES all 6 touched partials.
+Blade debug comments in dashboard-source.html confirm all 6 rendered:
+  _top-restaurants, _popular-restaurants, _top-customer, _top-deliveryman,
+  _top-rated-foods, _top-selling-foods  (each referenced, none carrying its own common.js).
+
+WIDGETS POPULATED (screenshot 02-dashboard-clean.png):
+  Top Selling Stores, Most Popular Stores (Test Store), Top Selling Items
+  (Coca Cola, Breakfast Cereal, Honey 500g, ...), Most Rated Items (Cucumbers, ...),
+  Top Deliveryman (Test01), Top Customers (Customer/Michael/James/Emily/Sophie).
+  Summary cards: Items 14584, Orders 36, Grocery Stores 973, Customers 7. Sell chart + donut render.
+
+NO-REGRESSION:
+  - Navy palette (NEARS-72) intact, mint accents, sidebar renders. SweetAlert (Swal.) present, JS loads from footer.
+  - Regression sweep pages 200/render clean: Orders list, Stores list, Business Settings (screenshots 04-reg-*.png).
+  - Blade compile (php artisan view:cache) succeeded for all views incl. the 6 edited partials.
+
+NON-ISSUES (pre-existing, unrelated to NEARS-302 - confirmed identical on :8000 baseline):
+  - Firebase "Missing apiKey" error  -> expected dev noise (instructed to ignore).
+  - TypeError "Cannot read properties of null (addEventListener)" -> cascades from Firebase init in app.blade.php layout; pre-existing.
+  - 404 setting-shape.png / module-shape.png -> decorative CSS bg images missing from repo; 404 on :8000 baseline too.
+  - YouTube/Google embed aborts -> external dashboard intro video blocked in headless sandbox.
+
+VERDICT: PASS

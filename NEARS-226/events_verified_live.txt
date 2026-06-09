@@ -1,0 +1,20 @@
+NEARS-226 DeliveryApp re-QA — events verified LIVE (emulator-5554, debug.firebase.analytics.app=com.izzes.nearsdelivery)
+Commit a7c72fd. Date 2026-06-07.
+
+THE FIX (renamed reserved notification_open -> notifications_view):
+  Logging event: origin=app,name=notifications_view,params=Bundle[{...ga_screen=/notification?from=null}]
+  Fired on opening the Notifications screen (bell icon, home app bar -> initState logNotificationOpen()).
+  NO 'notification_open' appears anymore (previously silently dropped by Firebase as reserved name). [LIVE - PASS]
+
+Re-confirm (already passed prior run):
+  app_open    : origin=app,name=app_open (cold start)                 [LIVE]
+  screen_view : origin=app,name=screen_view ... /splash -> /sign-in -> /notification  [LIVE - nav observer]
+  login_failed: origin=app,name=login_failed,params={method=phone}   (NO phone/PII)  [LIVE]
+  login       : origin=app,name=login,params={method=phone}          (NO phone/PII)  [LIVE]
+  setUserId   : Setting user property: user_id(_id), 1  (delivery man id)            [LIVE]
+
+Login note: DeliveryApp login is by PHONE (+971), not email. Seeded driver driver@nears.demo is ABSENT from
+delivery_men; used seeded <demo-delivery-creds>.
+
+PII: notifications_view carries ga_ params only (no PII); login/login_failed carry method only. PASS.
+Regression: home dashboard, Orders tab, Profile tab (Ali Hassan) load; ui_errors clean; no crash.
