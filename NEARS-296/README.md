@@ -1,5 +1,7 @@
 # QA Evidence — NEARS-296
 
+**RUM baseline**
+
 **1 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
