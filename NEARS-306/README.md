@@ -1,24 +1,23 @@
 # QA Evidence — NEARS-306
 
-**PASS — Home premium redesign: section order, navy header, bento, deliver-to mint fill, recommended mint+, dark mode, RTL all live-verified; 5 analytics PII-safe; single-store path code-preserved**
+**PASS — Home Landing premium redesign verified live (light/dark/RTL), 4 analytics events fired PII-safe, 89 tests green**
 
-**9 screenshot(s).** Click any thumbnail for full resolution.
+**8 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="01-home-top-section-order.png"><img src="01-home-top-section-order.png" width="240"></a><br><sub>home top section order</sub></td>
-<td align="center" width="33%"><a href="02-bento-deliverto-recommended.png"><img src="02-bento-deliverto-recommended.png" width="240"></a><br><sub>bento deliverto recommended</sub></td>
-<td align="center" width="33%"><a href="03-deliverto-mintfill-recommended-mintplus.png"><img src="03-deliverto-mintfill-recommended-mintplus.png" width="240"></a><br><sub>deliverto mintfill recommended mintplus</sub></td>
+<td align="center" width="33%"><a href="01-landing-light.png"><img src="01-landing-light.png" width="240"></a><br><sub>landing light</sub></td>
+<td align="center" width="33%"><a href="02-landing-hero.png"><img src="02-landing-hero.png" width="240"></a><br><sub>landing hero</sub></td>
+<td align="center" width="33%"><a href="03-landing-rail.png"><img src="03-landing-rail.png" width="240"></a><br><sub>landing rail</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="04-address-switch-zone1-mintfill.png"><img src="04-address-switch-zone1-mintfill.png" width="240"></a><br><sub>address switch zone1 mintfill</sub></td>
-<td align="center" width="33%"><a href="05-dark-mode-home.png"><img src="05-dark-mode-home.png" width="240"></a><br><sub>dark mode home</sub></td>
-<td align="center" width="33%"><a href="06-rtl-arabic-home.png"><img src="06-rtl-arabic-home.png" width="240"></a><br><sub>rtl arabic home</sub></td>
+<td align="center" width="33%"><a href="04-header.png"><img src="04-header.png" width="240"></a><br><sub>header</sub></td>
+<td align="center" width="33%"><a href="05-profile-for-theme.png"><img src="05-profile-for-theme.png" width="240"></a><br><sub>profile for theme</sub></td>
+<td align="center" width="33%"><a href="06-landing-dark.png"><img src="06-landing-dark.png" width="240"></a><br><sub>landing dark</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="07-rtl-recommended-mintplus.png"><img src="07-rtl-recommended-mintplus.png" width="240"></a><br><sub>rtl recommended mintplus</sub></td>
-<td align="center" width="33%"><a href="08-bell-notifications.png"><img src="08-bell-notifications.png" width="240"></a><br><sub>bell notifications</sub></td>
-<td align="center" width="33%"><a href="09-orders-no-running-buyagain-hidden.png"><img src="09-orders-no-running-buyagain-hidden.png" width="240"></a><br><sub>orders no running buyagain hidden</sub></td>
+<td align="center" width="33%"><a href="07-landing-arabic-rtl.png"><img src="07-landing-arabic-rtl.png" width="240"></a><br><sub>landing arabic rtl</sub></td>
+<td align="center" width="33%"><a href="08-my-address-regression.png"><img src="08-my-address-regression.png" width="240"></a><br><sub>my address regression</sub></td>
 </tr>
 </table>
 
