@@ -12,3 +12,15 @@
 - Dark mode spot on orders: PASS — switch checked=true, My Orders renders dark surfaces/readable text/mint accents (shot 11), no errors.
 - Automated backstop: flutter test (worktree UserApp) — 709 tests ALL PASSED (includes new paginated_list_view_test.dart).
 - DTD get_runtime_errors: none for entire session.
+
+# NEARS-338 DELTA re-QA (fix cycle 2) — 2026-06-12, emulator-5556, worktree @ c786be20 (fix 807ad296)
+- REPRO ATTEMPT 1 PASS: store 8 (Abu Dhabi Fresh Market) in-store search name=a (15 results, Honey 500g on page 2) → fling through boundary + jitter: items/search offset=1 ONCE, offset=2 ONCE; Honey 500g rendered exactly 1x; ui_errors clean. Shot 12.
+- REPRO ATTEMPT 2 PASS: full flow repeated (exit search, re-enter, new session): offset=1 ONCE, offset=2 ONCE; Honey 1x; no errors. Shot 13. Duplicate-fetch race NOT reproducible post-fix (was 2/2 repro pre-fix).
+- ORDERS SMOKE history fling PASS: order/list offset=1,2,3,4 each fired EXACTLY once; bottom = oldest #1/#2/#3 (36 history orders, total_size:36 in response, DB cross-check 25 delivered+11 canceled). Extra bottom flings refire NOTHING. Shot 14.
+- ORDERS SMOKE pull-to-refresh PASS (risky edge): refresh re-fired offset=1 once (session reset); subsequent scroll RE-paginated offset=2,3,4 each exactly once back to oldest #1. No duplicate fetches, no stuck pagination.
+- ORDERS SMOKE Cancelled toggle PASS: refresh-to-page-1 then Cancelled chip then scroll (original bug path) → offset=2,3 fired once each; cancelled-only cards incl. old #21 from a later page; 0 non-cancelled leak; ui_errors clean. Shot 15.
+- SWEEP home stores list (zone 2 grocery, "18 stores near you", limit 12) PASS: get-stores/all offset=1 and offset=2 each fired exactly once across the page boundary; ui_errors clean. Shot 16.
+- SWEEP chat page-2: N/A — seed unchanged since cycle 0 (1 conversation, 1 message; DB read-only check); page-2 unreachable, same Data-DoR note as cycle 0.
+- Automated backstop: flutter test (worktree UserApp @ c786be20) — 711 tests ALL PASSED (709 prior + 2 new race-repro/session-reset tests from 807ad296).
+- DTD get_runtime_errors over the whole delta session: ONE pre-existing rendering error — RenderFlex overflowed by 25px right in lib/common/widgets/item_shimmer.dart:59 (loading-skeleton Row; last touched 06cb996c, NOT in NEARS-338 diff) → regression_bug lane, does not affect verdict.
+- DELTA VERDICT: PASS — duplicate-fetch race fixed (0/2 repro, was 2/2); orders pagination + refresh-reset + Cancelled-toggle clean; home sweep clean.

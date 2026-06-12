@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-338
 
-**FAIL — orders-screen ACs 1-5 all pass live, but the shared PaginatedListView change introduces a duplicate-fetch race (store item search: offset=2 fired twice, duplicate cards rendered; reproduced 2/2)**
+**Delta re-QA (fix cycle 2) PASS — duplicate-fetch race fixed (0/2 repro, was 2/2); orders smoke + sweeps clean; 711 tests green**
 
-**11 screenshot(s).** Click any thumbnail for full resolution.
+**16 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -23,6 +23,15 @@
 <tr>
 <td align="center" width="33%"><a href="10-search-duplicate-items.png"><img src="10-search-duplicate-items.png" width="240"></a><br><sub>search duplicate items</sub></td>
 <td align="center" width="33%"><a href="11-orders-dark-mode.png"><img src="11-orders-dark-mode.png" width="240"></a><br><sub>orders dark mode</sub></td>
+<td align="center" width="33%"><a href="12-delta-search-attempt1-no-dupe.png"><img src="12-delta-search-attempt1-no-dupe.png" width="240"></a><br><sub>delta search attempt1 no dupe</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="13-delta-search-attempt2-no-dupe.png"><img src="13-delta-search-attempt2-no-dupe.png" width="240"></a><br><sub>delta search attempt2 no dupe</sub></td>
+<td align="center" width="33%"><a href="14-delta-history-bottom-oldest.png"><img src="14-delta-history-bottom-oldest.png" width="240"></a><br><sub>delta history bottom oldest</sub></td>
+<td align="center" width="33%"><a href="15-delta-cancelled-paginated.png"><img src="15-delta-cancelled-paginated.png" width="240"></a><br><sub>delta cancelled paginated</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="16-delta-home-stores-paginated.png"><img src="16-delta-home-stores-paginated.png" width="240"></a><br><sub>delta home stores paginated</sub></td>
 </tr>
 </table>
 
