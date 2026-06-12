@@ -1,0 +1,12 @@
+=== AC3: empty-email key isolation (fix-cycle-1 regression proof) ===
+cache:clear. Both payloads have email:'' (real UserApp phone-mode shape).
+
+-- Step 1: exhaust phoneA=+971500000001 (email:'') — expect 3x non-429 then 429 --
+  phoneA #1 -> HTTP 404   X-RateLimit-Remaining: 2
+  phoneA #2 -> HTTP 404   X-RateLimit-Remaining: 1
+  phoneA #3 -> HTTP 404   X-RateLimit-Remaining: 0
+  phoneA #4 -> HTTP 429   X-RateLimit-Remaining: 0
+
+-- Step 2: DIFFERENT phoneB=+971500000002 (email:'') SAME IP — MUST be non-429 --
+  phoneB #1 -> HTTP 404   X-RateLimit-Remaining: 2
+  RESULT: PASS — phoneB NOT throttled by phoneA's budget (key did not collapse on ip|'')

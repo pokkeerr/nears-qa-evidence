@@ -1,0 +1,9 @@
+=== AC4: /api/v1/auth/login NOT capped by otp-send (3/10min). 4x same identifier, under auth 5/min ===
+cache:clear. Using a fixed identifier across all 4 (so an identifier-keyed cap WOULD trip if present).
+
+login #1 -> HTTP 403   X-RateLimit-Limit: 5 X-RateLimit-Remaining: 4
+login #2 -> HTTP 403   X-RateLimit-Limit: 5 X-RateLimit-Remaining: 3
+login #3 -> HTTP 403   X-RateLimit-Limit: 5 X-RateLimit-Remaining: 2
+login #4 -> HTTP 403   X-RateLimit-Limit: 5 X-RateLimit-Remaining: 1
+
+(none should be 429; otp-send limiter not applied to login. ratelimit headers reflect throttle:auth 5/min only)

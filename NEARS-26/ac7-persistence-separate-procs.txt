@@ -1,0 +1,13 @@
+=== AC7: persistence across SEPARATE curl processes (cache-backed, not in-process) ===
+CACHE_DRIVER=database. Each curl below is its own OS process; a 2s gap between them.
+
+  separate curl proc #1 (pid varies) -> HTTP 404
+  separate curl proc #2 (pid varies) -> HTTP 404
+  separate curl proc #3 (pid varies) -> HTTP 404
+  ... [budget now exhausted across 3 independent processes] ...
+  separate curl proc #4 -> HTTP 429  <- 429 here proves state persisted across distinct invocations
+
+-- DB-level confirmation: the otp-send bucket key lives in the cache table --
+
+DB confirmation: 2 otp-send bucket row(s) with ~10min TTL present in the 'cache' table (database store).
+Laravel sha1-hashes the limiter key so the raw ip|phone is not stored in plaintext.

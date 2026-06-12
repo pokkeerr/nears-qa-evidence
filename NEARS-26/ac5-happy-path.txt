@@ -1,0 +1,7 @@
+=== AC5: happy path — ONE forgot-password for REAL seeded customer (id6, +971565811199) — first hit NOT 429 ===
+cache:clear. Expect normal 200 (OTP sent) or 405 (within 60s resend interval) — NOT 429 on first hit.
+
+forgot-password (real user) -> HTTP 200   X-RateLimit-Remaining: 2
+    body: {"message":"Otp sent successfull"}
+
+RESULT: PASS — first hit for a real user is NOT a 429 (limiter does not block the legitimate path)
