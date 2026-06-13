@@ -1,0 +1,15 @@
+NEARS-355 Step 2 — ISOLATION PROOF (the security-critical fix)
+cache cleared at Sat Jun 13 14:12:12 +04 2026; single IP=198.51.100.20
+Exhaust phone A (+971500000001, email:"") with 5 attempts, then phone B (+971500000002, email:"") once.
+PASS criterion: phone B = NON-429 (empty-email key no longer collapses both onto ip|'')
+----------------------------------------
+-- Phone A: 5 attempts (drain its 5/min bucket) --
+  A attempt 1 -> HTTP 403   X-RateLimit-Remaining: 4
+  A attempt 2 -> HTTP 403   X-RateLimit-Remaining: 3
+  A attempt 3 -> HTTP 403   X-RateLimit-Remaining: 2
+  A attempt 4 -> HTTP 403   X-RateLimit-Remaining: 1
+  A attempt 5 -> HTTP 403   X-RateLimit-Remaining: 0
+-- Phone B: ONE attempt, same IP, email also "" --
+  B attempt 1 -> HTTP 403   X-RateLimit-Remaining: 4
+----------------------------------------
+RESULT: PASS — phone B NON-429 (HTTP 403). Buckets are isolated.

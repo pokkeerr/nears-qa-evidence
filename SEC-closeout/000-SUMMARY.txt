@@ -1,0 +1,25 @@
+SEC-closeout LIVE QA — backend/API verification (curl + artisan)
+Branch: fix/SEC-closeout (base feat/reivew-code), primary tree /Users/Apple/Projects/nears
+Server: php artisan serve 127.0.0.1:8012  | CACHE_DRIVER=database (persistent, verified)
+PHP 8.5.6 | PHPUnit 11.5.55 | run 2026-06-13
+=====================================================================
+VERDICT: PASS
+
+NEARS-355 — auth limiter empty-string key isolation (security-critical)
+  Step 1 (same identifier 5/min trips):   PASS — 403x5 (remaining 4..0), 6th = 429 retry-after:60
+  Step 2 (ISOLATION PROOF):               PASS — phone A drained, phone B same IP = 403 (NON-429), own bucket remaining 4
+  Step 3 (per-IP 20/min ceiling intact):  PASS — 20 distinct-id pass, 21st = 429
+  Step 4 (happy path valid login):        PASS — customer@nears.com -> HTTP 200 + token, remaining 4 (no spurious 429)
+
+NEARS-358 — route:list hygiene
+  Step 5 (route:list -v):                 PASS — exit 0, 0 ReflectionException, 1478 routes
+                                          analytics route resolved: admin/analytics/dashboard -> Admin\AnalyticsController@getDashboard
+
+Automated backstop: vendor/bin/phpunit --configuration phpunit.xml -> 207 tests OK, 4307 assertions, 0 failures
+  AuthRateLimitTest in isolation: 3/3 green (SEC-E original + 2 new NEARS-355 key-isolation tests)
+
+Regression (NEARS-26 otp-send 3/10min): PASS — 403x3 (remaining 2..0), 4th = 429 retry-after:600 (undisturbed)
+=====================================================================
+NOTE on 403 vs 200 on throttle attempts: throttle middleware runs BEFORE the controller; the wrong/invalid
+bodies return 403 (validation) until the limiter trips to 429. The limiter's X-RateLimit-Remaining header
+decrements on every counted hit, which is what proves bucket behaviour independent of body validity.
