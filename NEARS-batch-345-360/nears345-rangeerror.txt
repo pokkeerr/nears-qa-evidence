@@ -1,0 +1,38 @@
+NEARS-345 — TASK BUG (breaks AC). Review Items decrement throws RangeError.
+
+Runtime error (captured via Dart MCP get_runtime_errors; NOT visible in screenshots or plain logcat):
+
+  Exception caught by gesture
+  RangeError (length): Invalid value: Valid value range is empty: 0
+  #0  List.[] (dart:core-patch/growable_array.dart)
+  #1  _ReviewItemRow.build.<anonymous closure>
+        (package:sixam_mart/features/checkout/widgets/review_items_section.dart:133:42)
+  #2  _InkResponseState.handleTap  (onTap handler)
+  Handler: "onTap"   finalLocalPosition: Offset(10.9, 5.0)   button: 1
+  errorsSinceReload: 13
+
+Root cause:
+  review_items_section.dart:132-139 onDecrement closure reads the cart LIVE:
+      if (cartController.cartList[cartIndex].quantity! > 1) { ... }
+      else { cartController.removeFromCart(cartIndex); }
+  After removeFromCart shrinks/empties cartList, the stale `cartIndex` is out of
+  range. "Valid value range is empty: 0" == indexing [0] on an EMPTY list ==
+  exactly the single-(qty1)-item removal path. So tapping minus on a qty-1 item
+  in the Review Items card throws instead of cleanly removing.
+
+Why it slipped earlier QA:
+  - Screenshots show no change (handler throws before UI updates) -> looks like a
+    dead button, not a crash.
+  - Plain logcat -s did not surface it; only Dart MCP get_runtime_errors did.
+  - 112 widget tests pass because they exercise CartController.removeFromCart, not
+    this widget's live cartList[cartIndex] read in the gesture closure.
+
+Contrast (proves the Review Items impl specifically is wrong):
+  The sibling cart screen (cart_item_widget.dart -> NearsQtyStepper) uses the SAME
+  guard but reads the CAPTURED widget.cart.quantity, so minus at qty1 removes the
+  line cleanly (verified live: cart -> "Your cart is empty", no error).
+
+Suggested fix:
+  In review_items_section onDecrement, use the captured `cart.quantity`/`qty`
+  (already in scope) instead of cartController.cartList[cartIndex], mirroring the
+  cart_item_widget pattern. Guard the index or read from the captured model.
