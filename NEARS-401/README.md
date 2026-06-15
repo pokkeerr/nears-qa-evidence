@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-401
 
-**NEARS-401 Basket reskin — PASS (15 shots): 6 gaps closed, substitution persists to checkout, RTL+dark+skeleton verified, 45/45 cart tests green**
+**verify**
 
 **15 screenshot(s).** Click any thumbnail for full resolution.
 
