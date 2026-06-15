@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-397
 
-**PASS — live design-match QA on emulator-5554 (Android 17): all 5 composition ACs demonstrated, 902 tests green, dark+RTL verified**
+**verify**
 
 **36 screenshot(s).** Click any thumbnail for full resolution.
 
