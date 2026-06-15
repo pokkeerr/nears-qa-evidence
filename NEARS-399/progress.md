@@ -40,3 +40,45 @@ Backend: http://127.0.0.1:8000 (api 200, baseUrl=10.0.2.2:8000)
 - 15-regression-addtocart-bottomcart.png: item grid renders (Carrots/Croissants/Milk), item detail + Add To Cart works, cross-store guard fires, "Item added to cart" + bottom View Cart bar. Regression PASS for grid/cards/cart.
 - DEFECT (task_bug, breaks AC): RenderFlex overflow in rebuilt store hero. DTD Flutter.Error reproduced TWICE on Test Store (rich meta: rated 5.0 + ETA + tower + wrapping 2-line address + free delivery) during SliverAppBar collapse scroll: "A RenderFlex overflowed by 5.7 / 3.3 pixels on the bottom" at Column nears_store_header_sliver.dart:184 (expanded-content Column, MainAxisSize.max, action-row 44dp + Spacer + logo/name 56dp + _MetaBlock). At collapse fractions the Column content exceeds the shrinking Positioned box (constraints h=180.3 / 182.7) before expandedOpacity fades it out. 16-hero-collapse-overflow.png attempted (stripe transient).
   Base branch feat/userapp-reskin hero used contentHeight=224 and a different action-row placement; this rebuild (280 + action row inside the Column) owns the overflow => defect IN this change. SAME class as the reopened-ticket target (overflow stripe).
+
+## FINAL VERDICT: FAIL (fix_cycle 2)
+- PASS: AC1, AC2, AC3, AC4, AC6 (carried search overflow FIXED both veg states + RTL), AC7, AC8, dark mode, RTL, regression sweep.
+- FAIL: AC5 (closed-store grid interactive, no IgnorePointer) + NEW hero RenderFlex overflow on collapse (nears_store_header_sliver.dart:184).
+- Automated: flutter test +887 All passed.
+- Evidence: https://github.com/pokkeerr/nears-qa-evidence/tree/main/NEARS-399
+- Jira comment posted (id 10536). Device lock released. Locale/theme restored to EN/light.
+
+---
+
+# NEARS-399 DELTA re-QA (fix_cycle 2, B1 fix verify) @ d0b4136c
+
+Device: emulator-5554 (Android, API 37). Branch feat/NEARS-399-store-detail @ d0b4136c.
+Backend http://127.0.0.1:8000 (config 200, baseUrl=10.0.2.2:8000). Read-only DB.
+Fix under test: hero expanded-content Column wrapped in ClipRect + OverflowBox(min/max=contentHeight=280, alignment bottomCenter) — clips during collapse instead of asserting RenderFlex overflow.
+
+Scope: verify ONLY the B1 collapse-overflow fix + no regression to the expanded hero / collapsed bar. NOT re-running the full passed AC matrix. B2/closed-store-orderable = NEARS-421, intentionally NOT gating.
+
+## B1 — rich-meta worst case (Test Store id 35, zone 2: tower "Marina Heights" + ETA 1-15 + free-delivery + long ~2-line address CCGW+C33... + 5.0 rating pill)
+- 01-richmeta-expanded-ltr.png: fully-expanded hero — cover+navy scrim, floating glass back/search/share/fav, bottom logo+name, mint 5.0 pill, glass ETA pill, tower + address sublines. Matches Stitch frame.
+- LTR slow collapse 8 incremental steps: ZERO overflow (logcat per-step + DTD runtime-errors none). 02/03 mid+collapsed shots.
+- Re-expand (scroll back up) 6 steps: ZERO overflow. Bidirectional clean. PASS
+
+## B2/B3 — expanded hero unchanged + collapsed pinned bar
+- Expanded hero pixel-composition identical to prior PASS (OverflowBox is no-op at full height). Collapsed = slim navy bar + back + store name. PASS
+
+## Item 4 — closed store collapse (Organic Shop id 9, zone 2, tower Marina Heights, status closed)
+- 04-closed-store-expanded.png: grayscale cover + grayscale logo (mint ring kept) + red "Closed Now" pill + NEW rating pill + 2-3 hours ETA + tower subline.
+- 8-step collapse: ZERO overflow. 05 collapsed shot. (Grid interactivity NOT tested — NEARS-421.) PASS
+
+## Item 5 — RTL/Arabic + Dark mode
+- RTL (Arabic): 06 expanded mirrored (buttons left, name/pills/sublines right-aligned, leading-ellipsis address); 8-step collapse ZERO overflow. 07 collapsed. PASS
+- Dark mode (English): 08 expanded hero composition identical, body=dark navy surface; 8-step collapse ZERO overflow. 09 collapsed. PASS
+
+## Item 6 — minimal-meta / unrated
+- Fresh Mart Grocery (zone 1, no tower, short addr, NEW unrated, 30-45 ETA, no free-delivery): 10 expanded; 8-step collapse ZERO overflow. 11 collapsed. PASS
+- Unrated "New" pill case also confirmed on Organic Shop + Fresh Mart. No-cover branded-fallback: covered by widget test (all seeded stores have covers, can't repro live).
+
+## Automated backstop
+- flutter test (UserApp): 889 passed incl. the 2 new collapse regression tests (LTR + RTL intermediate-offset, no-overflow asserts).
+
+## Verdict: PASS — B1 overflow eliminated, expanded hero unchanged, no regressions. Full-session logcat scan: zero overflow/RenderFlex/FlutterError.
