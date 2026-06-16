@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-410
 
-**FAIL — flash product card RenderFlex overflow (8px) clips Sold overlay; all other ACs PASS/code-verified**
+**RE-QA fix cycle 2 PASS — flash-sale product cards: NO RenderFlex overflow, Sold X/Y fully visible, countdown ticks live (RTL/Arabic)**
 
-**16 screenshot(s).** Click any thumbnail for full resolution.
+**22 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -32,6 +32,16 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="15-rtl-search-cards.png"><img src="15-rtl-search-cards.png" width="240"></a><br><sub>rtl search cards</sub></td>
+<td align="center" width="33%"><a href="recheck-00-home-arabic.png"><img src="recheck-00-home-arabic.png" width="240"></a><br><sub>recheck 00 home arabic</sub></td>
+<td align="center" width="33%"><a href="recheck-01-flash-rail-home.png"><img src="recheck-01-flash-rail-home.png" width="240"></a><br><sub>recheck 01 flash rail home</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="recheck-02-flash-header.png"><img src="recheck-02-flash-header.png" width="240"></a><br><sub>recheck 02 flash header</sub></td>
+<td align="center" width="33%"><a href="recheck-03-flash-details-top.png"><img src="recheck-03-flash-details-top.png" width="240"></a><br><sub>recheck 03 flash details top</sub></td>
+<td align="center" width="33%"><a href="recheck-04-flash-details-scroll.png"><img src="recheck-04-flash-details-scroll.png" width="240"></a><br><sub>recheck 04 flash details scroll</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="recheck-05-home-rail-cards.png"><img src="recheck-05-home-rail-cards.png" width="240"></a><br><sub>recheck 05 home rail cards</sub></td>
 </tr>
 </table>
 
