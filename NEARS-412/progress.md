@@ -29,3 +29,7 @@ Started: live QA pass
   *** TASK-BUG (dark-mode invisible text, breaks AC dark-fidelity) ***
   rate_review_screen.dart:80 — body page title "Rate & Review" uses NearsText.title.copyWith(color: NearsTokens.navy) (hardcoded const navy) -> renders navy-on-dark-navy body = INVISIBLE in dark mode. The rest of the cluster uses Theme.of(context).colorScheme.onSurface (conversation:197, refund:90/143/174 all correct) — rate_review is the ONE screen that didn't follow the theme-safe pattern. SECONDARY: item_review_widget price (NearsText.priceMd = navy const) renders dark-navy on lighter-navy card = very low contrast. Light mode unaffected (navy-on-cream fine, ac05 confirms). Shots: ac-dark-rate-review, ac-dark-rate-review-TITLE-BUG-crop.
   FIX: rate_review_screen.dart:80 navy -> Theme.of(context).colorScheme.onSurface (match conversation/refund pattern); item price -> theme-driven or onSurface. This is exactly the BC-2/§6.2 NearsText-on-navy systemic trap the ticket was meant to sweep.
+
+## FINAL VERDICT: FAIL (fix-cycle 0)
+Blocking task-bug: rate_review_screen.dart:80 dark-mode invisible page title (navy const on dark body); secondary item-price low-contrast. One-line isolated fix (-> colorScheme.onSurface, matching conversation/refund pattern).
+All other ACs PASS live except AC-6 (config-gated, refund_active_status=false, unverifiable-live, backstopped). Automated: 167 tests green. Regression: clean. Comment posted (id 10616). Gallery: https://github.com/pokkeerr/nears-qa-evidence/tree/main/NEARS-412

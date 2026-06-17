@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-412
 
-**QA FAIL fix-cycle 0 — dark-mode invisible title on rate_review; all other ACs pass live**
+**RE-QA delta cycle1 PASS — AC-12 dark-mode title + item price now legible (WCAG ~19.7:1); light unaffected; 25/25 review tests green**
 
 **39 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -73,6 +73,7 @@
 </table>
 
 ### Other artifacts
+- [`cycle1`](cycle1)
 - [`progress.md`](progress.md)
 
 ---
