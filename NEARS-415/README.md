@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-415
 
-**PASS — UserApp api_client PII-log strip: live logcat+VM confirm 0 body dumps, 0 leaked tokens; login+info+address-list 200 OK; source-pin 6/6 + analyze clean (emulator-5554, debug, @0496ba5e)**
+**PASS verify**
 
 **4 screenshot(s).** Click any thumbnail for full resolution.
 
