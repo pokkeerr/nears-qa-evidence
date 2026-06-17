@@ -1,0 +1,12 @@
+NEARS-415 — Automated backstop
+================================
+1) Source-pin test (proves no body-log can be reintroduced; surviving non-PII lines present):
+   $ flutter test test/api_client_no_pii_log_test.dart
+   RESULT: +6: All tests passed!
+   (6 assertions: no "API Body:", no debugPrint(response0.body) / no log(response0.body),
+    logBody/hasLogBody plumbing gone, "API Call: $uri" line present,
+    Header: ${_redactHeaders(...)} present, "API Response: [<status>] <uri>" present.)
+
+2) Static analysis (zero new issues from the change):
+   $ flutter analyze lib/api/api_client.dart
+   RESULT: No issues found! (ran in 2.4s)
