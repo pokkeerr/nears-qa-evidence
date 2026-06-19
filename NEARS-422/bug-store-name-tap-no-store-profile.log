@@ -1,0 +1,21 @@
+NEARS-422 AC4 defect — store-name tap inside item sheet (NOT on store page) does not land on store-profile
+
+Repro (live, emulator-5554, worktree @9740b758):
+1. Sign in, open Grocery module home (Abu Dhabi zone 2).
+2. Tap a grocery item ("Salted Pretzels", item id 108, store "Abu Dhabi Fresh Market" id 8, slug abu-dhabi-fresh-market) -> item bottom-sheet opens (inStorePage=false).
+3. Tap the store-name link "Abu Dhabi Fresh Market" inside the sheet.
+
+Expected (AC4): sheet dismisses AND lands on the store-profile screen exactly once.
+Actual: sheet dismisses but lands back on the grocery MODULE HOME; the store-profile screen NEVER appears.
+   - Screen state sampled every 0.4s for 3.2s after the tap: store-profile indicators (All Products / Closed Now / Favourite) = 0 the entire time; module-home indicators (Switch module / Buy It Again) = 2 throughout.
+   - No runtime exception (get_runtime_errors: none) -> item.moduleId! did not throw; the Get.toNamed store push simply does not reach the screen.
+
+Root cause (code): item_bottom_sheet.dart store-name onTap (else / not-inStorePage branch):
+   Get.back();
+   Get.find<CartController>().forcefullySetModule(item.moduleId!);   // async, NOT awaited
+   Get.toNamed(RouteHelper.getStoreRoute(id: item.storeId, page:'item', slug: item.storeDetails?.slug ?? ''));
+The pre-change code ALSO ran `Get.offNamed(getStoreRoute(...))` (original line 235), which was removed as a "double-push". That Get.offNamed was load-bearing: it is what actually landed the store-profile. With only Get.toNamed after Get.back() + a fire-and-forget async forcefullySetModule (setModule -> HomeController.loadData(true)), the store route push is dropped/superseded and navigation settles on the module home.
+
+Baseline (control): tapping the SAME store from its home banner uses Get.toNamed(getStoreRoute(...)) WITHOUT the preceding Get.back()/forcefullySetModule and DOES reach + stay on the store-profile. So getStoreRoute + slug are correct; the regression is specific to the sheet's store-name path.
+
+Store slug confirmed present (DB read-only): stores.slug = 'abu-dhabi-fresh-market' for store id 8.

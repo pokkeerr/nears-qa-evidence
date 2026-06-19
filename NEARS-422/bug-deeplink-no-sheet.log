@@ -1,0 +1,39 @@
+NEARS-422 AC5 defect — valid item deep-link does NOT open the sheet over the store-profile; lands on home
+
+Repro (live, emulator-5554, worktree @9740b758, grocery module active so the item fetch resolves):
+  adb shell am start -a android.intent.action.VIEW \
+    -d 'https://6ammart-web.6amtech.com/item-details/salted-pretzels-2?id=108&page=item&module=grocery' \
+    com.izzes.nears/com.izzes.nears.MainActivity
+
+Expected (AC5/B1): store-profile pushes first, the item bottom-sheet opens OVER it; dismissing the sheet lands on the store-profile.
+Actual: the app lands on the all-modules HOME ("What are you shopping for?"). NO item sheet is shown; NO store-profile remains. Sampled every 0.5s for 6s: sheet=0, store-profile=0, home=1 the entire time. No runtime exception.
+
+Flutter trace (logcat flutter:I) shows the flow STARTS correctly then is clobbered:
+  Received Deep Link URI ... /item-details/salted-pretzels-2?id=108&...module=grocery
+  =======Navigating to item details route: ...
+  API Response: [200] /api/v1/items/details/108            <- item confirmed (openItemDeepLink)
+  API Response: [200] /api/v1/customer/cart/list           <- forcefullySetModule -> setModule -> cart reload
+  API Response: [200] /api/v1/cashback/list
+  API Response: [200] /api/v1/config/get-zone-id...
+  API Response: [200] /api/v1/customer/wish-list
+  API Response: [200] /api/v1/home/all                      <- HomeController.loadData(true): FULL home reload
+  API Response: [200] /api/v1/items/details/108            <- sheet initState re-fetch
+  API Response: [200] /api/v1/module ... visit-again, flash-sales, other-banners, customer/info,
+                      advertisement/list, most-reviewed, campaigns/basic, popular, discounted,
+                      stores/get-stores/all ...            <- the whole home/dashboard rebuilds
+  API Response: [200] /api/v1/stores/details/2
+  _StoreScreenState.initDataCall (store_screen.dart:134)   <- store-profile DOES get pushed (initState runs)
+But the final visible screen is the modules-landing home, not store+sheet.
+
+Root cause (code, link_converter_helper.dart openItemDeepLink): after confirming the item it calls
+  await Get.find<CartController>().forcefullySetModule(item.moduleId!);
+forcefullySetModule -> ModuleController.setModule + HomeController.loadData(true), which fires a full
+home/dashboard reload cascade. The subsequent Get.toNamed(store route) + presentItemDetailSheet run, but
+the heavy async module/home reload resets/own the navigation, so the store-profile push + sheet are
+clobbered and the app settles on the home. The single `await Future.delayed(Duration.zero)` settle is far
+too short to outlast the multi-call home reload. (Same forcefullySetModule side-effect family as the AC4
+store-name-tap defect.)
+
+Note: a deep-link to an item in a module OTHER than the active one fetches with the WRONG module header and
+404s -> 'Item not found' even for a valid item (the fetch happens BEFORE the module is set). That path is the
+AC6 fail-safe, but it also means a cold deep-link from another module can never reach the item.
