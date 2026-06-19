@@ -1,0 +1,13 @@
+# NEARS-463 AC-2 delta re-QA — VendorApp DEBUG login-flow log capture
+# Device: emulator-5554 (Android API 37) | App: com.izzes.nearsvendor | branch feat/NEARS-463-cross-app-hardening @762efd56
+# Captured via flutter run DTD app-logs channel. Login: ahmed.khan@demo.com (seeded vendor owner) + password.
+#
+# --- api_client logging (the NEARS-463 fix target) IS clean: ---
+====> API Call: /api/v1/auth/vendor/login
+Header: {Content-Type: application/json; charset=UTF-8, X-localization: en, moduleId: 1, Authorization: Bearer <REDACTED-14CHARS>..., vendorType: owner}
+====> API Response: [200] /api/v1/auth/vendor/login
+#   ^ NO "====> API Body:" line — email+password request body is no longer logged. PASS for the api_client surface.
+====> API Call: /api/v1/vendor/profile
+Header: {... Authorization: Bearer <REDACTED-14CHARS>..., vendorType: owner}
+====> API Response: [200] /api/v1/vendor/profile
+#   ^ VendorApp uses header auth (no ?token= query param), bearer truncated to 14-char prefix.

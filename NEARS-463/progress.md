@@ -40,3 +40,12 @@ Branch feat/NEARS-463-cross-app-hardening @ 3ab7c7d3 · device emulator-5554 (re
 - DB: store state untouched (read-only); QA-created transient cart rows (147,148,150) cleaned up.
 
 ## VERDICT: FAIL — AC-2 (headline security AC) fails: login request BODY leaks credentials/token on debug build (both apps). AC-1/AC-3/AC-4 + all backstops PASS.
+
+## fix_cycle 2 delta re-QA — AC-2 (2026-06-19)
+- branch feat/NEARS-463-cross-app-hardening @762efd56 | device emulator-5554
+- AC-2 DeliveryApp: PASS — login POST /api/v1/auth/delivery-man/login logged URI+redacted header only, NO API Body line; all token= query params masked to token=***; bearer truncated. evidence: delivery-login-flow.log
+- automated: DeliveryApp flutter test api_client_redact_headers_test.dart = all passed
+- AC-2 VendorApp api_client: login POST /api/v1/auth/vendor/login logged URI+redacted header only, NO API Body (PASS for api_client surface). evidence: vendor-login-flow.log
+- AC-2 BUG (FAIL): VendorApp + DeliveryApp print FULL FCM device token in cleartext on login via _saveDeviceToken() (kDebugMode/debugPrint) — auth_repository.dart. NEARS-463 fix did not remove it. evidence: bug-fcm-device-token-cleartext-login.log
+- automated: VendorApp flutter test api_client_redact_headers_test.dart = all passed
+- VERDICT: FAIL — AC-2 not fully met; fcm token still leaks in cleartext on debug login (AC-2 says "NO fcm token anywhere").

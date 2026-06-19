@@ -1,0 +1,22 @@
+# NEARS-463 AC-2 delta re-QA — DeliveryApp DEBUG login-flow log capture
+# Device: emulator-5554 (Android API 37) | App: com.izzes.nearsdelivery | branch feat/NEARS-463-cross-app-hardening @762efd56
+# Captured via flutter run DTD app-logs channel (debugPrint routes here, not adb logcat).
+# Login flow: logout -> enter a seeded delivery-man phone + password -> tap Log In.
+# CONFIRMS: login POST logs URI + redacted header only; NO "API Body" line; token=*** in all uris.
+#
+# --- the LOGIN request (was the credential-leak surface) ---
+====> API Call: /api/v1/auth/delivery-man/login
+Header: {Content-Type: application/json; charset=UTF-8, X-localization: en, Authorization: Bearer DYfiG2Q...}
+====> API Response: [200] /api/v1/auth/delivery-man/login
+#   ^ NO "====> API Body:" line — the phone+password request body is no longer logged.
+#
+# --- representative authenticated GETs (token query param masked) ---
+====> API Call: /api/v1/delivery-man/profile?token=***
+Header: {Content-Type: application/json; charset=UTF-8, X-localization: en, Authorization: Bearer DYfiG2Q...}
+====> API Response: [200] /api/v1/delivery-man/profile?token=***
+====> API Call: /api/v1/delivery-man/latest-orders?token=***
+====> API Call: /api/v1/delivery-man/current-orders?token=***&offset=1&limit=10&order_status=all
+====> API Call: /api/v1/delivery-man/notifications?token=***
+====> API Response: [200] /api/v1/config
+#   ^ Authorization header truncated to a 14-char non-reusable prefix; token= query value -> token=***.
+#   ^ No request body, no password, no phone, no reset_token, no fcm token, no raw bearer anywhere.

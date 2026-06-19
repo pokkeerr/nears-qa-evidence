@@ -1,0 +1,20 @@
+# NEARS-463 BUG — full FCM device token logged in cleartext during LOGIN flow (VendorApp + DeliveryApp)
+# Device: emulator-5554 | branch feat/NEARS-463-cross-app-hardening @762efd56 | DEBUG build
+# AC-2 requires: "NO ... fcm token ... anywhere" on debug login. This print VIOLATES that.
+#
+# OBSERVED in VendorApp DTD app-logs during ahmed.khan@demo.com login (token VALUE redacted here):
+I/flutter (26437): -----Device Token----- do97R-...<FULL_FCM_TOKEN_REDACTED ~152 chars : APA91b...>...
+I/flutter (26437): ====> API Call: /api/v1/auth/vendor/login
+#   ^ the FULL FCM registration token is printed in cleartext on every login.
+#
+# SOURCE (unchanged by NEARS-463 fix — api_client fix did not touch this):
+#   VendorApp/lib/features/auth/domain/repositories/auth_repository.dart:62
+#     if (kDebugMode) { print('-----Device Token----- $deviceToken'); }
+#   DeliveryApp/lib/features/auth/domain/repositories/auth_repository.dart:97
+#     debugPrint('----Device Token----- $deviceToken');
+#   DeliveryApp/lib/features/forgot_password/domain/repositories/forgot_password_repository.dart:112
+#     debugPrint('----Device Token----- $deviceToken');
+#   (DeliveryApp did not emit a real token in this run only because the emulator's FCM
+#    returned SERVICE_NOT_AVAILABLE; on a device with FCM the same full token would print.)
+#
+# Same class as the original AC-2 FAIL: a credential-class secret logged cleartext, only kDebugMode-gated.
