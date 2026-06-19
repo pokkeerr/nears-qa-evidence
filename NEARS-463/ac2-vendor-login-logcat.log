@@ -1,0 +1,28 @@
+NEARS-463 AC-2 — VendorApp DEBUG-build login flow, api_client debug log (SCRUBBED)
+Captured 2026-06-19 via mcp__dart__get_app_logs (I/flutter debugPrint channel on `flutter run`).
+Login: email organicshop@demo.com, password entered live in the app UI.
+Real password and tokens below are REDACTED for this evidence file.
+
+====> API Call: /api/v1/auth/vendor/login
+Header: {Content-Type: application/json; charset=UTF-8, X-localization: en, moduleId: 1, Authorization: Bearer AcUCv1p..., vendorType: owner}
+====> API Body: {email: organicshop@demo.com, password: <REDACTED-9-CHAR-PW>, vendor_type: owner}
+====> API Response: [200] /api/v1/auth/vendor/login
+-----Device Token----- <REDACTED-FCM-DEVICE-TOKEN>            <- separate unguarded debugPrint (not api_client)
+====> API Call: /api/v1/vendor/update-fcm-token
+Header: {Content-Type: ..., Authorization: Bearer zpMTA78..., vendorType: owner}
+====> API Body: {_method: put, token: <REDACTED-FULL-BEARER-TOKEN-~110-CHARS>, fcm_token: <REDACTED-FCM-TOKEN>}
+====> API Response: [200] /api/v1/vendor/update-fcm-token
+
+OBSERVATIONS (verbatim from the live log, sensitive values scrubbed):
+  1. Auth HEADER redacted to a 14-char prefix + "..." (Bearer AcUCv1p... / zpMTA78...). GOOD.
+  2. Login request BODY logs email + password in CLEARTEXT on this DEBUG build:
+       "====> API Body: {email: organicshop@demo.com, password: <pw>, vendor_type: owner}"
+  3. update-fcm-token request BODY logs the FULL raw bearer/auth token in cleartext
+     ("token: <full-~110-char-token>") + the FCM device token — defeats the AC-2 "no raw
+     bearer token" goal entirely (the body channel is not redacted).
+  4. A separate "-----Device Token----- <fcm>" debugPrint (outside api_client) also leaks the
+     device token on debug (pre-existing, out of api_client scope but noted).
+
+VERDICT for AC-2 (VendorApp): FAIL. Header redaction works; the credential/token BODY leak does not.
+Root cause = same as DeliveryApp: postData() body log only wrapped in `if (kDebugMode)` (true on
+debug), not removed. The NEARS-415 reference (UserApp api_client.dart) has NO request-body log at all.

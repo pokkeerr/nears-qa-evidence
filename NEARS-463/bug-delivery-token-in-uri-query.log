@@ -1,0 +1,18 @@
+NEARS-463 AC-2 (secondary finding) — DeliveryApp DEBUG: bearer token leaks via the ?token= URI
+query string in api_client logs, despite the Authorization header being redacted. SCRUBBED.
+Captured 2026-06-19 via mcp__dart__get_app_logs on app boot (already-authenticated session).
+Real token chars REDACTED (shown as <TOKEN>).
+
+I/flutter: Header: {Content-Type: application/json; charset=UTF-8, X-localization: en, Authorization: Bearer qOcv9gR...}
+I/flutter: ====> API Response: [200] /api/v1/delivery-man/latest-orders?token=<TOKEN-FULL-~155-CHARS>
+I/flutter: ====> API Response: [200] /api/v1/delivery-man/current-orders?token=<TOKEN>&offset=1&limit=10&order_status=all
+I/flutter: ====> API Call: /api/v1/delivery-man/notifications?token=<TOKEN>
+I/flutter: ====> API Response: [200] /api/v1/delivery-man/notifications?token=<TOKEN>
+
+OBSERVATION: redactHeaders() masks the Authorization header, but DeliveryApp appends the same
+bearer token to the request URL as `?token=...`, and the api_client logs the uri verbatim
+(both "API Call: $uri" and "API Response: [...] $uri"). So the full, reusable token still reaches
+the debug log via the URL. This is in-scope of the AC-2 "no raw bearer/JWT token" goal and is NOT
+addressed by header redaction alone. (Pre-existing 6amMart pattern of token-in-query; NEARS-463 did
+not introduce it, but the redaction work leaves this channel open. Filed as a task bug since it
+defeats the AC-2 token-redaction intent.)

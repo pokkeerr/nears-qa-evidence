@@ -1,0 +1,27 @@
+NEARS-463 AC-2 — DeliveryApp DEBUG-build login flow, api_client debug log (SCRUBBED)
+Captured 2026-06-19 via mcp__dart__get_app_logs (flutter debugPrint channel; on `flutter run`
+debug builds debugPrint is routed to the run-process stdout, tagged I/flutter, NOT the device
+logcat `flutter` tag — adb logcat showed zero flutter lines this session; drift noted).
+Login screen: phone +971565656656 (seeded Ali Hassan), password entered live in the app UI.
+Real password/token values below are REDACTED for this evidence file.
+
+====> API Call: /api/v1/auth/delivery-man/login
+Header: {Content-Type: application/json; charset=UTF-8, X-localization: en, Authorization: Bearer qOcv9gR...}
+====> API Body: {phone: +971565656656, password: <REDACTED-9-CHAR-PW>}
+====> API Response: [200] /api/v1/auth/delivery-man/login
+
+OBSERVATION (verbatim from the live log, values scrubbed):
+  - Authorization HEADER is redacted to a 14-char prefix + "..." (Bearer qOcv9gR...). GOOD.
+  - The login request BODY STILL prints the phone AND password in cleartext on this DEBUG build:
+      "====> API Body: {phone: +971<...>, password: <...>}"
+    (real values were visible in the live log; redacted here.)
+
+VERDICT for AC-2: the header-redaction half of the fix works; the credential-body half DOES NOT.
+Root cause: postData() body log was only wrapped in `if (kDebugMode)` (true on debug), not removed.
+The NEARS-415 reference (UserApp api_client.dart) has NO request-body log at all -> nothing leaks
+even on debug. Delivery/Vendor diverge: body still leaks phone+password on debug.
+
+Earlier session boot also showed the bearer token leaking via the URI query string (?token=...)
+on DeliveryApp GET endpoints (latest-orders / current-orders / notifications) — the uri is logged
+verbatim and DeliveryApp passes the auth token as a `?token=` query param, so the full token reaches
+the log despite header redaction. See ac2-delivery-token-in-uri.log.
