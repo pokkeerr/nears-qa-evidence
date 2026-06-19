@@ -1,0 +1,14 @@
+# NEARS-458 QA progress (live)
+- device: emulator-5554 (Android 17, 1344x2992), build: feat/NEARS-458-menu-dark-bg @9cd47edf
+- backend: http://10.0.2.2:8000 (real local) — /api/v1/config 200
+- login: customer@nears.com (logged-in Profile state)
+- AC-4 (grep surfaceBg in features/menu): PASS — only 2 comment-line refs, 0 code uses
+- automated: flutter test menu_screen_reskin_test.dart = +11 All tests passed
+- AC-2 (light Profile bg = warm off-white): observed PASS — body/cards on surfaceBg, hero navy gradient. shot=ac2-profile-light-bg.png
+- AC-1 (dark Profile bg = navyDeep, not near-white): observed PASS — body scaffold dark navy, hero navy, cards lighter navy, body text light/legible. shot=ac1-profile-dark-bg.png
+- F-1 (Logout label legible in dark, raised error tint): observed PASS — red icon+label on dark-red tint pill on navyDeep, reads clearly. shot=f1-logout-dark.png
+- theme toggle via Settings>Dark Mode works (light<->dark). Settings screen also flips correctly.
+- OBSERVATION (out-of-scope, NEARS-460/461): NearsSettingsTile navy-on-navy icons somewhat dim in dark; card elev separation modest. Not 458's bug.
+- AC-3 (no flash, dark): hot-restart in dark -> Profile tab first paint = navyDeep from frame 1, no light flash. shot=ac3-hotrestart-dark-firstpaint.png
+- AC-3 (no flash, light): hot-restart in light -> Profile tab first paint = surfaceBg off-white, no dark flash. shot=ac3-hotrestart-light-firstpaint.png
+- theme toggle round-trips light<->dark via Settings (and dark mode persists across hot-restart). REGRESSION: theme toggle works = clean.
