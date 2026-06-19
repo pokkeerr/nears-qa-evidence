@@ -1,0 +1,16 @@
+NEARS-460 QA finding — NearsInput error helper-text + border hardcoded to NearsTokens.error (#BA1A1A), bypasses dark colorScheme.
+
+Surface: UserApp Sign In screen, dark mode, empty-form submit (client-side validation).
+Device: emulator-5554 (Android 17 / API 37). Theme: persisted 6ammart_theme=true (dark confirmed; scaffold navyDeep #00003C).
+
+Observed (pixel-sampled from ac1-dark-validation-error.png):
+- Field LABEL "Email/Phone" + field ERROR BORDER  -> #FFB4AB (warm pink), 7.77:1 on navyContainer.  CORRECT (theme-driven via InputDecoration).
+- Error HELPER TEXT "Enter email address or phone number" + "Please enter password" -> #BA1A1A (old dark red), only 3.05:1 on navyDeep, 2.07:1 on navyContainer. Low-contrast / near-invisible — the exact a11y problem NEARS-460 targets.
+
+Root cause: UserApp/lib/common/widgets/dls/nears_input.dart
+  line 167-169: errorBorder/focusedBorder/focusedErrorBorder = borderOf(NearsTokens.error, ...)
+  line 190:     error message Text style color: NearsTokens.error
+NearsTokens.error is the const light-mode token (#BA1A1A); it does NOT read Theme.of(context).colorScheme.error, so the new dark errorDark (#FFB4AB) never reaches NearsInput's own error message/border.
+
+Origin: introduced NEARS-394 (DLS foundation commit aa26f82d). NOT touched by NEARS-460 (c75f9cd5) -> PRE-EXISTING gap, not a regression in this change.
+Impact: NEARS-460 fixes the theme error quad (delivered, verified) but the most common dark error surface — form validation messages via NearsInput — still renders the low-contrast red. Fix: route NearsInput error border + text through Theme.of(context).colorScheme.error.
