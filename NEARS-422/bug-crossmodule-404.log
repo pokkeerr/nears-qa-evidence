@@ -1,0 +1,33 @@
+NEARS-422 AC5 cross-module deep-link — STILL FAILS (fix-cycle 1)
+
+Repro: app active in Grocery(module 1)/zone 2 Abu Dhabi. Fired deep link to a
+PHARMACY (module 3) item 598:
+  https://6ammart-web.6amtech.com/item-details/multivitamin-daily-53?id=598&page=item&module=pharmacy
+
+Live logcat (full query params confirmed delivered to the app):
+  I flutter : Received Deep Link URI: https://6ammart-web.6amtech.com/item-details/multivitamin-daily-53?id=598&page=item&module=pharmacy
+  I flutter : =======Navigating to item details route: /item-details/multivitamin-daily-53?id=598&page=item&module=pharmacy
+  I flutter : ====> API Response: [404] /api/v1/items/details/598
+
+Result: item 404s -> fail-safe 'item_not_found' fires, nothing pushed, screen
+stays on the prior grocery store-profile. The cross-module item NEVER resolves.
+
+Backend proof the item is fine, the MODULE CONTEXT is wrong:
+  GET /api/v1/items/details/598  moduleId:3 (pharmacy) zoneId:[2]  -> HTTP 200
+  GET /api/v1/items/details/598  moduleId:1 (grocery)  zoneId:[2]  -> HTTP 404
+  GET /api/v1/items/details/598  (no module header)               -> HTTP 403
+
+Root cause (link_converter_helper.dart openItemDeepLink):
+  final int? deepLinkModuleId = int.tryParse(moduleId);   // moduleId == "pharmacy" -> null
+  if (deepLinkModuleId != null) { await forcefullySetModule(deepLinkModuleId); }  // SKIPPED
+  await itemController.getItemDetails(itemId: itemId, ...); // runs against stale GROCERY module -> 404
+
+The deep-link `module` query param is the module NAME ("grocery"/"food"/"pharmacy"),
+not an integer id — see link_converter_helper.dart:62 sample link & route_helper.dart
+dispatch (passes the raw query value). int.tryParse on a name always yields null, so
+the "set module before fetch" branch the AC5 fix added never runs for a real
+cross-module web/share deep link. Needs a name->moduleId resolve (ModuleModel list in
+SplashController) before the fetch, OR fetch with an explicit moduleId header derived
+from the link, OR (if links truly only ever carry int ids) fix the producer — but the
+shipped sample link and the store-route branch both use the NAME, so the consumer must
+map name->id.
