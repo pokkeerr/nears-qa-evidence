@@ -1,0 +1,17 @@
+NEARS-456 QA — REGRESSION BUG (pre-existing, NOT in this change's file)
+Captured: live UserApp debug build, emulator-5554, OS font_scale=1.3 (app clamp), zone 2 (Abu Dhabi).
+
+A RenderFlex overflowed by 4.0 pixels on the bottom.
+The relevant error-causing widget was:
+  Column  Column:file:///Users/Apple/Projects/nears/UserApp/lib/features/home/screens/home_screen.dart:324:68
+The overflowing RenderFlex has an orientation of Axis.vertical.
+
+Overflowing RenderFlex (the "Deliver To" location header in the home app bar):
+  constraints: BoxConstraints(0.0<=w<=344.0, 0.0<=h<=40.0)  size: Size(344.0, 40.0)
+  child 1 RenderParagraph: text "Deliver To: Your Location" (Inter 11.0, textScaler linear 1.3x) size 18.0h
+  child 2 RenderFlex (address row): size 26.0h
+  -> 18 + 26 = 44 vs 40 available  => 4.0px vertical spill.
+
+Source widget: home_screen.dart:324 Flexible>Column (location_on icon + "Deliver To" eyebrow + address Row).
+This is the home-screen location header — it is NOT store_card.dart and was NOT touched by NEARS-456
+(single-file change to common/widgets/card_design/store_card.dart). Pre-existing at OS largest font size.
