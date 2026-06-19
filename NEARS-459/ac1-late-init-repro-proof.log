@@ -1,0 +1,16 @@
+NEARS-459 AC-1 regression proof — controlled local revert of the fix (late PublicChannel) makes the REAL OrderTrackingScreen tests RED on dispose:
+
+  Test failed. See exception logs above.
+  The test description was: in-flight fetch shows a spinner, not the empty state
+  The test description was: loaded WITH an order shows tracking content (a GoogleMap)
+  The test description was: loaded with NO order shows NearsEmptyState, not a spinner
+00:00 +0 -1: in-flight fetch shows a spinner, not the empty state [E]
+00:00 +0 -1: loaded with NO order shows NearsEmptyState, not a spinner
+00:00 +0 -2: loaded WITH an order shows tracking content (a GoogleMap)
+00:00 +0 -2: loaded with NO order shows NearsEmptyState, not a spinner [E]
+00:00 +0 -3: Some tests failed.
+00:00 +0 -3: loaded WITH an order shows tracking content (a GoogleMap) [E]
+00:00 +0: in-flight fetch shows a spinner, not the empty state
+LateInitializationError: Field 'publicChannel' has not been initialized.
+
+After restoring the shipped fix (PublicChannel? publicChannel = null), all 3 tests pass (see automated backstop).
