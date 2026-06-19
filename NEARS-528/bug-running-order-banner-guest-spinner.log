@@ -1,0 +1,35 @@
+PRE-EXISTING (regression_bug, NOT introduced by NEARS-528)
+Stale running-order banner -> order_details_screen infinite spinner after logout
+==================================================================================
+Repro:
+  1. Log in (customer@nears.com), open the app -> dashboard fetches running orders;
+     the floating "running order" banner (running_order_view_widget.dart) shows
+     the authed user's ongoing order (e.g. "Order #158 Confirmed").
+  2. Log out (Profile -> Logout -> Yes). The in-memory OrderController singleton
+     is NOT cleared, so the banner persists with the now-foreign order.
+  3. Tap the banner -> RouteHelper.getOrderDetailsRoute(158) -> order_details_screen.
+  4. Screen calls trackOrder(158) as a guest -> backend correctly returns 401
+     (NEARS-528 auth gate working as designed); timerTrackOrder() keeps polling
+     /track?order_id=158&guest_id=115 -> [401] every ~10s.
+
+Observed (logcat):
+  ====> API Response: [401] /api/v1/customer/order/track?order_id=158&guest_id=115   (repeats)
+
+Result: order_details_screen.dart gates only on `order != null`
+  (order_details_screen.dart:489 -> Center(CircularProgressIndicator)). On a 401
+  the trackModel stays null, so the screen shows an INFINITE navy spinner under a
+  "Order #158 Confirmed" app bar. No empty state, no error.
+
+Scope / why pre-existing (NOT a NEARS-528 regression):
+  - order_details_screen.dart, running_order_view_widget.dart, dashboard_screen.dart
+    are ALL untouched by NEARS-528 (155ab773^..9384ddbc).
+  - The null-trackModel -> infinite-spinner gate predates this change.
+  - Pre-NEARS-528 the same stale-banner-after-logout tap also yielded a non-200
+    (old guest path required contact_number -> 403) and the same null-order spinner.
+  - The reachable entry is the stale dashboard banner, not the My Orders tab.
+
+Suggested fix (separate ticket): clear OrderController.runningOrderList / trackModel
+  on logout, OR add an isTrackLoaded-based empty-state gate to order_details_screen
+  (same NEARS-459 pattern already applied to order_tracking_screen).
+
+Evidence shot: bug-running-order-banner-guest-spinner.png

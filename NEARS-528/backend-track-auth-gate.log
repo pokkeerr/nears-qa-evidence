@@ -1,0 +1,22 @@
+NEARS-528 AC-4 — backend authed-only track gate (live curl + backstop)
+========================================================================
+Backend: php artisan serve @ 127.0.0.1:8000  | DB: multi_food_db (read-only)
+
+[1] phpunit backstop — TrackOrderAuthGuardTest
+    vendor/bin/phpunit --filter TrackOrderAuthGuard  =>  OK 4/4 (9 assertions)
+
+[2] UNAUTHENTICATED  GET /api/v1/customer/order/track?order_id=158  (no token)
+    => HTTP 401   body: {"errors":"Unauthorized"}      (no order data)
+
+[3] GUEST-ID ONLY    GET .../track?order_id=158  -H "guest-id: 1"
+    => HTTP 401   body: {"errors":"Unauthorized"}      (no order data)
+
+[4] AUTHED OWN ORDER GET .../track?order_id=158  -H "Authorization: Bearer <customer@nears.com>"
+    => HTTP 200   order id:158 status:confirmed is_guest:false store:"Fresh Mart Grocery"
+    (order 158 -> user_id 6 = customer@nears.com, is_guest=0  [verified via SELECT])
+
+[5] IDOR — AUTHED user 6 tries foreign GUEST order 157 (user_id 106, is_guest=1)
+    => HTTP 404   body: {"errors":[{"code":"order","message":"Not found"}]}   (no data leak)
+    Owner filter ->where('user_id',$user_id)->where('is_guest',0) holds.
+
+VERDICT AC-4: PASS — guest/unauth get 401 with no data; authed reads only own non-guest orders.
