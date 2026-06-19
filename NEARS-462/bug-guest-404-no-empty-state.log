@@ -1,0 +1,35 @@
+NEARS-462 BUG — guest INVALID order id does NOT route to NearsEmptyState (shows transient toast, stays on input form)
+Device: emulator-5554 (Android 17 / API 37), AR locale, dark mode, branch feat/NEARS-461-nearstext-dark-refactor @ 3ee7aaa5
+
+REPRO (live):
+  Guest user, "تتبع الطلب" (track order) input.
+  order_id = 999999 (unseeded/invalid), phone = +971565811199, tap submit.
+
+OBSERVED logcat:
+  ===> OrderController.trackOrder: orderID=999999
+  ===> trackOrder query: /api/v1/customer/order/track?order_id=999999&guest_id=114&contact_number=+971565811199
+  ====> API Response: [404] ...                         <-- backend returns definitive 404
+  accessibility tree node right after tap: content-desc="Not found"   <-- transient ApiChecker toast
+  Screen at t1 / t3 / t6: STILL the input form (order_id=999999 visible).  NearsEmptyState NEVER rendered.
+
+EXPECTED (AC): a guest tracking an INVALID order id -> NearsEmptyState screen (icon + no_order_found + back_to_home CTA), NOT a snackbar/toast.
+
+ROOT CAUSE:
+  order_repository.dart trackOrder() calls apiClient.getData(query) with the DEFAULT handleError:true.
+  api_client.dart handleResponse() lines 662-668: for handleError==true AND statusCode!=200 it runs
+  ApiChecker.checkApi(response0) (shows the "Not found" toast) and RETURNS `const Response()` (statusCode=null, body=null).
+  -> repo builds ResponseModel(false, null, statusCode: null)
+  -> input widget _isDefiniteAnswer(response): response.statusCode==null -> returns FALSE
+  -> falls to the `else` snackbar branch instead of Get.toNamed(getGuestTrackOrderScreen).
+  The 404 is swallowed by handleError BEFORE the routing logic can classify it as a definitive answer.
+
+WHY UNIT TESTS MISS IT:
+  order_controller_test.dart mocks the service/repo and feeds a ResponseModel(statusCode:404) directly,
+  bypassing the real apiClient.handleError path. Controller logic is correct; the integration wiring is not.
+
+SUGGESTED FIX:
+  In order_repository.dart trackOrder(), call apiClient.getData(query, handleError: false) so the real
+  404 statusCode reaches _isDefiniteAnswer (the repo already maps a non-200 -> order:null + statusCode).
+
+SCOPE: valid id (156) -> 200 -> populated screen routes correctly. Network error (airplane) -> snackbar, correct.
+Only the 404 not-found path is broken. This BREAKS the NEARS-462 routing AC.
