@@ -22,3 +22,25 @@ Driving: TalkBack semantics (focus + double-tap) required — this build's Nears
 "BOTTOM OVERFLOWED BY 2.0 PIXELS" on BottomCartWidget — all 3 render sites, light+dark.
 Content Column (price + "N item" subtext) doesn't fit the fixed 64dp content height with internal
 vertical padding. "N item" subtext is clipped. bug-cartbar-bottom-overflow-2px.{png,log}
+
+## CYCLE 1 (DELTA) — build ed9f2435 (fix: minHeight not fixed 64dp + price Column MainAxisSize.min)
+Device emulator-5556, logged in customer@nears.com, zone 2. Backend :8000 live (api/v1/config=200).
+LIGHT MODE — overflow GONE on all 3 sites; "1 Item" subtext fully visible:
+- Store Detail: PASS — fix-storedetail-light-NO-overflow.png (no banner, no runtime err)
+- Store Item Search: PASS — fix-storeitemsearch-light-NO-overflow.png (no banner, no runtime err)
+- Search tab: PASS — fix-search-light-NO-overflow.png (bar floats above navy nav, no overlap; no banner)
+
+DARK MODE — overflow GONE on all 3 sites; "1 Item" subtext fully visible; price = sky-blue (correct):
+- Store Detail: PASS — fix-storedetail-dark-NO-overflow.png (sky price, no banner, no runtime err)
+- Store Item Search: PASS — fix-storeitemsearch-dark-NO-overflow.png (sky price, no banner, no runtime err)
+- Search tab: PASS — fix-search-dark-NO-overflow.png (bar above navy nav, no overlap; sky price; no banner)
+
+COMPOSITION (AC-2): taller minHeight pill still sits cleanly above floating navy nav on Search (no new overlap);
+floats correctly above system edge on Store routes. Confirmed both themes.
+Runtime errors via DTD get_runtime_errors: NONE on any of the 6 captures. ui_errors (logcat): clean.
+
+EMPTY-CART (AC-3 quick confirm, live): removed cart item (client-side cart op, reversible — NO order placed, NO DB write):
+- Search tab: bar HIDDEN (PASS) — fix-search-light not applicable; live ui_find blank
+- Store Detail: bar HIDDEN (PASS) — store screen open, View Cart absent
+- (gating ternary identical across all 3 sites; cycle-0 already PASSed all 3) 
+Re-added item afterward → cart restored to 1 item (left as found). No runtime errors throughout.
