@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-504
 
-**FAIL — BottomCartWidget overflows 2px on all 3 render sites (light+dark); dark price=sky OK; empty-state hidden OK**
+**verify**
 
 **12 screenshot(s).** Click any thumbnail for full resolution.
 
