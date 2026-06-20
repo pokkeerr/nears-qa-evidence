@@ -1,0 +1,43 @@
+NEARS-490 QA — native FATAL crash in geolocator plugin on the location-resolution path (Set Location / Use Current Location).
+NOT in NEARS-490 Dart code (category controller/repo/backend). Pre-existing location-plugin native fault; surfaced while re-demonstrating the location-change leg on emulator-5554.
+--- fatal stack (flutter run output) ---
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.baseflow.geolocator.location.FusedLocationClient$$ExternalSyntheticLambda1.onSuccess(java.lang.Object) (D8$$SyntheticClass:0)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.google.android.gms.tasks.zzm.run() (com.google.android.gms:play-services-tasks@@18.4.0:1)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.os.Handler.handleCallback(android.os.Message) (Handler.java:1095)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.os.Handler.dispatchMessageImpl(android.os.Message) (Handler.java:135)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:125)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at boolean android.os.Looper.loopOnce(android.os.Looper, long, int) (Looper.java:296)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.os.Looper.loop() (Looper.java:397)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:9523)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:575)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:939)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620] Caused by: android.os.DeadSystemException: 
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.app.ActivityThread$3.onTransactionError(int, int, int, int) (ActivityThread.java:8382)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.os.Binder.transactionCallback(int, int, int, int) (Binder.java:699)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at boolean android.os.BinderProxy.transactNative(int, android.os.Parcel, android.os.Parcel, int) (BinderProxy.java:-2)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at boolean android.os.BinderProxy.transact(int, android.os.Parcel, android.os.Parcel, int) (BinderProxy.java:626)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.location.ILocationManager$Stub$Proxy.registerGnssNmeaCallback(android.location.IGnssNmeaListener, java.lang.String, java.lang.String, java.lang.String) (ILocationManager.java:1593)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.location.LocationManager$GnssNmeaTransportManager.registerTransport(android.location.LocationManager$GnssNmeaTransport) (LocationManager.java:3138)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.location.LocationManager$GnssNmeaTransportManager.registerTransport(com.android.internal.listeners.ListenerTransport) (LocationManager.java:3128)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.android.internal.listeners.ListenerTransportManager.addListener(java.lang.Object, com.android.internal.listeners.ListenerTransport) (ListenerTransportManager.java:70)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at boolean android.location.LocationManager.addNmeaListener(java.util.concurrent.Executor, android.location.OnNmeaMessageListener) (LocationManager.java:2630)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at boolean android.location.LocationManager.addNmeaListener(android.location.OnNmeaMessageListener, android.os.Handler) (LocationManager.java:2611)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.baseflow.geolocator.location.NmeaClient.start() (NmeaClient.java:80)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.baseflow.geolocator.location.FusedLocationClient.requestPositionUpdates(com.baseflow.geolocator.location.LocationOptions) (FusedLocationClient.java:157)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.baseflow.geolocator.location.FusedLocationClient.lambda$startPositionUpdates$2$com-baseflow-geolocator-location-FusedLocationClient(com.google.android.gms.location.LocationSettingsResponse) (FusedLocationClient.java:240)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.baseflow.geolocator.location.FusedLocationClient$$ExternalSyntheticLambda1.onSuccess(java.lang.Object) (D8$$SyntheticClass:0)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.google.android.gms.tasks.zzm.run() (com.google.android.gms:play-services-tasks@@18.4.0:1)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.os.Handler.handleCallback(android.os.Message) (Handler.java:1095)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.os.Handler.dispatchMessageImpl(android.os.Message) (Handler.java:135)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:125)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at boolean android.os.Looper.loopOnce(android.os.Looper, long, int) (Looper.java:296)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.os.Looper.loop() (Looper.java:397)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:9523)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:575)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:939)
+F/com.izzes.nears( 2709): java_vm_ext.cc:620] 
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]     in call to NewStringUTF
+F/com.izzes.nears( 2709): java_vm_ext.cc:620]     from boolean android.os.BinderProxy.transactNative(int, android.os.Parcel, android.os.Parcel, int)
+Lost connection to device.

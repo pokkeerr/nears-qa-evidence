@@ -1,0 +1,9 @@
+NEARS-490 QA — pre-existing rail-vs-grid count divergence (NOT introduced by this change).
+Rail items_count uses JSON category_ids (position=1); grid total_size uses the scalar category_id relation, so the two count sources can disagree for an item categorized via one mechanism but not the other.
+Observed live via API, store_id=16 (Smart Shopping), zone 2 module 1:
+  cat 3  (Fruits & Vegetables): rail=4  grid=4   OK
+  cat 6  (Dairy & Eggs):        rail=2  grid=2   OK
+  cat 9  (Beverages):           rail=2  grid=3   <-- DIVERGENCE (rail JSON count != grid scalar count)
+  cat 13 (Bakery & Bread):      rail=1  grid=1   OK
+  cat 11 (Soft Drinks):         rail=3  grid=3   OK
+Both surfaces are correctly single-store scoped post-NEARS-490; only the count SOURCE differs (predates this ticket). Backend-engineer pre-flagged this.
