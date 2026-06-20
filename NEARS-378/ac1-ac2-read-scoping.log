@@ -1,0 +1,16 @@
+NEARS-378 AC1/AC2 — read scoping (owner organicshop@demo.com, vendor 6, store 9)
+
+AC1 (read, owner LIST):  GET /api/v1/vendor/get-items-list?limit=100&type=all
+  -> HTTP 200, total_size=15, and ALL 15 items carry "store_id":9 (grep: 15x store_id:9, 0 others). No leakage.
+
+AC1b (read, owner DETAILS own):  GET /api/v1/vendor/item/details/52
+  -> HTTP 200, item id=52 "Strawberries" store_id=9 (own store).
+
+AC2 (cross-store DENY, owner) [core security AC]:  GET /api/v1/vendor/item/details/203  (item 203 = store 13, FOREIGN)
+  -> HTTP 404  {"errors":{"code":"product-001","message":"Not found"}}
+  -> NO leak: response contains no name field and zero "store_id":13. Scoped out, not the foreign item's data.
+
+AC6 (no over-scoping regression on reads):
+  - store 9 DB approved-item count = 15 == API total_size 15 (sane).
+  - second owner ahmed.khan@demo.com (vendor 2, owns 2 stores, stores[0]=store 2):
+    get-items-list -> total_size=22, all 22 items store_id=2 (correctly scoped to stores[0]).

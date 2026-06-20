@@ -1,0 +1,7 @@
+NEARS-378 AC3 — write-deny (owner token, FOREIGN item 203, store 13)
+Request:  GET /api/v1/vendor/item/status?id=203&status=0  (Authorization: Bearer <owner>, vendorType: owner)
+Response: HTTP 404
+Body:     "No query results for model [App\Models\Item] 203"  (NotFoundHttpException from findOrFail)
+Mutation: NONE — findOrFail throws before $product->status=...; $product->save().
+DB proof: SELECT id,store_id,status FROM items WHERE id=203  ->  id=203 store_id=13 status=1 (UNCHANGED).
+Pipeline: stack trace confirms VendorTokenIsValid ran (guard armed) ahead of the controller.

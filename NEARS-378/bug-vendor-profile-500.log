@@ -1,0 +1,39 @@
+NEARS-378 TASK BUG — /api/v1/vendor/profile regresses to HTTP 500 (introduced by this fix)
+
+REPRO (patched worktree, php artisan serve :8001, owner organicshop@demo.com / store 9):
+  POST /api/v1/auth/vendor/login {email, password:<seeded>, vendor_type:owner}  -> 200, token
+  GET  /api/v1/vendor/profile   (Authorization: Bearer <token>, vendorType: owner)
+  -> HTTP 500  body {"message":"Something went wrong"}
+
+ROOT CAUSE (laravel.log):
+  ErrorException: Attempt to read property "id" on null
+    at app/CentralLogics/Helpers.php:2213   ->  return auth('vendor')->user()->stores[0]->id;
+    <- app/Scopes/StoreScope.php:21          ->  Helpers::get_store_id()
+    <- (Item global StoreScope applied during) VendorController.php:192
+        $st?->items()->where(...)->...->count()   (out_of_stock_count in get_profile)
+  The newly-armed StoreScope (this fix) runs inside get_profile's un-qualified
+  $st->items() relation count. At that point auth('vendor')->user() resolves NULL
+  (the 'vendor' guard is the SESSION driver; in this request path its setUser()-seeded
+  user is not present when StoreScope::apply -> get_store_id() executes), so
+  get_store_id() dereferences null->stores[0]->id and throws.
+
+CLASSIFICATION — REGRESSION INTRODUCED BY NEARS-378 (proven by base A/B):
+  BASE (fix stashed, setUser removed):   GET /vendor/profile -> HTTP 200  (works)
+  PATCHED (fix applied):                 GET /vendor/profile -> HTTP 500  (crash)
+  Pre-fix, StoreScope was never armed on the token path, so $st->items()->count()
+  ran unscoped and never called get_store_id(); the fix arming the scope exposes
+  get_store_id()'s null-unsafety on this code path.
+
+BLAST RADIUS (patched, owner token, probed):
+  200 get-items-list | 200 item/details/52 | 200 notifications | 200 earning-info
+  200 current-orders | 200 item/stock-limit-list | 200 get-basic-campaigns
+  500 vendor/profile   <-- ONLY profile regresses.
+  Impact: /vendor/profile is the VendorApp dashboard/home load (store, order counts,
+  earnings, out-of-stock). A 500 there breaks VendorApp launch for token-auth vendors.
+
+SUGGESTED FIX DIRECTION (for engineer, not applied):
+  Either (a) make Helpers::get_store_id() null-safe / fall back to $request['vendor']
+  when auth('vendor')->user() is null, or (b) in get_profile qualify the items() count
+  with an explicit ->where('store_id', $store['id']) and/or withoutGlobalScope(StoreScope)
+  for that aggregate, or (c) ensure the session-guard user remains resolved across the
+  request for the StoreScope path. Add a token-path feature test for GET /vendor/profile.

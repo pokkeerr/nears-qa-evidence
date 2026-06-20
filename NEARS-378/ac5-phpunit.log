@@ -1,0 +1,23 @@
+NEARS-378 AC5 — phpunit security suites (worktree Admin/, multi_food_db_test)
+
+CMD: vendor/bin/phpunit --configuration phpunit.xml \
+     --filter 'VendorGuardSeedingTest|VendorItemGlobalScopeTest|VendorItemIdorTest|VendorCrossStoreIdorTest|VendorCancelGuardTest'
+
+RESULT: OK — Tests: 17, Assertions: 44 (100% pass). PHPUnit Deprecations: 2 (framework-level
+metadata/doc-comment deprecations, suite-wide, NOT test failures, NOT NEARS-378-specific).
+
+AC4 (employee) coverage — among the 17 green (testdox):
+  VendorGuardSeeding:
+    OK  Owner token seeds vendor guard and store id
+    OK  Employee token seeds both guards and store id
+    OK  Missing vendor type header is rejected
+    OK  Invalid owner token is rejected and arms nothing
+  VendorItemGlobalScope:
+    OK  Owner request scopes items to own store
+    OK  Employee request scopes items to employee store   <-- AC4 coverage
+    OK  No vendor context leaves items unscoped (baseline: scope is guard-driven)
+
+No EMPLOYEE account is seeded in live multi_food_db (vendor_employees = 0 rows), so AC4 is
+verified via these phpunit tests (they drive the REAL VendorTokenIsValid middleware with an
+employee token: own-store visible, foreign Item::find()=null, Item::all() only employee store),
+not fabricated against the live DB.

@@ -1,0 +1,7 @@
+NEARS-378 LIVE PROOF — StoreScope arms in a real HTTP request
+Endpoint: GET /api/v1/vendor/get-items-list  (owner token, vendorType: owner, store 9)
+Captured from MySQL general_log during the live curl (read-only on data).
+Two store_id=9 predicates: [1] explicit surgical guard (get_items), [2] StoreScope global scope (armed by VendorTokenIsValid->setUser).
+----
+2026-06-20T12:30:31.825956Z	45811 Execute	select count(*) as aggregate from `items` where `is_approved` = 1 and `store_id` = 9 and `store_id` = 9
+2026-06-20T12:30:31.826480Z	45811 Execute	select * from `items` where `is_approved` = 1 and `store_id` = 9 and `store_id` = 9 order by `created_at` desc limit 3 offset 0
