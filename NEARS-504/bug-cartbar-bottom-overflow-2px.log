@@ -1,0 +1,21 @@
+DEFECT: BottomCartWidget — "BOTTOM OVERFLOWED BY 2.0 PIXELS" (Flutter RenderFlex/Column vertical overflow)
+
+Observed live on emulator-5556, build b746508b (feat/NEARS-504-viewcart-floating),
+zone 2 Abu Dhabi, logged-in customer@nears.com, on ALL THREE render sites and BOTH themes:
+  - Search tab (dashboard tab 2)            — light + (cart 2 items / 1 item)
+  - Store Item Search (pushed route)        — light
+  - Store Detail (pushed route)             — light + dark
+The Flutter debug overflow ribbon "BOTTOM OVERFLOWED BY 2.0 PIXELS" renders ON the bar.
+
+ROOT CAUSE (from dark-mode zoom): the inner content Column
+  [ price Text  +  "N item" subtext Text ]
+does not fit inside the fixed content height (NearsTokens.bottomNavHeight = 64dp) once the
+internal EdgeInsets.symmetric(vertical: paddingSizeSmall) padding is applied. The "N item"
+subtext row is CLIPPED and the box overflows its parent by 2.0px.
+
+Impact: every cart-bar appearance (all 3 sites, light+dark) ships a visible debug overflow
+in debug builds and a clipped "N item" subtext line. Breaks AC-2 (clean glass-family bar) and
+the bar's intended composition across AC-1/AC-3.
+
+Likely fix: drop the fixed 64dp content height OR reduce vertical padding / let the Column size
+to its content (the legacy widget used 74/100dp; the new 64dp is 2px too short for badge+price+subtext).
