@@ -1,0 +1,34 @@
+NEARS-493 QA — DATA FINDING (pre-existing / regression lane)
+Duplicate business_settings.currency rows make Helpers::currency_code() nondeterministic.
+
+--- Evidence (read-only SELECT on multi_food_db) ---
+mysql> SELECT id, `key`, value FROM business_settings WHERE `key`='currency';
+17   currency  AED
+151  currency  USD
+
+mysql> SELECT COUNT(*) FROM business_settings WHERE `key`='currency';
+2
+
+--- Code path ---
+ConfigController::configuration()  ->  'currency_code' => Helpers::currency_code()
+Helpers::currency_code()           ->  get_business_settings('currency')
+get_business_settings()            ->  $allSettings (Cache::rememberForever 'business_settings_all_data',
+                                       = BusinessSetting::select('key','value')->get())  ->  firstWhere('key','currency')
+
+firstWhere returns the FIRST matching element of an UNORDERED select()->get() collection,
+then pins it via Config::set + the rememberForever cache. With two key='currency' rows the
+chosen value depends on row/insert order and cache-population order, not intent.
+
+--- Live observation (worktree backend on :8000) ---
+GET /api/v1/config (x3 stable today):
+  currency_code = 'AED'    currency_symbol = 'د.إ.‏'    currency_symbol_direction = 'left'
+
+Today it resolves to AED (id 17 < id 151, and the cache was warmed in that order), so NEARS-493
+demonstrates correctly end-to-end. But the value is latent-nondeterministic: a cache rebuild or
+row re-order could surface USD, which would then drive the EN suffix (`5.00 USD`) and the
+Currency-table symbol lookup off the wrong code.
+
+Severity: low (stable in practice today; data hygiene, not a code defect in this change).
+Fix owner: data/backend grooming — de-duplicate the business_settings.currency row to a single
+AED row (versioned seeder/migration, with owner approval). DB is read-only in QA; NOT fixed here.
+This does NOT block NEARS-493 (the change consumes the helper correctly; AC5 passes with AED).
