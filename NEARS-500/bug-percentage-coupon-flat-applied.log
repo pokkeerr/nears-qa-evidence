@@ -1,0 +1,27 @@
+BUG (pre-existing, NOT introduced by NEARS-500): percentage coupons applied as a flat amount at checkout
+
+ROOT CAUSE
+UserApp/lib/features/coupon/controllers/coupon_controller.dart:116 (and :146 taxi)
+    if (_coupon!.discountType == 'percent') {   // <-- expects 'percent'
+The backend coupon-apply API returns discount_type = "percentage" (full word).
+Confirmed live against local backend:
+  GET /api/v1/coupon/apply?code=NEARS10&order_amount=22&store_id=9  (moduleId:1)
+  -> {"code":"NEARS10","discount":10,"discount_type":"percentage","max_discount":15,...}
+Because 'percentage' != 'percent', the percent branch is skipped and execution
+falls to the else (line 122-123): _discount = _coupon!.discount  => 10 applied
+as a FLAT AED 10, instead of 10% of order (~AED 2.20) capped at AED 15.
+
+OBSERVED IN UI (grocery checkout, cart subtotal AED 22):
+  Order Summary -> Subtotal AED 22, Discount -AED 2 (item), Coupon Discount -AED 10, Total AED 10.
+  Expected coupon discount: ~AED 2.20 (10% of 22, under AED 15 cap).
+
+SCOPE / LANE
+- NEARS-500 did NOT modify coupon_controller.dart (git log 4a122e50~1..HEAD confirms).
+- The manual "Apply" promo-entry button uses the SAME CouponController.applyCoupon()
+  path, so it exhibits the identical mis-calculation. Strip is not the cause.
+- This is a pre-existing 6amMart data/code contract mismatch (seed/admin emits
+  'percentage'; client checks 'percent'). Affects ALL percentage coupons app-wide.
+
+FIX DIRECTION (for the engineer/PO, not this ticket): normalize discountType
+check to accept both 'percent' and 'percentage' (or map at model parse), in
+_processCoupon and the taxi path, plus coupon_card_widget.dart:36 (% vs currency display).
