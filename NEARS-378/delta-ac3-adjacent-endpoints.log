@@ -1,0 +1,18 @@
+===== AC3: shared-helper (get_store_id) adjacent vendor endpoints — owner vendor 2 store 2 =====
+
+-- (1) GET /vendor/categories --
+categories  HTTP 200
+  -> categories returned: 33
+
+-- (2) GET /vendor/item/stock-limit-list (store-scoped low-stock list) --
+stock-limit-list  HTTP 200
+  -> total_size: 1 distinct store_ids: [2]
+
+-- (3) POST /vendor/item/search (own-store scoped search) --
+item/search  HTTP 500
+  -> total_size: None distinct store_ids: []
+
+-- (4) GET /vendor/categories/category-wise-products/{id} (POS-style item list, store-scoped) --
+category-wise-products/13  HTTP 200
+  -> items: 1 distinct store_ids: [2]
+error-line count: 4

@@ -1,0 +1,21 @@
+REGRESSION BUG (PRE-EXISTING, NOT caused by NEARS-378/537) — POST /api/v1/vendor/item/search => HTTP 500
+
+ENDPOINT: POST /api/v1/vendor/item/search (owner token, payload {name,offset,limit,type})
+RESULT:   HTTP 500
+
+ROOT CAUSE: RelationNotFoundException — Call to undefined relationship [rating] on model [App\Models\Item]
+  at ItemController.php:885 ->get(), from the eager-load ItemController.php:862  ->with(['rating'])
+  Item model (app/Models/Item.php) defines reviews() but NO rating() relationship.
+
+INDEPENDENT OF THIS CHANGE (proof):
+  - ItemController.php is byte-identical between worktree and HEAD (git diff --stat HEAD => empty).
+  - with(['rating']) is committed in HEAD (line 862), not introduced by NEARS-378/537.
+  - The 500 stack trace is purely eagerLoadRelation -> RelationNotFoundException;
+    it does NOT pass through Helpers::get_store_id() or App\Scopes\StoreScope (the changed code).
+  => fails on base too; the StoreScope/get_store_id fix is not in this code path.
+
+--- stack trace (truncated) ---
+[2026-06-20 17:03:41] local.ERROR: Call to undefined relationship [rating] on model [App\Models\Item]. {"exception":"[object] (Illuminate\\Database\\Eloquent\\RelationNotFoundException(code: 0): Call to undefined relationship [rating] on model [App\\Models\\Item]. at /Users/Apple/Projects/nears-NEAR
+
+SEVERITY: medium (vendor item-search feature broken for all vendors; surface = Backend / VendorApp item search)
+SUGGESTED: change ->with(['rating']) to ->with(['reviews']) or add a rating() relation/withAvg on Item.

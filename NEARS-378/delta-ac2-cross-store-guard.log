@@ -1,0 +1,29 @@
+===== AC2: NEARS-378 cross-store guard STILL INTACT — owner vendor 2 (store 2) =====
+owner vendor 2, store 2; token len 120
+
+-- OWN item details (id 2, store 2) => expect 200 --
+OWN item/details/2  HTTP 200
+  -> name: Red Apple store_id: 2
+
+-- FOREIGN item details (id 52, store 9 organicshop) => expect 404, NO leak of name/store_id 9 --
+FOREIGN item/details/52  HTTP 404
+  -> body: {"errors":{"code":"product-001","message":"Not found"}}
+  -> leak check (must NOT contain Strawberries / store_id 9):
+    no name leak
+    foreign store_id present? None
+
+-- FOREIGN item via stock-update (PUT) => expect 404 BEFORE any mutation (write-deny, read-only safe) --
+FOREIGN stock-update id 52  HTTP 403
+  -> body: {"errors":[{"code":"product_id","message":"The product id field is required."},{"code":"current_stock","message":"The current stock field is required."}]}
+52	Strawberries	9	499	1
+
+-- FOREIGN write-deny with CORRECT payload (product_id=52 store 9, current_stock) => expect 404, NO mutation --
+FOREIGN stock-update product_id=52  HTTP 404
+  -> body: <!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required Meta Tags Always Come First -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-f
+  -> code: Item::where(store_id=own)->findOrFail(52) => 404 BEFORE save (no mutation)
+52	499

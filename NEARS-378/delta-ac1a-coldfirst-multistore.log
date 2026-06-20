@@ -1,0 +1,23 @@
+===== AC1a (cold-first 200) + AC1d (multi-store own-store) : OWNER vendor 2 ahmed.khan, stores [2,6] =====
+server: COLD (fresh php artisan serve restart, profile = first vendor-token request)
+
+-- login (vendor_type:owner) --
+login: {"token":"fTwraOQ3YLfovfTuZXFhSdvUTkEfqzpuF7f5nwaIWQ4bcdxxqDbp8UkdqyVTgUmh3v5YcX8xq3ikvYUopXd7XzqakfMQQ5gyyQdLvB85J0Ys8uISYkSgVH7I","zone_wise_topic":"zone_1_store","store_id":2,"module_type":"grocery"}
+token len 120; login-reported store_id=2
+
+-- FIRST vendor-token request = GET /vendor/profile (NO get-items before it) --
+HTTP 200
+-- profile resolution check --
+vendor id     : 2
+email         : ahmed.khan@demo.com
+out_of_stock_count: 1
+stores[] ids  : [2, 6]
+module_type   : None
+
+-- own-store assertion: profile out_of_stock must reflect vendor 2 OWN store, never foreign --
+
+-- AC1d own-store math (DB ground truth) --
+store 2 (own, resolved) out-of-stock (stock<=min, min=0 => stock=0): 1   <- profile returned 1  MATCH
+stores 2+6 (own vendor BOTH stores) stock=0: 6                          <- profile did NOT return 6
+ALL stores stock=0: 15                                                  <- profile did NOT return 15 (no cross-store leak)
+=> out_of_stock_count reflects vendor 2's OWN single store, not a cross-store total. PASS.

@@ -1,0 +1,22 @@
+===== AC1b: profile AFTER a prior vendor request (scope-arming ordering) — owner vendor 6 organicshop store 9 =====
+login store_id: 9  token len 120
+
+-- STEP 1: prior vendor request = GET /vendor/get-items-list (arms StoreScope, reloads stores relation) --
+items-list HTTP 200
+total_size: 15 store_ids: [9]
+
+-- STEP 2: NOW GET /vendor/profile (this is the path that previously 500'd) --
+profile HTTP 200
+id 6 email organicshop@demo.com out_of_stock_count 0 stores [9]
+
+-- STEP 3: profile AGAIN immediately (idempotency under armed scope) --
+profile-2 HTTP 200
+error-line count: 0
+
+===== AC1b (multi-store): get-items-list THEN profile — OWNER vendor 2 (stores [2,6], highest clobber risk) =====
+-- STEP 1 get-items-list --
+items-list HTTP 200
+total_size: 22 distinct store_ids: [2]
+-- STEP 2 profile (after prior, multi-store) --
+profile HTTP 200
+id 2 out_of_stock_count 1 stores [2, 6]
