@@ -1,0 +1,19 @@
+NEARS-482 QA — banner subtitle mojibake is BAKED INTO the backend banner PNG (not app-rendered)
+
+Banner id=22 (zone 2, Organic Shop), image: storage/banner/d-ecc510bd18.png (900x350)
+On-device the home promo banner shows garbled monospace text:
+    "Save big this week â  Organic Shop"
+The 'â' is the Latin-1 misdecode of em-dash U+2014 (UTF-8 E2 80 94 -> Latin-1 'â\x80\x94').
+
+ROOT CAUSE: the text is rendered into the PNG pixels by the BACKEND placeholder-image
+generator; it is NOT live Flutter Text. Proof:
+- API banner title over the wire is clean & \u-escaped: "Save big this week — Organic Shop"
+  (curl /api/v1/banners zoneId:[2] -> title decodes clean under BOTH Latin-1 and UTF-8).
+- The reskinned banner widget (UserApp/lib/features/home/widgets/views/banner_view.dart,
+  _PhotoHeroCard) renders ONLY: NearsBadge('limited_offer') + headline Text(store.name) +
+  Claim Deal CTA — NO app-rendered subtitle. The headline "Organic Shop" is clean on-device.
+- The mojibaked string is visible in the raw source PNG itself (bug-banner-image-baked-mojibake.png).
+
+IMPACT: customer sees garbled text on the home promo banner.
+SCOPE: OUTSIDE NEARS-482 (which fixes the app-side JSON UTF-8 decode; it cannot alter image pixels).
+This is a backend/seed asset defect: regenerate the banner placeholder image with correct UTF-8.
