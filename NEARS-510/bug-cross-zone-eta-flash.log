@@ -1,0 +1,21 @@
+NEARS-510 task bug — stale cross-zone ETA persists after NEARS-513 zone-guard revert
+Device: emulator-5556 | build feat/NEARS-510-eta-distance | light mode
+
+Repro:
+1. Checkout with in-zone Dhaka address (store 1, zone 1) -> banner "Arriving in ~30 min 58 sec" (correct).
+2. Edit address -> select the saved Abu Dhabi address (addr 45, zone 2).
+3. distance-api fires against the Abu Dhabi origin (cross-country ~3660 km) BEFORE the zone guard reverts:
+   I/flutter ====> API Response: [200] /api/v1/config/distance-api?origin_lat=24.45388...&origin_lng=54.37734...&destination_lat=23.81695...&destination_lng=90.36934...&mode=WALK
+4. NEARS-513 guard reverts the delivery-address label back to "Demo Zone — Dhaka" and shows
+   "This address is outside the store's delivery zone." Place Order is correctly DISABLED.
+
+DEFECT: the ETA banner is left showing "Arriving in ~7323 min 16 sec" (3660 km / 30 km/h travel)
+and the map thumbnail still renders the Abu Dhabi location, while the Delivery Address card shows
+the reverted in-zone "Demo Zone — Dhaka". The banner/map consume checkoutController.distance, which
+is NOT reset when the 513 zone guard reverts the address -> stale, absurd, user-visible ETA decoupled
+from the displayed address. State persists (does not self-correct) until another valid address is chosen.
+
+Impact: no order can be placed (513 disables Place Order), so no money/zone breach, but the NEARS-510
+banner violates AC-2 ("ETA reacts to distance" accurately) in this state: it shows a nonsense ETA that
+does not match the displayed in-zone address.
+Severity: medium (user-visible wrong ETA; order placement protected by 513; transient-entry but persists on screen).
