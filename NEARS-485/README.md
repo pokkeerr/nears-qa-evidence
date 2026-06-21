@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-485
 
-**PASS — cross-store search + post-result analytics (result_count/store_count_returned), AC1-4 + regression sweep green on emulator-5556 light mode**
+**verify**
 
 **11 screenshot(s).** Click any thumbnail for full resolution.
 
