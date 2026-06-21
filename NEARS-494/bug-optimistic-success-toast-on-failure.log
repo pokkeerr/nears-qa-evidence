@@ -1,0 +1,10 @@
+NEARS-494 task bug — optimistic "Item added to cart" snackbar fires even when the add ultimately FAILS (offline)
+Root: ItemController.itemDirectlyAddToCart() calls showCartSnackBar() (item_added_to_cart + View Cart)
+the instant optimisticAddToCart() returns true, BEFORE the async POST resolves. On a failed POST the
+rollback then fires the red add_to_cart_failed toast -> user sees a contradictory pair (green "added" then red "couldn't add").
+
+Network trace (airplane mode, tap "+"):
+  I/flutter: ------------ClientException with SocketException: Connection failed (Network is unreachable),
+             uri=http://10.0.2.2:8000/api/v1/customer/cart/add
+UI: green snackbar "تمت إضافة العنصر إلى سلة التسوق / Item added to cart" shows first (frames err_1.6/err_2.4),
+    then red "Couldn't add to cart. Please try again." (EN ui_list confirmed). Card reverts to Add To Cart; no DB row persisted.
