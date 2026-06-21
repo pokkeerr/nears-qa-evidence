@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-507
 
-**PASS (1 minor task-bug: closed-chip 23px overflow in Stores row card) — zone-scoped Stores tab, gated TabBar, RTL+dark clean**
+**verify**
 
 **13 screenshot(s).** Click any thumbnail for full resolution.
 
