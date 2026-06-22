@@ -45,3 +45,24 @@ AC6 confirm:
 Automated backstop: vendor/bin/phpunit logging+correlation suite = 15/15 OK, 79 assertions (underpins AC3). No RUM-specific PHP tests (client-side JS).
 
 VERDICT: FAIL — AC4 PII fence gap (query string leaks into source/stack of inline-script errors, ships when enabled). All other ACs PASS. Bug is in THIS change (task_bug, breaks_ac).
+
+## DELTA RE-QA (fix cycle 1, NEARS-574 fix) — 2026-06-22
+
+Fix verified in served JS: stripQuery() on `source` (l159), sanitizeStack() regex `[?#][^\s):]*` on `stack` (l166), both in buildEvent (single choke-point for error + unhandledrejection).
+
+AC4 RE-VERIFY (the gate) — PASS:
+- Repro exactly as prior FAIL: admin panel @ /admin?search=CUSTOMER-PHONE-0501234567&token=LEAKME99SECRET&x=SENTINEL-PII-9999; page-inline error + unhandled rejection w/ query-carrying stack.
+- CAPTURE (debug breadcrumb, 7 events): page_url/source/stack ALL clean, 0 leak tokens. :line:col + fn-names preserved.
+- The same real Firebase inline-frame that leaked before (`at .../admin?search=CUSTOMER-PHONE-0501234567:3513:32`) now ships as `at .../admin:3513:32`.
+- SHIP (enabled=true, local intercept endpoint, 7 real POST bodies over the wire): 0 leak-token hits across ALL bodies. Forced-query probe-B stack stripped to `at handler (.../admin:42:13)`.
+- Evidence: redo-ac4-pii-fixed-breadcrumb.log, redo-ac4-pii-fixed-shipped-bodies.log.
+
+SMOKE (fix didn't break other ACs):
+- AC1 PASS: handler still captures [ERR] w/ fields set (tag/level/panel/type/message/stack/page_url/correlation_id); 2 breadcrumbs; 0 network (capture-only). redo-ac1-admin-capture.png.
+- AC2 PASS: pristine default (enabled=false, debug=false) -> JS error+rejection = 0 RUM breadcrumbs, 0 RUM POST (silent capture-only). redo-ac2-default-off-silent.png.
+- AC5 PASS: admin panel renders (title "Nears", DOM populated), 0 nears-rum.js-origin console error. redo-ac5-admin-render.png.
+- AC3/AC6: unaffected by a JS-only change — not re-run (stated).
+
+Automated backstop: phpunit (logging+correlation suite underpinning AC3) — see envelope.
+
+DELTA VERDICT: PASS. AC4 leak fixed; no regression in AC1/AC2/AC5. task_bugs empty.

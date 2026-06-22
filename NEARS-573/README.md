@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-573
 
-**FAIL — AC4 PII fence gap (query string leaks into source/stack of inline-script errors); AC1/AC2/AC3/AC5/AC6 PASS**
+**DELTA RE-QA PASS (fix cycle 1) — AC4 PII leak fixed: query stripped from source+stack over the wire; AC1/AC2/AC5 smoke clean**
 
-**12 screenshot(s).** Click any thumbnail for full resolution.
+**15 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -25,6 +25,11 @@
 <td align="center" width="33%"><a href="ac5-store-pos.png"><img src="ac5-store-pos.png" width="240"></a><br><sub>ac5 store pos</sub></td>
 <td align="center" width="33%"><a href="bug-stack-query-leak.png"><img src="bug-stack-query-leak.png" width="240"></a><br><sub>bug stack query leak</sub></td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="redo-ac1-admin-capture.png"><img src="redo-ac1-admin-capture.png" width="240"></a><br><sub>redo ac1 admin capture</sub></td>
+<td align="center" width="33%"><a href="redo-ac2-default-off-silent.png"><img src="redo-ac2-default-off-silent.png" width="240"></a><br><sub>redo ac2 default off silent</sub></td>
+<td align="center" width="33%"><a href="redo-ac5-admin-render.png"><img src="redo-ac5-admin-render.png" width="240"></a><br><sub>redo ac5 admin render</sub></td>
+</tr>
 </table>
 
 ### Other artifacts
@@ -32,6 +37,8 @@
 - [`bug-stack-query-leak-shipped-body.log`](bug-stack-query-leak-shipped-body.log)
 - [`bug-stack-query-leak.log`](bug-stack-query-leak.log)
 - [`progress.md`](progress.md)
+- [`redo-ac4-pii-fixed-breadcrumb.log`](redo-ac4-pii-fixed-breadcrumb.log)
+- [`redo-ac4-pii-fixed-shipped-bodies.log`](redo-ac4-pii-fixed-shipped-bodies.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-573/` · public-repo scrub policy (no live secrets; verified clean).*

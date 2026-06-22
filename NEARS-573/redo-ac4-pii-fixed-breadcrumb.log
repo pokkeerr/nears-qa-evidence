@@ -1,0 +1,29 @@
+NEARS-573 AC4 RE-VERIFY (delta, fix cycle 1) — query string NO LONGER leaks into source/stack.
+Repro EXACTLY as the prior FAIL: admin panel navigated to a sentinel-query URL, page-inline + rejection errors fired.
+nav_url (sentinel query present): http://127.0.0.1:8010/admin?search=CUSTOMER-PHONE-0501234567&token=LEAKME99SECRET&x=SENTINEL-PII-9999
+PII fence now strips ?query/#frag from `source` (stripQuery) and from every URL inside `stack` (sanitizeStack).
+
+BEFORE (prior FAIL, bug-stack-query-leak-shipped-body.log): Firebase stack last frame was
+   at http://127.0.0.1:8010/admin?search=CUSTOMER-PHONE-0501234567:3513:32   <-- LEAK
+AFTER (this re-run): same Firebase error, same frame, now:
+   at http://127.0.0.1:8010/admin:3513:32   <-- query stripped, :3513:32 preserved
+
+All captured events (console.debug breadcrumb), leak scan = 0 across page_url/source/stack:
+  - Uncaught FirebaseError: Messaging: Missing App configuration
+      page_url clean=True source clean=True stack clean=True | stack :line:col=True
+  - Uncaught TypeError: Cannot read properties of null (reading 
+      page_url clean=True source clean=True stack clean=True | stack :line:col=True
+  - Uncaught FirebaseError: Messaging: Missing App configuration
+      page_url clean=True source clean=True stack clean=True | stack :line:col=True
+  - Uncaught TypeError: Cannot read properties of null (reading 
+      page_url clean=True source clean=True stack clean=True | stack :line:col=True
+  - Uncaught Error: rum-inline-leak-probe-A
+      page_url clean=True source clean=True stack clean=True | stack :line:col=True
+  - rum-reject-leak-probe-B
+      page_url clean=True source clean=True stack clean=True | stack :line:col=True
+  - Uncaught TypeError: rum-inline-leak-probe-C
+      page_url clean=True source clean=True stack clean=True | stack :line:col=True
+
+Forced-query probe (deterministic): rum-reject-leak-probe-B raw stack carried
+   '...admin?search=CUSTOMER-PHONE-0501234567&token=LEAKME99SECRET&x=SENTINEL-PII-9999:42:13'
+   captured stack -> Error: rum-reject-leak-probe-B |     at handler (http://127.0.0.1:8010/admin:42:13) |     at dispatch (http://127.0.0.1:8010/assets/admin/js/app.js:7:2)
