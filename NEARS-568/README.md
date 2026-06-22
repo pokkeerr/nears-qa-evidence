@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-568
 
-**PASS — NEARS-568 AppLogger logging pilot (live: [NET]/[FAIL]/[ERR] PII-safe, 1431 tests green) + NEARS-569 cart optimisticStep stepper verified**
+**verify**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
