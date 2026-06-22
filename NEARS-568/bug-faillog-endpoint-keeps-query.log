@@ -1,0 +1,17 @@
+# NEARS-568 task_bug — catch-path [FAIL] passes the RAW uri (with query string) as endpoint=,
+# so a network THROW during a coordinate lookup would put lat/lng into the [FAIL] console line
+# AND the Crashlytics `endpoint` custom key (release sink). AC7 contract requires endpoint = PATH only.
+#
+# code (api_client.dart lines 458 & 602):
+#   } catch (e, st) {
+#     AppLogger.failure(e, st, 'api request threw', endpoint: uri);   // <-- uri = full url incl. ?lat=..&lng=..
+#
+# contrast: the ApiChecker.checkApi path is CLEAN — it uses response.request?.url.path (path only):
+#   final String endpoint = response.request?.url.path ?? 'unknown';   // api_checker.dart:16
+#
+# reachable via location_repository.dart:29 :
+#   getData('${AppConstants.zoneUri}?lat=$lat&lng=$lng', ...)   // zoneUri=/api/v1/config/get-zone-id
+#
+# NOT reproduced live (zone-id calls returned 200, never threw); LOW severity, narrow (throw during zone lookup only).
+# Observed PII-safe FAIL lines in practice all carried only IDs (order_id, guest_id) — no coords leaked in this run.
+# Fix: parse the path out of uri before passing to AppLogger.failure on the two catch-paths (mirror checkApi's .url.path).

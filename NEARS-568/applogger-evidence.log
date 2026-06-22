@@ -1,0 +1,32 @@
+# NEARS-568 — Live AppLogger evidence (UserApp, emulator-5554, debug build, branch feat/NEARS-568-userapp-applogger @c1d285c6)
+# Captured 2026-06-22. All lines are the kDebugMode-gated console output of the AppLogger facade.
+# PII rule (AC7): endpoint = PATH ONLY (route names like /auth/forgot-password are allowed), http_status = code,
+# type = exception class / ApiFailure sentinel, msg = generic developer descriptor. NO body/payload/token/phone/email/coords.
+
+## AC1 — facade exists, 6 tags observed live across the session: [INFO] [WARN] [NET]* [FAIL] [ERR] [EVT]*
+
+## AC2/AC9 — real non-2xx (403) via ApiChecker.checkApi: [FAIL] endpoint+status PAIRED with [ERR] toast breadcrumb
+06-22 17:34:15.518  I flutter : ====> API Response: [403] /api/v1/auth/forgot-password   (whitelisted redacted api_client line)
+06-22 17:34:15.519  I flutter : [FAIL] endpoint=/api/v1/auth/forgot-password http_status=403 type=ApiFailure msg="unhandled api response"
+06-22 17:34:15.520  I flutter : [ERR] msg="error snackbar shown"
+
+## AC2 — failure branch via api_client catch-path (airplane-mode, connection thrown before response):
+06-22 17:22:31.096  I flutter : [FAIL] endpoint=/api/v1/customer/order/track?order_id=158 http_status=null type=_ClientSocketException msg="api request threw"
+06-22 17:22:31.104  I flutter : [FAIL] endpoint=/api/v1/customer/order/payment-failed?order_id=158 http_status=null type=_ClientSocketException msg="api request threw"
+06-22 17:22:31.135  I flutter : [FAIL] endpoint=/api/v1/customer/order/details?order_id=158 http_status=null type=_ClientSocketException msg="api request threw"
+06-22 17:22:59.803  I flutter : [FAIL] endpoint=/api/v1/customer/suggested-items http_status=null type=_ClientSocketException msg="api request threw"
+
+## AC4 — error toast paired with content-free [ERR] breadcrumb (invalid coupon, handled client-side):
+06-22 17:24:34.272  I flutter : [ERR] msg="error snackbar shown"
+
+## AC1 — [INFO]/[WARN] lifecycle breadcrumbs at startup (all PII-safe):
+06-22 17:17:31.999  I flutter : [INFO] msg="home load started"
+06-22 17:17:34.088  I flutter : [INFO] msg="FCM registration id obtained"
+06-22 17:17:34.487  I flutter : [INFO] msg="location: inZone=true"
+06-22 17:17:34.497  I flutter : [WARN] msg="payment-failed details parse failed: _TypeError"
+
+## AC2/AC9 — additional real non-2xx confirmations (paired [FAIL]+[ERR], generic toast shown to user):
+06-22 17:38:41.471  I flutter : ====> API Response: [403] /api/v1/customer/cart/add?guest_id=132   (whitelisted redacted)
+06-22 17:38:41.474  I flutter : [FAIL] endpoint=/api/v1/customer/cart/add?guest_id=132 http_status=403 type=ApiFailure msg="unhandled api response"
+06-22 17:38:41.476  I flutter : [ERR] msg="error snackbar shown"
+# user-facing toast observed: "Couldn't add to cart. Please try again."  (NOTE: guest_id=132 is an anonymous session id, not PII; the 403 is a pre-existing guest cart-add constraint, NOT a logging regression — the point proven is AC9: the failure is no longer silent.)

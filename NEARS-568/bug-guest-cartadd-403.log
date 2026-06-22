@@ -1,0 +1,9 @@
+# NEARS-568 regression_bug (PRE-EXISTING, does not affect verdict) — guest cart-add returns 403.
+# Adding an item from a DIFFERENT store as a guest (after the authed session logged out) is rejected:
+06-22 17:38:41.471  I flutter : ====> API Response: [403] /api/v1/customer/cart/add?guest_id=132
+06-22 17:38:41.474  I flutter : [FAIL] endpoint=/api/v1/customer/cart/add?guest_id=132 http_status=403 type=ApiFailure msg="unhandled api response"
+06-22 17:38:41.476  I flutter : [ERR] msg="error snackbar shown"
+# backend: GET/POST /api/v1/customer/cart/add -> {"errors":"Unauthorized"} (403)
+# user-facing toast: "Couldn't add to cart. Please try again."
+# This is a backend/guest-session constraint, NOT caused by the NEARS-568 logging change.
+# The logging change is what made it OBSERVABLE (AC9 working as intended — no silent swallow).
