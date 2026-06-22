@@ -1,0 +1,10 @@
+NEARS-572 AC2 — the 571 backend echoes the SAME X-Request-Id; the app reads it back.
+
+curl round-trip (sent == echoed):
+  SENT  X-Request-Id: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+  ECHO  (response):   a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d   [identical]
+
+Live app round-trip — the login [FAIL] correlation_id == the id the backend echoed:
+06-22 22:31:48.664 I/flutter (28176): [FAIL] endpoint=/api/v1/auth/login http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=ae2721b3-c4fa-4ae7-82b5-51f28e835d1b
+  Independent echo proof for the same login request id:
+  curl /auth/login -H 'X-Request-Id: ae2721b3-...'  ->  echo X-Request-Id: ae2721b3-... [identical]

@@ -1,0 +1,10 @@
+NEARS-572 AC3 — handled API error: app [FAIL] carries correlation_id == backend correlation_id
+=== CLIENT side (live UserApp, handled 401 login error, {errors:[...]} body — the C1-fixed path) ===
+06-22 22:31:48.664 I/flutter (28176): [FAIL] endpoint=/api/v1/auth/login http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=ae2721b3-c4fa-4ae7-82b5-51f28e835d1b
+  -> correlation_id is POPULATED (not null). Before the C1 fix this path nulled the id.
+
+=== SERVER side (same backend, same id ae2721b3 found as correlation_id in laravel-structured.log) ===
+{"tag":"[FAIL]","timestamp":"2026-06-22T22:34:58.325890+04:00","correlation_id":"ae2721b3-c4fa-4ae7-82b5-51f28e835d1b","level":"error","message":"[FAIL] The resource owner or authorization server denied the request.","context":{"type":"League\\OAuth2\\Server\\Exception\\OAuthServerException","endpoint":"/api/v1/customer/info"}}
+
+=== THE JOIN: one id (ae2721b3-c4fa-4ae7-82b5-51f28e835d1b) on BOTH the app [FAIL] and the backend [FAIL] ===
+A UserApp failure and its backend log line share ONE correlation id — the whole point of NEARS-572.

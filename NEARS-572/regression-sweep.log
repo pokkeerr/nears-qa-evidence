@@ -1,0 +1,20 @@
+NEARS-572 regression sweep (bounded) — CLEAN
+
+1) Happy-path 200s still succeed (additive header, no behaviour change). Sample post-sweep responses:
+06-22 22:38:21.531 I/flutter (28176): ====> API Response: [200] /api/v1/vehicle/extra_charge?distance=0.004765322249836327
+06-22 22:38:21.533 I/flutter (28176): ====> API Response: [200] /api/v1/other-banners
+06-22 22:38:21.548 I/flutter (28176): ====> API Response: [200] /api/v1/flash-sales
+06-22 22:38:21.681 I/flutter (28176): ====> API Response: [200] /api/v1/items/discounted?type=all&offset=1&limit=25&min_price=0.0&max_price=9999999999.0
+06-22 22:38:21.817 I/flutter (28176): ====> API Response: [200] /api/v1/items/popular?type=all&offset=1&limit=25&min_price=0.0&max_price=9999999999.0
+06-22 22:38:21.903 I/flutter (28176): ====> API Response: [200] /api/v1/items/most-reviewed?type=all&offset=1&limit=25&min_price=0.0&max_price=9999999999.0
+06-22 22:38:21.965 I/flutter (28176): ====> API Response: [200] /api/v1/campaigns/basic
+06-22 22:38:22.031 I/flutter (28176): ====> API Response: [200] /api/v1/campaigns/item
+06-22 22:38:22.485 I/flutter (28176): ====> API Response: [200] /api/v1/items/recommended?filter=all&limit=30
+06-22 22:38:22.646 I/flutter (28176): ====> API Response: [200] /api/v1/stores/get-stores/all?store_type=all&offset=1&limit=12
+06-22 22:38:22.755 I/flutter (28176): ====> API Response: [200] /api/v1/advertisement/list
+06-22 22:38:22.777 I/flutter (28176): ====> API Response: [200] /api/v1/module
+
+2) 401 token-refresh retry (NEARS-65): retry re-enters _send() -> withRequestId() mints a FRESH id per dispatch
+   (structurally guaranteed; tests 'two successive mints differ' + 'different id on each invocation' pass).
+
+3) No red-screens / overflows / runtime errors across Home/Categories/store-details (dart daemon: 'No runtime errors found').

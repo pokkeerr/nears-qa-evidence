@@ -1,0 +1,16 @@
+NEARS-572 AC4/AC5/AC6 — Crashlytics correlation_id key (unit backstop) + exact names + PII safety
+
+AC4: Crashlytics setCustomKey('correlation_id', id) proven by app_logger_test (debug build -> collection off, so no dashboard upload; deferred to profile/release per NEARS-296, stated). The [FAIL] console line carries correlation_id live (above).
+
+AC5/AC6 contract names EXACT:
+  - request header:  X-Request-Id
+  - response read-back key: x-request-id (Dart lower-cases response header names — documented gotcha, tested)
+  - log field:       correlation_id  (identical on app [FAIL] and backend structured [FAIL])
+
+PII safety: the id is hex+dashes only (random v4 -> PII-free). The [FAIL] line carries ONLY allow-listed fields:
+  endpoint=PATH-ONLY (no query), http_status, type=ApiFailure (sentinel — NOT statusText/body), msg=generic, correlation_id.
+  NO statusText, NO response body, NO email/password, NO token in the header or the log.
+
+Unit backstop (test/app_logger_test.dart + test/api_client_request_id_test.dart): 33 tests pass, covering
+  correlation_id set-when-supplied / omit-when-null / omit-when-empty, [FAIL] line carries id, header name == X-Request-Id,
+  echo read on lower-cased key + canonical-case guard, id is hex+dashes only, FIX-C1 handled-error header preservation.
