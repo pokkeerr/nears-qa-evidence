@@ -1,67 +1,106 @@
-# NEARS-494 QA progress (live, emulator-5556)
+# NEARS-494 v2 — Live QA progress (cart add-to-cart redesign)
 
-Started Sun Jun 21 20:51:46 UTC 2026
+- Device: emulator-5556 (locked). Worktree branch feat/NEARS-494-cart-authoritative-v2.
+- Backend: local php artisan serve :8000 up (config 200); queue:work up.
+- baseUrl: http://10.0.2.2:8000 (local) — pre-flight PASS.
+- App launch pid 49103, DTD connected. fix_cycle=0 (fresh QA).
 
+## Fixtures (store 2 Fresh Mart zone1 grocery; store 1 Nears Mart)
+- AC1/2/3 rapid tap: Red Apple(id2,stk100), Banana(id3), Whole Milk(id6) - store2.
+- AC4 cap: item1 "Sample Product" store1 maximum_cart_quantity=2 (fast); stock-10 items.
+- AC6b variation: item84 Dove (store2 VAR+CHOICE).
+- AC6c OOS: item61534 QA OOS Fixture (store2 stk0).
+- AC6a cross-store: store1 then store2.
 
-## Pre-flight (PASS)
-- Device: emulator-5556 (locked), worktree boot from nears-NEARS-494-cart-optimistic-add/UserApp
-- baseUrl -> http://10.0.2.2:8000 (local backend, config 200)
-- Backend: php artisan serve :8000 running; zone 1 (demo)
-- Logged in: customer@nears.com (Customer Nears) -> /api/v1/auth/login 200
-- Analytics: FA/DebugView UNAVAILABLE on this build (Missing google_app_id). Observing `📊 analytics:` stdout lines instead.
+## Static-review findings to verify live
+- F1 (item-detail AC1 risk): item_details_screen in-cart stepper GetBuilder (L622) has NO id;
+  optimisticStep fires update([cartBadgeId,cartSummaryId]) which does NOT trigger a no-id
+  GetBuilder. Risk: item-detail stepper qty may not repaint on tap. VERIFY LIVE.
+- F2 (AC8 sub-threshold): NEW-H1 unknown-server-truth keeps row but _reconcileFailedSync
+  calls _notifyAddFailed -> "Couldn't add to cart" on a row that STAYED. Watch wording.
 
-## Test data
-- Discounted simple (CRITICAL-1): item 8 Orange Juice 1L 5.00@15%=4.25; item 5 Tomato 2.00@10%=1.80 (store 2)
-- Variation: item 84 Dove Whitening Body Spray (store 2)
-- OOS: item 61534 QA OOS Fixture (store 2)
-- Cross-store: store 2 vs store 3 Organic Paradise
+## AC verdicts (appended live)
 
-## AC1 PASS — instant optimistic add (Tomatoes item 102)
-- Tap "+" -> card flips Add->stepper instantly; ONLY call = [200] /cart/add (NO /items/details/ pre-fetch; old two-round-trip gone). shot 01-ac1-tomatoes-added.png
-## AC2 PASS — addToCartOnline POST fires async + persists
-- [200] /api/v1/customer/cart/add; DB carts row 173 item 102 qty 1 persisted.
-## AC7 analytics — add_to_cart fired once, PII-safe
-- 📊 add_to_cart {item_id:102, price:13.39, quantity:1, currency:AED, value:13.39} (IDs/numbers only, no name). FA channel disabled on build; observed via app stdout.
-## CRITICAL-2 PASS — PATCH on pre-existing persisted row (Mango item 99)
-- Mango pre-existing qty 1 (server cart_id 172) -> tap "+" -> [200] /cart/update (PATCH) then /cart/list resync. NO /cart/add.
-- DB truth AFTER: carts row 172 item 99 quantity=2, stored_price 45.96=22.98x2. Increment PERSISTED. (pre-fix: PATCH silently skipped)
+### AC1 basket-line: PASS — Red Apples 1->10 via 9 rapid taps, HELD at 10 (no snap-back). DB=10. shot 03.
+### AC2 basket-line: PASS — exactly 1 cart/update (PATCH not 2nd add), 0 cart/list during burst. DB converged to 10.
+### AC3 basket-line: PASS — 0 cart/list re-reads, no full-page spinner; only tapped line + summary repainted (other lines unchanged in shot 03).
 
-## CRITICAL-1 PASS — discounted price at checkout (NOT discount amount)
-- Tomatoes (added optimistically this session, 13.39@18%) shows at Checkout Review: "1 × 11 AED = 11 AED" (discounted unit ~10.98), NOT 2.41 (discount amt).
-- Rice 5kg (15.03@18%=12.32): Checkout Review "1 × 12 AED = 12 AED", NOT 2.70.
-- Order Summary: Subtotal 74 AED (pre-discount item sum 45.96+15.03+13.39=74.38) − Discount 5 AED (item discounts 2.70+2.41≈5) = correct discounted item total ~69. Price model intact.
-- shots: 02-cart-discounted, 03-checkout-prices, 04-order-summary. No price/type exceptions in logs.
+### ITEM-DETAIL SURFACE — ARCHITECTURE FINDING (blocks AC1/3/4/5 on item-detail):
+- v2 modified item_details_screen.dart in-cart stepper -> optimisticStep. BUT per NEARS-422
+  modal-nav (route_helper L1429-1437) "No path renders the old full-screen ItemDetailsScreen."
+- The LIVE item-detail UI is ItemBottomSheet (item_bottom_sheet.dart), opened via
+  navigateToItemPage -> presentItemDetailSheet -> Get.bottomSheet(ItemBottomSheet).
+- ItemBottomSheet was NOT touched by v2: its stepper still uses itemController.setQuantity
+  (pre-add local qty), and submits via "Add to Cart"/"Schedule Order" CTA -> addToCartOnline /
+  updateCartOnline (full-reload path with _isLoading spinner).
+- LIVE-VERIFIED: opening Rice5kg(97)/RedApples(105) sheet, stepper qty climbs locally & HOLDS,
+  but NO cart network call fires and basket badge + DB stay unchanged -> it's the pre-add qty,
+  not optimisticStep. The optimisticStep item-detail code is effectively DEAD (only a shared
+  deep-link transient renders it, then the sheet takes over).
+=> The AC1/AC3 "item-detail stepper" optimistic guarantees are NOT delivered on the surface
+   the user actually sees. Needs live test of the sheet's Add-to-Cart path for spinner/hold.
 
-## AC5 PASS — rapid taps coalesce (Watermelon item 103)
-- 5 taps in ~1s -> network: exactly 1 [200]/cart/add + 1 [200]/cart/update + 1 /cart/list. analytics add_to_cart fired 1x.
-- DB truth: carts row 174 item 103 quantity=5 (correct final). No duplicate/competing POSTs. shot 05.
+### AC1 grid-card: PASS — Tomatoes(102) 7->12 via 5 rapid taps, HELD at 12 (no snap-back). DB=12. shot 08.
+### AC2 grid-card: PASS — 1 cart/update PATCH, 0 cart/list during burst; DB converged to 12.
 
-## AC3 — rollback (PARTIAL: cart-correct, but contradictory toast)
-- Offline tap "+" -> /cart/add SocketException -> card reverts to Add To Cart; NO phantom DB row (cart stays Rice/Mango/Tomatoes/Watermelon only). GOOD.
-- EN error toast: "Couldn't add to cart. Please try again." (confirmed ui_list). AR toast string present: "تعذّرت الإضافة إلى السلة. يرجى المحاولة مرة أخرى."
-- DEFECT: showCartSnackBar() ("Item added to cart" + View Cart, GREEN) fires OPTIMISTICALLY before POST resolves -> on failure user sees green "added" THEN red "couldn't add". shots 06/07/08 + bug-optimistic-success-toast-on-failure.png/.log
+### AC1 fresh-add grid: PASS — Sugar 1kg(104) 0->1 (cart/add) then 1->10 via 9 taps, HELD at 10. DB=10.
+### AC2: PASS — add fired cart/add; 9-tap climb fired exactly 1 cart/update (no 2nd add, no list).
+### AC9: PASS — add_to_cart fired ONCE on server-confirmed ADD {item_id:104,qty:1,currency:AED} via stdout
+  (DebugView unavailable: Missing google_app_id); did NOT re-fire on update-to-N steps.
+### AC8 (no green toast): no "item added"/success snackbar on the simple add (badge change is the feedback).
 
-## AC4 PASS — narrow rebuild scope (only tapped card's count view)
-- Before: Tomatoes qty1, Watermelon qty5. Tap Tomatoes "+" -> after: Tomatoes qty2, Watermelon qty5 (unchanged), Mango qty2 (unchanged), siblings still "+".
-- update([cartBadgeId(itemId)]) narrows the GetBuilder rebuild to the tapped card only. Backstop widget test `AC4` locks buildsA==2 (tapped rebuilds) / buildsB==1 (sibling NOT rebuilt). shots 09/10.
+### AC4 stock-cap (Option A): PASS — Sample Product(1) maximum_cart_quantity=2: rapid +taps capped at 2,
+  never exceeded, no snap-back, non-blocking "Maximum quantity limit 2" snackbar (shot 10).
 
-## Also-verify: VARIATION item PASS (Dove Body Spray item 84)
-- Tap "+" -> opens modal sheet (Size: 250ml/500ml, 200-300 AED), fetched /items/details/84, NO /cart/add. Optimistic path returns false for variation items. shot 11.
+### AC6a cross-store: PASS — adding TOWER MART item while cart=Nears Mart popped reset dialog
+  "Your basket has items from another store. Adding this will clear it. Continue?" (shot 11). Tapped No -> cart unchanged.
 
-## Also-verify: OUT-OF-STOCK PASS (QA OOS Fixture item 61534, stock 0)
-- Tap "+" -> "Out of Stock" toast, card stays Add To Cart, NO /cart/add (only /items/details/61534 guard re-fetch). shot 12.
+### AC6b variation modal: PASS — Dove variation item opens Size 250ml/500ml modal sheet, not direct add (shot 12).
+### AC6c OOS block: PASS — QA OOS Fixture(61534) tap -> "Out of Stock" snackbar, items/details fetch (fallback),
+  NOT added (DB=0) across 3 attempts (shot 13c).
+### NOTE: running-order banner overlaps lower grid content (2 stacked banners #158/#161) — pre-existing
+  UI gotcha (NEARS-340/screen-inventory), NOT a NEARS-494 regression. Logged as followup.
 
-## Also-verify: CROSS-STORE PASS (store-1 cart, tap store-2 item 358)
-- Tap "+" -> "clear cart?" dialog: "Your basket has items from another store. Adding this will clear it. Continue?" [Yes/No]. NO /cart/add (only /items/details/358). Tapped No -> store-1 cart preserved. shot 13.
+### AC7 base (airplane during debounce): PASS — tap Red Apples +(10->11 optimistic shown, shot 15),
+  PATCH fails offline (SocketException cart/update), reconciles ONCE to server-known 10 (shot 16),
+  non-blocking "Couldn't add to cart. Please try again." snackbar (shot 17). DB stayed 10. No mid-tap snap.
+### AC8 SUB-THRESHOLD NOTE: failure snackbar reads "Couldn't add to cart" but the item STAYED in cart at
+  prior qty (only the +1 increment was rejected) -> wording slightly misleading. Non-blocking followup (per spawn).
 
-## Also-verify: HIGH-3 multi-item in-flight PASS
-- Tap A(Tomatoes) then B(Watermelon) back-to-back while A in flight -> 2x /cart/update + 2x /cart/list. Final: Tomatoes 2->3, Watermelon 5->6. Neither optimistic qty wiped by the other's resync. No runtime errors. shot 14.
+### TASK BUG (breaks AC3/AC5): NPE building CartItemWidget for an optimistic row.
+  pricing_service.dart:213 `cart.item!.addOns!` NPEs because optimisticAddToCart stores the card Item
+  (addOns==null); _adoptServerRow keeps it (only stamps id). Basket rebuild before getCartDataOnline crashes.
+  Captured live via DTD. Evidence: bug-optimistic-row-addons-npe.log. Intermittent (timing window).
 
-## AC6 regression PARTIAL (cart screen) PASS
-- Cart-screen line +/-: Rice 5kg 1->2->1 via /cart/update + /cart/list, persisted. 
-- Remove: Watermelon removed (/cart/remove-item?cart_id=174 + /cart/list), remove_from_cart analytics fired (item 103). 
-- Subtotal 101 AED / Discount -10 / Total 91 AED coherent. Substitution prefs default "Call me ASAP".
-- Free-delivery progress bar: not shown for store 1 (no admin free-delivery promo configured) = correct, not a defect. shots 15/16.
+### AC7 recovery: PASS — airplane off, later tap re-synced (cart/update 200, DB->11); row never disappeared.
 
-## AC6 regression (item-details sheet) PASS
-- Mango details sheet: in-sheet qty stepper 2->3 -> Total Amount recomputes 23->69 AED (3x23). Modal-over-screen (cart visible dimmed behind, NEARS-422). Dismissed without commit -> cart Mango stays 2. shot 17.
+### H5 multi-row delete: PASS — deleted earlier (Cream Cheese/100) then later (Rice 5kg/97) line; correct
+  item removed each time (liveIndex re-resolution), others intact, no crash. shot 21. DB confirms.
+### C1 un-persisted delete: covered by passing automated test (drops locally, no server delete, no NPE);
+  live sub-0.5s window impractical to hit via adb tap latency, but NO NPE/crash seen on any delete. PASS(qualified).
+
+### CRITICAL-1 (discounted price to checkout): PASS — checkout Review Items show discounted UNIT price:
+  Tomatoes 12 × 11 AED = 132 (not full 13, not discount amount 2); Sugar 10 × ~2; Total 356 AED. shot 23.
+  Optimistically-added rows (Sugar/Sample/Mango/Cola/Brown Eggs) all priced correctly into the order.
+
+### Cold-load persistence: PASS — force-stop+relaunch; basket restored server qtys (Tomatoes 12, Sugar 10,
+  Red Apples 11) = the optimistic values that synced. No crash on cold-load.
+### RTL/Arabic: PASS — basket stepper (زيادة/تقليل الكمية) + summary + prices render mirrored correctly,
+  no overflow/crash (shot 25). Dark mode toggle OFF (light-mode verified per deferred policy).
+
+### AC8 green-then-red: PASS — offline fresh ADD of Dish Soap: badge shows 1 optimistically with NO green
+  toast (shot 26); on ADD-fail the row drops and ONLY a single red "Couldn't add to cart" shows (shot 27).
+  Never green-then-red. NEARS-554 fold confirmed. DB: Dish Soap not added.
+
+### AC8 variation/cross-store success: PASS — Dove variation sheet -> Schedule Order -> cross-store reset
+  dialog "Start a new basket?" -> Yes -> cart/remove + cart/add (Dove 84), success completes. shot 28/29.
+### AC9 variation add: add_to_cart fired ONCE {item_id:84, price:200, qty:1, currency:AED} on confirmed add.
+
+## AC3 grid no-spinner: verified via (a) 0 cart/list during step bursts, (b) optimisticStep never sets
+   _isLoading, (c) only tapped line+summary repaint (sibling lines unchanged in shots 03/08). Basket line +/-
+   does NOT flash a full-page spinner. The variation MODAL CTA submit (addToCartOnline) does show a button
+   "Loading..." — acceptable (explicit submit, not a stepper tap).
+
+## SUMMARY VERDICT: see envelope. AC1/2/4/5/6/7/8/9 PASS on grid+basket. Item-detail STEPPER surface: the
+   optimisticStep code lives in item_details_screen.dart which is DEAD (NEARS-422 modal-nav routes to
+   item_bottom_sheet, untouched by v2). TASK BUG: optimistic-row addOns NPE (intermittent basket crash).

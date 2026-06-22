@@ -1,0 +1,26 @@
+NEARS-494 v2 — TASK BUG: item-detail optimistic STEPPER is dead code; live item-detail sheet is unchanged.
+Live-verified on emulator-5556, build feat/NEARS-494-cart-authoritative-v2.
+
+WHAT THE TICKET REQUIRES (AC1/AC3/AC5 — "item-detail screen stepper"):
+  the item-detail in-cart +/- stepper must be client-authoritative (instant climb, hold, no spinner, one
+  debounced sync), like the basket line and grid card.
+
+WHAT v2 DID:
+  modified item_details_screen.dart in-cart stepper onIncrement/onDecrement to call CartController.optimisticStep.
+
+WHY IT DOES NOT REACH THE USER:
+  route_helper.dart:1429-1437 (NEARS-422 modal-nav): "No path renders the old full-screen ItemDetailsScreen."
+  All in-app item taps go ItemController.navigateToItemPage -> presentItemDetailSheet -> Get.bottomSheet(ItemBottomSheet).
+  The LIVE item-detail UI is ItemBottomSheet (item_bottom_sheet.dart), which v2 did NOT modify. Its stepper still
+  calls itemController.setQuantity (pre-add local qty) and submits via the "Add to Cart"/"Schedule Order" CTA ->
+  addToCartOnline / updateCartOnline (the OLD full-reload path; sets _isLoading -> button "Loading..." spinner,
+  and the update path also re-reads the full cart on the in-cart submit, observed cart/update + cart/list).
+
+LIVE EVIDENCE:
+  - Opening Red Apples(105)/Rice5kg(97) detail sheet: tapping +/- climbs a LOCAL qty that HOLDS but fires NO
+    cart network call and leaves the basket badge + DB unchanged (it is the pre-add quantity, not optimisticStep).
+  - The optimisticStep code added to item_details_screen.dart is never exercised in-app.
+
+IMPACT: the AC1/AC3 "item-detail stepper" optimistic/no-spinner guarantees are NOT delivered on the surface the
+  user actually sees. The change edits a dead screen. Either the sheet (item_bottom_sheet.dart) must be converted
+  to optimisticStep, or the AC must be re-scoped to the sheet's CTA-submit model.

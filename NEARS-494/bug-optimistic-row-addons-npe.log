@@ -1,0 +1,31 @@
+NEARS-494 v2 — TASK BUG: Null-check NPE building CartItemWidget for an optimistically-added row
+Captured live via Dart Tooling Daemon (get_runtime_errors) on emulator-5556, build feat/NEARS-494-cart-authoritative-v2.
+
+Exception caught by widgets library:
+  The following _TypeError was thrown building CartItemWidget(dirty, state: _CartItemWidgetState#7d46a):
+  Null check operator used on a null value
+
+  The relevant error-causing widget was:
+    CartItemWidget  cart_screen.dart:228:56
+
+  When the exception was thrown, this was the stack:
+    #0  PricingService.setupAddonsText (package:sixam_mart/features/cart/domain/services/pricing_service.dart:213:40)
+    #1  _CartItemWidgetState.build (package:sixam_mart/features/cart/widgets/cart_item_widget.dart:71:39)
+    #2  StatefulElement.build (framework.dart:5931:27)
+    ... (normal element mounting / sliver list layout frames)
+
+ROOT CAUSE:
+  pricing_service.dart:213  ->  `for (var addOn in cart.item!.addOns!) {`
+  The optimistic add path (CartController.optimisticAddToCart -> _buildOptimisticRow) stores the
+  grid/search CARD Item object as cart.item. List/search card JSON does not populate `add_ons`, so
+  card Item.addOns == null (item_model.dart only sets addOns=[] when the `add_ons` key is present in JSON).
+  On a successful sync, _adoptServerRow stamps only the server cart id onto the local row — it does NOT
+  replace cart.item with the server item — so cart.item.addOns stays null. When the basket (CartItemWidget)
+  rebuilds that row before a full getCartDataOnline re-fetch (e.g. while already on the basket and a global
+  update() fires), setupAddonsText derefs `cart.item!.addOns!` -> NPE -> the line fails to build.
+
+REPRO (timing-dependent / intermittent): add a simple store-1 item from a grid/search card, be on the basket
+  when a global update() rebuilds the row before getCartDataOnline replaces _cartList with server rows.
+
+IMPACT: a cart line throws during build (red error box in release-less builds; broken/blank line in release),
+  on the core add-to-cart redesign path. setupVariationText / calculateAddonPrice walk the same nullable lists.
