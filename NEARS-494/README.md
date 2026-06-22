@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-494
 
-**FAIL — grid+basket optimistic PASS (AC1 hold, AC3 no basket spinner fixed); item-detail stepper dead code + intermittent optimistic-row NPE**
+**FAIL — item-detail stepper dead code + intermittent optimistic NPE; grid+basket PASS**
 
 **25 screenshot(s).** Click any thumbnail for full resolution.
 
