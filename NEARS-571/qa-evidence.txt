@@ -1,0 +1,65 @@
+NEARS-571 — Backend structured logging + X-Request-Id correlation — LIVE QA EVIDENCE
+Worktree: /Users/Apple/Projects/nears-NEARS-571-backend-logging (branch feat/NEARS-571-backend-structured-logging)
+Build under test: uncommitted working tree (engineer build) — modified: bootstrap/app.php, config/logging.php, config/opentelemetry.php, .env.example, messages.php; new: SetRequestId.php, Logging/StructuredJsonFormatter.php, 3 test files
+Server: php artisan serve 127.0.0.1:8010 | DB read-only (SELECT/SHOW only)
+Degraded leg (pre-approved): OpenObserve/OTLP collector DOWN (5080/4318 not listening) -> OO-live shipping deferred; verified via structured-channel file + config gates per NEARS-568 precedent.
+PHP 8.5.6 / PHPUnit 11.5.55
+Date: 2026-06-22
+
+===== AC1+AC3 — mint v4 when no client id =====
+$ curl -i /api/v1/config (no X-Request-Id sent)
+HTTP/1.1 200 OK ; X-Request-Id: 8faf7c46-2645-4186-9ca0-151a3a0fc632   (valid v4)
+run #2 -> X-Request-Id: 51694b53-0674-46d6-aec8-da3593881a60   (different = freshly minted)
+
+===== AC1 honor — valid v4 echoed unchanged =====
+sent   X-Request-Id: 3f9a1c2e-7b4d-4e1a-9c8f-2d6b5a0e1f33
+echoed X-Request-Id: 3f9a1c2e-7b4d-4e1a-9c8f-2d6b5a0e1f33   (identical)
+
+===== AC1 reject / log-injection guard — malformed REPLACED with fresh v4 (never echoed) =====
+sent "evil-not-a-uuid"            -> returned 6e005a01-3e42-483c-8218-7abc32acbe63
+sent v4+trailing-space (!=36ch)   -> returned b5ea7652-6df4-4f6b-871a-3683ba8cd96c
+sent valid-shape wrong-version v1 -> returned 1e7a6888-05f2-433e-ae8e-c89b188f9284
+sent 200-char junk                -> returned 206f1185-36c9-4dc5-983d-fae9fbf0ccd6
+trailing-NEWLINE (%0A) wire case: curl strips literal LF client-side; covered by unit tests
+  test_validator_rejects_a_valid_v4_with_trailing_newline (also 
+, ) +
+  test_middleware_replaces_trailing_newline_value_with_fresh_v4 (asserts no 
+ in echoed/bound id). FIX-4 /D modifier.
+
+===== AC4+AC2 — real 500 on api/* -> exactly ONE [FAIL] line, correlation_id == response X-Request-Id =====
+trigger: GET /api/v1/banners with malformed header "zoneId: 1" -> 500, body {"message":"Something went wrong"} (masked, no leak)
+response header echoed X-Request-Id on the error path too.
+fresh single-use id 11111111-2222-4333-8444-555555555555 sent ONCE:
+  structured [FAIL] lines for that id = 1   (FIX-2/FIX-3: no duplicate/triple)
+  laravel.log lines for that id       = 1   (human channel still written)
+  line: {"tag":"[FAIL]","correlation_id":"11111111-2222-4333-8444-555555555555","level":"error",
+         "message":"[FAIL] count(): Argument #1 ($value) must be of type Countable|array, int given",
+         "context":{"type":"TypeError","endpoint":"/api/v1/banners"}}
+
+===== AC5 — PII safety =====
+fired a 500 carrying auth-token (sentinel) + name/phone/email/lat/lng in headers + query (id 33333333-...)
+[FAIL] line context = {"type":"TypeError","endpoint":"/api/v1/banners"} ONLY (query string stripped, path only)
+grep whole structured log for every sentinel (PIINAME/PIIPHONE/piileak/token-sentinel/lat/lng/query) -> NONE present
+formatter unit test test_data_and_data_payload_keys_are_stripped: data/data_payload (FCM phone+token) stripped (FIX-5)
+
+===== AC7 — exact names =====
+response header literally: X-Request-Id   |   structured field literally: correlation_id
+
+===== AC8 (degraded) — JSON contract + channels + OTel gated OFF =====
+all 6 new structured lines: valid JSON with tag.timestamp.correlation_id.level.message.context (0 invalid)
+config logging.channels.stack.channels = [single, structured]   (otlp EXCLUDED, LOG_OTEL_ENABLED unset->false)
+opentelemetry.logs.exporter = null   |   opentelemetry.user_context = false (PII-safe default)
+laravel.log still written (1289 -> 1295 lines)
+cold-boot silence: no OTLP/collector/connection-refused errors anywhere (structured log + server stdout) despite OO down
+
+===== AC9 — joinability =====
+formatter promotes correlation_id to top-level, keeps trace_id INSIDE context (PROMOTED_KEYS=[correlation_id] only;
+trace_id absent from PROMOTED/BODY keys -> survives when OTel active). Local QA correlates by X-Request-Id (NEARS-566 fallback; trace_id present only when OTel on).
+
+===== AC6 — automated backstop =====
+vendor/bin/phpunit --configuration phpunit.xml -> OK: Tests: 346, Assertions: 4881, 0 failures/0 errors (1 deprecation, pre-existing PHP8.5/PHPUnit11 noise)
+15 NEARS-571 tests all green (SetRequestId 7, RequestIdLogging 5, StructuredJsonFormatter 3)
+
+===== REGRESSION (bounded) =====
+404 -> 404 (not masked to 500) | pure-API 401 -> {"message":"Unauthenticated."} | zone-guard 403 -> {"errors":[{"code":"moduleId",...}]} (unchanged shapes)
+/api/v1/config 200 body intact (business_name: Nears, all keys present) — no schema change beyond the added header
