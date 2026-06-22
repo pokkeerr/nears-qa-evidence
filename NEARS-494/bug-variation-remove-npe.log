@@ -1,0 +1,19 @@
+NEARS-494 v2 re-QA (emulator-5556, 2026-06-22) — PRE-EXISTING crash, NOT a NEARS-494 AC.
+Repro: cart contains a VARIATION/customizable item (Dove Whitening Body Spray, item 84,
+choiceOptions Size 250/500ml) whose item-detail sheet was NOT opened this session, then
+remove it from the basket (decrement qty 1 -> remove / "x"). The remove path calls
+ItemController.setExistInCart(item, null) -> ItemService.prepareVariationType, which
+force-unwraps _variationIndex (null/short because the sheet never populated it).
+
+Stack:
+  Null check operator used on a null value
+  #0 ItemService.prepareVariationType (item_service.dart:178:71)
+  #1 ItemController.setExistInCart (item_controller.dart:890:55)
+  #2 CartController.removeCartItemOnline (cart_controller.dart:1138:34)
+  #3 CartController.removeFromCart (cart_controller.dart:368:5)
+
+Classification: PRE-EXISTING. Verified present on the pre-NEARS-494 parent commit
+6c04b65f^ (6ea22c46, NEARS-468): removeCartItemOnline(item:) already called
+setExistInCart(item, null) -> prepareVariationType there too. The cart redesign did not
+introduce this path. App recovered (caught by Crashlytics handler; Home reloaded). No
+NEARS-494 AC depends on it. Logged as regression_bug, does not gate the verdict.

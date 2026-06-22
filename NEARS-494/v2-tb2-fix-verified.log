@@ -1,0 +1,18 @@
+NEARS-494 v2 re-QA — TB2 FIX VERIFIED (emulator-5556, 2026-06-22)
+Original TB2: optimistic-row basket render NPE — PricingService.setupAddonsText derefed
+cart.item!.addOns! (null on a card Item) -> "Null check operator used on a null value",
+CartItemWidget failed to build.
+
+Re-verify (raced the basket open before the ~0.5s debounced sync, 3 ways):
+  1. add Coca Cola from search card -> immediately open Basket nav (race the debounce). No NPE.
+  2. ON the basket, add Red Apple (item 2, store 2) via "You May Also Like" card -> optimistic
+     row built in-place + rapid taps to force rebuild before getCartDataOnline. No NPE.
+  3. reopen basket -> Red Apple renders as a full line with correct discounted price (3 AED /
+     strikethrough 4 AED), qty 3, working stepper. No red error box, no broken/blank line.
+
+get_runtime_errors during the whole TB2 sweep: ZERO "Null check operator" / setupAddonsText
+NPE. The only error surfaced is an UNRELATED pre-existing RenderFlex 19px overflow in
+item_widget.dart:822 (recommendation card price row) — cosmetic, not a crash, not in the v2
+diff (item_widget.dart last changed by NEARS-397). Logged separately as regression_bug.
+
+RESULT: TB2 PASS. _withNonNullRenderLists + pricing_service `?? []` guards hold.

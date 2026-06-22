@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-494
 
-**FAIL — item-detail stepper dead code + intermittent optimistic NPE; grid+basket PASS**
+**PASS (fix-cycle 1): TB1 in-sheet optimistic stepper + TB2 optimistic-row no-crash verified live on emulator-5556; regression clean**
 
-**25 screenshot(s).** Click any thumbnail for full resolution.
+**38 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -47,13 +47,37 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="29-ac8-variation-success.png"><img src="29-ac8-variation-success.png" width="240"></a><br><sub>ac8 variation success</sub></td>
+<td align="center" width="33%"><a href="bug-recommendation-card-overflow.png"><img src="bug-recommendation-card-overflow.png" width="240"></a><br><sub>bug recommendation card overflow</sub></td>
+<td align="center" width="33%"><a href="v2-ac1-card-stepper.png"><img src="v2-ac1-card-stepper.png" width="240"></a><br><sub>v2 ac1 card stepper</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v2-ac3-basket-no-spinner.png"><img src="v2-ac3-basket-no-spinner.png" width="240"></a><br><sub>v2 ac3 basket no spinner</sub></td>
+<td align="center" width="33%"><a href="v2-ac4-cap-hold-2.png"><img src="v2-ac4-cap-hold-2.png" width="240"></a><br><sub>v2 ac4 cap hold 2</sub></td>
+<td align="center" width="33%"><a href="v2-ac6a-crossstore-dialog.png"><img src="v2-ac6a-crossstore-dialog.png" width="240"></a><br><sub>v2 ac6a crossstore dialog</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v2-ac6c-oos-block.png"><img src="v2-ac6c-oos-block.png" width="240"></a><br><sub>v2 ac6c oos block</sub></td>
+<td align="center" width="33%"><a href="v2-ac8-no-green-snackbar.png"><img src="v2-ac8-no-green-snackbar.png" width="240"></a><br><sub>v2 ac8 no green snackbar</sub></td>
+<td align="center" width="33%"><a href="v2-coldload-persistence.png"><img src="v2-coldload-persistence.png" width="240"></a><br><sub>v2 coldload persistence</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v2-critical1-checkout-discounted-price.png"><img src="v2-critical1-checkout-discounted-price.png" width="240"></a><br><sub>v2 critical1 checkout discounted price</sub></td>
+<td align="center" width="33%"><a href="v2-rtl-basket.png"><img src="v2-rtl-basket.png" width="240"></a><br><sub>v2 rtl basket</sub></td>
+<td align="center" width="33%"><a href="v2-rtl-cap-message.png"><img src="v2-rtl-cap-message.png" width="240"></a><br><sub>v2 rtl cap message</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v2-tb1-sheet-optimistic-22-lockstep.png"><img src="v2-tb1-sheet-optimistic-22-lockstep.png" width="240"></a><br><sub>v2 tb1 sheet optimistic 22 lockstep</sub></td>
+<td align="center" width="33%"><a href="v2-tb2-optimistic-row-no-crash.png"><img src="v2-tb2-optimistic-row-no-crash.png" width="240"></a><br><sub>v2 tb2 optimistic row no crash</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
 - [`bug-itemdetail-stepper-dead-code.log`](bug-itemdetail-stepper-dead-code.log)
 - [`bug-optimistic-row-addons-npe.log`](bug-optimistic-row-addons-npe.log)
+- [`bug-recommendation-card-overflow.log`](bug-recommendation-card-overflow.log)
+- [`bug-variation-remove-npe.log`](bug-variation-remove-npe.log)
 - [`progress.md`](progress.md)
+- [`v2-tb2-fix-verified.log`](v2-tb2-fix-verified.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-494/` · public-repo scrub policy (no live secrets; verified clean).*
