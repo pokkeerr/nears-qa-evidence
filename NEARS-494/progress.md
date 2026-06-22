@@ -36,3 +36,34 @@ Backend: local 127.0.0.1:8000 (HTTP 200), queue worker up. baseUrl OK (10.0.2.2:
 - Dark mode toggle confirmed OFF (light mode) per deferral; no dark-mode checks performed.
 - Cold-load persistence: hot restart -> basket reloaded from server with Rice 5kg (12/15, qty1) +
     Sample Product (10, qty2) intact + discounted pricing. PASS
+
+---
+
+# NEARS-494 v3 — fresh QA (fix-cycle 0) — emulator-5556, 2026-06-22
+
+Worktree nears-NEARS-494-v3-sheet-sync @cebffba9 (UNCOMMITTED). backend local http://10.0.2.2:8000 (zone 1 Demo), queue:work up. customer logged-in. baseUrl OK.
+v3 scope = two owner escapes (BUG1 stale sheet count, BUG2 rapid-+ generic toast) + the v3 review regressions (CTA spinner, no-misleading-toast).
+
+## Per-check verdict
+- BUG1 (sheet's own qty number AND total update in lock-step) — PASS
+  - Basket entry, simple in-cart (Cola, Nears Mart): + 6->7 total 94->109 AED ; - 7->6 total 109->94 ; basket card behind tracks. No spinner/reload. (02,03,04)
+  - Grid entry, pre-add simple (Red Apple): + 1->2 total ->7 AED. Pre-add path refreshes via outer ItemController GetBuilder. (07,08)
+  - RTL/Arabic sheet (Dove): + 1->2 total 300->600 د.إ., mirrored layout correct. (18,19)
+- BUG2 (rapid + : no generic toast, no double toast, one row, count holds) — PASS
+  - Sheet rapid +10x: 6->16 total ->250 AED ; exactly ONE debounced cart/update PATCH, NO ADD, NO "Something went wrong". (05)
+  - Sheet rapid -10x: 16->6, one PATCH. (06)
+  - REAL failure (airplane-mode mid-burst): single non-blocking "Couldn't add to cart. Please try again." reconcile toast, NO generic toast; cart reconciled to server truth (1); reconnect -> cart/update 200 resumes. (13,14,15)
+- CTA spinner (fix-cycle Critical) — PASS
+  - Variation Dove "Add To Cart": button shows spinner + "Loading..." across the round-trip, re-enables after (even when backend returned 500). NOT frozen. (cta-frame-2, cta-frame-4, 12)
+  - Simple in-cart CTA "Update In Cart" dismisses via Get.back(), no spinner — expected.
+- No-misleading-toast (fix-cycle High) — PASS
+  - Live genuine-rejection side shown (offline -> single reconcile toast).
+  - serverTruthKnown==false keep-row (NO toast) + known-cap / failed-ADD (notify+remove) unit-gated GREEN: cart_optimistic_add_test.dart:1059-1123.
+- Regression sweep — clean: cross-store reset dialog (10/11) PASS ; variation modal Size selector (09) PASS ; discounted pricing renders (basket strikethrough + total uses discounted price) ; Dart MCP get_runtime_errors = none ; dark-mode toggle spot-check = no crash (deferred, non-blocking) (20).
+- Automated backstop: flutter test test/features/cart/ test/features/item/ => All tests passed (153), exit 0.
+
+## Bugs (v3 cycle)
+- regression_bug (pre-existing, backend, NOT NEARS-494): POST /api/v1/customer/cart/add -> 500 on re-adding an existing variation item; json_decode() on an already-array variation at CartController.php:115. Identical occurrence logged at 10:23 before this run. Foreground CTA shows generic error (handleError stays true for foreground, by design) — does NOT break any AC. bug-cart-add-variation-500.log
+- (carried from v2, still present, do-not-gate) variation-remove NPE on item 84 Dove (ItemService.prepareVariationType); item_widget.dart:822 19-31px RenderFlex overflow on discounted recommendation cards. Both pre-494, regression_bugs.
+
+VERDICT: PASS. All v3 ACs demonstrated live; one broken-item rule satisfied (no task_bug breaks an AC). Only pre-existing regression_bugs observed.

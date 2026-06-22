@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-494
 
-**PASS (fix-cycle 1): TB1 in-sheet optimistic stepper + TB2 optimistic-row no-crash verified live on emulator-5556; regression clean**
+**v3 sheet-sync — PASS (BUG1+BUG2 + CTA spinner + no-misleading-toast), emulator-5556**
 
-**38 screenshot(s).** Click any thumbnail for full resolution.
+**56 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -68,10 +68,41 @@
 <tr>
 <td align="center" width="33%"><a href="v2-tb1-sheet-optimistic-22-lockstep.png"><img src="v2-tb1-sheet-optimistic-22-lockstep.png" width="240"></a><br><sub>v2 tb1 sheet optimistic 22 lockstep</sub></td>
 <td align="center" width="33%"><a href="v2-tb2-optimistic-row-no-crash.png"><img src="v2-tb2-optimistic-row-no-crash.png" width="240"></a><br><sub>v2 tb2 optimistic row no crash</sub></td>
+<td align="center" width="33%"><a href="v3-01-basket-initial.png"><img src="v3-01-basket-initial.png" width="240"></a><br><sub>v3 01 basket initial</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v3-02-sheet-from-basket-qty6.png"><img src="v3-02-sheet-from-basket-qty6.png" width="240"></a><br><sub>v3 02 sheet from basket qty6</sub></td>
+<td align="center" width="33%"><a href="v3-03-sheet-after-plus-qty7.png"><img src="v3-03-sheet-after-plus-qty7.png" width="240"></a><br><sub>v3 03 sheet after plus qty7</sub></td>
+<td align="center" width="33%"><a href="v3-04-sheet-after-minus-qty6.png"><img src="v3-04-sheet-after-minus-qty6.png" width="240"></a><br><sub>v3 04 sheet after minus qty6</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v3-05-sheet-rapid-plus-10x.png"><img src="v3-05-sheet-rapid-plus-10x.png" width="240"></a><br><sub>v3 05 sheet rapid plus 10x</sub></td>
+<td align="center" width="33%"><a href="v3-06-sheet-rapid-minus-back-to-6.png"><img src="v3-06-sheet-rapid-minus-back-to-6.png" width="240"></a><br><sub>v3 06 sheet rapid minus back to 6</sub></td>
+<td align="center" width="33%"><a href="v3-07-grid-sheet-preadd-qty1.png"><img src="v3-07-grid-sheet-preadd-qty1.png" width="240"></a><br><sub>v3 07 grid sheet preadd qty1</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v3-08-grid-sheet-preadd-qty2.png"><img src="v3-08-grid-sheet-preadd-qty2.png" width="240"></a><br><sub>v3 08 grid sheet preadd qty2</sub></td>
+<td align="center" width="33%"><a href="v3-09-variation-sheet.png"><img src="v3-09-variation-sheet.png" width="240"></a><br><sub>v3 09 variation sheet</sub></td>
+<td align="center" width="33%"><a href="v3-11-cta-spinner.png"><img src="v3-11-cta-spinner.png" width="240"></a><br><sub>v3 11 cta spinner</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v3-11b-cta-spinner-loading.png"><img src="v3-11b-cta-spinner-loading.png" width="240"></a><br><sub>v3 11b cta spinner loading</sub></td>
+<td align="center" width="33%"><a href="v3-12-cta-after-500.png"><img src="v3-12-cta-after-500.png" width="240"></a><br><sub>v3 12 cta after 500</sub></td>
+<td align="center" width="33%"><a href="v3-13-real-failure-airplane-burst.png"><img src="v3-13-real-failure-airplane-burst.png" width="240"></a><br><sub>v3 13 real failure airplane burst</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v3-14-real-failure-after-debounce.png"><img src="v3-14-real-failure-after-debounce.png" width="240"></a><br><sub>v3 14 real failure after debounce</sub></td>
+<td align="center" width="33%"><a href="v3-15-offline-dove-stepped.png"><img src="v3-15-offline-dove-stepped.png" width="240"></a><br><sub>v3 15 offline dove stepped</sub></td>
+<td align="center" width="33%"><a href="v3-18-rtl-sheet.png"><img src="v3-18-rtl-sheet.png" width="240"></a><br><sub>v3 18 rtl sheet</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v3-19-rtl-sheet-stepped.png"><img src="v3-19-rtl-sheet-stepped.png" width="240"></a><br><sub>v3 19 rtl sheet stepped</sub></td>
+<td align="center" width="33%"><a href="v3-20-darkmode-spotcheck.png"><img src="v3-20-darkmode-spotcheck.png" width="240"></a><br><sub>v3 20 darkmode spotcheck</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
+- [`bug-cart-add-variation-500.log`](bug-cart-add-variation-500.log)
 - [`bug-itemdetail-stepper-dead-code.log`](bug-itemdetail-stepper-dead-code.log)
 - [`bug-optimistic-row-addons-npe.log`](bug-optimistic-row-addons-npe.log)
 - [`bug-recommendation-card-overflow.log`](bug-recommendation-card-overflow.log)

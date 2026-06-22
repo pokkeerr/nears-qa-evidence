@@ -1,0 +1,16 @@
+REGRESSION BUG (pre-existing, backend) — cart/add 500 on re-adding an existing variation item
+Endpoint: POST /api/v1/customer/cart/add  ->  HTTP 500
+Triggered live during NEARS-494 QA when re-adding 'Dove Whitening Body Spray' (variation item, store 2) already present in cart.
+NOT introduced by NEARS-494 (frontend-only change); identical occurrence logged earlier at 10:23 before this QA run.
+Frontend impact: foreground CTA add surfaces the generic error (handleError stays true for foreground per the fix design) — does NOT break any NEARS-494 AC; the CTA spinner showed and re-enabled correctly.
+---- laravel.log ----
+[2026-06-22 11:12:40] local.ERROR: json_decode(): Argument #1 ($json) must be of type string, array given {"exception":"[object] (TypeError(code: 0): json_decode(): Argument #1 ($json) must be of type string, array given at /Users/Apple/Projects/nears/Admin/app/Http/Controllers/Api/V1/CartController.php:115)
+[2026-06-22 11:12:40] local.ERROR: json_decode(): Argument #1 ($json) must be of type string, array given {"exception":"[object] (TypeError(code: 0): json_decode(): Argument #1 ($json) must be of type string, array given at /Users/Apple/Projects/nears/Admin/app/Http/Controllers/Api/V1/CartController.php:115)
+---- CartController.php:113-119 ----
+        $cart = Cart::where('item_id',$request->item_id)->where('item_type',$model)->where('user_id', $user_id)->where('is_guest',$is_guest)->where('module_id',getModuleId($request->header('moduleId')))->first();
+
+        if ($cart && json_decode($cart->variation, true) == $request->variation) {
+            // If the same item+variation already exists in cart, increment quantity
+            // instead of returning an error. This makes add-to-cart idempotent
+            // for the same selection and matches common UX expectations.
+            $cart->quantity = $cart->quantity + $request->quantity;
