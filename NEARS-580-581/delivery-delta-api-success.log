@@ -1,0 +1,21 @@
+=== DeliveryApp (NEARS-580) — live API calls through PerfHttp-wrapped api_client ===
+Build: debug APK from worktree, firebase-perf gradle plugin applied. Device emulator-5554.
+
+--- Boot: config GET (wrapped GET path) ---
+I flutter : ====> API Call: /api/v1/config
+I flutter : ====> API Response: [200] /api/v1/config
+I flutter : [NET] endpoint=/api/v1/config http_status=200
+
+--- Login POST + authenticated GETs (wrapped POST + GET paths) ---
+I flutter : ====> API Response: [200] /api/v1/delivery-man/profile?token=***
+I flutter : [NET] endpoint=/api/v1/delivery-man/profile http_status=200
+I flutter : ====> API Call: /api/v1/delivery-man/latest-orders?token=***
+I flutter : ====> API Call: /api/v1/delivery-man/profile?token=***
+   Header: {... Authorization: Bearer Awd18wC...}   (login POST minted a token => auth succeeded)
+
+Result: login succeeded, reached Home dashboard (Orders/Earnings/Profile, balance د.إ 150 rendered).
+No new exception on the request path. PerfHttp.start/stop wrap each call additively.
+
+PII NOTE: endpoints carry ?token= in the URL (delivery-man/profile?token=, latest-orders?token=).
+The api_client log already masks it (?token=*** via NEARS-463). PerfHttp.sanitizeUrl independently
+drops the entire query string before the HttpMetric URL, so no token reaches Firebase Performance.

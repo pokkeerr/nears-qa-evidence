@@ -1,0 +1,24 @@
+=== VendorApp (NEARS-581) — live API calls through PerfHttp-wrapped api_client ===
+Build: debug APK from worktree, firebase-perf gradle plugin applied. Device emulator-5554.
+
+--- Boot: config GET (wrapped GET path) ---
+I flutter : ====> API Call: /api/v1/config
+I flutter : ====> API Response: [200] /api/v1/config
+I flutter : [NET] endpoint=/api/v1/config http_status=200
+
+--- Vendor login POST + authenticated calls (wrapped POST + GET paths) ---
+I flutter : ====> API Call: /api/v1/auth/vendor/login
+I flutter : ====> API Response: [200] /api/v1/auth/vendor/login
+I flutter : [NET] endpoint=/api/v1/auth/vendor/login http_status=200
+I flutter : ====> API Call: /api/v1/vendor/update-fcm-token   (Authorization: Bearer 0zfktse..., vendorType: owner)
+I flutter : ====> API Response: [200] /api/v1/vendor/update-fcm-token
+I flutter : [NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+I flutter : ====> API Call: /api/v1/vendor/profile           (Bearer ..., vendorType: owner)
+
+Result: vendor (ahmed.khan@demo.com / owner) signed in -> token minted -> reached dashboard
+(low-stock business notification rendered normally). No new exception. ui_errors clean.
+PerfHttp.start/stop wrap each call additively; no PerfHttp/HttpMetric error in logcat.
+
+PII NOTE: Authorization header is masked (Authorization: ***/Bearer 0zfktse...) in the api_client
+log (NEARS-463). VendorApp endpoints do not put token in the URL, but PerfHttp.sanitizeUrl still
+reduces any URL to scheme://host/path before the HttpMetric, so no query/userinfo can leak.
