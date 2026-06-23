@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-491
 
-**PASS — persistent bottom nav on Categories; all 11 scope items + 5 ACs demonstrated live on emulator-5556, light mode, logs clean**
+**verify**
 
 **22 screenshot(s).** Click any thumbnail for full resolution.
 
