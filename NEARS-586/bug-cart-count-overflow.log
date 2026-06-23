@@ -1,0 +1,21 @@
+# Pre-existing regression (UNRELATED to NEARS-586) — RenderFlex overflow in cart_count_view.dart
+# Observed: emulator-5556, UserApp worktree feat/NEARS-586-glass-opacity, 2026-06-23
+# File cart_count_view.dart is NOT in the NEARS-586 diff (last touched by NEARS-494).
+# Triggered when an item is added to cart and the in-card quantity stepper renders.
+
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 36 pixels on the right.
+
+The relevant error-causing widget was:
+  Row
+  Row:.../UserApp/lib/common/widgets/cart_count_view.dart:64:28
+
+The specific RenderFlex in question is: RenderFlex#50aa9 relayoutBoundary=up6 OVERFLOWING:
+  creator: Row ← Padding ← DecoratedBox ← ConstrainedBox ← Container ← Center ← SizedBox ←
+    GetBuilder<CartController> ← CartCountView ← Center ← SizedBox ← Positioned ← ⋯
+  constraints: BoxConstraints(w=44.0, 0.0<=h<=36.0)
+  size: Size(44.0, 28.0)
+  direction: horizontal
+  mainAxisAlignment: spaceBetween
+(repeated several times during add-to-cart on the store product grid)
