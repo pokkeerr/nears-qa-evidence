@@ -1,0 +1,9 @@
+NEARS-621 QA — Stores section gate uses per-MODULE store count, not per-ZONE total.
+search_controller.dart storesTabVisible(zoneStoreCount) returns zoneStoreCount>10.
+Caller search_result_widget.dart:41-46 passes StoreController.storeModel?.totalSize,
+which is the CURRENT MODULE's store total, not the zone total.
+Repro: zone 2 (23 stores total) Pharmacy module (only 5 stores) search "chemist".
+Backend returns items=0, stores=1 (City Care Chemist, store 58). App gates stores
+section OFF (5<=10) -> items empty + stores hidden -> full-page "No data found".
+Expected per AC5: items empty + Stores list showing City Care Chemist.
+Expected per AC14: zone 2 has 23 stores (>10) so Stores section shown.

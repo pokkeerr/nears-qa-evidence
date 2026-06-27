@@ -1,0 +1,32 @@
+NEARS-621 QA — unified search results list does not render (BLOCKER)
+Reproduced on every fresh search (e.g. "milk" zone 1, "organic" zone 1).
+Header "Items (N)" renders with correct N, but the list area is BLANK and the
+Stores section does not paint.
+
+Flutter runtime error (get_runtime_errors), repeats on each search:
+
+  Exception caught by rendering library
+  The following assertion was thrown during paint():
+  RenderBox was not laid out: RenderShrinkWrappingViewport#... NEEDS-PAINT
+  'package:flutter/src/rendering/box.dart':
+  Failed assertion: line 2251 pos 12: 'hasSize'
+  The relevant error-causing widget was:
+    ListView  ListView:file:.../UserApp/lib/features/search/widgets/search_result_widget.dart:282:21
+
+Source: search_result_widget.dart:282 _rowList() returns a
+  ListView.separated(shrinkWrap: true, physics: NeverScrollableScrollPhysics(), ...)
+used by both _itemsSection (line 180) and _storesSection (line 234), inside
+SingleChildScrollView(_scroll, line 68) -> Column(line 140). The shrink-wrapping
+viewport is never laid out, so it is invisible at paint time (debug: assertion;
+release: zero-size paint -> still invisible). Net effect: the unified two-section
+results UI shows headers only, no item/store rows.
+
+NARROWED (loading vs loaded):
+- AC7 LOADING skeleton (_loadingList line 295, same shrinkWrap ListView but with
+  fixed-size _ItemRowSkeleton / StoreCard.skeleton children) RENDERS fine (3 rows).
+- LOADED list (_rowList line 282, children ItemWidget(isStore:false,isGrid:false)
+  and SearchStoreCardWidget) FAILS the hasSize paint assertion -> blank.
+=> Root cause is in the real row children inside the shrink-wrapped ListView, not
+   the ListView pattern itself. Engineer: inspect ItemWidget / SearchStoreCardWidget
+   constraints (unbounded width / intrinsic-dimension) when nested in a
+   shrinkWrap+NeverScrollable ListView inside a vertical SingleChildScrollView.
