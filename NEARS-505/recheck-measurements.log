@@ -1,0 +1,52 @@
+NEARS-505 DELTA RE-QA (fix-cycle 2) — measurements
+Device: emulator-5554 (Android), screen 1344x2992 px, DPR 3.0 -> 448 logical px wide.
+Build: worktree feat/NEARS-505-search-idle-chips (IntrinsicWidth chips + mainAxisExtent:64).
+User: james.wilson@demo.com (logged in), zone 2 (Abu Dhabi), Grocery module.
+
+AC#1 — compact wrapping "Your Last Search" chips: PASS
+  Chips render content-sized, multiple per row, wrapping:
+    Row 1: "Organic Whole Wheat Bread" | "Water" | "Bread" | "Apple"
+    Row 2: "Milk"
+  Long term "Organic Whole Wheat Bread" -> single-line wider pill, NO overflow / NO truncation.
+  Chip height ~44 logical (132 px). IntrinsicWidth fix confirmed effective.
+
+AC#2 — "Suggestions" title -> first-card gap: FAIL (defect persists)
+  Cell height: card semantic node = 192 px = 64 logical  => mainAxisExtent:64 IS applied
+                (cards no longer balloon — real partial improvement over the old build).
+  BUT the visible title->first-card gap is still oversized:
+    "Suggestions" title text bottom (pixel scan) .... y ~1087 px
+    First suggestion card content top (pixel scan) .. y ~1287 px
+    => VISIBLE GAP ~200 px = ~67 logical px
+  Geometry corroboration (uiautomator render bounds):
+    Suggestions title node ....... top 1026  bottom 1098
+    GridView container ("View") .. top 1113  (= title + 5px SizedBox) bottom 1908
+    First card cell .............. top 1272  bottom 1464
+    => ~159 px (~53 logical) of DEAD SPACE at the TOP of the grid, above row 1.
+       (Grid rows themselves are tight: pitch 222px=74 logical = 64 cell + 10 spacing.)
+  Comparison required by AC#2 — Popular Categories (same screen):
+    "Popular Categories" title bottom .. y ~2031 px
+    First item ("General Items") top ... y ~2085 px
+    => gap ~54 px = ~18 logical px (tight)
+  RESULT: Suggestions gap (~67 logical) is ~3.7x larger than Popular Categories (~18 logical).
+          NOT tight (~10px target), NOT comparable. AC#2 requirement unmet.
+  Card content NOT clipped: single-line names + 54px icon fit the 64px cell cleanly
+    (no 2-line-name suggestion was available in seed data to test the 2-line case).
+  Engineer note claimed "gap 10px width-independent" verified at 390px logical; on this
+  448px-logical device the dead band reappears -> likely width-dependent / leading-offset
+  cause not addressed by mainAxisExtent (which only fixed per-cell height).
+
+Crowding judgment (reviewer's 5px title->grid token): N/A as the gating issue — the visible
+  gap is dominated by the ~53-logical dead band, not the 5px token. The 5px token is NOT the
+  problem and bumping 5->10 would NOT fix this (would slightly worsen).
+
+Regression sweep (light mode):
+  - Chip tap "Apple" -> /api/v1/items/search?name=Apple [200], 11 results. PASS
+  - Suggestion card tap "Orange Juice 1L" -> /api/v1/items/details/145 [200], item page. PASS
+  - "Clear All" -> history cleared, Suggestions+Popular remain. PASS
+  - RTL/Arabic idle: chips wrap right-aligned (compact), suggestion cards mirror (icon->right),
+    no overflow/clip. PASS. (AC#2 gap defect also visible in RTL — direction-independent.)
+  - Logs: no [FAIL]/[ERR]/exceptions all session (pid 11871). get_runtime_errors clean x3.
+
+Automated backstop: flutter test test/features/search -> 53/53 passed.
+  (Geometry pins assert cell=64px but do not assert the title->first-row gap, so they pass
+   while the visible gap fails — test-coverage gap.)
