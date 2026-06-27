@@ -1,0 +1,24 @@
+NEARS-505 QA — pixel measurements (emulator-5554, 1344x2992 @ density 3.0 -> 448 logical px width; LIGHT mode)
+Screenshot: 01-idle-chips-suggestions.png  (logged-in customer@nears.com, Grocery module idle search)
+
+CHANGE UNDER TEST (verified present in worktree diff vs feat/userapp-reskin):
+  search_screen.dart  chips->"Suggestions" title gap : paddingSizeLarge(20) -> paddingSizeDefault(15)
+  search_screen.dart  "Suggestions" title->grid gap  : paddingSizeSmall(10) -> paddingSizeExtraSmall(5)
+
+FINDING 1 — "Your Last Search" chips render FULL-WIDTH, one per row (AC#1 expects compact, multi-per-row, wrapping):
+  "milk" pill : x ~ 36..1308 (~96% of screen width) ; "rice" pill stacked directly below it, same width.
+  Root cause (pre-existing, NOT in NEARS-505 diff): NearsFilterChip inner Container(alignment: Alignment.center)
+    expands to fill the parent Wrap's bounded maxWidth on mobile -> each chip takes full row width.
+  NEARS-410 styled the DESKTOP horizontal-ListView chip path; the mobile Wrap path was not covered.
+
+FINDING 2 — "Suggestions" title -> first card gap renders LARGE (~64 logical px), not tight (AC#2):
+  cream-band scan: continuous empty/cream rows 981..1272 (orig px), interrupted only by the thin
+    "Suggestions" glyphs at 1054..1080.
+  "Suggestions" glyph bottom = 1080 ; first white suggestion-card top edge = 1272 -> gap 192px = ~64 logical px.
+  By comparison, "Popular Categories" title -> rail gap = ~18 logical px (token paddingSizeSmall=10).
+  The 5px SizedBox token is correctly applied (verified in code + widget tree: Text -> SizedBox -> GridView,
+    nothing else between), but the dominant visible gap is structural/pre-existing (GridView first-row layout),
+    so halving the token 10->5 is visually imperceptible. The reviewer-feared "5px looks cramped/glued" does
+    NOT occur — the gap is the opposite (oversized vs the rest of the screen).
+
+LOGS: no [FAIL]/[ERR]/EXCEPTION/overflow across the session; suggested-items, categories/popular, items/search all 200.
