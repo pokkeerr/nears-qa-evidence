@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-591
 
-**DIAGNOSTIC probe: floating-bar top-corner notches render MAGENTA = dashboard Scaffold surface paints the corner-fill**
+**v4 evidence re-capture: floating glass bar now frosts real colorful content (no stark-white corners); last item reachable; no black band from bottom:false; ui_errors clean (emulator-5556, light mode)**
 
-**27 screenshot(s).** Click any thumbnail for full resolution.
+**31 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -49,6 +49,14 @@
 <td align="center" width="33%"><a href="v3-08-produce-through-bar.png"><img src="v3-08-produce-through-bar.png" width="240"></a><br><sub>v3 08 produce through bar</sub></td>
 <td align="center" width="33%"><a href="v3-13-basket.png"><img src="v3-13-basket.png" width="240"></a><br><sub>v3 13 basket</sub></td>
 <td align="center" width="33%"><a href="v3-14-profile.png"><img src="v3-14-profile.png" width="240"></a><br><sub>v3 14 profile</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v4-08-content-under-bar.png"><img src="v4-08-content-under-bar.png" width="240"></a><br><sub>v4 08 content under bar</sub></td>
+<td align="center" width="33%"><a href="v4-basket.png"><img src="v4-basket.png" width="240"></a><br><sub>v4 basket</sub></td>
+<td align="center" width="33%"><a href="v4-feed-bottom-lastitem.png"><img src="v4-feed-bottom-lastitem.png" width="240"></a><br><sub>v4 feed bottom lastitem</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v4-feed-top.png"><img src="v4-feed-top.png" width="240"></a><br><sub>v4 feed top</sub></td>
 </tr>
 </table>
 
