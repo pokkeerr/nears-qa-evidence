@@ -1,0 +1,24 @@
+NEARS-630 fix-cycle 1 — VERIFIED FIXED: grid in-cart "−" now decrements (was the cycle-0 FAIL)
+Build: worktree feat/NEARS-630-cart-overflow @127ce917 · emulator-5554 (Android 17, com.izzes.nears) · DEBUG · light
+Fix: OverflowBox replaced by GetBuilder<CartController> → SizedBox(width: inCart?100:44, height:44) — a real
+hit-testable cell (item_widget.dart grid branch). Control stays PositionedDirectional(bottom,end), out of flow.
+
+PRIMARY GATE — "−" decrement routing (LTR, Tomatoes):
+  start qty 6 (pill shown: "Decrease quantity"@(459-537,...) + "Add"@(675-759,...))
+  tap "−" @ (498,1146):
+    DETAIL SHEET OPENED = False   ← (cycle-0 this opened the sheet; now it does NOT)
+    pill still present, qty 6→5 (screenshot ac4-after-one-minus.png shows "− 5 +")
+  5× "−" (5→4→3→2→1→0): sheet_open=0 every step, NO RenderFlex overflow
+    final state = "Add To Cart" w132 (44dp corner cell) → collapsed back to "+" circle ✓ (ac5-ac6-collapsed-plus-qty0.png)
+  tap "+" @ corner (693,1146) at qty0 → re-adds (no sheet); tap "+" again → increments in-place to 2 (ac2-ac3-incart-pill.png) ✓
+
+AC5 / IMP-001 no-jump: card body (image, "Tomatoes", kg, NEW, "11 AED") in IDENTICAL positions in the "+" state
+  (ac5-ac6) vs the in-cart pill state (ac2-ac3) — only the corner control differs; width swap 44↔100 does not reflow.
+
+RTL / Arabic: both cards in cart; tap "−" (تقليل الكمية)@(846,1146): sheet=0, no overflow, label →"يزيل" (qty 2→1)
+  in-place. "+" (يضيف) and "−" both hittable, pill end-anchored grows inward, no overflow. (rtl-incart.png)
+
+Automated: flutter test item_widget_cart_overflow_test.dart → 4/4 PASS, incl. NEW assertions:
+  "tapping the − button ROUTES a decrement" + ""+"-corner stays ~44dp" (both RED on cycle-0, GREEN now).
+
+No overflow observed on any surface (LTR grid, RTL grid, home module grid). No new defects.

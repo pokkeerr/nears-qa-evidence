@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-630
 
-**FAIL — overflow fixed but grid '−' decrement/remove button not tappable (OverflowBox hit-test clip); breaks AC2/AC4**
+**PASS (fix-cycle 1) — − decrement now routes in-place, collapses to + at 0; + increments; no overflow; AC5 no-jump; RTL ok**
 
 **7 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -22,6 +22,7 @@
 
 ### Other artifacts
 - [`bug-minus-not-tappable.log`](bug-minus-not-tappable.log)
+- [`cycle1`](cycle1)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-630/` · public-repo scrub policy (no live secrets; verified clean).*
