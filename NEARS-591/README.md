@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-591
 
-**v3 re-capture: faint elev1 shadow on floating bottom-nav (light/empty screens)**
+**DIAGNOSTIC probe: floating-bar top-corner notches render MAGENTA = dashboard Scaffold surface paints the corner-fill**
 
-**24 screenshot(s).** Click any thumbnail for full resolution.
+**27 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -32,6 +32,11 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="15-profile-list-bottom-AC3.png"><img src="15-profile-list-bottom-AC3.png" width="240"></a><br><sub>profile list bottom AC3</sub></td>
+<td align="center" width="33%"><a href="probe-corner-zoom-left.png"><img src="probe-corner-zoom-left.png" width="240"></a><br><sub>probe corner zoom left</sub></td>
+<td align="center" width="33%"><a href="probe-corner-zoom-right.png"><img src="probe-corner-zoom-right.png" width="240"></a><br><sub>probe corner zoom right</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="probe-magenta-corners.png"><img src="probe-magenta-corners.png" width="240"></a><br><sub>probe magenta corners</sub></td>
 <td align="center" width="33%"><a href="v2-01-home-light.png"><img src="v2-01-home-light.png" width="240"></a><br><sub>v2 01 home light</sub></td>
 <td align="center" width="33%"><a href="v2-08-produce-through-bar.png"><img src="v2-08-produce-through-bar.png" width="240"></a><br><sub>v2 08 produce through bar</sub></td>
 </tr>
