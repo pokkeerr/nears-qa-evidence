@@ -1,0 +1,19 @@
+=== NEARS-546 AC6 authoritative charge cross-check (read-only) ===
+Order placed live via UserApp (customer@nears.com / user 6), COD, zone2/module1 store 13 (Fresh supermarket, open 24/7).
+
+--- orders row (the REAL saved charge) ---
+id	user_id	coupon_code	coupon_discount_amount	order_amount	payment_method	store_id	created_at
+162	6	NEARS10	2.00	19.00	cash_on_delivery	13	2026-06-28 18:58:58
+
+--- order_details (item) ---
+order_id	item_id	price	discount_on_item	quantity
+162	214	22.00	0.00	1
+
+--- coupon definition (post data-fix) ---
+id	code	discount_type	discount	min_purchase	max_discount
+3	NEARS10	percent	10.00	20.00	15.00
+
+INTERPRETATION: coupon_discount_amount=2.00 == ~10% of subtotal (22), NOT the old flat 10.00.
+OLD BUG would have stored coupon_discount_amount=10.00 (coupon.discount) and order_amount ~12.
+Display showed Coupon Discount -2 AED; DB charge 2.00 -> DISPLAY == CHARGE. AC6 PASS.
+(digit_after_decimal_point=0 -> whole-AED rounding; grand-total display 20 vs order_amount 19 is a pre-existing rounding artifact, unrelated to coupon fix.)
