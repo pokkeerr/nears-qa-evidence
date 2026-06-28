@@ -1,0 +1,26 @@
+NEARS-630 — task_bug: grid in-cart "−" (decrement/remove) button NOT tappable
+Surface: UserApp · category/module grid item-card (ItemWidget isGrid:true, item_widget.dart:431, OverflowBox wrap)
+Device: emulator-5554 (Android 17, com.izzes.nears), debug build, worktree feat/NEARS-630-cart-overflow @1a816bcb
+
+ROOT CAUSE (hit-test, not a paint error — no console error emitted):
+The fix wraps CartCountView in OverflowBox(maxWidth:100, AlignmentDirectional.centerEnd) inside the
+fixed 44dp SizedBox.square. The in-cart pill paints at natural ~100dp width OUTSIDE the 44dp box (no
+clip → no RenderFlex overflow ✓). But Flutter clips POINTER hit-testing to a parent's own size
+(RenderBox.hitTest: `if (size.contains(position))` before hitTestChildren). The "−" button sits in
+the overflow region (left of the 44dp footprint in LTR) → it receives NO taps. Taps there fall
+through to the card's onTap → opens the item-detail bottom sheet instead of decrementing. The "+"
+button sits at the end corner INSIDE the 44dp box → it works.
+
+REPRO (LTR, Tomatoes card, qty 5 in cart):
+  before −tap: grid nodes = "Decrease quantity"(459,1107)-(537,1185) + "Add"(675,1104)-(759,1188)  [pill shown]
+  tap "−" glyph at (495,1149)
+  after −tap : nodes = "Description" + "Update In Cart"  [item-detail sheet OPENED; qty still 5 — NOT decremented]
+  control   : tap "+" at (717,1149) → no sheet, increments in-place (1→…→5)  [+ works, − dead]
+
+IMPACT: user cannot decrement or remove an item from any grid item-card (home/module/category grids).
+Breaks AC2 ("− qty + fully visible AND tappable") and AC4 ("tap − → qty decrements; →0 collapses to +").
+The fix trades the pre-fix broken "+" (overflowed off-edge) for a broken "−". Neither state yields a
+fully-working stepper.
+
+NOTE: the added widget test (item_widget_cart_overflow_test.dart) asserts NO overflow only — it does
+NOT assert "−" tappability/hit-test, which is why this passed CI but fails live QA.
