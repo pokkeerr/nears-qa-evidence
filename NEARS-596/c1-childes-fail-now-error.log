@@ -1,0 +1,13 @@
+NEARS-596 cycle-1 (HEAD cfda154b) — childes (subcategory) fetch failure now
+raises the grid error/retry state (was: endless shimmer in cycle 0).
+
+Repro (emulator-5554, backend :8000 down, network interface UP):
+  Categories (rail loaded) -> backend down -> tap a FRESH real category.
+  getSubCategoryList()'s childes fetch fails -> controller now sets
+  _itemFetchFailed=true (else-branch) -> grid shows NearsErrorRetry, NOT shimmer.
+
+[FAIL] childes lines observed (PII-safe: path-only endpoint + category id, no
+query/body/tokens, correlation_id present; logged by ApiClient._send):
+  [FAIL] endpoint=/api/v1/categories/childes/1 http_status=null type=ApiFailure msg="api request threw" correlation_id=b2eab34f-8228-41ec-a9cc-b9349bfbda52
+  [FAIL] endpoint=/api/v1/categories/childes/5 http_status=null type=ApiFailure msg="api request threw" correlation_id=0963d93b-844c-4228-bb22-7de6a48e3c01
+No /categories/items [FAIL] follows a childes failure (items fetch correctly not reached).
