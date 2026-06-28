@@ -1,0 +1,16 @@
+NEARS-621 RE-QA (cycle 2) — PRE-EXISTING REGRESSION (not a NEARS-621 task bug)
+
+Flutter runtime error (light mode, emulator-5554, build @8f2c3af4):
+  A RenderFlex overflowed by 36 pixels on the right.
+  The relevant error-causing widget was:
+    Row Row:file:.../UserApp/lib/common/widgets/cart_count_view.dart:64:28
+  RenderFlex: direction=horizontal, mainAxisAlignment=spaceBetween, mainAxisSize=max
+  constraints: BoxConstraints(w=44.0, 0.0<=h<=36.0)  -> children natural size ~80px
+
+Classification: cart_count_view.dart last modified by NEARS-494 (perf optimistic
+add-to-cart); NOT touched by any NEARS-621 commit. The unified-search result widget
+(search_result_widget.dart) does NOT use CartCountView (own add button). Search
+results render clean (no overflow stripes), and the overflow never re-fires under
+search interaction (scroll / re-query). Fires when an in-cart item's quantity
+stepper renders in a ~44px-constrained grid item-card slot (home item grids:
+item_card.dart / flash_product_card / item_that_you_love). Independent of search.
