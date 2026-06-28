@@ -1,0 +1,23 @@
+# NEARS-555 — removal traces (emulator-5556, worktree build, cold-launched server-restored cart, _variationIndex==null)
+# GLOBAL 'Null check operator used on a null value' count = 0
+# GLOBAL [ERR]=0  [FAIL]=0
+
+## cart re-fetched from server on cold launch (proves restore path):
+06-28 20:38:51.658 I/flutter (27790): ====> API Response: [200] /api/v1/customer/cart/list
+06-28 20:39:16.926 I/flutter (27790): ====> API Response: [200] /api/v1/customer/cart/list
+06-28 20:39:17.057 I/flutter (27790): ====> API Response: [200] /api/v1/customer/cart/list
+
+## AC1 g1 (X/Remove, legacy variation item 91) + AC1 g2 (stepper-to-zero, legacy variation item 86) + AC4 (simple item 62):
+06-28 20:40:19.129 I/flutter (27790): 📊 analytics: remove_from_cart {item_id: 91, price: 70.0, quantity: 1, value: 70.0}
+06-28 20:40:19.498 I/flutter (27790): ====> API Response: [200] /api/v1/customer/cart/remove-item?cart_id=234
+06-28 20:41:03.986 I/flutter (27790): 📊 analytics: remove_from_cart {item_id: 86, price: 430.0, quantity: 1, value: 430.0}
+06-28 20:41:04.251 I/flutter (27790): ====> API Response: [200] /api/v1/customer/cart/remove-item?cart_id=235
+06-28 20:42:33.194 I/flutter (27790): 📊 analytics: remove_from_cart {item_id: 62, price: 400.0, quantity: 1, value: 400.0}
+06-28 20:42:33.339 I/flutter (27790): ====> API Response: [200] /api/v1/customer/cart/remove-item?cart_id=236
+06-28 20:44:10.788 I/flutter (27790): 📊 analytics: remove_from_cart {item_id: 91, price: 70.0, quantity: 1, value: 70.0}
+06-28 20:44:10.934 I/flutter (27790): ====> API Response: [200] /api/v1/customer/cart/remove-item?cart_id=237
+
+## AC2 (detail opened -> _variationIndex SET -> add+remove clean):
+06-28 20:43:31.893 I/flutter (27790): 📊 analytics: view_item {item_id: 91, item_category: 11, price: 100.0, value: 100.0}
+06-28 20:43:40.925 I/flutter (27790): ====> API Response: [200] /api/v1/customer/cart/add
+06-28 20:43:40.926 I/flutter (27790): 📊 analytics: add_to_cart {item_id: 91, price: 70.0, quantity: 1, currency: AED, value: 70.0}
