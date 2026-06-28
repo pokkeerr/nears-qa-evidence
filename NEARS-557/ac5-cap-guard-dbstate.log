@@ -1,0 +1,8 @@
+# AC5 / SEC-NEARS-557-01 — increment-branch cart_item_limit guard (live, item 1, cap=2)
+add #1  item 1 simple  -> 200, qty 1
+re-add #2 (cumulative 2 == cap 2) -> 200, qty 2  (at-cap still allowed)
+re-add #3 (cumulative 3 > cap 2)  -> 403 {"errors":[{"code":"cart_item_limit","message":"Maximum cart quantity exceeded"}]}
+DB after sequence: carts.id=240 item_id=1 quantity=2  (did NOT exceed cap)
+note: live cap-guard proven on the now-reachable increment branch via a simple item;
+      the variation+cap combination is covered deterministically by phpunit
+      test_readd_same_variation_blocked_at_maximum_cart_quantity (AC6).
