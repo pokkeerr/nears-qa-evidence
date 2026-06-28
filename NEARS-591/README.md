@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-591
 
-**Purest-glass v2 — floating bottom-nav shadow + border removed, defined by BackdropFilter blur alone (light mode)**
+**v3 re-capture: faint elev1 shadow on floating bottom-nav (light/empty screens)**
 
-**20 screenshot(s).** Click any thumbnail for full resolution.
+**24 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -38,6 +38,12 @@
 <tr>
 <td align="center" width="33%"><a href="v2-13-basket.png"><img src="v2-13-basket.png" width="240"></a><br><sub>v2 13 basket</sub></td>
 <td align="center" width="33%"><a href="v2-14-profile.png"><img src="v2-14-profile.png" width="240"></a><br><sub>v2 14 profile</sub></td>
+<td align="center" width="33%"><a href="v3-01-home-light.png"><img src="v3-01-home-light.png" width="240"></a><br><sub>v3 01 home light</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v3-08-produce-through-bar.png"><img src="v3-08-produce-through-bar.png" width="240"></a><br><sub>v3 08 produce through bar</sub></td>
+<td align="center" width="33%"><a href="v3-13-basket.png"><img src="v3-13-basket.png" width="240"></a><br><sub>v3 13 basket</sub></td>
+<td align="center" width="33%"><a href="v3-14-profile.png"><img src="v3-14-profile.png" width="240"></a><br><sub>v3 14 profile</sub></td>
 </tr>
 </table>
 
