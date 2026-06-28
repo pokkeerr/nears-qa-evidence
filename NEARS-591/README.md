@@ -1,23 +1,37 @@
 # QA Evidence — NEARS-591
 
-**PREVIEW capture (not QA gate): NEARS-591 floating glass bottom nav — light + dark, clearance verified**
+**NEARS-591 floating frosted-glass bottom-nav — evidence capture (no pass/fail), light mode, emulator-5556**
 
-**8 screenshot(s).** Click any thumbnail for full resolution.
+**16 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="01-light-home-floating-bar.png"><img src="01-light-home-floating-bar.png" width="240"></a><br><sub>light home floating bar</sub></td>
-<td align="center" width="33%"><a href="02-light-home-scrolled-bottom-clearance.png"><img src="02-light-home-scrolled-bottom-clearance.png" width="240"></a><br><sub>light home scrolled bottom clearance</sub></td>
-<td align="center" width="33%"><a href="03-light-categories-grid-bottom-clearance.png"><img src="03-light-categories-grid-bottom-clearance.png" width="240"></a><br><sub>light categories grid bottom clearance</sub></td>
+<td align="center" width="33%"><a href="00-initial-state.png"><img src="00-initial-state.png" width="240"></a><br><sub>initial state</sub></td>
+<td align="center" width="33%"><a href="01-home-top-grocery.png"><img src="01-home-top-grocery.png" width="240"></a><br><sub>home top grocery</sub></td>
+<td align="center" width="33%"><a href="02-home-scrolled-content-under-bar.png"><img src="02-home-scrolled-content-under-bar.png" width="240"></a><br><sub>home scrolled content under bar</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="03a-light-categories-top.png"><img src="03a-light-categories-top.png" width="240"></a><br><sub>03a light categories top</sub></td>
-<td align="center" width="33%"><a href="04-light-home-glass-over-imagery.png"><img src="04-light-home-glass-over-imagery.png" width="240"></a><br><sub>light home glass over imagery</sub></td>
-<td align="center" width="33%"><a href="04-light-store-page-glass-over-images.png"><img src="04-light-store-page-glass-over-images.png" width="240"></a><br><sub>light store page glass over images</sub></td>
+<td align="center" width="33%"><a href="03-store-grid-images-under-bar.png"><img src="03-store-grid-images-under-bar.png" width="240"></a><br><sub>store grid images under bar</sub></td>
+<td align="center" width="33%"><a href="04-categories-tab-items-under-bar.png"><img src="04-categories-tab-items-under-bar.png" width="240"></a><br><sub>categories tab items under bar</sub></td>
+<td align="center" width="33%"><a href="05-category-grid-images-under-bar.png"><img src="05-category-grid-images-under-bar.png" width="240"></a><br><sub>category grid images under bar</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="05-dark-home-transparent-bar.png"><img src="05-dark-home-transparent-bar.png" width="240"></a><br><sub>dark home transparent bar</sub></td>
-<td align="center" width="33%"><a href="06-light-basket-checkout-pill-clearance.png"><img src="06-light-basket-checkout-pill-clearance.png" width="240"></a><br><sub>light basket checkout pill clearance</sub></td>
+<td align="center" width="33%"><a href="06-home-stores-scroll-a.png"><img src="06-home-stores-scroll-a.png" width="240"></a><br><sub>home stores scroll a</sub></td>
+<td align="center" width="33%"><a href="07-home-image-blurred-through-bar.png"><img src="07-home-image-blurred-through-bar.png" width="240"></a><br><sub>home image blurred through bar</sub></td>
+<td align="center" width="33%"><a href="08-home-produce-blurred-through-bar.png"><img src="08-home-produce-blurred-through-bar.png" width="240"></a><br><sub>home produce blurred through bar</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="09-home-neon-entering-bar.png"><img src="09-home-neon-entering-bar.png" width="240"></a><br><sub>home neon entering bar</sub></td>
+<td align="center" width="33%"><a href="10-home-open-card-bar.png"><img src="10-home-open-card-bar.png" width="240"></a><br><sub>home open card bar</sub></td>
+<td align="center" width="33%"><a href="11-home-open-sign-dark-portion-under-bar.png"><img src="11-home-open-sign-dark-portion-under-bar.png" width="240"></a><br><sub>home open sign dark portion under bar</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="12-tab-search-active.png"><img src="12-tab-search-active.png" width="240"></a><br><sub>tab search active</sub></td>
+<td align="center" width="33%"><a href="13-tab-basket-active.png"><img src="13-tab-basket-active.png" width="240"></a><br><sub>tab basket active</sub></td>
+<td align="center" width="33%"><a href="14-tab-profile-active.png"><img src="14-tab-profile-active.png" width="240"></a><br><sub>tab profile active</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="15-profile-list-bottom-AC3.png"><img src="15-profile-list-bottom-AC3.png" width="240"></a><br><sub>profile list bottom AC3</sub></td>
 </tr>
 </table>
 
