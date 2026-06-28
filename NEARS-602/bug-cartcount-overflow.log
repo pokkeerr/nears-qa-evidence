@@ -1,0 +1,14 @@
+REGRESSION (pre-existing, NOT caused by NEARS-602) — cart_count_view qty stepper overflow
+Observed: NEARS-602 QA on emulator-5556, after add-to-cart on a discounted item in the
+"Recommended For You" horizontal rail (Fresh supermarket store page).
+
+Flutter framework error (get_runtime_errors):
+  A RenderFlex overflowed by 36 pixels on the right.
+  Error-causing widget: Row  ->  UserApp/lib/common/widgets/cart_count_view.dart:64:28
+  RenderFlex: direction=horizontal, mainAxisAlignment=spaceBetween, constraints BoxConstraints(w=44.0, 0<=h<=36.0)
+  (the inline +/- quantity stepper is laid out into a 44px-wide card slot in the recommended rail card)
+
+Scope: cart_count_view.dart is a SHARED item-card widget. It is NOT in the NEARS-602 diff
+(git status: NOT MODIFIED). Triggered by the inline add-to-cart stepper in a narrow card,
+independent of the offers chip / store_screen changes. Does NOT break any NEARS-602 AC.
+Classification: regression_bug (pre-existing/unrelated). Verdict-neutral.
