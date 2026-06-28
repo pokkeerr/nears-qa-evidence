@@ -1,0 +1,33 @@
+NEARS-634 — UserApp search submit double-fetch — LIVE network-count evidence
+Build: worktree fix/NEARS-634-search-double-fetch @ ec466324 (off feat/userapp-reskin @ d5556865)
+Device: emulator-5554 (Android, com.izzes.nears) | Backend: http://10.0.2.2:8000 (Admin Laravel, up) | Zone 1 (Dhaka demo)
+Counting method: each COMPLETED unified request emits exactly one debugPrint line
+  "====> API Response: [200] /api/v1/search/unified?name=<q>&offset=<n>&limit=10" to logcat (I/flutter).
+  Per-step logcat cleared (logcat -c) so each count is isolated. Device-clock markers (I/QAMARK) prove submit timing.
+Debounce dispatch = TYPEDONE + 350ms (kSearchDebounceMs). In-flight window = [dispatch, response].
+
+=== PRIMARY AC: same-term submit landing DURING the in-flight window => exactly ONE offset=1 ===
+term   TYPEDONE   dispatch(+350ms)  SUBMIT     response   classification                         offset=1 count
+grape  55:55.148  55:55.498         55:55.574  55:55.695  IN-FLIGHT (submit +76ms after disp, 121ms before resp)   1
+apple  57:08.505  57:08.855         57:08.934  57:09.034  IN-FLIGHT (submit +79ms after disp, 100ms before resp)   1
+mango  57:15.394  57:15.744         57:15.861  57:15.952  IN-FLIGHT (submit +117ms after disp, 91ms before resp)   1
+onion  57:02.496  57:02.846         57:02.946  57:02.952  IN-FLIGHT (submit 6ms before resp)                       1
+water  55:59.440  55:59.790         55:59.799  55:59.985  IN-FLIGHT (submit +9ms after disp)                       1
+  => In every in-flight run, submit PROVABLY landed after the debounce dispatched fetch#1 and before its
+     response, yet TOTAL offset=1 requests = 1. Pre-fix these are 2 (root cause: _searchItemList null during
+     in-flight => old guard fails). The _searchLoading guard (NEARS-634) collapses them to one.
+
+=== REGRESSION SWEEP ===
+[type-and-pause, no submit]   bread / fresh / honey            => 1 offset=1 call each      PASS
+[fast path, submit <350ms]    berry (submit 76ms BEFORE disp)  => 1 call (submit cancels pending debounce, not 0)  PASS
+[resolved-submit, task-literal] bread (wait 2.5s, THEN submit) => 1 call (resolved-dedupe)  PASS
+[min-char] 1-char "a"            => 0 calls ; then "ab" (2-char) => 1 call                   PASS
+[NEARS-628 load-more] "fresh" Items(31): Load More #1 => offset=2 ; Load More #2 => offset=3 PASS
+[clear-to-idle] clear field => history chips + Popular Categories; fresh search after clear fires once  PASS
+[error/retry] network OFF => error state ("Something went wrong" + Retry) WITH paired [FAIL] log
+   [FAIL] endpoint=/api/v1/search/unified http_status=null  msg="api request threw" correlation_id=fc2f4bea-...
+   [FAIL] endpoint=/api/v1/search/unified http_status=1     msg="unified search request failed"
+   network ON => tap Retry => 1 offset=1 call for same term "yogurt" => Items(1)               PASS
+
+Runtime errors: none (get_runtime_errors clean, ui_errors clean, no RenderFlex/overflow/unhandled).
+Unit backstop: flutter test search_controller_test.dart => 39/39 PASS (incl. new in-flight test "+16").
