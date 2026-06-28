@@ -1,0 +1,27 @@
+NEARS-596 QA — residual gap (pre-existing, NOT introduced by this change)
+Subcategory (childes) fetch failure on a fresh-category open while offline still
+leaves the right-hand grid on an ENDLESS SHIMMER (the NearsErrorRetry fix does
+NOT cover this path — it only covers the items fetch, offset==1).
+
+Repro (emulator-5554, backend 8000 down, network interface UP):
+  Categories tab (rail loaded) -> backend down -> tap a FRESH rail category
+  (e.g. "Dairy & Eggs", never opened this session).
+
+Why: CategoryController.getSubCategoryList() fetches /categories/childes/<id>
+FIRST; only if that succeeds does it call getCategoryItemList(). The childes
+fetch is NOT locally cached (CategoryRepository._getSubCategoryList hits the
+network every time), so offline it returns null -> getCategoryItemList is never
+called -> _itemFetchFailed stays false -> _productGrid renders the shimmer, not
+NearsErrorRetry.
+
+Observed log (childes fails; NO categories/items request follows):
+  [FAIL] endpoint=/api/v1/categories/childes/6 http_status=null type=ApiFailure msg="api request threw" correlation_id=08351b99-b677-4247-865b-8ef838335b35
+
+Screenshot: gap-freshcategory-offline-shimmer.png (grid area = blank shimmer).
+
+Scope note: The fix's stated scope is the ITEMS fetch (getCategoryItemList /
+getOfferItemList), demonstrated working live for both paths. This childes-fetch
+failure is a separate, pre-existing endless-shimmer path on the same screen and
+is NOT a regression from commit 7e6800fe. Flagged so the PO can decide whether
+to extend NEARS-596's scope (offline fresh-category open still hangs) or track
+it as a follow-up.
