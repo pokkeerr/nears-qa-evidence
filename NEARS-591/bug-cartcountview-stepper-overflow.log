@@ -1,0 +1,35 @@
+NEARS-591 QA — PRE-EXISTING regression (NOT caused by the glass-bar fix; cart_count_view.dart is not in the NEARS-591 diff)
+
+Captured via Dart MCP get_runtime_errors during live QA on emulator-5556 (UserApp, light mode),
+after adding an item to the cart and viewing compact item-card rails (Recommended / Buy-It-Again).
+
+══ Flutter framework error (layout) ══
+A RenderFlex overflowed by 36 pixels on the right.
+The relevant error-causing widget was:
+  Row  Row:lib/common/widgets/cart_count_view.dart:64:28
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+  RenderFlex#7396d OVERFLOWING
+    constraints: BoxConstraints(w=44.0, 0.0<=h<=36.0)   <-- slot only 44dp wide
+    size:        Size(44.0, 28.0)
+    mainAxisAlignment: spaceBetween, mainAxisSize: max
+    child 1 (minus icon): Size(26.0, 26.0)
+    child 2 (qty text "1"): Size(25.9, 18.0)
+    child 3 (plus icon):  Size(26.0, ...)
+  → ~78dp of content (minus + qty + plus) forced into a 44dp-wide box.
+
+Root cause (code): cart_count_view.dart — when cartQty != 0 the widget renders the
+"− qty +" stepper (Row, mainAxisSize.max, spaceBetween). The standalone usage sets
+Container(width:100) (line 50) which fits, but the COMPACT card usages wrap CartCountView
+in a ~44dp slot, where the same stepper overflows by ~36px. The minus/plus glyphs are
+not flex-bounded, so the Row exceeds the 44dp constraint.
+
+Scope: PRE-EXISTING / unrelated to NEARS-591. The NEARS-591 change set is only
+nears_bottom_nav.dart (transparent fill), home/category/menu SafeArea bottom:false, and
+nears_tokens.dart (token removal) — none touch cart_count_view.dart or item-card widths.
+The overflow is horizontal; the NEARS-591 change is the vertical bottom-inset/SafeArea.
+
+Repro: log in (customer@nears.com), add any item to cart, view a compact item-card rail
+(e.g. Recommended For You / Buy It Again) that shows the in-cart item → 36px right overflow
+(yellow/black stripe in debug; clipped stepper in release).
+
+Lane: regression_bug (does NOT block the NEARS-591 verdict). For PO triage / engineer fix.

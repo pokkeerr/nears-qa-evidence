@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-591
 
-**v4 evidence re-capture: floating glass bar now frosts real colorful content (no stark-white corners); last item reachable; no black band from bottom:false; ui_errors clean (emulator-5556, light mode)**
+**PASS — floating glass bar fix: transparent fill, no rim, elev1 lift; content frosts through Home/Categories/Profile; AC3 last-item clearance verified TAPPABLE on gesture + 3-button nav; RTL OK; Basket/Search no regression. 1 pre-existing regression (CartCountView stepper overflow) filed separately.**
 
-**31 screenshot(s).** Click any thumbnail for full resolution.
+**53 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -37,28 +37,67 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="probe-magenta-corners.png"><img src="probe-magenta-corners.png" width="240"></a><br><sub>probe magenta corners</sub></td>
-<td align="center" width="33%"><a href="v2-01-home-light.png"><img src="v2-01-home-light.png" width="240"></a><br><sub>v2 01 home light</sub></td>
-<td align="center" width="33%"><a href="v2-08-produce-through-bar.png"><img src="v2-08-produce-through-bar.png" width="240"></a><br><sub>v2 08 produce through bar</sub></td>
+<td align="center" width="33%"><a href="qa-01-home-top-light.png"><img src="qa-01-home-top-light.png" width="240"></a><br><sub>qa 01 home top light</sub></td>
+<td align="center" width="33%"><a href="qa-02-home-tab-bar-light.png"><img src="qa-02-home-tab-bar-light.png" width="240"></a><br><sub>qa 02 home tab bar light</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="qa-03-home-content-under-bar.png"><img src="qa-03-home-content-under-bar.png" width="240"></a><br><sub>qa 03 home content under bar</sub></td>
+<td align="center" width="33%"><a href="qa-04-home-bottom-lastitem-AC3.png"><img src="qa-04-home-bottom-lastitem-AC3.png" width="240"></a><br><sub>qa 04 home bottom lastitem AC3</sub></td>
+<td align="center" width="33%"><a href="qa-05-home-settled-bottom-AC3.png"><img src="qa-05-home-settled-bottom-AC3.png" width="240"></a><br><sub>qa 05 home settled bottom AC3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="qa-06-categories-tab-bar.png"><img src="qa-06-categories-tab-bar.png" width="240"></a><br><sub>qa 06 categories tab bar</sub></td>
+<td align="center" width="33%"><a href="qa-07-categories-rail-bottom-AC3.png"><img src="qa-07-categories-rail-bottom-AC3.png" width="240"></a><br><sub>qa 07 categories rail bottom AC3</sub></td>
+<td align="center" width="33%"><a href="qa-08-categories-rail-settled-AC3.png"><img src="qa-08-categories-rail-settled-AC3.png" width="240"></a><br><sub>qa 08 categories rail settled AC3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="qa-09-profile-tab-bar.png"><img src="qa-09-profile-tab-bar.png" width="240"></a><br><sub>qa 09 profile tab bar</sub></td>
+<td align="center" width="33%"><a href="qa-10-profile-bottom-AC3.png"><img src="qa-10-profile-bottom-AC3.png" width="240"></a><br><sub>qa 10 profile bottom AC3</sub></td>
+<td align="center" width="33%"><a href="qa-11-3btn-home-bottom-AC3.png"><img src="qa-11-3btn-home-bottom-AC3.png" width="240"></a><br><sub>qa 11 3btn home bottom AC3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="qa-12-3btn-categories-bottom-AC3.png"><img src="qa-12-3btn-categories-bottom-AC3.png" width="240"></a><br><sub>qa 12 3btn categories bottom AC3</sub></td>
+<td align="center" width="33%"><a href="qa-13-3btn-profile-bottom-AC3.png"><img src="qa-13-3btn-profile-bottom-AC3.png" width="240"></a><br><sub>qa 13 3btn profile bottom AC3</sub></td>
+<td align="center" width="33%"><a href="qa-14-basket-tab.png"><img src="qa-14-basket-tab.png" width="240"></a><br><sub>qa 14 basket tab</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="qa-15-search-tab.png"><img src="qa-15-search-tab.png" width="240"></a><br><sub>qa 15 search tab</sub></td>
+<td align="center" width="33%"><a href="qa-16-basket-with-pill-AC7.png"><img src="qa-16-basket-with-pill-AC7.png" width="240"></a><br><sub>qa 16 basket with pill AC7</sub></td>
+<td align="center" width="33%"><a href="qa-17-running-order-banner-AC6.png"><img src="qa-17-running-order-banner-AC6.png" width="240"></a><br><sub>qa 17 running order banner AC6</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="qa-18-home-after-refresh.png"><img src="qa-18-home-after-refresh.png" width="240"></a><br><sub>qa 18 home after refresh</sub></td>
+<td align="center" width="33%"><a href="qa-19-icons-over-dark-content-AC10-11.png"><img src="qa-19-icons-over-dark-content-AC10-11.png" width="240"></a><br><sub>qa 19 icons over dark content AC10 11</sub></td>
+<td align="center" width="33%"><a href="qa-20-icons-over-dark-neon-AC10-11.png"><img src="qa-20-icons-over-dark-neon-AC10-11.png" width="240"></a><br><sub>qa 20 icons over dark neon AC10 11</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="qa-21-icons-over-dark-neon-AC10-11.png"><img src="qa-21-icons-over-dark-neon-AC10-11.png" width="240"></a><br><sub>qa 21 icons over dark neon AC10 11</sub></td>
+<td align="center" width="33%"><a href="qa-22-rtl-home-AC8.png"><img src="qa-22-rtl-home-AC8.png" width="240"></a><br><sub>qa 22 rtl home AC8</sub></td>
+<td align="center" width="33%"><a href="v2-01-home-light.png"><img src="v2-01-home-light.png" width="240"></a><br><sub>v2 01 home light</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v2-08-produce-through-bar.png"><img src="v2-08-produce-through-bar.png" width="240"></a><br><sub>v2 08 produce through bar</sub></td>
 <td align="center" width="33%"><a href="v2-13-basket.png"><img src="v2-13-basket.png" width="240"></a><br><sub>v2 13 basket</sub></td>
 <td align="center" width="33%"><a href="v2-14-profile.png"><img src="v2-14-profile.png" width="240"></a><br><sub>v2 14 profile</sub></td>
-<td align="center" width="33%"><a href="v3-01-home-light.png"><img src="v3-01-home-light.png" width="240"></a><br><sub>v3 01 home light</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="v3-01-home-light.png"><img src="v3-01-home-light.png" width="240"></a><br><sub>v3 01 home light</sub></td>
 <td align="center" width="33%"><a href="v3-08-produce-through-bar.png"><img src="v3-08-produce-through-bar.png" width="240"></a><br><sub>v3 08 produce through bar</sub></td>
 <td align="center" width="33%"><a href="v3-13-basket.png"><img src="v3-13-basket.png" width="240"></a><br><sub>v3 13 basket</sub></td>
-<td align="center" width="33%"><a href="v3-14-profile.png"><img src="v3-14-profile.png" width="240"></a><br><sub>v3 14 profile</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="v3-14-profile.png"><img src="v3-14-profile.png" width="240"></a><br><sub>v3 14 profile</sub></td>
 <td align="center" width="33%"><a href="v4-08-content-under-bar.png"><img src="v4-08-content-under-bar.png" width="240"></a><br><sub>v4 08 content under bar</sub></td>
 <td align="center" width="33%"><a href="v4-basket.png"><img src="v4-basket.png" width="240"></a><br><sub>v4 basket</sub></td>
-<td align="center" width="33%"><a href="v4-feed-bottom-lastitem.png"><img src="v4-feed-bottom-lastitem.png" width="240"></a><br><sub>v4 feed bottom lastitem</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="v4-feed-bottom-lastitem.png"><img src="v4-feed-bottom-lastitem.png" width="240"></a><br><sub>v4 feed bottom lastitem</sub></td>
 <td align="center" width="33%"><a href="v4-feed-top.png"><img src="v4-feed-top.png" width="240"></a><br><sub>v4 feed top</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`bug-cartcountview-stepper-overflow.log`](bug-cartcountview-stepper-overflow.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-591/` · public-repo scrub policy (no live secrets; verified clean).*
