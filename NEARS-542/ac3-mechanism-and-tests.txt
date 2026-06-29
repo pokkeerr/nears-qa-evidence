@@ -1,0 +1,15 @@
+NEARS-542 — AC3 single mechanism + automated backstop
+
+AC3: no JSON_CONTAINS drives items_count.
+  - grep JSON_CONTAINS in CategoryLogic.php          => NONE
+  - grep JSON_CONTAINS in CategoryController.php      => only the gated `total_order_count` SUM
+    (lines 35-40), the order_count SORT path (feeds orderByDesc, NOT items_count) — explicitly
+    out of scope per the ticket.
+  - `use Illuminate\Support\Facades\DB;` import        => REMOVED (dead after JSON subquery deletion)
+  items_count now sourced solely from CategoryLogic::rail_category_counts() (grid's own matching).
+
+Automated backstop (worktree, PHP 8.5.6 / PHPUnit 11.5.55):
+  vendor/bin/phpunit --filter CategoryRailGridCountTest  => OK  4/4 tests, 13 assertions
+  vendor/bin/phpunit --filter Category (full Category suite, incl. NEARS-490/495 regression)
+                                                         => OK 27/27 tests, 203 assertions
+  (2 PHPUnit deprecation notices are PHP 8.5 env warnings, not test failures.)

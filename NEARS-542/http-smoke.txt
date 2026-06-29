@@ -1,0 +1,15 @@
+NEARS-542 — live HTTP integration smoke (worktree backend :8011, build 1ec49c8c)
+GET /api/v1/categories?store_id=16   headers: zoneId=[2] moduleId=1   -> HTTP 200
+  cat   6 Dairy & Eggs        items_count=1   (== grid)
+  cat   9 Beverages           items_count=3   (== grid, was 2)  <-- AC1 primary repro
+  cat  10 Juices              items_count=1   (== grid)
+  cat  11 Soft Drinks         items_count=3   (== grid)
+  cat  47 Seafood             items_count=1   (== grid)
+  cat 102 Cooking Oils & Ghee items_count=1   (== grid)
+  (33 categories returned; 17 empty-in-store-16 categories correctly report items_count=0)
+
+Sentinel note: ?store_id=-1 (explicit) falls through to the documented NEARS-490 zone-wide
+legacy count (resolve_browse_store_id rejects non-positive explicit ids) — UNCHANGED by this
+commit. The true -1 sentinel is internally generated (coords -> no serviceable store) and is
+proven at the function/unit level: rail_category_counts(zone,-1)=all-zero (tinker + phpunit).
+Even the legacy zone-wide fallback keeps badge==grid (cat9 32==32, cat6 13==13, cat102 8==8).

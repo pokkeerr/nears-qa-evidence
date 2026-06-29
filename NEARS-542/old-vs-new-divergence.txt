@@ -1,0 +1,18 @@
+NEARS-542 — proof the OLD JSON-rail badge diverged from the grid (store 16, zone 2, module 1)
+
+OLD pre-fix JSON_CONTAINS rail count  vs  NEW rail==grid (CategoryLogic):
+  cat 9  Beverages           OLD=2  ->  NEW=3   (ALIGN UP  — item 50 recovered)
+  cat 6  Dairy & Eggs        OLD=2  ->  NEW=1   (ALIGN DOWN — JSON over-count corrected)
+  cat 102 Cooking Oils&Ghee  OLD=1  ->  NEW=1   (unchanged here; over-count showed in wider scope)
+  cat 47 Seafood             OLD=0  ->  NEW=1   (ALIGN UP  — item 50 child recovered)
+  cat 11 Soft Drinks         OLD=3  ->  NEW=3   (unchanged)
+  cat 10 Juices              OLD=1  ->  NEW=1   (unchanged)
+
+ROOT CAUSE — integer-vs-string CAST mismatch in items.category_ids:
+  item 50  Large Raw Shrimp  category_id=47  category_ids=[{"id": 9, "position": 1},{"id": 47,...}]   <- id is INTEGER 9
+  item 231 Cola 1.5L         category_id=11  category_ids=[{"id":"9","position":1},...]                <- id is STRING "9"
+  item 232 Mango Nectar 1L   category_id=10  category_ids=[{"id":"9","position":1},...]                <- id is STRING "9"
+
+  Old predicate JSON_CONTAINS(category_ids, JSON_OBJECT('id', CAST(9 AS CHAR)))  => searches {"id":"9"} (string).
+  Matched 231 + 232 (string ids) but DROPPED item 50 (integer id 9) => old cat9 = 2.
+  New mechanism uses the grid's scalar category_id = X OR parent_id = X relation => item 50 counted => cat9 = 3 == grid.

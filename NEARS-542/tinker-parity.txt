@@ -1,0 +1,50 @@
+=== NEARS-542 rail==grid parity ===
+STORE 16 (zone 2, module 1) — 16 rail categories
+  cat 1    General Items              rail=1   grid=1   OK
+  cat 3    Fruits & Vegetables        rail=4   grid=4   OK
+  cat 4    Fresh Fruits               rail=2   grid=2   OK
+  cat 5    Fresh Vegetables           rail=2   grid=2   OK
+  cat 6    Dairy & Eggs               rail=1   grid=1   OK
+  cat 7    Milk                       rail=1   grid=1   OK
+  cat 8    Cheese                     rail=1   grid=1   OK
+  cat 9    Beverages                  rail=3   grid=3   OK
+  cat 10   Juices                     rail=1   grid=1   OK
+  cat 11   Soft Drinks                rail=3   grid=3   OK
+  cat 13   Bakery & Bread             rail=1   grid=1   OK
+  cat 47   Seafood                    rail=1   grid=1   OK
+  cat 101  Cleaning Supplies          rail=1   grid=1   OK
+  cat 102  Cooking Oils & Ghee        rail=1   grid=1   OK
+  cat 108  Eggs                       rail=1   grid=1   OK
+  cat 109  Butter & Spreads           rail=1   grid=1   OK
+  => ALL RAIL == GRID
+STORE 2 (zone 1, module 1) — 16 rail categories
+  cat 3    Fruits & Vegetables        rail=9   grid=9   OK
+  cat 4    Fresh Fruits               rail=4   grid=4   OK
+  cat 5    Fresh Vegetables           rail=4   grid=4   OK
+  cat 6    Dairy & Eggs               rail=3   grid=3   OK
+  cat 7    Milk                       rail=1   grid=1   OK
+  cat 8    Cheese                     rail=1   grid=1   OK
+  cat 9    Beverages                  rail=5   grid=5   OK
+  cat 10   Juices                     rail=1   grid=1   OK
+  cat 11   Soft Drinks                rail=4   grid=4   OK
+  cat 12   Snacks & Chips             rail=2   grid=2   OK
+  cat 13   Bakery & Bread             rail=1   grid=1   OK
+  cat 49   Plant Based                rail=1   grid=1   OK
+  cat 102  Cooking Oils & Ghee        rail=1   grid=1   OK
+  cat 120  Frozen Meals               rail=1   grid=1   OK
+  cat 121  Seasonings & Spices        rail=1   grid=1   OK
+  cat 140  Cooking Oils               rail=1   grid=1   OK
+  => ALL RAIL == GRID
+=== AC1 primary repro (store16 / cat9 Beverages) ===
+  rail[cat9] = 3 (expected 3)
+  grid cat9  = 3 (expected 3)
+  rail==grid==3: PASS
+=== AC2 align-down (store16 cats 6 & 102) ===
+  cat 6: rail=1 grid=1 OK (aligned)
+  cat 102: rail=1 grid=1 OK (aligned)
+=== NEARS-490 sentinel (store_id=-1) ===
+  entries: 0; non-zero: 0
+  sentinel => ALL ZERO (PASS)
+=== cross-zone guard (store16 queried under zone1) ===
+  store16 under zone1: non-zero entries = 0 (expected 0)
+=== OVERALL: PARITY PASS (both stores) ===
