@@ -1,0 +1,4 @@
+# NEARS-601 QA progress (emulator-5556, worktree build)
+- Smoke1 build+boot: PASS — worktree compiled w/ 3 deletions, launched pid16644, ChooseLanguageScreen→onboarding→Home (zone2 Abu Dhabi) all rendered, get_runtime_errors clean, [200]/api/v1/config.
+- Smoke2 search: PASS — Grocery search "Milk" → Items(13) preview, [200]/api/v1/search/unified + item-or-store-search, analytics search{result_count:13}. Live mic node [1155,303][1299,447] tapped → RECORD_AUDIO permission fired, NO exception/runtime error. Live voice = search_controller.dart speech_to_text + voice_search_bottom_sheet.dart (orphan voice_search_widget.dart unrelated, deleted, zero refs).
+- Smoke3 store detail: PASS — Fresh local (store_id 12) → [200]/api/v1/stores/details/12, view_store{12}, recommended/latest/offers/distance all 200, route hasError=false, NO runtime error, no missing-banner crash.
