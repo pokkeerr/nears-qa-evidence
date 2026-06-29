@@ -1,0 +1,12 @@
+AC3 — guest GET /api/v1/cashback/list (NO auth token) — 2026-06-29T19:38:16Z
+backend: http://127.0.0.1:8000 (emulator reaches as 10.0.2.2:8000)
+
+--- WITH Accept: application/json (the path the app takes) ---
+HTTP 401
+{"message":"Unauthenticated."}
+
+--- WITHOUT Accept header ---
+HTTP 302
+(302 redirect -> /authentication-failed : standard Laravel non-JSON unauthenticated behavior)
+
+RESULT: never 500 in either variant. With Accept = clean 401 (matches DoR). Repo []-hardening covers ANY non-200.
