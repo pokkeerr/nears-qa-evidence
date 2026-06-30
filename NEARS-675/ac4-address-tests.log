@@ -1,0 +1,21 @@
+NEARS-675 AC4 — flutter test test/features/address/
+Worktree: /Users/Apple/Projects/nears-NEARS-675-cachedloc-parse/UserApp @85da3061
+
+Command: flutter test test/features/address/ --reporter expanded
+
+Result: 00:00 +33: All tests passed!
+
+Includes the new NEARS-675 pin file address_model_numeric_parse_test.dart:
+  - double id (5.0) coerced to int 5 (no throw)
+  - numeric-string id "7" coerced to 7
+  - int id 9 preserved
+  - null/absent id stays null
+  - double zone_id (1.0) coerced to 1 (no throw)
+  - decimal-string zone_id ("2.0") coerced to 2 (no throw)   <- exact FormatException repro
+  - int/numeric-string zone_id preserved (3, "4")
+  - null and literal "null" zone_id stay null (semantics preserved)
+  - valid round-trip restores id/lat/long/zone identically (value unchanged)
+Plus the existing 24 NEARS-329 address_controller tests (the [WARN]/[ERR] lines in
+output are intentional test-asserted log lines, not failures).
+
+RESULT: PASS — 33/33.

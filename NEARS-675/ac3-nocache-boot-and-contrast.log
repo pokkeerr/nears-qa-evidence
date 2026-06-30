@@ -1,0 +1,27 @@
+NEARS-675 AC3 — no-cached-location boot (cleared prefs, no flutter.6ammart_user_address).
+Also serves as the AC1 CONTRAST: shows the WARN mechanism firing when the cached
+read fails, vs. the clean boot in ac1-boot-with-badtype-cache.log.
+Device: emulator-5554. Worktree debug build (feat/NEARS-675-cachedloc-parse @85da3061).
+
+No-cache boot console (flutter, pid 30744) — VERBATIM:
+
+  I/flutter (30744): 📊 analytics: app_open {}
+  I/flutter (30744): [INFO] msg="route: building splash route, hasData=false"
+  I/flutter (30744): [WARN] msg="cached user location parse failed: _TypeError"
+  I/flutter (30744): [INFO] msg="route: navigating to splash screen"
+  I/flutter (30744): ====> API Response: [200] /api/v1/config
+  I/flutter (30744): [INFO] msg="splash: deeplink resolved canRoute=true"
+
+App completes boot normally (splash -> onboarding), NO crash, NO red screen.
+
+NOTE on the single [WARN] above: it is NOT the NEARS-675 type-mismatch path and
+is NOT introduced by this fix. It originates at api_client.dart:309 where the
+constructor does jsonDecode(sharedPreferences.getString(userAddress)!) — the `!`
+null-assertion throws a _TypeError when NO address is cached, swallowed as
+"cached user location parse failed". The other five sites guard with a null check
+(e.g. address_helper.dart `if(savedAddress != null)`) so they stay silent on a
+no-cache boot. This `!`-on-null predates NEARS-675 (unchanged by the diff) and is
+logged as a non-blocking followup, not a regression of this run.
+
+RESULT: PASS (AC3) — no-cache boot completes with no NEW error; app boots clean.
+The lone WARN is pre-existing/out-of-scope (followup logged).

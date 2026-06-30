@@ -1,0 +1,28 @@
+NEARS-675 AC1 — cold boot with a CACHED AddressModel carrying the exact pre-fix
+failing types: id as DOUBLE (5.0) and zone_id as DECIMAL-STRING ("2.0").
+Injected into SharedPreferences key flutter.6ammart_user_address while the app
+process was dead; cold-launched the worktree debug build (feat/NEARS-675-cachedloc-parse @85da3061).
+Device: emulator-5554 (Android 17 / API 37). baseUrl http://10.0.2.2:8000 (local backend).
+
+Pre-fix, this input threw at AddressModel.fromJson:
+  id = json['id']                          -> _TypeError (double assigned to int?)
+  int.parse(json['zone_id'].toString())    -> FormatException on "2.0"
+swallowed as [WARN] cached location parse failed at all six boot sites.
+
+POST-FIX boot console (flutter, pid 31376) — VERBATIM, parse WARNs ABSENT:
+
+  I/flutter (31376): 📊 analytics: app_open {}
+  I/flutter (31376): [INFO] msg="route: building splash route, hasData=false"
+  I/flutter (31376): [INFO] msg="route: navigating to splash screen"
+  I/flutter (31376): ====> API Response: [200] /api/v1/config
+  I/flutter (31376): [INFO] msg="splash: deeplink resolved canRoute=true"
+
+NO "[WARN] cached location parse failed"
+NO "[WARN] language repo cached location parse failed"
+NO "[WARN] cached user location parse failed"
+NO "[WARN] featured-header cached location parse failed"
+get_runtime_errors: No runtime errors found.
+
+RESULT: PASS — the tolerant toIntN parse clears all six WARN sites on the exact
+double/String input that previously threw. prefs confirmed intact across the
+install-over (user_address entries: 1) — the bad-type cache WAS present and read.
