@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-624
 
-**FAIL — idle filter persists (AC1/AC2/AC3-sort/empty/RTL all pass) but Apply no longer closes the filter sheet on mobile (regression, breaks AC3 'exactly as before')**
+**Re-QA PASS (fix 923d9a6f): mobile filter sheet Apply now dismisses (idle+results); AC1/AC2/AC3a re-confirmed; 1666/0**
 
-**8 screenshot(s).** Click any thumbnail for full resolution.
+**14 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -18,6 +18,16 @@
 <tr>
 <td align="center" width="33%"><a href="06-ac1-arabic-rtl-filtered-sorted.png"><img src="06-ac1-arabic-rtl-filtered-sorted.png" width="240"></a><br><sub>ac1 arabic rtl filtered sorted</sub></td>
 <td align="center" width="33%"><a href="bug-apply-not-closing-sheet.png"><img src="bug-apply-not-closing-sheet.png" width="240"></a><br><sub>bug apply not closing sheet</sub></td>
+<td align="center" width="33%"><a href="reqa-01-idle-filter-sheet-selected.png"><img src="reqa-01-idle-filter-sheet-selected.png" width="240"></a><br><sub>reqa 01 idle filter sheet selected</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="reqa-02-idle-apply-dismissed.png"><img src="reqa-02-idle-apply-dismissed.png" width="240"></a><br><sub>reqa 02 idle apply dismissed</sub></td>
+<td align="center" width="33%"><a href="reqa-03-ac1-persist-results-sorted.png"><img src="reqa-03-ac1-persist-results-sorted.png" width="240"></a><br><sub>reqa 03 ac1 persist results sorted</sub></td>
+<td align="center" width="33%"><a href="reqa-04-results-filter-sheet-resort.png"><img src="reqa-04-results-filter-sheet-resort.png" width="240"></a><br><sub>reqa 04 results filter sheet resort</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="reqa-05-ac3a-resorted-dismissed.png"><img src="reqa-05-ac3a-resorted-dismissed.png" width="240"></a><br><sub>reqa 05 ac3a resorted dismissed</sub></td>
+<td align="center" width="33%"><a href="reqa-06-ac2-no-phantom.png"><img src="reqa-06-ac2-no-phantom.png" width="240"></a><br><sub>reqa 06 ac2 no phantom</sub></td>
 </tr>
 </table>
 
