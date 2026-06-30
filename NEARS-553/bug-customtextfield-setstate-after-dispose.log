@@ -1,0 +1,25 @@
+══╡ EXCEPTION CAUGHT BY FOUNDATION LIBRARY ╞════════════════════════════════════════════════════════
+The following assertion was thrown while dispatching notifications for FocusNode:
+setState() called after dispose(): CustomTextFieldState#7eaf5(lifecycle state: defunct, not mounted)
+This error happens if you call setState() on a State object for a widget that no longer appears in
+the widget tree (e.g., whose parent widget no longer includes the widget in its build). This error
+can occur when code calls setState() from a timer or an animation callback.
+The preferred solution is to cancel the timer or stop listening to the animation in the dispose()
+callback. Another solution is to check the "mounted" property of this object before calling
+setState() to ensure the object is still in the tree.
+This error might indicate a memory leak if setState() is being called because another object is
+retaining a reference to this State object after it has been removed from the tree. To avoid memory
+leaks, consider breaking the reference to this object during dispose().
+
+When the exception was thrown, this was the stack:
+#0      State.setState.<anonymous closure> (package:flutter/src/widgets/framework.dart:1163:9)
+#1      State.setState (package:flutter/src/widgets/framework.dart:1198:6)
+#2      CustomTextFieldState.initState.<anonymous closure> (package:sixam_mart/common/widgets/custom_text_field.dart:101:7)
+#3      ChangeNotifier.notifyListeners (package:flutter/src/foundation/change_notifier.dart:432:24)
+#4      FocusNode._notify (package:flutter/src/widgets/focus_manager.dart:1131:5)
+#5      FocusManager.applyFocusChangesIfNeeded (package:flutter/src/widgets/focus_manager.dart:1995:12)
+(elided 2 frames from dart:async)
+
+The FocusNode sending notification was:
+  FocusNode#2a123([PRIMARY FOCUS])
+════════════════════════════════════════════════════════════════════════════════════════════════════
