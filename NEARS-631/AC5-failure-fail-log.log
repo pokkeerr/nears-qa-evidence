@@ -1,0 +1,30 @@
+NEARS-631 AC5 — forced delete failure (airplane mode = network off) → paired [FAIL], PII-safe, dialog dismisses
+Account: customer@nears.com (still logged in afterwards — NOT deleted; request never reached server under airplane mode).
+
+Live app-log capture immediately after tapping Delete Account -> Yes under airplane mode:
+
+  ----------------FIREBASE CRASHLYTICS----------------
+  The following exception was thrown api request threw:
+  ApiFailure(status: 0)
+  #0  IOClient.send (package:http/src/io_client.dart:227:7)
+  #3  ApiClient._send (package:sixam_mart/api/api_client.dart:469:24)
+  #4  ProfileRepository.delete (.../profile_repository.dart:111:25)
+  #5  ProfileService.deleteUser (.../profile_service.dart:36:12)
+  #6  ProfileController.deleteUser (.../profile_controller.dart:142:22)
+  ----------------------------------------------------
+  [FAIL] endpoint=/api/v1/customer/remove-account http_status=null type=ApiFailure msg="api request threw" correlation_id=bc63d0d2-f635-48a9-a984-feeb918dc4bc
+
+PII-safe verification: error object is the typed ApiFailure(0) sentinel — NOT the raw SocketException
+(whose .toString() would leak the full URL incl. ?token=). endpoint = path only; no body/payload/token/name/phone.
+Stack frames are package paths only. correlation_id = the minted X-Request-Id (present even though the request threw).
+http_status=null because the request threw before any HTTP response (network off); the sentinel carries status 0.
+
+Dialog: dismissed (returned to Profile, "Customer Nears" still shown). No deletion.
+
+USER-FEEDBACK NUANCE (pre-existing, NOT introduced by NEARS-631):
+On the network-THROW path no toast is shown — deleteUser() else branch only calls Get.back() and
+api_client's _send catch does not surface a toast. A generic error TOAST is shown (paired with the same
+[FAIL]) only on a server >=400 non-401 response, via ApiChecker.checkApi -> showCustomSnackBar
+(toast mechanism live-confirmed by the 203 ongoing-orders path which rendered its snackbar). A 401
+(token tamper) logs [FAIL] http_status=401 then force-logs-out. The logging contract (no silent failure:
+every delete failure emits a paired [FAIL]) holds on every path.

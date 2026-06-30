@@ -1,0 +1,13 @@
+NEARS-631 AC3 — DELETE /api/v1/customer/remove-account fires on confirm (network-layer proof)
+Account: customer@nears.com (id 6) — has ongoing orders (1 confirmed + 2 pending), so the backend
+ongoing-orders guard returns 203 and does NOT delete the account (safe demonstration; no shared seed mutation).
+
+Live app-log capture immediately after tapping Delete Account -> Yes:
+  I/flutter: ====> API Response: [203] /api/v1/customer/remove-account
+  I/flutter: [NET] endpoint=/api/v1/customer/remove-account http_status=203
+
+Observed: request fired to the correct endpoint+method; response handled; account NOT deleted
+(Profile still shows "Customer Nears", dialog dismissed). PII-safe log (endpoint path + status only).
+200-success handler (clear session/cart/favourites + navigate to splash/location) is the UNCHANGED
+deleteUser() success branch — verified by code (profile_controller.dart:144-155); not executed live to
+avoid deleting a shared seeded account (throwaway registration is firebase_otp_verification-gated).
