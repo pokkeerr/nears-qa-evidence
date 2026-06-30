@@ -1,0 +1,61 @@
+NEARS-626 — Search filter icon a11y + label-based automation
+Device: emulator-5556 | Worktree: nears-NEARS-626-search-filter-a11y | reviewed_sha: ab95516d
+App: com.izzes.nears (UserApp / sixam_mart), debug flutter run, baseUrl http://10.0.2.2:8000
+================================================================================
+
+AC1/AC3 — label-based nav resolves the filter icon WITHOUT coordinate fallback
+--------------------------------------------------------------------------------
+RESULTS state (search "fresh" -> Items (82)):
+  $ python3 scripts/app-nav/uifind.py find 'Filter'           -> 1227 375
+  $ python3 scripts/app-nav/uifind.py find 'Filter' --exact   -> 1227 375
+  Live accessibility node (uiautomator):
+    class="android.widget.Button"  content-desc="Filter"  clickable="true"
+    bounds="[1155,303][1299,447]"   (navy-header trailing position)
+  -> The previously-coordinate-only filter icon now resolves by its semantics
+     label "Filter" and is exposed as a clickable Button. PASS (live).
+
+Behavior — tapping the label-resolved filter opens the filter sheet:
+  $ adb shell input tap 1227 375        # tapped by LABEL-resolved coords
+  uiautomator labels after tap:
+    Apply Filters / Filter by / Sort by / Reset / Discounted Items /
+    Currently Available Items / Price: low to high / Price: high to low / Rating
+  -> Filter bottom sheet opens. onTap (_openFilterSheet) byte-identical to pre-626
+     (diff = annotation-only). PASS (live).
+
+IDLE state (Search idle, Popular Categories):
+  $ python3 scripts/app-nav/uifind.py find 'Filter'   -> (empty)   [reproducible]
+  Field NOT focused, IME down (mInputShown=false) -> not a focus artifact.
+  The navy-header trailing node is not exported to the Android a11y tree in the
+  idle header (showBack:false) on this Impeller emulator; it IS exported in the
+  results header (showBack:true). This is a pre-existing Flutter/Android a11y-
+  bridge composition quirk (same family as the documented floating-nav export
+  gap, NEARS-520/587), NOT introduced by NEARS-626 — pre-626 the icon had no
+  label/Key at all and was unreachable in BOTH states.
+  Idle reachability is proven at the Flutter level instead (see below) -> ACCEPTED-ON-TEST.
+
+Live widget tree (running idle SearchScreen, summaryOnly) — Semantics + Key present:
+  SearchNavyHeaderWidget
+    └ Material
+        └ Semantics                                   <- inspector-116 (label 'filter', button:true)
+            └ InkWell-[<'search_filter_icon_mobile'>] <- inspector-119 (KEY present, LIVE)
+                └ SizedBox
+                    └ Icon                            <- Icons.tune_rounded
+  -> The running idle app carries the Semantics wrapper + Key('search_filter_icon_mobile').
+
+AC2 — screen-reader label
+--------------------------------------------------------------------------------
+  Results-state Android a11y node literally exposes content-desc="Filter" with
+  class android.widget.Button -> TalkBack announces "Filter, button". LIVE.
+  Idle: Semantics(label:'filter', button:true) present in code + live widget tree;
+  green find.bySemanticsLabel('filter') test. TalkBack not driveable in harness ->
+  ACCEPTED-ON-TEST per spawn.
+  i18n: assets/language/en.json:109 "filter":"Filter"  |  ar.json:87 "filter":"فلتر".
+  'filter'.tr proven to resolve live on this control (content-desc="Filter").
+
+Logs-first gate (per AC): get_runtime_errors = "No runtime errors found"; ui_errors = clean.
+  Search API: /api/v1/search/unified?name=fresh [200], 82 results. No [FAIL]/[ERR].
+  (E/FA "Missing google_app_id" = benign pre-existing debug Firebase no-op, unrelated.)
+
+Automated backstop:
+  flutter test (focused)  -> +3 All tests passed (incl. idle byKey + bySemanticsLabel).
+  flutter test (full UserApp suite) -> 1661: All tests passed!  exit 0.
