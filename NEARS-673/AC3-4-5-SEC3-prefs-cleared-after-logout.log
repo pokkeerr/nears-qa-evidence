@@ -1,0 +1,20 @@
+NEARS-673 — SharedPreferences state AFTER menu/Profile-tab logout (User A), device emulator-5556
+Method: adb run-as com.izzes.nears cat FlutterSharedPreferences.xml | presence grep
+
+BEFORE logout (User A, remember-me ON):
+  flutter.6ammart_user_number          = 565811199        (present)
+  flutter.6ammart_user_country_code    = +971             (present)
+  flutter.6ammart_user_address         = <A coords/addr>  (present)
+  flutter.6ammart_search_history       = ["MilkRiceCola","MilkRice","Milk"]
+  flutter.6ammart_wallet_access_token  = (absent - never minted in dev; needs Gateways add-funds redirect)
+  token (FlutterSecureStorage)         = (present, encrypted)
+
+AFTER logout:
+  6ammart_user_number          present=0   CLEARED  (AC4)
+  6ammart_user_country_code    present=0   CLEARED  (AC4)
+  6ammart_user_password        present=0   CLEARED
+  6ammart_wallet_access_token  present=0   ABSENT   (AC3 end-state)
+  6ammart_user_address         present=0   CLEARED  (AC5 cached coords)
+  6ammart_search_history       = "VGhpcyBpcyB0aGUgcHJlZml4IGZvciBhIGxpc3Qu" (empty-list sentinel, no array)  CLEARED (SEC-3)
+  token (FlutterSecureStorage) = (no app key; only androidx_security keyset)  CLEARED
+  ui_errors / [FAIL] / [ERR]   = none during logout
