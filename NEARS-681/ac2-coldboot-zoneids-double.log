@@ -1,0 +1,16 @@
+NEARS-681 AC2 — cold boot with cached address whose zone_ids contains a DOUBLE [2.0]
+Device emulator-5554 · light mode · feat/NEARS-674-loc-log-parse @790cfc1a
+Injected cached userAddress (real Abu Dhabi coords 24.4499983,54.4249983) with zone_ids:[2.0] (literal float, verified on-device).
+
+Cold-boot AppLogger console:
+  [INFO] route: building splash route, hasData=false
+  [INFO] route: checkModuleId configNull=false hasAddress=true ...   <- address parsed OK
+  [INFO] home load started
+  ====> API Response: [200] /api/v1/config/get-zone-id?lat=24.4499983&lng=54.4249983
+  [INFO] location: inZone=true                                       <- zone restored
+  ====> API Response: [200] /api/v1/stores/get-stores/all?featured=1 <- zone-scoped stores (zone 2)
+  ====> API Response: [200] /api/v1/module, /api/v1/config, /api/v1/banners
+
+Count of "cached ... parse failed" WARN this boot = 0   => PASS
+The [2.0] double no longer throws _CastError on the lazy .cast<int>() view; the eager toInt parse
+yields zone_ids=[2], zone headers set, location restored, home loaded with Abu Dhabi stores.

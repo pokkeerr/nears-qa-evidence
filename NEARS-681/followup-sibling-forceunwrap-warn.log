@@ -1,0 +1,15 @@
+NEARS-681 FOLLOWUP (regression_candidate, pre-existing, NOT caused by this change)
+Observed live on no-cache cold boot (emulator-5554), during language/onboarding flow:
+
+  I/flutter ( 9305): [WARN] msg="language repo cached location parse failed: _TypeError"
+
+Root cause: the SAME `getString(AppConstants.userAddress)!` force-unwrap that NEARS-681
+null-guarded in api_client.dart ctor SURVIVES UNFIXED in sibling sites:
+  - UserApp/lib/features/language/domain/repository/language_repository.dart:19  (observed firing)
+  - UserApp/lib/helper/header_helper.dart:14            ('featured-header cached location parse failed')
+  - UserApp/lib/features/auth/domain/repositories/auth_repository.dart:148
+
+On a no-cache / logged-out boot getString(userAddress) is null, the `!` throws _TypeError,
+caught -> misleading [WARN]. Same defect class NEARS-681 fixed; the fix did not propagate.
+AC1's LITERAL target (api_client "cached user location parse failed") IS gone -> AC1 passes;
+this is a scope-completeness gap to fold into a 681 sibling/follow-up, not a blocker.
