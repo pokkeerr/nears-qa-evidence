@@ -1,0 +1,24 @@
+NEARS-664 — AC1+AC2 on-device (emulator-5554, UserApp debug build, airplane mode ON)
+Account james.wilson@demo.com (seed) — delete confirmed while network fully cut
+(airplane_mode_on=1, Wi-Fi disabled, active default network: none) → request THROWS,
+backend never reached → account NOT deleted (still logged in as James Wilson after).
+
+Transport throw → api_client [FAIL] (AC2):
+  ----------------FIREBASE CRASHLYTICS----------------
+  The following exception was thrown api request threw:
+  ApiFailure(status: 0)
+  #0  IOClient.send (package:http/src/io_client.dart:227:7)
+  #3  ApiClient._send (package:sixam_mart/api/api_client.dart:469:24)
+  #4  ProfileRepository.delete (.../profile/domain/repositories/profile_repository.dart:111:12)
+  #5  ProfileService.deleteUser (.../profile/domain/services/profile_service.dart:36:12)
+  #6  ProfileController.deleteUser (.../profile/controllers/profile_controller.dart:142:25)
+  ----------------------------------------------------
+  [FAIL] endpoint=/api/v1/customer/remove-account http_status=null type=ApiFailure msg="api request threw" correlation_id=b5447274-60f9-4ffa-9bf4-be2cabf002a0
+
+Then the controller surfaces the toast (AC1 — was silent before the fix):
+  showCustomSnackBar (package:sixam_mart/common/widgets/custom_snackbar.dart:24:17)
+  ProfileController.deleteUser (.../profile/controllers/profile_controller.dart:161:9)
+  [ERR] msg="error snackbar shown"          <-- exactly ONE error snackbar (no double-toast)
+
+On-screen: GetX snackbar "Something went wrong" visible (ui_list confirmed), dialog closed,
+account intact. RESULT: AC1 PASS, AC2 PASS, no-double-toast PASS (single [ERR] snackbar line).
