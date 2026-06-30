@@ -1,0 +1,19 @@
+# NEARS-603 QA progress — stale-zone-flash skeleton hold
+device: emulator-5556 | branch feat/NEARS-603-stale-zone-flash @697b58dd | light mode only
+
+## checkpoints
+
+- AUTOMATED: full UserApp suite +1658/0 All tests passed (flutter_test_full.log). 9 NEARS-603 tests green (targeted run: cache-source holds-null no-stale-fast-paint; default local-then-client; failure-edge degrades-to-empty; normal-path-null; +5 suppression-flag one-shot).
+- AC2 PASS (live): removed active-address pref (token kept in SecureStorage) -> cold launch -> auto-select most-recent saved addr (aid46 zone1). Header -> "Home / Demo Zone — Dhaka". All-stores grid -> zone-1 stores (Nears Mart, Fresh Mart Grocery, Corner Grocer, Downtown). ZERO Abu Dhabi(zone2) stores. Prev cached zone was Abu Dhabi. shots: ac2-autoselect-zone1-home.png, ac2-autoselect-zone1-allstores-grid.png, ac1_autoselect.mp4
+- AC1 ACCEPTED-ON-TEST + best-effort: deterministic test proves skeleton(null) holds until client response, no stale fast-paint; live sampling from ~4s showed only zone-1 content, no zone-2 flash. sub-second transient not frame-captured (no ffmpeg); recording artifact retained.
+
+- AC3(a) PASS (live): active address persisted (zone1 Dhaka) -> cold remembered relaunch under edge-throttle -> header+zone-1 stores from ~3s, no prolonged skeleton. logcat: hasAddress=true, location inZone=true, no [ERR]/[FAIL]/crash (1 pre-existing benign [WARN] payment-failed parse).
+- FAILURE-EDGE: ACCEPTED-ON-TEST + live graceful-degradation. Cold fully-offline auto-select cannot reach home (/api/v1/config not client-cached -> stuck splash; [FAIL] logged PII-safe). Cut-network-at-home-load: getStoreList client fetch [FAIL] /api/v1/stores/get-stores/all x2 (fallback rail + NEARS-603 getStoreList); app shows GLOBAL "Oops! No internet connection" + retry (masks per-section all-stores NoDataScreen when whole device offline) — NOT a hung skeleton, NOT a stale-zone flash. Restore network + pull-to-refresh AND retry-button both repopulate zone-1 stores. NEARS-603 emptyOnClientFailure->empty NoDataScreen proven by green unit test. shots: failedge-nodata.png, failedge-recovered.png, ac1_autoselect.mp4.
+
+- AC3(b) PASS (live): in-session switch zone1->zone2 (Abu Dhabi saved addr). Header -> Abu Dhabi; all-stores fast-painted zone-2 stores ("Abu Dhabi Fresh Market, Al Wahda Mall") by first ~2s sample. NO new skeleton hold (normal source:local path unchanged). logcat clean, no suppression armed, no [ERR]/[FAIL]. shot ac3b-switch-zone2.png
+
+- RTL PASS (live): locale ar/SA. Auto-select resolved zone-1 in Arabic (header "تسليم إلى: بيت / Demo Zone — Dhaka"), no Abu Dhabi flash. StoreCardShimmer skeleton renders + section headers mirror ("موصى به لك" right, "رؤية الكل" chevron left). NoDataScreen/no-internet = locale-agnostic Center+Column (centered, captured LTR failedge-nodata.png). shots rtl-skeleton-1.png, rtl-nodata.png
+- FINAL clean launch en/US online: remembered (hasAddress=true), zone-1 header, NO [ERR]/[FAIL]/crash.
+- REGRESSION-1 (pre-existing, OUT of scope): normal (non-auto-select) path store rails hang skeleton on failed first fetch w/ no local cache (offline) — never degrade to no-data. Code-confirmed: store_controller.dart getStoreList source:local empty->null, then client-fail w/ emptyOnClientFailure=false -> _prepareStoreModel(null) no-op -> storeModel stays null -> skeleton forever. NEARS-603 left normal path byte-identical (AC3).
+- REGRESSION-2 (pre-existing, OUT of scope): NewOnShimmerView RTL non-mirror. item_view.dart:152 EdgeInsets.only(left:95) + :205-206 Positioned(top:60,left:15) use physical left (not Directional) -> avatar+text indent do NOT mirror in RTL. Only renders for non-food/grocery modules. Low severity visual.
+- VERDICT: PASS. Device emulator-5556, branch feat/NEARS-603-stale-zone-flash @697b58dd. Light mode only (dark deferred).
