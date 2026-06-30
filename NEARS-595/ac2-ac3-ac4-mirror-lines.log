@@ -1,0 +1,19 @@
+NEARS-595 — offers_rail_selected best-effort store_id — LIVE logcat (debug mirror, NEARS-262)
+Device emulator-5554 (Pixel) | UserApp worktree feat/NEARS-595-offers-storeid | zone 2 Abu Dhabi (multi-store, 13 active grocery stores)
+
+AC2 (multi-store -> store_id ABSENT, empty map not null/0), AC4 (on-tap, once-per-tap):
+06-30 13:00:13.746 I/flutter ( 9556): 📊 analytics: offers_rail_selected {}        <- tap 1
+06-30 13:01:46.845 I/flutter ( 9556): 📊 analytics: offers_rail_selected {}        <- tap 2 (re-entered Categories)
+06-30 13:01:57.959 I/flutter ( 9556): 📊 analytics: offers_rail_selected {}        <- tap 3 (after selecting Dairy & Eggs in between)
+
+Per-tap count proof (adb logcat between taps):
+  Offers tap            -> offers_rail_selected count = 1  (each tap)
+  Beverages/Dairy tap   -> offers_rail_selected count = 0  (NOT fired on category select / grid load = on-tap timing)
+
+Offers grid loads store-scoped server-side (no client store_id), API all 200:
+  [200] /api/v1/categories/items/offers?limit=10&offset=1&type=all
+  [200] /api/v1/items/discounted?type=all&offset=1&limit=25&min_price=0.0&max_price=9999999999.0
+  Grid showed discounted items: Rice 5kg 18% OFF, Tomatoes 18% OFF, Chicken Tender Vegan 3% OFF
+
+AC3 (PII-safe): only "{}" (or store_id int) ever logged. PII grep over capture (name|phone|address|lat|lng|coord|email|store-name) = ZERO hits.
+Logs-first gate: no [ERR]/[FAIL]/Unhandled/overflow during the offers flow.

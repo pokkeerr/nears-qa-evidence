@@ -1,0 +1,14 @@
+NEARS-595 AC1 (single-store -> store_id PRESENT) — live unreachable in current seed; unit-test backstop PASSES.
+
+Why unreachable (DB + code, read-only):
+- Only single-store context in the seed = zone 3 "Single Store QA Zone" / module 4 "QA Single-Store Grocery" / store 59 (active_stores_count==1 => single_store_id=59).
+- Store 59 items: 6 items, ALL discount=0.00; item_campaigns for store 59 = 0.
+- CategoryLogic::has_offers() keys off Item::Discounted() (discount>0 / active campaign) -> FALSE for store 59.
+- Flutter gate CategoryController.hasOffers -> false -> the virtual "Offers" rail tile is NOT rendered -> nothing to tap.
+- => No single-store-zone store in the seed has offers; cannot fire the event live without mutating the DB (forbidden: read-only QA).
+
+Backstop (UserApp/test/helper/analytics_service_test.dart, flutter test = 11/11 PASS):
+  AC1 single-store: store_id present -> param included  => events.single.params == {store_id: 5}
+  AC2 multi-store : store_id null    -> param omitted    => params isEmpty, no 'store_id' key (never literal null)
+Same logOffersRailSelected -> logEvent -> _mirror/formatMirror choke-point proven LIVE end-to-end by AC2.
+The single delta for AC1 is a non-null map key, unit-proven.
