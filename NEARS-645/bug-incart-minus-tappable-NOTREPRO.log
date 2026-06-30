@@ -1,0 +1,15 @@
+REGRESSION CANDIDATE 2 — NOT REPRODUCED
+Flag: ItemCard may lack the NEARS-630 44dp a11y wrapper + 100dp in-cart width swap that
+ItemWidget has -> in-cart minus button may be untappable.
+
+Live result (item_view_all "Most Popular Items" grid, ItemCard, Classic Beef Burger id 558):
+- Added to cart, card expanded to the in-cart "[-] qty [+]" stepper (screenshot 06).
+- Accessibility tree: minus = "Decrease quantity" Button @ (359,1674) size 78x78 clickable=true;
+  plus = "Add" Button @ (578,1674) size 84x84 clickable=true. Both > 44dp, both hit-testable.
+- Tapped the minus -> quantity decremented 2 -> 1 (left button label flipped to "Remove" at qty 1);
+  app logcat: [200] /api/v1/customer/cart/update ; no [FAIL]/[ERR].
+
+Root cause it does NOT reproduce: ItemCard wraps CartCountView directly (item_card.dart:166-199).
+CartCountView's in-cart pill is a natural width:100 SizedBox (cart_count_view.dart:45-50) — NO
+OverflowBox — so the minus gets a real RenderBox hit-test region. The NEARS-630 OverflowBox
+clipping bug that affected ItemWidget does not exist in ItemCard's layout. The minus is tappable.

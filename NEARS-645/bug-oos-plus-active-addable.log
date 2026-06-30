@@ -1,0 +1,25 @@
+REGRESSION CANDIDATE 1 — CONFIRMED (pre-existing, out of NEARS-645 scope)
+ItemCard lets you add an OUT-OF-STOCK item to the cart; the "+" stays an ACTIVE mint
+circle (ItemWidget shows a disabled grey 0.4-opacity circle for stock<=0).
+
+Surface: Burger Palace store profile -> "Recommended For You" rail (inStore ItemCard),
+zone 1 (Demo Zone — Dhaka), Food module. Item: Double Bacon Burger (id 17, stock=0).
+Code: item_card.dart:166-199 wraps CartCountView with no out-of-stock disabled branch
+(cf. item_widget.dart:412-461 which gates on `outOfStock`).
+
+Live repro:
+1. Card shows "Out of Stock" overlay AND an active mint "+" (screenshot 07).
+2. Tapped "+" on the out-of-stock card -> cross-store "Start a new basket?" dialog (the
+   tap was honored; stock was NOT a gate). Tapped Yes.
+3. App logcat (flutter):
+   ====> API Response: [200] /api/v1/customer/cart/remove
+   ====> API Response: [200] /api/v1/customer/cart/add
+   analytics: add_to_cart {item_id: 17, price: 12.99, quantity: 1, currency: AED, value: 12.99}
+   ====> API Response: [200] /api/v1/customer/cart/list
+   (no [FAIL]/[ERR] — the add succeeded silently)
+4. DB confirm (read-only SELECT) — cart for customer@nears.com now contains:
+   item_id 17  Double Bacon Burger  stock=0  quantity=1
+   => an out-of-stock item is in the cart.
+
+Impact: a user can add a sold-out item to the basket from any ItemCard rail. ItemWidget
+prevents this. Fix would mirror ItemWidget's outOfStock-disabled branch into ItemCard.
