@@ -1,0 +1,25 @@
+NEARS-650 — Live endpoint smoke (worktree server, feat/NEARS-650-category-sqli)
+Server: php artisan serve --port=8650 from /Users/Apple/Projects/nears-NEARS-650-category-sqli/Admin
+DB: multi_food_db (LIVE, read-only — GET only, no mutation)
+Date: 2026-06-30
+
+== 1) Normal header  zoneId: [1] ==
+Request:  GET http://127.0.0.1:8650/api/v1/categories  -H 'zoneId: [1]'
+Response: HTTP 200 | 11530 bytes
+Body[0..220]: [{"id":23,"name":"Sides",...,"items_count":11,"slug":"sides","has_offers":true,"childes":[]},{"id":22,"name":"Drinks",...
+
+== 2) Crafted hostile header  zoneId: [1,"1 OR 1=1--"] ==
+Request:  GET http://127.0.0.1:8650/api/v1/categories  -H 'zoneId: [1,"1 OR 1=1--"]'
+Response: HTTP 200 | 11530 bytes   (NOT 500 — endpoint does not crash on the injection payload)
+Body[0..220]: identical normal category list (byte-for-byte same size as the normal request)
+
+== Backend log check (Admin/storage/logs/laravel.log) ==
+Baseline before requests: 24 lines
+After both requests:      24 lines  (ZERO new lines)
+grep -iE "SQLSTATE|QueryException|syntax error|1064|SQL|exception|[FAIL]|[ERR]" on new lines => no matches => CLEAN
+
+Note: default business_settings do NOT enter the order_count subquery (the vulnerable
+branch is admin-gated). This smoke proves the endpoint does not crash on the hostile header
+end-to-end. The gated branch itself (bound IN-list, [0] sentinel, ordering) is proven by the
+automated feature test against multi_food_db_test (see test-targeted.log) — TL-scoped as the
+authoritative AC2/AC3 proof since the live DB is read-only and the gate must not be flipped.
