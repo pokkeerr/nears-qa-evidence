@@ -1,0 +1,16 @@
+NEARS-674 AC3 — a get-zone failure with REAL (non-zero) coords STILL logs [FAIL] (opt-out NOT swallowing real errors)
+Device emulator-5554 · light mode · feat/NEARS-674-loc-log-parse @790cfc1a
+
+(a) REAL-coords get-zone non-2xx -> [FAIL] fires for /get-zone-id (emptyCoords=false -> logError=true):
+  ====> API Response: [404] /api/v1/config/get-zone-id?lat=23.78807988785084&lng=90.3553769364953
+  [FAIL] endpoint=/api/v1/config/get-zone-id http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=f96e59d7-ba7c-47b8-8acb-f6cfc47c2772
+  (observed repeatedly: correlation_id=7a9fd330-... as well)
+
+(b) network-off (airplane) transport failures STILL [FAIL] with correlation_id (failure-log path intact):
+  [FAIL] endpoint=/api/v1/config         http_status=null type=ApiFailure msg="api request threw" correlation_id=26961ccb-...
+  [FAIL] endpoint=/api/v1/customer/cart/list http_status=null type=ApiFailure msg="api request threw" correlation_id=8ed799ea-...
+  [FAIL] endpoint=/api/v1/banners        http_status=null type=ApiFailure msg="api request threw" correlation_id=e3d6dd6c-...
+  [FAIL] endpoint=/api/v1/stores/get-stores/all http_status=null ... correlation_id=0a51b584-...
+
+CONCLUSION: the NEARS-674 logError:false opt-out is scoped to EMPTY coords only; real-coords get-zone
+non-2xx and transport failures still emit [FAIL] + AppLogger.failure. PASS.
