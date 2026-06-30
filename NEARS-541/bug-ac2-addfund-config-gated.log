@@ -1,0 +1,10 @@
+AC2 — Add Fund dialog could NOT be opened on the live UI.
+Reason: wallet_card_widget.dart gates the button on addFundEnabled = addFundStatus && digitalPayment.
+Live backend /api/v1/config returns:
+  add_funds_status: None  -> addFundStatus=false
+  digital_payment: False  -> digitalPayment=false  (Gateways module absent by design)
+  active_payment_method_list: []
+=> addFundEnabled=false => 'Add Fund' button not rendered => dialog unreachable.
+Parse-integrity (the actual fix) is pinned by unit tests in price_converter_test.dart group 'add-fund amount strip contract (NEARS-541)':
+  EN parseAmount('10AED')==10 ; parseAmount('15')==15 ; AR parseAmount('20د.إ.‏')==20
+DB NOT mutated (read-only rule). Enabling add-fund/gateway is a Data DoR gap for live wallet QA.
