@@ -1,0 +1,27 @@
+NEARS-649 QA EVIDENCE — category parent_id fix (Cheese 8->6, Ghee 142->102)
+Build c4023793 | branch feat/NEARS-649-category-parent-id-fix
+DB multi_food_db (live, shared) | serving backend 127.0.0.1:8000 (feat/userapp-reskin, NEARS-542 code)
+VERDICT: PASS. Migration APPLIED to live multi_food_db (authorized). NOT rolled back.
+
+AC2 re-parent: id8 0->6, id142 0->102; roots 6 & 102 still 0; only 2 rows changed.
+  Migration: exactly 1 ran (2026_06_30_130000_fix_category_parent_id_cheese_ghee).
+
+AC3 grid rollup (core win):
+  DB rollup (authoritative, zone-agnostic): cat6 25->999 | cat102 13->964
+  Live API ALL-zones total_size:            cat6 22->557 | cat102 11->525
+  Live API zone1:                           cat6 9->15   | cat102 3->4
+  Live API zone2:                           cat6 13->29  | cat102 8->8 (ghee sparse z1/z2)
+  Items appear in JSON: cat6 returns "Cream Cheese" (cat_id=8); cat102 returns "Desi Cow Ghee" (cat_id=142).
+
+AC4 rail==grid (NEARS-542 holds): items_count == total_size for cat6/102 every scope:
+  ALL 557/525, z1 15/4, z2 29/8.
+
+Leaf unchanged: cat8 DB 974 / cat142 DB 951; API leaf identical before<->after.
+
+Regression: control cats unchanged — cat7(Milk) z2 13<->13, cat140(CookingOils) z2 0<->0.
+  BE log clean for categories/items (no [FAIL]/ERROR/Exception).
+
+AC6 idempotency: re-run migrate -> "Nothing to migrate".
+AC5 seeder: NOT re-seeded on live DB (per instruction); verified-no-op by reasoning + down() test.
+Reversibility: down() unit-verified (phpunit test_down_reverses_the_reparenting). No migrate:rollback on live DB.
+Automated: phpunit --filter FixCategoryParentIdMigrationTest -> 4/4 OK, 8 assertions (2 framework deprecations, non-blocking).
