@@ -1,0 +1,19 @@
+REGRESSION (pre-existing, NOT caused by NEARS-660) — get-zone-id with empty/0 coords logs [FAIL].
+Observed: UserApp emulator-5554, after a fresh login with no resolvable location (B = james.wilson post-logout).
+The location feature calls get-zone-id with empty then zero coords (the correct reset/guest state) and
+logs the expected 403/404 no-zone response as an unhandled failure + Crashlytics non-fatal:
+
+  ====> API Response: [403] /api/v1/config/get-zone-id?lat=&lng=
+  [FAIL] endpoint=/api/v1/config/get-zone-id http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=278f68be-fb4a-473f-9a27-4cece1fa9f9c
+  [INFO] msg="location: inZone=false"
+  ====> API Response: [404] /api/v1/config/get-zone-id?lat=0&lng=0
+  [FAIL] endpoint=/api/v1/config/get-zone-id http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=12e515ea-6d38-438d-8a5c-3b8d386c1c64
+  [INFO] msg="location: inZone=false"
+  [WARN] msg="location: zone ids empty for current location"
+
+Stack: LocationController.getZone (location_controller.dart:379) -> LocationRepository.getZone
+       (location_repository.dart:29) -> ApiClient.handleResponse (api_client.dart:832).
+Why pre-existing: the changed file is auth_repository.dart only; the location feature code is UNCHANGED.
+Backend laravel.log logged NO error for these correlation ids (expected no-zone response, not a server error).
+User-facing behavior is correct ("Select Your Location"). Impact: log/Crashlytics noise on any no-location state.
+Non-blocking for NEARS-660. Route to PO.

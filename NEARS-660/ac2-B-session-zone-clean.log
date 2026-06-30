@@ -1,0 +1,18 @@
+AC2 — User B (james.wilson@demo.com) session after logout of A (zone-1 Dhaka):
+B prefs 6ammart_user_address key count = 0 (no inherited address)
+Residual A PII (Customer Nears / 565811199) in B prefs = 0
+
+B location resolution (flutter run stdout) — coords are RESET (empty / 0), NOT A's Dhaka 23.81796/90.36602:
+  ====> API Response: [403] /api/v1/config/get-zone-id?lat=&lng=
+  [FAIL] endpoint=/api/v1/config/get-zone-id http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=278f68be-fb4a-473f-9a27-4cece1fa9f9c
+  [INFO] msg="location: inZone=false"
+  ====> API Response: [404] /api/v1/config/get-zone-id?lat=0&lng=0
+  [FAIL] endpoint=/api/v1/config/get-zone-id http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=12e515ea-6d38-438d-8a5c-3b8d386c1c64
+  [INFO] msg="location: inZone=false"
+  [WARN] msg="location: zone ids empty for current location"
+=> B shows "Service not available in this area / Select Your Location" (B does NOT inherit A's zone-1 Dhaka store list).
+
+NOTE: the get-zone-id 403/404 [FAIL] is the PRE-EXISTING location feature (LocationController.getZone ->
+LocationRepository.getZone -> handleResponse throws ApiFailure for any non-200) reacting to the now-correct
+EMPTY location. Code path is UNCHANGED by NEARS-660 (diff = auth_repository.dart only). User-facing outcome
+is correct. Logged (not silent). Classified pre-existing regression_bug, non-blocking.
