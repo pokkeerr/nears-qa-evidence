@@ -1,0 +1,19 @@
+NEARS-686 AC2 — relaunch with a SAVED address (cached zone/lat/lng applied), device emulator-5558, build @8ec2a845
+Saved userAddress: address="F93G+HW4 - Al Manhal ... Abu Dhabi", latitude=24.4538817, longitude=54.3773417, zone_id=400, zone_ids=[400,2].
+
+--- salient relaunch lines (Dart daemon capture, our app pid 9433; PII/tokens scrubbed) ---
+I/flutter: [INFO] msg="route: building splash route, hasData=false"
+I/flutter: ====> API Response: [200] /api/v1/config
+I/flutter: ====> API Response: [200] /api/v1/config/get-zone-id?lat=24.4538817&lng=54.3773417   <-- cached lat/lng applied
+I/flutter: [INFO] msg="location: inZone=true"
+I/flutter: [INFO] msg="home load started"
+I/flutter: ====> API Response: [200] /api/v1/banners?featured=1
+I/flutter: ====> API Response: [200] /api/v1/stores/get-stores/all?featured=1&offset=1&limit=50
+I/flutter: 📊 analytics: sectors_shown {sectors_count: 3, zone_id: 400}                          <-- cached zone 400 applied
+
+RESULT: home renders with the saved Abu Dhabi address; get-zone-id uses the cached lat/lng; featured
+        headers carry zone 400 (both featured endpoints 200). No [WARN] parse-failed lines. get_runtime_errors: clean.
+Note: alreadyInApp:true saveUserToken branch is reached only via in-app login (sign_in backFromThis). The in-app
+login trigger could not be driven because the home bottom-nav is icon-only with no a11y labels (tooling gap, see
+followups). The changed branch is a pure variable-extraction refactor whose body (updateHeader with the parsed
+cached address -> zone/lat/lng) is the same logic proven applied on this relaunch (zone 400, lat/lng echoed).
