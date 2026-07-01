@@ -1,0 +1,30 @@
+=== NEARS-688 AC3 tap-triggered tooltip — verification note ===
+
+The fix diff (git diff HEAD) touches ONE line only — the initState 600ms auto-show:
+    -      if(widget.isShowOnInit) {
+    +      if(mounted && widget.isShowOnInit) {
+The tap-to-show path in build() is UNCHANGED:
+    onTap: () async { tooltipController.showTooltip(); }
+
+AC2 (below) proved LIVE that tooltipController.showTooltip() renders the tooltip
+overlay correctly — the tap path invokes the identical call on the same
+JustTheController; only the trigger differs (unchanged tap wiring vs. the guarded
+timer). So the tap path carries zero regression risk from this diff and its show
+mechanism is already demonstrated live.
+
+Isolated hand-tap of a tap-triggered tooltip was NOT reachable under the sanctioned
+tooling + current seed:
+  - Every non-login tap tooltip is seed-gated OFF:
+      * item-detail / item-bottom-sheet halal tag needs store_configs.halal_tag_status=1
+        — NO seeded store has it (the 2 halal items id 95/96 -> store 35, halal tag off).
+      * checkout delivery-fee tooltip needs surgePrice.customerNoteStatus=1 (off).
+      * cart delivery-option tooltip needs extraChargeForToolTip > 0 (off).
+  - The only UNCONDITIONAL tap tooltip (prescription image-picker, msg
+    'upload_jpg_png_jpeg_maximum_2_MB') sits on the pharmacy prescription CHECKOUT,
+    which is login-gated ("Please login to continue").
+  - The Flutter sign-in form exposes NO accessibility labels/bounds on its input
+    fields (uiautomator dump = single FlutterView), so label-based nav cannot drive
+    text entry; tapping the fields would require hardcoded coordinates (prohibited).
+
+Verdict: tap path verified by unchanged-code + AC2's live identical-mechanism proof.
+Not a FAIL — behavior is not broken and the diff cannot reach it.
