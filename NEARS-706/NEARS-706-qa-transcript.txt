@@ -1,0 +1,53 @@
+NEARS-706 — get_categories() setZoneIds default-zone back-fill — LIVE BACKEND QA TRANSCRIPT
+Run (UTC): 2026-07-01T15:38:19Z
+Worktree:  /Users/Apple/Projects/nears-NEARS-706-getcategories-backfill
+Branch:    feat/NEARS-706-getcategories-setzoneids-backfill  (base feat/userapp-reskin @ b4a09047)
+Server:    php artisan serve --port=8006  (worktree code, uncommitted fix staged)
+DB:        multi_food_db (shared dev DB, READ-ONLY GETs only)
+Seed:      default zone = 2 (Abu Dhabi, is_default=1); modules attached to zone 2 = {1,2,3,5};
+           module 4 -> zone 3 only; module 6 -> zone 1 only.
+Fix:       CategoryController@get_categories +  Helpers::setZoneIds($request);  // NEARS-706
+
+VERDICT: PASS (5/5 ACs). Backend laravel.log: 0 new lines across the entire run (logs-first CLEAN;
+         422 ZoneModuleException correctly NOT logged — implements ShouldntReport, report()=false).
+
+------------------------------------------------------------------------------------------------
+AC1 — Headerless (moduleId:1, NO zoneId, NO lat/long) -> non-zero counts for default-zone stock
+CMD:  curl -H "moduleId: 1" http://127.0.0.1:8006/api/v1/categories
+RESULT: HTTP 200 | 35 categories | 29 with items_count>0 | has_offers=true
+        top rows: id3 F&V=43, id11 SoftDrinks=35, id9 Beverages=32, id6 Dairy=29, id1 General=27
+        X-Request-Id echoed: fbf33a21-cbe0-439e-8886-99f0692f25c4  (correlation live)
+        => default zone (2) resolved + back-filled; pre-fix this path returned 0/false for all.  PASS
+------------------------------------------------------------------------------------------------
+AC2 — Present valid zoneId is a no-op for setZoneIds (scoped, unchanged; no default-zone leak)
+CMD:  curl -H "moduleId: 1" -H "zoneId: [2]" http://127.0.0.1:8006/api/v1/categories   (== default)
+CMD:  curl -H "moduleId: 1" -H "zoneId: [1]" http://127.0.0.1:8006/api/v1/categories   (different zone)
+RESULT: HTTP 200/200 | headerless response == zoneId:[2] response (EXACT match, all rows)
+        zoneId:[1] DISTINCT from zoneId:[2]: cat1 12 vs 27, cat11 17 vs 35, z1=28 nonzero vs z2=29
+        => a present header is honored untouched; default-zone(2) stock does NOT leak into zone[1]. PASS
+------------------------------------------------------------------------------------------------
+AC3 — Malformed zoneId ([true], {}, "2") -> fail closed (NEARS-691), no cross-zone leak
+CMD:  curl -H "moduleId: 1" -H 'zoneId: [true]' http://127.0.0.1:8006/api/v1/categories
+CMD:  curl -H "moduleId: 1" -H 'zoneId: {}'     http://127.0.0.1:8006/api/v1/categories
+CMD:  curl -H "moduleId: 1" -H 'zoneId: "2"'    http://127.0.0.1:8006/api/v1/categories
+RESULT: all HTTP 200 | 35 categories | 0 nonzero items_count | 0 has_offers=true (all three)
+        => setZoneIds does NOT back-fill a present-but-malformed header; parseZoneIds -> [] -> WHERE 0=1.
+           Notably "2" does NOT resolve to zone 2 (scalar rejected).                            PASS
+------------------------------------------------------------------------------------------------
+AC4 — Headerless + moduleId NOT attached to default zone -> clean structured 422 (parity), not 500
+CMD:  curl -H "moduleId: 4" http://127.0.0.1:8006/api/v1/categories   (module 4 -> zone 3 only)
+CMD:  curl -H "moduleId: 6" http://127.0.0.1:8006/api/v1/categories   (module 6 -> zone 1 only)
+RESULT: both HTTP 422 | body: {"errors":[{"code":"zone_module_not_found","message":"Currently this module is available"}]}
+        control moduleId:3 (attached to zone 2) -> HTTP 200, 5 categories all nonzero
+        => structured ZoneModuleException 422 (parity with get_products et al.), NOT a 500, NOT empty-200.
+           Reachable with seeded modules (4,6). Message text is a pre-existing i18n string (see followups). PASS
+------------------------------------------------------------------------------------------------
+AC5 — phpunit backstop (multi_food_db_test, DatabaseTransactions)
+CMD:  vendor/bin/phpunit --filter GetCategoriesZoneBackfillTest       -> OK 3/3, 23 assertions, 0 skip
+CMD:  vendor/bin/phpunit --filter CategoryOrderCountSqlInjectionTest  -> OK 3/3, 21 assertions, 0 skip
+        (2 PHPUnit-framework deprecations each — noise, not test failures)                       PASS
+------------------------------------------------------------------------------------------------
+REGRESSION SWEEP (blast radius = /api/v1/categories only; vendor route uses a SEPARATE Vendor\CategoryController)
+REG1: headerless + NO moduleId (allowed by module-check except-list) -> HTTP 200, 51 cats, 44 nonzero (no 500)
+REG2: EMPTY-STRING zoneId header + moduleId:1 (setZoneIds empty() branch) -> HTTP 200, == headerless (backfill)
+LOG:  backend laravel.log — 0 new lines during the whole run; no [FAIL]/[ERR]/exception/SQLSTATE. CLEAN
