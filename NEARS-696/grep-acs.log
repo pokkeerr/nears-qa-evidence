@@ -1,0 +1,24 @@
+NEARS-696 — static ACs (grep) against worktree Admin/app/Http/Controllers/Api/V1/CampaignController.php
+
+AC1 — zero raw json_decode($zone_id) request-scope sites:
+$ grep -n "json_decode" CampaignController.php
+(no output — ZERO json_decode of any kind in the controller)
+
+AC2 — all zone-scoped queries route through parseZoneIds (7 sites):
+$ grep -n "parseZoneIds" CampaignController.php
+ 21:  $query->whereIn('zones.id', Helpers::parseZoneIds($zone_id));   Type1 module.zones  (get_basic_campaigns)
+ 27:  $q->whereIn('zone_id', Helpers::parseZoneIds($zone_id));        Type2 store-exist   (get_basic_campaigns, inside if(!all_zone_service))
+ 57:  })->whereIn('zone_id', Helpers::parseZoneIds($zone_id));        Type3 eager-load    (basic_campaign_details stores closure)
+ 59:  $q->whereIn('zone_id', Helpers::parseZoneIds($zone_id));        Type3 eager-load    (basic_campaign_details, inside if(!all_zone_service))
+ 63:  $query->whereIn('zones.id', Helpers::parseZoneIds($zone_id));   Type1 module.zones  (basic_campaign_details)
+ 88:  $query->whereIn('zones.id', Helpers::parseZoneIds($zone_id));   Type1 module.zones  (get_item_campaigns)
+ 95:  })->whereIn('zone_id', Helpers::parseZoneIds($zone_id));        Type2 store-exist   (get_item_campaigns)
+ => 7 sites.
+
+Diff: 7 pure token swaps json_decode($zone_id, true) -> Helpers::parseZoneIds($zone_id).
+Both `if(!config('module.current_module_data')['all_zone_service'])` bypass guards (lines 25, 58) PRESERVED.
+helpers.php UNMODIFIED — parseZoneIds is the reused NEARS-549 fail-closed helper, not recreated.
+
+parseZoneIds (helpers.php:5059) fail-closed contract:
+  empty/'null' -> []; non-list-array -> []; any non-int / non-ctype_digit element -> []; else array_map('intval').
+  So '[true]' -> [] (was intval-coerced to [1] pre-fix = the fail-OPEN leak); '{}' -> []; '[2]' -> [2] (unchanged).

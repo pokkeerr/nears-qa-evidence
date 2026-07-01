@@ -1,0 +1,25 @@
+NEARS-696 — CampaignController zone-decode fail-closed hardening
+Live endpoint lane (A) — worktree backend @ 127.0.0.1:8097 (branch feat/NEARS-696-campaigncontroller-zone-decode)
+DB: multi_food_db (dev, read-only). NOTE: dev DB has ZERO seeded campaigns/item_campaigns/campaign_store rows,
+so valid-[2] returns empty here too; the valid-vs-crafted zone-scoping DISTINCTION is proven by the phpunit lane (B).
+Headers: moduleId:1, Accept:application/json, zoneId as shown.
+Key assertion: crafted headers -> HTTP 200 (NEVER 500), no cross-zone leak.
+
+===== get_basic_campaigns  GET /api/v1/campaigns/basic =====
+basic valid          zoneId=[2]      HTTP=200  body=[]
+basic crafted-bool   zoneId=[true]   HTTP=200  body=[]   <- fail-closed, no 500
+basic crafted-obj    zoneId={}       HTTP=200  body=[]   <- fail-closed, no 500
+
+===== basic_campaign_details  GET /api/v1/campaigns/basic-campaign-details?basic_campaign_id=1 =====
+detail valid         zoneId=[2]      HTTP=200  body=[]
+detail crafted-bool  zoneId=[true]   HTTP=200  body=[]   <- fail-closed, no 500
+detail crafted-obj   zoneId={}       HTTP=200  body=[]   <- fail-closed, no 500
+
+===== get_item_campaigns  GET /api/v1/campaigns/item =====
+item valid           zoneId=[2]      HTTP=200  body=[]
+item crafted-bool    zoneId=[true]   HTTP=200  body=[]   <- fail-closed, no 500
+item crafted-obj     zoneId={}       HTTP=200  body=[]   <- fail-closed, no 500
+
+Logs-first: no local.ERROR/CRITICAL in Admin/storage/logs/laravel.log during the live run;
+serve.log lines are request timings (~500ms), not HTTP 500. Empty [] = genuine fail-closed
+(parseZoneIds -> [] -> whereIn([]) -> WHERE 0=1), not a swallowed exception (catch block is pre-existing, parseZoneIds does not throw).
