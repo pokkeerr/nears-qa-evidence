@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-498
 
-**PASS — vendor flash-sale Model A: AC1-4/7 + F1 cross-module + IDOR (403+[SECURITY]) all live-verified; phpunit 7/7**
+**PASS — add per-bug regression evidence logs**
 
 **6 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -19,6 +19,8 @@
 
 ### Other artifacts
 - [`ac4-route-list.log`](ac4-route-list.log)
+- [`bug-admin-console-noise.log`](bug-admin-console-noise.log)
+- [`bug-getstoredata-500.log`](bug-getstoredata-500.log)
 - [`progress.md`](progress.md)
 - [`security-log-idor.log`](security-log-idor.log)
 

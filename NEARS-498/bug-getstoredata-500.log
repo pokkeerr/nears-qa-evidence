@@ -1,0 +1,14 @@
+# REGRESSION-CANDIDATE (pre-existing, unrelated to NEARS-498): get_store_data() unguarded stores[0]
+# File: Admin/app/CentralLogics/helpers.php:2301
+public static function get_store_data()
+{
+    if (auth('vendor_employee')->check()) {
+        return auth('vendor_employee')->user()->store;
+    }
+    return auth('vendor')->user()->stores[0];   // <-- unguarded; null if vendor owns 0 stores
+}
+# NEARS-498 active()/join_product() call get_store_data()->module_id.
+# A vendor with an empty stores collection -> "Attempt to read property 'module_id' on null" -> HTTP 500.
+# Systemic pre-existing helper (used panel-wide), NOT introduced by NEARS-498.
+# NOT live-reproducible with current seed data: all seeded vendors own a store; reproducing would require
+# creating a store-less vendor (DB mutation), which is out of read-only QA scope.
