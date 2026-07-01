@@ -1,0 +1,8 @@
+PRE-FIX raw json_decode($zone_id, true) fed into whereIn():
+  "[2]"                => [2]
+  "[true]"             => [true]
+  "{}"                 => []
+  "[{"x":1}]"          => [{"x":1}]
+  "nears-697-garbage"  => null
+
+MySQL whereIn semantics: [true] casts true->1 => matches ZONE 1 (LEAK); null => whereIn(NULL) 500-vector.
