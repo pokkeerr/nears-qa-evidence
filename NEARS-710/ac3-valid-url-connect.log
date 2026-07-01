@@ -1,0 +1,7 @@
+NEARS-710 AC3 — websocket_status=1 + websocket_url='10.0.2.2' (valid): initializePusher proceeds past empty-url guard into client-create + connect()
+isolated :8001 config -> websocket_status=1, websocket_url='10.0.2.2' (verified via curl)
+evidence: NEITHER 'pusher init skipped' NOR 'pusher init aborted' fired => guard entered init AND passed empty-url check => reached PusherChannelsClient.websocket()+connect() (only post-guard path)
+no new [FAIL]/exception/crash; polling (order/track) still active; NEARS-704 backoff untouched
+full live socket NOT exercised: no ws server reachable on :6001 in dev env (per AC3 allowance)
+--- polling ---
+07-01 18:42:27.733 : ====> API Response: [200] /api/v1/customer/order/track?order_id=158
