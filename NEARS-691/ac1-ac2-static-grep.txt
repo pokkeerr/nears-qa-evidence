@@ -1,0 +1,33 @@
+### AC1 — zero raw json_decode($zone_id) request-scope sites in CategoryLogic.php
+remaining json_decode sites (all category_ids/brand_ids — allowed):
+434:        $category_ids = isset($category_ids)?(is_array($category_ids)?$category_ids:json_decode($category_ids)):[];
+435:        $brand_ids = isset($brand_ids)?(is_array($brand_ids)?$brand_ids:json_decode($brand_ids)):[];
+568:        $category_ids = isset($category_ids)?(is_array($category_ids)?$category_ids:json_decode($category_ids)):[];
+646:            $data = json_decode($category_ids, true);
+712:            $data = json_decode($category_ids, true);
+
+### AC2 — all zone-scoped queries route through parseZoneIds (count of usages):
+17
+
+### Helpers::parseZoneIds (fail-closed decoder):
+    public static function parseZoneIds(string|null $raw): array
+    {
+        if (empty($raw) || $raw === 'null') {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (!is_array($decoded) || !array_is_list($decoded)) {
+            return [];
+        }
+
+        // array_is_list only checks indexing; reject object/bool/null/float elements before intval-mapping.
+        foreach ($decoded as $v) {
+            if (!is_int($v) && !(is_string($v) && ctype_digit($v))) {
+                return [];
+            }
+        }
+
+        return array_map('intval', $decoded);
+    }

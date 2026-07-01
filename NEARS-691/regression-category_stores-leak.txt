@@ -1,0 +1,8 @@
+### REGRESSION repro — GET /api/v1/categories/stores/list?category_ids=[6]  (category_stores, dead-code zone filter L585)
+Sending a VALID zoneId:[2] header — expected pre-existing leak: zone-1 stores STILL appear.
+
+-- VALID zoneId:[2] moduleId:1 --
+{"http":"200-ok","total_size":532,"distinct_store_zones":[365,366,369,371,372,373,375,376,380,381,383,384,385,386,387,388,389,390,391,392,398,399,404,405,406,407,408,409,410,411,412,415,417,418,419,420,424,425,426,427,429,431,432,433,435,436,437,438,439,440,441,442,445,446,448,449,451,452],"zone1_leak_count":0,"zone2_count":0}
+
+-- contrast: the FIXED sibling GET /api/v1/categories/stores/6 with same zoneId:[2] (should be zone 2 only) --
+{"total_size":13,"distinct_store_zones":[2]}
