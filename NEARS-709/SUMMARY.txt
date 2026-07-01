@@ -1,0 +1,34 @@
+NEARS-709 — Live QA Evidence (Backend)  |  VERDICT: PASS  |  fix-cycle 0
+
+ENV: isolated backend 127.0.0.1:8709 (worktree feat/NEARS-709-cart-listrebuild-guard),
+throwaway DB copy nears_qa709 (dump of multi_food_db, 0 writes to dev DB, dropped after run).
+FIX (uncommitted working tree): cartListResponse partitions null-item rows out (+PII-safe
+Log::warning per skip) + ->values() re-index; belt-and-braces null-return in
+Helpers::cart_product_data_formatting (only 1 caller = CartController).
+
+PRE-FIX BASELINE (fix stashed) — bug reproduced:
+  GET  /cart/list?guest_id=709000001 (stale-mixed)  -> HTTP 500
+  POST /cart/update cart_id=278 (valid, stale coexists) -> HTTP 500
+  laravel.log: [FAIL] Trying to access array offset on null corr 60adee4e (list) + 3d438ded (update)
+
+ACCEPTANCE CRITERIA
+  AC1 list stale-mixed -> 200, stale absent, valids intact, JSON ARRAY   PASS  ac1-list-stale.json
+      (stale seeded FIRST id277 => ->values() re-index proven load-bearing; is_list=true len=2 ids[1,40])
+  AC2 update valid row w/ stale coexisting -> 200, updated (d38c8196)     PASS  ac2-update-valid.json
+      (cart278 price15/qty2 persisted; was 500 pre-fix)
+  AC3 zero-stale cart -> 200, identical array shape/fields               PASS  ac3-list-nostale.json
+  AC4 no array-offset/500 in laravel.log (stale scenario)               PASS  (post-fix log clean; 8 skip WARNs)
+
+QA TEST SCOPE
+  6 endpoints via choke-point, none 500   PASS  list/update/add-inc(279 3->4)/add-newrow(42)/remove-item/remove([])
+  NEARS-701 guard (target stale row)      PASS  update stale->404{item}; remove-item stale->200 purge; never 500
+  Guest IDOR/scoping (A vs B, stale)      PASS  idor-guestA(only item1) idor-guestB(only item41) no leak
+  Authenticated scoping (own rows only)   PASS  auth-scope-james: user1 sees[196,1]; user2 items 514/40 absent; stale filtered
+  Log PII-safety (stale-skip warning)     PASS  {correlation_id,cart_id,item_id,item_type} - no user_id/name/phone/token
+  Client integration (UserApp render)     UNVERIFIABLE-LIVE(constrained)+STATIC PASS
+      live needs product-config edit or dev-DB write (both forbidden); static: cart_repository.dart:147
+      response.body.forEach((cart)=>OnlineCartModel.fromJson(cart)) - shorter array benign; ->values() keeps
+      Dart list-forEach from breaking on a gapped object
+  Automated backstop CartUpdateNullGuardTest  PASS  6 tests / 24 assertions green (2 PHPUnit deprecations)
+
+REGRESSION: clean. cart_product_data_formatting has 1 caller only; blast radius = 6 cart endpoints, all verified.
