@@ -1,0 +1,33 @@
+NEARS-549 live fail-closed matrix — worktree 70784baf, live backend :8001 -> multi_food_db (read-only)
+Zone map: 1=Demo (stores 1-7), 2=Abu Dhabi (stores 8-23,30-34), module 1 (grocery).
+
+Endpoint: GET /api/v1/stores/get-stores/all  (headers moduleId:1, X-localization:en)
+  zoneId [2]           -> HTTP 200  total_size 15  zones [2]        (legit traffic OK)
+  zoneId [1]           -> HTTP 200  total_size  6  zones [1]        (legit traffic OK)
+  zoneId [1,2]         -> HTTP 200  total_size 21  zones [1,2]       (legit traffic OK)
+  zoneId "2" (scalar)  -> HTTP 200  total_size  0  zones []          FAIL-CLOSED
+  zoneId 2  (bare)     -> HTTP 200  total_size  0  zones []          FAIL-CLOSED
+  zoneId [{"x":1}]     -> HTTP 200  total_size  0  zones []          FAIL-CLOSED (element guard)
+  zoneId [true]        -> HTTP 200  total_size  0  zones []          FAIL-CLOSED
+  zoneId [null]        -> HTTP 200  total_size  0  zones []          FAIL-CLOSED
+  zoneId not-json      -> HTTP 200  total_size  0  zones []          FAIL-CLOSED
+  zoneId null (string) -> HTTP 200  total_size  0  zones []          FAIL-CLOSED
+  zoneId []            -> HTTP 200  total_size  0  zones []          FAIL-CLOSED
+  zoneId ABSENT        -> HTTP 200  total_size 15  zones [2]         default-zone substitution (Helpers::setZoneIds), SAFE (single zone, no cross-zone leak)
+
+Endpoint: GET /api/v1/stores/discounted
+  zoneId [2]           -> HTTP 200  total_size 14  zones [2]         (AC3 zone-restricted)
+  zoneId [1]           -> HTTP 200  total_size  6  zones [1]
+  zoneId [1,2]         -> HTTP 200  total_size 20  zones [1,2]       (14+6 union, no dup)
+  zoneId "2"           -> HTTP 200  total_size  0  zones []          FAIL-CLOSED
+  zoneId [{"x":1}]     -> HTTP 200  total_size  0  zones []          FAIL-CLOSED
+
+Regression sweep (valid [2] / malformed "2"):
+  latest       -> 15 zones[2] / 0
+  popular      -> 15 zones[2] / 0
+  recommended  ->  0 (no recommended stores seeded in any zone; [1,2] also 0) / 0   -- not a leak
+  top-rated    ->  1 zones[2] / 0
+  search?name=mart -> 2 zones[2] / 0
+  nearby       -> pre-existing HTTP 500 (see bug-nearby-preexisting-500.log); zone clause wired correctly (SQL shows `zone_id in (2)` valid / `0 = 1` malformed) but downstream distance-SQL 1064 aborts the request on BOTH old and new code.
+
+Logs-first gate: laravel.log has ZERO local.* [FAIL]/[ERR] for any store-listing endpoint on valid or malformed hits (only the pre-existing nearby SQL 1064). All fail-closed responses are silent-clean 200s (empty list), not error toasts.

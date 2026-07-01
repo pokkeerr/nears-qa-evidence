@@ -1,0 +1,11 @@
+NEARS-549 QA — PRE-EXISTING bug (regression-candidate, NOT a NEARS-549 regression)
+Endpoint: GET /api/v1/stores/nearby  -> HTTP 500 {"message":"Something went wrong"}
+Reproduced on BOTH parent 2e506bda (pre-549) AND HEAD 70784baf (fix) with identical valid zoneId [2].
+Cause: SQLSTATE[42000] 1064 syntax error in the scopeWithOpen distance selectRaw wrapped by paginate() count(*).
+Note: NEARS-549 zone clause IS correctly wired here — SQL shows 'zone_id in (2)' for valid and 'and 0 = 1' for malformed;
+      the 500 is downstream in the distance/pagination SQL, unrelated to zone decode. No cross-zone leak (request aborts).
+PHP 8.5.6. Representative log line (secrets/PII: none — query text only):
+----------------------------------------------------------------------
+[2026-07-01 10:20:00] local.ERROR: [FAIL] SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '*,
+  ... [truncated: full distance subquery] ...
+  {...,"type":"Illuminate\Database\QueryException","endpoint":"/api/v1/stores/nearby"}

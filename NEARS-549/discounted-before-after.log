@@ -1,0 +1,19 @@
+NEARS-549 AC3 — get_discounted_stores cross-zone leak, live before/after against multi_food_db (read-only)
+Method: swapped Admin/app/CentralLogics/StoreLogic.php between parent 2e506bda (pre-549) and HEAD 70784baf (fix),
+rebooting `php artisan serve :8001` each time; identical request; file restored clean vs HEAD afterward.
+
+Request: GET /api/v1/stores/discounted?limit=50&offset=1   headers: zoneId:[2]  moduleId:1  X-localization:en
+
+  BEFORE (pre-549, 2e506bda):
+    HTTP 200  total_size 533  zones [1, 2, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373]
+    -> CROSS-ZONE LEAK: asked for zone 2 only, received discounted stores from 12+ zones.
+       Cause: dead-code early `return` after ->module() made the zone whereIn unreachable.
+    Same request with malformed zoneId "2" -> also total_size 533 (fail-OPEN).
+
+  AFTER (fix, 70784baf):
+    HTTP 200  total_size 14  zones [2]   (ids 8,9,12,13,14,16,17,18,19,20,21,22,35,4117)
+    -> zone-restricted. Malformed "2" / [{"x":1}] -> total_size 0 (fail-CLOSED).
+
+Removed rows are genuinely out-of-zone, NOT a regression:
+  - zone [1] request returns exactly the 6 zone-1 discounted stores (ids 1,2,3,36,37,38) that were excluded from the [2] feed.
+  - zone [1,2] request returns 20 = 14 (zone2) + 6 (zone1), the correct union.
