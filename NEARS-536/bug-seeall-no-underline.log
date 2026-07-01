@@ -1,0 +1,19 @@
+NEARS-536 task-bug: "See All" action-link underline NOT rendered on device
+Widget: NearsSectionHeader (UserApp/lib/common/widgets/dls/nears_section_header.dart)
+On-screen instance: Categories header (category_view.dart:109 -> actionText 'see_all')
+Device: emulator-5556 (Android), UserApp debug build from worktree feat/NEARS-536-sectionheader-affordance
+
+Diff under test (git):
++  decoration: TextDecoration.underline,
++  decorationColor: actionColor,   // actionColor = Theme.primaryColor = navy #000080
+
+Pixel scan of "See All" glyphs (clean rebuild capture ac1-categories-cleanbuild.png):
+  navy glyph rows: 1504..1532 (cap region)
+  rows 1533..1544 (underline zone): navy=0  -> pure background (252,249,248)
+  inter-word gap x1237..1255: never filled by a continuous navy run at any row
+    (max 5/19 = anti-aliased letter edges only; a real underline fills ~19/19)
+=> NO underline stroke present. Confirmed on 2 independent fresh builds
+   (MCP launch build + rm-rf-build clean Gradle rebuild) and at 10x visual zoom.
+
+Automated backstop (flutter test golden + gate): ALL PASS (golden is underline-blind by design)
+=> green tests, but device render lacks the underline. AC not met on device.
