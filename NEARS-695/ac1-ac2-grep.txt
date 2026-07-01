@@ -1,0 +1,13 @@
+### AC1 — remaining raw json_decode($zone_id) request-scope sites (expect NONE)
+  (none — grep exit 1) PASS
+
+### All json_decode sites in SearchController.php (category_ids/brand_ids non-zone allowed):
+33:        $category_ids = $request['category_ids'] ? (is_array($request['category_ids']) ? $request['category_ids'] : json_decode($request['category_ids'])) : '';
+34:        $brand_ids = $request['brand_ids'] ? (is_array($request['brand_ids']) ? $request['brand_ids'] : json_decode($request['brand_ids'])) : '';
+340:                $category_ids = $request['category_ids'] ? (is_array($request['category_ids']) ? $request['category_ids'] : json_decode($request['category_ids'],true )) : null;
+
+### AC2 — parseZoneIds zone-scoped call sites (expect 4):
+70:                $query->whereIn('zones.id', Helpers::parseZoneIds($zone_id))
+85:                })->whereIn('zone_id', Helpers::parseZoneIds($zone_id));
+199:                    $query->whereIn('zones.id', Helpers::parseZoneIds($zone_id));
+207:                    })->whereIn('zone_id', Helpers::parseZoneIds($zone_id));

@@ -1,0 +1,42 @@
+NEARS-695 — SearchController zone-decode fail-closed hardening — QA live evidence
+Backend: worktree feat/NEARS-695-searchcontroller-zone-decode @ 958c4d5d base
+Served: php artisan serve 127.0.0.1:8091 (worktree Admin/, real multi_food_db, read-only)
+Search term: "Chicken", moduleId:1. DB-confirmed module-1 sets: zone1={40,60} zone2={44,59}.
+Verdict: PASS
+
+== LANE A — live endpoints ==
+
+(1) GET /api/v1/search/unified?name=Chicken  (sites 199/207)
+  zoneId:[2]     -> HTTP 200  product_ids=[59]  total_items=1  (zone-2 item only; no 40/60 leak)
+  zoneId:[1]     -> HTTP 200  product_ids=[40]  total_items=1  (zone-1 item only; no 44/59 leak)
+  zoneId:[true]  -> HTTP 200  product_ids=[]    total_items=0  (fail-closed, no 500, no leak)
+  zoneId:{}      -> HTTP 200  product_ids=[]    total_items=0  (fail-closed, no 500, no leak)
+  shape keys: [limit, offset, products, stores, total_items, total_stores] — intact all cases
+
+(2) GET /api/v1/get-combined-data?list_type=item&data_type=searched&brand_ids=[]&name=Chicken (sites 70/85)
+  zoneId:[2]     -> HTTP 200  product_ids=[59]  total_size=1  (zone-2 item only)
+  zoneId:[1]     -> HTTP 200  product_ids=[40]  total_size=1  (zone-1 item only)
+  zoneId:[true]  -> HTTP 200  product_ids=[]    total_size=0  (fail-closed)
+  zoneId:{}      -> HTTP 200  product_ids=[]    total_size=0  (fail-closed)
+  shape keys: [categories, limit, offset, products, total_size] — intact all cases
+
+  Valid-zone results identical across both endpoints for a given zone (z2->59, z1->40):
+  blast-radius zone-consistency sweep clean.
+
+== LANE B — phpunit backstop ==
+  vendor/bin/phpunit --filter 'SearchZoneScoping|ParseZoneIds' --testdox
+  6 tests, 67 assertions, 0 failures, 0 skips (2 framework deprecations, non-blocking).
+  SearchZoneScoping: unified valid+crafted (path 1), combined valid+crafted (path 2) — both query shapes.
+  ParseZoneIds: fail-closed+valid table, string->int cast.
+
+== BE log check (all zone-decode [api] ACs) ==
+  Zero [FAIL]/[ERR] lines for /search/unified or the combined zone paths in the test window.
+  Crafted empties are the intended whereIn([]) -> 0-rows path, NOT swallowed exceptions. Logs clean.
+
+== REGRESSION (pre-existing, NOT a NEARS-695 failure) ==
+  GET /api/v1/get-combined-data?list_type=item&data_type=searched&name=a  (no brand_ids)
+    -> HTTP 500  {"message":"Something went wrong"}
+    log: [FAIL] count(): Argument #1 ($value) must be of type Countable|array, string given
+         type=TypeError endpoint=/api/v1/get-combined-data  (properly logged, not silent)
+  Same request WITH &brand_ids=[]  -> HTTP 200.
+  Cause: brand_ids default '' at SearchController L34/58 (count('') on absent param) — separate guard fix.

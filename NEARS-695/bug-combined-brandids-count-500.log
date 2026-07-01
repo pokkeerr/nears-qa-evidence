@@ -1,0 +1,25 @@
+REGRESSION (pre-existing, unrelated to NEARS-695 zone-decode) — brand_ids absent -> HTTP 500
+
+Repro (worktree backend, port 8091):
+  curl -s -o /dev/null -w "%{http_code}" \
+    "http://127.0.0.1:8091/api/v1/get-combined-data?list_type=item&data_type=searched&name=a" \
+    -H "moduleId:1" -H "zoneId:[2]" -H "longitude:54.37" -H "latitude:24.45"
+  -> 500
+
+  Response body: {"message":"Something went wrong"}
+
+  Same request with &brand_ids=[] appended -> 200 (works).
+
+Backend log line (Admin/storage/logs/laravel.log):
+  [2026-07-01 16:22:34] local.ERROR: [FAIL] count(): Argument #1 ($value) must be of type
+  Countable|array, string given
+  {"correlation_id":"00c7bcd5-ab2c-4021-8c39-56f87b60dacd","type":"TypeError",
+   "endpoint":"/api/v1/get-combined-data"}
+
+Root cause (NOT zone-decode): SearchController::get_combined_data / get_searched_products
+reads $brand_ids with default '' (empty string) at ~L34/L58 when the query param is absent;
+a downstream count($brand_ids) then receives a string -> TypeError -> 500.
+Failure IS logged (paired [FAIL] with correlation_id) — not a silent-failure violation,
+but the endpoint should degrade gracefully (empty brand filter) instead of 500-ing.
+
+Scope: out of NEARS-695 (zone-decode-only). File as PO regression bug; separate guard change.
