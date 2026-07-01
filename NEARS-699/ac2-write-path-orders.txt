@@ -1,0 +1,40 @@
+NEARS-699 AC2 — CHECKOUT WRITE-PATH (highest priority) live evidence
+Backend: worktree php artisan serve @ 127.0.0.1:8199  (feat/NEARS-699-ordertrait-zone-decode)
+Endpoint: POST /api/v1/customer/order/place  (auth:api customer id=6, token via /auth/login)
+Store 8 "Abu Dhabi Fresh Market" -> zone_id 2 ; in-zone coords lat 24.4539 / lng 54.3773 ; item 145 (is_buy_now cart)
+
+max(orders.id) BEFORE run = 163
+
+--- NON-PARCEL (delivery) — order persists with RESOLVED store zone, header irrelevant ---
+ORDER A  header zoneId=[true]  (malformed) -> HTTP 200  order_id 164  -> orders.zone_id = 2  (= store zone, NOT 1/false/0/null)
+ORDER B  header zoneId=[2]     (valid)     -> HTTP 200  order_id 165  -> orders.zone_id = 2
+ORDER C  header zoneId=garbage (malformed) -> HTTP 200  order_id 166  -> orders.zone_id = 2
+
+DB verify:
+  164 | zone_id 2 | store 8 | delivery | pending
+  165 | zone_id 2 | store 8 | delivery | pending
+  166 | zone_id 2 | store 8 | delivery | pending
+max(orders.id) AFTER = 166  (only the 3 committed orders; no phantom rows)
+
+Proof: for non-parcel, getZoneAndStore() resolves $store by store_id and $zone by $store->zone_id +
+coordinate containment — independent of the zoneId header. The line-235 header-decode fallback
+(end($zoneIds) ?: null) is provably dead; a malformed header ([true], garbage) produced zone_id=2,
+never a bogus 1/false/0/null, never a 500.
+
+--- PARCEL (site 2, getZoneAndStore parcel branch uses parseZoneIds) — fail-closed ---
+parcel header zoneId=[true]    -> HTTP 403 {"code":"zone","message":"Out of coverage area"}   (no order created)
+parcel header zoneId=garbage   -> HTTP 403 {"code":"zone","message":"Out of coverage area"}   (no order created)
+=> parseZoneIds(malformed) -> [] -> Zone::whereIn('id',[]) -> null zone -> clean 403, never 500,
+   never resolves a wrong zone from the valid point.
+
+BE-log (best-effort, endpoint/timestamp-scoped grep of storage/logs/laravel.log):
+  No [FAIL]/5xx/Exception for order/place from the live run.
+  Note (non-blocking, PRE-EXISTING/ENVIRONMENTAL): local.ERROR "FCM API Error" 404/400 fires on each
+  successful placement because dev has no FCM credentials (post-order push dispatch). The order still
+  commits (HTTP 200, correct zone_id); the failure is properly logged (not silent) and is unrelated to
+  the zone-decode change.
+
+Backstop (authoritative for the commit assertion): OrderTraitZoneScopingTest
+  test_non_parcel_write_path_resolves_store_zone (zone == store zone, not header),
+  test_write_path_fallback_is_null_never_false_or_zero (fallback null, never false/0),
+  test_parcel_valid_zone_resolves + test_parcel_malformed_zone_fails_closed  — all pass (9/9).
