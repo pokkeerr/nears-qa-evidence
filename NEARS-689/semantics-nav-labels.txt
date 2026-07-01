@@ -1,0 +1,18 @@
+NEARS-689 - Bottom-nav Semantics label evidence (AC1 + AC3)
+Device: emulator-5554 (Android 17 / API 37)  App: com.izzes.nears  Build: feat/userapp-reskin @ b3166564
+Source: Flutter Semantics(label:) surfaced as Android accessibility content-desc, via uiautomator dump
+Screen: guest module home (Grocery & Food) - NearsBottomNav floating variant, light mode
+
+TAB         | content-desc (== Semantics label) | node bounds
+------------|------------------------------------|-------------------------
+Home        | Home                               | [72,2680][312,2872]
+Categories  | Categories                         | [312,2680][552,2872]
+Search      | Search                             | [552,2680][792,2872]
+Basket      | Basket                             | [792,2680][1032,2872]
+Profile     | Profile                            | [1032,2680][1272,2872]
+
+uifind resolve (AC1) - each label -> live tap coords (uifind.py find --exact):
+  Home 192 2776 | Categories 432 2776 | Search 672 2776 | Basket 912 2776 | Profile 1152 2776
+
+Result: all 5 tabs carry a NON-EMPTY label in the accessibility/Semantics tree (AC1 + AC3 PASS).
+No hardcoded coordinates - every coord resolved live from the label.
