@@ -1,0 +1,20 @@
+NEARS-705 AC1 — cross-zone leak CLOSED
+Server: worktree feat/NEARS-705-category-stores-zone-deadcode on :8005 (multi_food_db)
+Request: GET /api/v1/categories/stores/list?category_ids=[6]&limit=100&offset=1
+Headers: zoneId: [2]   moduleId: 1   (category 6 = "Dairy & Eggs", module 1 Grocery, all_zone_service=0)
+
+--- DB baseline (mirrors the query clause; the zone whereIn is the ONLY pre/post difference) ---
+PRE-FIX  (no zone clause, = dead-code behaviour) : 532 stores across 92 distinct zones
+POST-FIX (zone whereIn [2] now runs)             : 13 stores, all zone_id=2
+
+--- Live response (post-fix code under test) ---
+HTTP 200
+total_size = 13, returned = 13
+distinct zone_ids in result = [2]
+stores with zone_id != 2  = 0   (leak closed)
+store ids = [8,9,12,13,14,16,17,18,19,20,21,22,35]
+
+--- End-to-end join: API ids == DB zone-2 active set for (cat 6, module 1) ---
+DB zone-2 set = 8,9,12,13,14,16,17,18,19,20,21,22,35   (IDENTICAL)
+
+VERDICT AC1: PASS — pre-fix 532/92-zones -> post-fix 13/zone-2-only; a zone-1 store is ABSENT.

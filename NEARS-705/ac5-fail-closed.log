@@ -1,0 +1,12 @@
+NEARS-705 AC5 — malformed zoneId fails CLOSED (zero stores), never floods cross-zone
+Request: GET /api/v1/categories/stores/list?category_ids=[6]&limit=100&offset=1, moduleId 1
+
+zoneId={}         -> HTTP 200  total_size=0  returned=0  zones=[]
+zoneId=not-json   -> HTTP 200  total_size=0  returned=0  zones=[]
+zoneId="2"        -> HTTP 200  total_size=0  returned=0  zones=[]  (quoted string is not a JSON list -> [])
+zoneId=null       -> HTTP 200  total_size=0  returned=0  zones=[]
+zoneId=[]         -> HTTP 200  total_size=0  returned=0  zones=[]
+--- control ---
+zoneId=[2]        -> HTTP 200  total_size=13 returned=13 zones=[2]  (proves it is not always-empty)
+
+VERDICT AC5: PASS — every malformed input yields 0 stores (whereIn([]) -> WHERE 0=1); no flood.

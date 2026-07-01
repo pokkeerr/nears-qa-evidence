@@ -1,0 +1,13 @@
+NEARS-705 AC3 — all 3 surfaces route through category_stores() and are zone-scoped
+All: zoneId [2], moduleId 1, category 6, expect 13 zone-2 stores, 0 cross-zone
+
+Surface A CategoryController@get_category_stores
+  GET /api/v1/categories/stores/list?category_ids=[6]              -> 200 total=13 zones=[2] non_zone2=0
+Surface B StoreController@get_combined_data (data_type=category)
+  GET /api/v1/stores/get-data?data_type=category&category_ids[]=6  -> 200 total=13 zones=[2] non_zone2=0
+Surface C SearchController@get_combined_data (list_type=store,data_type=category)
+  GET /api/v1/get-combined-data?list_type=store&data_type=category&category_ids=[6] -> 200 total=13 zones=[2] non_zone2=0
+
+id-set all three = [8,9,12,13,14,16,17,18,19,20,21,22,35]  (identical)
+
+VERDICT AC3: PASS — all three surfaces zone-scoped, no cross-zone store.
