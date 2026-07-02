@@ -1,0 +1,42 @@
+NEARS-718 — Search suggestion debounce / min-char gate / stale-guard
+Live network evidence (adb logcat, api_client "API Response" lines), device emulator-5556, zone 2 Abu Dhabi, user james.wilson@demo.com
+Suggestion endpoint: /api/v1/items/item-or-store-search ; unified endpoint: /api/v1/search/unified (kSuggestionDebounceMs=200, kSearchDebounceMs=350, kMinSearchChars=2)
+
+=== AC1 — debounce coalesces a fast burst to ONE request ===
+Burst "chicken" (7 chars typed on-device in 103ms):
+  1 x  /api/v1/items/item-or-store-search?name=chicken
+  1 x  /api/v1/search/unified?name=chicken&offset=1&limit=10
+  => 7 keystrokes -> 1 suggestion request (a per-keystroke impl would fire ~6).
+
+Burst "tomato" (6 chars, tight loop):
+  01:14:42.205  /api/v1/items/item-or-store-search?name=tomato
+  01:14:42.404  /api/v1/search/unified?name=tomato&offset=1&limit=10
+  => 6 keystrokes -> 1 suggestion request.
+
+=== AC2 — newest query wins, no stale overwrite ===
+Typed "to", paused 500ms, then "mato" (forces TWO debounced cycles):
+  [200] /api/v1/items/item-or-store-search?name=to
+  [200] /api/v1/search/unified?name=to&offset=1&limit=10
+  [200] /api/v1/items/item-or-store-search?name=tomato
+  [200] /api/v1/search/unified?name=tomato&offset=1&limit=10
+  Final on-screen results: Items (5) — all TOMATO (Fresh Organic Tomato, Tomato Sauce, Tomatoes).
+  => the newest settled query ("tomato") is displayed; the older "to" never overwrites it.
+  (stale-guard: _dispatchSuggestion drops a response whose _suggestionReqId was superseded.)
+
+=== AC4 — min-char gate (kMinSearchChars=2) ===
+1 char "a":
+  (no item-or-store-search request, no unified request)  -> idle state (Popular Categories) stays, NO strip fetch.
+2 chars "ap":
+  [200] /api/v1/items/item-or-store-search?name=ap
+  [200] /api/v1/search/unified?name=ap&offset=1&limit=10   -> fetch fires.
+Delete 2->1 ("ap" -> "a"):
+  (no new request fired)  -> below-gate cancels; debouncedSuggestion applies ([], show=false) => _showSuggestion=false (strip hidden).
+
+=== AC7b — NEARS-628 See all -> Load More pagination ===
+"ap" -> Items (12), "See All" -> expanded Items list (page 1 = 10 items, "Load More" button present).
+Tapped "Load More":
+  [200] /api/v1/search/unified?name=ap&offset=2&limit=10   (offset=2 = 1-based page 2)
+  -> remaining items appended (new card "Seedless Grapes / Supermarket"); "Load More" button disappears (all 12 loaded).
+
+=== Logs-first gate ===
+Full-session logcat scan: no [FAIL]/[ERR]/EXCEPTION/overflow/subtype errors; Dart runtime errors: none; all search API responses [200]. Clean.
