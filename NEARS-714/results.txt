@@ -1,0 +1,17 @@
+NEARS-714 store-search scalar rule-out — live curl evidence
+Endpoint: GET /api/v1/get-combined-data?list_type=store&data_type=searched&name=Fresh
+Headers: zoneId:[2]  moduleId:1  latitude:24.45  longitude:54.42  X-localization:en
+Backend: php artisan serve :8000 @ feat/userapp-reskin 2b8a8326 (no code change)
+
+AC    param shape                      HTTP  total_size  note
+AC1   category_ids=5 (scalar int)      200   3           short-circuit (is_array=false) -> ignored
+AC2   category_ids=foo (scalar string) 200   3           json_decode->null -> short-circuit
+AC3   category_ids[]=5 (array)         200   2           whereIn branch runs -> narrows
+AC4a  category_ids absent              200   3           baseline
+AC4b  category_ids=[] (empty)          200   3           empty array falsy -> short-circuit
+AC6a  filter=top_rated                 200   0           filter normalized to array at controller
+AC6b  rating_count=4                   200   0           scalar rating filter, no in_array
+
+Contrast (proves guard behavior): baseline=3, scalar int 5 -> 3 (ignored), scalar 'foo' -> 3 (ignored), array [5] -> 2 (NARROWS, dropped 'Fresh supermarket').
+All 7 cases HTTP 200 with well-formed paginator {total_size,limit,offset,stores}. Zero 500. laravel.log grew 0 lines.
+Guard: StoreLogic.php:643 ->when($category_ids && is_array($category_ids), ...); filter normalized to array at SearchController.php:276 before search_stores.
