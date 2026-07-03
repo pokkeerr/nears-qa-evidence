@@ -1,0 +1,7 @@
+# Pre-existing (regression_bug) — NOT caused by NEARS-743. Backend zone-resolution 404 at app STARTUP.
+# Properly logged via AppLogger (PII-safe, correlation_id present) — logging contract satisfied, not a silent failure.
+# Fires at launch regardless of RTL/LTR; not triggered by any NEARS-743 AC action.
+I/flutter (17587): [FAIL] endpoint=/api/v1/config/get-zone-id http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=beda20fa-11aa-4fb4-bb98-dcde17c65dc0
+I/flutter (17587): [FAIL] endpoint=/api/v1/config/get-zone-id http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=331a41fa-abfc-4719-a7cc-2e72e61da4d0
+# Backend probe: curl http://127.0.0.1:8000/api/v1/config/get-zone-id -> 403 (endpoint requires zone/location headers)
+# Symptom: default location "Dhaka, Bangladesh" vs Abu Dhabi stores -> distances render ~10044 km (env/seed location mismatch).

@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-743
 
-**PASS — RTL directional-geometry fix: store-card logo mirrors RIGHT (no overlap), registration tab bars anchor RIGHT, LTR byte-identical (emulator-5560)**
+**PASS — RTL directional-geometry fix (emulator-5560)**
 
 **17 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -37,6 +37,7 @@
 </table>
 
 ### Other artifacts
+- [`bug-getzoneid-404.log`](bug-getzoneid-404.log)
 - [`progress.md`](progress.md)
 
 ---
