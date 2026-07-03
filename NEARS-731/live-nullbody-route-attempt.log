@@ -1,0 +1,24 @@
+NEARS-731 — live on-device attempt to reach the null-body /messages route (build under test)
+Device: emulator-5556 (Android 17), UserApp launched from the fix worktree, logged-in customer, zone 2.
+
+Reachability investigation (why the null-body chat route has NO in-app / deep-link path):
+  - Every in-app caller of RouteHelper.getChatRoute passes a NON-null notificationBody:
+      conversation_screen  _startChatWithBusiness -> NotificationBodyModel(adminId: 0)   (admin chat)
+      conversation_screen  list-tap               -> NotificationBodyModel(type/adminId/restaurantId)
+      order_tracking / order_info / support_reason -> order-chat bodies
+      notification_helper (2) / splash_route_helper -> FCM payload body (non-null)
+    => No UI path constructs getChatRoute(notificationBody: null).
+  - link_converter_helper.dart has NO /messages or chat mapping; chat deep links arrive only
+    from FCM (non-null body). So no crafted URL maps to /messages?notification=null.
+
+Empirical attempt (VIEW intent to the manifest-declared host):
+  adb shell am start -a android.intent.action.VIEW \
+    -d "https://6ammart-web.6amtech.com/messages?notification=null" com.izzes.nears
+  -> "intent delivered to currently running top-most instance"
+  -> app re-resolved deeplink, stayed on HOME (no chat route), NO crash, NO flutter error.
+     (ui_errors clean; get_runtime_errors: No runtime errors found.)
+
+CONCLUSION: the null-body chat route is a genuine LATENT bare-route/deep-link case, not
+on-device reachable without injecting product code (forbidden for QA). Primary AC therefore
+verified via the automated pre-fix crash reproduction + post-fix pass (see the two *.log files)
+and the 5-site code-path walk. This matches the QA Test Scope's declared fallback exactly.

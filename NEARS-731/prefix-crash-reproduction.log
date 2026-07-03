@@ -1,0 +1,18 @@
+NEARS-731 — PRE-FIX crash reproduction (QA verification)
+Method: git stash of ONLY the two product files (chat_controller.dart + chat_screen.dart)
+        reverting them to committed 62a88bb7 (the `notificationBody!` force-unwraps),
+        while KEEPING the new NEARS-731 test. Then ran the test. Fix restored via stash pop.
+Worktree: /Users/Apple/Projects/nears-NEARS-731-chat-null-unwrap  (branch fix/NEARS-731-chat-null-unwrap)
+Command: flutter test test/features/chat/chat_controller_pin_test.dart --plain-name "NEARS-731"
+
+00:00 +0: NEARS-731 — null notificationBody must not crash the admin-chat default
+          getMessages(offset:1, notificationBody:null) on a fresh (conversation==null) admin conversation -> no throw
+00:00 +0 -1: [E]
+          Null check operator used on a null value          <-- the exact NEARS-731 crash
+00:00 +0 -1: NEARS-731 — ... chat_screen reads widget.notificationBody null-aware (no force-unwrap)
+00:00 +0 -2: [E]
+          NEARS-731: chat_screen notificationBody reads must stay null-aware (?.)   <-- source-scan guard
+00:00 +0 -2: Some tests failed.
+
+RESULT: both NEARS-731 tests FAIL against pre-fix code (the getMessages test throws
+        "Null check operator used on a null value" — the crash the ticket fixes).
