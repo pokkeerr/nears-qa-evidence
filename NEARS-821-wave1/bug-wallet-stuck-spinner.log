@@ -1,0 +1,18 @@
+FINDING (medium, likely pre-existing pattern): Wallet Overview dead-ends on infinite spinner when
+the transactions fetch fails transiently — no error state, no retry affordance
+Build: feat/audit-delivery-07 @ 7a790931, emulator-5562, DM d@d.d
+
+Observed live:
+  13:44:26  ====> API Call: /api/v1/delivery-man/wallet-payment-list?token=***
+  13:44:56  [FAIL] endpoint=/api/v1/delivery-man/wallet-payment-list http_status=null type=ApiFailure msg="api request threw" correlation_id=7d1f51fe-2379-4cb5-8f76-e4095c01a9fb
+  (30s transport timeout — single-threaded shared dev server contention)
+Result: WalletOverviewWidget ternary `(profileModel != null && transactions != null) ? content
+: CircularProgressIndicator` (wallet_overview_widget.dart:263) -> spinner forever; the pull-to-refresh
+scrollable lives INSIDE the loaded branch, so there is no user-reachable retry. Body pixel-blank
+except the spinner. Sibling APIs (get-withdraw-list / get-withdraw-method-list / wallet-provided-
+earning-list) all 200 at the same moment.
+Re-entering the screen refetches and renders fully (Payable 23 AED / Cash in Hand 23 AED) — data and
+parse are fine; only the failure path dead-ends.
+Failure IS logged (contract met); the gap is the missing error/retry UI state (nears_error_retry).
+Same pattern seen once on My Earning (earning-report threw -> silent zeros, correct values on
+re-entry, correlation_id=59fab628-6c8d-42b9-bebe-3e6081ac75dd).

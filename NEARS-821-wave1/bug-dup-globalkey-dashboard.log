@@ -1,0 +1,17 @@
+FINDING (low/medium): Duplicate GlobalKey exception during post-delivery gotoDashboard navigation
+Build: feat/audit-delivery-07 @ 7a790931, emulator-5562, timestamp 13:39:58 (order 163 delivered)
+
+Flutter runtime error (via Dart MCP get_runtime_errors), one frame, app recovered:
+  EXCEPTION CAUGHT BY WIDGETS LIBRARY — thrown while finalizing the widget tree:
+  Duplicate GlobalKey detected in widget tree.
+  Key: [LabeledGlobalKey<DashboardScreenState>#3aa2a]
+  Parent not updated after GlobalKey reparenting:
+  Semantics(container: false, ... RenderSemanticsAnnotations#c86c8 NEEDS-PAINT)
+  #0 BuildOwner.finalizeTree ... (framework.dart:3409)
+
+Context: fired at the exact moment updateOrderStatus(delivered) success path ran
+Get.offAllNamed(RouteHelper.getInitialRoute(fromOrderDetails: true)) (order_controller.dart
+gotoDashboard branch) — DashboardScreen's GlobalKey existed twice for one frame during offAllNamed.
+User-visible impact: none observed (dashboard rendered, active-order card updated).
+Suspect proximity to Wave-1 U03 nav changes (NEARS-872 conditional pop) but the offAllNamed +
+GlobalKey pattern is stock; needs a code-history check before charging to Wave 1.

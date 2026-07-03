@@ -1,0 +1,31 @@
+BUG: Profile "Online Status" toggle dead-loops permission dialog on Android — driver can NEVER go online (BLOCKER)
+Build: feat/audit-delivery-07 @ 7a790931, emulator-5562 (Android 14), DM account QA WaveOne (+971569990001)
+
+Repro (observed live, 3x):
+1. Login, Profile tab -> toggle "Online Status" on.
+2. "Location Access Needed" education dialog -> Next.
+3. System routes to App-Info settings (Geolocator.openAppSettings). Location permission granted "While using the app" (FINE granted=true, appops FINE_LOCATION uid=allow).
+4. Return to app -> dialog re-shown. Repeat forever. delivery_men.active stays 0.
+
+Root cause (code):
+- NEARS-878 (Wave-1 U06) removed ACCESS_BACKGROUND_LOCATION from AndroidManifest.xml
+  ("tracking is foreground-only") -> Geolocator can never return LocationPermission.always on Android
+  (verified: `pm grant ACCESS_BACKGROUND_LOCATION` no-ops; dumpsys shows the permission is not requested).
+- The Wave-1 fix updated profile_service.dart checkPermission() to accept whileInUse
+  ("NEARS-878: whileInUse is sufficient ... demanding it here would dead-loop the dialog").
+- BUT the Online toggle does NOT call the service. It calls a stale private copy:
+  DeliveryApp/lib/features/profile/screens/profile_screen.dart
+    :216-221  inline gate: `permission == LocationPermission.whileInUse` treated as insufficient on Android
+    :218      _checkPermission(() => profileController.updateActiveStatus())
+    :499-527  stale duplicate _checkPermission still requiring `always`
+  -> whileInUse -> LocationAccessDialog -> openAppSettings -> re-check -> dialog. Dead loop.
+
+Impact: no UI path exists on Android to set active=1. Driver cannot go online -> request feed
+permanently gated ("You are offline now...") -> cannot receive or accept any order. Blocks the
+core business flow and cascades over U02 accept/ignore + U05 GPS-off accept live verification.
+Also blocks admin fallback: admin add-delivery-man assignment requires scopeActive (active=1).
+
+Expected: whileInUse accepted by the SAME gate the toggle uses (mirror the profile_service.dart fix
+in profile_screen.dart, or route the toggle through the service).
+
+Screenshot: bug-online-toggle-permission-loop.png (education dialog re-shown after grant).

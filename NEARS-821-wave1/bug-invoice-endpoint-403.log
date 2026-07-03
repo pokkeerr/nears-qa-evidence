@@ -1,0 +1,19 @@
+BUG: DM earning-report invoice always 403 from the app — invoice PDF can never download (U09 invoice AC fails)
+Build: feat/audit-delivery-07 @ 7a790931, emulator-5562, DM d@d.d (id 4)
+
+Observed live:
+My Earning -> app-bar download action ->
+  [FAIL] endpoint=/deliveryman-earning-report-invoice/4 http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=250a1531-2b92-4ff9-8d1b-fe9d4b81cfdb
+  [FAIL] endpoint=/deliveryman-earning-report-invoice/4 http_status=403 type=ApiFailure msg="api request failed" correlation_id=250a1531-2b92-4ff9-8d1b-fe9d4b81cfdb
+(Handled gracefully: no crash, spinner resolves; failure logged with correlation id.)
+
+Root cause (backend):
+Admin/app/Http/Controllers/HomeController.php:438
+  abort_unless(auth('admin')->check() || auth('vendor')->check() || auth('vendor_employee')->check(), 403);
+Route: Admin/routes/web.php:46  GET deliveryman-earning-report-invoice/{id}  (web, session-auth only)
+The DeliveryApp calls this WEB route with its DM bearer token (no admin/vendor session) ->
+403 unconditionally. Independent curl of the same URL (no session): 403.
+
+Impact: "invoice PDF opens uncorrupted" (NEARS-832/857) is unachievable against this backend —
+the DM-app consumer was orphaned when the web invoice route was session-gated (audit hardening).
+Needs a DM-token-authenticated /api/v1 invoice endpoint or an auth('delivery_man')-aware gate.
