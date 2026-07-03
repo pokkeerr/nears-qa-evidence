@@ -1,0 +1,7 @@
+# NEARS-761 QA progress — emulator-5556, worktree fix/NEARS-761-dead-itemdetails (c06ec2d4+502d4fcb)
+- Backstop: flutter test test/features/item/ -> 78/78 PASS (note: item_detail_error_state_test verifies a LOCAL _body() reimpl, not the shipped ItemBottomSheet).
+- Code: item_details_screen.dart + details_web_view_widget.dart deleted; NO imports/instantiations remain (only historical comments). $itemDetails route -> CustomLoaderWidget + openItemDeepLink (unchanged from parent).
+- AC1 PASS: home-rail item (Sparkling Water, closed store) + store-profile item (Canned Beans, open store) -> item bottom sheet (backdrop+name+price+qty); open store shows Add To Cart, add-to-cart worked (badge 1). Logs clean.
+- AC2 met:false PRE-EXISTING (regression_bug, NOT deletion-caused): offline item fetch -> sheet stays on ItemBottomSheetShimmer forever, never NearsErrorRetry. [FAIL] logged (no silent failure). Root cause: item_bottom_sheet.dart build() has no loadFailed branch; sheet never had it (git parent count=0). Deep-link failure fail-safe (snackbar, no orphan) works.
+- AC3 PASS: legacy $itemDetails deep link (item 203) -> item bottom sheet over store backdrop (not blank/full-screen); dismiss -> store profile. Deep-link null-item -> clean snackbar fail-safe (item 204). Log trail: "deep link ... navigating to item details route".
+- AC4 PASS: home, store profile, search(2-section) all render; item taps open sheet from 3 entry points (home/store/search). Build+boot clean; ui_errors clean throughout.

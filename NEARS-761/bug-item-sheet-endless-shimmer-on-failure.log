@@ -1,0 +1,25 @@
+PRE-EXISTING (not caused by NEARS-761 deletion) — item bottom sheet shows endless shimmer on a failed item-details fetch, never the NearsErrorRetry/Retry state.
+
+LIVE REPRO (emulator-5556, worktree fix/NEARS-761-dead-itemdetails):
+  Airplane mode ON -> tap in-app item card "Seedless Grapes" (item 205) -> sheet opens over store backdrop -> body stays on ItemBottomSheetShimmer indefinitely.
+  Controller failure IS logged (no silent failure):
+    [FAIL] endpoint=/api/v1/items/details/205 http_status=null type=ApiFailure msg="api request threw" correlation_id=494b1035-30b4-4a06-abf6-72dc86e887fb
+  Screenshots: ac2-error-retry-state.png, ac2-error-retry-settled.png (both show skeleton, no Retry).
+
+ROOT CAUSE (code):
+  lib/common/widgets/item_bottom_sheet.dart build() (~L113-119): `if (itemController.item == null) return const ItemBottomSheetShimmer();`
+  -> only a 2-way branch (item!=null?content:shimmer). No `loadFailed` third branch.
+  ItemController.getItemDetails DOES set `_loadFailed = true` on null fetch (item_controller.dart:818), but NO production widget reads `loadFailed`.
+  grep NearsErrorRetry|loadFailed across lib/common/widgets/item_bottom_sheet*.dart + lib/features/item/(widgets|screens) = EMPTY.
+
+WHY 78/78 GREEN IS MISLEADING:
+  test/features/item/item_detail_error_state_test.dart defines its OWN local `_body()` helper (3-branch: item!=null?content:loadFailed?NearsErrorRetry:shimmer) and asserts NearsErrorRetry on that reimplementation — NOT the real ItemBottomSheet. So the suite proves the CONTROLLER flag + a hypothetical body, not the shipped widget.
+
+WHY NOT CAUSED BY THE DELETION:
+  - git show c06ec2d4~1:lib/common/widgets/item_bottom_sheet.dart | grep -c NearsErrorRetry|loadFailed  => 0 (never had it, before deletion).
+  - The deleted item_details_screen.dart DID have the NearsErrorRetry branch (parent L877-883) but was DEAD/unreachable since NEARS-422.
+  - Parent $itemDetails GetPage already returned CustomLoaderWidget+openItemDeepLink (not ItemDetailsScreen).
+  - Deletion commits touched only the 2 dead files + the test; route_helper/item_bottom_sheet/item_controller untouched.
+  => Live behavior byte-identical pre/post deletion. Regression_bug (pre-existing), NOT a NEARS-761 task_bug.
+
+NOTE: the deep-link failure path is a SEPARATE, correct fail-safe (openItemDeepLink null item -> error snackbar + push nothing; verified live with item 204).
