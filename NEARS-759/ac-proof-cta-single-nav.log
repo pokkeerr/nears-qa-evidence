@@ -1,0 +1,19 @@
+NEARS-759 'Add More Items' CTA — single-navigation proof (UserApp PID 7324, emulator-5560)
+logcat cleared immediately BEFORE each CTA tap; device clock ~22s behind host.
+
+=== TAP 1 (post-clear buffer) ===
+view_store analytics events: 1   |   stores/details fetches: 1
+07-03 11:31:12.064  7324  7324 I flutter : [INFO] msg="route: waiting for module=grocery-food"
+07-03 11:31:12.842  7324  7324 I flutter : ====> API Response: [200] /api/v1/stores/details/2
+07-03 11:31:12.845  7324  7324 I flutter : 📊 analytics: view_store {store_id: 2}
+
+=== TAP 2 (repeat, post-clear buffer) ===
+view_store analytics events: 1   |   stores/details fetches: 1
+07-03 11:33:11.140  7324  7324 I flutter : ====> API Response: [200] /api/v1/stores/details/2
+07-03 11:33:11.142  7324  7324 I flutter : 📊 analytics: view_store {store_id: 2}
+
+Native Firebase Analytics (FA tag) is DISABLED in this debug build:
+07-03 11:31:12.032  7324  8894 E FA      : Missing google_app_id. Firebase Analytics disabled. See https://goo.gl/NAOOOI
+-> the AnalyticsService debug mirror (same 1:1 call that feeds Firebase logEvent) is the authoritative event channel; it shows exactly ONE view_store per tap.
+
+No [FAIL]/[ERR]/EXCEPTION during either CTA tap (logs-first gate: clean).

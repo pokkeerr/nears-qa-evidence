@@ -1,0 +1,9 @@
+Pre-existing backend/endpoint issue, UNRELATED to NEARS-759. Fired during zone
+resolution (onboarding location pick), NOT on the basket/store "Add More Items"
+CTA surface. Correctly logged via AppLogger.failure (structured [FAIL] line with
+endpoint + status + correlation_id) — this is NOT a silent-failure / logging-
+contract violation. Non-blocking for this ticket.
+
+Verbatim from flutter run session (UserApp PID 7324):
+[FAIL] endpoint=/api/v1/config/get-zone-id http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=3babfbec-9e3b-461b-b3ae-9eac933b584f
+[FAIL] endpoint=/api/v1/config/get-zone-id http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=720a5692-7a09-4df4-ab45-dc8e84d51ac3
