@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-821-wave1
 
-**FAIL — DeliveryApp audit Wave 1 live QA: 1 blocker (online-toggle permission dead-loop), invoice 403; U02/U03/U08/U11/U12 demonstrated PASS; 152/152 tests green**
+**Delta re-QA PASS — U06+U09 fixes verified live, U02/U05 unblocked+verified, regression clean, branch safe to PR (155/155 tests)**
 
-**20 screenshot(s).** Click any thumbnail for full resolution.
+**30 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -37,13 +37,30 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="boot-state.png"><img src="boot-state.png" width="240"></a><br><sub>boot state</sub></td>
+<td align="center" width="33%"><a href="bug-multipart-hang-stuck-sheet.png"><img src="bug-multipart-hang-stuck-sheet.png" width="240"></a><br><sub>bug multipart hang stuck sheet</sub></td>
 <td align="center" width="33%"><a href="bug-online-toggle-permission-loop.png"><img src="bug-online-toggle-permission-loop.png" width="240"></a><br><sub>bug online toggle permission loop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="d01-u06-online-first-tap-whileinuse.png"><img src="d01-u06-online-first-tap-whileinuse.png" width="240"></a><br><sub>d01 u06 online first tap whileinuse</sub></td>
+<td align="center" width="33%"><a href="d02-u06-online-after-prompt-grant.png"><img src="d02-u06-online-after-prompt-grant.png" width="240"></a><br><sub>d02 u06 online after prompt grant</sub></td>
+<td align="center" width="33%"><a href="d03-u06-online-after-settings-grant.png"><img src="d03-u06-online-after-settings-grant.png" width="240"></a><br><sub>d03 u06 online after settings grant</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="d04-u09-invoice-order-pdf-open.png"><img src="d04-u09-invoice-order-pdf-open.png" width="240"></a><br><sub>d04 u09 invoice order pdf open</sub></td>
+<td align="center" width="33%"><a href="d05-u09-invoice-loyalty-pdf-open.png"><img src="d05-u09-invoice-loyalty-pdf-open.png" width="240"></a><br><sub>d05 u09 invoice loyalty pdf open</sub></td>
+<td align="center" width="33%"><a href="d06-u05-gps-off-accept-resolved-no-brick.png"><img src="d06-u05-gps-off-accept-resolved-no-brick.png" width="240"></a><br><sub>d06 u05 gps off accept resolved no brick</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="d07-u02-accept-resolved-order-166-details.png"><img src="d07-u02-accept-resolved-order-166-details.png" width="240"></a><br><sub>d07 u02 accept resolved order 166 details</sub></td>
+<td align="center" width="33%"><a href="d08-u02-ignore-165-accept-164-feed.png"><img src="d08-u02-ignore-165-accept-164-feed.png" width="240"></a><br><sub>d08 u02 ignore 165 accept 164 feed</sub></td>
+<td align="center" width="33%"><a href="d09-u08-cod-collect-12aed-order166.png"><img src="d09-u08-cod-collect-12aed-order166.png" width="240"></a><br><sub>d09 u08 cod collect 12aed order166</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
 - [`bug-dup-globalkey-dashboard.log`](bug-dup-globalkey-dashboard.log)
 - [`bug-invoice-endpoint-403.log`](bug-invoice-endpoint-403.log)
+- [`bug-multipart-no-timeout-hang.log`](bug-multipart-no-timeout-hang.log)
 - [`bug-online-toggle-permission-loop.log`](bug-online-toggle-permission-loop.log)
 - [`bug-wallet-stuck-spinner.log`](bug-wallet-stuck-spinner.log)
 - [`progress.md`](progress.md)

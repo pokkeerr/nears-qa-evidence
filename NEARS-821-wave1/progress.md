@@ -27,3 +27,11 @@ Device: emulator-5562 (AVD nears_qa_delivery, Android 14, arm64). Worktree: /Use
 - Backstop: flutter test 152/152 pass. Final error sweep clean.
 - Findings: blocker online-toggle loop; invoice 403; wallet stuck-spinner (followup); dup-GlobalKey one-frame (followup); pre-existing Firebase-fail boot dead-end (regression-candidate).
 - Verdict: FAIL (blocker) — report tasks/audit-2026-07/deliveryapp-wave1-qa.md.
+2026-07-03T14:34:57+04:00 U06-A: whileInUse ON first tap -> update-active-status 200, DB active=1, no dialog. corr: clean
+2026-07-03T14:37:13+04:00 U06-B: denied->prompt->grant whileInUse->update-active-status 200, DB active=1, no education dialog/loop
+2026-07-03T14:42:13+04:00 U06-C: dont-allow->education dialog(once, Cancel clean)->Next->AppInfo settings->grant->recheck fired updateActiveStatus; re-toggle instant, DB active=1, NO dead-loop
+2026-07-03T14:54:54+04:00 U09: invoice API 200 x3 (order/referral/loyalty variants), real PDFs saved+opened in viewer, no id param in route
+2026-07-03T15:05:51+04:00 U05: GPS off -> accept -> system loc prompt declined -> confirm sheet -> [FAIL] LocationServiceDisabledException logged, dialog closed, toast path, list intact, NO brick. DB: 166 unassigned
+2026-07-03T15:13:53+04:00 U02-accept: top card -> order 166 accepted (DB dm_id=1), details screen shows Order ID 166
+2026-07-03T15:18:08+04:00 U02-ignore: top card ignored -> exactly 1 card removed (badge 2->1), accepted remaining -> DB 164 accepted; 165 stays unassigned = ignore/accept resolved correct ids. accept-164 client-side timeout (env), server landed it
+2026-07-03T15:31:48+04:00 NEW DEFECT: postMultipartData no-timeout silent hang on delivered transition; UI recovered after manual dismiss + poll reconcile (166 Delivered)

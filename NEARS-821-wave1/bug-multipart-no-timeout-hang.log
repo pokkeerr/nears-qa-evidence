@@ -1,0 +1,9 @@
+=== bug: postMultipartData has no .timeout() -> silent infinite hang on update-order-status (delivered) ===
+server committed: order 166 delivered @ ~15:23:46, delivery_man_wallets.collected_cash=12.00
+client: API Call logged 15:23:45, NO response line and NO [FAIL] 6+ minutes later; money sheet stuck open until manual dismiss; poll then reconciled to Delivered.
+07-03 15:23:45.443 15368 15368 I flutter : ====> API Call: /api/v1/delivery-man/update-order-status
+--- interleaved getData polls DID [FAIL] at +30s (guarded path, for contrast):
+07-03 15:30:33.399 15368 15368 I flutter : [FAIL] endpoint=/api/v1/delivery-man/order http_status=null type=ApiFailure msg="api request threw" correlation_id=0db2f4e7-15d2-4b78-bbcb-2c84cc051d05
+07-03 15:30:43.403 15368 15368 I flutter : [FAIL] endpoint=/api/v1/delivery-man/order http_status=null type=ApiFailure msg="api request threw" correlation_id=756fd523-c27a-475b-9ed9-aed7a2a79e90
+07-03 15:30:53.400 15368 15368 I flutter : [FAIL] endpoint=/api/v1/delivery-man/order http_status=null type=ApiFailure msg="api request threw" correlation_id=bf3512f1-7de1-4aac-82e7-054f66743a8f
+--- code: DeliveryApp/lib/api/api_client.dart postMultipartData:326-393 lacks .timeout(Duration(seconds: timeoutInSeconds)); present on getData:247 postData:303 putData:433 deleteData:476
