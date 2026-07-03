@@ -1,0 +1,14 @@
+NEARS-777 — 6 ar backend messages: Laravel Translator resolution against WORKTREE data
+(running backend on :8000 serves PRIMARY tree which lacks these Arabic values -> live HTTP returned EN;
+ this test loads the worktree's ar/messages.php through Laravel's real Translator = the same trans() path translate() uses)
+---
+[AR][RESOLVED] Item added to favorites => تمت إضافة العنصر إلى المفضلة
+[AR][RESOLVED] Item removed from favorites => تمت إزالة العنصر من المفضلة
+[AR][RESOLVED] Parcel Delivery => توصيل الطرود
+[AR][RESOLVED] The email field is required when verification method is email. => حقل البريد الإلكتروني مطلوب عند اختيار طريقة التحقق عبر البريد الإلكتروني.
+[AR][RESOLVED] The flash sale id field is required. => حقل معرّف عرض الفلاش مطلوب.
+[AR][RESOLVED] Please_complete_your_ongoing_and_accepted_orders => يرجى إكمال طلباتك الجارية والمقبولة
+---
+Live HTTP against primary backend (expected EN fallback, NOT a defect):
+  POST /api/v1/customer/wish-list/add  X-localization: ar  => {"message":"Item added to favorites"}
+Call site: Admin/app/Http/Controllers/Api/V1/WishlistController.php:38-39,66-67 translate($text)
