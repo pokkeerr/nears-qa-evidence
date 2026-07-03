@@ -1,0 +1,18 @@
+# NEARS-723 — live getZone (/api/v1/config/get-zone-id) responses proving the
+# exact server conditions the try/finally fix handles. Endpoint the guest
+# my-location handler calls. Captured 2026-07-03 against local backend :8000.
+
+## SUCCESS / in-coverage (Abu Dhabi 24.453884, 54.3773438) — normal path
+$ curl .../get-zone-id?lat=24.453884&lng=54.3773438
+HTTP 200
+zone_id: "[400,2]"   (non-empty -> responseModel.isSuccess=true, zoneIds=[400,2], zoneIds[0]=400)
+zone_data: [Baqala Zone 37 (id 400), Abu Dhabi Zone (id 2)] (full polygon+modules, trimmed)
+
+## FAILURE / out-of-coverage (0,0 Gulf of Guinea) — the stuck-loader trigger
+$ curl .../get-zone-id?lat=0&lng=0
+HTTP 404
+{"errors":[{"code":"coordinates","message":"Service not available in this area"}]}
+=> responseModel.isSuccess=false -> PRE-FIX: handler `return`ed here with the
+   non-dismissible CustomLoaderWidget still up (money path dead on iOS).
+   POST-FIX: the `finally { Get.back() }` closes the loader on this exact branch;
+   showCustomSnackBar('service_not_available_in_this_location') still fires.
