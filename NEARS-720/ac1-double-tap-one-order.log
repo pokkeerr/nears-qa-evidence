@@ -1,0 +1,19 @@
+NEARS-720 AC1 — rapid double-tap on a null-zoneIds GPS delivery address (James Wilson / user_id 1,
+"Others / C95X+XX Abu Dhabi", Google-map-marker location; not zone-stamped) => exactly ONE order.
+
+DB order count: 50 (max id 166) BEFORE  ->  51 (max id 167) AFTER the double-tap. user_id=1 -> exactly 1 order (id 167, store 14, 15.00 AED).
+
+App runtime log (double-tap window, one shell call "input tap; input tap"):
+  [INFO] msg="checkout: place-order button clicked"      <-- appears EXACTLY ONCE (2nd tap rejected
+                                                              at entry guard `if(_isLoading) return;`
+                                                              BEFORE this log line)
+  analytics: begin_checkout {value: 15.0}
+  analytics: add_payment_info {payment_type: cash_on_delivery, value: 15.0}
+  ====> API Call: /api/v1/customer/order/place            <-- EXACTLY ONE POST
+  Header: {... zoneId: [2] ...}                           <-- zoneId populated => null-zoneIds getZone
+                                                              refresh (the danger window) DID fire first
+  ====> API Response: [200] /api/v1/customer/order/place  <-- ONE response
+  analytics: purchase {transaction_id: 167, value: 15.0}
+  [INFO] msg="checkout: order placed successfully orderID=167"
+  ====> API Response: [200] /api/v1/customer/order/track?order_id=167  <-- routed to Track Order
+No [ERR]/[FAIL] during placement. Logs clean.

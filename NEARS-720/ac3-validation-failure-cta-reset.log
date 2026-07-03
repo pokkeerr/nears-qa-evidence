@@ -1,0 +1,12 @@
+NEARS-720 AC3 — validation-failure branch re-enables the CTA (no permanently-dead button).
+
+Tapped Place Order with an invalid contact phone (+1 | 01600000001).
+App runtime log:
+  [INFO] msg="checkout: place-order button clicked"
+  showCustomSnackBar  @ checkout_controller.dart:1301  ('please_enter_valid_phone_number' validation branch)
+  [ERR] msg="error snackbar shown"   <-- pre-existing PAIRED snackbar-logging (custom_snackbar.dart:24,
+                                          unchanged by this diff); the logging contract's "every generic
+                                          toast has a paired log line" — EXPECTED, not a fault.
+DB order count unchanged (no order created).
+Guard reset: a further tap was processed (2nd "place-order button clicked" observed), and after
+correcting the phone the retry placed order 167 successfully -> CTA was NOT permanently disabled.
