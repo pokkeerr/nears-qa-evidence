@@ -1,0 +1,14 @@
+NEARS-746 LIVE analytics mirror evidence
+Device: emulator-5560 | debug build (native FA disabled: 'Missing google_app_id') -> AnalyticsService DEBUG MIRROR is the authoritative 1:1 source
+User: customer@nears.com (user 6) | selected saved address 'Marina Heights' (Abu Dhabi) | zone resolved live -> 400 (valid seeded zone 'Baqala Zone 37')
+============================================================
+
+AC1 -- view_tower_feed (fires when tower feed rail renders): zone_id present, tower_name ABSENT
+07-03 11:56:48.130 I/flutter (10482): 📊 analytics: view_tower_feed {zone_id: 400}
+07-03 11:56:49.515 I/flutter (10482): ====> API Response: [200] /api/v1/stores/tower?tower_name=Marina%20Heights&offset=1&limit=25
+
+AC2 -- select_tower_store (fires on tower store card tap -> store id 35): store_id + zone_id, tower_name ABSENT; store page opened
+07-03 11:54:46.612 I/flutter (10482): 📊 analytics: select_tower_store {store_id: 35, zone_id: 400}
+
+LOGS-FIRST: no [FAIL]/[ERR] emitted on the tower endpoint or tied to either tower event; ui_errors clean.
+Unrelated pre-existing (NOT NEARS-746, diff is analytics-param-only): /api/v1/config/get-zone-id 404 -> correctly logged via AppLogger [FAIL]+correlation_id (logging contract working).
