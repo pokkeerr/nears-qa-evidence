@@ -1,0 +1,26 @@
+# NEARS-721 — AC2 evidence: genuine not-found still yields the empty state (regression)
+# The diff does NOT change the empty-state RENDER condition in order_tracking_screen.dart
+# (`if (track == null) return NearsEmptyState(...)`) — only the comment above it changed.
+# trackOrder() (initial load) still sets _trackModel=null on a non-200 and isTrackLoaded=true.
+#
+# Live backend contract (curl, authenticated as james.wilson@demo.com against the local dev backend):
+#
+#   GET /api/v1/customer/order/track?order_id=9999999   (non-existent order)
+#     -> HTTP 404
+#     -> {"errors":[{"code":"order","message":"Not found"}]}
+#        (NEARS-462 normalizes this non-200 to TrackOrderModel.order = null
+#         -> trackOrder() keeps _trackModel null, isTrackLoaded true -> NearsEmptyState renders.)
+#
+#   GET /api/v1/customer/order/track?order_id=167        (valid, live pending order)
+#     -> HTTP 200   (non-null model -> full tracking UI renders)
+#
+# Automated backstop confirms the controller mapping:
+#   test/features/order/order_controller_test.dart
+#   "trackOrder ... non-200 -> isSuccess false and trackModel is cleared to null" -> PASS.
+#
+# Note on live in-app render: there is no UserApp UI to request an arbitrary/bogus order id
+# (deep-linking disabled: flutter_deeplinking_enabled=false), and a fully-offline open is NOT a
+# faithful 404 harness — it additionally trips an unrelated, pre-existing offline geocode bug in
+# _loadData (see bug-offline-geocode-nosuchmethod.log) that hangs the screen on a spinner before
+# trackOrder() runs. AC2 is therefore verified via the genuine backend 404 contract (above) +
+# the byte-unchanged empty-state condition + the passing unit test.

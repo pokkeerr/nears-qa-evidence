@@ -1,0 +1,39 @@
+# NEARS-721 — AC1/AC5 evidence: order-tracking poll across a forced transient failure
+# Device: emulator-5556 (Android 17, sdk gphone16k arm64). App PID 5200.
+# Order #167 (James Wilson, user_id 1), status=pending (live, non-terminal), delivery_man_id NULL.
+# Fault injection: emulator airplane-mode ON ~05:02:16, OFF ~05:03:26 (device-local; shared dev backend untouched).
+# Poll = Timer.periodic(10s) in OrderTrackingScreenState._timerTrackOrder -> OrderController.timerTrackOrder.
+#
+# CORE RESULT
+#   - 7 consecutive failed poll ticks during the outage, EACH logged via AppLogger.failure
+#     (paired [FAIL], PII-safe: endpoint path only, no token/body, http_status=null, correlation_id present).
+#   - ZERO "Null check operator used on a null value" / unhandled Timer-zone exception across the entire outage.
+#   - Screen kept the full Order Tracking UI (Google Map + Map Marker + stepper) the whole time; never flipped to no_order_found.
+#   - On network restore the VERY NEXT poll returned HTTP 200 and tracking resumed (auto-recovery, no session freeze).
+# ----------------------------------------------------------------------------------------------------
+# OUTAGE — failed poll ticks (adb logcat, verbatim; 7 ticks @ 10s cadence):
+07-03 05:02:20.858  5200  5200 I flutter : [INFO] msg="trackOrder called for orderID=167"
+07-03 05:02:21.009  5200  5200 I flutter : [FAIL] endpoint=/api/v1/customer/order/track http_status=null type=ApiFailure msg="api request threw" correlation_id=9783793c-30e0-4fea-96a9-2c2af82352b1
+07-03 05:02:30.859  5200  5200 I flutter : [INFO] msg="trackOrder called for orderID=167"
+07-03 05:02:30.881  5200  5200 I flutter : [FAIL] endpoint=/api/v1/customer/order/track http_status=null type=ApiFailure msg="api request threw" correlation_id=3458bf44-0c0a-42ad-b522-9edb79c7ebba
+07-03 05:02:40.866  5200  5200 I flutter : [INFO] msg="trackOrder called for orderID=167"
+07-03 05:02:40.919  5200  5200 I flutter : [FAIL] endpoint=/api/v1/customer/order/track http_status=null type=ApiFailure msg="api request threw" correlation_id=7932c4f2-1a5b-4a68-86a5-b95f8d2b2eea
+07-03 05:02:50.857  5200  5200 I flutter : [INFO] msg="trackOrder called for orderID=167"
+07-03 05:02:50.875  5200  5200 I flutter : [FAIL] endpoint=/api/v1/customer/order/track http_status=null type=ApiFailure msg="api request threw" correlation_id=bb642b3b-6e9d-4a0e-9684-343acbbd3a7c
+07-03 05:03:00.858  5200  5200 I flutter : [INFO] msg="trackOrder called for orderID=167"
+07-03 05:03:00.907  5200  5200 I flutter : [FAIL] endpoint=/api/v1/customer/order/track http_status=null type=ApiFailure msg="api request threw" correlation_id=aea25dcb-6250-4254-b81f-b9a8281cbf5a
+07-03 05:03:10.857  5200  5200 I flutter : [INFO] msg="trackOrder called for orderID=167"
+07-03 05:03:10.914  5200  5200 I flutter : [FAIL] endpoint=/api/v1/customer/order/track http_status=null type=ApiFailure msg="api request threw" correlation_id=c94d43f3-fd0a-4442-9983-9b65d0fcea45
+07-03 05:03:20.857  5200  5200 I flutter : [INFO] msg="trackOrder called for orderID=167"
+07-03 05:03:20.885  5200  5200 I flutter : [FAIL] endpoint=/api/v1/customer/order/track http_status=null type=ApiFailure msg="api request threw" correlation_id=970580cf-3a35-4a00-97d4-10caf64bea7c
+# ----------------------------------------------------------------------------------------------------
+# RECOVERY — network restored ~05:03:26, next poll succeeds (200) and continues:
+07-03 05:03:30.859  5200  5200 I flutter : [INFO] msg="trackOrder called for orderID=167"
+07-03 05:03:31.124  5200  5200 I flutter : ====> API Response: [200] /api/v1/customer/order/track?order_id=167
+07-03 05:03:40.859  5200  5200 I flutter : [INFO] msg="trackOrder called for orderID=167"
+07-03 05:03:41.056  5200  5200 I flutter : ====> API Response: [200] /api/v1/customer/order/track?order_id=167
+07-03 05:03:50.857  5200  5200 I flutter : [INFO] msg="trackOrder called for orderID=167"
+07-03 05:03:51.026  5200  5200 I flutter : ====> API Response: [200] /api/v1/customer/order/track?order_id=167
+# ----------------------------------------------------------------------------------------------------
+# Crash-signature scan over the full flutter-run session log: "Null check operator" hits = 0.
+# ui_errors (Flutter error-signature channel) = empty (clean) throughout the outage and recovery.

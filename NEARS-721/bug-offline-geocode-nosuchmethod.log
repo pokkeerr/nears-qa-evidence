@@ -1,0 +1,25 @@
+# REGRESSION-CANDIDATE (pre-existing, NOT caused by NEARS-721, non-blocking)
+# Symptom: opening Order Tracking while the device is FULLY offline hangs on an infinite
+#   spinner (isTrackLoaded never flips true) because _loadData awaits getCurrentLocation()
+#   BEFORE trackOrder(), and the offline reverse-geocode returns null which is then indexed
+#   with ['error_message'] -> NoSuchMethodError, aborting _loadData before trackOrder() runs.
+# Scope: LocationRepository.getAddressFromGeocode (location_repository.dart:23) — untouched by
+#   the NEARS-721 diff (which only edits OrderController.timerTrackOrder + the tracking tick).
+#   Present on the base branch; only manifests on a cold, fully-offline open (not the poll path,
+#   not an already-loaded session's transient blip — AC1 was clean).
+# Observed: emulator-5556, app PID 5200, opening tracking for #167 under airplane-mode.
+# ----------------------------------------------------------------------------------------------------
+07-03 05:10:59.787  5200  5200 I flutter : [FAIL] endpoint=/api/v1/config/geocode-api http_status=null type=ApiFailure msg="api request threw" correlation_id=0970cbd3-54fc-41b9-8898-7f4d09db325c
+07-03 05:10:59.815  5200  5200 I flutter : NoSuchMethodError: The method '[]' was called on null.
+07-03 05:10:59.815  5200  5200 I flutter : Receiver: null
+07-03 05:10:59.815  5200  5200 I flutter : Tried calling: []("error_message")
+07-03 05:10:59.815  5200  5200 I flutter : #0      Object.noSuchMethod (dart:core-patch/object_patch.dart:38:5)
+07-03 05:10:59.815  5200  5200 I flutter : #1      LocationRepository.getAddressFromGeocode (package:sixam_mart/features/location/domain/repositories/location_repository.dart:23:39)
+07-03 05:10:59.815  5200  5200 I flutter : #2      LocationService.getAddressFromGeocode (package:sixam_mart/features/location/domain/services/location_service.dart:30:12)
+07-03 05:10:59.815  5200  5200 I flutter : #3      LocationController.getAddressFromGeocode (package:sixam_mart/features/location/controllers/location_controller.dart:354:12)
+07-03 05:10:59.815  5200  5200 I flutter : #4      LocationController.getCurrentLocation (package:sixam_mart/features/location/controllers/location_controller.dart:325:33)
+07-03 05:10:59.815  5200  5200 I flutter : #5      OrderTrackingScreenState._loadData (package:sixam_mart/features/order/screens/order_tracking_screen.dart:57:5)
+# ----------------------------------------------------------------------------------------------------
+# NOTE: the [FAIL] line above is CORRECT logging-contract behaviour (the geocode failure is logged,
+#   PII-safe). The defect is the un-null-guarded ['error_message'] index in LocationRepository that
+#   turns a handled transport failure into an uncaught NoSuchMethodError. Flag only; out of scope here.
