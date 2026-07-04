@@ -83,6 +83,12 @@ Full logcat flutter scan + ui_errors across both sheets + all interactions: ZERO
 ### Dark mode
 DEFERRED per light-first policy — not booted, not checked.
 
+### Publish + report
+- Automated backstop: `flutter test` a11y + search-filter suites -> 14/14 passed (incl. 963 "each star carries its value label + stays tappable" + "en/ar label keys exist").
+- Gallery: https://github.com/pokkeerr/nears-qa-evidence/tree/main/NEARS-964
+- Jira comment posted: NEARS-964 comment id 11493.
+- Lock released; device 5560 left running for reuse.
+
 ### Device note
 emulator-5560 (nears_qa_wave56) unstable as warned: one uiautomator dump raced the modal
 (sheet captured after dismiss) — recovered by re-opening + atomic dump. Force-stop for the
@@ -114,3 +120,46 @@ bc6bca1a debug APK (star labels in the running binary = proof the fix shipped).
 - 115/116px = 44dp logical constraint (minWidth/minHeight:44) quantized to pixels at 420dpi (44dp=115.5px). WCAG 2.5.5 met.
 - behaviour: tap "4 stars" -> stars 1-4 fill navy (setRating(4) OK); mint "Filter" apply dismisses sheet. Logs clean.
 - evidence: store_filter_dump.xml, store_filter_sheet_after.png, store_filter_4stars_selected.png
+
+---
+## Independent re-verification (Opus QA, delta re-QA) — CORROBORATES PASS @ bc6bca1a
+
+Re-ran the two extended bottom-sheet star sites live on emulator-5560 against the running
+bc6bca1a build (running app pid confirmed; observed FIXED behaviour matches the diff exactly,
+pre-fix was View/empty/32dp + zero-nodes). TalkBack toggled via SETTINGS only (never force-stop);
+font_scale=1.0; language restored to English after the AR check.
+
+### store_filter_bottom_sheet_widget (task "Site 1") — PASS — reproduced on 2 stores
+Reached via store page item Filter (Abu Dhabi Fresh Market AND CarePlus Pharmacy). Sheet identity:
+"Filter by" header + "Clear Filter" + "Estimated Delivery"/"Under 15 min" (store-specific).
+5 stars: role=Button, clickable=true, content-desc "1 stars".."5 stars", 115-116x115px = ~44dp
+(44dp logical minWidth/minHeight:44 quantized at 420dpi; 44dp=115.5px). BEFORE: role=View, empty
+content-desc, 32dp.
+
+### search_filter_bottom_sheet_widget (task "Site 2") — PASS
+Reached via Search tab -> Filter. Sheet identity: "Rating" + "Sort by" + "Apply Filters"/"Reset".
+5 stars: role=Button, clickable=true, content-desc "1 stars".."5 stars", 115-116x116px = ~44dp.
+BEFORE: ZERO a11y nodes for the rating stars.
+
+### Functional (AC3) — PASS
+Star tap keeps sheet open with rating set (setRating -> _rating + update()); Apply/Filter dismisses
+cleanly. For item-search applyFilters()->sortItemSearchList() is client-side (no network by design);
+real "bread" search confirmed unified endpoint fires on query. Logs clean throughout (no [FAIL]/[ERR]).
+
+### RTL/Arabic (AC4, light) — PASS
+Switched to عربى. 5 stars project "1 نجوم".."5 نجوم", role=Button, ~44dp. RTL MIRRORED ("1 نجوم"
+rightmost x=912, "5 نجوم" leftmost x=398). Row spans x=398..1028px = EXACTLY 240.0dp (5x44 + 4x5),
+fits full-width sheet (screen 1080px=411dp), no overflow. Faint navy fill (navy alpha 0.06) present
+in Container decoration. Dark mode DEFERRED (light-first gate) — not checked, not gating.
+
+### Regression (AC5) — PASS
+Extension commit bc6bca1a touches ONLY the 2 bottom-sheet files. Both web/desktop filter_widget.dart
+(search + store) retain the star Semantics fix (last touched by 53d19b62, NOT bc6bca1a). The other
+a11y sites untouched by this delta. flutter analyze could not run (worktree dir removed mid-run) —
+compilation proven by the running app.
+
+### DRIFT: worktree removed mid-QA
+The worktree /Users/Apple/Projects/nears-NEARS-964-a11y-tap-box-enlarge and its branch ref
+fix/NEARS-964-a11y-tap-box-enlarge were removed by a concurrent process during QA. Commit bc6bca1a
+object is PRESERVED and reachable in the primary repo (NOT an ancestor of development HEAD -> NOT
+merged). Ref restore: `git branch fix/NEARS-964-a11y-tap-box-enlarge bc6bca1a`.

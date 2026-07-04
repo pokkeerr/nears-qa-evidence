@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-964
 
-**RE-QA PASS @ bc6bca1a — both Android filter star bottom sheets now project '<n> stars'/Button/~44dp (5560, light)**
+**PASS delta re-QA @ bc6bca1a — both filter bottom-sheet star rows project 5 labelled >=44dp role=Button stars on Android (emulator-5560)**
 
-**46 screenshot(s).** Click any thumbnail for full resolution.
+**49 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -68,6 +68,11 @@
 <tr>
 <td align="center" width="33%"><a href="site1-search-filter-reachable.png"><img src="site1-search-filter-reachable.png" width="240"></a><br><sub>site1 search filter reachable</sub></td>
 <td align="center" width="33%"><a href="site1-search-sheet-stars.png"><img src="site1-search-sheet-stars.png" width="240"></a><br><sub>site1 search sheet stars</sub></td>
+<td align="center" width="33%"><a href="site1-store-filter-en.png"><img src="site1-store-filter-en.png" width="240"></a><br><sub>site1 store filter en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="site2-search-filter-arabic-rtl.png"><img src="site2-search-filter-arabic-rtl.png" width="240"></a><br><sub>site2 search filter arabic rtl</sub></td>
+<td align="center" width="33%"><a href="site2-search-filter-en.png"><img src="site2-search-filter-en.png" width="240"></a><br><sub>site2 search filter en</sub></td>
 <td align="center" width="33%"><a href="site2-store-filter.png"><img src="site2-store-filter.png" width="240"></a><br><sub>site2 store filter</sub></td>
 </tr>
 <tr>
@@ -89,6 +94,7 @@
 - [`bug-bottomsheet-filter-stars-unlabeled.log`](bug-bottomsheet-filter-stars-unlabeled.log)
 - [`bug-store-bottomsheet-stars-unlabeled.log`](bug-store-bottomsheet-stars-unlabeled.log)
 - [`progress.md`](progress.md)
+- [`reverify-uiautomator-nodes.log`](reverify-uiautomator-nodes.log)
 - [`search_filter_dump.xml`](search_filter_dump.xml)
 - [`site3-mapzoom-exclusion.log`](site3-mapzoom-exclusion.log)
 - [`site3-mapzoom.txt`](site3-mapzoom.txt)
