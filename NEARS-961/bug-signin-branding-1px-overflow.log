@@ -1,0 +1,22 @@
+NEARS-961 QA — RenderFlex 1px overflow found (NOT the ticket's grid-card Column)
+Device: emulator-5560 | font_scale=1.0 (DEFAULT) | light mode | worktree fix/NEARS-961-grid-card-1px-overflow @6dae327a (no code changed)
+
+Captured via Dart VM get_runtime_errors (Flutter.Error extension event). The app routes
+FlutterError.onError -> Crashlytics.recordFlutterError (main.dart:89), so this line is
+SUPPRESSED from logcat; only the DTD structured-error channel + on-screen yellow/black
+stripe surface it.
+
+  A RenderFlex overflowed by 1.00 pixels on the bottom.
+  The relevant error-causing widget was:
+    Column  lib/features/auth/screens/sign_in_screen.dart:221:34
+  orientation: Axis.vertical  mainAxisAlignment: center  crossAxisAlignment: stretch
+  RenderFlex size Size(371.4, 408.0), constraints BoxConstraints(w=371.4, 0.0<=h<=408.0)
+  Children (natural heights summing to 409 into a 408 box -> 1px over):
+    child1 SizedBox h=16
+    child2 RenderParagraph "Nears"  (PublicSans 40px w800, mint 0,255,153) size 371.4x48
+    child3 SizedBox h=8
+    child4 RenderParagraph "Your city, delivered to your doorstep with precision." size 371.4x44
+
+Attribution: this is the SIGN-IN screen branding header, reached via "Log in/ Sign up".
+It is NOT a store/item grid card and NOT the guest-home. Trigger = opening the Sign In
+screen (login), NOT "logout to guest home". Distinct surface from the ticket's stated symptom.

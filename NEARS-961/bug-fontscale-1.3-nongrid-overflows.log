@@ -1,0 +1,15 @@
+NEARS-961 QA — secondary: 1.3 font-scale NON-GRID overflows (byproduct, non-blocking for 961)
+Device: emulator-5560 | system font_scale=1.3 (app clamps to 1.3, main.dart:287) | light mode
+Evidence shot: 07-fontscale-1.3-guest-home.png (yellow/black banners visible)
+
+At the OS max clamp (1.3), two NON-GRID Columns overflow on the guest module home:
+  1. App-bar 'Deliver To' location Column  -> "BOTTOM OVERFLOWED BY 4.0 PIXELS"
+     (home_screen.dart:238-390 per [6] engineer) - the location title/subtitle stack under the pin.
+  2. Promo BannerView Column                -> "BOTTOM OVERFLOWED BY 44 PIXELS"
+     (banner_view.dart) - "QA Single-Store Campaign A" wraps to 2 lines at 1.3, pushing the CTA out.
+
+The store/item GRID CARDS ("Buy It Again": Salted Pretzels/Spinach Bunch/Sparkling Water) show
+NO overflow banner even at 1.3 -> the grid-card Column is clean at BOTH default and 1.3 scale.
+
+These are accessibility (large-font) regressions on NON-grid widgets; distinct from the 961
+grid-card scope. Recommend filing as their own low-sev a11y bug(s).
