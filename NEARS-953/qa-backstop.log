@@ -1,0 +1,103 @@
+NEARS-953 — RBAC gate fix: order status + offline_payment moved inside module:order
+Backend (Laravel) authorization change. No emulator/browser demo — middleware gating
+demonstrated at the ModulePermissionMiddleware level in the ISOLATED phpunit test DB
+(phpunit forces its own DB; multi_food_db untouched).
+
+Worktree : /Users/Apple/Projects/nears-NEARS-953-order-rbac
+Branch   : fix/NEARS-953-order-rbac-gate
+PHP      : 8.5.6   PHPUnit 11.5.55
+Date     : 2026-07-04
+
+================================================================================
+AC3 — Route names + URLs unchanged
+================================================================================
+$ php artisan route:list --path=order/status
+  POST      admin/order/status  admin.order.status › Admin\OrderController@status
+  POST      vendor-panel/order/status  vendor.order.status › ...
+  PUT       vendor-panel/order/status-update/{id}  vendor.order.status-update ...
+  Showing [3] routes
+
+$ php artisan route:list --path=order/offline
+  POST      admin/order/offline-payment  admin.order.offline_payment › Admin\OrderController@...
+  GET|HEAD  admin/order/offline/payment/list/{status}  admin.order.offline_verification_list ...
+  PUT       api/v1/customer/order/offline-payment  Api\V1\OrderController@offline...
+  PUT       api/v1/customer/order/offline-payment-update  Api\V1\OrderController@...
+  Showing [4] routes
+
+=> admin.order.status            -> POST /admin/order/status            (unchanged)
+=> admin.order.offline_payment   -> POST /admin/order/offline-payment   (unchanged)
+
+Route wiring (Admin/routes/admin.php:249-251):
+  Route::group(['prefix' => 'order', 'as' => 'order.', 'middleware' => ['module:order']], function () {
+      Route::post('status', 'OrderController@status')->name('status');            // NEARS-953 (was outside module:order gate)
+      Route::post('offline-payment', 'OrderController@offline_payment')->name('offline_payment'); // NEARS-953
+  ...
+  // invoice routes stay OUTSIDE the group (ungated) — lines 247-248:
+  Route::get('order/generate-invoice/{id}', ...)->name('order.generate-invoice');
+  Route::get('order/print-invoice/{id}',    ...)->name('order.print-invoice');
+
+================================================================================
+AC1/AC2/AC4 — Behavioral gate + wiring (targeted)
+================================================================================
+$ vendor/bin/phpunit --filter AdminModuleGateTest
+  PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+  Runtime:       PHP 8.5.6
+  Configuration: /Users/Apple/Projects/nears-NEARS-953-order-rbac/Admin/phpunit.xml
+  .....................                                             21 / 21 (100%)
+  Time: 00:01.172, Memory: 74.50 MB
+  OK, but there were issues!
+  Tests: 21, Assertions: 62, PHPUnit Deprecations: 2.
+
+Relevant NEARS-953 assertions inside that file:
+  - test_employee_without_order_is_blocked_from_status_and_offline_payment  (AC1) PASS
+      employee seeded with only ['settings'] -> passesGate('order') === false
+  - test_employee_with_order_reaches_status_and_offline_payment             (AC2) PASS
+      employee seeded with ['order'] -> passesGate('order') === true
+  - test_super_admin_passes_every_gate                                      (AC2) PASS
+      role_id=1 master admin short-circuits true on every gate
+  - test_order_state_mutating_routes_carry_order_gate                       (AC1/2 wiring) PASS
+      routeModuleGate('admin.order.status') === 'order'
+      routeModuleGate('admin.order.offline_payment') === 'order'
+  - test_order_invoice_routes_stay_ungated                                  (AC4) PASS
+      routeModuleGate('admin.order.generate-invoice') === null
+      routeModuleGate('admin.order.print-invoice')    === null
+
+================================================================================
+Regression backstop — full Security suite (route-name resolution intact)
+================================================================================
+$ vendor/bin/phpunit tests/Feature/Security
+  ...............................................................  63 / 346 ( 18%)
+  ............................................................... 126 / 346 ( 36%)
+  ............................................................... 189 / 346 ( 54%)
+  ............................................................... 252 / 346 ( 72%)
+  ............................................................... 315 / 346 ( 91%)
+  ...............................                                 346 / 346 (100%)
+  Time: 00:26.358, Memory: 175.00 MB
+  Tests: 346, Assertions: 1146, PHPUnit Deprecations: 1.
+
+Note: the PHPUnit "Deprecations" are framework-level (doc-comment metadata vs attributes)
+and unrelated to this change — 0 test failures, 0 errors.
+
+================================================================================
+Blade inertness confirm (security dismissal verified by QA)
+================================================================================
+Admin/resources/views/admin-views/order/offline_verification_list.blade.php
+  :399-422  <!-- ... form action=route('admin.order.offline_payment') method="get" ... -->
+            => inside a dead HTML-comment block; never rendered, no request possible.
+  :423-434  live modal: <form action="{{ route('admin.order.offline_payment') }}" method="POST">
+                        @csrf {{-- NEARS-951 --}}
+            => the real submit path is POST + CSRF. No 405/GET-CSRF risk. Inert as claimed.
+
+================================================================================
+Parked (NOT run here — honesty note)
+================================================================================
+Full admin-panel UI click-through (log in as a real limited-role sub-admin, click
+Change-Status / Verify-Offline-Payment, observe the access-denied response) is NOT
+runnable in this environment: it needs (a) seeding a limited-role employee into
+multi_food_db = a DB WRITE (blocked by the read-only hard rule, not granted) and
+(b) a headless admin session we don't have — the same parked constraint as
+NEARS-934/946/951. The phpunit gate tests are the authoritative demonstration for a
+middleware-gating change (they exercise ModulePermissionMiddleware directly with a
+real seeded employee/role in the isolated test DB).
+
+VERDICT: PASS
