@@ -1,10 +1,11 @@
 # QA Evidence — NEARS-957
 
-**PASS — api_client [NET] path-only across UserApp/DeliveryApp/VendorApp (debug logcat)**
+**PASS — api_client [NET] path-only (UserApp/DeliveryApp/VendorApp)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
 ### Other artifacts
+- [`bug-firebase-cold-start-crash.log`](bug-firebase-cold-start-crash.log)
 - [`deliveryapp-net-evidence.log`](deliveryapp-net-evidence.log)
 - [`progress.md`](progress.md)
 - [`userapp-net-evidence.log`](userapp-net-evidence.log)

@@ -1,0 +1,13 @@
+# REGRESSION-CANDIDATE (pre-existing, NOT caused by NEARS-957) — DeliveryApp/VendorApp cold-start crash without google-services.json
+# Reproduced live on emulator-5560 (fresh worktree, before provisioning the gitignored google-services.json).
+# DeliveryApp/VendorApp main.dart call Firebase.initializeApp() with NO options and rely on google-services.json;
+# UserApp passes inline FirebaseOptions(...) so it boots without the json. Result: blank screen, di.init() aborts.
+
+E/flutter ( 3635): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+E/flutter ( 3635): #2      Firebase.app (package:firebase_core/src/firebase.dart:92:41)
+E/flutter ( 3635): #3      FirebaseAnalytics.instance (package:firebase_analytics/src/firebase_analytics.dart:52:47)
+E/flutter ( 3635): #4      init (package:sixam_mart_delivery/helper/get_di.dart:85:11)
+E/flutter ( 3635): #5      main (package:sixam_mart_delivery/main.dart:119:48)
+
+# Impact: any environment lacking the gitignored google-services.json (CI, fresh checkout, fresh worktree) -> app will not launch.
+# Fix suggestion: give DeliveryApp/VendorApp the same inline-FirebaseOptions fallback UserApp has (UserApp/lib/main.dart:46), OR guard AnalyticsService construction so a missing default FirebaseApp degrades gracefully instead of aborting di.init().
