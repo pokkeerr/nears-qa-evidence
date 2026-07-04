@@ -1,0 +1,25 @@
+NEARS-964 site 3 — map zoom over Google-Maps platform view (KEY OPEN QUESTION)
+Device emulator-5560, 420dpi. Screen: full-screen location picker (!fromView).
+Widget: select_location_view_widget.dart — zoom_in/zoom_out Semantics(button,
+label) + Container(minWidth/minHeight 44) at Positioned bottom:100; location
+button (use_current_location) Positioned bottom:250 (UX collision fix).
+
+uiautomator dump of the picker (2 dumps, stable):
+  desc='Google Map'  role=TextureView  clickable=true  1080x2277px  bounds=[0,63][1080,2340]
+  desc='F93G+HW4 - Al Manhal - W15 01 - Abu Dhabi...'  role=View  391.6x48.0dp  (search bar)
+  desc='Pick Location'  role=Button  371.4x52.2dp  bounds=[53,2151][1028,2288]
+  -> NO 'Zoom in' / 'Zoom out' / 'Use my current location' nodes present.
+
+Finding: the >=44dp decorated zoom + location overlays are VISIBLE on screen
+(site3-mapzoom.png) and touch-usable, but their Semantics do NOT project into
+the Android a11y tree — they are occluded by the 'Google Map' TextureView
+platform view. Sibling NON-overlay Flutter nodes on the same screen ("Pick
+Location" Button 52dp, the search bar) project correctly, so this is a
+platform-view exclusion, not a general projection failure.
+
+Per NEARS-964 verdict rule: platform-view exclusion, DOCUMENTED WITH EVIDENCE,
+is an ACCEPTABLE per-site outcome (NOT a fail).
+
+UX fix confirmed visually: the location (crosshair/pin) button sits as its own
+card clearly ABOVE the +/- zoom card; no crowding/collision (site3-mapzoom.png,
+_loc1.png). Logs (ui_errors) clean; tapping + zoom produced no runtime error.

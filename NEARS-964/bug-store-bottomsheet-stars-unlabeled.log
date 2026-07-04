@@ -1,0 +1,15 @@
+NEARS-964 QA — StoreFilterBottomSheetWidget rating stars un-labeled (Android)
+Device emulator-5560, 420dpi (44dp=115.5px). uiautomator dump.
+
+Android store Filter (toolbar) opens StoreFilterBottomSheetWidget (Estimated
+Delivery / Discounted Items / Price / Ratings). Its 5 "Ratings" stars:
+  role=View  content-desc=''  clickable=true  84x84px = 32.0x32.0dp  bounds=[53,2001][137,2085]
+  role=View  content-desc=''  clickable=true  84x84px = 32.0x32.0dp  bounds=[137,2001][221,2085]
+  role=View  content-desc=''  clickable=true  84x84px = 32.0x32.0dp  bounds=[221,2001][305,2085]
+  role=View  content-desc=''  clickable=true  84x84px = 32.0x32.0dp  bounds=[305,2001][389,2085]
+  role=View  content-desc=''  clickable=true  84x84px = 32.0x32.0dp  bounds=[389,2001][473,2085]
+
+=> empty content-desc + role View + 32dp (< 44dp). Fails WCAG 2.5.5 / 4.1.2.
+Source: store_filter_bottom_sheet_widget.dart:187 (bare InkWell>NearsIcon('star'),
+no Semantics, no BoxConstraints minWidth/minHeight 44). Pre-existing; NEARS-964
+did not touch this widget. Screenshot: site2-store-filter.png.
