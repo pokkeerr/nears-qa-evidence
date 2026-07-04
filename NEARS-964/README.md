@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-964
 
-**BLOCKED — site3 platform-view exclusion (acceptable); sites 1/2/7 web-only, 4/5/6/8/9 need mobile test data; mobile bottom-sheet rating stars unlabelled (pre-existing)**
+**BLOCKED — no 964 code defect; mechanism proven on-device (positive control); 8/9 ACs undemonstrable on Android seed/config, site3 map-zoom = accepted platform-view exclusion; sites 1&2 fix is web/desktop-only while Android star filters stay unlabeled (PO scope decision)**
 
 **42 screenshot(s).** Click any thumbnail for full resolution.
 
