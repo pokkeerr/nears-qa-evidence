@@ -1,0 +1,39 @@
+NEARS-963 re-QA cycle 1 — AC4 rating-star a11y STILL FAILS after MergeSemantics fix (BOTH sheets)
+Build: fresh `flutter run` from worktree fix/NEARS-963-a11y-tail (fix compiled in — see AC5 proof).
+Device: emulator-5560. Read = uiautomator dump (the Android a11y tree TalkBack consumes).
+
+=== SEARCH filter sheet (search/widgets/filter_widget.dart) — Rating section ===
+5 clickable star icons, content-desc EMPTY (identical to cycle-0 FAIL, same bounds):
+  [View] desc='' clickable=true bounds=[53,2007][137,2091]
+  [View] desc='' clickable=true bounds=[137,2007][221,2091]
+  [View] desc='' clickable=true bounds=[221,2007][305,2091]
+  [View] desc='' clickable=true bounds=[305,2007][389,2091]
+  [View] desc='' clickable=true bounds=[389,2007][473,2091]
+  grep 'stars' content-desc in sheet: 0 hits
+  Interactivity intact: tapping star 3 still sets rating (icons fill), nodes stay clickable.
+
+=== STORE filter sheet (store/widgets/filter_widget.dart) — Ratings section ===
+5 clickable star icons, content-desc EMPTY:
+  [View] desc='' clickable=true bounds=[53,2001][137,2085]
+  [View] desc='' clickable=true bounds=[137,2001][221,2085]
+  [View] desc='' clickable=true bounds=[221,2001][305,2085]
+  [View] desc='' clickable=true bounds=[305,2001][389,2085]
+  [View] desc='' clickable=true bounds=[389,2001][473,2085]
+  grep 'stars' content-desc in sheet: 0 hits
+
+Expected after fix: content-desc="1 stars" .. "5 stars" on each clickable star; button role.
+Observed: empty desc, and role degraded to class=View (button:true NOT propagated either).
+The MergeSemantics(Semantics(label:'N stars', button:true, child: InkWell(child: bare Icon)))
+wrapping produced ZERO change vs cycle 0.
+
+Contrast (same store screen, same build): AC5 toggle uses PLAIN
+Semantics(button:true, selected:sel, label:'Grid view'/'List view', child: InkWell(child: Container(Icon)))
+and DOES project -> class=Button, content-desc present, selected state exposed. WORKS.
+
+Root-cause lead for the engineer: the two failing sites (AC3 zoom, AC4 stars) share the pattern
+MergeSemantics > Semantics(label,button) > InkWell > BARE Icon. The passing sites (AC5 toggle,
+AC9 badge, home icons) use plain Semantics with a non-bare child (Container(Icon) / Image).
+On-device, the bare-Icon MergeSemantics wrap drops the label AND the button role. Recommend
+switching the failing sites to the proven AC5 pattern (plain Semantics wrapping InkWell whose
+child is wrapped, or Semantics(container:true,...)) rather than MergeSemantics, and re-verifying
+live with uiautomator dump — NOT the widget test, which passes regardless (test +5 green).

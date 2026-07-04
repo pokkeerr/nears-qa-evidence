@@ -1,0 +1,33 @@
+NEARS-963 re-QA cycle 1 — AC3 map zoom a11y STILL FAILS after MergeSemantics fix
+Screen: Set From Map (select_location_view_widget.dart), Deliver-To > Set From Map
+Build: fresh `flutter run` from worktree fix/NEARS-963-a11y-tail (uncommitted fix compiled in;
+       proven by AC5 "Grid view"/"List view" NEW labels rendering live on-device).
+Device: emulator-5560 (AVD nears_qa_wave56). Read = uiautomator dump = the Android
+        AccessibilityNodeInfo tree TalkBack consumes.
+
+The two Flutter zoom +/- InkWell buttons (Positioned bottom:100,right:0 — geometry matches source,
+tap fires camera zoom + geocode call) STILL expose NO accessibility label:
+
+  --- TalkBack OFF ---
+  [Button] desc='' clickable=true bounds=[912,1865][1017,1970]   (zoom in / add_rounded)
+  [Button] desc='' clickable=true bounds=[912,1999][1017,2104]   (zoom out / remove_rounded)
+  grep 'Zoom' in whole a11y tree: 0 hits
+
+  --- TalkBack ON (real screen reader active) ---
+  [Button] desc='' clickable=true bounds=[912,1865][1017,1970]
+  [Button] desc='' clickable=true bounds=[912,1999][1017,2104]
+  grep 'Zoom' in whole a11y tree: 0 hits
+
+Expected after fix: content-desc="Zoom in" / "Zoom out". Observed: empty (byte-identical to cycle-0 FAIL).
+The MergeSemantics(Semantics(label:'zoom_in'/'zoom_out', button:true, child: InkWell(child: bare Icon)))
+wrapping did NOT project the label to the on-device a11y tree. The sibling use_current_location button
+(plain Semantics, pre-existing, bare-Icon child) is ALSO empty here [901,1697][1028,1823] — i.e. the
+bare-Icon-InkWell-over-platform-view pattern loses its label regardless of MergeSemantics.
+
+Contrast (same build, proving Semantics DOES work when it reaches the tree):
+  home "Notification"/"Favourite" icon buttons -> content-desc present.
+  store screen AC5 toggle -> content-desc "Grid view"/"List view" + selected state present.
+
+Automated widget test a11y_tail_of_tail_963_test.dart test +6 "zoom button: label + tap on ONE merged
+node" PASSES — non-authoritative (flutter_test compiler merges ancestor labels regardless of
+MergeSemantics, as the engineer noted). Live on-device tree is the gate: FAIL.
