@@ -1,0 +1,53 @@
+NEARS-954/955/958/956 — Live QA log evidence (emulator-5560, worktree fix/NEARS-954-loc-checkout-cluster @6dae327a)
+All lines verbatim from `adb logcat -s flutter`; PII-safe (endpoint path + correlation UUID only, no bodies/coords/tokens).
+
+=== NEARS-954 — offline location-search crash guard (searchLocation error branch) ===
+# Offline: type "abu" in checkout Delivery Address field. Pre-fix = NoSuchMethodError red-screen on null body.
+[NET] GET endpoint=/api/v1/config/place-api-autocomplete
+LocationRepository.searchLocation (location_repository.dart:77:12)
+LocationService.searchLocation (location_service.dart:146:25)
+[FAIL] endpoint=/api/v1/config/place-api-autocomplete http_status=null type=ApiFailure msg="api request threw" correlation_id=085862cf-...
+# RESULT: ui_errors CLEAN, zero "NoSuchMethodError"/"was called on null" in log, screen stays normal Checkout (no red EXCEPTION screen). GUARD HOLDS.
+
+# Online path unchanged: type query -> 200 + suggestions render (Abu Dhabi Mall, Abu Dhabi International Airport, ...)
+[NET] GET endpoint=/api/v1/config/place-api-autocomplete
+[NET] endpoint=/api/v1/config/place-api-autocomplete http_status=200
+
+=== NEARS-955b — logged-in checkout "use my location" (delivery_section.dart) ===
+# (a) SUCCESS serviceable GPS (24.4539,54.3773):
+[NET] endpoint=/api/v1/config/geocode-api http_status=200
+[NET] endpoint=/api/v1/config/get-zone-id http_status=200
+[INFO] msg="location: inZone=true"
+[NET] endpoint=/api/v1/config/distance-api http_status=200   # address inserted, loader dismissed, no stranded loader
+
+# (b) UNSERVICEABLE GPS (40.7,-74.0):
+[FAIL] endpoint=/api/v1/config/get-zone-id http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=1d81f312-...
+[INFO] msg="location: inZone=false"
+[ERR] msg="error snackbar shown"   # snackbar "Service not available in this location" (tree-caught), loader dismissed once, checkout usable
+
+=== NEARS-955b — change-address bottom sheet "use current location" (address_bottom_sheet.dart) ===
+# SUCCESS serviceable -> sheet closes to checkout:
+[NET] endpoint=/api/v1/config/geocode-api http_status=200
+[NET] endpoint=/api/v1/config/get-zone-id http_status=200
+[INFO] msg="location: inZone=true"   # sheet closed (Select Your Address / Use my current location gone)
+
+# EMPTY-ZONE/failure -> sheet STAYS OPEN + snackbar, loader dismissed once:
+[FAIL] endpoint=/api/v1/config/get-zone-id http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=0b6dcd21-...
+[INFO] msg="location: inZone=false"
+[ERR] msg="error snackbar shown"   # sheet still shows Saved Addresses / Select Your Address / Use my current location
+
+=== NEARS-955a — map-confirm / save-address empty-zone guard (resolveZoneId) ===
+# Add New Address -> Save with out-of-coverage NYC GPS:
+[FAIL] endpoint=/api/v1/customer/address/add http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=27523e46-...
+[ERR] msg="error snackbar shown"
+# RESULT: zero "RangeError"/"Index out of range"/"Invalid value" in log, ui_errors CLEAN. resolveZoneId(isSuccess=false)->0. No red-screen.
+# (The exact 200-empty-zone RangeError branch is unit-pinned: zone_helper_test + loader-lifecycle "a 200 with empty zone list resolves zoneId 0".)
+
+=== NEARS-958 — interest-page predicate dedup (behaviour-preserving) ===
+# Three live module switches via sector grid (switchModule -> _showInterestPage -> shouldShowInterestPage), all clean:
+#   Grocery(1,grocery) boot skip; switch->Food(2,food) skip; switch->Pharmacy(3,pharmacy) skip.
+# crash count (RangeError|NoSuchMethod|_TypeError|EXCEPTION CAUGHT) = 0 across all switches; ui_errors clean; no changed gating.
+
+=== NEARS-956 — loader-lifecycle automated backstop ===
+flutter test checkout_use_my_location_loader_lifecycle_test.dart + zone_helper_test.dart + interest_page_helper_test.dart
+=> All tests passed! (15/15: 4 loader-lifecycle + 3 zone_helper + 8 interest_page_helper)
