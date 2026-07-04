@@ -1,0 +1,27 @@
+NEARS-963 re-QA cycle 2 — AC4 rating stars STILL not projected on-device (container:true fix)
+Build: emulator-5560, task t55, fresh compile from worktree fix/NEARS-963-a11y-tail
+  frontend_server --source file:///Users/Apple/Projects/nears-NEARS-963-a11y-tail/UserApp/  (pid 28821)
+  app.dill mtime 05:58:46 > source filter_widget.dart mtime 05:49:18 ; APK installed 05:59:07
+Fix under test: Semantics(container:true, button:true, label:'<n> stars', child: InkWell(onTap, child: Icon))
+
+STORE filter sheet (features/store/widgets/filter_widget.dart) — TalkBack ON (pid 22128, FEEDBACK_SPOKEN, app window a11y-focused):
+  star row nodes (below "Ratings" y=1912):
+    View clk=true desc='' [53,2001][137,2085]
+    View clk=true desc='' [137,2001][221,2085]
+    View clk=true desc='' [221,2001][305,2085]
+    View clk=true desc='' [305,2001][389,2085]
+    View clk=true desc='' [389,2001][473,2085]
+  grep 'stars' across all 33 a11y nodes => 0 matches
+
+SEARCH filter sheet (features/search/widgets/filter_widget.dart) — a11y tree (same AccessibilityNodeInfo TalkBack reads):
+  star row nodes (below "Rating" y=1920):
+    View clk=true desc='' [53,2007][137,2091]
+    View clk=true desc='' [137,2007][221,2091]
+    View clk=true desc='' [221,2007][305,2091]
+    View clk=true desc='' [305,2007][389,2091]
+    View clk=true desc='' [389,2007][473,2091]
+  grep 'stars' across all 36 a11y nodes => 0 matches
+
+VERDICT: label 'N stars' does NOT reach the tappable star node's AccessibilityNodeInfo (contentDescription empty).
+Stars remain clickable (tappable retained) but announce no name -> TalkBack cannot say "N stars".
+Same on-device symptom as cycle-1 (MergeSemantics); container:true also fails to fuse label onto the InkWell node.

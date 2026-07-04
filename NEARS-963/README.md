@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-963
 
-**re-QA cycle 1 FAIL — AC3 map-zoom + AC4 rating-stars still unlabeled on-device despite MergeSemantics; AC5/AC9 PASS**
+**FAIL (re-QA cycle 2): AC4 rating stars still not projected on-device (container:true) — escalate**
 
-**14 screenshot(s).** Click any thumbnail for full resolution.
+**16 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -28,6 +28,10 @@
 <tr>
 <td align="center" width="33%"><a href="bug-rating-stars-search-filter-empty.png"><img src="bug-rating-stars-search-filter-empty.png" width="240"></a><br><sub>bug rating stars search filter empty</sub></td>
 <td align="center" width="33%"><a href="bug-rating-stars-store-filter-before.png"><img src="bug-rating-stars-store-filter-before.png" width="240"></a><br><sub>bug rating stars store filter before</sub></td>
+<td align="center" width="33%"><a href="c2-ac4-search-filter-stars.png"><img src="c2-ac4-search-filter-stars.png" width="240"></a><br><sub>c2 ac4 search filter stars</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c2-ac4-store-filter-stars.png"><img src="c2-ac4-store-filter-stars.png" width="240"></a><br><sub>c2 ac4 store filter stars</sub></td>
 </tr>
 </table>
 
@@ -36,6 +40,7 @@
 - [`bug-ac4-rating-stars-still-empty-cycle1.log`](bug-ac4-rating-stars-still-empty-cycle1.log)
 - [`bug-item-widget-overflow-2px.log`](bug-item-widget-overflow-2px.log)
 - [`bug-map-zoom-no-label.log`](bug-map-zoom-no-label.log)
+- [`bug-rating-stars-c2-no-label.log`](bug-rating-stars-c2-no-label.log)
 - [`bug-rating-stars-no-label.log`](bug-rating-stars-no-label.log)
 - [`progress.md`](progress.md)
 
