@@ -1,0 +1,29 @@
+# NEARS-957 — DeliveryApp [NET] path-only evidence (emulator-5560, DEBUG, logged in as DM Ali +971565656656)
+# All authed URIs below carry ?token=<token> in the wire request (app_constants profileUri/currentOrdersUri/... end in '?token='); record-location carries lat/lng in the POST body. Log shows PATH ONLY.
+
+## AC2 — authed request+response lines path-only (token in query, stripped)
+[NET] GET endpoint=/api/v1/delivery-man/current-orders
+[NET] GET endpoint=/api/v1/delivery-man/latest-orders
+[NET] GET endpoint=/api/v1/delivery-man/notifications
+[NET] GET endpoint=/api/v1/delivery-man/profile
+[NET] POST endpoint=/api/v1/auth/delivery-man/login
+[NET] POST endpoint=/api/v1/delivery-man/update-active-status
+[NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+[NET] endpoint=/api/v1/auth/delivery-man/login http_status=200
+[NET] endpoint=/api/v1/delivery-man/current-orders http_status=200
+[NET] endpoint=/api/v1/delivery-man/latest-orders http_status=200
+[NET] endpoint=/api/v1/delivery-man/notifications http_status=200
+[NET] endpoint=/api/v1/delivery-man/profile http_status=200
+[NET] endpoint=/api/v1/delivery-man/update-active-status http_status=200
+[NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=200
+
+## AC4 (NEARS-921) — record-location POST (coords in body) path-only
+[NET] POST endpoint=/api/v1/delivery-man/record-location-data
+[NET] endpoint=/api/v1/delivery-man/record-location-data http_status=200
+
+## AC3 assertions
+- total [NET] lines: 22  (all path-only)
+- [NET] lines with ? / token= / lat / lng / coord : 0
+- legacy '====> API Call/Response' lines: 0
+- token-masked-uri (token=***) log lines: 0
+- [FAIL]/[ERR] during authed session: 0

@@ -1,0 +1,24 @@
+# NEARS-957 — UserApp [NET] path-only evidence (emulator-5560, DEBUG)
+# All lines PII-safe (path-only). Endpoints below genuinely carry query in the wire request; log shows path only.
+
+## Query-bearing calls -> path-only (AC1/AC3 + lat/lng + special-char search)
+[NET] GET endpoint=/api/v1/config/geocode-api
+[NET] GET endpoint=/api/v1/config/get-zone-id
+[NET] GET endpoint=/api/v1/items/item-or-store-search
+[NET] GET endpoint=/api/v1/items/latest
+[NET] GET endpoint=/api/v1/search/unified
+[NET] GET endpoint=/api/v1/stores/details/8
+[NET] endpoint=/api/v1/config/geocode-api http_status=200
+[NET] endpoint=/api/v1/config/get-zone-id http_status=200
+[NET] endpoint=/api/v1/items/item-or-store-search http_status=200
+[NET] endpoint=/api/v1/items/latest http_status=200
+[NET] endpoint=/api/v1/search/unified http_status=200
+[NET] endpoint=/api/v1/stores/details/8 http_status=200
+
+## AC3 assertions
+- total [NET] lines: 148  (all path-only)
+- lines containing ? / token= / lat= / lng= / store_id / category_id / name= : 0
+- legacy '====> API Call/Response' lines: 0
+- [FAIL]/[ERR]/[WARN] during session: 0
+
+## Special-char search inputs used: 'tea&milk' and "O'Brien 100%"  (ampersand/apostrophe/space/percent) -> query fully stripped

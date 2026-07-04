@@ -1,0 +1,26 @@
+# NEARS-957 — VendorApp [NET] path-only evidence (emulator-5560, DEBUG, logged in vendor ahmed.khan@demo.com)
+# VendorApp carries auth token in Authorization header (now NOT logged at all — old line logged redactHeaders(_mainHeaders)); URIs carry ids/pagination in query (completed-orders ?offset&limit). Log = PATH ONLY.
+
+## AC2 — authed request+response lines path-only (header token never logged; query stripped)
+[NET] GET endpoint=/api/v1/vendor/completed-orders
+[NET] GET endpoint=/api/v1/vendor/current-orders
+[NET] GET endpoint=/api/v1/vendor/notifications
+[NET] GET endpoint=/api/v1/vendor/profile
+[NET] POST endpoint=/api/v1/auth/vendor/login
+[NET] POST endpoint=/api/v1/vendor/update-fcm-token
+[NET] endpoint=/api/v1/auth/vendor/login http_status=200
+[NET] endpoint=/api/v1/vendor/completed-orders http_status=200
+[NET] endpoint=/api/v1/vendor/current-orders http_status=200
+[NET] endpoint=/api/v1/vendor/notifications http_status=200
+[NET] endpoint=/api/v1/vendor/profile http_status=200
+[NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+
+## AC2 multipart leg (update-profile via postMultipartData): live-demo DECLINED to honor read-only-DB rule (all VendorApp multipart paths are DB writes).
+   Verified by: diff (postMultipartData site -> AppLogger.netRequest('POST', Uri.tryParse(uri)?.path ?? 'unknown') at the http.MultipartRequest dispatch) + unit test (netRequest present, no header interpolation) + identical code path to the live-proven verbs above.
+
+## AC3 assertions
+- total [NET] lines: 18  (all path-only)
+- [NET] lines with ? / token= / order_id= / offset= : 0
+- legacy '====> API Call/Response' lines: 0
+- token-masked-uri (token=***) log lines: 0
+- [FAIL]/[ERR] during authed session: 0
