@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-964
 
-**BLOCKED — no 964 code defect; mechanism proven on-device (positive control); 8/9 ACs undemonstrable on Android seed/config, site3 map-zoom = accepted platform-view exclusion; sites 1&2 fix is web/desktop-only while Android star filters stay unlabeled (PO scope decision)**
+**RE-QA PASS @ bc6bca1a — both Android filter star bottom sheets now project '<n> stars'/Button/~44dp (5560, light)**
 
-**42 screenshot(s).** Click any thumbnail for full resolution.
+**46 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -62,18 +62,26 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="_vendor.png"><img src="_vendor.png" width="240"></a><br><sub> vendor</sub></td>
+<td align="center" width="33%"><a href="search_filter_3stars_selected.png"><img src="search_filter_3stars_selected.png" width="240"></a><br><sub>search filter 3stars selected</sub></td>
+<td align="center" width="33%"><a href="search_filter_sheet_after.png"><img src="search_filter_sheet_after.png" width="240"></a><br><sub>search filter sheet after</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="site1-search-filter-reachable.png"><img src="site1-search-filter-reachable.png" width="240"></a><br><sub>site1 search filter reachable</sub></td>
 <td align="center" width="33%"><a href="site1-search-sheet-stars.png"><img src="site1-search-sheet-stars.png" width="240"></a><br><sub>site1 search sheet stars</sub></td>
+<td align="center" width="33%"><a href="site2-store-filter.png"><img src="site2-store-filter.png" width="240"></a><br><sub>site2 store filter</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="site2-store-filter.png"><img src="site2-store-filter.png" width="240"></a><br><sub>site2 store filter</sub></td>
 <td align="center" width="33%"><a href="site3-mapzoom.png"><img src="site3-mapzoom.png" width="240"></a><br><sub>site3 mapzoom</sub></td>
 <td align="center" width="33%"><a href="site8-prescription-fab.png"><img src="site8-prescription-fab.png" width="240"></a><br><sub>site8 prescription fab</sub></td>
+<td align="center" width="33%"><a href="site8-scrolled.png"><img src="site8-scrolled.png" width="240"></a><br><sub>site8 scrolled</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="site8-scrolled.png"><img src="site8-scrolled.png" width="240"></a><br><sub>site8 scrolled</sub></td>
 <td align="center" width="33%"><a href="site8-store-scrolled2.png"><img src="site8-store-scrolled2.png" width="240"></a><br><sub>site8 store scrolled2</sub></td>
 <td align="center" width="33%"><a href="site8-store.png"><img src="site8-store.png" width="240"></a><br><sub>site8 store</sub></td>
+<td align="center" width="33%"><a href="store_filter_4stars_selected.png"><img src="store_filter_4stars_selected.png" width="240"></a><br><sub>store filter 4stars selected</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="store_filter_sheet_after.png"><img src="store_filter_sheet_after.png" width="240"></a><br><sub>store filter sheet after</sub></td>
 </tr>
 </table>
 
@@ -81,8 +89,11 @@
 - [`bug-bottomsheet-filter-stars-unlabeled.log`](bug-bottomsheet-filter-stars-unlabeled.log)
 - [`bug-store-bottomsheet-stars-unlabeled.log`](bug-store-bottomsheet-stars-unlabeled.log)
 - [`progress.md`](progress.md)
+- [`search_filter_dump.xml`](search_filter_dump.xml)
 - [`site3-mapzoom-exclusion.log`](site3-mapzoom-exclusion.log)
 - [`site3-mapzoom.txt`](site3-mapzoom.txt)
+- [`star_results.txt`](star_results.txt)
+- [`store_filter_dump.xml`](store_filter_dump.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-964/` · public-repo scrub policy (no live secrets; verified clean).*

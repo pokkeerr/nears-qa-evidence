@@ -1,0 +1,42 @@
+NEARS-964 re-QA @ bc6bca1a — Android filter bottom-sheet star a11y results
+Device emulator-5560 (nears_qa_wave56), density 420 (44dp = 115.5px), light mode.
+Authoritative check: on-device uiautomator AccessibilityNodeInfo dump.
+
+VERDICT: PASS — both Android star bottom sheets now project '<n> stars' / role Button / ~44dp.
+
+============================================================================
+SITE 1 — search_filter_bottom_sheet_widget.dart  (Search tab -> Filter, idle search)
+  BEFORE (prior QA @ 53d19b62): 5 rating stars had ZERO a11y nodes (unlabelled).
+  AFTER  (@ bc6bca1a):
+    star  content-desc  role     clickable  size
+    1     "1 stars"     Button   true       43.8x44.2dp (115x116px)
+    2     "2 stars"     Button   true       44.2x44.2dp (116x116px)
+    3     "3 stars"     Button   true       43.8x44.2dp (115x116px)
+    4     "4 stars"     Button   true       44.2x44.2dp (116x116px)
+    5     "5 stars"     Button   true       44.2x44.2dp (116x116px)
+  behaviour: tap "3 stars" -> stars 1-3 fill navy (setRating(3)); "Apply Filters" applies + dismisses.
+  dump: search_filter_dump.xml   shots: search_filter_sheet_after.png, search_filter_3stars_selected.png
+
+============================================================================
+SITE 2 — store_filter_bottom_sheet_widget.dart  (store detail -> toolbar Filter)
+  BEFORE (prior QA @ 53d19b62): 5 stars = role=View, EMPTY content-desc, 32.0x32.0dp.
+  AFTER  (@ bc6bca1a):
+    star  content-desc  role     clickable  size
+    1     "1 stars"     Button   true       43.8x43.8dp (115x115px)
+    2     "2 stars"     Button   true       44.2x43.8dp (116x115px)
+    3     "3 stars"     Button   true       43.8x43.8dp (115x115px)
+    4     "4 stars"     Button   true       44.2x43.8dp (116x115px)
+    5     "5 stars"     Button   true       44.2x43.8dp (116x115px)
+  behaviour: tap "4 stars" -> stars 1-4 fill navy (setRating(4)); mint "Filter" applies + dismisses.
+  dump: store_filter_dump.xml    shots: store_filter_sheet_after.png, store_filter_4stars_selected.png
+
+============================================================================
+NOTES
+- 115/116px = the Container minWidth/minHeight:44 constraint quantized to pixels at 420dpi
+  (44dp = 115.5px). WCAG 2.5.5 (>=44dp) met; up from the pre-fix bare 32dp icon.
+- Each star wrapped in Semantics(button:true, label:'<n> stars') + >=44dp Container with faint
+  navy fill (alpha 0.06) + 5dp Row spacing -> reads as 5 discrete chips.
+- Label is localized ('stars'.tr; ar.json "stars":"نجوم"). Live AR render not obtained (app UI
+  did not switch locale even after restart — pre-existing i18n behavior, out of 964 scope).
+- Logs: zero Flutter [FAIL]/[ERR]/EXCEPTION/overflow across the whole session.
+- Dark mode: DEFERRED (light-first policy) — not checked.
