@@ -1,0 +1,62 @@
+NEARS-977 — Top offers near me rail sort hardening — LIVE QA BLOCKED evidence
+Device: emulator-5554 (Pixel_10_Pro, Android 17) | worktree code, backend 8001 (shared)
+Captured: 2026-07-06 ~01:30-01:44
+
+=== WHY BLOCKED (two independent blockers) ===
+
+(1) TEST-DATA GAP — the rail can never hold >=2 stores in the reachable zone,
+    so the multi-store SORT under test (ACs 1/2/3) cannot be shown live.
+
+  Home feeds the "Top offers near me" rail from the /home/all aggregation
+  (home_controller.dart getHomeAll → setTopOfferStoreFromHomeAll):
+      line 371-372: if data.containsKey('top_rated_stores')  -> use top_rated_stores
+      line 373-374: else if containsKey('discounted_stores') -> use discounted_stores
+  For zone 2 the 'top_rated_stores' KEY is always present, so 'discounted_stores'
+  (12-14 stores) is NEVER used for the rail. Live /home/all on backend 8001:
+
+    zone 2 / module 1 (Grocery): top_rated_stores total_size=1  (id=35 Test Store, ~8.0km)
+                                 discounted_stores total_size=14 (NOT used by rail)
+    zone 2 / module 2 (Food):    top_rated_stores total_size=0  -> rail EMPTY -> suppressed
+                                 discounted_stores total_size=5  (NOT used by rail)
+
+  => rail = <=1 card in Abu Dhabi. A 1-card / 0-card rail cannot demonstrate order.
+
+  The legacy discount-gated endpoint is also empty:
+    GET /api/v1/stores/top-offer-near-me  zone2 m1/m2/m3 + zone1 m1 => {"total_size":0,"stores":[]}
+    SQL: SELECT COUNT(*) FROM discounts;  => 0   (no store-level discounts seeded anywhere)
+
+  NEARS-524 anchor stores named in the QA scope are unusable:
+    store 8 Abu Dhabi Fresh Market (24.4539,54.3773) active=0  -> filtered by availableStoresOnly
+    store 9 Organic Shop           (24.4210,54.3500) active=0  -> filtered by availableStoresOnly
+  (scope assumed the rail is fed by discounted_stores/stores 8&9; code feeds top_rated_stores.)
+
+(2) SHARED-BACKEND CONTENTION — a concurrent /new-task QA session (session f42fe575)
+    is running failure-injection against the SAME dev backend and tied it up mid-run:
+      its qa_proxy.log:  GET /api/v1/config -> rule mode=status code=500
+                         GET /api/v1/config -> rule mode=blackhole hang_seconds=60  (x2)
+    php artisan serve (8001) is single-threaded, so the 60s blackholes stall it:
+      curl http://127.0.0.1:8001/api/v1/config  => code=000 (unresponsive) during the window.
+    Port 8000 is that session's qa_proxy.py (do-not-touch); my app was pointed at 8001
+    directly via --dart-define=API_HOST=10.0.2.2:8001.
+
+=== WHAT WAS VERIFIED LIVE (app is healthy; refactor runs) ===
+  - Worktree app built + booted on emulator-5554, reached HOME (config 200 pre-contention).
+  - Food-module home rendered all populated rails (restaurants-nearby / top-rated /
+    popular-items / new-on); the "Top offers near me" rail (ar: "أعلى العروض بالقرب مني")
+    was ABSENT — correct self-suppression for an empty top_rated_stores slice (count=0).
+    No red screen / overflow / crash from the store_controller refactor
+    (removal of _storeDistanceMeters; sort now via storeDistanceFrom).
+  - Logging contract intact: the config 500 emitted a proper paired line
+      [FAIL] endpoint=/api/v1/config http_status=500 type=ApiFailure msg="unhandled api response"
+    (NOT a silent failure; this 500 is the concurrent session's injection, unrelated to NEARS-977).
+
+=== AUTOMATED BACKSTOP (corroborating, green) ===
+  flutter test test/features/store/store_controller_test.dart  => 44/44 PASS
+  incl. NEARS-977 regression #34 "resolved origin: ignores a tainted server Store.distance
+  (client geo wins)" -> [2,1], + no-origin (0,0)-guard tests, + missing-coords-sort-LAST.
+
+=== REMEDIATION to unblock re-QA (owner: conductor/PO, not QA — read-only DB rule) ===
+  Seed valid store-level discounts for >=2 ACTIVE zone-2 stores so the rail source
+  yields >=2 (extend Nears600StoreOffersQaSeeder / DemoDataMarketingSeeder, versioned),
+  AND/OR ensure >=2 top_rated_stores in a >10-store zone; run on an ISOLATED backend+DB
+  copy so the parallel failure-injection session can't tie it up. Then re-demo ACs 1-3.
