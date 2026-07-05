@@ -1,0 +1,45 @@
+NEARS-979 delta re-QA (fix cycle 2) — AC4 a11y qa_point mid-retry proof
+Device: emulator-5554, worktree feat/NEARS-979-splash-config-error @ 6ef0dfa2
+
+Repro: real config failure (killed network via `adb shell svc wifi/data disable`,
+confirmed "Network is unreachable") -> NoInternetScreen "No internet connection".
+Network re-enabled, retry routed through a QA-only local proxy (forwards to the
+real backend) with an artificial 15s delay on /api/v1/config so the retry's own
+in-flight window could be reliably inspected mid-flight (not just before/after).
+
+1) get_widget_tree (~2s after tapping "Try Again", well inside the 15s window):
+   NoInternetScreen -> ... -> CircularProgressIndicator present (Icon replaced),
+   Text "No internet connection" UNCHANGED (configFailureKind not cleared early —
+   this is the exact NEARS-1004 fix under test).
+   Excerpt:
+   {"widgetRuntimeType":"NoInternetScreen", ... "textPreview":"No internet connection", ...
+    "widgetRuntimeType":"CircularProgressIndicator" ...}
+
+2) uiautomator dump (~15s after tap, still inside the window):
+   content-desc="Try Again" checkable="false" checked="false" clickable="false"
+   enabled="false" focusable="true" focused="false" ...
+   -> Semantics(enabled:!isRetrying) confirmed structurally disabled for the
+   WHOLE in-flight duration, not just at rest.
+
+3) After the delay resolved: real backend response applied, app routed away to
+   Home normally (ui_list showed store cards / home content) — retry-succeeds
+   variant (a) confirmed, no runtime errors at any point
+   (mcp__dart__get_runtime_errors clean before/during/after).
+
+4) Retry-outcome variant (b): starting from a fresh "No internet connection"
+   state (proxy "refuse" rule), retry re-routed through a "blackhole" rule so
+   the SAME retry attempt timed out (ApiClient's 40s timeout) instead of
+   succeeding. Screen updated from "No internet connection" to
+   "Timed out. Please try again after few minutes" — new copy, not stuck on
+   the stale kind. [FAIL] endpoint=/api/v1/config http_status=null
+   type=ApiFailure msg="api request threw" correlation_id=3d64ccb0-... logged,
+   PII-safe (no body/url/token).
+
+5) F1 (cycle-1 race guard) stress repro: while a retry was in-flight (delay
+   rule), a connectivity blip (wifi/data disable+enable) fired the
+   connectivity-listener's own getConfigData() call concurrently. Observed 3
+   sequential config attempts (2 transient failures from the interrupted
+   socket, then 1 success) — never overlapping/corrupted state, no crash, no
+   runtime error at any point, clean eventual routing to Home. Confirms the
+   shared _isFetchingConfig guard (introduced cycle 1, untouched by cycle 2)
+   still serializes concurrent entry points.
