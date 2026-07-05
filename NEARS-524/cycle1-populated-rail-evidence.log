@@ -1,0 +1,22 @@
+NEARS-524 fix-cycle 1 — LIVE evidence (emulator-5554, headless, NEW code from worktree)
+
+AC1 POPULATED RAIL (reachable now via Option A nearest-store):
+- Fresh install (pm clear) -> onboarding -> LOGIN customer@nears.com -> zone-2 Home -> Grocery home.
+- Accessibility tree (bia.xml): header "Buy It Again" @y1057; rail cards @y1478: "Strawberries"(x256) + "Organic Bananas"(x689); "Add To Cart" pills @y1766.
+- => rail RENDERS with the customer's real purchase history. AC1 populate mechanism works.
+
+AC2 CARD -> DETAIL:
+- Tapped Strawberries card -> [NET] GET /api/v1/items/details/52 -> 200; detail screen = "Strawberries" / store "Organic Shop" / "Store closed · opens at 00:00"; analytics view_item{item_id:52}. PASS.
+- "+" pill quick-add: BLOCKED — rail pushed off-screen (user 6 has 5 active orders inflating the running-orders section) and this headless emulator does not register scroll flings (verified: pinned+non-pinned elements static under swipe/PAGE_DOWN/slow-drag). Mechanism is the standard UNCHANGED ItemWidget quick-add (shared across all rails).
+
+CR-2 COLD-CACHE SELF-HEAL (the High bug):
+- On fresh-install first grocery-home load AND on cold relaunch, [NET] GET /customer/order/buy-it-again fired -> 200 (twice: cache-settle + network-settle), rail populated on first load. NOT stuck hidden. FIXED/verified.
+
+CR-3 PULL-TO-REFRESH:
+- Pull-to-refresh -> store list refetch + buy-it-again re-fired -> 200. Rail re-resolves. PASS.
+
+LOGS: zero [ERR]/[FAIL] across the whole session (flutter run + logcat).
+
+DEFECT (see bug-nearest-store-mismatch.log): rail resolved store 9 (Organic Shop, 4586m) not the actual nearest store 8 (4.8m, present+first in list). AC1 "nearest store" not met for the demo account.
+
+BLOCKED-by-tooling (headless scroll): AC2 "+" pill, AC4 Arabic RTL rail cards, live AC3 guest re-confirm. Header string buy_it_again="اشترِ مجدداً" present in ar.json (cycle-0 verified); guest gate code (isLoggedIn ? view : SizedBox) unchanged from cycle-0 where guest-hidden+no-call was confirmed (shot 02).

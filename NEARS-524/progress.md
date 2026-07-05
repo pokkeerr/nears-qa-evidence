@@ -1,30 +1,19 @@
-# NEARS-524 Buy It Again — QA progress (fix_cycle 0, full scope)
+# NEARS-524 Buy It Again — QA progress (fix_cycle 1, Option A delta re-QA)
 
-Device: emulator-5554 (locked). Backend: worktree Admin @ :8000 (up). Build: UserApp from worktree.
+Device: emulator-5554 (nears_qa_wave56, headless swiftshader). Backend: worktree Admin @:8000. NEW code from worktree.
+Precondition: sort setting all_stores_sort_by_temp_closed UNSET → temp-closed stores kept. user6 home = store 8 coords.
 
-## PRECONDITION (option-B gate) — FAILED as documented
-- Live `GET /api/v1/module` (zoneId=[2]) → grocery module_id=1 `active_stores_count=15`, `single_store_id=None`.
-- => For customer@nears.com on zone-2 grocery home, `singleStoreId` is NULL → rail correctly HIDES (multi-store option-B). Cannot demo populated AC1 there.
-- Data-checker claim "store 35 is the only ACTIVE grocery store in zone 2" is WRONG (Store::active() scope = status=1 + commission/sub, ignores the `active` toggle; 15 qualify).
-- Alternative single-store context search: the ONLY single-store module in the DB is zone 3 / grocery / store 59 (active_stores_count=1). Store 59 has ZERO delivered history for ANY user (incl. user 6). User 6 history stores = 1,8,9,35 all in multi-store zones.
-- => NO reachable single-store context with user-6 (or any) purchase history. Populated-rail UI (AC1/AC2/AC4-populated) BLOCKED on Data DoR gap. Read-only: cannot seed.
+## RESULTS (all live unless noted)
+- AC1 populated rail: PARTIAL/FAIL — rail RENDERS with real purchase history, BUT resolved store 9 "Organic Shop" (4586m) instead of the actual nearest store 8 (4.8m, present+first in list). Rail shows Strawberries(52)+Organic Bananas(58)=store9; expected store8 Orange Juice(145). => "nearest store" not satisfied. shots 11.
+- AC2 taps: PASS — card body → items/details/52 (Organic Shop detail); "+" pill → POST cart/add 200 + add_to_cart{item_id:52} analytics, NO nav, qty stepper (Remove|Add) in place. shots 12.
+- AC3 guest: code-unchanged (isLoggedIn ? view : SizedBox; resolveBuyItAgain guest→clearBuyItAgain→no call); cycle-0 confirmed live (shot 02). Not re-demoed live cycle-1 (order-card UI overlap on logout).
+- AC4 Arabic RTL: PASS — header "اشترِ مجدداً" right-aligned (x1007); rail mirrored (Strawberries x958 right / Organic Bananas x752 left = reverse of LTR). shot 13. zero errors.
+- AC5 leak: PASS — rail shows ONLY resolved store's items (52/58); no other-store/cross-zone/campaign leak.
+- CR-2 cold-cache self-heal (HIGH bug): PASS — fresh install + cold relaunch → buy-it-again fired 200 on FIRST grocery load (cache-settle + network-settle), rail populated, not stuck hidden. FIXED.
+- CR-3 pull-to-refresh: PASS — pull-refresh re-fired store list + buy-it-again (200), rail re-resolves.
+- Opt-in scoping: code-verified — onListSettled only passed by the module-home fetch (store_controller getStoreList), not filter/pagination reloads.
+- Logs: zero [ERR]/[FAIL] entire session (flutter run + logcat).
+- Automated: flutter buy_it_again + nearest_store + cold_cache tests, phpunit BuyItAgain (to run).
 
-## API-layer proof (backend booted from worktree)
-- AC1 data: `GET /customer/order/buy-it-again?store_id=35` (Bearer customer@nears.com, zoneId=[2], moduleId=1) → total_size=3, products=[332 Low Fat Milk 1L, 96 Fresh Organic Tomato, 95 Broccoli] recency-desc. MATCHES expected [332,96,95]. All store_id=35, module_id=1, status=1. -> data correct.
-- AC5 leak: user6 also purchased 52/58 (store 9 inactive), 145 (store 8 inactive), 99 Mango (store 1 zone1). NONE appear in store-35 response. -> leak-excluded at API. PASS(api).
-
-## Live UI (demonstrated on emulator-5554)
-- [DONE] logged-in customer@nears.com multi-store grocery home: NO rail + NO /buy-it-again call (home rails all fired, zero [ERR]/[FAIL]). shot 01.
-- [DONE] guest (logged out) multi-store grocery home: NO rail + NO /buy-it-again call (home rails fired, no errors). shot 02.
-- [BLOCKED] single-store positive gate (zone 3/store 59): zone 3 returns "service not available in your location" in-app -> unreachable. Cannot demo gate-open + fetch-fires live.
-- [DONE regression] store-details forShop:true recommended rail: renders clean, no errors/overflow. shot 03.
-- AC4 Arabic: string buy_it_again = "اشترِ مجدداً" present; shimmer+loaded both use 'buy_it_again'.tr (no title flip) — code/arb verified. Populated-RTL render BLOCKED (no populated rail reachable).
-- App boot: CLEAN, no [ERR]/[FAIL] throughout the session.
-
-## Automated backstop
-- Flutter unit: test/features/item/buy_it_again_controller_test.dart -> 7/7 PASS (null-shimmer, populated, empty->[], failed-fetch->[], store-switch drop, CR-1 stale-race, clearBuyItAgain). Covers AC1/AC2/AC3 state logic unreachable in UI.
-- Backend: phpunit --filter BuyItAgain -> 8/8 PASS, 36 assertions (2 non-blocking deprecations).
-
-## VERDICT: BLOCKED
-- Feature code correct + fully unit/phpunit-tested; backend live-proven; gating hidden-paths live-proven. No task_bug (no defect).
-- AC1 populated rail UI / AC2 taps / AC4 populated-RTL NOT live-demonstrable = Data DoR gap (no reachable single-store-with-history context). Conductor must seed: give user 6 delivered history at a SERVICEABLE single-store zone (e.g. seed store 59 history AND make zone 3 serviceable, OR make a zone-1/2 grocery single-store), then re-QA the populated path.
+## VERDICT: FAIL
+Blocking: nearest-store resolution selects a FARTHER store (9) over the actual nearest (8) → AC1 "nearest store" broken for the demo account (rail shows the wrong store's history). Everything else (populate/taps/RTL/CR-2/CR-3/no-leak) works — fix is narrow (nearest-store selection). Root cause TBD by engineer (resolution logic vs distance/location-state); Store model DOES parse API distance (metres), API probe with home coords gives store8=4.8m nearest, so the app used a different origin or list variant. Emulator scroll-fling broken (worked around via wm density 200); AC2/AC4 unblocked by density.

@@ -1,0 +1,16 @@
+NEARS-524 fix-cycle 1 — nearest-store resolution finding (store 9 resolved, store 8 expected)
+--- app store list /stores/get-stores/all (zone2, headers lat=24.453884 lng=54.3773438 = user6 home) ---
+ [0] id=8 Abu Dhabi Fresh Market     dist=4.8m active=False
+ [1] id=9 Organic Shop               dist=4586.1m active=False
+ [2] id=12 Fresh local                dist=731.3m active=True
+ [3] id=13 Fresh supermarket          dist=7218.2m active=True
+--- EXPECTED nearest = store 8 (dist=4.8m, first in list). OBSERVED: rail resolved store 9 'Organic Shop' (dist=4586m) ---
+--- proof rail=store9: item detail of tapped BIA card = items/details/52 -> name=Strawberries, store='Organic Shop'(=store 9); BIA rail cards = Strawberries(52)+Organic Bananas(58), both store 9 items ---
+--- store 8 buy-it-again (expected content) = [145 Orange Juice 1L]; store 9 buy-it-again = [52 Strawberries, 58 Organic Bananas] ---
+=> nearest-store resolution selected a FARTHER store (9, 4.6km) over the actual nearest (8, 4.8m) that IS present+first in the list. AC1 'nearest store' not satisfied for the demo account.
+
+--- ROOT-CAUSE NARROWING (unit tests) ---
+- nearest_store_test.dart 'picks the minimum-distance store, regardless of list order' asserts store 8 (5m) wins -> PASSES. So StoreController.nearestStore() is CORRECT.
+- Backend /stores/get-stores/all with user6 home coords (lat 24.453884, lng 54.3773438) returns store 8 dist=4.8m (nearest, index 0).
+- => The live defect is NOT the selection function. The store list feeding nearestStoreId live carried distances where store 9 < store 8, i.e. the module-home store-list fetch (whose onListSettled drives resolveBuyItAgain) used a location origin that is NOT the current zone-2 Home delivery address. Engineer: instrument the lat/lng the store-list request sends at buy-it-again resolution time; ensure it uses the current selected delivery location, not a stale/GPS(zone-400) origin.
+- Note: app-wide nearest/distance behaviour also looked off in this env (home "Nearest Stores" showed Test Store/35 @7.5km as "IN YOUR BUILDING") — may share the same location-origin root or be a curated tag; worth confirming it's not test-data noise.
