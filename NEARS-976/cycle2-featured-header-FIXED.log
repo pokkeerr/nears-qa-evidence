@@ -1,0 +1,18 @@
+NEARS-976 QA cycle-2 (delta re-QA) — HeaderHelper + updateHeader now share ApiClient.locationHeaderValues.
+Encoder: null / unparseable / (0,0) -> ('',''); else raw (latitude!, longitude!). No jsonEncode, no '0'.
+Captured live via QA reverse-proxy (10.0.2.2:8090 -> :8000). Coords = local seed test data.
+
+[1] FEATURED path, RESOLVED location (State B) — was the cycle-1 FAIL (shipped "24.4538833"):
+  GET /api/v1/stores/get-stores/all?featured=1  latitude=PRESENT('24.4538833')  longitude=PRESENT('54.3773433')  moduleId=None   -> RAW (FIXED)
+  GET /api/v1/banners?featured=1                latitude=PRESENT('24.4538833')  longitude=PRESENT('54.3773433')  moduleId=None   -> RAW (FIXED)
+
+[2] FEATURED path, (0,0) demo address / no location:
+  GET /api/v1/stores/get-stores/all?featured=1  latitude=PRESENT-EMPTY('')  longitude=PRESENT-EMPTY('')  moduleId=None   -> '' present-not-'0'
+  GET /api/v1/banners?featured=1                latitude=PRESENT-EMPTY('')  longitude=PRESENT-EMPTY('')  moduleId=None   -> ''
+  Response statuses: get-stores/all 200, banners 200  (NO 403, no (0,0) artifacts)
+
+[3] (0,0) normalization on FIXED path (updateHeader, moduleId=1) — was raw '0' cycle-1:
+  GET /api/v1/stores/details/8              latitude=PRESENT-EMPTY('')  longitude=PRESENT-EMPTY('')  moduleId=1   -> '' (normalized)
+  GET /api/v1/items/recommended?store_id=8  latitude=PRESENT-EMPTY('')  longitude=PRESENT-EMPTY('')  moduleId=1   -> ''
+
+[4] Home smoke (State B): home rails render, ui_errors clean, no overflow/exception. All 200s.
