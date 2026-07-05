@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-524
 
-**FAIL (fix-cycle 1) — populate/taps/RTL/CR-2/CR-3 all PASS; blocker: nearest-store resolves store 9 not the actual nearest store 8 (AC1 nearest-store)**
+**PASS (fix-cycle 2) — AC1 nearest-store fix verified: with a valid zone-2 delivery location the rail resolves store 8 'Abu Dhabi Fresh Market' (Orange Juice 1L), not store 9**
 
-**7 screenshot(s).** Click any thumbnail for full resolution.
+**9 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -17,12 +17,15 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="20-grocery-home-loggedin-BIA-mounted.png"><img src="20-grocery-home-loggedin-BIA-mounted.png" width="240"></a><br><sub>grocery home loggedin BIA mounted</sub></td>
+<td align="center" width="33%"><a href="30-BIA-store8-orangejuice-populated.png"><img src="30-BIA-store8-orangejuice-populated.png" width="240"></a><br><sub>BIA store8 orangejuice populated</sub></td>
+<td align="center" width="33%"><a href="31-item-detail-store8-abudhabi-fresh-market.png"><img src="31-item-detail-store8-abudhabi-fresh-market.png" width="240"></a><br><sub>item detail store8 abudhabi fresh market</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
 - [`bug-nearest-store-mismatch.log`](bug-nearest-store-mismatch.log)
 - [`cycle1-populated-rail-evidence.log`](cycle1-populated-rail-evidence.log)
+- [`cycle2-ac1-fix-verified.log`](cycle2-ac1-fix-verified.log)
 - [`progress.md`](progress.md)
 
 ---

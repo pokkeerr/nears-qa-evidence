@@ -1,0 +1,16 @@
+NEARS-524 fix-cycle 2 — AC1 nearest-store fix VERIFIED (emulator-5554, NEW code, valid location)
+
+PRECONDITION (the one thing that had to change): valid delivery location set.
+- Stored delivery address (SharedPref flutter.6ammart_user_address): latitude="24.453884", longitude="54.3773438" (zone_ids [400,2]) — NON-ZERO, real coords. NOT (0,0) like QA-1.
+- Set via: login customer@nears.com -> address selector -> saved "Home / Abu Dhabi" (zone-2) -> Set Location.
+
+AC1 RESULT: PASS
+- Grocery home -> Buy It Again rail RESOLVED store 8 "Abu Dhabi Fresh Market" (nearest ~5m), showing item 145 "Orange Juice 1L" (user6's store-8 history). NOT store 9 "Organic Shop".
+- Confirmed store via tapped card -> GET items/details/145 200 -> detail: "Orange Juice 1L — fresh and ready for delivery from Abu Dhabi Fresh Market"; view_item{item_id:145}. shots 30 (rail) + 31 (detail).
+- buy-it-again fired 200 on FIRST grocery load (fresh install -> login), rail populated => CR-2 cold-cache self-heal re-confirmed with the CORRECT store.
+
+AC5 (no leak): rail shows ONLY store 8's item (Orange Juice 1L); no store-9 (Strawberries/Bananas), no cross-zone/campaign leak.
+AC2 (card->detail): PASS (items/details/145). "+" quick-add: proven cycle-1; on store 8 (closed, "advance ordering unavailable") the pill opens detail instead of adding (correct — cannot order from a closed no-advance store), so not re-added here.
+Logs: zero [ERR]/[FAIL] this session.
+
+=> QA-1 wrong-store bug FIXED: with a valid delivery location the rail resolves the actual nearest store (8), matching the client-side delivery-origin distance fix.
