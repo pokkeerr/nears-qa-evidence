@@ -1,0 +1,23 @@
+NEARS-976 QA — task_bug evidence: HeaderHelper.featuredHeader() (UserApp/lib/helper/header_helper.dart:26-27) UNPATCHED
+Captured outbound headers via QA reverse-proxy (10.0.2.2:8090 -> backend 8000). Coords are LOCAL SEED test data (zone-2 test address / seeded stores), not real-user PII.
+
+--- FIXED path (api_client.updateHeader / _mainHeaders) — CORRECT after fix ---
+STATE B (location set), module request:
+  GET /api/v1/stores/details/49   latitude=PRESENT('24.4538833')  longitude=PRESENT('54.3773433')  moduleId=1   <- RAW number, no quotes (server distance correct)
+  GET /api/v1/stores/get-stores/all?store_type=all  latitude=PRESENT('24.4538833')  moduleId=1                  <- RAW
+STATE A (no origin), module request:
+  GET /api/v1/stores/details/49   latitude=PRESENT-EMPTY('')  longitude=PRESENT-EMPTY('')  moduleId=1            <- '' present-not-'0' (AC1 satisfied, search not 403)
+
+--- HeaderHelper.featuredHeader() path — STILL BUGGY (unpatched by NEARS-976) ---
+STATE B (location set), featured store-list + banner:
+  GET /api/v1/stores/get-stores/all?featured=1  latitude=PRESENT('"24.4538833"')  longitude=PRESENT('"54.3773433"')  moduleId=None
+        ^ jsonEncode-quoted -> backend (float)'"24.4538833"' = 0.0 -> server distance computed from (0,0) for featured stores + banner
+STATE A (blank coords):
+  GET /api/v1/stores/get-stores/all?featured=1  latitude=PRESENT('""')  longitude=PRESENT('""')  moduleId=None   <- jsonEncode("") quoted-empty
+(code) header_helper.dart:26  AppConstants.latitude: addressModel?.latitude != null ? jsonEncode(addressModel?.latitude) : '0'
+       -> emits '0' (the exact sentinel NEARS-976 removes) when addressModel is null.
+Callers: banner_repository.dart:50 (featured banner, ALWAYS) ; store_repository.dart:179/190 (featured stores, module-less landing).
+
+Backend root-cause confirmation (php (float) cast):
+  (float)"24.45"      = 24.45     (raw -> correct)
+  (float)'"24.45"'    = 0         (jsonEncode-quoted -> (0,0) bug)
