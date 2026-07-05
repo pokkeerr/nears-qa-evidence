@@ -1,0 +1,10 @@
+NEARS-524 — PRECONDITION BLOCKER (Data DoR gap): no reachable single-store module context with purchase history
+--- live GET /api/v1/module zoneId=[2] (customer@nears.com) ---
+module_id=1 Grocery & Food type=grocery active_stores_count=15 single_store_id=None
+module_id=2 Food & Restaurant type=food active_stores_count=5 single_store_id=None
+module_id=3 Pharmacy type=pharmacy active_stores_count=5 single_store_id=None
+module_id=5 Parcel Delivery type=parcel active_stores_count=0 single_store_id=None
+=> grocery active_stores_count=15, single_store_id=None -> singleStoreId NULL -> rail correctly HIDES (multi-store option-B). Cannot demo populated AC1 in zone-2 grocery.
+--- data-checker claim 'store 35 only ACTIVE grocery in zone 2' is WRONG (Store::active()=status=1+commission/sub, ignores active toggle; 15 qualify) ---
+--- only single-store module in DB = zone 3 / store 59; store 59 has ZERO delivered history for any user; zone 3 returns 'service not available' in-app (not serviceable) ---
+=> NO reachable single-store-with-history context. AC1 populated-rail UI / AC2 taps / AC4 populated-RTL BLOCKED on data. Read-only: cannot seed.
