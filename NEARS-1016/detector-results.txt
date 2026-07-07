@@ -1,0 +1,57 @@
+NEARS-1016 — "Service not available" flash detector — method + results
+=======================================================================
+Build: worktree feat/NEARS-1016-home-tristate (uncommitted), UserApp debug,
+device emulator-5556 (Pixel_10_Pro_2, 1344x2992), backend http://10.0.2.2:8000
+(primary-tree Admin, zero Admin delta vs worktree), logged in customer@nears.com.
+
+Method
+------
+Every load path recorded with `adb shell screenrecord` (720x1280 fallback).
+screenrecord writes a frame on every screen UPDATE, so any rendered visual
+state (incl. a sub-second flash) exists as >=1 frame in the capture.
+Detector: anchored sliding-window template match (detect2.py). Template = the
+empty-state block (location_off icon + "Service not available in this area"
+title + full-width mint "Change Location" CTA), cropped from an a11y-verified
+settled empty-state frame IN THE VIDEO DOMAIN (ref_empty_v2.png; bbox from
+uiautomator bounds: title [296,1449][1048,1518], CTA [60,1662][1284,1806]).
+Template slides vertically across each frame (scroll-invariant); per-frame
+score = min mean-abs-diff (MAD) over positions. Calibration: settled-empty
+frames score <=3.8; nearest non-empty content scores >=25.1 (populated grid,
+shimmer, banners incl. the mint Claim-Deal chips, splash, sheets). Threshold
+15 = mid-gap. Positive controls (videos known to contain the empty state) fire
+from the exact expected frames; all-negative videos never dip below 25.
+
+Results (27 videos, ~19,600 frames)
+-----------------------------------
+video                      frames  minMAD @frame   verdict
+cold1.mp4                      53    27.8          clean (no empty-state frame)
+cold2.mp4                      36    29.3          clean
+cold3.mp4                      53    25.1          clean
+warm1.mp4                      65    28.3          clean
+warm2.mp4                      72    28.3          clean
+warm3.mp4                      70    28.3          clean
+tab1.mp4                     1689    27.1          clean
+tab2.mp4                     1578    27.1          clean
+tab3.mp4                     1631    27.1          clean
+addr1.mp4                    1131    26.5          clean
+addr2.mp4                    2132    26.5          clean
+addr3.mp4                     447    28.1          clean
+ptr1.mp4                      127    28.3          clean
+ptr2.mp4                      103    28.2          clean
+ptr3.mp4                      138    28.2          clean (refetch proven via [NET])
+zoneswitch12.mp4              476    27.4          clean (shimmer f163-275 -> zone-2 cards f283+)
+zone3switch.mp4               827    25.6          clean (single-module auto-open)
+zone3cold.mp4                1207    25.1          clean (NEARS-960 cold open, rails populate)
+zone3to1.mp4                 1143    29.8          clean (genuine NEARS-236 dialog, expected)
+zone3to1b.mp4                 112    30.0          clean
+airplane.mp4                  276    28.3          clean (content retained offline; recovery OK)
+rtl-zone1-cold.mp4           1385    25.4          clean (AR shimmer f557-588 -> grid f589+)
+rtl-dubai-fresh.mp4          1799    25.6          clean (out-of-zone parks on picker, AR)
+ac3-recovery.mp4              938     3.8 @f232    EMPTY 268 frames f0-232 then recovery -> populated (expected)
+ac3-empty-cold1.mp4           819     3.8 @f325    EMPTY from f323 to end — settles and PERSISTS (expected)
+ac3-empty-cold2.mp4            61    25.1          recording ended during shimmer; settled empty verified via a11y post-stop
+ac3-empty-persist.mp4        1601     3.8          EMPTY 1436/1601 frames across PTR + warm cycle — PERSISTS (expected)
+
+Conclusion: zero empty-state frames on every in-zone load path (AC1/AC4 +
+regression sweeps); empty state appears ONLY in the genuine out-of-zone
+scenario and persists there (AC3); shimmer phase precedes cards (AC2).
