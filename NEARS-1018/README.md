@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1018
 
-**FAIL — AC3: NULL-image banner renders via backend placeholder (4/5 ACs pass; task_bug filed)**
+**PASS (delta re-QA cycle 1) — AC3 fixed: raw-image guard, 4/4 slides; original FAIL superseded**
 
-**14 screenshot(s).** Click any thumbnail for full resolution.
+**16 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -26,7 +26,11 @@
 <td align="center" width="33%"><a href="bug-null-image-banner-renders.png"><img src="bug-null-image-banner-renders.png" width="240"></a><br><sub>bug null image banner renders</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="delta-ac3-4-dots-carousel.png"><img src="delta-ac3-4-dots-carousel.png" width="240"></a><br><sub>delta ac3 4 dots carousel</sub></td>
+<td align="center" width="33%"><a href="delta-tap-banner19-fresh-mart.png"><img src="delta-tap-banner19-fresh-mart.png" width="240"></a><br><sub>delta tap banner19 fresh mart</sub></td>
 <td align="center" width="33%"><a href="regression-module-home-main-carousel.png"><img src="regression-module-home-main-carousel.png" width="240"></a><br><sub>regression module home main carousel</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="regression-rtl-arabic-carousel.png"><img src="regression-rtl-arabic-carousel.png" width="240"></a><br><sub>regression rtl arabic carousel</sub></td>
 </tr>
 </table>

@@ -1,5 +1,21 @@
 <!-- QA-evidence comment for NEARS-1018 — Atlassian MCP unresponsive at post time (2 attempts, timeout).
-     Conductor: relay this verbatim as the QA comment. -->
+     Conductor: relay this verbatim as the QA comment. UPDATED with delta re-QA (fix-cycle 1) — final verdict PASS. -->
+
+# ⬆ FINAL (delta re-QA, fix-cycle 1): **PASS**
+
+**Delta re-QA verdict: PASS** — same device/session (emulator-5554, hot restart of the worktree build). Fix under test: skip guard re-keyed on the RAW `image` field (`hasRealImage(raw, full)`, both featured loops).
+
+| AC (delta) | Result | Evidence | Logs |
+|---|---|---|---|
+| AC3 — banner 28 (raw image NULL, placeholder `image_full_url`) absent | **PASS** | Carousel now **4 slides / 4 dots**; full paging cycle has period 4 = [18, 19, 20, 27]; no `PhotoHeroCard-[<'banner-28'>]` in any widget-tree dump; its `(NM|NM|NM)` window signature gone. `delta-ac3-4-dots-carousel.png` | clean |
+| Sweep — guard didn't over-skip | **PASS** | All 4 real-image slides render with own headline/CTA at each cycle position; 18+27 dup pair intact as distinct slides; tap banner-19 → Fresh Mart Grocery (store 2) opened (`delta-tap-banner19-fresh-mart.png`) | clean (no runtime errors) |
+
+**Backstop:** banner suite 29/29 green — the AC3 unit pin now feeds the REAL contract (null raw `image` + placeholder `image_full_url` → skipped).
+
+---
+
+# Original full QA (fix-cycle 0): FAIL — kept below for the record
+
 **QA [8] verdict: FAIL** (fix-cycle 0) — device `emulator-5554` (Android), UserApp debug build from worktree `feat/NEARS-1018-banner-slides`, backend `:8000` (worktree-identical code, verified `git diff` vs primary HEAD), zone-1 guest session.
 
 | AC | Result | Evidence | Logs |
