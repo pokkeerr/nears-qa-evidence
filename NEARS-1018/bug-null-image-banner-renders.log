@@ -1,0 +1,5 @@
+# AC3 bug — banner 28 (image NULL in DB) still renders: backend substitutes placeholder image_full_url
+# GET /api/v1/banners?featured=1 (zoneId:[1]) excerpt:
+{"id": 28, "title": "QA-1018 null-image banner", "image": null, "image_full_url": "http://127.0.0.1:8000/public/assets/admin/img/900x400/img1.jpg"}
+# Root cause: Admin/app/CentralLogics/helpers.php get_full_url() 'banner' => asset('public/assets/admin/img/900x400/img1.jpg') when image is null/missing — contract never emits null image_full_url, so the Flutter-side null/empty guard (banner_controller.dart) cannot fire.
+# Live: _BannerDots count = 5 (expected 4); PhotoHeroCard-[<'banner-28'>] built; placeholder img1.jpg present in image cache.

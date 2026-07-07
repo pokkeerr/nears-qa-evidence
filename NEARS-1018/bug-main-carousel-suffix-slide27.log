@@ -1,0 +1,9 @@
+# regression bug (pre-existing path, NOT changed by NEARS-1018): main promo carousel still uses the index-suffix hack
+Where: UserApp/lib/features/banner/controllers/banner_controller.dart _prepareBanner() (main, non-featured list)
+With the QA-seeded duplicate (banner 27 shares banner 18's image) + banner 1's missing image file (both 1 and 28 resolve to the same backend placeholder), the module-home main carousel list becomes:
+  [1 -> img1.jpg, 18 -> d-5bed135c7c.png, 19 -> ..., 20 -> ..., 27 -> 'd-5bed135c7c.png4', 28 -> 'img1.jpg5']
+Verified live (grocery module home, 6 dots): suffixed URLs are dead:
+  curl .../storage/banner/d-5bed135c7c.png4  -> 404
+  curl .../public/assets/admin/img/900x400/img1.jpg5 -> 404
+CachedNetworkImage swallows the 404 silently (errorWidget fallback; no [FAIL]/[ERR] log line, no runtime error) -> 2 of 6 slides render fallback imagery. Tap pairing still correct (tapped suffixed slide 27-main -> Nears Mart store opened).
+Recommend: port the NEARS-1018 FeaturedBannerSlide model to the main list (same defect class the ticket fixed for featured).

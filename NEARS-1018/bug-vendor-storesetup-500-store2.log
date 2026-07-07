@@ -1,0 +1,15 @@
+# regression bug (pre-existing, NOT this ticket): vendor panel Store Config 500 for store 2
+GET /vendor-panel/business-settings/store-setup as ahmed.khan@demo.com (store 2 Fresh Mart Grocery)
+ErrorException: Undefined array key 1 — resources/views/vendor-views/business-settings/restaurant-index.blade.php:302
+Laravel 12.61.1 / PHP 8.5.6, HTTP 500. Store 1 (demo.store@gmail.com) renders the same page fine.
+                                <input type="number" name="maximum_delivery_time" class="form-control"
+                                    placeholder="Max: 20"
+                                    value="{{ explode(' ', explode('-', $store->delivery_time)[1])[0] }}"
+                                    title="{{ translate('messages.maximum_delivery_time') }}">
+                                <select name="delivery_time_type" class="form-control text-capitalize" required>
+                                    <option value="min"
+                                        {{ explode(' ', explode('-', $store->delivery_time)[1])[1] == 'min' ? 'selected' : '' }}>
+                                        {{ translate('messages.minutes') }}</option>
+                                    <option value="hours"
+                                        {{ explode(' ', explode('-', $store->delivery_time)[1])[1] == 'hours' ? 'selected' : '' }}>
+                                        {{ translate('messages.hours') }}</option>
