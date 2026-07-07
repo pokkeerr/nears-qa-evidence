@@ -1,0 +1,34 @@
+# NEARS-1023 QA followup — pre-gate fail-open when StoreController.store mismatches the tapped item's store
+# (designed fail-open per ClosedStoreGate contract; 403 backstop + typed extractor surfaced the correct
+#  localized message, optimistic row reconciled away. NOT a task bug — recorded for a hardening followup.)
+#
+# Repro observed live (emulator-5556, worktree feat/NEARS-1023-closed-store-403, 2026-07-07):
+#  1. Cart holds an item from store A (Canned Beans, store!=8, leftover cart).
+#  2. Open closed store 8 screen via Recommended-For-You; open cart screen (View Cart) and return
+#     -> StoreController._store now points at the cart's store, NOT store 8.
+#  3. Grid quick-add "+" on a store-8 item: item payload has no store_details (list endpoints never
+#     attach it; only GET /items/details/{id} does), fallback finds store.id != item.storeId -> null
+#     -> gate fail-opens -> POST fires:
+#
+# 07-07 13:25:44.951 I flutter : [NET] POST endpoint=/api/v1/customer/cart/add
+# 07-07 13:25:45.072 I flutter : [NET] endpoint=/api/v1/customer/cart/add http_status=403
+# 07-07 13:25:45.073 I flutter : [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=a7beffc1-b747-4b33-b963-f4b5d791ddbc
+# 07-07 13:26:02.627 I flutter : [NET] POST endpoint=/api/v1/customer/cart/add
+# 07-07 13:26:02.764 I flutter : [NET] endpoint=/api/v1/customer/cart/add http_status=403
+# 07-07 13:26:02.766 I flutter : [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=330bda0c-53ad-498a-b8b2-491a9f3eb257
+#
+# User-visible outcome in this state: localized "Store is closed now" snackbar (mapped from the
+# structured 403 code store_closed), no lasting cart row (sub-second optimistic flash) — i.e. the
+# Part-B extractor covered the gap exactly as designed. On a clean entry (fresh /stores/details/8
+# fetch) the pre-gate blocks with NO network call (verified twice, two different items).
+#
+# AC3 mapped-message demonstration (store 12 flipped active=0 mid-session via Store-panel UI):
+# 07-07 14:07:41.740 I flutter : [NET] POST endpoint=/api/v1/customer/cart/add
+# 07-07 14:07:41.913 I flutter : [NET] endpoint=/api/v1/customer/cart/add http_status=403
+# 07-07 14:07:41.916 I flutter : [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=464a9c64-fecc-4a90-9c46-bdc971e23db9
+# 07-07 14:07:41.918 I flutter : [ERR] msg="error snackbar shown"
+# Snackbar content-desc: "Store is closed now"  (mapped, NOT add_to_cart_failed)
+#
+# BE-log note: grep of Admin/storage/logs/laravel.log for correlation_id 464a9c64-... returned no
+# line — the NEARS-463 store_closed 403 guard returns the response WITHOUT a backend log entry
+# (guard response, not an exception). FE [FAIL] + echoed X-Request-Id is the only record.
