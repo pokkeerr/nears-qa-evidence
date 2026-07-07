@@ -37,6 +37,7 @@
 - [`bug-null-image-banner-renders.log`](bug-null-image-banner-renders.log)
 - [`bug-vendor-storesetup-500-store2.log`](bug-vendor-storesetup-500-store2.log)
 - [`progress.md`](progress.md)
+- [`qa-comment.md`](qa-comment.md)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1018/` · public-repo scrub policy (no live secrets; verified clean).*
