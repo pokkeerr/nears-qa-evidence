@@ -1,0 +1,22 @@
+NEARS-1021 AC1 — directStore boot entry misroutes to Home (empty slug in resolver store route)
+
+== Cold boot, single-store zone (zone 3, store 59), GUEST and LOGGED-IN — identical ==
+[INFO] route: navigating to splash screen
+analytics: sectors_shown {sectors_count: 1, zone_id: 3}
+analytics: store_direct_opened {store_id: 59, module_id: 4, zone_id: 3}   <- resolver directStore branch ran
+[INFO] route: initial route module=qa-single-store-grocery                 <- but nav lands on INITIAL (home)
+[INFO] home load started
+analytics: store_auto_opened {store_id: 59, module_id: 4, zone_id: 3}       <- home single-store hero impression
+=> Screen from ~1s onward = DashboardScreen (Basket/Home/Profile bottom nav). StoreScreen NEVER mounts.
+
+== Decisive A/B via store deep link (same GetPage the resolver navigates to) ==
+A) WITH slug   /store/dama-baqala?id=3168&page=module  -> GET /stores/details/3168 200 -> StoreScreen renders. PASS
+B) EMPTY slug  /store/?id=3168&page=module             -> "route: initial route module=1" -> lands on HOME. FAIL
+
+Root cause: DestinationResolver.defaultStoreNavigation (destination_resolver.dart:130-138) builds
+RouteHelper.getStoreRoute(id, page:'module', slug:'', autoOpened:true) -> URL "/store/?id=..&auto_opened=true".
+The empty slug path segment does not match the GetPage name '/store/:slug' (route_helper.dart:718). With no
+unknownRoute configured on GetMaterialApp (main.dart:248-275), GetX serves the first registered page = `initial`
+(route_helper.dart:532, DashboardScreen). The Home single-store hero path works because it passes the real
+store.slug (single_store_hero_view.dart:143). No error is logged — the misroute is SILENT and store_direct_opened
+fires even though no visual direct-open occurred.
