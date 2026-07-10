@@ -1,0 +1,15 @@
+# PRE-EXISTING (not introduced by NEARS-1068). Out-of-zone store deep-link relocation:
+# checkModuleId (route_helper.dart:1671) reports module match found=false because the
+# ModuleController.moduleList is still the PRIOR zone's modules at match time (relocation
+# to the store's zone hasn't refreshed it yet) -> shows 'no_module_found' error snackbar +
+# Get.offAllNamed(home), so the user lands on home-for-new-zone instead of the store screen.
+# Reproduced with the CORRECT module slug (grocery-food), so it is not a bad-param artifact.
+# Properly logged ([ERR] "error snackbar shown") - NOT a silent failure. Fail-soft: no NPE, no blank, no crash.
+07-10 17:48:43.247 flutter : [INFO] msg="deep link store params storeID=3168 moduleId=grocery-food page=store"
+07-10 17:48:44.016 flutter : [INFO] msg="route: module match found=false for slug=grocery-food"
+07-10 17:48:44.017 flutter : Exception: app_error
+07-10 17:48:44.017 flutter : [ERR] msg="error snackbar shown"
+07-10 17:48:45.038 flutter : [NET] endpoint=/api/v1/stores/details/dama-baqala-baqala-3 http_status=200
+07-10 17:48:46.897 flutter : analytics: view_store {store_id: 3168}
+07-10 17:48:47.393 flutter : analytics: sectors_shown {sectors_count: 1, zone_id: 400}
+07-10 17:48:48.461 flutter : [FAIL] endpoint=/api/v1/stores/details/59 http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=5e84b4fc-...
