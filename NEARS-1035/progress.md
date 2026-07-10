@@ -1,0 +1,15 @@
+# NEARS-1035 QA progress (cycle 0) — build 021d2028, backend :8035 (worktree)
+- AC1a PASS: items?flash_sale_id=1 + moduleId:2 + zoneId:[2] -> 200 sale 1, ids exactly [215,251] (ac1a-raw.json)
+- AC1b PASS: unknown id 999 -> 403 {code:flash_sale,message:Not found}; missing id -> 403 required (ac1b-unknown-id.json)
+- AC2 PASS: zoneId:[2]+moduleId:1 -> [215,251] leak item 3 ABSENT (stores 13/17 = zone 2); zoneId:[1] -> [3,105,8] unchanged; crafted zoneId [true]/{}/garbage/[1,true]/null -> {} 200 fail-closed no leak (ac2-*.json); module-mirror moduleId:2 -> sale 2 items [390,425,27,122] all module 2
+- AC3 PASS FORCED-LIVE: header-gated QueryException injection (temp edit, REVERTED, git clean) -> both endpoints 500 {errors:[{code:flash_sale,...}]}; [FAIL] get_flash_sales / get_flash_sale_items in laravel.log w/ request_id; message scrubbed to "query error 42S02" — NO SQL, NO bound value (SENSITIVE_BOUND_VALUE grep=0); echoed X-Request-Id header == log correlation_id (join verified) (ac3-*.json, ac3-fail-log-excerpt.log)
+- ON-DEVICE (emulator-5554, fresh install, worktree app @021d2028 vs backend :8035):
+  - Cache/cold-open PASS x2: fresh-install module home (Grocery, zone 2) rail = Dish Soap 500ml + Navel Oranges ONLY (no Banana leak), network payload first paint (rail-zone2-grocery.png)
+  - REGRESSION BUG (pre-existing, base-reproduced): details entry from rail -> setState-during-build throw kills fetch -> stuck shimmer (bug-details-initstate-update-during-build.log, bug-details-stuck-shimmer.png). QA-TEMP shim (skip reload-clear update()) applied for downstream AC demos, REVERTED after (worktree clean @021d2028)
+  - AC1 on-device PASS (w/ shim): details grid renders 215/251, [NET] items 200, no FAIL/ERR (details-happy-zone2.png)
+  - AC5 PASS: temp BE 403 fault -> NearsErrorRetry ("Something went wrong" + Retry); Retry re-fires (items req 2->3); after fault revert Retry loads grid (details-error-retry-403.png)
+  - AC4 PASS live + tests: temp BE empty fault -> "No item available" title-only empty state, distinguishable from error state, NO [FAIL] for the 200-empty (details-loaded-empty.png); widget tests (a)-(d) cover all 4 slots
+  - Rail degrade PASS: temp BE 500 -> rail SELF-HIDES on refresh (no shimmer, no hole; rail-degrade-hidden.png), [FAIL] w/ endpoint+500+ApiFailure+correlation_id; BE laravel.log [FAIL] get_flash_sales SAME request id (join proven); revert -> refresh -> rail returns
+  - Regression sweep: zone-1 rail normal = Banana/Red Apples/Orange Juice [3,105,8] (rail-zone1-normal.png); rail->item-detail sheet OK; pagination >10 not reachable (no fixture); admin count column + RTL not run (bounded)
+  - Non-flash [FAIL] noted: get-zone-id 404 during map pick (unrelated, followup)
+- Automated: phpunit 776/776 OK; flutter test pending

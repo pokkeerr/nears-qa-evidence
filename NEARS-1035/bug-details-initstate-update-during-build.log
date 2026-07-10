@@ -1,0 +1,30 @@
+I/flutter (11108): ----------------FIREBASE CRASHLYTICS----------------
+I/flutter (11108): setState() or markNeedsBuild() called during build.
+I/flutter (11108): This GetBuilder<FlashSaleController> widget cannot be marked as needing to build because the framework is already in the process of building widgets. A widget can be marked as needing to be built during the build phase only if one of its ancestors is currently building. This exception is allowed because the framework builds parent widgets before children, which means a dirty descendant will always be built. Otherwise, the framework might not visit this widget during this build phase.
+I/flutter (11108): The widget on which setState() or markNeedsBuild() was called was:
+I/flutter (11108):   GetBuilder<FlashSaleController>
+I/flutter (11108): The widget which was currently being built when the offending call was made was:
+I/flutter (11108):   FutureBuilder<void>
+I/flutter (11108): #0      Element.markNeedsBuild.<anonymous closure> (package:flutter/src/widgets/framework.dart:5373:9)
+I/flutter (11108): #1      Element.markNeedsBuild (package:flutter/src/widgets/framework.dart:5385:6)
+I/flutter (11108): #2      State.setState (package:flutter/src/widgets/framework.dart:1219:15)
+I/flutter (11108): #3      GetStateUpdaterMixin.getUpdate (package:get/get_state_manager/src/simple/get_state.dart:22:18)
+I/flutter (11108): #4      ListNotifierMixin._notifyUpdate (package:get/get_state_manager/src/simple/list_notifier.dart:45:15)
+I/flutter (11108): #5      ListNotifierMixin.refresh (package:get/get_state_manager/src/simple/list_notifier.dart:38:5)
+I/flutter (11108): #6      GetxController.update (package:get/get_state_manager/src/simple/get_controllers.dart:22:7)
+I/flutter (11108): #7      FlashSaleController.getFlashSaleWithId (package:sixam_mart/features/flash_sale/controllers/flash_sale_controller.dart:101:7)
+I/flutter (11108): #8      _FlashSaleDetailsScreenState.initState (package:sixam_mart/features/flash_sale/screens/flash_sale_details_screen.dart:34:37)
+I/flutter (11108): #9      StatefulElement._firstBuild (package:flutter/src/widgets/framework.dart:595
+I/flutter (11108): ----------------------------------------------------
+
+--- QA attribution note (NEARS-1035 run, 2026-07-10) ---
+Reproduced deterministically on BOTH the NEARS-1035 build (021d2028) AND base (7cf8783c,
+verified by hot-restarting base flash_sale/ files): entering /flash-sale-details-screen from the
+module-home rail throws "setState() or markNeedsBuild() called during build" (controller line
+~101: sync update() inside getFlashSaleWithId(reload=true) called from initState while the
+module-home rail's GetBuilder<FlashSaleController> is live). The throw aborts the async fn
+BEFORE the network call -> /api/v1/flash-sales/items is NEVER requested -> details grid stuck
+on shimmer forever from this nav path. PRE-EXISTING (introduced with NEARS-766 reload=true),
+NOT caused by NEARS-1035. Widget tests pass because their harness has no second live
+GetBuilder. Suggested fix direction: defer the reload-clear update() past the build phase
+(e.g. schedule post-frame) or guard on SchedulerBinding phase.
