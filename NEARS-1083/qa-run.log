@@ -1,0 +1,34 @@
+NEARS-1083 — backend/telemetry live QA (creds redacted)
+Stack: Admin backend :8000 + OpenObserve :5080 (primary tree, already running)
+Date: 2026-07-11
+
+AC1 root login — GET http://localhost:5080/api/default/streams (-u root)  -> HTTP 200  PASS
+AC2 OTLP auth  — POST http://localhost:5080/api/default/v1/traces
+                 header from Admin/.env OTEL_EXPORTER_OTLP_HEADERS ("Authorization=Basic <TOKEN>")
+                 body {"resourceSpans":[]}  -> HTTP 200 (not 401)  PASS
+AC3 live span + correlation
+   3a tracer class: php artisan tinker -> OpenTelemetry\SDK\Trace\Tracer (NOT Noop)  PASS
+   3b drove: curl -H 'zoneId:[1,2]' -H 'moduleId:1' /api/v1/stores/get-stores/all -> HTTP 200
+   3c OO traces query (stream "default"):
+        total=1
+        trace_id=05ce2efa1d78e991545ec31d48e74ca5
+        url_path=/api/v1/stores/get-stores/all
+        http_response_status_code=200  service_name=nears-admin   PASS
+      metrics streams also live (http_server_request_duration, db_client_operation_duration,
+      otel_trace_span_processor_spans, otel_logs_log_processor_logs) -> full OTLP pipeline flows
+      No standalone "logs" stream: successful get-stores req emitted no Log:: line
+      (logs stream populates on error/Log:: paths) -> per AC3, not a FAIL
+AC4 docs hardening (worktree)
+   Admin/.env.example: coupling (SAME root email:pw), v0.91 first-init-only rebind gotcha,
+      FULL enable-recipe, NoopTracer trap + verify cmd, placeholder <BASE64_OF_email:password>  PASS
+   ops/observability/.env.example: complexity rule (8-128, upper/lower/digit/special),
+      coupling pointer -> Admin/.env OTEL_EXPORTER_OTLP_HEADERS + check-otlp-creds.sh, placeholder pw  PASS
+
+Script under test — worktree ops/observability/check-otlp-creds.sh (live, OO_USER/OO_PASS overrides):
+   [1/2] root login  -> HTTP 200 PASS
+   [2/2] OTLP ingest -> HTTP 200 PASS
+   exit 0 ; leak-check: no plaintext password, no base64 token in output  PASS
+
+Config-parse sanity — worktree Admin/.env.example via vlucas/phpdotenv (createImmutable):
+   PARSE OK, 75 vars; OTEL_EXPORTER_OTLP_HEADERS -> Authorization=Basic <PLACEHOLDER> (quoted, space-safe);
+   OTEL_SDK_DISABLED=true (safe default). temp .env removed.  PASS
