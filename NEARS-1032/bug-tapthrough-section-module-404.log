@@ -1,0 +1,14 @@
+07-10 17:31:40.224 I/flutter (29350): [NET] GET endpoint=/api/v1/items/details/60
+07-10 17:31:40.426 I/flutter (29350): [NET] endpoint=/api/v1/items/details/60 http_status=404
+07-10 17:31:40.427 I/flutter (29350): [FAIL] endpoint=/api/v1/items/details/60 http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=3b3f0ecd-9d5e-4fe8-8deb-f61c07c6e172
+
+# ROOT CAUSE (QA analysis, NEARS-1032):
+# Global-search item tap-through switches to section.moduleId, but items/details filters by the item's OWN module_id.
+# 7 zone-1 items have item.module_id != store.module_id (mis-seeded). Search API (1027) groups them by store-module,
+# so tap-through switches to the store-module and the detail 404s.
+# Backend proof (item 60 "Chicken Drumsticks", store 7 HealthCare Pharmacy):
+#   items/details/60 moduleId=1(grocery, item's real module) -> 200
+#   items/details/60 moduleId=2 -> 404 ; moduleId=3(pharmacy, store/section module) -> 404
+# App switched to pharmacy(3) -> details/60 -> 404 -> error UI "Something went wrong" + paired [FAIL] log (NOT silent).
+# Suggested fix: guard should switch to the tapped PRODUCT's module_id (present in the /search/global payload), not section.moduleId.
+# Affected zone-1 items: 39,47,60,73,75,76,77.
