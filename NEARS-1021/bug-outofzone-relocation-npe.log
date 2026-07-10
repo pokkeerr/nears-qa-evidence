@@ -1,0 +1,25 @@
+I/flutter (24381): [NET] GET endpoint=/api/v1/stores/details/dama-baqala-baqala-3
+I/flutter (24381): [NET] endpoint=/api/v1/stores/details/dama-baqala-baqala-3 http_status=200
+I/flutter (24381): ----------------FIREBASE CRASHLYTICS----------------
+I/flutter (24381): Null check operator used on a null value
+I/flutter (24381): #0      LocationController.setStoreAddressToUserAddress (package:sixam_mart/features/location/controllers/location_controller.dart:1094:34)
+I/flutter (24381): #1      StoreController.getStoreDetails (package:sixam_mart/features/store/controllers/store_controller.dart:897:11)
+I/flutter (24381): #2      _StoreScreenState.initDataCall.<anonymous closure> (package:sixam_mart/features/store/screens/store_screen.dart:118:15)
+I/flutter (24381): #3      _StoreScreenState.initDataCall (package:sixam_mart/features/store/screens/store_screen.dart:111:5)
+I/flutter (24381): 📊 analytics: sectors_shown {sectors_count: 3, zone_id: 400}
+
+== ALSO REPRODUCES IN-ZONE (store 59, zone 3 = current zone), same NPE ==
+deep link store params storeID=59 moduleId= page=
+[NET] endpoint=/api/v1/stores/details/nears-257-fixture-store http_status=200   <- fetch by SLUG (1024 exemption) OK
+Null check operator used on a null value
+#0 LocationController.setStoreAddressToUserAddress (location_controller.dart:1094:34)   <- for (m in modules!) ; getModules() returned null moduleList
+#1 StoreController.getStoreDetails (store_controller.dart:897:11)                        <- gated on `if (slug.isNotEmpty)`
+#2 _StoreScreenState.initDataCall (store_screen.dart:118)
+=> Screen renders BLANK (a11y tree empty). Affects EVERY store deep-link (in-zone AND out-of-zone).
+
+== CLASSIFICATION: PRE-EXISTING (regression_bug), NOT caused by NEARS-1021 ==
+- setStoreAddressToUserAddress call in getStoreDetails: added by NEARS-257 (ecf85b54), PRESENT on base feat/human-review.
+- `modules!` null-check (location_controller.dart:1094): blame NEARS-568/257 — ancestors of human-review.
+- slug-forwarding that reaches it: NEARS-1024 (c3ddcb7d).
+- NEARS-1021 fix commit 65683e32 touched ONLY route_helper.dart + 2 tests — none of the crash path.
+- NEARS-1021 boot directStore path (autoOpened, NOT fromDeeplink → slug '') never calls this helper → AC1 crash-free.
