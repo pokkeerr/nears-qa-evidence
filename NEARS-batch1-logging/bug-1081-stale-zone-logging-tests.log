@@ -1,0 +1,9 @@
+# NEARS-1081 task_bug — stale unit tests fail (automated backstop RED)
+# File: UserApp/test/features/location/location_repository_zone_logging_test.dart
+# The fix makes getZone pass logError:false UNCONDITIONALLY (repo self-classifies).
+# These 2 tests still assert the OLD NEARS-674 contract (logError:true) and now FAIL:
+#   L96  'real coords + 500 -> getData keeps logError:true'  Expected: true  Actual: <false>
+#   L118 'valid coords + 200 ... expect lastLogError isTrue' Expected: true  Actual: <false>
+# flutter test result on touched files: +55 -2 (both failures = this file).
+# Runtime ACs unaffected (5xx still logged by repo; 200 parses) — but the change ships a red,
+# self-contradicting test file. Fix: update the 2 expectations to isFalse (logError:false).
