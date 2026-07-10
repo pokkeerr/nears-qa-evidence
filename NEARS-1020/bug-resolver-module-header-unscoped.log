@@ -1,0 +1,31 @@
+# Bug: resolver module fetch unscoped (wrong header) -> wrong tier + stuck spinner
+# Backend contract probes (curl):
+#   -H 'zoneId: [364]' -> [(1, active_stores 3)]  (scoped, correct)
+#   -H 'zone_id: 364'  -> [(1,15),(2,5),(3,5),(5,0)] (IGNORED -> unscoped)
+# App boot 12:05 (guest, persisted zone_ids=[364], no cached module):
+07-10 12:05:53.697 I/flutter ( 7542): 📊 analytics: app_open {}
+07-10 12:05:53.722 I/flutter ( 7542): [INFO] msg="route: building splash route, hasData=false"
+07-10 12:05:53.821 I/flutter ( 7542): [INFO] msg="route: navigating to splash screen"
+07-10 12:05:54.067 I/flutter ( 7542): [NET] GET endpoint=/api/v1/config
+07-10 12:05:54.077 I/flutter ( 7542): [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+07-10 12:05:54.447 I/flutter ( 7542): [NET] endpoint=/api/v1/config http_status=200
+07-10 12:05:54.456 I/flutter ( 7542): [INFO] msg="splash: deeplink resolved canRoute=true"
+07-10 12:05:54.466 I/flutter ( 7542): [NET] GET endpoint=/api/v1/config/get-zone-id
+07-10 12:05:54.466 I/flutter ( 7542): [NET] GET endpoint=/api/v1/module
+07-10 12:05:54.564 I/flutter ( 7542): [NET] endpoint=/api/v1/module http_status=200
+07-10 12:05:54.626 I/flutter ( 7542): [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+07-10 12:05:54.627 I/flutter ( 7542): [INFO] msg="location: inZone=true"
+07-10 12:05:54.630 I/flutter ( 7542): 📊 analytics: sectors_shown {sectors_count: 3, zone_id: 364}
+07-10 12:05:54.638 I/flutter ( 7542): [INFO] msg="route: initial route module=null"
+07-10 12:05:54.663 I/flutter ( 7542): [INFO] msg="home load started"
+07-10 12:05:54.763 I/flutter ( 7542): [NET] GET endpoint=/api/v1/config/get-zone-id
+07-10 12:05:54.853 I/flutter ( 7542): [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+07-10 12:05:54.854 I/flutter ( 7542): [INFO] msg="location: inZone=true"
+07-10 12:05:54.858 I/flutter ( 7542): [NET] GET endpoint=/api/v1/banners
+07-10 12:05:54.867 I/flutter ( 7542): [NET] GET endpoint=/api/v1/module
+07-10 12:05:54.869 I/flutter ( 7542): [NET] GET endpoint=/api/v1/stores/get-stores/all
+07-10 12:05:54.927 I/flutter ( 7542): [NET] endpoint=/api/v1/banners http_status=200
+07-10 12:05:55.013 I/flutter ( 7542): [NET] endpoint=/api/v1/module http_status=200
+07-10 12:05:55.070 I/flutter ( 7542): [NET] endpoint=/api/v1/stores/get-stores/all http_status=200
+# -> sectors_shown count=3 in a 1-module zone (unscoped list), tier=moduleChooseHome, nav module=null
+# -> home body = permanent CircularProgressIndicator (module_view.dart:48 length==1 spinner, gate disarmed)
