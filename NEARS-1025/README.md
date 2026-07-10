@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1025
 
-**cycle-1 re-QA: FAIL — Change Location pick still red-screens**
+**cycle-2 FAIL — AC11-a Null-check moved to PricingService:672 (async resolution race), 5th unguarded zoneData!**
 
-**8 screenshot(s).** Click any thumbnail for full resolution.
+**12 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -18,13 +18,21 @@
 <tr>
 <td align="center" width="33%"><a href="c1-11-changeloc-sheet.png"><img src="c1-11-changeloc-sheet.png" width="240"></a><br><sub>c1 11 changeloc sheet</sub></td>
 <td align="center" width="33%"><a href="c1-11b-after-pick-dhaka.png"><img src="c1-11b-after-pick-dhaka.png" width="240"></a><br><sub>c1 11b after pick dhaka</sub></td>
+<td align="center" width="33%"><a href="c2-10-panel-renders.png"><img src="c2-10-panel-renders.png" width="240"></a><br><sub>c2 10 panel renders</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c2-11a-inzone-pick-checkout.png"><img src="c2-11a-inzone-pick-checkout.png" width="240"></a><br><sub>c2 11a inzone pick checkout</sub></td>
+<td align="center" width="33%"><a href="c2-11b-pricing-crash.png"><img src="c2-11b-pricing-crash.png" width="240"></a><br><sub>c2 11b pricing crash</sub></td>
+<td align="center" width="33%"><a href="c2-regr-settled-inzone-checkout.png"><img src="c2-regr-settled-inzone-checkout.png" width="240"></a><br><sub>c2 regr settled inzone checkout</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
 - [`bug-c1-changeloc-pick-redscreen.log`](bug-c1-changeloc-pick-redscreen.log)
+- [`bug-c2-changeloc-pick-pricing-redscreen.log`](bug-c2-changeloc-pick-pricing-redscreen.log)
 - [`bug-changeloc-inzone-checkout-redscreen.log`](bug-changeloc-inzone-checkout-redscreen.log)
 - [`curl-matrix.txt`](curl-matrix.txt)
+- [`progress.md`](progress.md)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1025/` · public-repo scrub policy (no live secrets; verified clean).*
