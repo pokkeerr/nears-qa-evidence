@@ -1,0 +1,48 @@
+NEARS-1070 QA curl matrix — worktree backend :8070 @ 97265813 — Fri Jul 10 23:40:12 +04 2026
+Legend: zone2=DEFAULT(is_default=1), zone1=non-default. item52=store9/zone2, item2=store2/zone1, store8=zone2, store1=zone1.
+
+===== AC1/AC3 items/details/52 (default-zone) header-less/empty/whitespace -> 403 out_of_zone =====
+# 1a NO zoneId
+{"errors":[{"code":"out_of_zone","message":"Item not available in your zone"}]}
+[HTTP 403]
+# 1b zoneId:'' empty
+{"errors":[{"code":"out_of_zone","message":"Item not available in your zone"}]}
+[HTTP 403]
+# 1c zoneId whitespace
+{"errors":[{"code":"out_of_zone","message":"Item not available in your zone"}]}
+[HTTP 403]
+
+===== AC2/AC3 stores/details/8 (default-zone, numeric) header-less/empty/whitespace -> 403 =====
+# 2a NO zoneId
+{"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+[HTTP 403]
+# 2b zoneId:'' empty
+{"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+[HTTP 403]
+# 2c zoneId whitespace
+{"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+[HTTP 403]
+
+===== AC3 non-default zone(1) targets header-less -> 403 =====
+# 3a items/details/2
+{"errors":[{"code":"out_of_zone","message":"Item not available in your zone"}]}
+[HTTP 403]
+# 3b stores/details/1
+{"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+[HTTP 403]
+
+===== AC4 valid in-zone header -> 200 full payload (ZERO regression) =====
+# 4a items/details/52 zoneId [2] (truncated body):
+{"id":52,"name":"Strawberries","description":"Description: Juicy, sweet, and full of flavor, our fresh Strawberries are perfect for snacking, smoothies, desserts, and more. Harvested from trusted farms, these berries are ...[store_details present=True]
+# 4b stores/details/8 zoneId [2] (truncated body):
+{"id":8,"name":"Abu Dhabi Fresh Market","logo":"2026-03-01-cf3b30797370.png","latitude":"24.4539","longitude":"54.3773","address":"Al Wahda Mall, Abu Dhabi","footer_text":null,"minimum_order":10,"schedule_order":false,"s
+
+===== AC5 stores/details by SLUG (share-link exemption) -> 200 =====
+# 5a slug NO zoneId
+[HTTP 200] abu-dhabi-fresh-market no-header
+# 5b slug zoneId:[]
+[HTTP 200] abu-dhabi-fresh-market zoneId:[]
+
+===== AC8 customer/cart/add regression — write-path fail-closed header-less -> 403 (token minted+revoked via tinker) =====
+(happy-path covered by AC4 same-predicate 200 + comment-only CartController diff + phpunit)
+# 8a header-less cart/add: 403 out_of_zone observed live; carts rows created = 0 (no mutation)

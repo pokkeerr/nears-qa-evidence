@@ -1,0 +1,18 @@
+PRE-EXISTING (NOT caused by NEARS-1070) — flagged during QA, non-blocking.
+
+ItemController::get_product catch-all logs a FULL exception stack on a routine
+"item not found" 404. When an item id resolves to null under the module/active/
+zone/store scopes (e.g. item 43 -> inactive store 11), the code dereferences
+$item->store_id (null) at ItemController.php:630 BEFORE the null-guarded early
+return, throwing ErrorException, which the catch rewrites to a 404 but also
+\Log::error($e)'s the whole stack. Observed lines (from QA exploratory probes of
+the inactive-store item, NOT from any AC test):
+
+[2026-07-10 23:34:57] local.ERROR: ErrorException: Attempt to read property "store_id" on null in .../Api/V1/ItemController.php:630
+[2026-07-10 23:34:57] local.ERROR: ErrorException: Attempt to read property "store_id" on null in .../Api/V1/ItemController.php:630
+[2026-07-10 23:35:22] local.ERROR: ErrorException: Attempt to read property "store_id" on null in .../Api/V1/ItemController.php:630
+
+Path is identical pre/post NEARS-1070 (the storeZoneAllowed early-return short-
+circuits on $item===null, then line 630 derefs null). Concern: log noise +
+null-deref on a normal 404. Suggest: guard $item before the store lookup and
+downgrade the not-found case to a non-ERROR log. Does NOT affect any NEARS-1070 AC.
