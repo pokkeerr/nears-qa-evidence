@@ -1,0 +1,82 @@
+############ NEARS-1025 CART-ADD ZONE GUARD - CURL MATRIX ############
+date: 2026-07-10T14:14:33Z   backend: http://127.0.0.1:8091/api/v1 (worktree @7f374e1d)
+
+>>> item3 qty BEFORE:
+>>> item145 qty BEFORE:
+
+======================================================================
+CELL: 1 out_of_zone new-row: item3 zone1-store, zoneId=[2] -> expect 403 out_of_zone, NO row
+HTTP=403
+BODY: {"errors":[{"code":"out_of_zone","message":"Item not available in your zone"}]}
+
+>>> item3 row after CELL1 (expect NONE):
+
+======================================================================
+CELL: 3 in-zone add: item3 zone1-store, zoneId=[1] -> expect 200, row persists
+HTTP=200
+BODY: [{"id":326,"user_id":6,"module_id":1,"item_id":205,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":7.68,"quantity":1,"variation":[],"created_at":"2026-07-10T11:39:11.000000Z","updated_at":"2026-07-10T11:39:11.000000Z","item":{"id":205,"name":"Seedless Grapes","description":"Seedless Grapes \u2014 fresh and ready for delivery from Fresh supermarket.","image
+
+>>> item3 row after CELL3 (expect qty=1):
+330	1	1
+
+======================================================================
+CELL: 2 out_of_zone increment: item3 has row, zoneId=[2] -> expect 403, qty stays 1
+HTTP=403
+BODY: {"errors":[{"code":"out_of_zone","message":"Item not available in your zone"}]}
+
+>>> item3 row after CELL2 (expect qty STILL 1):
+330	1
+
+======================================================================
+CELL: 4 SECURITY absent zoneId header: item145 default-zone2-store, NO zoneId -> expect 403 out_of_zone (was 200 fail-open)
+HTTP=403
+BODY: {"errors":[{"code":"store_closed","message":"Store is closed at order time"}]}
+
+>>> item145 row after CELL4 (expect NONE):
+
+======================================================================
+CELL: 5 SECURITY empty-string zoneId '': item3 zoneId='' -> expect 403
+HTTP=403
+BODY: {"errors":[{"code":"out_of_zone","message":"Item not available in your zone"}]}
+
+======================================================================
+CELL: 6 malformed zoneId '[]': expect 403 (fail-closed)
+HTTP=403
+BODY: {"errors":[{"code":"out_of_zone","message":"Item not available in your zone"}]}
+
+======================================================================
+CELL: 6 malformed zoneId '{"x":1}': expect 403 (fail-closed)
+HTTP=403
+BODY: {"errors":[{"code":"out_of_zone","message":"Item not available in your zone"}]}
+
+======================================================================
+CELL: 6 malformed zoneId '"2"': expect 403 (fail-closed)
+HTTP=403
+BODY: {"errors":[{"code":"out_of_zone","message":"Item not available in your zone"}]}
+
+======================================================================
+CELL: 6 malformed zoneId 'null': expect 403 (fail-closed)
+HTTP=403
+BODY: {"errors":[{"code":"out_of_zone","message":"Item not available in your zone"}]}
+
+>>> item3 qty after CELL5+6 (expect STILL 1):
+330	1
+
+======================================================================
+CELL: 8b control: item145 zone2-store WITH zoneId=[2] -> expect 200 (guard is zone-specific)
+HTTP=403
+BODY: {"errors":[{"code":"store_closed","message":"Store is closed at order time"}]}
+
+>>> item145 row after CELL8b (expect qty=1):
+
+############ MATRIX DONE ############
+
+############ CORRECTED SECURITY CELLS (open zone-2 store 35 / item 95) ############
+CELL4-FIX SECURITY absent zoneId header: item95 OPEN default-zone2-store(35), NO zoneId
+  -> HTTP=403 {"errors":[{"code":"out_of_zone",...}]}  [was 200 fail-open before the fix] PASS
+  -> no cart row written (only pre-existing guest row 34 remained)
+CELL8b-FIX control: item95 zone2-store WITH zoneId=[2] -> HTTP=200 (in-zone add succeeds; guard is zone-specific) PASS
+CELL8-distinct: item145 CLOSED zone2-store(8), zoneId=[2] -> HTTP=403 {"code":"store_closed"} (distinct code, store_closed fires before/instead of out_of_zone; not masked) PASS
+NOTE CELL7 all_zone_service bypass: NO module in multi_food_db has all_zone_service=1 -> live-unverifiable;
+  covered by phpunit CartAddZoneGuardTest (all_zone_service bypass w/ header + absent header) -> PASS (8/8, 46 assertions).
+BE-LOG: each rejection emitted `local.WARNING: cart add rejected: item out of zone {correlation_id,item_id,store_id,store_zone_id}` — no PII. No ERROR/exception on cart/add.
