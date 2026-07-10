@@ -1,0 +1,26 @@
+NEARS-1033 task_bug — trending "near you" not refetched after a mid-session zone change
+Surface: UserApp global-search screen (GlobalSearchController.loadTrending / global_search_screen.dart)
+Severity: low-medium | breaks_ac: false (each AC demonstrable on a fresh open)
+
+Root cause (code):
+  global_search_controller.dart:107  Future<void> loadTrending() async {
+                                        if (_trendingLoaded) return;   // <-- guard
+                                        _trendingLoaded = true; ...
+  GlobalSearchController is a permanent GetxService (survives the whole session).
+  _trendingLoaded is set true on the FIRST global-search open and never reset, so
+  loadTrending() no-ops on every later open — including after the delivery zone changes.
+  The code comment says "loads ... once per open" but the singleton makes it once-per-SESSION.
+
+Live reproduction (emulator-5556, zone 1 = Dhaka has seeded trending, zone ~2/400 Abu Dhabi has none):
+  A) Open global search first in Abu Dhabi (empty trending) -> switch delivery address to Dhaka
+     -> reopen global search: NO "Trending near you" section (stale empty), though zone 1 HAS trending.
+     Observed idle labels (Dhaka, after Abu-Dhabi-first open): recent chips only, no trending header;
+     no [NET] GET /api/v1/search/trending fired on the Dhaka reopen.
+  B) Reverse: open first in Dhaka (trending shows Chicken/Pizza/Burger/Coffee/Salad/Grocery)
+     -> switch to Abu Dhabi -> reopen: still shows the zone-1 chips + "Trending near you" header,
+     no trending [NET] call fired (cached zone-1 data shown for an Abu Dhabi location).
+
+Impact: "Trending near you" can show another zone's trending (or none) after a zone change until
+        a full app restart — contradicts the zone-scoped "near you" intent. Not a crash; no [ERR].
+Suggested fix: reset _trendingLoaded on zone/address change (or key the cache by zoneId), or drop the
+        session guard and let loadTrending refetch per screen open (it is already cheap/decorative).
