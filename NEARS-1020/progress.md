@@ -42,3 +42,35 @@ on every request shutdown. Disabled via OTEL_SDK_DISABLED=true for the QA server
 2. bug-dual-resolver-pass-per-boot: cache-then-network config → route() twice per warm boot → TWO
    resolveAndNavigate invocations (each own latch). Nav dedup only via GetX preventDuplicates; pass-2 tier
    work (event + selectModuleNavFree + markBootZoneFresh after consumption) still runs. .log artifact.
+
+# NEARS-1020 QA progress (cycle 1 — delta re-QA of B1/B2 fix @ 5f9f5883)
+Device: emulator-5554 | Build: worktree @ 5f9f5883 (fresh install, debug APK) | Backend: same :8000 (OTEL off, 8 workers)
+Reused from cycle 0 (no overlap re-demo per delta rules): AC1/AC2/AC3/AC4/AC6-outofzone/AC8/AC9/AC10 PASS rows.
+
+## Delta cells
+- CELL1 AC6 zone-364 guest (13:33) + logged-in (13:38): module fetch SCOPED -> tier singleModuleHome ->
+  Baqala module home RENDERS ("3 stores near you" + cards, NO stuck spinner). sector_auto_selected
+  {module_id:1, zone_id:364} exactly once, resolver-fired BEFORE "route: initial route module=grocery-food";
+  sectors_shown {sectors_count:1, zone_id:364} exactly once. 0 ERR/FAIL. PASS
+  (cycle-0 bug-loggedin-zone364-stuck-spinner: FIXED)
+- CELL2 AC6 zone-3 directStore seam (13:41): cold open -> "route: initial route module=qa-single-store-grocery",
+  store surface renders (QA Staples); sector_auto_selected count = 0 (parity rule honored);
+  sectors_shown {sectors_count:1, zone_id:3}; store_auto_opened {store_id:59} home-machinery path intact. PASS
+- CELL3 AC7 analytics: sectors_shown zone-scoped everywhere — {3, zone 1} / {1, zone 364} / {1, zone 3},
+  each exactly once per boot (dedup sentinel intact). Cycle-0 unscoped-count defect (3 in zone 364): FIXED. PASS
+- CELL4 B1 wire: /api/v1/module captured via throwaway header-logging router on :8000 (product code untouched,
+  artisan serve restored after) — carries zoneid: "[364]" (jsonEncode int list) + ALL default headers
+  (moduleid, x-localization, x-request-id, traceparent, content-type); NO zone_id key. PASS
+  Artifact: cycle1-b1-module-request-headers.jsonl (emulator GPS redacted)
+- CELL5 B2 warm boot (boot3, zone 1): config cache pass-1 -> ONE get-zone-id + ONE /module from splash ->
+  sectors_shown -> ONE "route: initial route"; config network pass-2 -> "splash-nav: duplicate boot resolution
+  skipped (config cache+network chain)". Post-nav: exactly ONE get-zone-id (syncZoneData; home initState getZone
+  SKIPPED = markBootZoneFresh consumed once). Counterfactual on fallback boot7: TWO post-nav get-zone-id
+  (marker correctly not set on fallback). Cycle-0 bug-dual-resolver-pass-per-boot: FIXED. PASS
+- CELL6 sweep: (a) fallback boot (backend SIGSTOP after cached config): deadline warn +1.809s, fallback nav
+  +1.822s (<2s), NO NoInternetScreen, home machinery armed, recovers after resume. (b) zone-1 multi-module
+  boot: chooser renders as cycle 0 (3 sectors + featured stores). PASS
+- CELL7 backstop: flutter test 2012/2012 PASS ("All tests passed", +3 vs cycle-0 2009 = the new header-map/latch
+  tests); flutter analyze = same 5 pre-existing info lints in untouched test files. PASS
+
+VERDICT cycle 1: PASS — both cycle-0 task bugs fixed and demonstrated live; no new defects.
