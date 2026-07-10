@@ -1,10 +1,20 @@
-# NEARS-1025 QA cycle-2 (delta) progress — device emulator-5554, branch @65687870
+# NEARS-1025 — QA cycle-3 (delta re-QA) progress
 
-- AC10 (panel renders): PASS (reused prior + re-observed) — out-of-zone recovery panel shows at checkout. shot c2-10-panel-renders.png
-- AC11-a (red-screen GONE gate): FAIL — getModuleData crash gone (prong-1 held), BUT a NEW/moved "Null check operator" _TypeError fires during the pick at PricingService.calculateOriginalDeliveryCharge:672 (`address.zoneData!`, 5th unguarded site the fix missed) via async resolution-window race. shots c2-11a-inzone-pick-checkout.png, c2-11b-pricing-crash.png; log bug-c2-changeloc-pick-pricing-redscreen.log
-- AC11-b (in-coverage pick -> normal checkout): FAIL-during-transition — settled checkout renders correctly (COD/pricing/Banana line item) but the pick transition throws (same defect as AC11-a).
-- AC11-c (out-of-coverage pick -> panel re-shows): UNVERIFIABLE via saved-address pick — cycle-1 serviceable-filter excludes out-of-coverage addresses from the sheet (only Dhaka offered); would need Add-New-Address out-of-zone pin. Blocked by AC11-a anyway.
-- AC11-d (fail-soft on failed resolution): NOT REACHED — the SUCCESSFUL-resolution path already crashes (AC11-a), so fail-soft-on-failure is moot until AC11-a fixed.
-- Regression (settled in-zone checkout, fully-stamped zoneData): PASS — re-enter checkout with Dhaka settled = 0 runtime errors, COD/payment/total render. Prong-1 null-guards did not break the happy path. shot c2-regr-settled-inzone-checkout.png
+Branch feat/NEARS-1025-cart-add-zone-validation @ aebfbf2d
+Device emulator-5554 (Android), UserApp from worktree, backend :8000 (primary Admin; cycle-3 touched no BE files).
+Zone data: Corner Grocer store 36 = zone 1; Test Store 35 = zone 2 (self-delivery). Customer user 6: addr46 "Demo Zone — Dhaka" zone1, addr45 "Abu Dhabi" zone2.
 
-VERDICT: FAIL (AC11-a gate not met). Last allowed cycle -> conductor escalates.
+VERDICT: PASS
+
+| AC / focus | result | evidence |
+|---|---|---|
+| AC11 crash: pick saved addr from Change Location (zoneData:null), no red-box/_TypeError | PASS | 3 pick transitions, zero _TypeError/Null-check/EXCEPTION in flutter log; ac11-checkout-after-abudhabi-pick.png |
+| in-zone pick → shimmer→real pricing (non-self store) | PASS | Corner Grocer + Demo-Zone addr: ETA ~22min, Total, Place Order, no error frame; ac-inzone-realpricing.png |
+| delivery-charge subtree self + non-self on null-zoneData addr | PASS | Test Store (self-delivery) in-zone real pricing ac-selfdelivery-inzone.png; Corner Grocer (non-self) ac-inzone-realpricing.png; unit test 31/31 both branches |
+| out-of-zone panel still shows for out-of-coverage addr | PASS | Corner Grocer(z1)+Abu Dhabi(z2) → "This address is outside the store's delivery zone.", no crash; ac11-checkout-after-abudhabi-pick.png |
+| order-success dialog on such addr | PASS | orderID=176 COD placed, POST 200, success dialog→tracking, log window clean; ac-order-tracking-after-place.png |
+| BE cart/add zone guard fail-closed (absent/empty header reject; valid accept) | PASS (Rule-4 reuse + backstop) | phpunit CartAddZoneGuardTest 8/8, 46 assertions |
+
+Automated backstop: phpunit CartAddZoneGuard 8/8; flutter checkout tests 31/31 (incl null-zoneData both store types).
+
+Non-blocking followup: [FAIL] get-zone-id 404 from OrderTrackingScreenState._loadData→getCurrentLocation (order_tracking_screen.dart:60) — emulator GPS outside seeded zones; properly logged (correlation_id), no crash; unrelated to fix (fix never touched order_tracking). followup-getzoneid-404-ordertracking.log
