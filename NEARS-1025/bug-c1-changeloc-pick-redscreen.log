@@ -1,0 +1,17 @@
+# NEARS-1025 cycle-1 FAIL — Change Location pick red-screens (Null check operator)
+# Repro: cart=store2 Banana(item3,zone1,module1); delivery=Abu Dhabi(zone2) -> checkout out-of-zone panel
+#        -> Change Location sheet offered 'Demo Zone — Dhaka'(ADDR46) -> picked it -> RED SCREEN.
+# Same crash as cycle-0 (stores/details/2 200 -> getModuleData .zoneData! null).
+----
+I/flutter ( 7656): [NET] GET endpoint=/api/v1/stores/details/2
+I/flutter ( 7656): [NET] endpoint=/api/v1/stores/details/2 http_status=200
+I/flutter ( 7656): [NET] endpoint=/api/v1/config/distance-api http_status=200
+I/flutter ( 7656): [NET] endpoint=/api/v1/customer/order/get-surge-price http_status=200
+══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY ╞═══════════════════════════════════════════════════════════
+Null check operator used on a null value
+  GetBuilder:file:///Users/Apple/Projects/nears-NEARS-1025-cart-add-zone-validation/UserApp/lib/features/checkout/screens/checkout_screen.dart:251:13
+When the exception was thrown, this was the stack:
+#0      CheckoutController.getModuleData (package:sixam_mart/features/checkout/controllers/checkout_controller.dart:1065:83)
+#1      CheckoutScreenState.build.<anonymous closure> (package:sixam_mart/features/checkout/screens/checkout_screen.dart:265:56)
+I/flutter ( 7656): [NET] endpoint=/api/v1/vehicle/extra_charge http_status=200
+Another exception was thrown: Null check operator used on a null value
