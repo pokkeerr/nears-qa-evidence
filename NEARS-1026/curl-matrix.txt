@@ -1,0 +1,31 @@
+=== AC1a: GET /common-condition zoneId:[1] ===
+[{"id":1,"name":"NEARS1026 Pain Relief QA","slug":"nears1026-pain-relief-qa","status":1,"created_at":"2026-07-10T08:04:23.000000Z","updated_at":"2026-07-10T08:04:23.000000Z","items_count":2,"translations":[]}]
+HTTP 200
+
+=== AC1b: GET /common-condition zoneId:[2] ===
+[{"id":1,"name":"NEARS1026 Pain Relief QA","slug":"nears1026-pain-relief-qa","status":1,"created_at":"2026-07-10T08:04:23.000000Z","updated_at":"2026-07-10T08:04:23.000000Z","items_count":1,"translations":[]}]
+HTTP 200
+
+=== AC2a: GET /common-condition/items/1?limit=25&offset=1 zoneId:[1] (total_size + item ids only) ===
+total_size: 2 ids: [32, 33]
+
+=== AC2b: same zoneId:[2] ===
+total_size: 1 ids: [598]
+
+=== AC3 fail-closed: garbage / [true] / {} / [[1,2],3] ===
+zoneId=garbage    -> [{"id":1,"name":"NEARS1026 Pain Relief QA","slug":"nears1026-pain-relief-qa","status":1,"created_at":"2026-07-10T08:04:23.000000Z","updated_at":"2026-07-10T08:04:23.000000Z","items_count":0,"translations":[]}] HTTP 200
+zoneId=[true]     -> [{"id":1,"name":"NEARS1026 Pain Relief QA","slug":"nears1026-pain-relief-qa","status":1,"created_at":"2026-07-10T08:04:23.000000Z","updated_at":"2026-07-10T08:04:23.000000Z","items_count":0,"translations":[]}] HTTP 200
+zoneId={}         -> [{"id":1,"name":"NEARS1026 Pain Relief QA","slug":"nears1026-pain-relief-qa","status":1,"created_at":"2026-07-10T08:04:23.000000Z","updated_at":"2026-07-10T08:04:23.000000Z","items_count":0,"translations":[]}] HTTP 200
+zoneId=[[1,2],3]  -> [{"id":1,"name":"NEARS1026 Pain Relief QA","slug":"nears1026-pain-relief-qa","status":1,"created_at":"2026-07-10T08:04:23.000000Z","updated_at":"2026-07-10T08:04:23.000000Z","items_count":0,"translations":[]}] HTTP 200
+
+=== AC4: absent zoneId (default-zone substitution; default zone = 2) ===
+[{"id":1,"name":"NEARS1026 Pain Relief QA","slug":"nears1026-pain-relief-qa","status":1,"created_at":"2026-07-10T08:04:23.000000Z","updated_at":"2026-07-10T08:04:23.000000Z","items_count":1,"translations":[]}]
+HTTP 200
+
+=== AC4 parity: GET /categories absent zoneId (default-zone substitution behavior) ===
+HTTP 200
+categories returned: 5
+
+=== AC5 regression: GET /common-condition/list ===
+[{"id":1,"name":"NEARS1026 Pain Relief QA","translations":[]}]
+HTTP 200
