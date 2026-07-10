@@ -1,0 +1,25 @@
+=== 3. schedule:list LIVE (worktree @5f39ebe6) — 2026-07-10T08:26:30Z ===
+
+  0 0 * * *  php artisan search:purge-logs ....... Next Due: 15 hours from now
+
+OpenTelemetry: [error] Export failure [exception] Export retry limit exceeded [previous] cURL error 7: Failed to connect to localhost port 5080 after 0 ms: Could not connect to server (see https://curl.se/libcurl/c/libcurl-errors.html) for http://localhost:5080/api/default/v1/metrics
+#0 /Users/Apple/Projects/nears-NEARS-1029-search-logs/Admin/vendor/open-telemetry/exporter-otlp/MetricExporter.php(50): OpenTelemetry\SDK\Common\Export\Http\PsrTransport->send('\n\xF6\x12\n\xB7\x05\n\x1D\n\fservi...')
+#1 /Users/Apple/Projects/nears-NEARS-1029-search-logs/Admin/vendor/open-telemetry/sdk/Metrics/MetricReader/ExportingReader.php(118): OpenTelemetry\Contrib\Otlp\MetricExporter->export(Array)
+#2 /Users/Apple/Projects/nears-NEARS-1029-search-logs/Admin/vendor/open-telemetry/sdk/Metrics/MetricReader/ExportingReader.php(140): OpenTelemetry\SDK\Metrics\MetricReader\ExportingReader->doCollect()
+#3 /Users/Apple/Projects/nears-NEARS-1029-search-logs/Admin/vendor/open-telemetry/sdk/Metrics/MeterProvider.php(101): OpenTelemetry\SDK\Metrics\MetricReader\ExportingReader->shutdown()
+#4 /Users/Apple/Projects/nears-NEARS-1029-search-logs/Admin/vendor/open-telemetry/sdk/Common/Util/functions.php(36): OpenTelemetry\SDK\Metrics\MeterProvider->shutdown()
+#5 [internal function]: OpenTelemetry\SDK\Metrics\MeterProvider->{closure:OpenTelemetry\SDK\Common\Util\weaken():36}()
+#6 /Users/Apple/Projects/nears-NEARS-1029-search-logs/Admin/vendor/open-telemetry/sdk/Common/Util/functions.php(53): Closure->call(Object(OpenTelemetry\SDK\Metrics\MeterProvider))
+#7 /Users/Apple/Projects/nears-NEARS-1029-search-logs/Admin/vendor/open-telemetry/sdk/Common/Util/ShutdownHandler.php(77): {closure:OpenTelemetry\SDK\Common\Util\weaken():53}()
+#8 [internal function]: OpenTelemetry\SDK\Common\Util\ShutdownHandler::{closure:{closure:OpenTelemetry\SDK\Common\Util\ShutdownHandler::registerShutdownFunction():68}:75}(Array)
+#9 {main}
+
+=== 4. NEARS-1027 global-search smoke (worktree :8029) ===
+--- normal (name=apple, guest) -> expect 200 ---
+HTTP=200
+--- min-2 chars (name=a) -> expect 403 ---
+{"errors":[{"code":"name","message":"The name must be at least 2 characters."}]}
+HTTP=403
+--- throttle sanity: X-RateLimit headers present (throttle:30,1 active) ---
+X-RateLimit-Limit: 30
+X-RateLimit-Remaining: 23

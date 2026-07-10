@@ -1,0 +1,25 @@
+=== NEARS-1029 live smoke — AC5 fire-and-forget resilience (table ABSENT on live DB) ===
+worktree backend 127.0.0.1:8029 @ 5f39ebe6 | 2026-07-10T08:22:38Z
+minted X-Request-Id: af994ad0-eb34-4273-aeaf-d2b9af597900
+
+--- 1. AUTH unified search (query token Nears1029LiveZebraQA) ---
+{"products":[],"total_items":0,"stores":[],"total_stores":0,"limit":5,"offset":1}
+HTTP=200
+
+--- 2. laravel.log (new content past pre-smoke offset 51492) ---
+[2026-07-10 12:22:39] local.ERROR: [FAIL] customer-search-log write {"trace_id":"d711a6f9682ce92b3b59128c8f346dd3","correlation_id":"af994ad0-eb34-4273-aeaf-d2b9af597900","error":"Illuminate\\Database\\QueryException","request_id":"af994ad0-eb34-4273-aeaf-d2b9af597900"} 
+
+--- 3. query-text privacy: occurrences of token in ENTIRE log (must be 0) ---
+count=0
+
+--- 4. request-id correlation: [FAIL] line carries minted id ---
+1
+
+--- 5. GUEST unified search (token Nears1029GuestLiveQA) — expect 200, NO write attempt, NO new [FAIL] ---
+{"products":[],"total_items":0,"stores":[],"total_stores":0,"limit":5,"offset":1}
+HTTP=200
+
+--- 6. new [FAIL] lines after guest call (must be 0) ---
+count=0
+--- 7. guest token in entire log (must be 0) ---
+count=0
