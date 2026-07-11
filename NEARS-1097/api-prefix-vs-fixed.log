@@ -1,0 +1,27 @@
+NEARS-1097 — falsifiable PRE-FIX / POST-FIX pair (live API, same requests)
+PRE-FIX  = throwaway worktree @ ea2b3fa2 (feat/human-review), php -S :8011
+FIXED    = feat/NEARS-1097-store-details-404 @ 1193e468,      php -S :8010
+Anti-contamination: each server's autoloader verified to resolve its OWN StoreController
+(vendor/ was COPIED, not symlinked — a symlink would make PHP __DIR__ resolve to the
+fixed tree and silently load the fixed controller into the "pre-fix" server).
+Headers on every call: zoneId / moduleId / X-localization / Accept: application/json
+
+AC1  GET /api/v1/stores/details/999999                  zoneId:[1]
+  PRE-FIX :8011 -> HTTP 200   body: {}                              <-- the hollow-store bug
+  FIXED   :8010 -> HTTP 404   body: {"errors":[{"code":"store_not_found","message":"Store not found"}]}
+
+AC2  GET /api/v1/stores/details/no-such-store-xyz-1097  zoneId:[1]
+  PRE-FIX :8011 -> HTTP 200   body: {}
+  FIXED   :8010 -> HTTP 404   body: {"errors":[{"code":"store_not_found","message":"Store not found"}]}
+
+AC3  CANNIBALIZATION PIN — out-of-zone store id=12      zoneId:[1]
+  PRE-FIX :8011 -> HTTP 403   body: {"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+  FIXED   :8010 -> HTTP 403   body: {"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+  => NEARS-1024's 403 is NOT swallowed by the new 404.
+
+AC4  in-zone store id=1                                 zoneId:[1]
+  FIXED   :8010 -> HTTP 200   body: {"id":1,"name":"Nears Mart","logo":"2024-11-19-673c404ae469c.png",...}
+
+AC5  share-link slug 'fresh-local'                      zoneId:[]  (EMPTY)
+  FIXED   :8010 -> HTTP 200   body: {"id":12,"name":"Fresh local",...}
+  => same store 12 that 403s by ID resolves 200 by SLUG — share-link exemption intact.

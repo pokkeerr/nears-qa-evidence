@@ -1,0 +1,15 @@
+NEARS-1097 — backend [FAIL] log line (Admin/storage/logs/laravel.log, 1097 worktree)
+This worktree's .env runs LOG_LEVEL=error, so a WARNING-level line would be DROPPED entirely.
+The line's presence therefore PROVES error severity (this was the fix-cycle-2 concern).
+
+[2026-07-12 03:29:59] production.ERROR: [FAIL] store details not found {"trace_id":"95976a1407c4fed3904e7a6413e95c5a","correlation_id":"3c611f1e-a462-4ba3-bd45-a065e6af224b","endpoint":"/api/v1/stores/details/{id}","status":404,"code":"store_not_found"}
+
+  level        : production.ERROR      OK (not warning)
+  tag          : [FAIL]                OK
+  endpoint     : templated "{id}"      OK — raw store id NEVER logged
+  PII audit    : 18/18 store-404 lines scanned; 0 contain a raw id / body / payload
+  correlation  : correlation_id == the X-Request-Id echoed in the response header
+
+END-TO-END CORRELATION JOIN (UserApp -> backend), same id both sides:
+  app     : [FAIL] endpoint=/api/v1/stores/details/ http_status=404 type=ApiFailure correlation_id=3c611f1e-a462-4ba3-bd45-a065e6af224b
+  backend : [FAIL] store details not found {... "correlation_id":"3c611f1e-a462-4ba3-bd45-a065e6af224b" ...}

@@ -1,0 +1,22 @@
+NEARS-1097 — on-device (emulator-5558, UserApp from the 1097 worktree)
+Backend selected WITHOUT touching product code: --dart-define=API_HOST=10.0.2.2:<port>
+Deep link (identical both runs):
+  http://6ammart-web.6amtech.com/store/nonexistent-store-1097?id=999999&page=store&module=1
+
+--- app pointed at PRE-FIX backend (:8011) ---
+[NET]  GET endpoint=/api/v1/stores/details/nonexistent-store-1097
+[NET]  endpoint=/api/v1/stores/details/nonexistent-store-1097 http_status=200
+[FAIL] endpoint=/api/v1/stores/details/ http_status=200 type=ApiFailure msg="store details: malformed 200 body" correlation_id=053abf25-9e89-4ab1-a5b3-04090b6c1bf6
+  => the client only reaches an error state via a CLIENT-SIDE HEURISTIC ("malformed 200 body").
+     The backend logged NOTHING (a 200 is not an error server-side) — the failure was invisible in BE logs.
+
+--- app pointed at FIXED backend (:8010) ---
+[NET]  GET endpoint=/api/v1/stores/details/nonexistent-store-1097
+[NET]  endpoint=/api/v1/stores/details/nonexistent-store-1097 http_status=404
+[FAIL] endpoint=/api/v1/stores/details/ http_status=404 type=ApiFailure msg="store details fetch failed (unclassified)" correlation_id=3c611f1e-a462-4ba3-bd45-a065e6af224b
+Screen (ui_list, label-driven — no coordinates):
+    Back
+    This store could not be loaded
+    Please check your connection and try again
+    Retry
+  => ERROR + RETRY state. NOT a perpetual shimmer. Screenshot: ac6-fixed-store-error-retry.png
