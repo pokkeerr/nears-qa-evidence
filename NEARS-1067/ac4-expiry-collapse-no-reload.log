@@ -1,0 +1,23 @@
+NEARS-1067 AC4 (THE RISKY ONE) — sale expiry collapses the top slot back to banner-top with NO reload.
+
+METHOD (no DB write — hard project rule respected): a local rewriting proxy on :8010 forwarded
+every request to a real `php artisan serve` on :8011, rewriting ONLY the /api/v1/flash-sales
+`end_date` to now+40s. The app (already pointed at 10.0.2.2:8010) therefore received a genuine
+API response whose sale expires on-screen. DB untouched; seeded sale still ends 2026-07-15.
+
+GROCERY HOME — observed vertical order (uiautomator, y = top edge):
+  T+0    RAIL@y=720   countdown ['00','00','00','31']
+  T+18s  RAIL@y=720   countdown ['00','00','00','19']
+  T+25s  RAIL@y=720   countdown ['00','00','00','10']
+  T+32s  (rail gone)
+  ...stable through T+60s
+
+POST-EXPIRY LAYOUT (same screen, no reload, no re-navigation):
+  y=  717-1293  LIMITED OFFER / Fresh Mart Grocery / Claim Deal   <- BANNER now occupies the TOP slot
+  y= 1476-1560  Categories
+  'Flash Sale' occurrences: 0    <- rail did not strand, and did not stick as a shimmer
+
+NETWORK: exactly 1 x GET /api/v1/flash-sales for the whole window
+  => the collapse was purely reactive (the tick-side emit fires BEFORE the timer cancel);
+     a reload would have shown a 2nd GET.
+LOGS: clean (no [ERR]/[FAIL]/EXCEPTION).

@@ -1,0 +1,25 @@
+NEARS-1067 AC1 (PERF) — proof the id-scoping is real and pinned by test.
+
+MUTATION: strip the id from the module-home outer GetBuilder
+  lib/features/home/screens/modules/grocery_home_screen.dart
+  -  return GetBuilder<FlashSaleController>(
+  -    id: FlashSaleController.slotBuilderId,
+  +  return GetBuilder<FlashSaleController>(
+
+RESULT — flutter test test/features/home/module_home_flash_order_test.dart
+  Expected: a value less than <0.0>
+    Actual: <452.0>
+  00:00 +2 -1: bare update() (countdown tick) does NOT re-order the slot; the group id does [E]
+  00:00 +3 -1: Some tests failed.
+
+=> Without the id, the countdown's bare update() DOES reach the module-home wrapper and
+   re-orders the slot. With the id it cannot (GetX registers id'd builders only in
+   _updatersGroupIds). Baseline (unmutated): "All tests passed!" (4/4).
+Restored with `git checkout --`; tree clean.
+
+ON-DEVICE (emulator-5554/5556, light mode):
+  Countdown still ticks 1/s — inner GetBuilder still receives the bare update():
+    sec 12 -> 08 -> 04 -> 00 -> 57 -> 53 (minute rolled 22 -> 21). NOT frozen.
+  Zero Flutter build-phase warnings across the session on grocery/food/pharmacy homes:
+    grep -aiE "cannot be marked as needing to build|markNeedsBuild|setState|overflowed by|EXCEPTION"
+    -> no matches (only Google Play services cert noise, unrelated).
