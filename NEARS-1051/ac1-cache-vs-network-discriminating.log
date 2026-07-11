@@ -1,0 +1,29 @@
+NEARS-1051 AC1 — sectors_shown must carry the NETWORK count, not the endpoint-keyed cache's.
+Device emulator-5554 | build = qa/batch4-module-zone @4dea472d | backend = PRIMARY tree 127.0.0.1:8000
+Fault seam: --dart-define=API_HOST=10.0.2.2:8099 (NEARS-551) -> reverse proxy, DB untouched (read-only).
+
+SETUP (same-zone cold open, zone 2):
+  - disk cache warmed with the REAL 3 serviceable modules (Grocery & Food, Food & Restaurant, Pharmacy)
+  - proxy serves the NETWORK only 2 (drops Grocery & Food) and stalls /api/v1/module 9s
+  - the stall pushes the splash resolver past its 2s nav budget -> `fallback` tier -> NO primeModuleList
+    -> home's local-first getModules() runs the CACHE pass FIRST (this is the reachable trigger)
+NOTE: a ZONE CHANGE is NOT a valid repro — address_helper.dart:26-28 clearCache() on zone-id change
+      + local_client.dart:88-96 partition-key rejection make the cache MISS, so both broken and fixed
+      builds emit the network count. That repro cannot fail. This one can.
+
+------------- PRE-FIX BASELINE (ebeddafe, no networkConfirmed guard) -------------
+t+5s   grid tiles = 3 (CACHE pass rendered the stale list)   sectors_shown = 1  <-- fired from CACHE
+t+10s  grid tiles = 2 (network landed, grid repaints)        sectors_shown = 1  <-- corrected count DROPPED
+t+40s  grid tiles = 2                                        sectors_shown = 1
+  20:39:53.155 I flutter : analytics: sectors_shown {sectors_count: 3, zone_id: 2}
+  => RECORDS 3 (the cached count). WRONG — the network says 2.
+
+------------- BATCH4 FIXED (4dea472d) -------------
+t+4s   grid tiles = 3 (CACHE pass rendered the stale list)   sectors_shown = 0  <-- cache pass fires NOTHING
+t+8s   grid tiles = 3                                        sectors_shown = 0
+t+16s  network pass lands, grid repaints                     sectors_shown = 0
+t+20s  grid tiles = 2                                        sectors_shown = 1
+  20:22:04.426 I flutter : analytics: sectors_shown {sectors_count: 2, zone_id: 2}
+  => RECORDS 2 (the NETWORK count). CORRECT. Exactly ONE event (AC2).
+
+VERDICT: cached=3, network=2. Pre-fix records 3; post-fix records 2. AC1 PASS (discriminating).

@@ -1,0 +1,36 @@
+NEARS-1051 — remaining analytics ACs (emulator-5554, build 4dea472d)
+Channel: AppLogger/debugPrint mirror from analytics_service._mirror(), emitted at the same call site
+as the FirebaseAnalytics dispatch. NOTE: real Firebase Analytics is DISABLED in this dev build
+("E/FA: Missing google_app_id. Firebase Analytics disabled") — this is true of the pre-batch build too,
+so DebugView / `logcat -s FA FA-SVC` cannot show these events. The mirror carries the exact name+params
+handed to logEvent.
+
+AC2 — no double-count. Every zone resolution produced exactly ONE sectors_shown:
+  sectors_shown {sectors_count: 3, zone_id: 1}
+  sectors_shown {sectors_count: 1, zone_id: 3}
+  sectors_shown {sectors_count: 3, zone_id: 2}
+  sectors_shown {sectors_count: 1, zone_id: 364}
+  (and the cache/network run above: exactly 1)
+
+AC3 — same-zone refresh must NOT re-fire:
+  baseline in zone 1 = 1 event. Then 2x pull-to-refresh + enter module + back-nav to Home
+  -> sectors_shown count STILL 1. Module switches (Food->Pharmacy->Food) -> STILL 1. No re-fire.
+
+AC4 — out-of-zone must NOT fire at all:
+  persisted address rewritten (device-local prefs, NOT a DB write) to POINT(55.2744 25.1972),
+  verified in 0 zones via ST_Contains. Cold boot:
+    [NET] endpoint=/api/v1/config/get-zone-id http_status=404
+    [INFO] msg="get-zone-id: no zone / out of zone - prompting location picker"
+    [INFO] msg="location: inZone=false"
+    analytics: app_open {}          <- the ONLY event
+  sectors_shown count = 0. PASS.
+
+AC5 — deferred, not lost (the deliberate trade-off):
+  half 1: network module pass forced to 503 on a same-zone cold open.
+    [FAIL] endpoint=/api/v1/module http_status=503 type=ApiFailure msg="api request failed"
+    grid renders 3 tiles FROM CACHE (no visual regression)
+    sectors_shown = 0  -> event DEFERRED, not fired from the cache
+  half 2: fault disarmed + pull-to-refresh:
+    20:25:18.422 analytics: sectors_shown {sectors_count: 3, zone_id: 2}
+    count = 1  -> fires exactly ONCE, with the CORRECT count. DEFERRED, NOT LOST. PASS.
+  Note: the failure path IS logged ([FAIL] line above) — no silent-failure violation.
