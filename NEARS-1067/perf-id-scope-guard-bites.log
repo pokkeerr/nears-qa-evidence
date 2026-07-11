@@ -23,3 +23,25 @@ ON-DEVICE (emulator-5554/5556, light mode):
   Zero Flutter build-phase warnings across the session on grocery/food/pharmacy homes:
     grep -aiE "cannot be marked as needing to build|markNeedsBuild|setState|overflowed by|EXCEPTION"
     -> no matches (only Google Play services cert noise, unrelated).
+
+--------------------------------------------------------------------
+NEARS-1067 AC2 (LEAK) — proof the at-zero Timer cancel is real and pinned.
+
+MUTATION: remove the cancel block from _onCountdownTick()
+  lib/features/flash_sale/controllers/flash_sale_controller.dart
+  -    if (_duration!.inSeconds <= 0) {
+  -      _timer?.cancel();
+  -      _timer = null;
+  -    }
+
+RESULT — flutter test test/features/home/module_home_flash_order_test.dart
+  Pending timers:
+  Timer (duration: 0:00:01.000000, periodic: true), created:
+  A Timer is still pending even after the widget tree was disposed.
+  Failed assertion: line 2242 pos 12: '!timersPending'
+  00:00 +3 -1: sale expiring on-screen collapses the top slot back to banner-top [E]
+  00:00 +3 -1: Some tests failed.
+
+=> Without the fix the 1s periodic Timer is STILL PENDING after the sale expired — exactly the
+   "ticks forever after expiry" leak in the ticket. With the fix: no pending timer, 4/4 pass.
+Restored with `git checkout --`; tree clean.

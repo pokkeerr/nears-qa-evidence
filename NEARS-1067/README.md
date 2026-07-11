@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1067
 
-**PASS — id-scoped slot, countdown live, expiry collapses to banner-top with no reload**
+**PASS — id-scope + timer-cancel + expiry collapse all proven**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
