@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1084
 
-**PASS — Sprint-5 Batch-3 (NEARS-1084/1085/1088/1087): 16/16 ACs demonstrated live on emulator-5556**
+**PASS — Batch-3 (1084/1085/1088/1087): 16/16 ACs; +2 pre-existing byproduct artifacts**
 
 **14 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -30,6 +30,10 @@
 <td align="center" width="33%"><a href="ac9-checkout-500-retry-panel.png"><img src="ac9-checkout-500-retry-panel.png" width="240"></a><br><sub>ac9 checkout 500 retry panel</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`bug-category-error-merged-semantics-node.log`](bug-category-error-merged-semantics-node.log)
+- [`bug-seed-banner-image-404.log`](bug-seed-banner-image-404.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1084/` · public-repo scrub policy (no live secrets; verified clean).*

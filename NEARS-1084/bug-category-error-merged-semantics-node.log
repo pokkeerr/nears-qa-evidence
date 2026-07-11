@@ -1,0 +1,26 @@
+NEARS-1084/1088 QA — pre-existing a11y defect on the CATEGORY screen error state
+(NEARS-596 surface; NOT introduced by Sprint-5 Batch-3).
+
+The NearsErrorRetry state on category_screen.dart:420 collapses into ONE merged
+semantics node covering the entire screen. The Retry button is not individually
+focusable/announceable, and any label-driven tap resolves the node's centre —
+which is the cloud ICON, not the button.
+
+uiautomator dump (verbatim):
+
+node index="0" text="" resource-id="" class="android.view.View"
+  package="com.izzes.nears"
+  content-desc="Something went wrong&#10;Please check your connection and try again&#10;Retry"
+  checkable="false" checked="false" clickable="true" enabled="true"
+  focusable="true" focused="false" scrollable="false" long-clickable="false"
+  password="false" selected="false" bounds="[0,0][1344,2920]" drawing-order="0"
+
+Impact: a screen-reader user hears the whole screen as a single blob and cannot
+target Retry; automated label-driven taps land on dead space.
+
+Contrast: the SAME widget on store_screen.dart exposes `Retry` as its own node
+and taps correctly. So this is a category-screen tree/merge issue, not a
+NearsErrorRetry / NearsEmptyState defect.
+
+Repro: Categories tab -> any category -> fail /api/v1/categories/items/<id>
+-> dump the a11y tree.
