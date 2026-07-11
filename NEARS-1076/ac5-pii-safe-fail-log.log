@@ -1,0 +1,15 @@
+# NEARS-1076 AC5 — PII-safe [FAIL] log on unclassified (non-403) checkout store-fetch failure
+# Captured live on emulator-5554, forced store-details HTTP 500 via QA fault proxy.
+# Allow-list only: endpoint PATH (no query/token), HTTP status, error type, message. No PII.
+
+[NET] endpoint=/api/v1/stores/details/36 http_status=500
+ApiFailure(status: 500)
+#5  CheckoutController.initCheckoutData (package:sixam_mart/features/checkout/controllers/checkout_controller.dart:442:14)
+[FAIL] endpoint=/api/v1/stores/details/36 http_status=500 type=ApiFailure msg="unhandled api response"
+The following exception was thrown checkout: store fetch failed (unclassified) — showing retry:
+ApiFailure(status: null)
+#0  CheckoutController.initCheckoutData (package:sixam_mart/features/checkout/controllers/checkout_controller.dart:466:22)
+[FAIL] endpoint=null http_status=null type=ApiFailure msg="checkout: store fetch failed (unclassified) — showing retry"
+
+# The second [FAIL] is the NEW controller-level line (AppLogger.failure with const ApiFailure()):
+#   endpoint=null http_status=null type=ApiFailure  <-- exactly as specified in AC5.
