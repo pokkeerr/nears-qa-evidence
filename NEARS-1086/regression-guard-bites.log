@@ -1,0 +1,22 @@
+NEARS-1086 AC2 — proof the rewritten degrade test BITES.
+Worktree: /Users/Apple/Projects/nears-qa-batch2-flashsale @ qa/batch2-flashsale (6353f869)
+
+MUTATION (scratch-revert of the NEARS-1059 fix under test):
+  lib/features/flash_sale/domain/repositories/flash_sale_repository.dart:34
+  -  final bool noStatus = code == null || code == 0 || code == 1;
+  +  final bool noStatus = code == 0 || code == 1;     // null arm dropped
+
+RESULT — flutter test test/features/flash_sale/flash_sale_rail_degrade_test.dart
+  00:00 +3 -1: repository rail fetch — the handleError collapse fires one PII-safe failure log
+               bare collapsed Response (the real handleError:true shape) -> null result + a
+               TRANSPORT-classified ApiFailure, path-only endpoint, and no fake http_status [E]
+    Expected: true
+      Actual: <false>
+  00:00 +8 -1: Some tests failed.
+
+=> The test fails exactly on `expect(failure.transport, isTrue)`. The guard is load-bearing.
+Restored with `git checkout --`; `git status --short` clean.
+
+AC1: flutter test test/features/flash_sale/  -> 39/39 "All tests passed!"
+     flutter test (full UserApp suite)       -> 2181/2181 "All tests passed!"
+AC3: git show --stat f32a370f -> 1 file changed (test/features/flash_sale/flash_sale_rail_degrade_test.dart), +24 -10. ONE file, under test/.
