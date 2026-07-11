@@ -1,0 +1,20 @@
+PRE-EXISTING (NOT caused by these tickets) — OpenTelemetry export failure adds ~1.1s to EVERY request.
+
+When no OTel collector is reachable, the SDK's shutdown handler retries the export and blocks the
+response. Observed uniformly on ALL routes (not just search):
+
+  typeahead  avg 1196 ms   global  avg 1270 ms   unified  avg 1155 ms
+  config     avg 1089 ms   categories avg 1252 ms          <-- a trivial route pays the same ~1.1s
+
+Server log (Admin, php artisan serve):
+  OpenTelemetry: [error] Export failure [exception] Export retry limit exceeded [previous] ...
+  #0 .../vendor/open-telemetry/exporter-otlp/...
+  #1 .../vendor/open-telemetry/sdk/Metrics/...
+  #5 [internal function]: OpenTelemetry\SDK\Metrics\MeterProvider->{closure:...}
+  #8 [internal function]: OpenTelemetry\SDK\Common\Util\ShutdownHandler::{closure:...}
+
+Setting OTEL_SDK_DISABLED=true restored normal latency on the SAME code:
+  typeahead 108 ms   global 87 ms   unified 65 ms      (~12x faster)
+
+Relates to the NEARS-267 observability work. Flagged because a collector outage in production
+would add ~1s of blocking latency to every API response. Unrelated to NEARS-1064/1065/1075.

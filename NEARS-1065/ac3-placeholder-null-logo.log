@@ -1,0 +1,18 @@
+NEARS-1065 AC3 — NULL image/logo must return a PLACEHOLDER asset URL (never null/empty)
+
+STORE HALF — PROVEN LIVE. DB fixtures (read-only SELECT):
+  stores.id=4117 'NEARS600 Offers QA Store'      zone_id=2 module_id=1 status=1 logo=NULL
+  stores.id=4118 'NEARS600 Zero Offer QA Store'  zone_id=2 module_id=1 status=1 logo=NULL
+
+GET /api/v1/items/item-or-store-search?name=NEARS600 =>
+  id=4117 name='NEARS600 Offers QA Store'      logo=None  logo_full_url='http://127.0.0.1:8300/public/assets/admin/img/160x160/img1.jpg'
+  id=4118 name='NEARS600 Zero Offer QA Store'  logo=None  logo_full_url='http://127.0.0.1:8300/public/assets/admin/img/160x160/img1.jpg'
+  all logo_full_url non-null / non-empty: True   -> placeholder asset returned, never null.
+
+ITEM HALF — NOT DEMONSTRABLE LIVE (stated, not claimed):
+  SELECT over the whole multi_food_db returns ZERO items with a NULL/empty image:
+    SELECT i.id FROM items i JOIN stores s ON s.id=i.store_id WHERE (i.image IS NULL OR i.image='')  -> 0 rows
+  No such record exists to drive, and QA is read-only (no seeding). The item half is covered by the
+  engineer's unit test (Admin/tests/Feature/ItemOrStoreSearchPayloadSlimTest.php) and runs through the
+  SAME helper as the store half (Helpers::get_full_url -> $place_holders[...] when $data is empty),
+  which IS proven live above. Reported as a Data DoR gap, not as a pass.

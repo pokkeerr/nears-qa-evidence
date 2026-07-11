@@ -1,0 +1,26 @@
+PRE-EXISTING (NOT caused by NEARS-1065) — malformed *_full_url when APP_URL has no trailing slash.
+
+Admin/config/filesystems.php:42
+    'public' => [
+        'driver'     => 'local',
+        'root'       => storage_path('app/public'),
+        'url'        => env('APP_URL').'storage',      <-- no '/' between APP_URL and 'storage'
+        'visibility' => 'public',
+    ],
+
+With the repo-default Admin/.env (APP_URL=http://localhost), Storage::disk('public')->url() yields:
+
+  BASE backend :8000 (commit 289cdc1b, i.e. WITHOUT the payload slim), same query:
+    item  89 image_full_url : http://localhoststorage/product/2022-03-23-623ab23fbca51.png
+    store 12 logo_full_url  : http://localhoststorage/store/2024-10-27-671e347752a6e.png
+                                        ^^^^^^^^^^^^^^ "localhost" + "storage", no slash -> unloadable URL
+
+Proven on the BASE backend, so it predates this ticket and is NOT a regression from the slim.
+It is not search-specific: it affects EVERY image URL the API emits (items, stores, categories,
+banners...). Any environment whose APP_URL lacks a trailing slash serves broken image URLs.
+
+Impact: cosmetic-to-severe depending on env config; masked in dev because APP_URL is usually set
+with a trailing slash. Suggested fix: rtrim($url,'/').'/storage'.
+
+(For this QA run the backend was served with APP_URL="http://10.0.2.2:8300/" so the emulator got
+loadable URLs and the thumbnails could be verified on-device.)

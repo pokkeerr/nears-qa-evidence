@@ -1,0 +1,21 @@
+NEARS-1065 AC2 — exact key sets, GET /api/v1/items/item-or-store-search (backend @8300, branch qa/batch1-search)
+
+MODULE-PINNED (moduleId: 1)
+  items  keys (union over 50 rows) = ['id', 'image', 'image_full_url', 'name']          EXACT 4 = True
+  stores keys (union over  5 rows) = ['id', 'logo', 'logo_full_url', 'name']            EXACT 4 = True
+  leaked dropped/relation keys: NONE      null/empty full_url rows: NONE
+MODULE-LESS (no moduleId header — the NEARS-1028 path)
+  items  keys (union over 50 rows) = ['id', 'image', 'image_full_url', 'name']          EXACT 4 = True
+  stores keys (union over  5 rows) = ['id', 'logo', 'logo_full_url', 'name']            EXACT 4 = True
+  leaked dropped/relation keys: NONE      null/empty full_url rows: NONE
+
+BASE (:8000, pre-slim 289cdc1b) key sets, for the diff:
+  BASE item  keys: ['id','image','image_full_url','images_full_url','name','storage','translations','unit','unit_type']
+  BASE store keys: ['cover_photo_full_url','discount','gst_code','gst_status','id','logo','logo_full_url',
+                    'meta_image_full_url','name','storage','tin_certificate_image_full_url','translations']
+  ITEM keys removed by slim : ['images_full_url','storage','translations','unit','unit_type']
+  STORE keys removed by slim: ['cover_photo_full_url','discount','gst_code','gst_status','meta_image_full_url',
+                               'storage','tin_certificate_image_full_url','translations']
+  Relation arrays translations / storage / unit / discount: ABSENT on both paths.
+
+Payload size (same query, 50 items + 5 stores): base 26632 B -> slim 7752 B  (-70.9%)
