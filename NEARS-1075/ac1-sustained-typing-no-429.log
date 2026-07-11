@@ -1,0 +1,12 @@
+NEARS-1075 AC1 — THE ORIGINAL BUG IS GONE. Sustained realistic typing must not false-429.
+
+Driver: real HTTP against GET /api/v1/search/global on the branch backend (:8300),
+keystroke cadence 350ms (kSearchDebounceMs — the client's own trailing debounce), held for 70s.
+
+  T1 sustained typing on search/global: 201 req over 70s @350ms cadence
+     status counts: {200: 201}      last X-RateLimit-Limit=210  remaining=180
+     429 COUNT = 0   => PASS (no false 429)
+
+Before the fix the route sat on throttle:30,1: a continuous typist fires ~171 req/min, so the
+31st keystroke-request 429'd at ~t=10.5s. Driven here for 70s (201 requests, 6.5x the old cap)
+with ZERO 429s. The app itself logged zero http_status=429 across the whole QA session.
