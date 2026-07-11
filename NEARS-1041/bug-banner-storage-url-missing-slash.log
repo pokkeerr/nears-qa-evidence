@@ -1,0 +1,33 @@
+PRE-EXISTING BACKEND DEFECT (NOT introduced by this batch) — found while QA-ing NEARS-1041.
+
+Admin/config/filesystems.php:42
+    'url' => env('APP_URL').'storage',        <-- no '/' separator
+
+Admin/.env:5
+    APP_URL=http://localhost
+
+=> Storage::disk('public')->url('banner/d-5bed135c7c.png')
+   yields:  http://localhoststorage/banner/d-5bed135c7c.png
+                  ^^^^^^^^^^^^^^^^^ host "localhoststorage" — unresolvable
+
+LIVE PROOF (GET /api/v1/banners, zoneId:[1], moduleId:1, default env):
+  id=1  full=http://127.0.0.1:8000/public/assets/admin/img/900x400/img1.jpg
+  id=18 full=http://localhoststorage/banner/d-5bed135c7c.png     <-- BROKEN
+  id=19 full=http://localhoststorage/banner/d-761b162ee9.png     <-- BROKEN
+  id=20 full=http://localhoststorage/banner/d-4269c5d085.png     <-- BROKEN
+  id=27 full=http://localhoststorage/banner/d-5bed135c7c.png     <-- BROKEN
+  id=28 full=http://127.0.0.1:8000/public/assets/admin/img/900x400/img1.jpg
+
+IMPACT: every image served from the `public` storage disk (banner/, store/,
+store/cover/, product/, category/) is unfetchable from a device. The app's
+CustomImage._normalizeHost only rewrites hosts '127.0.0.1' and 'localhost',
+so 'localhoststorage' is passed through and fails DNS -> branded placeholder.
+This is why 4 of 6 zone-1 banners render as placeholders in a default dev env.
+
+NOT a local-only misconfig: the concatenation is broken for ANY APP_URL that
+does not end in '/'. e.g. APP_URL=https://api.nears.app -> "https://api.nears.appstorage".
+It only works by accident when APP_URL has a trailing slash.
+
+QA WORKAROUND USED (no file/DB writes): ran the primary-tree backend with an
+env override `APP_URL=http://10.0.2.2:8020/` (trailing slash) so all six banner
+URLs were well-formed and the NEARS-1041 fix could be tested at full fidelity.

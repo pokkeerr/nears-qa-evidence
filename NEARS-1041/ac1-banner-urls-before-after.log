@@ -1,0 +1,38 @@
+NEARS-1041 — AC1: literal banner-image request lines (logging reverse proxy in
+front of the primary-tree backend; app pointed at it via --dart-define=API_HOST).
+Every line is a real request the app made. "-> 404" = the silent-404 bug.
+
+================= BEFORE (pre-fix build @ 7ded60a2) =================
+
+--- zone 2 / Grocery module home ---
+21:48:29 GET /public/assets/admin/img/900x400/img1.jpg2 -> 404
+21:48:30 GET /public/assets/admin/img/900x400/img1.jpg0 -> 404
+21:48:35 GET /public/assets/admin/img/900x400/img1.jpg1 -> 404
+   (3 corrupted; indices = indexOf(banner) in the eligible list: 24->0, 25->1, 26->2)
+
+--- zone 1 / Grocery module home ---
+21:50:04 GET /public/assets/admin/img/900x400/img1.jpg2 -> 404   <- residual zone-2 carousel during the switch
+21:50:04 GET /public/assets/admin/img/900x400/img1.jpg0 -> 404   <- residual zone-2 carousel during the switch
+21:50:06 GET /public/assets/admin/img/900x400/img1.jpg4 -> 404   <- banner 28 (null image)      THE REPORTED BUG
+21:50:06 GET /storage/banner/d-5bed135c7c.png        -> 200
+21:50:13 GET /storage/banner/d-761b162ee9.png        -> 200
+21:50:20 GET /storage/banner/d-5bed135c7c.png3       -> 404   <- banner 27 (duplicate image)  THE REPORTED BUG
+
+================= AFTER (post-fix build @ 10f9cd8b) =================
+
+--- zone 1 / Grocery module home (COLD BOOT, image cache wiped) ---
+21:54:01 GET /storage/banner/d-5bed135c7c.png                 -> 200   (banners 18 + 27, one fetch)
+21:54:01 GET /storage/banner/d-761b162ee9.png                 -> 200   (banner 19)
+21:54:28 GET /public/assets/admin/img/900x400/img1.jpg        -> 200   (banners 1 + 28, one fetch)
+   digit-after-extension requests: NONE
+
+--- zone 2 / Grocery module home (COLD BOOT, image cache wiped) ---
+21:57:20 GET /public/assets/admin/img/900x400/img1.jpg        -> 200   (all 4 slides share this URL)
+   digit-after-extension requests: NONE
+
+CONTROL: the pre-fix run on this SAME harness DID capture the 404s, so the
+post-fix "zero" is a real result, not an unobserved channel.
+
+INDEX NOTE: live indices are .jpg4/.png3 (zone 1) not the ticket's .jpg5/.png4 —
+banner 20 is dropped by the NEARS-473 closed-store filter, shifting indexOf by one.
+Same bug, same mechanism.
