@@ -1,0 +1,20 @@
+NEARS-1105 AC1 -- PRE-FIX FAILURE BASELINE (build ea2b3fa2, emulator-5556, network throttled gprs/gsm)
+Repro: home sector grid in zone 2 (Abu Dhabi) -> change address to zone 1 (Dhaka) via map picker.
+Both zones are multi-module, so home REMAINS on the sector grid (no auto-select navigation).
+Assertion (AC1): on a zone change the grid must go to SHIMMER (tiles=0), never keep rendering the
+previous zone's tiles.
+
+  poll1  tiles=3 onHome=2 addr=Dhaka   <-- zone change ALREADY OBSERVED (address flipped) ...
+  poll2  tiles=3 onHome=2 addr=Dhaka       ... yet the PREVIOUS zone's 3 tiles are still rendered
+  poll3  tiles=3 onHome=2 addr=Dhaka
+  poll4  tiles=3 onHome=2 addr=Dhaka
+  ... (polls 5-15 identical) ...
+  poll16 tiles=3 onHome=2 addr=Dhaka
+
+RESULT: tiles NEVER dropped to 0. NOT ONE shimmer frame across ~25s of a throttled module fetch.
+The grid rendered the stale zone-2 tiles for the entire resolution window. AC1 FAILS on the pre-fix build.
+
+NOTE ON EVIDENCE FORM: zone 1 and zone 2 render an IDENTICAL visible tile set {Grocery & Food,
+Food & Restaurant, Pharmacy}, so a screenshot of the stale grid is pixel-identical to a screenshot of
+the correct grid. The ONLY falsifiable signal is the TEMPORAL one above -- the absence of a shimmer
+frame. Any count-based or "tiles appear" assertion passes on this broken build.

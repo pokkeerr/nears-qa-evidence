@@ -1,0 +1,33 @@
+NEARS-1105 AC1 -- IDENTITY REPRO, PRE-FIX vs POST-FIX (emulator-5556, same device/sequence)
+
+INSTRUMENT (required -- see note): a QA-only reverse proxy on :8099 delays ONLY /api/v1/module by 6s.
+The app reaches it via its own documented --dart-define=API_HOST=10.0.2.2:8099 (NEARS-551). NO product
+code touched. Without it the module fetch against the local backend returns in 14-32ms, so the
+resolving/shimmer window is a few frames and the stale grid is UNOBSERVABLE at any UI-sampling rate.
+(`adb emu network delay gprs/speed gsm` does NOT throttle 10.0.2.2 host-loopback -- measured 14-32ms
+with throttling ON. Any run relying on it is non-evidence.)
+
+REPRO: home sector grid in zone 2 (Abu Dhabi = Grocery+Food+Pharmacy) -> map-pin to zone 364
+("Baqala Zone 01", lat 24.3581 lng 54.6586) which maps to module 1 (Grocery) ONLY.
+ASSERTION (identity, not count): once the address shows Shawamekh (zone 364), the PHARMACY tile
+must NEVER render.
+
+--- PRE-FIX ea2b3fa2 (base) -> FAILS ---
+  poll1 addr=Shawamekh  PHARMACY=1 grocery=1 food=1   <-- zone changed, PREVIOUS zone's tiles still up
+  poll2 addr=Shawamekh  PHARMACY=1 grocery=1 food=1   <-- stale Pharmacy survives ~2.5s
+  poll3 addr=Shawamekh  PHARMACY=0 grocery=0 food=0
+  ... (polls 4-10: 0/0/0)
+
+--- POST-FIX e805fc90 (fix) -> PASSES ---
+  poll1 addr=Shawamekh  PHARMACY=0 grocery=0 food=0   <-- list nulled -> SHIMMER immediately
+  poll2..poll10 addr=Shawamekh  PHARMACY=0 grocery=0 food=0
+  (holds shimmer for the whole 6s module window, then resolves to the zone-364 list)
+
+VERDICT: AC1 (zone -> zone) PASS on the fix; the same steps reproduce the stale Pharmacy tile on the
+base commit. Falsifiable: the assertion FAILS on the pre-fix build and PASSES on the fixed build.
+
+ROOT-CAUSE NOTE (why the reset is load-bearing): the module cache is keyed on a SINGLE shared id
+(`AppConstants.moduleUri`, splash_repository.dart:149 "the shared home-module cache id") -- it is NOT
+zone-scoped. So on a zone change the local-cache pass returns the PREVIOUS zone's list. Pre-fix,
+_moduleList was never cleared, so those tiles rendered. The fix nulls _moduleList before the first
+await, so ModuleView shows its shimmer instead.

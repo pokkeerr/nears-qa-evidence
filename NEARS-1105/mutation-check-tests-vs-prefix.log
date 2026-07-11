@@ -1,0 +1,28 @@
+NEARS-1105 -- MUTATION CHECK: the fix's new tests run against the PRE-FIX controller (base ea2b3fa2).
+Method: the 3 new test files were copied into a THROWAWAY pre-fix worktree (test files only; no product
+code touched anywhere). A test that cannot fail proves nothing -- these all fail on the broken code.
+
+--- FIXED tree (e805fc90): 25/25 pass ---
+  All tests passed!   (the inline [FAIL] AppLogger lines are a deliberate throw inside a test)
+
+--- AC1  module_view_zone_change_reset_test.dart  vs PRE-FIX -> 2 FAIL (falsifiable) ---
+  [E] a zone change drops the stale grid
+  [E] a real zone -> OUT-OF-ZONE move drops the stale grid (zoneID 0 with a prior armed zone)
+  PASS a same-zone network failure keeps the current grid (no-regression guard)
+  PASS a refresh while STILL out of zone keeps the empty state -- no spurious shimmer (no-regression guard)
+  => fails EXACTLY on the two behaviours the fix adds; the no-regression guards still pass.
+  => this is the ONLY proof available for the real-zone -> OUT-OF-ZONE direction: that transition is
+     NOT reachable through the UI (the map picker refuses to confirm an out-of-zone address -- it
+     replaces the confirm button with "Service not available in this area").
+
+--- AC2  module_switch_index_guard_test.dart  vs PRE-FIX -> 4 FAIL (falsifiable) ---
+  [E] a stale index into a SHRUNKEN list is a logged no-op, never a crash
+  [E] a NULL module list (newly reachable via the zone-change reset) is a logged no-op, never a crash
+  [E] a negative index is a logged no-op
+  [E] the log line is PII-safe: the sentinel type, no URL/token
+  => pre-fix CRASHES on all four; the guard is load-bearing.
+
+--- AC3  module_sector_autoselect_dedupe_test.dart  vs PRE-FIX -> 1 FAIL (falsifiable) ---
+  [E] two auto-selects in ONE arm cycle emit exactly once   (pre-fix double-emits = the reported bug)
+  PASS (3 others, incl. the over-scoped-gate direction)
+  => fails exactly on the double-log; the "zone A->B->A must fire 3x, not 1" over-scope guard holds.
