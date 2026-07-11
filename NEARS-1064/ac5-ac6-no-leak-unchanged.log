@@ -1,0 +1,17 @@
+NEARS-1064 AC5 — the blanket exemption did NOT leak to other v1 routes.
+  GET /api/v1/categories (a non-search v1 route):
+    req#1  status=200  X-RateLimit-Limit=300  remaining=299
+    FIRST 429 at req #301  X-RateLimit-Limit=300   (elapsed 21.8s)
+  => still on the blanket 300/min. Only the 3 named search routes are detached.
+
+NEARS-1064 AC6 — get-combined-data is UNCHANGED. A/B, same driver, same client IP:
+  BASE :8000 (pre-change): req#1 status=403 limit=100 remaining=98 | FIRST 429 at #51 limit=100
+  SLIM :8300 (this branch): req#1 status=403 limit=100 remaining=98 | FIRST 429 at #51 limit=100
+  => byte-for-byte identical behaviour. Still throttle:100,1 + the blanket; not moved onto a tier.
+
+  NOTE (pre-existing, NOT introduced here — identical on base): the route stacks TWO *unnamed*
+  throttles (route 100,1 + the blanket 300,1). Laravel keys an unnamed limiter by
+  sha1(domain|ip), so both throttles share ONE cache key and each request decrements it twice
+  (remaining=98 after req#1) -> the effective cap is ~50/min, not 100/min. Filed as a
+  non-blocking regression note. The 3 search routes are unaffected: they now use NAMED limiters,
+  whose keys are md5(limiterName.key), so they get their own buckets.

@@ -1,0 +1,11 @@
+NEARS-1064 AC3 — search/global + search/unified SHARE one 210/min bucket (429 at the COMBINED 211th).
+
+Interleaved the two routes 1:1 against the branch backend on one client:
+  #  1 global  status=200 limit=210 remaining=209  t=0.1s
+  #105 global  status=200 limit=210 remaining=105  t=7.9s
+  #210 unified status=200 limit=210 remaining=0    t=15.8s
+  >>> FIRST 429 at COMBINED request #211  (106 global + 105 unified)
+  >>> X-RateLimit-Limit=210   elapsed=15.9s  (a single 60s window)
+
+  => 429 fires at the COMBINED 211th request, NOT the 421st. The two results surfaces share one
+     bucket exactly as designed (one limiter name + one user-id-or-ip key = one bucket).

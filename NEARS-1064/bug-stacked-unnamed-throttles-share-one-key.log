@@ -1,0 +1,18 @@
+PRE-EXISTING (NOT caused by NEARS-1064) — two stacked *unnamed* throttles share one bucket and
+double-decrement it.
+
+Laravel keys an UNNAMED limiter by resolveRequestSignature() = sha1($route->getDomain().'|'.$ip),
+which is route-independent. GET /api/v1/get-combined-data carries BOTH:
+  - the route throttle  throttle:100,1
+  - the v1 blanket      throttle:300,1
+Both are unnamed -> both resolve to the SAME cache key -> each request increments it TWICE.
+
+Observed identically on BOTH backends (so it predates this branch):
+  BASE :8000 (pre-change): req#1 status=403 limit=100 remaining=98 | FIRST 429 at #51 limit=100
+  SLIM :8300 (this branch): req#1 status=403 limit=100 remaining=98 | FIRST 429 at #51 limit=100
+                                                        ^^^^^^^^^^^ 2 consumed on the first request
+Effect: the route's effective cap is ~50/min, not the intended 100/min.
+
+NEARS-1064 does not introduce or worsen this, and the 3 search routes are immune to it: they now
+use NAMED limiters, whose keys are md5(limiterName.limitKey) and therefore get their own buckets.
+Filed as a separate, non-blocking finding.

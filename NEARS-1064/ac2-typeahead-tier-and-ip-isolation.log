@@ -1,0 +1,10 @@
+NEARS-1064 AC2 — item-or-store-search 429s at its OWN 360/min tier; a different IP is unaffected.
+
+  first 429 at request #361  with X-RateLimit-Limit=360   (elapsed 32.1s, one 60s window)
+  => the typeahead tier fired at exactly its own limit, not the blanket 300.
+
+Bucket isolation (two genuinely different client IPs, no spoofed XFF — TRUSTED_PROXIES is empty
+so $request->ip() is the real connection IP; server bound 0.0.0.0, driven from loopback vs LAN):
+  127.0.0.1     -> EXHAUSTED: status=429 limit=360
+  192.168.1.156 -> status=200 limit=360 remaining=359   (its own fresh bucket)
+  => PASS: the other IP is completely unaffected while 127.0.0.1 is exhausted.

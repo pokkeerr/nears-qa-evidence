@@ -1,0 +1,12 @@
+NEARS-1064 AC4 — the shared search-backstop (420/min, IP-keyed) binds across all 3 routes.
+
+  [1] spent the typeahead tier exactly: 360/360 x item-or-store-search, all 200, tier remaining=0
+      (elapsed 23.7s)  -> backstop consumption = 360 of 420
+  [2] then drove search/global (results tier FRESH, 210 budget):
+      429 on search/global request #61  => backstop request #421
+      X-RateLimit-Limit = 420
+      elapsed = 28.9s  (< 60s, so this is ONE window)
+      results-tier budget still left: 210 - 60 = 150  (the tier was NOT exhausted)
+
+  => The 429 carries Limit 420, not 210 and not 360: the BACKSTOP fired, while the results tier
+     still had 150 requests of budget. The backstop is real and shared across the routes.
