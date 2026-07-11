@@ -1,0 +1,24 @@
+NEARS-1052 — AC10 splash->home across all five tiers (emulator-5554, build 4dea472d)
+Each: exactly one terminal nav, correct destination, 0 [ERR]/[FAIL].
+
+fallback         : /api/v1/module stalled 9s -> "[WARN] splash-nav: 2s nav budget elapsed -> fallback nav"
+                   + "[WARN] splash-nav: late resolution discarded (fallback already navigated)"
+                   -> home. One nav. errors=0.
+outOfZone        : persisted address at POINT(55.2744 25.1972) (0 zones). get-zone-id 404 ->
+                   "[INFO] get-zone-id: no zone / out of zone" -> home settles on
+                   "Service not available in this area" + "Change Location" (NEARS-1016 tri-state intact).
+                   sectors_shown=0. errors=0.
+moduleChooseHome : zone 2 cold boot -> picker, 3 tiles. analytics: sectors_shown {sectors_count: 3, zone_id: 2}.
+                   errors=0.
+singleModuleHome : zone 364 (1 serviceable module, 3 stores, single_store_id=null) cold boot ->
+                   analytics: sectors_shown {sectors_count: 1, zone_id: 364}
+                   analytics: sector_auto_selected {module_id: 1, zone_id: 364}
+                   -> lands on the MODULE HOME. No spinner strand. errors=0.  (= AC6)
+directStore      : qa.singlestore@nears.com, saved zone-3 address, cold boot x2 ->
+                   analytics: sectors_shown {sectors_count: 1, zone_id: 3}
+                   analytics: store_direct_opened {store_id: 59, module_id: 4, zone_id: 3}
+                   analytics: view_store {store_id: 59}
+                   -> lands directly in store 59 ("All Products" / "NEARS-257 Fixture Store").
+                   Destination correct 100% of runs. errors=0.
+                   (See bug-directstore-spurious-hero-impression.log for a PRE-EXISTING race on the
+                    no-persisted-address variant of this boot — present in the pre-batch build too.)

@@ -1,0 +1,30 @@
+PRE-EXISTING (not introduced by batch4) — spurious store_auto_opened on the directStore boot tier.
+
+WHERE: UserApp splash directStore boot when there is NO persisted address but the saved-address book
+       has the zone-3 default (the NEARS-469 "auto-select most-recent saved address" path — i.e. the
+       first cold boot after login). Home mounts on this path ("home load started" x2) and
+       SingleStoreHeroView can build and fire its impression event even though the user is navigated
+       straight into store 59 and never sees the hero.
+
+SYMPTOM: store_auto_opened (the HERO IMPRESSION event) fires on a boot where the hero was never shown,
+         alongside store_direct_opened. This is exactly the distinction destination_resolver.dart:248-250
+         declares load-bearing ("§6.2 - distinct boot-entry event (keeps `store_auto_opened` hero
+         impression semantics intact)") and that the nav guide records as
+         "Confirm via store_direct_opened (NOT store_auto_opened)". It inflates the hero-impression metric.
+
+OBSERVED (emulator-5554):
+  analytics: sectors_shown       {sectors_count: 1, zone_id: 3}
+  analytics: store_direct_opened {store_id: 59, module_id: 4, zone_id: 3}
+  analytics: store_auto_opened   {store_id: 59, module_id: 4, zone_id: 3}   <-- spurious
+  analytics: view_store          {store_id: 59}
+
+IT IS A RACE, AND IT PRE-DATES THIS BATCH — like-for-like, same boot path, same device:
+  pre-fix baseline (ebeddafe, i.e. WITHOUT NEARS-1051/1052):  store_auto_opened in 2 of 4 cold boots
+  batch4          (4dea472d):                                 store_auto_opened in 3 of 4 cold boots
+  (persisted-address directStore boot: CLEAN on both builds — 0/1 baseline, 0/2 batch4)
+Both builds show "home load started" x2 on this path, so the underlying cause (Home mounting during a
+directStore boot) is present in both. The rate difference is within noise at n=4 and no ordering change
+in d3617074 accounts for it (the disarm and the terminal nav both sit inside _navigateOnce, which
+completes before Home is navigated to).
+
+=> Filed as a PRE-EXISTING defect, not a batch4 regression. Does not gate this ticket.
