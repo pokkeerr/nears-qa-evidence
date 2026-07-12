@@ -1,0 +1,15 @@
+07-12 12:39:12.203 14145 14145 I flutter : [FAIL] endpoint=/api/v1/stores/details/ http_status=500 type=ApiFailure msg="store details fetch failed (unclassified)"
+
+ROOT CAUSE (pre-existing, NOT introduced by NEARS-1098):
+  UserApp/lib/helper/route_helper.dart:1529
+      Get.arguments ?? StoreScreen(..., autoOpened: Get.parameters['auto_opened'] == 'true')
+  UserApp/lib/features/home/widgets/single_store_hero_view.dart:141-148
+      Get.toNamed(getStoreRoute(... autoOpened: true), arguments: StoreScreen(store: store, fromModule: true))
+  The `arguments:` StoreScreen defaults autoOpened:false and takes precedence over the
+  parsed `auto_opened=true` query param => StoreScreen.autoOpened is ALWAYS false on the
+  single-store hero path. Consequences:
+    - StoreLoadFailureView's "Back to Home" link does not mount on that path.
+    - StoreScreen's PopScope `if (widget.autoOpened) _escapeToHome()` branch is dead there.
+  Observed live: hero -> failing store -> failure surface renders WITHOUT "Back to Home";
+  back arrow still reaches a live Home (Home is genuinely beneath), so the user is NOT
+  stranded and NEARS-1098's dead-end is not reintroduced.
