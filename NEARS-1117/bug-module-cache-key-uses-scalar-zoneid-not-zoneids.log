@@ -1,0 +1,87 @@
+NEARS-1117 — QA finding (LOW, non-blocking, breaks_ac: false)
+Module cache key is keyed on the SCALAR zone_id, but the request is scoped by the zone_ids ARRAY.
+
+NOT a live stale-read today. The partition fingerprint blocks the collision (see "Why no user impact").
+Filed as defense-in-depth hardening so the key matches the request's own scoping key.
+
+------------------------------------------------------------------------------
+1. THE MISMATCH (code)
+------------------------------------------------------------------------------
+UserApp/lib/features/splash/domain/repositories/splash_repository.dart  (this change)
+
+    static String cacheZoneSuffix() =>
+        '-z${AddressHelper.getUserAddressFromSharedPref()?.zoneId ?? ''}';   // <-- SCALAR
+
+UserApp/lib/api/api_client.dart:323 — what the module request is actually scoped by
+
+        addressModel?.zoneIds,                                               // <-- ARRAY
+    ...
+    :391  AppConstants.zoneId: zoneIDs != null ? jsonEncode(zoneIDs) : '',   // header = full array
+
+AddressModel carries BOTH (address_model.dart:12-13):
+    int?       zoneId;    // scalar — in practice the FIRST element of the list
+    List<int>? zoneIds;   // the real scoping key
+
+------------------------------------------------------------------------------
+2. LIVE OBSERVATION (emulator-5556, logged in as customer@nears.com)
+------------------------------------------------------------------------------
+Persisted address for the seeded Abu Dhabi address
+(/data/data/com.izzes.nears/shared_prefs/FlutterSharedPreferences.xml):
+
+    "zone_id":400 , "zone_ids":[400,2]
+
+    -> the scalar is 400 (Baqala Zone 37), NOT 2 (Abu Dhabi).
+
+Resulting on-device module cache row (app_flutter/cache_response_new_db.sqlite):
+
+    /api/v1/module-z400
+
+Backend confirms the point is in TWO overlapping zones:
+    GET /api/v1/config/get-zone-id?lat=24.453884&lng=54.3773438
+    -> {"zone_id":"[400,2]", ...}
+
+And the module LIST is the union across those zones, not the scalar's zone:
+    zone 400 (Baqala Zone 37) serves modules: [1 Grocery & Food]           <- 1 module
+    zone 2   (Abu Dhabi)      serves modules: [1, 2, 3, 5]                 <- 4 modules
+    rendered grid in-app: Grocery & Food + Food & Restaurant + Pharmacy    <- the UNION
+
+------------------------------------------------------------------------------
+3. THE COLLISION
+------------------------------------------------------------------------------
+Two DIFFERENT locations can share one cache key while having DIFFERENT correct module lists:
+
+    location A: inside Baqala 37 only   -> zone_ids [400]    -> scalar 400 -> key "-z400" -> 1 module
+    location B: inside Baqala 37 + AD   -> zone_ids [400,2]  -> scalar 400 -> key "-z400" -> 3 modules
+                                                                 ^^^^^^^^^^^^ SAME KEY
+
+That is the same bug class NEARS-1117 exists to close, one level deeper: the key is COARSER than the
+response's own scoping key.
+
+------------------------------------------------------------------------------
+4. WHY THERE IS NO USER IMPACT TODAY (this is why it is LOW / non-blocking)
+------------------------------------------------------------------------------
+LocalClient.organize(local, ...) also compares a stored partition fingerprint, and
+ApiClient.cachePartitionKey (api_client.dart:420-429) is the WHOLE header map — which includes
+zoneId = jsonEncode(zoneIds), i.e. the FULL ARRAY.
+
+    [400]  vs  [400,2]  -> fingerprints DIFFER -> cache MISS -> no stale serve.
+
+So the collision cannot currently produce a stale module list. Nothing is broken; the fix is a strict
+improvement over the pre-fix single global key, and all stated ACs pass.
+
+The narrow point: for a multi-zone (overlapping) point, the NEW KEY ITSELF does not discriminate, so the
+protection silently falls back onto the fingerprint — one of the very masking mechanisms this ticket was
+written to not depend on.
+
+------------------------------------------------------------------------------
+5. SUGGESTED ONE-LINE HARDENING (engineer's call)
+------------------------------------------------------------------------------
+Key on the same thing the request is scoped by:
+
+    static String cacheZoneSuffix() {
+      final ids = AddressHelper.getUserAddressFromSharedPref()?.zoneIds;
+      return '-z${ids == null ? '' : ids.join('_')}';
+    }
+
+Note this changes the existing key shape (-z400 -> -z400_2), i.e. one extra one-time key miss on upgrade —
+the same benign one-time miss this ticket already accepts.
