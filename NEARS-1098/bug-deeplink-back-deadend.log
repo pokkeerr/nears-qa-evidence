@@ -1,0 +1,43 @@
+NEARS-1098 — AC5 FAIL: deep-link error state -> Back -> dead end (blank screen)
+Device: emulator-5556 | build: feat/NEARS-1098-storescreen-onerror @dde9458b (debug)
+Injection: SYNTHETIC (QA reverse proxy rewrites `latitude` String -> JSON number on
+GET /api/v1/stores/details/<id>). Backend is CORRECT and untouched.
+
+REPRO (deterministic, 2/2):
+  1. adb shell am force-stop com.izzes.nears
+  2. adb shell am start -a android.intent.action.VIEW \
+       -d "https://6ammart-web.6amtech.com/store/nears-257-fixture-store?id=59" com.izzes.nears
+     (cold open straight onto the store — no back stack)
+  3. Store-details fetch throws; NearsErrorRetry renders correctly:
+       "This store could not be loaded" / "Retry" / "Back"   <-- AC1/AC2/AC3 all PASS here
+  4. Tap "Back"
+  => repro #1: lands on "Oops! / No internet connection / Try Again"  (device HAS connectivity;
+                every other API call returns 200 through the same proxy)
+     tapping "Try Again" -> BLANK screen (0 a11y nodes)
+  => repro #2: lands DIRECTLY on a BLANK screen (0 a11y nodes), app still foregrounded.
+  User is stranded: no home, no list, no affordance except OS back / force-stop.
+
+CONTROL (proves it is the ERROR PATH, not deep-link back in general):
+  Same cold deep-link with the injection DISARMED -> store loads healthy -> tap "Back"
+  -> lands on HOME correctly ("Deliver To: Others / 35X2+X2 Dubai", Home/Basket/Profile tabs).
+  So the dead-end is specific to the store-details FAILURE path, i.e. inside this ticket's
+  own AC5 surface.
+
+MECHANISM (lead, verify in tree):
+  store_screen.dart:187  onPressed: boot ? _escapeToHome : () => Get.back()
+  `boot` = widget.autoOpened, and autoOpened is FALSE on this entry, so Back does a plain
+  Get.back() with nothing beneath it on a cold deep-link open.
+  On the HEALTHY path the screen survives because the slug branch relocates the user
+  (store_controller.dart:818 setStoreAddressToUserAddress) and Home is built underneath;
+  on the FAILURE path that never runs, so the pop lands on an uninitialised/!hasData route.
+
+RELATED (separate, pre-existing): route_helper.dart:1530 `_storePage()` does
+  Get.arguments ?? StoreScreen(... autoOpened: Get.parameters['auto_opened'] == 'true')
+and single_store_hero_view.dart:137-144 passes BOTH `auto_opened=true` in the URL AND a
+non-null `arguments: StoreScreen(store: store, fromModule: true)` (no autoOpened). The
+non-null arguments wins, so autoOpened is silently dropped and `boot` is effectively
+ALWAYS false app-wide -> the `if (boot)` "back to home" escape link (store_screen.dart:203-208)
+is dead code today. ('back_to_home' also has no translation entry.)
+
+LOG (single [FAIL], correctly sentinel-typed — the logging half is fine):
+07-12 11:28:38.980  7924  7924 I flutter : [FAIL] endpoint=/api/v1/stores/details/ http_status=null type=StoreDetailsFetchFailure msg="store details: response parse failed (_TypeError)"
