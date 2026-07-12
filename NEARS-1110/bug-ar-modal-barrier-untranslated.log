@@ -1,0 +1,18 @@
+NEARS-1110 QA — PRE-EXISTING (regression_bug, NOT caused by this change)
+Surface: any bottom sheet (observed on the item-detail sheet) with app locale = Arabic.
+
+With the app switched to Arabic, every NEARS-1110 string renders correctly in
+Arabic, but the modal bottom-sheet's barrier/scrim accessibility label is still
+the English framework default 'Dismiss'. It is a Flutter MaterialLocalizations
+label, not a GetX `.tr` key, so it is unaffected by (and out of scope for)
+this ticket -- it points at a missing/partial Arabic MaterialLocalizations
+delegate in the app's GetMaterialApp config.
+
+Observed (raw uiautomator content-desc dump, locale = ar, item sheet open):
+  [content-desc] 'خطأ في الخادم'
+  [content-desc] 'نحن نواجه مشاكل حاليًا. يرجى المحاولة بعد قليل.'
+  [content-desc] 'أعد المحاولة'
+  [content-desc] 'Dismiss'          <-- untranslated framework barrier label
+
+Severity: low (a11y/i18n polish; screen-reader only, no visible text).
+Not blocking NEARS-1110.

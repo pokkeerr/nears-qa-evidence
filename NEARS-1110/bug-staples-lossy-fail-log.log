@@ -1,0 +1,23 @@
+NEARS-1110 QA — PRE-EXISTING (regression_bug, NOT caused by this change)
+Surface: My Staples (UserApp) — StaplesService.getStaples
+Repro: force HTTP 500 on GET /api/v1/customer/staples; open Profile > My Staples.
+
+The screen correctly renders the NEARS-1110 neutral error state
+('Something went wrong' / 'Please try again' / Retry), so the AC is met.
+BUT the paired failure log LOSES the endpoint and the HTTP status: the 500 is
+re-thrown as an exception and AppLogger records `endpoint=unknown http_status=null`
+instead of `endpoint=/api/v1/customer/staples http_status=500`, and no
+correlation_id is attached -- so this failure cannot be joined to the backend
+X-Request-Id (NEARS-572 correlation) during triage.
+
+Observed (adb logcat -s flutter, faults armed on /api/v1/customer/staples):
+  I/flutter: #1  StaplesService.getStaples (package:sixam_mart/features/staples/domain/services/staples_service.dart:23:16)
+  I/flutter: #2  StaplesController.getStaples (package:sixam_mart/features/staples/controllers/staples_controller.dart:41:42)
+  I/flutter: [FAIL] endpoint=unknown http_status=null type=ApiFailure msg="api request failed"
+
+Contrast — the same injected 500 on surfaces that keep the response object:
+  [FAIL] endpoint=/api/v1/categories/items/ http_status=500 type=ApiFailure msg="category items fetch failed" correlation_id=qa-faultproxy-500
+  [FAIL] endpoint=/api/v1/stores/details/   http_status=500 type=ApiFailure msg="store details fetch failed (unclassified)" correlation_id=qa-faultproxy-500
+
+Severity: low (observability/triage quality; NOT a silent failure -- it IS logged).
+Not blocking NEARS-1110.
