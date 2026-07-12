@@ -1,0 +1,24 @@
+NEARS-1147 QA — TASK BUG (low, does NOT break an AC)
+"ModuleIdDriftFixtureTest asserts EXACT violation lists, so any ambient drift makes the fixture
+ suite fail with a misleading diagnosis."
+
+tests/Feature/ModuleIdDriftFixtureTest.php:41,56,77
+    $this->assertSame([self::ITEM_ID], $report['violations_a']);
+
+arrangeCleanBaseline() only repairs the 7 NEARS-1074 ids. Any OTHER ambient violation (e.g. the
+QA1132-* rows a concurrent session committed) is NOT repaired, so these three cases fail with:
+
+    Failed asserting that two arrays are identical.
+    -Array &0 [0 => 16]
+    +Array &0 [0 => 16, 1 => 41316, 2 => 41426]
+
+That is a confusing signal: the fixture suite's job is "the corruption I planted is NAMED", not
+"my row is the only violation in the database" — the latter is ModuleIdDriftGuardTest's job, and it
+already fails correctly in that situation. Result: one real condition, two alarms, one of them
+pointing at the wrong thing.
+
+Suggested: assert containment (assertContains(self::ITEM_ID, $report['violations_a'])) plus the
+exit code, and leave exactness to the ambient net.
+
+Impact: none on the ACs — AC2 was demonstrated live and green on an uncontaminated DB. Filed for
+signal quality, not correctness.

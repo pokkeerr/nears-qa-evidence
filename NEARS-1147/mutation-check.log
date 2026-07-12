@@ -1,0 +1,47 @@
+NEARS-1147 QA — MUTATION CHECK: do the tests measure anything?
+Method: invert every drift predicate in CheckModuleIdDrift.php (<> -> =), run the suite, revert.
+
+$ git diff -U0 app/Console/Commands/CheckModuleIdDrift.php
+-            ->whereColumn('i.module_id', '<>', 's.module_id')
++            ->whereColumn('i.module_id', '=', 's.module_id')
+-            ->whereColumn('i.module_id', '<>', 'c.module_id')
++            ->whereColumn('i.module_id', '=', 'c.module_id')
+-                .'WHERE i.module_id <> c.module_id ORDER BY i.id'
++                .'WHERE i.module_id = c.module_id ORDER BY i.id'
+
+$ vendor/bin/phpunit --filter ModuleIdDrift          # UNDER MUTATION
+1) ModuleIdDriftFixtureTest::test_invariant_a_goes_red_and_names_the_item
+2) ModuleIdDriftFixtureTest::test_invariant_b_goes_red_on_the_scalar_category_independently_of_invariant_a
+3) ModuleIdDriftFixtureTest::test_invariant_b_goes_red_on_a_foreign_module_id_inside_the_category_ids_list
+4) ModuleIdDriftGuardTest::test_the_database_as_ci_finds_it_carries_no_module_id_drift   <-- THE AMBIENT NET
+FAILURES!  Tests: 9, Assertions: 138, Failures: 4.
+
+=> The mutation is KILLED, and the ambient net is among the killers. The guard is armed.
+
+$ git checkout -- app/Console/Commands/CheckModuleIdDrift.php
+$ git diff HEAD --stat -- app/Console/Commands/CheckModuleIdDrift.php   # empty: zero residue
+$ vendor/bin/phpunit --filter ModuleIdDrift
+OK. Tests: 9, Assertions: 152.
+
+--- CR-1 (log level) verified with a NEGATIVE CONTROL, not just by reading the code ---
+$ LOG_LEVEL=error php artisan tinker --execute="Log::warning('[QA-PROBE] warning-level line'); Log::error('[QA-PROBE] error-level line');"
+warning lines written: 0      <-- a Log::warning finding WOULD have been silently dropped in prod
+error   lines written: 1
+
+$ LOG_LEVEL=error php artisan data:check-module-id-drift   (dirty twin)
+[2026-07-12 11:28:33] production.ERROR: [FAIL] module-id drift check failed
+{"exit_code":1,"database":"multi_food_db_test","scanned_a":94,"scanned_b":248,
+ "violations_a":[39,47,60,73,75,76,77],"violations_b_scalar":[],"violations_b_category_ids":[],
+ "unscannable":{...all zero...}}
+=> [FAIL] survives prod LOG_LEVEL=error. PII: ids/counts/db-name only — no item names, no vendor/customer PII, no tokens.
+
+--- SEC-1 (migration is identity-safe) verified by REAL collision, not by reading the code ---
+Setup: item 47 (id IS in the migration's hardcoded list) parked on store 1 = module 1 = its own module -> NOT drifted.
+       item 39 left genuinely drifted on store 7 (module 3, item module 1).
+$ DB_DATABASE=multi_food_db_test php artisan migrate --path=database/migrations/2026_07_12_101500_fix_item_module_id_store_drift.php --force
+[ERR] NEARS-1147 item store-drift repair moved rows
+{"outcome":"repaired","candidate_item_ids":[39,47,60,73,75,76,77],"repaired_item_ids":[39,60,73,75,76,77],"repaired_count":6}
+ id | item_mod | store_id | store_mod
+ 39 |    1     |    2     |    1        <-- genuinely drifted: REPAIRED
+ 47 |    1     |    1     |    1        <-- module-matching, id in list: LEFT UNTOUCHED
+=> The migration qualifies rows by the corruption signature, not by id.

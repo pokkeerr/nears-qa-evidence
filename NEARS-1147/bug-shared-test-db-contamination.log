@@ -1,0 +1,57 @@
+NEARS-1147 QA — REGRESSION BUG (pre-existing infra, NOT caused by this change)
+"The phpunit twin multi_food_db_test is a shared singleton: a concurrent QA/CI session
+ contaminates it, and any subsequent `vendor/bin/phpunit` run goes RED."
+
+--- HOW IT SURFACED ---
+Full suite run #1 (shared twin): 944 tests GREEN.
+Full suite run #2, identical unmodified tree, nothing changed in between: 4 FAILURES.
+
+$ vendor/bin/phpunit --configuration phpunit.xml     # run #2
+1) ModuleIdDriftFixtureTest::test_invariant_a_goes_red_and_names_the_item
+2) ModuleIdDriftFixtureTest::test_invariant_b_goes_red_on_the_scalar_category_independently_of_invariant_a
+3) ModuleIdDriftFixtureTest::test_invariant_b_goes_red_on_a_foreign_module_id_inside_the_category_ids_list
+4) ModuleIdDriftGuardTest::test_the_database_as_ci_finds_it_carries_no_module_id_drift
+module-id drift present in multi_food_db_test — invariant A — item ids: 41316,41426,41646
+FAILURES! Tests: 944, Failures: 4.
+
+--- ROOT CAUSE (proven, not guessed) ---
+Items 41316/41426/41646 are NOT ours. They are named QA1132-*:
+  41316 QA1132-PREFIX-ac1            module 2 on store 1 (module 1)   <-- deliberately mismatched
+  41426 QA1132-PREFIX-sec1           module 3 on store 1 (module 1)   <-- deliberately mismatched
+  41572 QA1132-PREFIX-ac6-catmismatch module 1, category mismatch     <-- deliberately mismatched
+  (+ QA1132-FIXED-* / QA1132-ac*-* rows)
+`grep -rln QA1132 tests/` -> NOTHING. They are not produced by any test in this repo.
+
+A CONCURRENT NEARS-1147-sibling QA session is writing them live:
+  - worktree  /Users/Apple/Projects/nears-NEARS-1132-item-module-derivation
+  - its own   php artisan serve --port=8001  (up 9h)
+  - a `php vendor/bin/phpunit --configuration phpunit.xml --testsuite Feature` process that is NOT mine
+  - row count grew 10 -> 13 while this QA session ran NOTHING (max_id 41646 -> 42482,
+    latest created_at moved to "now")
+
+Both sessions write the SAME database because phpunit.xml hardcodes it:
+    <server name="DB_DATABASE" value="multi_food_db_test"/>
+and that value WINS over the shell environment — proven by a negative control:
+    $ DB_DATABASE=definitely_not_a_db vendor/bin/phpunit --filter test_scan_is_not_vacuous
+    OK. Tests: 1.        # it never even tried to connect to the bogus name
+So a DB-mutating QA run CANNOT be isolated with an env var; there is no lock and no per-run DB.
+
+--- PROOF IT IS NOT NEARS-1147's SUITE LEAKING ---
+Ran the identical full suite twice against a PRIVATE copy of the twin (no other writer):
+    run #1: OK. Tests: 944, Assertions: 10263.
+    run #2: OK. Tests: 944, Assertions: 10263.
+    guard afterwards: exit=0, items=94, violations=0   # the suite leaves ZERO drift behind
+=> phpunit is idempotent. The run-#2 RED was entirely external contamination.
+
+--- WHY IT MATTERS (this is the part that bites) ---
+NEARS-1147 deliberately asserts on AMBIENT database state (that is the whole design, and it is right).
+Consequence: on any shared/persistent test DB, ANY foreign writer turns this new gate RED with a
+FALSE POSITIVE naming rows that are test garbage, not production drift. A gate that cries wolf gets
+disabled — the exact fate this ticket exists to prevent. On real CI (fresh DB per job) it is fine;
+on this dev box, and on any CI that reuses a database between jobs, it is not.
+
+Recommended: give each phpunit run its own database (or lock the twin the way QA locks devices);
+and the NEARS-1132 session should delete its committed QA1132-* rows from multi_food_db_test.
+
+NOT FIXED / NOT TOUCHED BY QA: the 13 QA1132-* rows belong to a LIVE concurrent session; deleting
+them would sabotage that run. They are left in place and reported instead.

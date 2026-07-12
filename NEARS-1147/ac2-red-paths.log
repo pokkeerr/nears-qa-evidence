@@ -1,0 +1,36 @@
+NEARS-1147 QA — AC2: the guard CAN GO RED (real corruption, real command, real process exit codes)
+DB: multi_food_db_test (twin). Every case verified with `echo $?` on the actual process.
+
+=== [3] REAL NEARS-1074 corruption re-seeded into the twin ===
+$ mysql multi_food_db_test -e "UPDATE items SET store_id=7 WHERE id IN (39,60); UPDATE items SET store_id=5 WHERE id IN (47,73,75,76,77);"
+$ php artisan data:check-module-id-drift
+module-id drift check — database=multi_food_db_test items_total=94
+scanned_a=94 (items joined to stores)
+scanned_b=248 (scalar=94 + category_ids=154 of 154 list entries)
+7 item(s) — invariant A violated (items.module_id <> stores.module_id)
+item ids: 39,47,60,73,75,76,77
+exit=1 — module-id drift detected.
+EXIT=1
+
+=== the AMBIENT NET fails the build on it ===
+$ vendor/bin/phpunit --filter ModuleIdDriftGuardTest
+1) Tests\Feature\ModuleIdDriftGuardTest::test_the_database_as_ci_finds_it_carries_no_module_id_drift
+module-id drift present in multi_food_db_test — invariant A (items.module_id <> stores.module_id)
+ — item ids: 39,47,60,73,75,76,77. Run: php artisan migrate (2026_07_12_101500_fix_item_module_id_store_drift).
+Tests: 2, Assertions: 35, Failures: 1.
+
+=== each channel fires INDEPENDENTLY — real exit codes ===
+CLEAN                                          real_exit=0  A=[] Bscalar=[] Blist=[] unscannable=0
+B-SCALAR only (store module-MATCHING)          real_exit=1  A=[] Bscalar=[16] Blist=[] unscannable=0
+B-LIST only (scalar correct, secondary drifts) real_exit=1  A=[] Bscalar=[] Blist=[16] unscannable=0
+INVARIANT A only                               real_exit=1  A=[16] Bscalar=[] Blist=[] unscannable=0
+UNSCANNABLE dangling store_id                  real_exit=2  A=[] Bscalar=[] Blist=[] unscannable=1
+RESTORED                                       real_exit=0  A=[] Bscalar=[] Blist=[] unscannable=0
+
+=== FAIL-CLOSED: all four unscannable shapes exit 2, never "clean" ===
+dangling store_id           -> unscannable: items_with_dangling_store_id=1        -> exit=2
+dangling category_ids entry -> unscannable: category_ids_entries_dangling=1       -> exit=2
+malformed (non-JSON)        -> unscannable: items_with_malformed_category_ids=1   -> exit=2
+NULL category_id            -> unscannable: items_with_null_category_id=1         -> exit=2
+
+All twin writes reverted afterwards; twin items 39/47/60/73/75/76/77 back on store_id=2, item 16 restored.
