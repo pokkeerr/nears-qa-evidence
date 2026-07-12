@@ -1,0 +1,181 @@
+NEARS-1132 — items.module_id must follow stores.module_id on every admin write path
+LIVE QA · 2026-07-12 · fix-cycle 0 (first pass) · VERDICT: PASS
+
+BUILDS UNDER TEST (both against the SAME test twin `multi_food_db_test` — zero writes to multi_food_db)
+  port 8001 = FIXED   : worktree /Users/Apple/Projects/nears-NEARS-1132-item-module-derivation (branch feat/NEARS-1132-item-module-derivation)
+  port 8002 = PRE-FIX : primary tree /Users/Apple/Projects/nears (base e04795d2, $item->module_id = Config::get('module.current_module_id'))
+  Running the IDENTICAL request against both makes every result falsifiable: the bug REPRODUCES on
+  8002 and is FIXED on 8001. Green tests alone were not accepted as proof.
+
+FIXTURES: store 1 "Nears Mart" (module 1 grocery) · store 4 "Burger Palace" (module 2 food) ·
+          store 7 "HealthCare Pharmacy" (module 3 pharmacy) · categories 3 (m1) / 14 (m2) / 24 (m3)
+ADMIN: admin@admin.com (role_id 1) — password in the twin is 12345678, NOT the 123456789 in users_test_data.md
+
+=====================================================================================================
+AC1 — CREATE: persisted module_id follows the STORE, not the UI/POST module context
+=====================================================================================================
+Request: POST /admin/item/store  body module_id=2 (food ctx)  +  store_id=1 (module 1)  + category_id=3
+
+  PRE-FIX (8002):  {"success":"Product added successfully"}
+    id     name                store_id  item_module  store_module  verdict
+    41316  QA1132-PREFIX-ac1   1         2            1             *** DRIFT ***      <-- BUG REPRODUCED
+
+  FIXED (8001), same request:
+    41330  QA1132-FIXED-ac1    1         1            1             OK                 <-- follows the STORE
+
+  Reverse direction (body module_id=1, store 4 = module 2):
+    41331  QA1132-FIXED-ac1b   4         2            2             OK
+  Pharmacy direction (body module_id=1, store 7 = module 3):
+    41332  QA1132-FIXED-ac1c   7         3            3             OK
+
+=====================================================================================================
+AC2 / AC3 — NO REGRESSION on the hot path: normal same-module create via the REAL admin UI
+=====================================================================================================
+Driven in a real browser (Playwright, persistent authenticated profile) against the genuine form:
+typed into the real select2 AJAX dropdowns ("Nears" -> "Nears Mart", "Fruits" -> Fruits & Vegetables),
+real image upload, real #submitButton click. No hardcoded coordinates.
+  store_id resolved = 1 · category_id resolved = 3 · after submit -> redirected to /admin/item/list
+
+    id     name                     store_id  item_mod  store_mod  price  category_ids
+    43803  QA1132-UI-normal-create  1         1         1          19.00  [{"id":"3","position":1}]   OK
+
+Normal same-module EDIT also still saves (AC3):
+    41636  QA1132-ac3-normal-edit-saved   store 1   module 1   price 12.00   stock 7   OK
+Screenshot: ac2-ui-normal-create.png
+
+=====================================================================================================
+AC4 — UPDATE: module_id follows the new store, never left stale
+=====================================================================================================
+Move item 41632 (store 1 / module 1) -> store 4 (module 2) + category 14, UI ctx says module 1:
+
+  FIXED (8001):  {"success":"Product updated successfully"}
+    41632  QA1132-ac4-base-moved   store 4   item_mod 2   store_mod 2   OK   <-- followed the new store
+
+  PRE-FIX (8002), same move:
+    41646  QA1132-PREFIX-ac4-moved store 4   item_mod 1   store_mod 2   *** STALE DRIFT ***
+    (pre-fix left module_id at the OLD value — the update path never wrote it at all)
+
+Update REJECTED when the category does not belong to the new store's module — and the row is UNTOUCHED:
+  POST update item 41636 -> store 4 (module 2) but keep grocery category 3
+    {"errors":[{"code":"category_id","message":"Selected category does not belong to the stores module"}]}
+    Row after: id 41636, store_id 1, module_id 1, name STILL "QA1132-ac4-reject" (not the attempted new
+    name) -> proves NO partial write.
+
+=====================================================================================================
+AC5 — BULK CSV/XLSX IMPORT: each row's module follows ITS OWN store (insert + update branches)
+=====================================================================================================
+One xlsx, 3 rows, stores spanning modules 1/2/3. EVERY row's ModuleId column LIES, and the importing
+admin's UI module context also lies (module 2).
+
+  INSERT branch — PRE-FIX (8002), UI ctx = 2:
+    id     name                  store_id  item_mod  store_mod  verdict          rx_rows
+    42480  QA1132-csv-grocery    1         2         1          *** DRIFT ***    0
+    42481  QA1132-csv-food       4         2         2          OK               0
+    42482  QA1132-csv-pharmacy   7         2         3          *** DRIFT ***    0   <-- pharmacy store, no Rx details
+
+  INSERT branch — FIXED (8001), SAME file, SAME lying UI ctx = 2:
+    42552  QA1132-csv-grocery    1         1         1          OK               0
+    42553  QA1132-csv-food       4         2         2          OK               0    (food-shaped variations)
+    42554  QA1132-csv-pharmacy   7         3         3          OK               1    <-- Rx details now attached
+
+  UPDATE branch — FIXED (8001), button=update, UI ctx = 1 (lying), CSV ModuleId lying:
+    42713  QA1132-csv-grocery-upd   1   1   1   OK      (stock updated 5 -> 9, so the row really was written)
+    42714  QA1132-csv-food-upd      4   2   2   OK
+    42715  QA1132-csv-pharmacy-upd  7   3   3   OK
+    -> the update branch did NOT rewrite correct rows' module_id to the UI context.
+
+  UPDATE branch — PRE-FIX (8002), same file, UI ctx = 1, on rows that were CORRECT (1,2,3) beforehand:
+    42713  ... 1   1   1   OK
+    42714  ... 4   1   2   *** CORRUPTED BY UPDATE ***
+    42715  ... 7   1   3   *** CORRUPTED BY UPDATE ***
+    -> pre-fix, a bulk update silently corrupted previously-clean rows. Re-running the FIXED update on
+       those same corrupted rows REPAIRED them back to 1/2/3.
+
+=====================================================================================================
+AC6 — CATEGORY INVARIANT: cross-module category is REJECTED (never coerced), nothing written
+=====================================================================================================
+  CREATE, store 1 (module 1) + category 14 (module 2), FIXED:
+    {"errors":[{"code":"category_id","message":"Selected category does not belong to the stores module"}]}
+    rows_for_fixed_ac6_probes = 0                                     <-- no row written
+  CREATE, unknown store 99999, FIXED:
+    {"errors":[{"code":"store_id","message":"Selected store not found"}]}   <-- clean reject, no 500, no null module
+  PRE-FIX contrast, store 1 + category 14:
+    {"success":"Product added successfully"}
+    41572  QA1132-PREFIX-ac6-catmismatch  store 1  module_id 1  category_ids [{"id":"14"...}]  <-- cross-module category persisted
+
+  IMPORT, row 2 has category 14 (module 2) under store 1 (module 1), FIXED:
+    toastr.error('Selected category does not belong to the stores module 2')   (row id surfaced to the admin)
+    rows_written = 0  -- INCLUDING the valid row 1 -> no partial import
+  IMPORT, unknown store 99999, FIXED:
+    toastr.error('Selected store not found 1')
+    rows_written = 0
+
+=====================================================================================================
+SEC-1 — module_type side effects derive from the STORE, not the spoofable Config value
+=====================================================================================================
+Request: grocery store 1 + grocery category 3, but body module_id=3 (pharmacy) and attacker-supplied
+pharmacy fields is_prescription_required=1, condition_id=1, basic=1, organic=1.
+
+  id     name                store_id  item_mod  store_mod  organic  pharmacy_rows  rx_required  condition_id
+  41426  QA1132-PREFIX-sec1  1         3         1          0        1              1            1     <-- PRE-FIX: attacker-controlled pharmacy row attached to a GROCERY item; organic silently dropped
+  41433  QA1132-FIXED-sec1   1         1         1          1        0              NULL         NULL  <-- FIXED: no pharmacy row; organic honoured per the STORE's module
+
+=====================================================================================================
+ZONE — zone-restricted admin employee
+=====================================================================================================
+NOT demonstrable in the browser: the twin contains only the master admin (role_id 1, zone_id NULL).
+No zone-restricted admin employee row exists -> Data DoR gap (reported, NOT hand-seeded: seeding a
+fixture to make a check pass is exactly what the QA read-only rule forbids).
+Covered at the CONTROLLER level against the real DB by 2 passing tests that construct a real
+zone-scoped Admin (role_id != 1 + zone_id) and invoke the real ItemController:
+  ✔ Zone scoped admin in the stores zone can still create              (not over-blocked)
+  ✔ Out of zone store is rejected cleanly instead of writing a null module   (no 500, no null module_id)
+ProductLogic::store_module_map deliberately KEEPS ZoneScope applied, so an out-of-zone store resolves
+to null and the caller rejects.
+
+=====================================================================================================
+i18n — both new validation errors render in Arabic
+=====================================================================================================
+GET /admin/lang/ar, then:
+  category outside store module -> "الفئة المحددة لا تنتمي إلى وحدة المتجر"
+  store not found               -> "المتجر المحدد غير موجود"
+GET /admin/lang/en restores English ("Selected category does not belong to the stores module").
+
+=====================================================================================================
+LOG CHECK (per-AC, scoped grep — no stream dumps)
+=====================================================================================================
+Worktree log Admin/storage/logs/laravel.log — every rejection path emits a structured WARNING with a
+correlation_id; NO silent failures:
+  [WARNING] item create rejected: category outside store module   {"correlation_id":"80a07506-..."}
+  [WARNING] item create rejected: store not found                 {"correlation_id":"5db2ff85-..."}
+  [WARNING] item update rejected: category outside store module   {"correlation_id":"80a5ce4d-..."}
+  [WARNING] item bulk import rejected: category outside store module
+  [WARNING] item bulk import rejected: store not found
+production.ERROR entries referencing ItemController / ProductLogic: 0
+(The single ERROR in the log is a `php artisan tinker` parse error from the QA harness itself, not app code.)
+
+=====================================================================================================
+REGRESSION SWEEP (bounded — adjacent admin surfaces, authenticated)
+=====================================================================================================
+  admin/item/list            -> 200      admin/item/bulk-import  -> 200
+  admin/item/edit/43803      -> 200      admin/item/bulk-export  -> 200
+  admin/item/add-new         -> 200      admin/store/list        -> 200
+  admin/category/add         -> 200      admin/item/list?module_id=2 -> 200   module_id=3 -> 200
+  New item renders in the module-1 item list UI.
+  Vendor write paths were NOT touched by this diff and were never affected — they already derive the
+  module from the store: Vendor/ItemController.php:397 `Helpers::get_store_data()->module_id`,
+  Api/V1/Vendor/ItemController.php:341 `$request['vendor']->stores[0]->module_id`. No cross-app
+  contract change needed.
+
+=====================================================================================================
+FINAL INVARIANTS — every row written by the FIXED build (10 rows)
+=====================================================================================================
+  items.module_id == stores.module_id      : 10/10 OK
+  items.module_id == categories.module_id  : 10/10 OK
+  drift rows produced by the FIXED build   : 0
+(The twin's real pre-run baseline drift was 0 — the "7 pre-existing drifted rows" in the task brief is
+FALSE: items 39/47/60/73/75/76/77 all belong to store 2 (module 1) and correctly carry module_id=1.)
+
+AUTOMATED BACKSTOP: vendor/bin/phpunit --configuration phpunit.xml
+  Tests: 948, Assertions: 10164 — 948/948 GREEN (13 in ItemModuleFollowsStoreTest, all ✔)
+  (3 PHPUnit deprecations + 1 deprecation: pre-existing, unrelated.)

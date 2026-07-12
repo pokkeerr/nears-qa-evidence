@@ -1,0 +1,53 @@
+BUG (PRE-EXISTING / REGRESSION LANE, SECURITY) — admin login's custom captcha is bypassable by never loading the login page
+NEARS-1132 QA · 2026-07-12 · Admin/app/Http/Controllers/LoginController.php:148
+Severity: Medium (anti-automation control defeated; brute-force throttle still applies) · Surface: Admin panel login
+NOT caused by NEARS-1132 — LoginController is untouched by this diff. Found incidentally while
+building the authenticated QA harness.
+
+--- MECHANISM -------------------------------------------------------------------------------------
+LoginController::submit()
+
+    $recaptcha = Helpers::get_business_settings('recaptcha');
+    if (isset($recaptcha) && $recaptcha['status'] == 1 && !$request?->set_default_captcha) {
+        ... google reCAPTCHA validation ...
+    } else if (strtolower(session('six_captcha')) != strtolower($request->custome_recaptcha)) {
+        Toastr::error(translate('messages.ReCAPTCHA Failed'));
+        return back();
+    }
+
+`six_captcha` is only put into the session by the GET /login/admin view (LoginController:84).
+Google reCAPTCHA is disabled in this environment (business_settings.recaptcha = {"status":"0"}),
+so the else-if branch is the only captcha gate.
+
+If the client NEVER requests GET /login/admin:
+    session('six_captcha')          === null   -> strtolower(null) === ''
+    $request->custome_recaptcha     === null   -> strtolower(null) === ''
+    '' != ''                                    -> FALSE  -> captcha check passes
+
+The CSRF token can be sourced from any other page that renders csrf_token() (e.g. the public
+landing page GET /), which does not build a captcha.
+
+--- LIVE PROOF ------------------------------------------------------------------------------------
+Token taken from the landing page, no captcha value sent, real credentials -> authenticated session:
+
+    TOK=$(curl -s -c jar "http://127.0.0.1:8001/" | grep -o 'name="_token" value="[^"]*"' | ...)
+    curl -b jar -c jar -X POST "http://127.0.0.1:8001/login_submit" \
+         -d "_token=$TOK" -d "email=admin@admin.com" -d "password=<pw>" -d "role=admin"
+    curl -b jar "http://127.0.0.1:8001/admin/item/add-new"   ->  HTTP 200 (authenticated)
+
+No captcha value was ever supplied. (Note: this is how the QA harness for this ticket authenticated —
+valid admin credentials were still required; this is not an auth bypass, it is a CAPTCHA bypass.)
+
+--- IMPACT ----------------------------------------------------------------------------------------
+The captcha provides no protection against scripted/credential-stuffing login attempts. The only
+remaining control is the IP rate limiter (5 attempts / 2 minutes, LoginController:154-157), which is
+itself per-IP and therefore distributable. Same else-if pattern also guards the vendor login path —
+worth checking there.
+
+--- SUGGESTED FIX ---------------------------------------------------------------------------------
+Fail closed: treat a missing/empty session('six_captcha') OR a missing custome_recaptcha input as a
+FAILED captcha, rather than letting null == null pass. e.g.
+
+    $expected = session('six_captcha');
+    $given    = $request->custome_recaptcha;
+    if (blank($expected) || blank($given) || strtolower($expected) !== strtolower($given)) { fail; }

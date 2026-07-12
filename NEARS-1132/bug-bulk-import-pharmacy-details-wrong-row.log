@@ -1,0 +1,47 @@
+BUG (PRE-EXISTING / REGRESSION LANE) — bulk import attaches pharmacy_item_details values from the WRONG CSV row
+NEARS-1132 QA · 2026-07-12 · Admin/app/Http/Controllers/Admin/ItemController.php:1495-1499 (insert branch)
+Severity: Medium (silent data corruption on pharmacy imports) · Surface: Admin panel > Items > Bulk Import
+NOT caused by NEARS-1132 — the diff only changed the `if` GATE on line 1491; the value expressions below are untouched.
+
+--- MECHANISM -------------------------------------------------------------------------------------
+    foreach ($chunk_items as $key => $chunk_item) {      // $key = CHUNK index (0 for any import < chunk size)
+        foreach ($chunk_item as $item) {                  // the actual row loop — has no index of its own
+            $insertedId = DB::table('items')->insertGetId($item);
+            if (($module_type_map[$item['module_id']] ?? null) === 'pharmacy') {
+                DB::table('pharmacy_item_details')->insert([
+                    'item_id' => $insertedId,
+                    'is_prescription_required' => $collections[$key * $chunkSize + $key]['IsPrescriptionRequired'] ?? 0,
+                    'common_condition_id'      => $collections[$key * $chunkSize + $key]['CommonConditions'] ?? 0,
+                    'is_basic'                 => $collections[$key * $chunkSize + $key]['IsBasic'] ?? 0,
+                    ...
+
+`$collections[$key * $chunkSize + $key]` indexes by the OUTER CHUNK index, not the row being inserted.
+For any import that fits in one chunk, $key = 0, so EVERY pharmacy row reads its prescription flag,
+common condition and is_basic from CSV ROW 0 — regardless of what that row actually declared.
+
+--- LIVE PROOF THAT IT PRE-DATES THE FIX ----------------------------------------------------------
+Imported the same 3-row xlsx on the PRE-FIX build (port 8002, primary tree, no NEARS-1132 changes),
+UI module context = 3 (pharmacy) so the pharmacy gate fires for every row.
+CSV row 3 declared IsPrescriptionRequired=1, CommonConditions=1. Rows 1-2 declared 0/0.
+
+    id     name                  store_id  module_id  rx  cond
+    42577  QA1132-csv-grocery    1         3          0   0
+    42578  QA1132-csv-food       4         3          0   0
+    42579  QA1132-csv-pharmacy   7         3          0   0     <-- declared 1/1 in the CSV, persisted 0/0
+
+Every row took row-0's values. The prescription-required flag declared in the CSV is silently discarded.
+
+--- IMPACT ----------------------------------------------------------------------------------------
+A pharmacy item imported as prescription-required (IsPrescriptionRequired=1) can be persisted as
+NOT prescription-required if it is not the first row of the file — i.e. a prescription-only drug
+becomes freely orderable. Inverse is also possible (row 0 = 1 marks the whole file as Rx-required).
+
+--- REPRO -----------------------------------------------------------------------------------------
+1. Admin > Items > Bulk Import, module context = pharmacy.
+2. Upload an xlsx whose row 1 has IsPrescriptionRequired=0 and row 2 (a pharmacy store) has =1.
+3. SELECT p.is_prescription_required FROM pharmacy_item_details p WHERE p.item_id = <row 2's item>;
+   -> 0, not 1.
+
+--- SUGGESTED FIX ---------------------------------------------------------------------------------
+Track the true row offset across chunks (e.g. `$rowIndex = $key * $chunkSize + $i` using the inner
+loop index $i), or carry the pharmacy fields on $item itself through the chunking step.
