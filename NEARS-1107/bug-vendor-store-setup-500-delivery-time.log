@@ -1,0 +1,19 @@
+PRE-EXISTING (reproduces identically on feat/human-review @7ad92889, i.e. BEFORE NEARS-1107).
+Vendor (Laravel) panel -> Business Settings -> Store Setup returns HTTP 500.
+
+Repro: log into the vendor panel as ahmed.khan@demo.com / 123456789 (owns store 2),
+open /vendor-panel/business-settings/store-setup  -> "Error 500 | Nears".
+
+Backend log:
+production.ERROR: [FAIL] Undefined array key 1 (View: Admin/resources/views/vendor-views/business-settings/restaurant-index.blade.php)
+
+Cause: restaurant-index.blade.php:298/302/305/308 do
+  explode(' ', explode('-', $store->delivery_time)[1])[1]
+which assumes delivery_time is formatted "<min>-<max> <unit>" (e.g. "30-40 min").
+Stores whose delivery_time has no unit suffix (e.g. "30-45") blow up on index [1].
+
+Blast radius (live DB): 33 of 1002 stores have a unit-less delivery_time
+  SELECT SUM(delivery_time NOT LIKE '% %') FROM stores;  -> 33
+=> those 33 store owners cannot open their own business-settings page at all.
+
+NOT caused by NEARS-1107 (Store.php $hidden/$appends change is unrelated to this blade).

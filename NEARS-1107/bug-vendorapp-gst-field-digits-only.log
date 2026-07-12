@@ -1,0 +1,16 @@
+PRE-EXISTING (VendorApp UI, unrelated to the NEARS-1107 backend change).
+
+VendorApp -> Menu -> Store Config -> GST card -> "GST number" field.
+File: VendorApp/lib/features/store/screens/store_settings_screen.dart:497-503
+  CustomTextFieldWidget(labelText: 'gst_number'.tr, controller: _gstController, isAmount: true, ...)
+
+isAmount: true restricts input to digits. Observed live on emulator-5558:
+typing "TAXQA-ROUNDTRIP-9911" into the GST field produced "9911" (letters and
+hyphens silently stripped).
+
+Impact: a store owner cannot type a real alphanumeric tax/GST code (e.g. "TAX-SECRET-1107",
+or a UAE TRN-style code) in VendorApp. The backend stores gst.code as a string and the
+Laravel vendor panel accepts alphanumerics, so the apps disagree on the field's domain.
+A code set via admin/vendor-panel DISPLAYS correctly in VendorApp but cannot be re-typed there.
+
+NOT caused by NEARS-1107.
