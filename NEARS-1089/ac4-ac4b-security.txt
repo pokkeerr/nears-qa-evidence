@@ -1,0 +1,22 @@
+=== AC4: structured export-failure line (scoped grep, refused collector) ===
+one representative line from the 117 emitted by the sustained-outage drive:
+
+[2026-07-12 21:18:00] production.ERROR: [FAIL] OpenTelemetry export failed (telemetry batch dropped): Export failure {"trace_id":"8b8b9f8118c44fe25d5024b12c8d3d84","correlation_id":"3bf60344-5433-410b-aa0b-c569c55ce2e3","suppressed_since_last":0,"source":"OpenTelemetry\\Contrib\\Otlp\\MetricExporter","signal":"metrics","otlp_endpoint":"127.0.0.1:9","error_type":"GuzzleHttp\\Exception\\ConnectException","error_message":"cURL error 7: Failed to connect to 127.0.0.1 port 9 after 0 ms: Could not connect to server (see https://curl.se/libcurl/c/libcurl-errors.html) for http://127.0.0.1:9/v1/metrics"} 
+
+required fields: signal=metrics | otlp_endpoint=127.0.0.1:9 | error_type=GuzzleHttp\Exception\ConnectException | correlation_id=3bf60344-... -> ALL 4 PRESENT
+
+=== AC4b: sustained outage >60s — does it keep re-reporting? ===
+117 requests over 130s -> 117 export-failure lines; first 21:18:00, last 21:20:09.
+The log NEVER went silent. (Mechanism nuance: in the web SAPI the re-report comes from PHP's
+per-request static reset, not the 60s window - see bug-throttle-inert-web-sapi.log. The window
+itself is pinned for long-lived workers by OtelExportBlockingTest:164.)
+
+=== SECURITY: credential/PII scan over all 117 emitted lines ===
+NOTE: this run inherited the REAL Basic-auth credential from .env
+      (OTEL_EXPORTER_OTLP_HEADERS); only the endpoint was overridden. So the live
+      credential WAS loaded in the exporter while these lines were written.
+  grep -ciE 'basic |bearer |authorization'  -> 0
+  live cred fragment 'cm9vdEBleGFtcGxl'     -> 0
+  userinfo '@' in any line                  -> 0
+  query-string '?' in any line              -> 0
+RESULT: PASS - no credential, no span payload, no user PII.

@@ -1,0 +1,41 @@
+=== NEARS-1089 OTel export latency harness (N=5 per endpoint, p50) ===
+
+A-baseline     config      p50=   0.051s
+   WARN typeahead -> HTTP 403 (check path/headers; timings still recorded)
+A-baseline     typeahead   p50=   0.046s
+A-baseline     categories  p50=   0.062s
+
+B-refused      config      p50=   0.079s
+   WARN typeahead -> HTTP 403 (check path/headers; timings still recorded)
+B-refused      typeahead   p50=   0.065s
+B-refused      categories  p50=   0.085s
+
+C-blackhole    config      p50=   4.093s
+   WARN typeahead -> HTTP 403 (check path/headers; timings still recorded)
+C-blackhole    typeahead   p50=   4.083s
+C-blackhole    categories  p50=   4.118s
+
+D-reachable    config      p50=   0.092s
+   WARN typeahead -> HTTP 403 (check path/headers; timings still recorded)
+D-reachable    typeahead   p50=   0.083s
+D-reachable    categories  p50=   0.108s
+
+=== VERDICT (NEARS-1089 gate: B within ~2x of A; C reported, not gated) ===
+  config      B-refused   1.55x  PASS
+  config      C-blackhole 80.25x  (bounded, NOT fixed by 1089 -> NEARS-1196)
+  config      D-reachable 1.81x  (parity ref)
+  typeahead   B-refused   1.39x  PASS
+  typeahead   C-blackhole 87.90x  (bounded, NOT fixed by 1089 -> NEARS-1196)
+  typeahead   D-reachable 1.78x  (parity ref)
+  categories  B-refused   1.38x  PASS
+  categories  C-blackhole 66.63x  (bounded, NOT fixed by 1089 -> NEARS-1196)
+  categories  D-reachable 1.74x  (parity ref)
+
+=== AC5 (telemetry parity — the anti-false-PASS check) ===
+  D-reachable listener received 38 OTLP posts -> export still WORKS on the healthy path:
+      19 /v1/metrics
+      19 /v1/traces
+
+AC4 (failures observable): grep -F 'OpenTelemetry export failed' Admin/storage/logs/laravel.log | tail -n 5
+
+=== RESULT: PASS (exit 0) ===

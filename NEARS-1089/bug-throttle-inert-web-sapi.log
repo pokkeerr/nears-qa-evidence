@@ -1,0 +1,25 @@
+NEARS-1089 task_bug: throttle-inert-web-sapi — the 60s window does not bound web-request log volume
+Where: Admin/app/Observability/OtelDiagnosticLogger.php:53-58 (docblock) + :64-70 (static state)
+
+The class docblock claims:
+  "the process models that matter here are LONG-LIVED - a php-fpm worker serves
+   pm.max_requests before it recycles" ... "even a fully-saturated fpm worker
+   contributes at most ~60 lines/hour per distinct fault"
+
+That is false for php-fpm and cli-server. PHP is share-nothing: class static properties are
+re-initialised on every request, so self::$lastEmittedAt / self::$suppressed never survive a
+web request. The time window is therefore INERT in the web path.
+
+LIVE EVIDENCE — 117 requests / 130s against a REFUSED collector (php -S, cli-server):
+  lines emitted            : 117   (i.e. ONE PER REQUEST, not ~2 per the 60s window)
+  suppressed_since_last    : 0 on all 117 lines  (the field is dead in the web path)
+  first line 21:18:00 ... last line 21:20:09, cadence ~1/sec
+
+Consequences:
+ 1. Log volume: a sustained outage writes 1 ERROR line (~600B) PER REQUEST. At 100 rps that
+    is ~60 KB/s (~5 GB/day), not the ~60 lines/hour the docblock promises.
+ 2. suppressed_since_last is always 0 in web traffic, so the field carries no information there.
+NOT a blocker: the window IS correct and unit-pinned for LONG-LIVED workers (queue:work/Octane),
+where statics do persist - tests/Unit/OtelExportBlockingTest.php:164 asserts a 2nd line with
+suppressed_since_last=5 via an injected clock. And AC4b's real requirement (never go silent under
+a continuing outage) is MET in both paths. This is a wrong bound + a misleading comment, not silence.

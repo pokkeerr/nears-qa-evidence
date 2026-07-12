@@ -1,0 +1,22 @@
+NEARS-1089 task_bug: signal-collision — traces export failure is silently swallowed
+Root cause: Admin/app/Observability/OtelDiagnosticLogger.php:96
+  $dedupeKey = $level . "|" . $message . "|" . ($errorType ?? "");   <-- signal NOT in key
+
+LIVE EVIDENCE A — 117 requests driven against a REFUSED collector (130s):
+  export-failure lines emitted : 117
+  distinct signals in them     : 117x "signal":"metrics"   (0x traces)
+  but condition-D listener proves BOTH signals are real: 19x /v1/traces + 19x /v1/metrics
+  => ~234 fault events occurred, 117 were logged, 117 traces drops were never reported.
+
+LIVE EVIDENCE B — minimal repro, 2 distinct-signal faults in ONE process:
+  $l->log("error","Export failure",[exception=>$e, source=>"...Otlp\MetricExporter"]);
+  $l->log("error","Export failure",[exception=>$e, source=>"...SpanProcessor\BatchSpanProcessor"]);
+  emitted lines: 1   ->   "signal":"metrics","suppressed_since_last":0
+  expected     : 2   ->   one metrics line AND one traces line
+
+Impact: during a collector outage the log always names signal=metrics; the dropped TRACES
+batch (the primary signal for this app: OTEL_TRACES_EXPORTER=otlp) is collapsed into the
+metrics line and its count is discarded at request end. An operator reading laravel.log
+would conclude only metrics exports are failing. AC4's four required fields are all present,
+so AC4 passes literally, but the 'signal' field is unreliable.
+Fix: include the signal (or $context['source']) in the dedupe key.
