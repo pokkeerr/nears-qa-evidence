@@ -1,0 +1,12 @@
+NEARS-1109 AC3 FAIL — in-store search (store app-bar Search icon -> StoreItemSearchScreen)
+Build: e4a9f316 (post-fix). Store 12 'Fresh local', query 'a' (20 matches, limit=10 => 2 pages).
+Proxy: 500 iff path=/api/v1/items/search AND offset=2.
+
+08:23:40.046 PASS 200  GET  /api/v1/items/search?store_id=12&name=a&offset=1  [zone=[2] module=1 n=10 total=20]
+08:23:45.283 KILL-500  GET  /api/v1/items/search?store_id=12&name=a&offset=2
+
+OBSERVED: page 2 500s -> NO inline error row, NO retry affordance, no toast.
+  Results stay capped at the 10 page-1 items; pagination is dead for the session.
+  PaginatedListView's rollback catch never runs (no [WARN] 'paginated list' line),
+  because store_item_search_screen.dart:230 onPaginate calls getStoreSearchItemList(...)
+  and DISCARDS the bool -- it never calls throwIfPageFailed(). File is NOT in the diff.
