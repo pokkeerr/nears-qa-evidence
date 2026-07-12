@@ -1,0 +1,68 @@
+NEARS-1109 AC3.6 FAIL — stale _loadMoreFailed seals pagination on a NEW query
+Build: 2318a4d1 (fix-cycle 2).  Device emulator-5556.  Store 12 'Fresh local'.
+Surface: StoreItemSearchScreen (/search-store-item), store app-bar Search icon.
+
+REPRO (fault injection OFF for the decisive step — backend fully healthy):
+ 1. query 'a' (20 matches, limit=10 => 2 pages); proxy 500 iff offset=2.
+ 2. scroll -> page 2 500s -> inline row appears (correct, AC3.1 behaves).
+ 3. proxy rule OFF (backend healthy again).
+ 4. submit a NEW query in the same screen.
+
+OBSERVED (healthy backend, nothing failing):
+ 09:37:53.783 PASS 200  GET /api/v1/items/search?store_id=12&name=a&offset=1&limit=10  [n=10 total=20]
+ ... 18 scroll gestures to the bottom ...
+ items/search requests total: 1        <-- offset=2 NEVER FETCHED
+ offset=2 requests:           0
+ "Couldn't load more" row:    PRESENT  <-- error row on a list where NOTHING failed
+ [WARN] paginated list lines: only the 2 INJECTED failures (09:32:31, 09:36:19).
+                              NO third [WARN] for this scroll => _paginate() never ran
+                              => the scroll listener is SEALED, not throwing.
+
+Page 2 of the new query is silently dropped for the rest of the session.
+
+ROOT CAUSE  paginated_list_view.dart didUpdateWidget (~line 95):
+  if (widget.offset != null && widget.offset != oldWidget.offset) {   // <-- 1 -> 1 is NOT a change
+      if (modelOffset < (oldWidget.offset ?? _offset ?? 1)) {
+        _loadMoreFailed = false;   // NEARS-1109: "a refresh/new-search resets the error row"
+      }
+  }
+_loadMoreFailed is cleared ONLY when the MODEL offset moves BACKWARDS. But when page 2
+FAILS the controller never advances past 1, so a new query resets 1 -> 1: no change, the
+branch never runs, the flag stays true forever.  _scrollListener gates on !_loadMoreFailed,
+so pagination is sealed for every subsequent query in the session.
+
+Asymmetry that hides it: if the previous page SUCCEEDED (model offset=2), the new query
+moves 2 -> 1 (backwards) and DOES reset correctly. It only bites after a FAILED page --
+i.e. exactly the path this ticket added.
+
+================================================================================
+BLAST RADIUS — the SAME stale flag also seals the STORE GRID (AC1/AC2 surface,
+which PASSED in cycle 1). paginated_list_view.dart is SHARED by every store branch.
+
+CLEAN CONTROLLED RUN (fresh app restart, store 12, emulator-5556):
+ A. control, fault OFF  -> grid paginates normally:
+      09:48:09 PASS 200 items/latest offset=1 n=13 total=21
+      09:48:31 PASS 200 items/latest offset=2 n=8          <- page 2 loads fine
+ B. fresh store screen, fault ON (500 iff offset=2):
+      09:54:46 KILL-500 items/latest offset=2
+      [FAIL] endpoint=/api/v1/items/latest http_status=500 type=ApiFailure
+      [WARN] paginated list: onPaginate(2) failed, retry re-allowed (ApiFailure)
+      -> inline row shown, cursor rolled back.  CORRECT (smoke passes).
+ C. fault OFF (backend fully healthy).  Tap category 'General Items' (resets page 1):
+      09:55:18 PASS 200 items/latest category_id=1 offset=1 n=1 total=1
+      "Couldn't load more" row STILL SHOWING on a healthy 1-item category.
+ D. Tap category 'All' (21 items => page 2 exists), fault still OFF:
+      09:55:37 PASS 200 items/latest category_id=0 offset=1 n=13 total=21
+      ... 12 scroll gestures to the bottom ...
+      offset=2 requests: 0        <- PAGE 2 NEVER FETCHED
+      [WARN] paginated list lines: 0  <- _paginate() never ran => listener SEALED
+      "Couldn't load more" row: PRESENT
+
+RESULT: after ANY load-more failure, the store grid silently drops page 2 for the rest
+of the session -- 8 of 21 items unreachable -- with a HEALTHY backend. This is the exact
+bug class NEARS-1109 exists to fix, reintroduced by the NEARS-1109 fix itself, on the
+same surface (AC1/AC2) that passed in cycle 1.
+
+Unaffected: the 6 non-store PaginatedListView consumers (orders, home store list,
+chat x2, conversations, flash-sale details). Their onPaginate never throws, so
+_loadMoreFailed can never be raised -- byte-identical to pre-fix behaviour (verified).
