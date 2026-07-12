@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1109
 
-**FAIL — AC3 in-store search (StoreItemSearchScreen) still silently drops page 2; store grid + category grid PASS**
+**re-QA fix-cycle 2 (2318a4d1): AC3 FAIL - fix closed the original silent page-drop but introduced a new one (stale _loadMoreFailed seals pagination on grid + search)**
 
 **10 screenshot(s).** Click any thumbnail for full resolution.
 
