@@ -1,0 +1,34 @@
+NEARS-1098 fix-cycle 2 — AC5a STILL FAILS (reproduced 2/2 this cycle, 4/4 across cycles)
+Build: feat/NEARS-1098-storescreen-onerror @c90d7d74 | device emulator-5554 | light mode
+Instrument: SYNTHETIC QA proxy (lat/lng String->number on /api/v1/stores/details/*). Backend is CORRECT.
+
+REPRO: adb shell am start -a android.intent.action.VIEW \
+  -d "https://6ammart-web.6amtech.com/store/nears-257-fixture-store?id=59"   (cold, app force-stopped)
+
+1) Error state renders correctly, single PII-safe failure log:
+[FAIL] endpoint=/api/v1/stores/details/ http_status=null type=StoreDetailsFetchFailure msg="store details: response parse failed (_TypeError)"
+
+2) Labels on the stranded error screen  -> NO "Back to Home" link:
+   Back | This store could not be loaded | Please check your connection and try again | Retry
+   => `stranded` evaluated FALSE, so the newly-visible escape link never rendered.
+
+3) Tap the leading Back arrow -> DEAD-END (NOT Home):
+   LTR: accessibility node count = 0; app alive (pid 8887); MainActivity focused.
+        Screenshot shows the SPLASH route (Nears logo + stalled progress bar).
+   RTL: lands on the FALSE "أُووبس! / لا يوجد اتصال بالإنترنت" (Oops! / No internet connection) screen.
+   Both are the exact cycle-1 symptoms, unchanged.
+
+ROOT CAUSE (why the fix misses):
+  stranded = autoOpened || !Navigator.of(context).canPop()
+  On a cold deep-link, autoOpened == false AND canPop() == TRUE — the stack is NOT empty:
+  the SPLASH route sits underneath. Get.back() therefore pops onto a dead splash that has
+  already consumed its deeplink and never re-navigates.
+
+PROOF THE STACK IS NON-EMPTY: the hardware BACK button on the SAME screen escapes to Home
+correctly, via store_screen.dart PopScope's existing branch:
+  else if (Get.find<SplashController>().deeplinkRoute != null) -> Get.offAllNamed(initial)
+That branch is the condition the failure view's `stranded` is missing.
+
+The new unit pin (store_load_failure_back_test.dart:31) mounts the view as `home:` of a fresh
+GetMaterialApp — an artificially EMPTY stack (canPop()==false). It is green but cannot fail on
+the real bug.
