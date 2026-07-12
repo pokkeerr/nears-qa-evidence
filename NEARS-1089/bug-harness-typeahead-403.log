@@ -1,0 +1,25 @@
+NEARS-1089 task_bug: harness-typeahead-403 — the typeahead probe never reaches the typeahead handler
+Where: docs/qa/NEARS-1089-otel-latency.sh (HDRS, ~line 55) — committed by THIS ticket (cc12fbeb)
+
+The harness reports 'WARN typeahead -> HTTP 403' under every condition, incl. the
+OTEL_SDK_DISABLED baseline. Root cause is NOT auth and NOT a product defect:
+
+  $ curl -H "zoneId: [1]" -H "moduleId: 1" ".../api/v1/items/item-or-store-search?name=ch&offset=1&limit=10"
+  HTTP 403  {"errors":[{"code":"longitude-latitude","message":"Longitude-latitude required"}]}
+
+Reproduced identically for moduleId = 1, 2, 3 and 4. The route (routes/api/v1/api.php:500)
+carries NO auth middleware; it requires  /  REQUEST HEADERS, which the
+harness HDRS array does not send. So the probe measures the 403 short-circuit, not the
+typeahead handler's real work (NEARS-1064).
+
+Does it invalidate AC1/AC2? No, but it weakens that one probe:
+ - The OTel batch export runs at REQUEST SHUTDOWN regardless of response code, so the 403
+   path still pays the full export cost. The typeahead A/B ratio (1.23x-1.39x) is therefore
+   still a valid measurement of EXPORT OVERHEAD, which is what NEARS-1089 is about.
+ - And /api/v1/config + /api/v1/categories are genuine HTTP 200 paths, both within the gate.
+ - But the probe does not exercise the typeahead handler's DB work, so it is weaker evidence
+   than the harness output implies.
+
+Fix: add the lat/lng headers to HDRS, e.g.
+  HDRS=(-H "zoneId: ${ZONE_ID}" -H "moduleId: ${MODULE_ID}" -H "latitude: 23.7808" -H "longitude: 90.4217" -H "Accept: application/json")
+then re-assert the probe returns 200 before trusting its timing.
