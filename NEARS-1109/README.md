@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1109
 
-**PASS (cycle 5) — 16/21 ACs demonstrated live; AC9/AC10 + 4 AC11 surfaces NOT_RUN (surface unreachable on mobile / seeded data too small). No task bugs.**
+**PASS (fix-cycle 5) — 16/21 ACs demonstrated live on emulator-5554; AC9/AC10 + 4 AC11 surfaces NOT_RUN (mobile-unreachable surface / seeded data too small). No task bugs.**
 
-**10 screenshot(s).** Click any thumbnail for full resolution.
+**12 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -17,10 +17,12 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="bug-store-item-search-still-silent.png"><img src="bug-store-item-search-still-silent.png" width="240"></a><br><sub>bug store item search still silent</sub></td>
-<td align="center" width="33%"><a href="prefix-category-spinner-hang.png"><img src="prefix-category-spinner-hang.png" width="240"></a><br><sub>prefix category spinner hang</sub></td>
-<td align="center" width="33%"><a href="prefix-store-grid-page-skip.png"><img src="prefix-store-grid-page-skip.png" width="240"></a><br><sub>prefix store grid page skip</sub></td>
+<td align="center" width="33%"><a href="cycle5-ac1-inline-row-store-grid.png"><img src="cycle5-ac1-inline-row-store-grid.png" width="240"></a><br><sub>cycle5 ac1 inline row store grid</sub></td>
+<td align="center" width="33%"><a href="cycle5-ac3-page2-appended-no-hole.png"><img src="cycle5-ac3-page2-appended-no-hole.png" width="240"></a><br><sub>cycle5 ac3 page2 appended no hole</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="prefix-category-spinner-hang.png"><img src="prefix-category-spinner-hang.png" width="240"></a><br><sub>prefix category spinner hang</sub></td>
+<td align="center" width="33%"><a href="prefix-store-grid-page-skip.png"><img src="prefix-store-grid-page-skip.png" width="240"></a><br><sub>prefix store grid page skip</sub></td>
 <td align="center" width="33%"><a href="rtl-store-inline-row-arabic.png"><img src="rtl-store-inline-row-arabic.png" width="240"></a><br><sub>rtl store inline row arabic</sub></td>
 </tr>
 </table>
@@ -30,8 +32,13 @@
 - [`ac4-category-grid.log`](ac4-category-grid.log)
 - [`ac6-offset1.log`](ac6-offset1.log)
 - [`bug-store-item-search-still-silent.log`](bug-store-item-search-still-silent.log)
+- [`cycle5-ac3-no-page-skip.log`](cycle5-ac3-no-page-skip.log)
+- [`cycle5-ac5-applogger-pii-safe.log`](cycle5-ac5-applogger-pii-safe.log)
+- [`cycle5-ac7-seal-holds.log`](cycle5-ac7-seal-holds.log)
+- [`cycle5-request-trace.log`](cycle5-request-trace.log)
 - [`prefix-category-spinner-hang.log`](prefix-category-spinner-hang.log)
 - [`prefix-store-grid-page-skip.log`](prefix-store-grid-page-skip.log)
+- [`progress.md`](progress.md)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1109/` · public-repo scrub policy (no live secrets; verified clean).*

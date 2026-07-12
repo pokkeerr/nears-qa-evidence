@@ -1,0 +1,18 @@
+NEARS-1109 AC3 — Retry re-fires the SAME page; offset=3 NEVER fires; page 2 appends with no hole.
+Store 12 "Fresh local" (21 items, limit=13 -> page1=13, page2=8). QA proxy fails ONLY offset=2.
+
+HEALTHY BASELINE (fault OFF) - the truth for page 2:
+  offset=1 -> 200 total=21 n=13 ids=[196,197,198,199,200,201,202,51,53,62,63,64,78]
+  offset=2 -> 200 total=21 n=8  ids=[86,87,88,90,91,92,93,94]      <-- page-2 truth
+
+FAULT ON (500 iff offset=2):
+  18:07:49 offset=1 -> 200 n=13 ids=[196,...,78]
+  18:07:57 offset=2 -> INJECTED 500          # inline row appears (NOT a toast, NOT full-screen)
+  18:08:54 offset=2 -> INJECTED 500          # Retry tap re-fires the SAME offset (cursor rolled back)
+FAULT OFF, Retry again:
+  18:09:01 offset=2 -> 200 n=8 ids=[86,87,88,90,91,92,93,94]   # identical to baseline: no hole, correct order
+
+ASSERTIONS:
+  offset=2 requests: 3   (initial + 2 retries)  -> the SAME page is re-fired, never skipped
+  offset=3 requests: 0   -> page 2 is never skipped over
+  page-2 items rendered on screen: "4X4 Rubiks Cube"(86), "Latus"(87), "Fresh Organic Tomato"(88)
