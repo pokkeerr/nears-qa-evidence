@@ -1,0 +1,23 @@
+BUG: the de-dupe key's justification cites a GROUP count as a RECORD count
+file: app/Services/ContextSnapshotService.php:375  (and the 4f1839f commit message)
+
+  // Keyed on the uuid and never on content: 65 user/attachment records in that session
+  // repeat ANOTHER record's content under a distinct uuid, ...
+
+Measured from the raw transcript (e909a5f0), user/attachment records only:
+   distinct uuids .............................................. 3,985
+   content-hash GROUPS holding >1 distinct uuid ................    65   <- the engineer's number
+   RECORDS in those groups ..................................... 651
+   RECORDS a content key would DROP (all but the group's first)  586   <- the true record count
+      ... of which carry NON-ZERO weight (real occupied context)  194   (127 attachment + 67 user)
+      ... total weight a content key would drop ................. 755,002 chars
+
+The DECISION (uuid, never content) is CORRECT and by a wider margin than claimed.
+QA re-derived all three keys on e909a5f0:
+   BUG (no de-dupe)        system=24480  content=98391  items=10544  live=101  live_chars=217,505
+   SHIPPED FIX (uuid key)  system=29428  content=93443  items=10353  live=101  live_chars=217,505
+   content key             system=29428  content=93443  items= 9767  live= 90  live_chars=170,914  <- WRONG
+   -> content-keying silently drops 11 LIVE items and 46,591 live chars, mis-allocating every bucket.
+
+Impact: NO shipped value is wrong. This is an inaccurate number in the load-bearing comment
+that justifies the key choice. breaks_ac = false. Fix = correct 65 -> 586 (65 = groups).

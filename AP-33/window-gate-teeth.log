@@ -1,0 +1,28 @@
+== The impossible_windows gate now has TEETH (was decoration) ==
+
+-- under --window=ordinal: fires on exactly 7 real sessions (full list from --json) --
+   901d90b3   0.116 chars/token   window_chars    98529   content_tokens   852994
+   e449b329   0.197 chars/token   window_chars    60347   content_tokens   305860
+   2464d3d3   0.214 chars/token   window_chars    62164   content_tokens   290779
+   2015520e   0.295 chars/token   window_chars    58033   content_tokens   196959
+   691606e9   0.307 chars/token   window_chars   100314   content_tokens   326676
+   ad87da26   0.328 chars/token   window_chars    87934   content_tokens   267890
+   c3442b3d   0.348 chars/token   window_chars   101202   content_tokens   291138
+   count = 7  window_pass = False
+
+-- under the shipped chain rule: 0 --
+   impossible_windows = 0  window_pass = True
+
+-- the 1.0 floor is correct and 2.0 would be WRONG (QA re-derived per-session chars/token on the CORRECT chain window) --
+   8af79fd3  1.979   <- a REAL, GOOD session; a 2.0 band floor would fail it
+   0417d95e  2.029
+   c3e8cdd2  2.290
+   ordinal violations run 0.116 - 0.348 => 3x-8.6x clear of the 1.0 bound
+
+-- MUTATION: restore the OLD (decorative) gate form -> CalibrateWindowGateTest goes RED --
+   {"tool":"phpunit","result":"failed","tests":2,"passed":1,"failed":1,
+    "failures":[{"test":"CalibrateWindowGateTest::test_the_ordinal_window_leaves_a_session_holding_more_tokens_than_its_window_has_characters",
+                 "line":51,"message":"the ordinal rule must be REJECTED by this gate
+Failed asserting that true is false."}]}
+   => the assertion EXECUTES and has teeth (not vacuous). Mutation reverted; tree clean.
+   Restored: {"result":"passed","tests":2,"assertions":7}

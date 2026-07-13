@@ -1,0 +1,10 @@
+== automated backstop + mutation matrix (true exit codes, no pipe masking) ==
+vendor/bin/phpunit -> {"result":"passed","tests":208,"passed":208,"assertions":1315}
+
+monitor:context:calibrate --assert                    EXIT=0   k=2.568 band[2.0,6.0] PASS | slope -0.01612 (max 0.05) PASS | window 0 PASS | attachments 11.5% PASS
+monitor:context:calibrate --assert --window=ordinal   EXIT=1   k=1.975 FAIL | slope -0.31835 FAIL | window 7 FAIL
+monitor:context:calibrate --assert --no-signature     EXIT=1   k=1.708 FAIL (band)
+monitor:context:calibrate --assert --no-attachments   EXIT=1   attachments 0.0% FAIL
+
+AC-INT-1  49 attributed snapshots, SUM(|total - (system+5 buckets)|) = 0   -> 0 drift
+AC-INT-2  context_items buckets = attachments/messages/thinking/tool_calls/tool_results (5), 0 'system' rows

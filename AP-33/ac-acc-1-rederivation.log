@@ -1,0 +1,27 @@
+AP-33 fix-cycle 1 — AC-ACC-1 re-derived INDEPENDENTLY from the raw .jsonl (not read back from the DB)
+Oracle: QA's own Python (system block from turn-1, parentUuid live window, char weights),
+run TWICE per session: WITH the uuid de-dupe (fix) and WITHOUT it (fc92b0d behaviour).
+
+e909a5f0   bucket_system  24,480 (bug)  ->  29,428 (fix)      content_tokens 93,443   total_tokens 122,871 (unchanged)
+DB after ingest:  bucket_system=29428  content_tokens=93443  total_tokens=122871  item_count=10353  live_item_count=101
+
+ONLY ONE session's attribution moved (system or buckets), over all 54:
+   e909a5f0  system 24480 -> 29428
+     buckets BUG: messages 9199  thinking 25257  tool_calls 11814  tool_results 19102  attachments 33019
+     buckets FIX: messages 8736  thinking 23984  tool_calls 11221  tool_results 18143  attachments 31359
+
+Phantom item ROWS shed (buckets + live_item_count UNCHANGED — the fix working, verified not accepted):
+   382a4361  items 15904 -> 15679   live 260  -> 260    system 33020 -> 33020
+   901d90b3  items  5700 ->  5693   live 1614 -> 1614   system 25241 -> 25241
+   ad87da26  items  5482 ->  5241   live 363  -> 363    system 29536 -> 29536
+
+total_tokens INVARIANCE (engineer's claim, CHECKED not accepted):
+   sessions whose total_tokens differs fix-vs-bug: NONE (all 54)
+   254a51c8 / 4c3af5e0 / 54618f0f moved because they are LIVE, growing files (mtimes today).
+   Proof: a FRESH raw read of 54618f0f reproduces the DB to the token —
+   raw: total 209794  system 31967  content 177827  items 8942  live 188
+   DB : total 209794  system 31967  content 177827  items 8942  live 188
+
+5 refusals still NULL, same reasons:
+   124bb077 no_header | 9ce6c6c6 no_header | f46594d5 no_header
+   5a280540 implausible_system | 7c6da713 implausible_system
