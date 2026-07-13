@@ -1,0 +1,13 @@
+NEARS-1159 AC2 — live MaterialLocalizations values read at the running app's
+real BuildContext (Get.context) via Dart VM Service evaluate, worktree build
+feat/NEARS-1159-l10n-delegates on emulator-5554 (com.izzes.nears).
+
+After Get.updateLocale(const Locale('ar','SA')):
+  Get.locale                                  = ar_SA
+  MaterialLocalizations.modalBarrierDismissLabel = رفض      (pre-fix: "Dismiss")
+  MaterialLocalizations.okButtonLabel            = حسنًا     (pre-fix: "OK")
+  MaterialLocalizations.cancelButtonLabel        = الإلغاء   (pre-fix: "Cancel")
+
+=> The GlobalMaterialLocalizations delegate resolves the ar bundle; built-in
+   Material chrome renders Arabic, not English. This is the true call-site
+   binding the ticket hinges on.
