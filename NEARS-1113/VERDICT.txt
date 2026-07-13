@@ -1,0 +1,12 @@
+NEARS-1113 — StoreLogic::get_store_details ->active() scope — LIVE QA VERDICT: PASS
+Backend booted from worktree feat/NEARS-1113-store-active-scope @ a0f186f6 on 127.0.0.1:8113 (dev DB multi_food_db, READ-ONLY GETs).
+
+AC1a  store 10 (status=0 admin-deactivated) zone[2]   -> HTTP 404  errors[0].code=store_not_found   PASS (leak closed)
+AC1b  store 8  (status=1 active=0 temp-closed) zone[2] -> HTTP 200  id=8 active=false status=1        PASS (status-only, NOT active-filtered)
+AC2   store 1  (status=1 active=1) zone[1]             -> HTTP 200  id=1 name+category_ids present     PASS (non-vacuity)
+ZONE  store 12 (active zone-2) hit with zone[1]        -> HTTP 403  out_of_zone                        PASS (NEARS-1024 zone guard intact, not cannibalized)
+SLUG  store 10 slug 'eorange' zone[2]                  -> HTTP 404  store_not_found                     PASS (scope applies to slug branch)
+SANITY store 12 own zone[2]                            -> HTTP 200                                       (proves 12 otherwise reachable -> 403 was truly the zone guard)
+
+Automated backstop: vendor/bin/phpunit --filter StoreActiveScopeTest -> OK 3/3, 29 assertions (4 PHPUnit deprecations, unrelated).
+BE-log ([api]): paired [FAIL] "store details not found" {endpoint=/api/v1/stores/details/{id}, status=404, code=store_not_found, correlation_id} present — PII-safe, matches NEARS-1097.
