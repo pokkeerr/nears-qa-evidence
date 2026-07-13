@@ -1,0 +1,38 @@
+NEARS-1203 — MUTATION CHECK: do the new tests actually CATCH the vulnerability?
+================================================================================
+Green tests prove nothing unless they can fail. QA reverted ONLY the controller gate
+(Admin/app/Http/Controllers/Admin/ItemController.php back to HEAD = the pre-fix build),
+left the new test file in place, and re-ran. The fix was restored byte-identical
+afterwards (sha256 verified). No git stash was used (parallel-worktree hazard).
+
+Pre-fix build confirmed: gate absent (grep 'bulk_import_items_not_in_your_zone' -> 0 hits)
+
+RESULT — the tests FAIL on the pre-fix build, exactly on the hijack:
+--------------------------------------------------------------------------------
+Bulk Import Zone Scope (Tests\Feature\Security\BulkImportZoneScope)
+ x A mixed batch carrying foreign ids writes nothing at all
+   | a foreign item was HIJACKED into the attacker's store
+   | Failed asserting that 8 is identical to 1.
+   | tests/Feature/Security/BulkImportZoneScopeTest.php:123
+   |
+ v An all foreign batch is still rejected by the pre existing existence check
+ x The new zone gate is what rejects a batch containing a foreign id
+   | Mockery\Exception\InvalidCountException: Method warning(<Any Arguments>) from
+   | Mockery_0_Illuminate_Log_LogManager should be called at least 1 times but called 0 times.
+   |
+ v An in zone admin updating only its own zones items still succeeds
+ v An id that exists nowhere is still inserted
+ v A super admin can still update across zones
+
+ERRORS!
+Tests: 6, Assertions: 19, Errors: 1, Failures: 1
+
+READING:
+- "Failed asserting that 8 is identical to 1" == the victim item's store_id flipped from
+  store 1 (zone 1, the victim's store) to store 8 (zone 2, the ATTACKER's store).
+  That is the item hijack, reproduced live on the pre-fix build. The vulnerability is real.
+- The attribution test also fails pre-fix (no zone-gate warning is emitted), proving the
+  AC1 rejection in the post-fix run comes from the NEW gate, not an older check bailing first.
+- The three regression tests (in-zone update, insert arm, super-admin) stay GREEN pre-fix.
+  They are therefore not passing merely because "everything is blocked" — they bind the
+  over-block risk independently of the gate.

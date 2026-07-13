@@ -1,0 +1,69 @@
+NEARS-1203 — POST-FIX: AC suite + bounded regression sweep
+==========================================================
+Worktree: /Users/Apple/Projects/nears-NEARS-1203-bulk-import-zone-scope
+Branch:   feat/NEARS-1203-bulk-import-zone-scope  (base 0117a6fa)
+DB:       phpunit derived the PRIVATE per-worktree test DB (NEARS-1199):
+          "NEARS-1199: using private test DB multi_food_db_test_nears_nears_1203_bulk_import_zone_scope"
+          The product DB multi_food_db was NEVER written to. Read-only rule honoured.
+Prereqs verified present (not assumed): Admin/vendor, Admin/.env, oauth-private.key + oauth-public.key.
+
+
+[1] AC SUITE — BulkImportZoneScopeTest  ........................ 6/6 PASS
+--------------------------------------------------------------------------------
+ v A mixed batch carrying foreign ids writes nothing at all            (AC1)
+ v An all foreign batch is still rejected by the pre existing check    (AC2)
+ v The new zone gate is what rejects a batch containing a foreign id   (AC1 attribution)
+ v An in zone admin updating only its own zones items still succeeds   (AC3)
+ v An id that exists nowhere is still inserted                         (AC4 insert arm)
+ v A super admin can still update across zones                         (AC5)
+Tests: 6, Assertions: 33  — OK
+
+AC1 asserts the persisted row past ALL global scopes and checks name, price AND store_id.
+store_id is the hijack, and it is the assertion that fails pre-fix (see 01-*.log).
+
+
+[2] REGRESSION — ItemModuleFollowsStoreTest (NEARS-1132, drives this same method)  13/13 PASS
+--------------------------------------------------------------------------------
+ v Create persists the stores module not the ui module context
+ v Create rejects a category outside the stores module
+ v Zone scoped admin in the stores zone can still create
+ v Out of zone store is rejected cleanly instead of writing a null module
+ v Update moving an item to another modules store never leaves a stale module id
+ v Update rejects a category outside the new stores module and leaves the row untouched
+ v Bulk import insert persists the stores module not the csv or ui module
+ v Bulk import update branch repairs module id instead of corrupting an existing row
+ v Bulk import rejects a row whose category sits outside its stores module
+ v Bulk import rejects a row with an unknown store
+ v Create gates module type side effects on the store not the spoofable module context
+ v Create does not attach ecommerce details when only the module context says ecommerce
+ v Bulk import shapes and gates each row by its own stores module type
+Tests: 13, Assertions: 53  — OK
+
+
+[3] FULL BACKEND SUITE (independently verified, not taken on faith)
+--------------------------------------------------------------------------------
+$ vendor/bin/phpunit --configuration phpunit.xml
+............................................................... 990 / 990 (100%)
+Time: 01:29.900, Memory: 313.00 MB
+OK, but there were issues!
+Tests: 990, Assertions: 10440, Deprecations: 1, PHPUnit Deprecations: 4, Skipped: 1
+
+990/990 pass, 0 failures, 0 errors. The engineer's 990/990 claim is CONFIRMED.
+(The 1 skip + deprecations are pre-existing, unrelated to this change.)
+
+
+[4] SCOPE DISCIPLINE — NEARS-1204's lines untouched
+--------------------------------------------------------------------------------
+$ git diff -U0 Admin/app/Http/Controllers/Admin/ItemController.php | grep '^@@'
+@@ -27,0 +28 @@      <- the ZoneScope import
+@@ -1605,0 +1607,13 @@ <- the gate
+Only 2 hunks. :1495-1499, :1621-1622, :1631-1633, :1645-1647 (NEARS-1204, next batch)
+are NOT touched.
+
+$ git diff --stat
+ Admin/app/Http/Controllers/Admin/ItemController.php | 14 ++++++++++++++
+ Admin/resources/lang/ar/messages.php                |  1 +
+ Admin/resources/lang/en/messages.php                |  1 +
+ 3 files changed, 16 insertions(+)
+
+php -l clean on all three files.

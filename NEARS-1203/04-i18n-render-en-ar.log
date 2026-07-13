@@ -1,0 +1,43 @@
+NEARS-1203 — i18n render check: new toast string, EN + AR (RTL)
+===============================================================
+Key: messages.bulk_import_items_not_in_your_zone
+
+WHY NOT A LIVE ADMIN-PANEL SUBMISSION: rendering this toast for real requires POSTing a
+bulk-import CSV. AC3 (success path) writes by definition, and AC1's rejection path is only
+*supposed* to write nothing — if the fix were broken it WOULD write. The product DB
+multi_food_db is HARD read-only, so QA did not take that bet against it. Instead the real
+translate() helper (the exact call the controller makes) was exercised in both locales
+against the PRIVATE test-DB clone. This proves the functional risk that actually matters —
+that the key RESOLVES rather than leaking the raw key into the UI. It does not photograph
+the Toastr popup; stated plainly rather than faked.
+
+[A] Real helper, both locales (DB_DATABASE pinned to the private test clone):
+
+  $ php artisan tinker --execute='foreach(["en","ar"] as $loc){ app()->setLocale($loc);
+      echo translate("messages.bulk_import_items_not_in_your_zone"); }'
+
+  EN -> One or more items in this file do not belong to your assigned zone. No changes were made.
+        resolved (not raw key)? yes
+        names any item id?      no
+  AR -> عنصر واحد أو أكثر في هذا الملف لا ينتمي إلى منطقتك المخصصة. لم يتم إجراء أي تغييرات.
+        resolved (not raw key)? yes   (genuine Arabic script -> renders RTL)
+        names any item id?      no
+
+[B] Static lang-file check (both keys present and committed):
+  Admin/resources/lang/en/messages.php : +1 line, the key above
+  Admin/resources/lang/ar/messages.php : +1 line, the key above
+  php -l clean on both.
+
+[C] Self-heal guard: sha256 of both lang files taken BEFORE and AFTER the translate() call —
+    UNCHANGED. translate() did not append/rewrite anything (it only self-heals a MISSING key;
+    the key is present in both locales, which is itself the proof).
+
+VERDICT: PASS. The string renders in English and Arabic, resolves through the real helper,
+and is GENERIC — it names no item ids in either locale, so it is not an existence oracle.
+
+
+HOUSEKEEPING (known 6amMart behaviour, NOT a defect of this change):
+Running phpunit made translate() self-heal 17 orphaned keys into resources/lang/en/messages.php
+and rewrite config/system-addons.php. QA reverted both; the final worktree diff is exactly the
+intended 16 insertions across 3 files, and system-addons.php is clean. This dirt must not reach
+a commit.

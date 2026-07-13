@@ -1,0 +1,36 @@
+NEARS-1203 — WHICH gate fires, + PII-safety of the new log line
+================================================================
+The tests alone cannot tell you which rejection path fired. Two paths exist:
+  NEW gate (this ticket) : Log::warning('item bulk update rejected: items outside the admin zone')
+                           + toast messages.bulk_import_items_not_in_your_zone
+  OLD check (pre-existing): doesntExist() -> toast "Item doesnt exist at the database", NO log line
+
+BE-log grep (scoped to the gate string — never a dump of laravel.log):
+
+$ grep -F "item bulk update rejected: items outside the admin zone" Admin/storage/logs/laravel.log | tail -n 2
+[2026-07-13 06:13:53] testing.WARNING: item bulk update rejected: items outside the admin zone {"item_ids":[114307,114308],"admin_id":7192}
+[2026-07-13 06:15:49] testing.WARNING: item bulk update rejected: items outside the admin zone {"item_ids":[119352,119353],"admin_id":7209}
+
+$ grep -cF "Item doesnt exist at the database" Admin/storage/logs/laravel.log
+0   (old gate is Toastr-only and emits no log line — so attribution is unambiguous)
+
+ATTRIBUTION CONFIRMED:
+- A MIXED batch (own + foreign ids) is rejected by the NEW zone gate — the warning fires,
+  and it names exactly the 2 FOREIGN ids, not the attacker's own in-zone id. The gate
+  discriminates correctly.
+- An ALL-FOREIGN batch is short-circuited earlier by the OLD doesntExist() check (which is
+  itself ZoneScope'd, so a batch with zero in-zone ids makes that aggregate true). AC2 holds,
+  but it is guarded by the pre-existing check, not by the new gate — the engineer's test
+  docblock states this honestly rather than overclaiming.
+- Presence of the warning => new gate. Absence + rejection => old gate. Distinguishable.
+
+LOG PII-SAFETY (docs/platform/logging-contract.md — ids-only allow-list):
+  payload = {"item_ids":[...], "admin_id":N}
+  ids ONLY. No CSV row bodies. No request payloads. No tokens. No names/phones/addresses.
+  PASS. Consistent with the sibling Log::warning lines already in this controller
+  (:1437, :1443, :1563, :1569).
+
+EXISTENCE-ORACLE CONTAINMENT (conductor decision: message must be GENERIC, must not name ids):
+  $foreign_ids appears in the Log::warning line ONLY. It is never passed to Toastr, never
+  interpolated into the response. Verified by grep over the gate block :1607-1619.
+  The toast string itself contains no digits in either locale (see 04-*.log). PASS.
