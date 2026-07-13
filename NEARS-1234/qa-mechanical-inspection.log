@@ -1,0 +1,29 @@
+NEARS-1234 QA — mechanical inspection (workflow-meta ticket, no runtime surface)
+Commit under test: ab5b9a46 (base 1703100f900acc1ef66d0f0124a3ed8a8a7d5c1a)
+
+AC1 single-source: lane-definitions.md canonical; new-task.md + nears-team-lead.md point to it, no literal dup found (grep swept repo for restated micro-checklist text: none outside lane-definitions.md).
+
+AC3 MICRO FLOW 8-item grep (new-task.md line 43):
+"every gate below still fires (Jira ticket, ledger, worktree isolation, green loop, QA-lite gate, sentinel check, pre-commit guard, tripwire)"
+-> all 8 present verbatim + individually threaded through m1-m5 steps.
+
+AC4: new-task.md line "Phase [10] reference agent runs ONLY if `durable_change: yes`." confirmed conditional, not unconditional.
+
+AC6:
+$ jq empty docs/workflow/workflow.json  -> OK
+$ diff docs/workflow/workflow.json tasks/workflow.json.golden -> IDENTICAL (0 diff)
+$ bash scripts/newtask-guards/workflow-json-drift.sh --range 1703100f..HEAD
+PASS drift / PASS validate / OK clean
+$ (cd ../nears-monitor && git status --porcelain) -> only unrelated untracked tasks/runs/AP-*.json (pre-existing AP work, zero NEARS-1234 files) -> monitor repo NOT touched by this ticket.
+runMap.microFlow.note in workflow.json documents the monitor follow-up as a note (not built).
+
+AC7 byte-identical no-runtime/full blocks:
+new-task.md: diff of "- **no-runtime**"/"- **full**" lines base vs HEAD -> content identical (only line-number shift 36/37 -> 38/39).
+nears-team-lead.md: diff of "no-runtime`:"/"full`: everything else" lines base vs HEAD -> content identical (line shift 24/25 -> 25/26).
+
+AC8: git log 1703100f..HEAD --oneline -> exactly 1 commit (ab5b9a46). File list: 7 files (nears-qa.md, nears-team-lead.md, new-task.md, run-sprint.md, lane-definitions.md [new], workflow.json, workflow.json.golden) — matches expected scope, nothing stray. Commit landed at [6]-equivalent (a fix cycle) rather than [9b] per commit message itself — documented process drift, not itself a defect.
+
+F1 (regression spot-check): workflow.json [t] node BREACH branch "to": "G:dor" (matches other DoR-checkers-group edges at lines 221 et al). CONFIRMED FIXED.
+F2 (regression spot-check): new-task.md Safety-valves bullet + nears-team-lead.md express bullet no longer restate old numeric tripwire thresholds inline — both defer to lane-definitions.md §express. CONFIRMED FIXED.
+
+Verdict: PASS. No product runtime to boot (workflow-meta ticket, per NEARS-1230 precedent). All 8 ACs + both regression spot-checks verified via direct file inspection / jq / diff / drift-script execution (falsifiable: each check has a concrete negative-control — e.g. golden diff would show output if non-identical, drift script would print FAIL if workflow.json wasn't updated alongside agent files).
