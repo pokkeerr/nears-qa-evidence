@@ -1,0 +1,14 @@
+=== AC-c.1 — DB_DATABASE=multi_food_db (expect HARD ABORT naming real DB) ===
+EXIT=1
+[41m ABORT [0m NEARS-1199 test-DB guard: tests are pointed at the REAL database 'multi_food_db'.
+  The dev DB is read-only. Run the suite against the test twin instead:
+    unset DB_DATABASE && vendor/bin/phpunit          # shared twin (multi_food_db_test)
+    bash scripts/phpunit-isolated.sh                 # private per-run clone
+
+
+=== AC-c.2 — DB_DATABASE=multi_food_db_qa337 (real non-test DB, expect ABORT on allow-list, NOT run) ===
+EXIT=1
+[41m ABORT [0m NEARS-1199 test-DB guard: tests are pointed at 'multi_food_db_qa337', which is not a recognised test database.
+  Allowed: multi_food_db_test, or a per-run clone multi_food_db_test_<suffix>.
+  The suite writes to whatever it is given — it will not run against an unexpected schema.
+

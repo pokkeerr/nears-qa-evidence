@@ -1,0 +1,20 @@
+=== DBs BEFORE isolated run ===
+Database (multi_food_db_test%)
+multi_food_db_test
+multi_food_db_test_mutcheck
+multi_food_db_test_nears_nears_1199_test_db_isolation
+multi_food_db_test_peer_b_1199
+=== run phpunit-isolated.sh --filter (passing); clone should be created then DROPPED on exit ===
+EXIT=0
+Cloning multi_food_db_test -> multi_food_db_test_nears_nears_1199_test_db_isolation_51911 ...
+Running phpunit against multi_food_db_test_nears_nears_1199_test_db_isolation_51911 ...
+OK, but there were issues!
+Tests: 5, Assertions: 41, PHPUnit Deprecations: 4.
+=== run a FAILING isolated run (nonexistent filter yields no tests -> phpunit exits nonzero); clone must STILL drop ===
+EXIT=0
+=== DBs AFTER both isolated runs (expect NO new _<pid> orphans; per-worktree bootstrap DB KEPT) ===
+Database (multi_food_db_test%)
+multi_food_db_test
+multi_food_db_test_mutcheck
+multi_food_db_test_nears_nears_1199_test_db_isolation
+multi_food_db_test_peer_b_1199
