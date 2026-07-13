@@ -1,0 +1,24 @@
+NEARS-1130 — live Android accessibility (post-merge semantics) tree excerpts
+Device: emulator-5556 (com.izzes.nears, build feat/NEARS-1130-primarybtn-a11y @806a544b)
+Captured via `adb uiautomator dump` — this IS the tree TalkBack reads.
+
+[AC1] Cart "Proceed to Checkout" (canonical NearsPrimaryButton, sits inside cart summary card ancestor)
+  content-desc = 'Proceed to Checkout'      <- label announced ONCE (not doubled)
+  class        = 'android.widget.Button'     <- Button role
+  clickable    = true
+  focusable    = true                        <- its own focusable node
+  MATCH COUNT  = 1                            <- NOT absorbed into ancestor, NOT split/duplicated
+
+[AC1] Checkout "Place Order" (NearsPrimaryButton)
+  content-desc = 'Place Order'   class = android.widget.Button   clickable=true   focusable=true   COUNT=1
+
+[AC1] Sign-in "Sign In" (NearsPrimaryButtonLoader -> NearsPrimaryButton)
+  content-desc = 'Sign In'       class = android.widget.Button   clickable=true   focusable=true   COUNT=1
+
+[AC3] Tap fires: tapping "Proceed to Checkout" navigated cart -> Checkout screen (Place Order visible).
+
+[RTL] Arabic locale — Cart checkout CTA
+  content-desc = 'الشروع في الخروج'  class = android.widget.Button  clickable=true  single node (label once)
+
+[Logs] No I/flutter [ERR]/[FAIL]/unhandled-exception during any AC action. [NET] calls returned 200.
+       Android-system noise only (GoogleCertificatesRslt, InteractionJankMonitor) — unrelated to app.
