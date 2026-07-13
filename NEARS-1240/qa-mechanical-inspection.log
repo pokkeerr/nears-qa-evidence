@@ -1,0 +1,119 @@
+NEARS-1240 QA — mechanical inspection (workflow-meta ticket, no product runtime; pilot MECHANISM only)
+Worktree: /Users/Apple/Projects/nears-NEARS-1240-teams-pilot
+Branch: feat/NEARS-1240-teams-pilot (uncommitted, staged — base 8e3c541304e74463ee471a091943ad332d6fad79, 0 commits)
+
+AC1 — FIX-CYCLE PACKET wiring, `.claude/commands/new-task.md`:
+$ grep -n "FIX-CYCLE PACKET" .claude/commands/new-task.md
+  67:  [6] Implement — "Any re-spawn on cycle >=1 (routed back from [7] findings or [8b] task-bugs)
+      carries the FIX-CYCLE PACKET"
+  87:  [7] Contradiction check / findings-loop-to-[6] — "any findings -> loop to [6], carrying the
+      FIX-CYCLE PACKET"
+  90:  [8] QA delta re-QA — "Re-QA runs in delta mode ..., re-spawned with the FIX-CYCLE PACKET"
+  97:  [8b] task_bugs routing — "straight to the implementing engineer ..., re-spawned with the
+      FIX-CYCLE PACKET"
+  115: definition header "FIX-CYCLE PACKET (conductor -> any re-spawned agent):" (the spec block
+      itself, §"Fix-cycle packet")
+-> 5 occurrences total: 4 distinct wiring points at exactly the 4 named sections + 1 definition.
+   CONFIRMED >=4 occurrences at the specified re-spawn points, not just 1.
+
+AC2 — 1-line pointer in engineer/QA Inputs sections:
+$ grep -n "FIX-CYCLE PACKET" .claude/agents/nears-backend-engineer.md .claude/agents/nears-frontend-engineer.md .claude/agents/nears-qa.md
+  nears-backend-engineer.md:19  "On cycle >=1 you receive a FIX-CYCLE PACKET - start from it; do
+                                 not re-read the whole ticket context." (end of Inputs paragraph)
+  nears-frontend-engineer.md:18 same sentence, Inputs paragraph
+  nears-qa.md:35                same sentence, appended to the Inputs "Delta mode" paragraph
+-> all 3 present, all inside the Inputs section. CONFIRMED.
+
+AC3 — Part B B1 lifecycle, 6 roster roles by name (new-task.md lines 129-136):
+  [1] PO teammate ; [2] TL teammate ; [3] DoR checkers ; [6] Engineer teammate ;
+  [7] Reviewer teammates (code/security/ux) ; [8] QA teammate ; [9b] RELEASE the whole team.
+-> all 6 roles named (PO, TL, checkers, engineer, reviewers, QA) with PARK/re-engage points and
+   a single explicit RELEASE step at [9b]. CONFIRMED.
+
+AC4 — B3 fallback tone (verbatim quote, new-task.md line 145):
+  "B3. Fallback -- treat this as the EXPECTED-COMMON path, not a rare edge case. Live teammates
+  have zero observed precedent in this repo as of this pilot -- so plan for the fallback firing
+  often, not occasionally. This is exactly why Part A ships regardless of Part B's verdict: it's
+  already the floor under every re-spawn, and it's also this pilot's safety net. ... The run NEVER
+  stalls because a teammate died -- respawn+packet is a first-class path here, not a degraded one."
+-> reads as expected-common (explicit "EXPECTED-COMMON path, not a rare edge case", "plan for the
+   fallback firing often, not occasionally", "first-class path ... not a degraded one"). CONFIRMED,
+   not merely asserted.
+
+AC5 — B2 sole-writer + unchanged phase keys (new-task.md line 141):
+  "Teammates return the SAME per-phase envelopes to the conductor; the conductor remains the ONLY
+  run-file writer. Phase keys are unchanged -> the monitor is unaffected (see "Run state" above --
+  that schema is untouched by this pilot)."
+-> both clauses present verbatim. CONFIRMED.
+
+AC6 — B4 guardrails (new-task.md lines 147-151), all 4 present:
+  - lane-roster-only: "ALL lane-roster agents may live as teammates ... Agents NOT in the lane's
+    roster are never created 'just in case'."
+  - ~120K release valve: "if a parked teammate's context exceeds ~120K tokens, RELEASE it and
+    switch that role to respawn+packet mode"
+  - per-run isolation: "teammates are per-run; never shared across runs. Parallel tickets never
+    share a teammate."
+  - warm/cooled engagement logging: "record per-teammate engagements count + warm vs cooled
+    re-engagements (gap >5 min)"
+-> all 4 CONFIRMED.
+
+AC7 — workflow.json / golden byte-identical + drift:
+$ jq empty docs/workflow/workflow.json -> OK
+$ jq empty tasks/workflow.json.golden -> OK
+$ diff docs/workflow/workflow.json tasks/workflow.json.golden -> IDENTICAL (0 diff)
+$ md5 both -> bfccefe86b938a0313cc88fd94a7a27a == bfccefe86b938a0313cc88fd94a7a27a
+$ bash scripts/newtask-guards/workflow-json-drift.sh --staged
+  PASS  drift (staged set): agent/command change ships with a docs/workflow/workflow.json update.
+  PASS  validate: docs/workflow/workflow.json parses; every node.file agent path exists.
+  OK    workflow-json-drift: clean.
+-> CONFIRMED.
+
+AC8 — Micro lane untouched:
+$ git diff HEAD -- .claude/commands/new-task.md | grep '^@@'
+  @@ -64,7 +64,7 @@ (single-line change inside [6] Implement)
+  @@ -84,17 +84,17 @@ (changes inside [7]/[8]/[8b] bullets)
+  @@ -109,6 +109,47 @@ (pure insertion of 2 new ## sections after [11], before ## Guardrails)
+-> no hunk touches "## MICRO FLOW" (source lines 42-52) or its m1-m5/[t] content; the only mention
+   of MICRO FLOW inside the diff is a NEW cross-reference sentence in the ADDED Part B section
+   ("Micro lane is unaffected -- it keeps plain spawns per the MICRO FLOW above, unchanged.").
+   Confirmed: additions only, after [11], not touching the Lanes/MICRO FLOW block. CONFIRMED.
+
+AC9 — scripts/teams-pilot-README.md, 5 required sections present:
+$ grep -n '^## ' scripts/teams-pilot-README.md
+  ## How to run        (how-to-run + fast-cycle-ticket-picking guidance)
+  ## Sprint note        (run-sprint needs no changes; --parallel 1 cap during pilot)
+  ## Measure per ticket (token-tally / fix-cycle count / wall-time / per-teammate warm-cooled data)
+  ## Decision gate       (adopt vs Part-A-only criteria)
+  ## Rollback            (single git revert; Part-A cherry-pick note if Part B dropped)
+  ## Micro lane          (bonus, not required)
+-> all 5 required topics present (labelled slightly differently but content matches each
+   requirement 1:1, incl. the parallel-cap note and the A-cherry-pick rollback note). CONFIRMED.
+
+AC10 — Run state schema untouched:
+$ git diff HEAD -- .claude/commands/new-task.md | grep -n "Run state\|{key, idea, lane"
+  (only 1 hit: a NEW cross-reference inside the added B2 bullet -- "see 'Run state' above -- that
+  schema is untouched by this pilot" -- no hunk touches the "## Run state" section itself, lines
+  16-21 of the file, which retains the exact {key, idea, lane, branch, worktree, base, session_id,
+  started_epoch, phases: {<id>: envelope}, decisions[], trail[]} shape verbatim, zero diff.)
+-> CONFIRMED zero diff on the schema.
+
+AC11 — nothing committed yet:
+$ git log 8e3c541304e74463ee471a091943ad332d6fad79..HEAD --oneline -> (empty, 0 commits)
+$ git status --short -> all 6 files "M"/"new file", staged, HEAD == base sha exactly.
+-> CONFIRMED: everything staged/uncommitted, as expected at phase [8] (conductor commits at [9b]).
+
+Automated backstop: no phpunit/flutter test surface for a workflow-meta doc/spec change (matches
+NEARS-1230/NEARS-1234 precedent — no product runtime). Backstop = jq schema validation +
+scripts/newtask-guards/workflow-json-drift.sh --staged (PASS, shown under AC7).
+
+Regression sweep: read the full new-task.md diff end-to-end (single unified diff, 3 hunks) —
+no unrelated section touched outside [6]/[7]/[8]/[8b] one-line insertions + the new Part A/Part B
+block after [11]. No pre-existing content altered besides the 4 sentences that now reference the
+FIX-CYCLE PACKET. No regressions found.
+
+Verdict: PASS. All 11 ACs demonstrated via direct file inspection / grep / jq / diff / drift-script
+execution — falsifiable checks only (each has a concrete negative control: the drift script prints
+FAIL on mismatch, diff prints hunks on non-identity, grep returns empty on absence). Per the
+ticket's own scope note, live-teammate parking end-to-end behavior is explicitly OUT of this
+verification (Part C, future ticket runs) — this QA pass verifies the spec/build is correct and
+complete, not that live teammates actually park/re-engage in a real run.
