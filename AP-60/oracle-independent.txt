@@ -1,0 +1,46 @@
+=== INDEPENDENT ORACLE (python, raw jsonl bytes) ===
+sessions_total   10
+sessions_fitted  8
+sum live_chars   2,910,000.0
+sum content tok  1,132,297
+chars_per_token  2.5700   (rounded 2.57)
+residual slope   -0.000047
+
+bucket char share (of live mass of fitted sessions)
+  messages       16.600%   (483,060 chars)
+  thinking       32.500%   (945,750 chars)
+  tool_calls     17.300%   (503,430 chars)
+  tool_results   21.733%   (632,420 chars)
+  attachments    11.867%   (345,340 chars)
+
+SIGNATURE share   32.000%   of live char mass  (931,200 chars)
+ATTACHMENT share  11.867%
+band-exit threshold: removing >22.179% of char mass drops k below 2.0
+  signature  32.00% > 22.18% ? YES -> --no-signature MUST exit the band
+  attachment 11.87% < 22.18% ? YES -> --no-attachments stays IN band, fails bucket only
+  predicted k with signature dropped: 1.7476
+
+per-session state + SYSTEM BLOCK the shipped attributor rule recovers:
+  session-attachments        attributed           S=  18000  content=  38801  live_chars=   100,000  live_items= 36
+  session-clean-large        attributed           S=  31000  content= 311374  live_chars=   800,000  live_items= 35
+  session-clean-mid          attributed           S=  24000  content= 116592  live_chars=   300,000  live_items= 35
+  session-clean-small        attributed           S=  12500  content=  23526  live_chars=    60,000  live_items= 35
+  session-no-header          no_header            S=   None  content=   None  live_chars=         0  live_items=  0
+  session-replay             attributed           S=  29428  content=  58526  live_chars=   150,000  live_items= 32
+  session-resumed            implausible_system   S=   None  content=   None  live_chars=    15,300  live_items=  4
+  session-trailing-a         attributed           S=  27000  content= 155382  live_chars=   400,000  live_items= 32
+  session-trailing-b         attributed           S=  29000  content= 194753  live_chars=   500,000  live_items= 32
+  session-trailing-c         attributed           S=  30500  content= 233343  live_chars=   600,000  live_items= 32
+
+=== GROUND TRUTH: authored S (from generator manifest) vs S recovered by MY oracle ===
+  session-attachments        authored=  18000  recovered=  18000  delta=+0
+  session-clean-large        authored=  31000  recovered=  31000  delta=+0
+  session-clean-mid          authored=  24000  recovered=  24000  delta=+0
+  session-clean-small        authored=  12500  recovered=  12500  delta=+0
+  session-no-header          authored=None  recovered=None  (no_header)
+  session-replay             authored=  29428  recovered=  29428  delta=+0
+  session-resumed            authored=None  recovered=None  (implausible_system)
+  session-trailing-a         authored=  27000  recovered=  27000  delta=+0
+  session-trailing-b         authored=  29000  recovered=  29000  delta=+0
+  session-trailing-c         authored=  30500  recovered=  30500  delta=+0
+  WORST |delta| = 0 token(s)

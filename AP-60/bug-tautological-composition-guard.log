@@ -1,0 +1,58 @@
+AP-60 / QA[8] — task_bug: tautological composition guard (LOW, breaks_ac: false)
+
+WHERE
+  tests/Feature/FrozenCorpusDeterminismTest.php:99-108
+    test_the_composition_still_straddles_the_band_exit_threshold()
+  app/Support/FrozenCorpusBuilder.php:45,47,137-142
+
+WHAT ITS DOCBLOCK CLAIMS (line 97-98)
+  "The composition thresholds the mutation matrix rests on. If the corpus ever drifts across one of
+   them, a mutation demo stops firing for its stated reason — silently."
+
+WHAT IT ACTUALLY ASSERTS
+  $threshold = 1 - FrozenCorpusBuilder::TOKENIZER['band']['min']
+                 / FrozenCorpusBuilder::TOKENIZER['chars_per_token'];      // class constant
+  assertGreaterThan($threshold, $this->manifest['composition']['signature_char_share']);
+  assertLessThan   ($threshold, $this->manifest['composition']['attachment_char_share']);
+
+  ...and manifest.composition is WRITTEN FROM THE SAME CLASS CONSTANTS:
+    FrozenCorpusBuilder.php:45   private const SIGNATURE_SHARE  = 0.32;
+    FrozenCorpusBuilder.php:47   private const ATTACHMENT_SHARE = 0.114;
+    FrozenCorpusBuilder.php:138  'signature_char_share'  => self::SIGNATURE_SHARE,
+    FrozenCorpusBuilder.php:139  'attachment_char_share' => self::ATTACHMENT_SHARE,
+
+  => it compares a DECLARED constant against a constant-derived threshold. It never measures the
+     emitted .jsonl bytes, so it cannot detect the corpus drift its docblock names.
+
+PROOF IT IS ALREADY BLIND (no mutation needed — the declaration has ALREADY gone stale)
+  declared  manifest.composition.attachment_char_share = 0.1140  (11.40%)
+  REALISED  (independent oracle, straight from the raw frozen bytes) = 0.11867 (11.87%)
+  -> 0.47pp apart, test green. The number it purports to guard has already moved and it did not notice.
+
+PROOF BY MUTATION (corpus bytes edited, manifest untouched, then git checkout -- restored)
+  Truncated every thinking.signature to 35% of its length (realised signature share 32% -> ~13%,
+  i.e. BELOW the 22.18% band-exit threshold the whole --no-signature demo rests on):
+
+    test_the_composition_still_straddles_the_band_exit_threshold ... PASSED   <-- did not fire
+    (a guard that stays green while the very quantity it names collapses is not a guard)
+
+MITIGATION — the risk IS covered, by a sibling that measures
+  tests/Feature/CalibrateFrozenCorpusTest.php:162 test_no_signature_fails_only_on_the_band()
+  runs the real command against the real bytes and asserts assertFalse($r['band_pass']). On a
+  faithful regeneration with SIGNATURE_SHARE below the threshold, --no-signature would yield
+  band_pass=true and THAT test fails loudly. Likewise test_the_gate_passes_on_the_frozen_corpus()
+  fails if the baseline k leaves the band.
+
+  So this is NOT a coverage hole and NOT an AC failure — the shipped gate is correct today
+  (independently verified: signature 32.00% > 22.18%, attachments 11.87% < 22.18%, ~10pp margin
+  on BOTH sides — neither mutation demo is passing by luck). It is a test that cannot fail,
+  carrying a docblock that says it can, in a repo whose signature failure mode is exactly that
+  (AP-33 shipped a 16.8%-wrong bucket_system under a green suite; AP-47 QA caught a circular
+  DB read-back).
+
+SUGGESTED FIX (engineer, not QA)
+  Make the guard MEASURE: derive signature_char_share / attachment_char_share from the emitted
+  frozen bytes (the builder already sums $b['sig'] and $b['att'] in close(), lines 486-489 — write
+  the REALISED values into manifest.composition instead of the design constants), then assert those
+  against the threshold. That single change makes the test falsifiable and simultaneously fixes the
+  stale 0.114 vs 0.1187 declaration.
