@@ -1,0 +1,12 @@
+NEARS-1177 AC2 — STORE axis (categories/stores/3, zone2, moduleId 1) — read-only GET
+headers: zoneId:[2]  moduleId:1
+offset=1 limit=10 : total_size=13 count=10 ids=[35,22,9,12,13,14,16,17,18,19]
+offset=2 limit=10 : total_size=13 count=3  ids=[21,22,8]
+limit=20 offset=1 : total_size=13 returned=13 distinct=13 ids=[35,9,12,13,14,16,17,18,19,20,21,22,8]
+STABLE across 3 repeat runs (deterministic).
+
+FINDING: store 22 appears on BOTH page1 and page2; store 20 (present in unpaged set) is
+DROPPED from both pages. Union(p1,p2)=12 distinct, missing 20. This is the NEARS-628
+unstable-offset-paging symptom on the STORE axis (CategoryLogic::stores) — the axis NEARS-1109
+did NOT fix. PRE-EXISTING (this branch changed no CategoryLogic/Controller code). Filed as
+regression_bug; does not gate NEARS-1177 (item-axis fixture ticket).
