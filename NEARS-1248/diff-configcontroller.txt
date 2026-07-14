@@ -1,0 +1,22 @@
+diff --git a/Admin/app/Http/Controllers/Api/V1/ConfigController.php b/Admin/app/Http/Controllers/Api/V1/ConfigController.php
+index b8e8a72c..db49e595 100644
+--- a/Admin/app/Http/Controllers/Api/V1/ConfigController.php
++++ b/Admin/app/Http/Controllers/Api/V1/ConfigController.php
+@@ -462,14 +462,14 @@ class ConfigController extends Controller
+     public function get_zone(Request $request)
+     {
+         $validator = Validator::make($request->all(), [
+-            'lat' => 'required',
+-            'lng' => 'required',
++            'lat' => 'required|numeric',
++            'lng' => 'required|numeric',
+         ]);
+ 
+         if ($validator->errors()->count() > 0) {
+             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+         }
+-        $zones = Zone::with('modules')->whereContains('coordinates', new Point($request->lat, $request->lng, POINT_SRID))
++        $zones = Zone::with('modules')->whereContains('coordinates', new Point((float) $request->lat, (float) $request->lng, POINT_SRID))
+             ->selectRaw('zones.*, ABS(ST_Area(coordinates)) as area')->orderBy('area', 'asc')->latest()->get(['id', 'status', 'cash_on_delivery', 'digital_payment', 'offline_payment']);
+         if (count($zones) < 1) {
+             return response()->json([

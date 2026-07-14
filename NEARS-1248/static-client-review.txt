@@ -1,0 +1,33 @@
+=== NEARS-1248 — Static code review of UserApp client (no live emulator per micro-lite scope) ===
+
+Files reviewed (read-only):
+  - UserApp/lib/features/location/domain/repositories/location_repository.dart:34-63 (getZone method)
+  - UserApp/lib/features/location/screens/pick_map_screen.dart:362, 579, 594, 600 (inZone gating)
+
+=== location_repository.dart:33-63 (getZone) ===
+  Response handling matrix:
+    200  → ZoneResponseModel(true, ...) → inZone=true → pick/confirm button enabled, no toast
+    403  → AppLogger.info('get-zone-id: no zone / out of zone — prompting location picker')
+         → ZoneResponseModel(false, ...) → inZone=false → 'service_not_available_in_this_area' toast
+    404  → same as 403 (NEARS-1081 documented)
+    5xx  → AppLogger.failure(ApiFailure, ...) → ZoneResponseModel(false, ...)
+         → inZone=false → 'service_not_available_in_this_area' toast
+
+=== Pre-fix user-visible behavior on bad input (lat=abc / lng=def) ===
+  BE returns 500. Client's else branch logs AppLogger.failure and returns inZone=false.
+  Toast 'service_not_available_in_this_area' fires — INCORRECTLY flagged as a server error in logs.
+
+=== Post-fix user-visible behavior on bad input ===
+  BE returns 403 (validator rejection). Client's else branch hits the 403/404 path
+  → AppLogger.info (no failure log) → ZoneResponseModel(false, ...) → inZone=false → toast fires.
+  The user-visible toast is IDENTICAL. The internal classification is now CORRECT (caller-state
+  not server-failure) — the AppLogger.failure noise goes away, satisfying the logging contract.
+
+=== Centroid (25.1, 55.15) regression: client behavior is unchanged ===
+  Both pre-fix and post-fix return 200 + zone_id:[3] from this coordinate pair.
+  Client's 200 branch is untouched. No false toast path is reachable from valid coords.
+
+=== Static review verdict ===
+  PASS — UserApp client code is unchanged, the new BE 403-on-bad-input behavior flows through
+  the existing client mapping (else branch with 403/404 → AppLogger.info) without requiring
+  any client code modification. The fix is BE-only with the documented logging improvement.

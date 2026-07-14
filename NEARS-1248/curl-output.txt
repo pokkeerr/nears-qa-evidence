@@ -1,0 +1,27 @@
+=== NEARS-1248 QA evidence — curl run ===
+Server: php artisan serve --host=0.0.0.0 --port=8765 (worktree: /Users/Apple/Projects/nears-NEARS-1248-getzone-4xx)
+Date: 2026-07-14T17:03:17Z
+
+=== AC1: non-numeric lat/lng (must NOT 500) ===
+{"errors":[{"code":"lat","message":"The lat must be a number."},{"code":"lng","message":"The lng must be a number."}]}
+http=403
+
+=== AC2: centroid regression (25.1, 55.15) (must NOT 500) ===
+{"zone_id":"[3]","zone_data":[{"id":3,"name":"Single Store QA Zone","coordinates":{"type":"Polygon","coordinates":[[[55.1,25.05],[55.2,25.05],[55.2,25.15],[55.1,25.15],[55.1,25.05]]]},"status":1,"created_at":"2026-06-07T13:29:42.000000Z","updated_at":"2026-06-07T13:29:42.000000Z","store_wise_topic":
+
+=== EDGE: empty strings ===
+{"errors":[{"code":"lat","message":"The lat field is required."},{"code":"lng","message":"The lng field is required."}]}
+http=403
+
+=== EDGE: literal null ===
+{"errors":[{"code":"lat","message":"The lat must be a number."},{"code":"lng","message":"The lng must be a number."}]}
+http=403
+
+=== EDGE: out-of-range numeric (lat=91) ===
+{"errors":[{"code":"coordinates","message":"Service not available in this area"}]}
+http=404
+
+=== route:list confirm ===
+
+   ERROR  Your application doesn't have any routes matching the given criteria.  
+
