@@ -1,0 +1,17 @@
+NEARS-861 AC2 — points→wallet SUCCESS snackbar i18n (ar locale)
+Render site: DeliveryApp/lib/features/my_account/widgets/account/point_to_wallet_money_widget.dart:183
+  showCustomSnackBar('successfully_converted_to_wallet_money'.tr, isError: false);
+
+Live limitation (documented, per micro proportionality clause):
+  The success snackbar fires ONLY after a real points→wallet conversion returning HTTP 200.
+  Delivery test account Ali Hassan (delivery_men.id=1) has loyalty_point = 0 (verified read-only:
+  `SELECT loyalty_point FROM delivery_men WHERE id=1;` -> 0). DB is read-only (HARD RULE) so points
+  cannot be minted to enable the convert button. Conversion therefore not live-triggerable.
+
+Key-resolution proof (ar locale, running app):
+  - ar.json is VALID JSON and is LOADED & RESOLVING at runtime — PROVEN by AC1, which rendered the
+    sibling key `from_running_notification_in_background` from THIS SAME ar.json as Arabic live.
+  - Key present in loaded ar.json (grep DeliveryApp/assets/language/ar.json:602):
+      "successfully_converted_to_wallet_money": "تم التحويل إلى أموال المحفظة بنجاح"
+  - GetX `.tr` is a map lookup that returns the raw key ONLY on a miss; the key is present, so it
+    resolves to the Arabic value above. No surface anywhere in the run displayed a raw snake_case key.
