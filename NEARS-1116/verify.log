@@ -1,0 +1,69 @@
+NEARS-1116 QA — full lane, first pass. Isolated scratch DB `nears_qa_1116_scratch`
+(restored from ~/nears-db-backups/multi_food_db_20260630_101419.sql + migrated to
+this branch's schema). Shared multi_food_db was NEVER touched. Dropped after run.
+PHP 8.3.32.
+
+=== AC1: refusal via parent DemoDataSeeder, NEARS_SEED_ALLOW_DB unset, non-empty DB ===
+Baseline row counts: modules=6 stores=999 banners=7 items=14944 coupons=4
+
+$ unset NEARS_SEED_ALLOW_DB; DB_DATABASE=nears_qa_1116_scratch php artisan db:seed --class=DemoDataSeeder --force
+RuntimeException:
+  DemoDataSeeder REFUSED: connected database is "nears_qa_1116_scratch" but
+  NEARS_SEED_ALLOW_DB=NULL. Set NEARS_SEED_ALLOW_DB to the exact target DB name
+  to confirm intent. Live multi_food_db is READ-ONLY by hard rule — mutating it
+  requires explicit user approval.
+  thrown at DemoDataSeeder.php:47, called from run() line 24 (first line of run()).
+
+Post-refusal row counts: modules=6 stores=999 banners=7 items=14944 coupons=4
+-> IDENTICAL. Zero rows written. PASS.
+
+=== AC2: refusal via direct child bypass, DemoDataCatalogSeeder, same setup ===
+$ unset NEARS_SEED_ALLOW_DB; DB_DATABASE=nears_qa_1116_scratch php artisan db:seed --class=DemoDataCatalogSeeder --force
+RuntimeException:
+  DemoDataCatalogSeeder REFUSED: connected database is "nears_qa_1116_scratch" but
+  NEARS_SEED_ALLOW_DB=NULL. ...
+  thrown at DemoDataCatalogSeeder.php:671, called from run() line 79 (first line of run()).
+
+Post-refusal row counts: modules=6 stores=999 banners=7 items=14944 coupons=4
+-> IDENTICAL. Zero rows written even when the child is invoked directly,
+   bypassing the parent orchestrator entirely. PASS.
+
+=== AC3: happy path, correct NEARS_SEED_ALLOW_DB, end-to-end via parent ===
+$ NEARS_SEED_ALLOW_DB=nears_qa_1116_scratch DB_DATABASE=nears_qa_1116_scratch php artisan db:seed --class=DemoDataSeeder --force
+  RebrandDemoCopySeeder ......... RUNNING -> DONE (11ms)
+  DemoDataCatalogSeeder ......... RUNNING -> DONE (14,481ms) — 2 stores, 21 schedules, 37 items created
+  DemoDataMarketingSeeder ....... RUNNING -> DONE (51ms) — 3 banners added
+  DemoDataCustomerSeeder ........ RUNNING -> DONE (2ms) — idempotent skip (address already present), not a guard failure
+  "NEARS-233 demo data complete."
+All 4 children ran to completion, none skipped/partial due to the guard.
+
+Post-happy-path row counts: modules=6 stores=1001(+2) banners=10(+3) items=14981(+37) coupons=4
+-> Matches the seeder's own reported counts exactly. Real writes occurred only
+   once explicitly opted in. PASS.
+
+=== AC4: regression spot-check, 2 of the 13 pre-existing guarded seeders ===
+Nears1026ConditionCountQaSeeder, no env var set -> refuses identically
+  ("Nears1026ConditionCountQaSeeder REFUSED: ... NEARS_SEED_ALLOW_DB=NULL...")
+QaBannerDuplicateSeeder, NEARS_SEED_ALLOW_DB=nears_qa_1116_scratch -> runs to
+  completion unchanged ("NEARS-1018 banner fixture ready: ...").
+Pre-existing pattern unaffected by this ticket's 4 new adopters. PASS.
+
+=== Automated backstop ===
+vendor/bin/phpunit --filter DemoDataSeederGuardTest: 7/7 pass, 31 assertions.
+vendor/bin/phpunit --configuration phpunit.xml (full suite): 1004 tests,
+10529 assertions, 3 FAILURES, 1 skipped.
+
+The 3 failures are UNRELATED to this ticket's diff (no shared files, different
+feature domain — bulk-import CSV module-id handling, not demo-data seeding):
+  - Tests\Feature\ItemModuleFollowsStoreTest::test_bulk_import_insert_persists_the_stores_module_not_the_csv_or_ui_module
+  - Tests\Feature\ItemModuleFollowsStoreTest::test_bulk_import_update_branch_repairs_module_id_instead_of_corrupting_an_existing_row
+  - Tests\Feature\Security\BulkImportZoneScopeTest::test_an_in_zone_admin_updating_only_its_own_zones_items_still_succeeds
+These belong to already-merged NEARS-1203/NEARS-1132 work (confirmed via
+git log on those test files — no NEARS-1116/DemoData/assertAllowedDatabase
+references). Flagged as regression_bugs (pre-existing on base branch), not a
+FAIL of this ticket.
+
+=== Stray uncommitted files noted (per team-lead heads-up, NOT part of scope, not tested) ===
+Admin/resources/lang/en/messages.php (NEARS-1207 artifact), Admin/config/system-addons.php,
+Admin/vendor/laravel/passport/resources/views/authorize.blade.php — left untouched,
+excluded from verification scope.
