@@ -1,0 +1,25 @@
+NEARS-801 AC6 finding — config failure emits TWO [FAIL] lines for /api/v1/config
+(AC6 requires exactly ONE for the config endpoint). Device: emulator-5556.
+The fix's controller AppLogger.failure duplicates the PRE-EXISTING api_client log
+(ApiChecker.checkApi on the handleError:true path, NEARS-576 contract).
+
+--- Path A: server reachable, genuine non-200 (HTTP 503 responder on :8099) ---
+[FAIL] endpoint=/api/v1/config http_status=503 type=ApiFailure msg="api request failed" correlation_id=qa-503-fixed-req-id   <-- api_client / ApiChecker.checkApi (pre-existing, richer: real status + correlation_id)
+[FAIL] endpoint=/api/v1/config http_status=null type=ApiFailure msg="config fetch failed"                                   <-- controller (added by NEARS-801; status=null because handleResponse returns a blank Response())
+
+--- Path B: connection-refused while online (:8099 closed, wifi up) ---
+[FAIL] endpoint=/api/v1/config http_status=null type=ApiFailure msg="api request threw" correlation_id=6e5e30be-a83b-41bd-88e7-e581728ea56a   <-- api_client catch (pre-existing)
+[FAIL] endpoint=/api/v1/config http_status=1 type=ApiFailure msg="config fetch failed"                                                        <-- controller (added by NEARS-801)
+
+--- Retry accumulation (Path B): each Retry adds exactly ONE controller line (linear, no loop) ---
+count msg="config fetch failed" after boot        = 1
+count msg="config fetch failed" after 1 Retry     = 2
+(So the "no duplicate ACROSS a retry" sub-clause holds; the "exactly one PER failed fetch" clause does NOT — 2 lines per fetch.)
+
+Remedy options: (a) drop the controller-level AppLogger.failure — ApiChecker.checkApi
+already logs the config non-2xx per the NEARS-576 contract (this yields exactly one,
+and the surviving line is the richer one); or (b) if the controller log is desired,
+call getData(configUri, handleError:false) so ApiChecker does not also fire — but then
+the controller line must carry the real status (currently null).
+
+All lines are PII-safe (ApiFailure sentinel, path-only endpoint, no body/token). No PII leak.
