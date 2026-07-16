@@ -1,0 +1,13 @@
+AC2 — live repro: real `php artisan about` boot with a temporarily-injected malformed
+`opentelemetry.resource_attributes` entry (non-homogeneous nested array), exercising the
+REAL keepsuit packageBooted() -> ResourceBuilder::build() -> Attributes::create() ->
+AttributesBuilder validator path (not the unit test's simulated register()-only window).
+
+Raw PHP error_log output (ini error_log redirected to a temp file): EMPTY — confirmed zero
+raw error_log lines.
+
+storage/logs/laravel.log new line:
+[2026-07-16 10:01:37] production.WARNING: [FAIL] OpenTelemetry export failed (telemetry batch dropped): attribute with non-primitive or non-homogeneous array of primitives dropped: qa.nears_1197_temp_probe {"suppressed_since_last":0,"source":"OpenTelemetry\\SDK\\Common\\Attribute\\AttributesBuilder","signal":"unknown","otlp_endpoint":"localhost:5080/api/default"}
+
+Config edit was reverted immediately after (git checkout -- config/opentelemetry.php);
+git status confirmed clean.

@@ -1,0 +1,16 @@
+AC4 — app boots end-to-end after the register()/boot() move.
+`php artisan serve` + `curl http://127.0.0.1:18321/api/v1/config` -> HTTP 200, no boot errors.
+
+AC1 — bind-site audit: `grep -rn "LoggerHolder::set\|Logging::setLogWriter" app config bootstrap routes`
+-> exactly one site: app/Providers/ObservabilityServiceProvider.php:29-30 (register()).
+
+Automated backstop:
+vendor/bin/phpunit --filter "ObservabilityProviderBootOrderTest|OtelExportBlockingTest|PiiSpanProcessorTest"
+-> OK, 19/19 tests, 92 assertions.
+
+Full suite: vendor/bin/phpunit --configuration phpunit.xml
+-> Tests: 1007, Assertions: 10531, Errors: 1, Skipped: 1.
+The 1 error is tests/Feature/DemoDataSeederGuardTest.php -> PDOException: Unknown column
+'delivery_mode' in DemoDataCatalogSeeder — unrelated pre-existing migration/seeder-ordering
+issue in the test DB, outside this diff's scope (diff touches only
+ObservabilityServiceProvider.php). Filed as regression_bugs, not a FAIL of this run.

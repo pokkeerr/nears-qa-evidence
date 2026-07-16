@@ -1,0 +1,13 @@
+AC3 — regression check for NEARS-1089's export-failure path after the register()/boot() move.
+Live repro: blackholed OTLP endpoint (OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:1/api/default,
+nothing listening), real span emitted via Tracer facade in `php artisan tinker`, shutdown-flush
+triggered the real BatchSpanProcessor export attempt.
+
+storage/logs/laravel.log new lines:
+[2026-07-16 14:02:28] production.ERROR: [FAIL] OpenTelemetry export failed (telemetry batch dropped): Export failure {"suppressed_since_last":0,"source":"OpenTelemetry\\Contrib\\Otlp\\MetricExporter","signal":"metrics","otlp_endpoint":"127.0.0.1:1/api/default","error_type":"GuzzleHttp\\Exception\\ConnectException","error_message":"cURL error 7: Failed to connect to 127.0.0.1:1 after 0 ms: Could not connect to server (see https://curl.se/libcurl/c/libcurl-errors.html) for http://127.0.0.1:1/api/default/v1/metrics"}
+[2026-07-16 14:02:28] production.ERROR: [FAIL] OpenTelemetry export failed (telemetry batch dropped): Export failure {"suppressed_since_last":0,"source":"OpenTelemetry\\Contrib\\Otlp\\SpanExporter","signal":"traces","otlp_endpoint":"127.0.0.1:1/api/default","error_type":"GuzzleHttp\\Exception\\ConnectException","error_message":"cURL error 7: Failed to connect to 127.0.0.1:1 after 0 ms: Could not connect to server (see https://curl.se/libcurl/c/libcurl-errors.html) for http://127.0.0.1:1/api/default/v1/traces"}
+
+Zero raw error_log lines (verified with ini error_log redirected to a temp file — empty).
+PII-safe confirmed: no Basic-auth header/credential in either line; otlp_endpoint shows
+host:port/path only, no query string. Throttle dedupe key includes signal, so metrics and
+traces each got their own line (matches OtelDiagnosticLogger's documented behavior).
