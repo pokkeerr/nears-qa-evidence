@@ -1,0 +1,25 @@
+NEARS-825 — QA-lite falsifiable mutation-check proof
+VendorApp notification_repository.getList() null-`data` guard
+worktree: ../nears-NEARS-825-notif-list-null-data-guard
+branch:   feat/NEARS-825-notif-list-null-data-guard
+test:     VendorApp/test/notification_repository_null_data_test.dart
+runner:   flutter test (debug)
+
+=== POST-FIX (working tree, the fix under test) ===
+00:00 +0: AC1 all rows valid -> every notification renders (no regression)
+00:00 +1: AC2/AC3 null + absent data rows fall back safely, valid rows survive
+00:00 +2: AC4 malformed row is skipped and logs a PII-safe [FAIL] failure
+[FAIL] endpoint=/api/v1/vendor/notifications http_status=null type=ApiFailure msg="notification row skipped"
+00:00 +3: All tests passed!
+
+=== PRE-FIX (HEAD, unguarded notify['data']['title']) — mutation check ===
+00:00 +0: AC1 all rows valid -> every notification renders (no regression)   [PASS: no-regression]
+00:00 +1 -1: AC2/AC3 null + absent data rows fall back safely, valid rows survive [E]
+  NoSuchMethodError: The method '[]' was called on null.                       [FAIL: the exact bug repro]
+00:00 +1 -2: AC4 malformed row is skipped and logs a PII-safe [FAIL] failure  [E]  [FAIL]
+00:00 +1 -2: Some tests failed.
+
+CONCLUSION: the tests CAN fail (and do, on the pre-fix code, with the reported
+NoSuchMethodError) and PASS on the fixed code -> falsifiable proof the guard
+fixes the bug and skips-with-logging rather than aborting the whole list.
+AC4 [FAIL] line is PII-safe: path-only endpoint, ApiFailure sentinel, no payload.
