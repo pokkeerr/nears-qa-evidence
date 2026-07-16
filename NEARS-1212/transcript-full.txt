@@ -1,0 +1,120 @@
+============================================================
+NEARS-1212 QA evidence — OTel log-cap + burst-alert (ops/shell)
+Host: Darwin 25.5.0 arm64  |  local 2026-07-16 17:06:16 +04  |  UTC 2026-07-16 13:06:16Z
+logrotate: logrotate 3.22.0  |  flock: ABSENT-macos
+Worktree branch: feat/NEARS-1212-otel-log-cap-alert
+============================================================
+
+########################## AC3 (do first): throttle code BYTE-UNCHANGED vs base ##########################
+$ git diff --stat feat/human-review -- Admin/app/Observability/OtelDiagnosticLogger.php Admin/config/logging.php
+[empty diff above => byte-identical => queue-worker throttle behaviour cannot have changed; no queue:work re-demo needed]
+
+########################## AC1: logrotate size-cap rotation ##########################
+-- conf under test: real REPLACE-ME-APP-ROOT -> temp approot; size 100M -> 1k (demo cap). Directives verbatim: --
+/var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//nears-1212-final.ojoxGL/approot/Admin/storage/logs/laravel.log
+/var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//nears-1212-final.ojoxGL/approot/Admin/storage/logs/laravel-structured.log {
+    size 1k
+    rotate 5
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}
+-- BEFORE: both active logs exceed cap --
+total 16
+-rw-r--r--@ 1 Apple  staff  2750 Jul 16 17:06 laravel-structured.log
+-rw-r--r--@ 1 Apple  staff  3350 Jul 16 17:06 laravel.log
+
+$ logrotate -d <conf>  (parse/debug, no changes)
+reading config file /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//nears-1212-final.ojoxGL/nears-app-logs.conf
+Handling 1 logs
+  log needs rotating
+  log needs rotating
+[parse exit:  — 'Handling 1 logs' = two paths form one shared rotation block, as authored]
+
+$ logrotate -f -s <state> <conf>   (forced run #1)
+[run1 exit 0]
+-- after run #1: .1 rotated, fresh 0-byte active files (copytruncate); delaycompress => .1 NOT yet gz --
+total 16
+-rw-r--r--@ 1 Apple  staff     0 Jul 16 17:06 laravel-structured.log
+-rw-r--r--@ 1 Apple  staff  2750 Jul 16 17:06 laravel-structured.log.1
+-rw-r--r--@ 1 Apple  staff     0 Jul 16 17:06 laravel.log
+-rw-r--r--@ 1 Apple  staff  3350 Jul 16 17:06 laravel.log.1
+
+$ logrotate -f -s <state> <conf>   (forced run #2 -> delaycompress compresses prior .1 to .2.gz)
+[run2 exit 0]
+-- after run #2: .1 fresh uncompressed, .2.gz compressed (delaycompress proven), fresh active files --
+total 32
+-rw-r--r--@ 1 Apple  staff     0 Jul 16 17:06 laravel-structured.log
+-rw-r--r--@ 1 Apple  staff  2750 Jul 16 17:06 laravel-structured.log.1
+-rw-r--r--@ 1 Apple  staff    97 Jul 16 17:06 laravel-structured.log.2.gz
+-rw-r--r--@ 1 Apple  staff     0 Jul 16 17:06 laravel.log
+-rw-r--r--@ 1 Apple  staff  3600 Jul 16 17:06 laravel.log.1
+-rw-r--r--@ 1 Apple  staff    92 Jul 16 17:06 laravel.log.2.gz
+-- .gz is valid gzip of our OTel FAIL lines --
+/var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//nears-1212-final.ojoxGL/approot/Admin/storage/logs/laravel-structured.log.2.gz: gzip compressed data, last modified: Thu Jul 16 13:06:17 2026, from Unix, original size modulo 2^32 2750
+decompressed line 1: 2026-07-16 10:00:00 [FAIL] OpenTelemetry export failed
+[AC1 PASS: size-cap rotation, copytruncate (inode kept), compress+delaycompress, rotate 5, scope=only the 2 named files]
+
+(full annotated logrotate -d + -f verbose transcript in transcript-ac1-logrotate-verbose.txt)
+
+########################## AC2: burst-alert script ##########################
+-- fixture: 60x '[FAIL] OpenTelemetry export failed' timestamped NOW (UTC), + non-matching noise --
+
+== AC2.1 crossing detected + PII-SAFE DRY_RUN body (counts/threshold/window/host/ts only; no log contents, no endpoint, URL redacted) ==
+DRY_RUN: would POST to https://hooks.example.com/<redacted>
+DRY_RUN: body -> {"text":"[Nears] OTel diagnostic-log burst: 60 matches of \"[FAIL] OpenTelemetry export failed\" in the last 5 min (threshold 50) on host Mac.lan","source":"watch-otel-diagnostics","count":60,"threshold":50,"window_minutes":5,"host":"Mac.lan","timestamp":"2026-07-16T13:06:54Z"}
+[exit 0]
+
+== AC2.2 below threshold => no alert (count 60 < THRESHOLD 200) ==
+[exit 0 — silent = correct]
+
+== AC2.3 dedupe: alert once per crossing (run twice, 2nd silent) ==
+run1:
+DRY_RUN: would POST to https://h/<redacted>
+DRY_RUN: body -> [PII-safe]
+run2:
+[run2 silent above = dedupe OK]
+
+== AC2.4 state isolation: DRY_RUN uses dryrun.state, prod.state untouched ==
+  dryrun.state: PRESENT
+  prod.state:   absent (correct)
+
+== AC2.5 TZ windowing: in-window UTC lines counted under non-UTC host TZ (Asia/Dubai) ==
+DRY_RUN: would POST to https://h/<redacted>
+DRY_RUN: body count=60 (PII-safe)
+[alert fired under TZ=Asia/Dubai => UTC boundary independent of host TZ]
+
+== AC2.6 stale window: 60 lines at UTC now-1h with WINDOW=5 => 0, NO false alert ==
+fixture ts (1h old UTC): 2026-07-16 12:06:54
+[exit 0 — silent = correct, no false alert]
+
+== AC2.7 redaction: token in userinfo AND in query must NOT leak ==
+shapeA userinfo: DRY_RUN: would POST to https://hooks.internal/<redacted>
+shapeB query:    DRY_RUN: would POST to https://hooks.internal/<redacted>
+[neither shows SECRETTOK => redaction OK]
+
+== AC2.8 injection guard: THRESHOLD='1; rm -rf /' => exit 2, no exec ==
+watch-otel-diagnostics: THRESHOLD must be a non-negative integer, got: 1; rm -rf /
+[exit 2 — die on non-integer]
+
+== AC2.9 symlink refusal (STATE_DIR & STATE_FILE), victim not truncated ==
+  STATE_DIR symlink: watch-otel-diagnostics: state dir /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//nears-otel-watch-501 is not a directory owned by us; refusing
+    exit=2 victim=precious
+  STATE_FILE symlink: watch-otel-diagnostics: STATE_FILE is a symlink; refusing to use /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//nears-otel-watch-501/dryrun.state
+    exit=0 victim before=      16 after=      16 (INTACT)
+  NOTE: LOCK_FILE symlink guard is flock-gated; flock ABSENT on macOS so that path is not reached here (present on Linux prod). STATE_DIR+STATE_FILE guards cover the truncation risk.
+
+[AC2 PASS: detection, PII-safe body, dedupe, state isolation, TZ windowing (both directions), redaction (both shapes), injection guard, symlink refusal]
+
+============================ END ============================
+transcript written.
+
+---- CORRECTION (harness note) ----
+AC2.9 STATE_FILE-symlink line above reported 'exit=0' due to a $? capture bug in the test wrapper
+($? was read after an intervening 'wc' assignment, not after the script). Clean re-capture:
+  script exit code (captured immediately) = 2   [expected 2]
+  stderr: watch-otel-diagnostics: STATE_FILE is a symlink; refusing to use /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//nears-otel-watch-501/dryrun.state
+  victim before=      16 after=      16 -> INTACT
+=> STATE_FILE symlink guard correctly exits 2 and does NOT truncate the victim.
