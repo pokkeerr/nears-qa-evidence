@@ -1,0 +1,50 @@
+NEARS-1119 delta re-QA — fix-cycle 1 (task_bug tb1 fix verification)
+
+Static compile check (rules out the class of defect found in the first pass):
+`app('blade.compiler')->compileString(...)` on restaurant-index.blade.php + `php -l`
+on the compiled output -> "No syntax errors detected". Whole-file compile now
+clean, including the pharmacy-toggle block (lines 116-238) that previously got
+left as literal uncompiled text once the old block-style @php was added.
+
+Live HTTP checks (PHP 8.3.32, worktree Admin server :8010):
+
+AC1 — store 2 (Fresh Mart Grocery, vendor ahmed.khan@demo.com), delivery_time="30-45":
+GET /vendor-panel/business-settings/store-setup -> 200
+minimum_delivery_time=30, maximum_delivery_time=45, delivery_time_type selected="Minutes"
+No ParseError in laravel.log for this request.
+
+AC2 — store 1 (Nears Mart, vendor demo.store@gmail.com), delivery_time="30-40 min":
+GET /vendor-panel/business-settings/store-setup -> 200
+minimum_delivery_time=30, maximum_delivery_time=40, delivery_time_type selected="Minutes"
+Unchanged vs pre-fix expected values.
+
+AC3 (bonus) — store 9 (Organic Shop, vendor organicshop@demo.com), delivery_time="2-3 hours":
+GET /vendor-panel/business-settings/store-setup -> 200
+minimum_delivery_time=2, maximum_delivery_time=3, delivery_time_type selected="Hours"
+
+AC4 — pharmacy-module spot-check:
+Could not reach a pharmacy-module store live with a DOCUMENTED users_test_data.md
+account: Helpers::get_store_data() always resolves auth('vendor')->user()->stores[0]
+(lowest store id), and every documented vendor account's first/only store is
+grocery or food -- sara.ali@demo.com (the one documented multi-store vendor
+that also owns a pharmacy store, id 7) resolves to store 3 (Organic Paradise,
+grocery) instead, confirmed live (min=25/max=35 returned, matching store 3's
+DB row, not store 7's "15-25"). Tried one non-documented seeded pharmacy vendor
+(vendor-careplus-pharmacy@demo.nears) with the standard seed password per
+users_test_data.md convention -- login failed (not documented, declined to
+guess further per "never invent credentials"). This is a test-data gap, not a
+code defect.
+Corroboration in lieu of live pharmacy render:
+- Static compile check above covers the pharmacy block bytecode-clean.
+- phpunit vendor/bin/phpunit --filter VendorStoreSetupDeliveryTimeParsingTest
+  on PHP 8.3.32: 4/4 pass (14 assertions), including
+  test_pharmacy_module_store_still_renders_prescription_toggle, which does
+  render the Blade view via a real HTTP test request against an isolated
+  pharmacy-module store fixture.
+AC4 marked "unverifiable" (live) rather than PASS/FAIL -- not faked.
+
+Unrelated note (not a regression from this fix): "$ is not defined" JS console
+error reproduces on this dev server on ANY vendor-panel page, including
+unauthenticated /vendor-panel/dashboard -- pre-existing local asset-loading
+quirk, unrelated to this fix. Not raised as a bug; noted as environment
+follow-up only.
