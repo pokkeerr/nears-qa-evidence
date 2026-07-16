@@ -1,0 +1,21 @@
+NEARS-790 QA — pre-existing regression (unrelated to fix): offset int-vs-String? parse
+VendorApp, emulator-5556, build feat/NEARS-790-splash-push-profile-race
+
+--- All Items (food vendor Burger Palace) GET /api/v1/vendor/get-items-list 200 ---
+I/flutter : type 'int' is not a subtype of type 'String?'
+#0  new ItemModel.fromJson (package:sixam_mart_store/features/store/domain/models/item_model.dart:32:5)
+#1  StoreRepository.getItemList (store_repository.dart:32:29)
+#2  StoreService.getItemList (store_service.dart:25:12)
+#3  StoreController.getItemList (store_controller.dart:495:30)
+
+--- Pending Item (grocery vendor demo.store) GET /api/v1/vendor/item/pending/item/list 200 ---
+I/flutter : type 'int' is not a subtype of type 'String?'
+#0  new PendingItemModel.fromJson (pending_item_model.dart:12:5)
+#1  StoreRepository.getPendingItemList (store_repository.dart:52:43)
+
+Root cause: list-wrapper models assign `_offset = json['offset']` where offset is declared String?
+but the API returns it as int. (limit is guarded with .toString(); offset is not.)
+item_model.dart:32  -> _offset = json['offset'];
+pending_item_model.dart:12 -> offset = json['offset'];
+Both files IDENTICAL to base branch feat/human-review -> pre-existing, NOT introduced by NEARS-790.
+Effect: vendor All Items + Pending Item lists render blank (wrapper parse throws before items iterate).
