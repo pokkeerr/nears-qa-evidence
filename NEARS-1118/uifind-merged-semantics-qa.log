@@ -1,0 +1,68 @@
+NEARS-1118 QA — uifind.py merged-Semantics segment splitting
+Device: emulator-5556 (Android), UserApp debug build from worktree
+/Users/Apple/Projects/nears-NEARS-1118-uifind-merged-semantics, branch
+feat/NEARS-1118-uifind-merged-semantics. Backend: local php artisan serve
+(baseUrl 10.0.2.2:8000 for Android — real local backend, not demo/placeholder).
+Logged-in as customer@nears.com (Customer Nears).
+
+=== 1. Automated backstop ===
+$ python3 scripts/app-nav/test_uifind.py -v
+test_content_desc_wins_over_text_and_hint (__main__.TestLabelFallback) ... ok
+test_hint_only_email_field_resolves (__main__.TestLabelFallback) ... ok
+test_hint_only_password_field_resolves (__main__.TestLabelFallback) ... ok
+test_no_label_when_all_empty (__main__.TestLabelFallback) ... ok
+test_text_used_when_content_desc_empty (__main__.TestLabelFallback) ... ok
+test_bare_status_word_not_hijacked_by_segment (__main__.TestMergedSemanticsSegments) ... ok
+test_duplicate_segment_across_merged_nodes_is_documented_tiebreak (__main__.TestMergedSemanticsSegments) ... ok
+test_full_merged_label_still_matches (__main__.TestMergedSemanticsSegments) ... ok
+test_merged_segment_exact_matches (__main__.TestMergedSemanticsSegments) ... ok
+test_unmerged_label_unaffected (__main__.TestMergedSemanticsSegments) ... ok
+----------------------------------------------------------------------
+Ran 10 tests in 0.000s
+OK
+
+=== 2. Live My Orders order-card, POST-FIX resolution ===
+$ python3 scripts/app-nav/uifind.py find "Abu Dhabi Fresh Market" --exact
+672 831   (exit 0)
+
+$ python3 scripts/app-nav/uifind.py find "Order status, Delivered" --exact
+672 2685   (exit 0)
+
+Raw content-desc on the order card (uiautomator dump), confirming the merge
+this fix targets:
+  content-desc="Abu Dhabi Fresh Market&#10;01 Jul 2026,  06:55 PM  •  #166&#10;Order status, Delivered&#10;1 Item&#10;12 AED"
+
+=== 3. Same two queries against the PRE-FIX uifind.py (git show HEAD:...) on
+       the SAME live screen — proves these were previously unresolvable ===
+$ python3 /tmp/uifind_pre.py find "Abu Dhabi Fresh Market" --exact
+(empty)   (exit 1)
+$ python3 /tmp/uifind_pre.py find "Order status, Delivered" --exact
+(empty)   (exit 1)
+
+=== 4. Regression guard — bottom filter-tab "Delivered" (My Orders tab strip,
+       NOT the order-status text) must resolve to the SAME coordinates
+       before and after the fix ===
+PRE-FIX : find "Delivered" --exact -> 1094 588  (exit 0)
+POST-FIX: find "Delivered" --exact -> 1094 588  (exit 0)
+IDENTICAL. Confirms the new segment-splitting does not produce a bare
+"Delivered" segment from "Order status, Delivered" (segments split only on
+the merged node's literal \n boundaries, not on internal commas), so the
+filter tab is never hijacked. Matches
+test_bare_status_word_not_hijacked_by_segment in the unit suite.
+
+=== 5. Spot-check unrelated --exact anchors (per-module home bottom nav) ===
+find "Home" --exact       -> 192 2776   (exit 0)
+find "Categories" --exact -> 432 2776   (exit 0)
+find "Basket" --exact     -> 912 2776   (exit 0)
+
+=== 6. Staleness re-verification — same query resolves differently after
+       real navigation (proves live tree read, not caching) ===
+On per-module home:      find "Profile" --exact   -> 1152 2776
+Navigated to Profile tab, on Profile screen: find "My Orders" --exact -> 672 1317
+ui_home back to per-module home: find "Profile" --exact -> 1152 2776 (consistent)
+
+=== 7. Error scan (ui_errors) across the session ===
+adb logcat -d | grep -aE "(I|E)/flutter|FlutterError|EXCEPTION CAUGHT" | grep -aiE "not found|is not a subtype|EXCEPTION CAUGHT|FlutterError|overflowed by|Get\.(put|lazyPut)"
+-> no matches (clean)
+
+VERDICT: PASS
