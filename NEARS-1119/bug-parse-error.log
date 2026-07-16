@@ -1,0 +1,37 @@
+NEARS-1119 QA — blocking regression found in the fix
+
+Repro: log into vendor panel as ahmed.khan@demo.com or demo.store@gmail.com,
+GET /vendor-panel/business-settings/store-setup -> HTTP 500 for EVERY store,
+not just the unit-less-delivery_time repro case.
+
+laravel.log (worktree Admin/storage/logs/laravel.log):
+[2026-07-16 10:45:43] production.ERROR: [FAIL] syntax error, unexpected end of file, expecting "elseif" or "else" or "endif" (View: /Users/Apple/Projects/nears-NEARS-1119-delivery-time/Admin/resources/views/vendor-views/business-settings/restaurant-index.blade.php) {"trace_id":"920da716d53385e0a2d08a3d3a6e4890","correlation_id":"6926ca1b-da4a-419b-958b-cec31c4d9b55","type":"Illuminate\\View\\ViewException","endpoint":"/vendor-panel/business-settings/store-setup"}
+
+Root cause isolated via `app('blade.compiler')->compileString(...)` + `php -l` on the
+compiled output: the file's PRE-EXISTING pharmacy-only inline directive at line 118
+`@php($prescription_order_status = $prescription_order_status ? $prescription_order_status->value : 0)`
+and every @if/@endif between lines 119-283 stop being recompiled into <?php ...?>
+tags and are left as literal uncompiled text in the moment the fix's NEW block-style
+`@php ... @endphp` (added at line 284) is present in the same file. Confirmed by
+diffing compiled output with vs without the fix's @php block. Net effect: the
+entire Store Setup page fails to compile for ANY vendor/store, not only the
+unit-less delivery_time repro.
+
+Independent verification this is NOT the pre-existing/unrelated PHP-8.5.6-only
+issue claimed in the engineer envelope:
+- Same result reproduced fresh on PHP 8.3.32 (Homebrew php@8.3, keg-only install),
+  not just PHP 8.5.6.
+- Swapped in the untouched base-branch (feat/human-review) version of this exact
+  file, cleared view cache, hit the same endpoint as the same vendor/store ->
+  got a DIFFERENT error: "Undefined array key 1" (View: same file) — i.e. the
+  ORIGINAL bug this ticket targets, not the ParseError. The ParseError only
+  appears once the fix's @php block is added back.
+- Re-applied the fix (post-fix file restored, cache cleared) -> ParseError
+  returns deterministically, both via HTTP and via `php -l` on the compiled
+  view.
+
+AC1 (store 2, unit-less "30-45"): FAIL — 500, ParseError (not the intended fix
+behavior; also never reaches the unit-select-default logic).
+AC2 (store 1, normal "30-40 min"): FAIL — same 500/ParseError; this is a NEW
+regression on a path that worked before the fix on the base branch (confirmed:
+base-branch file alone renders past this point for store-independent content).
