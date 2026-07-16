@@ -1,0 +1,117 @@
+NEARS-1129 QA — full lane, first pass, both apps. Emulators emulator-5554 (UserApp)
+and emulator-5556 (VendorApp). Backend PHP 8.3.32. Numeric-typed lat/lng was
+demonstrated live via a transparent reverse proxy (127.0.0.1:8000 -> real local
+backend on :8001) that recursively rewrites JSON "latitude"/"longitude" string
+values into real JSON numbers for every endpoint's response body — everything
+else (headers, status, all other fields) passes through unmodified. Confirmed
+directly via curl: real backend returns "latitude":"23.8166" (string); the
+proxy returns "latitude": 23.8166 (number). Regression checks ran the apps
+directly against the real backend (proxy stopped, backend on :8000 unmodified).
+Worktree Admin/.env and VendorApp google-services.json were both missing from
+this fresh worktree (gitignored) and copied from the primary tree to boot —
+routine setup, not part of the diff under test.
+
+=== AC1: UserApp — home rails / store list / search render numeric lat/lng, no crash ===
+Booted UserApp, confirmed via curl the proxy actually numeric-rewrites
+GET /api/v1/stores/latest (and by construction every other JSON endpoint).
+Home screen rendered its rails fully populated (LIMITED OFFER cards, "Fresh
+local", "Fresh supermarket", "QA Single-Store Campaign A", etc.) fed by
+GET /api/v1/stores/get-stores/all -> 200 (x4, through the proxy, numeric).
+adb logcat: zero TypeError/FormatException; only pre-existing guest-auth 401s
+(cart/list, cm-firebase-token, customer/info, notifications, coupon/list —
+unrelated to Store parsing).
+Searched "Fresh" on the module search bar (EditText resolved live via
+uiautomator hint="Search for items..." bounds, tapped, adb input text):
+GET /api/v1/items/item-or-store-search -> 200, GET /api/v1/search/unified -> 200
+(both through the proxy, numeric). Results rendered "Items (53)" and
+"Stores (3)" sections with real store names (Fresh local, Organic Shop,
+Veggie Market) — Store.fromJson/StoreModel.fromJson exercised with numeric
+lat/lng, zero crash. Screenshot: userapp-search-numeric-results.png
+Store.fromJson call sites verified (grep): store_repository.dart (popular/
+latest/featured/visitAgain/tower/popularTower/recommended — all exercised via
+Home + search), favourite_repository.dart, route_helper.dart (store details).
+PASS.
+
+=== AC2: UserApp — NEARS-1098 malformed-body guard unaffected ===
+Documented repro (store_details_malformed_body_test.dart header): an unknown
+store id answers HTTP 200 with an EMPTY body ({}), not 404. Reproduced live by
+toggling the proxy to a HOLLOW_STORE_DETAILS=1 mode (returns {} for any
+/api/v1/stores/details/* request, confirmed via curl) and tapping a real store
+card (Baqala Al Qafilah) from Home. Result: store-details screen showed
+"This store could not be loaded / Please try again / Retry" — the NearsErrorRetry
+guard state, NOT a shimmer, NOT a hollow all-null render.
+adb logcat:
+  [NET] GET endpoint=/api/v1/stores/details/3183
+  [NET] endpoint=/api/v1/stores/details/3183 http_status=200
+  "The following exception was thrown store details: malformed 200 body:
+   ApiFailure(status: 200)" at StoreController.getStoreDetails
+  [FAIL] endpoint=/api/v1/stores/details/ http_status=200 type=ApiFailure
+   msg="store details: malformed 200 body"
+A clean, logged, controlled rejection (not an uncaught crash) — guard fires
+exactly as before NEARS-1129. Screenshot: userapp-nears1098-guard-still-works.png
+PASS.
+
+=== AC3: VendorApp — store-profile screen renders numeric lat/lng, no crash ===
+Fresh worktree was missing android/app/google-services.json (gitignored);
+copied from primary tree — VendorApp's main.dart resolves FirebaseAnalytics
+eagerly during the ROOT widget build (unlike UserApp), so its ABSENCE crashes
+the entire first frame (blank a11y tree, RootElement.mount throwing
+"[core/no-app] No Firebase App '[DEFAULT]' has been created"). Not a
+NEARS-1129 regression — a pre-existing fresh-worktree setup gap, worth a
+follow-up note (main.dart:156 should not resolve Firebase eagerly at root
+build time regardless of this ticket).
+After the fix, booted VendorApp against the numeric proxy, logged in as
+organicshop@demo.com / 123456789 (EditTexts resolved live via hint="E-mail *"/
+"Password *" bounds from a fresh uiautomator dump — bounds shift once the
+keyboard opens, so bounds must be re-read after each field gains focus, not
+reused from a pre-keyboard dump).
+GET /api/v1/vendor/profile -> 200 (x3, through the proxy, numeric) at login.
+Dashboard rendered fully (Total Earning, Total Orders, Wallet, Ongoing Orders
+etc.). Navigated Menu -> Store Config (rendered fully: Halal Tag, Home
+Delivery, Take Away, Schedule Order, Restaurant Availability, Pricing &
+Charges) and Menu -> Edit Profile (rendered fully: Basic Information, E-mail,
+Change Password). adb logcat: zero TypeError/FormatException across the whole
+flow. Screenshot: vendorapp-numeric-profile.png
+PASS.
+
+=== AC4: Regression — real string wire-shape unchanged, both apps ===
+Stopped the proxy, ran both apps directly against the real, unmodified local
+backend (curl-verified: "latitude":"23.8166", string).
+UserApp: force-stopped + relaunched. GET /api/v1/home/all -> 200,
+GET /api/v1/stores/get-stores/all -> 200. Home rendered identically (3 stores
+near you, Baqala sport, Baqala Al Qafilah, etc.). Zero exceptions.
+VendorApp: force-stopped + relaunched (session persisted, landed on
+Dashboard). GET /api/v1/vendor/profile -> 200 (x2). Menu -> Store Config
+rendered identically to the numeric-proxy pass (same fields, same layout).
+Screenshot: vendorapp-string-regression.png
+Zero exceptions on either app. PASS — confirmed NOT a behavior change for
+today's real traffic, only a tolerance widening as the ticket describes.
+
+=== Automated backstop ===
+UserApp: flutter test test/helper/parse_helper_test.dart
+  test/features/store/store_details_malformed_body_test.dart
+  -> 50/50 pass (includes the NEARS-1129 pin + the NEARS-1098/1084 regression
+     pins, all still green).
+VendorApp: flutter test test/profile_store_latlng_contract_test.dart
+  -> 4/4 pass (String wire shape unchanged / numeric double / numeric int /
+     null all parse without throwing).
+
+=== Known findings — not re-litigated ===
+- Security: several UserApp screens interpolate store lat/lng unencoded into
+  Google Maps URLs — pre-existing, unrelated to this ticket.
+- Security: VendorApp's `?.toString()` doesn't fail-safe-to-null for non-
+  string/non-num types like UserApp's toStringN() does — reviewer verified
+  zero live impact (nothing downstream reads it, write-back path is dead
+  code). Not re-tested here per assignment brief.
+
+=== New observation (not blocking, follow-up candidate) ===
+VendorApp's main.dart resolves FirebaseAnalytics.instance synchronously
+during the ROOT widget's first build (main.dart:156, inside a GetBuilder<
+LocalizationController>), rather than lazily/guarded. In any environment
+missing google-services.json (e.g. every fresh worktree, since the file is
+gitignored per NEARS-293/294/295), this throws during RootElement.mount and
+the ENTIRE app fails to render a single frame (blank a11y tree) — no error
+screen, no fallback, just blank. UserApp does not exhibit this (boots fine
+missing/without the same eager resolution). Unrelated to NEARS-1129's diff;
+flagging as a regression_candidate for VendorApp's Firebase init robustness,
+not a NEARS-1129 defect.
