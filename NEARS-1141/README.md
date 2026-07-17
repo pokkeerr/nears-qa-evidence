@@ -1,16 +1,18 @@
 # QA Evidence — NEARS-1141
 
-**FAIL — post-fix Search store-row a11y node still android.widget.ImageView (no Button role projected); NEARS-963 on-device projection failure**
+**PASS (cycle 1) — Search store-row a11y node now android.widget.Button (was ImageView pre-fix + cycle-0); ExcludeSemantics on cover/logo fixed the NEARS-963 projection**
 
-**1 screenshot(s).** Click any thumbnail for full resolution.
+**2 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
 <td align="center" width="33%"><a href="bug-storecard-role-not-projected.png"><img src="bug-storecard-role-not-projected.png" width="240"></a><br><sub>bug storecard role not projected</sub></td>
+<td align="center" width="33%"><a href="cycle1-storecard-button-role.png"><img src="cycle1-storecard-button-role.png" width="240"></a><br><sub>cycle1 storecard button role</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
+- [`postfix-row-cycle1.xml`](postfix-row-cycle1.xml)
 - [`postfix-row.xml`](postfix-row.xml)
 - [`prefix-row.xml`](prefix-row.xml)
 
