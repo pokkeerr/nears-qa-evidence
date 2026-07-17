@@ -1,0 +1,53 @@
+NEARS-1269 — on-device uiautomator node evidence (UserApp, emulator-5556, com.izzes.nears debug)
+Post-fix build: worktree feat/NEARS-1269-a11y-legacy-store-cards
+================================================================
+
+IN-SCOPE WIDGET 1 — StoreCard (store_card.dart)
+  Rail: Food module home "New on Nears" (جديد على Nears) horizontal rail
+  POST-FIX:
+    class=android.widget.Button  clickable=true
+    content-desc="The Grill House\n20-40\nThe Grill House, Downtown\n0.67 كم منك\nيغلق 23:00"
+    bounds=[414,776][1314,1136]
+  => Button role + non-empty store-name content-desc + clickable. PASS.
+
+IN-SCOPE WIDGET 2a — StoreCardWithDistance (store_card_with_distance.dart, fromAllStore)
+  Rail: Pharmacy module all-stores list (StoreCardWithDistance for non-food/grocery)
+  POST-FIX:
+    class=android.widget.Button  clickable=true
+    content-desc="MediQuick Pharmacy\nMediQuick Pharmacy, Downtown\n20-40"
+    bounds=[33,493][1311,1162]
+  Sibling cards same rail also Button: "Family Health Pharmacy", "Green Cross Pharmacy".
+  Tap this Button card -> navigated to MediQuick Pharmacy store-details (back btn + store name in header). Nav preserved.
+  => Button + content-desc + clickable + navigates. PASS.
+
+IN-SCOPE WIDGET 2b — _RecommendedStoreCard (store_card_with_distance.dart, recommendedStore:true)
+  Rail: Food module home "Recommended for you" (موصى به لك) rail
+  POST-FIX:
+    class=android.widget.Button  clickable=true
+    content-desc="The Grill House\n20-40\nThe Grill House, Downtown\n0.67 كم منك\nيغلق 23:00"
+    bounds=[414,1065][1314,1425]
+  => Button + content-desc + clickable. PASS.
+
+IN-SCOPE WIDGET 3 — PopularStoreCard (popular_store_card_widget.dart)
+  NOT LIVE-RENDERABLE in seeded data. PopularStoreView renders only on ShopHomeScreen /
+  generic ModuleView. DB (multi_food_db.modules) has NO shop/ecommerce module in any zone
+  (only grocery/food/pharmacy/parcel). Code-verified: redundant inner InkWell REMOVED (single
+  Button node), Semantics(container:true,button:true) wrap, outer CustomInkWell onTap
+  navigation preserved, images ExcludeSemantics'd. Widget test present. UNVERIFIABLE-LIVE (data gap, no defect).
+
+IN-SCOPE WIDGET 4 — _TowerStoreCard (your_tower_view.dart)
+  YourTowerView self-hides unless saved address has a towerName AND tower stores exist.
+  Tower address EXISTS (customer_addresses id45 user6 zone2 tower_name="Marina Heights") but
+  requires an authed session on that address; app session was lost on relaunch mid-run and the
+  authed tower state could not be re-established reliably. Code-verified: Semantics(container:true,
+  button:true) wrap on NearsSurfaceCard, logo ExcludeSemantics'd, onTap (analytics + nav) preserved.
+  Widget test present. UNVERIFIABLE-LIVE this session (needs authed Marina Heights address).
+
+PRE-FIX (best-effort): exact in-scope widgets were not isolated pre-fix (they live on module-home
+rails reached only in the post-fix phase). The pervasive pre-fix pattern WAS captured on the same
+build: every image-bearing clickable card rendered as class=android.widget.ImageView or a bare
+android.view.View with NO button role (banner offer cards, StoreCardWidget all-stores, order cards,
+category cards, flash-sale item cards). Post-fix, the in-scope cards render as android.widget.Button.
+
+LOGS-FIRST GATE: no Flutter [FAIL]/[ERR]/exception/RenderFlex-overflow/semantics-assertion during
+any AC. (Lone PhFlagUpdateRegistry Google-cert W/ warning is benign debug-APK env noise.)
