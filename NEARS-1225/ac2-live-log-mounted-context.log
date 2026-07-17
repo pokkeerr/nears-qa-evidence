@@ -1,0 +1,29 @@
+NEARS-1225 QA-lite [m4] — AC2 live on-device evidence (emulator-5562, com.izzes.nears, pid 722)
+Trigger: Profile (guest) -> Log in/Sign up -> Sign In with phone 501234567 / wrongpass1 -> real 401 from local backend.
+Captured via `adb logcat -d | grep flutter` immediately after the Sign In tap.
+
+07-17 14:06:22.754   722   722 I flutter : [NET] endpoint=/api/v1/auth/login http_status=401
+07-17 14:06:22.756   722   722 I flutter : [FAIL] endpoint=/api/v1/auth/login http_status=401 type=ApiFailure msg="unhandled api response"
+07-17 14:06:22.758   722   722 I flutter : ----------------FIREBASE CRASHLYTICS----------------
+07-17 14:06:22.758   722   722 I flutter : The following exception was thrown app error:
+07-17 14:06:22.758   722   722 I flutter : Exception: app_error
+07-17 14:06:22.758   722   722 I flutter : #0      AppLogger.error (package:sixam_mart/helper/app_logger.dart:98:18)
+07-17 14:06:22.758   722   722 I flutter : #1      showCustomSnackBar (package:sixam_mart/common/widgets/custom_snackbar.dart:24:17)
+07-17 14:06:22.758   722   722 I flutter : #2      AuthController.validateAndLogin (package:sixam_mart/features/auth/controllers/auth_controller.dart:554:7)
+07-17 14:06:22.758   722   722 I flutter : <asynchronous suspension>
+07-17 14:06:22.758   722   722 I flutter : #3      _SignInViewState._login (package:sixam_mart/features/auth/widgets/sign_in/sign_in_view.dart:188:29)
+07-17 14:06:22.758   722   722 I flutter : <asynchronous suspension>
+07-17 14:06:22.758   722   722 I flutter : ----------------------------------------------------
+07-17 14:06:22.758   722   722 I flutter : [ERR] msg="error snackbar shown"
+
+Result: real exercise of the exact touched call site (custom_snackbar.dart:24, the ScaffoldMessenger.of(Get.context!) branch since getXSnackBar defaults false)
+with Get.context mounted (app was foregrounded, several screens deep, well past cold-launch). No crash, no null-check exception, no additional
+[ERR]/unhandled-exception line after the AppLogger breadcrumb. mCurrentFocus stayed on com.izzes.nears/MainActivity throughout (verified via
+`adb shell dumpsys window`) -- confirms the snackbar branch executed and returned normally: AC2 (mounted-context behavior unchanged) holds.
+
+App survived: cold-start relaunch (am start, fresh pid 722), ~15 navigation taps across sector-landing / module-home / profile / sign-in,
+several dialogs (Start a new basket?, Are you sure to go back?), and a force-stop + relaunch -- zero crashes, zero red screens,
+`ui_errors` clean at the end of the session. No independent on-device trigger was found for the true pre-mount race (AC1/AC3) --
+that is unit-test-only evidence per the spawn's own guidance (test/common/widgets/custom_snackbar_context_guard_test.dart, re-run
+independently, PASS) -- the race window (Get.context null) is not reachable via UI driving since the app must already be running
+for adb/uiautomator to attach.
