@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1249
 
-**PASS — NearsInput duplicate-Semantics fix verified live: exactly 1 textField accessibility node per field on login/signup/add-address, no regressions**
+**PASS — NearsInput duplicate-Semantics fix verified live: exactly 1 textField accessibility node per field on login/signup/add-address, no regressions; unrelated regression logged separately**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -11,6 +11,9 @@
 <td align="center" width="33%"><a href="signup-visual.png"><img src="signup-visual.png" width="240"></a><br><sub>signup visual</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`bug-signup-doubleback-navigator-assert.log`](bug-signup-doubleback-navigator-assert.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1249/` · public-repo scrub policy (no live secrets; verified clean).*
