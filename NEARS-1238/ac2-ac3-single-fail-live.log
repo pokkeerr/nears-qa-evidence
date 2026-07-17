@@ -1,0 +1,29 @@
+NEARS-1238 QA — AC2/AC3 live repro on emulator-5556, clean rebuild+reinstall
+(firstInstallTime == lastUpdateTime == 2026-07-17 10:45:43, verified via
+`adb shell dumpsys package com.izzes.nears`, after `flutter clean` +
+`flutter build apk --debug` + `adb uninstall` + `adb install` from
+worktree HEAD 003f9bf8 feat/NEARS-1238-category-item-load-more-double-log).
+
+Navigation: Home -> Grocery & Food -> Categories tab -> Beverages (category 9)
+-> "Soft Drinks" subcategory chip (category 11, store 12 "Fresh local",
+zone 2 Abu Dhabi, GPS pinned 24.4600,54.3800) -> page 1 loaded (200) ->
+svc data/wifi disable -> overscroll swipe (triggers loadMoreCategoryItems
+at maxScrollExtent) -> capture.
+
+network disabled at 10:53:13.445054000
+scroll fired at   10:53:13.976674000
+
+07-17 10:53:14.428 24207 24207 I flutter : [NET] GET endpoint=/api/v1/categories/items/11
+07-17 10:53:14.472 24207 24207 I flutter : [FAIL] endpoint=/api/v1/categories/items/11 http_status=null type=ApiFailure msg="api request threw" correlation_id=10e53aa5-f3c9-4358-88ce-8f3d8fd0d0fb
+
+Result: EXACTLY ONE [FAIL] line for the one failed load-more attempt.
+(3s further hold confirmed no delayed second line; grep -c "[FAIL].*categories/items" = 1)
+
+Contrast — an EARLIER attempt at 10:37:04 (BEFORE this clean rebuild) showed
+the pre-fix TWO-line signature, traced to a stale APK: the on-device lock
+(~/.nears/qa-locks/emulator-5556) had vanished mid-session and
+`dumpsys package` showed an unexplained lastUpdateTime=10:22:09 reinstall
+that did not correspond to any install action taken in this QA session,
+consistent with a concurrent session's build landing on the same shared
+device. That earlier capture is treated as a false-positive from device
+contention, NOT a regression finding — see envelope drift[] note.
