@@ -1,0 +1,65 @@
+NEARS-1115 — AC4/AC5 (store reviews) live verification notes
+================================================================
+
+BLOCKER (pre-existing, NOT part of this diff): on the current mobile store
+screen, the rating "pill" rendered by NearsStoreHeaderSliver._MetaBlock
+(UserApp/lib/features/store/widgets/nears_store_header_sliver.dart) has no
+onTap handler — confirmed by reading the widget source (no `onTap:` wired to
+the pill) and by a live Dart VM `ext.flutter.debugDumpRenderTree` dump of the
+running app on the store screen, which shows no `Icons.star`/orange-colored
+RenderObject subtree at all. The ONLY other caller of
+RouteHelper.getStoreReviewRoute() is the OLD StoreDescriptionViewWidget,
+which is dead code on mobile (ResponsiveHelper.isDesktop(context) branch only
+— confirmed by reading store_description_view_widget.dart lines 37-154/223).
+ReviewScreen is also not deep-linkable (LinkConverter.navigateFromLink only
+recognizes /, /store, /item-details, /refer-and-earn prefixes — confirmed
+live: an OS intent to /store-review/... logs
+"deep link: unknown route, falling back to initial" and bounces to home).
+
+Net effect: there is currently NO way for a real user to reach the Reviews
+screen for ANY store on the reskinned mobile UserApp. Filed separately as a
+regression_bug (pre-existing, unrelated to NEARS-1115's own diff).
+
+Because of that blocker, AC4/AC5 could not be watched rendering live on
+device. In its place, the exact HTTP contract ReviewRepository.getList()
+consumes (`GET /api/v1/stores/reviews?store_id=<id>`) was exercised live
+against the same backend the app is pointed at (127.0.0.1:8000, primary
+Admin/ tree, 2026-07-17 10:30 local):
+
+  store_id=12 (Fresh local — real, active, in-zone, 0 reviews in DB):
+    HTTP 200 []
+  store_id=999999 (unknown, matches the fixture the backend's own
+    StoreDetailsNotFoundTest.php uses as UNKNOWN_ID):
+    HTTP 404 {"errors":[{"code":"store_not_found","message":"Store not found"}]}
+  store_id=4116 (NEARS-475 Fixture Store (Inactive) — real row, status=0):
+    HTTP 404 {"errors":[{"code":"store_not_found","message":"Store not found"}]}
+
+Matching backend laravel.log lines (Admin/storage/logs/laravel.log), same
+run:
+  [2026-07-17 10:30:43] production.ERROR: [FAIL] store reviews: store not
+    found {"trace_id":"8734439425c5b9506fb596a666aa660b","correlation_id":
+    "3a9f0771-3f48-46c9-a296-b3f707b6933f","endpoint":"/api/v1/stores/reviews",
+    "status":404,"code":"store_not_found","store_id":"999999"}
+  [2026-07-17 10:30:43] production.ERROR: [FAIL] store reviews: store not
+    found {"trace_id":"b364d43603a2cee90cdcdfa7677b4c11","correlation_id":
+    "affa9da1-7b0f-423f-8d1f-4ccb3378f78c","endpoint":"/api/v1/stores/reviews",
+    "status":404,"code":"store_not_found","store_id":"4116"}
+
+Cross-checked against the Flutter-side code (review_controller.dart,
+review_screen.dart, git diff read directly):
+  - storeReviewList == null && storeReviewError == null -> CircularProgress
+    (unchanged "still loading").
+  - storeReviewList == null && storeReviewError.code == store_not_found ->
+    NearsErrorRetry(kind: notFound), AppLogger.warn (never .failure) ->
+    matches AC5 + AC6.
+  - storeReviewList != null && isEmpty -> NoDataScreen (unchanged, existing
+    ternary branch untouched by the new early-return) -> matches AC4's
+    regression requirement (zero-reviews never conflated with not-found).
+  - review_not_found_state_test.dart (6/6) + review_controller_test.dart
+    (15/15) passed fresh in this QA run (flutter test, 2026-07-17), exercising
+    exactly these branches against the real ApiError shapes above.
+
+Verdict for AC4/AC5: marked "unverifiable" (live on-device screen render was
+not possible due to the confirmed navigation blocker above) rather than a
+silent PASS on tests alone. The backend-contract + code-trace + fresh unit
+run above is the strongest evidence available without that entry point.
