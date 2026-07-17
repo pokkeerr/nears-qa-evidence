@@ -1,0 +1,10 @@
+### NEARS-811 FCM push log evidence (VendorApp, emulator-5556, debug build from worktree)
+### Push payload data: {type:message, conversation_id:9999, sender_type:customer, body:SECRET_CHAT_BODY_PII_811, sender_name:PIINAME_John_Doe_811, title:'New message'}
+### --- FOREGROUND onMessage (AC3/AC5): type-only line fires, full data map NEVER logged ---
+07-17 08:52:17.447 14133 14133 I flutter : onMessage message type:message
+### --- proof: grep for full-map onMessage debugPrint (the deleted line) — must be EMPTY ---
+(none — full-payload onMessage line absent, as expected)
+### --- PII sentinels in onMessage path — must be EMPTY (they only appear in out-of-scope onBackground customPrint) ---
+(none — no PII leaked via onMessage)
+### --- for contrast: the ONLY full-map log is onBackground (line 372 customPrint, kDebugMode-guarded, OUT OF SCOPE) ---
+07-17 08:53:36.551 14133 14133 I flutter : onBackground: {conversation_id: 9999, sender_type: customer, sender_name: PIINAME_John_Doe_811, body: SECRET_CHAT_BODY_PII_811, type: message, title: New message, order_id: }
