@@ -1,0 +1,22 @@
+NEARS-1291 cycle-4 re-QA — decisive get-Tax capture (live, via logging proxy :8001 -> :8000)
+Device: emulator-5556 | build: worktree feat/NEARS-1291 | user customer@nears.com | zone 1
+Basket: Burger Palace(store4) Classic Cheeseburger x2 (item16, tax5%) + Pizza Heaven(store5) Margherita x1 (item22, tax5%)
+
+--- Fresh checkout get-Tax (both stores) ---
+2026-07-18T23:37:49.310628Z REQ POST /api/v1/customer/order/get-Tax store_id=4 is_buy_now=1 item_type_all_present=True item_types=['Item'] -> HTTP 200
+2026-07-18T23:37:49.311129Z    TAX_REQ_BODY=b'{"cart":"[{\\"item_id\\":16,\\"cart_id\\":368,\\"item_campaign_id\\":null,\\"price\\":\\"8.99\\",\\"variant\\":\\"\\",\\"variation\\":[],\\"quantity\\":2,\\"add_on_ids\\":[],\\"add_ons\\":[],\\"add_on_qtys\\":[],\\"model\\":\\"Item\\",\\"item_type\\":\\"Item\\"}]","coupon_discount_amount":"0.0","order_amount":"17.98","order_type":"delivery","payment_method":"cash_on_delivery","store_id":"4","distance":"0.0","discount_amount":"0.0","tax_amount":"null","road":"null","house":"null","floor":"null","delivery_instruction":"null","cutlery":"0","partial_payment":"0","is_buy_now":"1","extra_packaging_amount":"0.0","create_new_user":"0","is_prescription":"false"}'
+2026-07-18T23:37:49.311195Z    TAX_RESP=b'{"tax_amount":0,"tax_status":"excluded","tax_included":null}'
+2026-07-18T23:37:49.467465Z REQ POST /api/v1/customer/order/get-Tax store_id=5 is_buy_now=1 item_type_all_present=True item_types=['Item'] -> HTTP 200
+2026-07-18T23:37:49.467625Z    TAX_REQ_BODY=b'{"cart":"[{\\"item_id\\":22,\\"cart_id\\":369,\\"item_campaign_id\\":null,\\"price\\":\\"11.99\\",\\"variant\\":\\"\\",\\"variation\\":[],\\"quantity\\":1,\\"add_on_ids\\":[],\\"add_ons\\":[],\\"add_on_qtys\\":[],\\"model\\":\\"Item\\",\\"item_type\\":\\"Item\\"}]","coupon_discount_amount":"0.0","order_amount":"11.99","order_type":"delivery","payment_method":"cash_on_delivery","store_id":"5","distance":"0.0","discount_amount":"0.0","tax_amount":"null","road":"null","house":"null","floor":"null","delivery_instruction":"null","cutlery":"0","partial_payment":"0","is_buy_now":"1","extra_packaging_amount":"0.0","create_new_user":"0","is_prescription":"false"}'
+2026-07-18T23:37:49.467879Z    TAX_RESP=b'{"tax_amount":0,"tax_status":"excluded","tax_included":null}'
+2026-07-18T23:41:21.514361Z REQ POST /api/v1/customer/order/get-Tax store_id=5 is_buy_now=1 item_type_all_present=True item_types=['Item'] -> HTTP 200
+2026-07-18T23:41:21.514534Z    TAX_REQ_BODY=b'{"cart":"[{\\"item_id\\":22,\\"cart_id\\":369,\\"item_campaign_id\\":null,\\"price\\":\\"11.99\\",\\"variant\\":\\"\\",\\"variation\\":[],\\"quantity\\":1,\\"add_on_ids\\":[],\\"add_ons\\":[],\\"add_on_qtys\\":[],\\"model\\":\\"Item\\",\\"item_type\\":\\"Item\\"}]","coupon_discount_amount":"0.0","order_amount":"11.99","order_type":"delivery","payment_method":"cash_on_delivery","store_id":"5","distance":"0.0","discount_amount":"0.0","tax_amount":"null","road":"null","house":"null","floor":"null","delivery_instruction":"null","cutlery":"0","partial_payment":"0","is_buy_now":"1","extra_packaging_amount":"0.0","create_new_user":"0","is_prescription":"false"}'
+2026-07-18T23:41:21.514592Z    TAX_RESP=b'{"tax_amount":0,"tax_status":"excluded","tax_included":null}'
+2026-07-18T23:41:21.670621Z REQ POST /api/v1/customer/order/get-Tax store_id=4 is_buy_now=1 item_type_all_present=True item_types=['Item'] -> HTTP 200
+2026-07-18T23:41:21.670788Z    TAX_REQ_BODY=b'{"cart":"[{\\"item_id\\":16,\\"cart_id\\":368,\\"item_campaign_id\\":null,\\"price\\":\\"8.99\\",\\"variant\\":\\"\\",\\"variation\\":[],\\"quantity\\":2,\\"add_on_ids\\":[],\\"add_ons\\":[],\\"add_on_qtys\\":[],\\"model\\":\\"Item\\",\\"item_type\\":\\"Item\\"}]","coupon_discount_amount":"0.0","order_amount":"17.98","order_type":"delivery","payment_method":"cash_on_delivery","store_id":"4","distance":"0.0","discount_amount":"0.0","tax_amount":"null","road":"null","house":"null","floor":"null","delivery_instruction":"null","cutlery":"0","partial_payment":"0","is_buy_now":"1","extra_packaging_amount":"0.0","create_new_user":"0","is_prescription":"false"}'
+2026-07-18T23:41:21.670829Z    TAX_RESP=b'{"tax_amount":0,"tax_status":"excluded","tax_included":null}'
+2026-07-18T23:41:21.986000Z REQ POST /api/v1/customer/order/group/validate store_id=None is_buy_now=0 item_type_all_present=None item_types=None -> HTTP 200
+
+--- App AppLogger (logcat) confirms same ---
+[NET] POST endpoint=/api/v1/customer/order/get-Tax (x2)
+[NET] endpoint=/api/v1/customer/order/get-Tax http_status=200 (x2) — zero [FAIL]/[ERR]
