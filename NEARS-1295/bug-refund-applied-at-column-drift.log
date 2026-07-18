@@ -1,0 +1,6 @@
+Pre-existing backend/schema drift (NOT NEARS-1295; regression-candidate). Surfaced when cancelling an order that reaches the refund path.
+[FAIL] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'refund_applied_at' in 'field list'
+ SQL: update `orders` set `refund_applied_at` = 2026-07-19 02:26:59 ... where `id` = 172
+ endpoint=/api/v1/customer/order/cancel  type=Illuminate\Database\QueryException
+ correlation_id=51f05b68-77b2-4227-b54f-1bd0793c577b  (joins app [FAIL] -> backend log end-to-end)
+Note: `refund_applied_at` column absent in BOTH multi_food_db and the qa copy -> a migration referenced by cancel/refund code is unapplied to the dev DB. App logged it correctly (no silent failure). Unpaid/never-processed orders (91111, 176) cancel cleanly (200), so it does not affect the NEARS-1295 ACs.
