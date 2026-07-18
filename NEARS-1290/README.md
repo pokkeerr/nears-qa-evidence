@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1290
 
-**FAIL — grouped cart renders + guard removed, but {amount} placeholder unsubstituted (EN+AR) & per-store subtotal/min-progress stale on qty change**
+**PASS (delta re-QA cycle 2) — BUG A {amount} fixed (real amount EN+AR), BUG B stale section fixed (qty step updates subtotal+caption+CTA together both ways)**
 
-**12 screenshot(s).** Click any thumbnail for full resolution.
+**15 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -24,6 +24,11 @@
 <td align="center" width="33%"><a href="bug-amount-placeholder-unsubstituted.png"><img src="bug-amount-placeholder-unsubstituted.png" width="240"></a><br><sub>bug amount placeholder unsubstituted</sub></td>
 <td align="center" width="33%"><a href="bug-stale-subtotal-minprogress.png"><img src="bug-stale-subtotal-minprogress.png" width="240"></a><br><sub>bug stale subtotal minprogress</sub></td>
 <td align="center" width="33%"><a href="cart-after-qty-increase.png"><img src="cart-after-qty-increase.png" width="240"></a><br><sub>cart after qty increase</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="recheck-ac1-bugA-real-amount-en.png"><img src="recheck-ac1-bugA-real-amount-en.png" width="240"></a><br><sub>recheck ac1 bugA real amount en</sub></td>
+<td align="center" width="33%"><a href="recheck-ac7-bugA-real-amount-arabic.png"><img src="recheck-ac7-bugA-real-amount-arabic.png" width="240"></a><br><sub>recheck ac7 bugA real amount arabic</sub></td>
+<td align="center" width="33%"><a href="recheck-bugB-qtystep-immediate-consistent.png"><img src="recheck-bugB-qtystep-immediate-consistent.png" width="240"></a><br><sub>recheck bugB qtystep immediate consistent</sub></td>
 </tr>
 </table>
 
