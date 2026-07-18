@@ -1,0 +1,25 @@
+NEARS-1291 RE-QA (fix cycle 2/3) — HIGH: per-store get-Tax returns 500 (tax silently dropped)
+=====================================================================================
+GOOD (fix verified): the get-Tax 403 INFINITE LOOP is GONE — get-Tax now fires per-store,
+BOUNDED (a handful of calls, not 20,712), handleError:false => NO error snackbar over the CTA.
+Two clean checkout screenshots confirm no toast.
+
+NEW DEFECT (load-bearing check #1 FAIL): each per-store order/get-Tax (is_buy_now=1) returns HTTP 500.
+Live (emulator-5556): 2 stores -> get-Tax http_status=500 x each; app self-classifies via fetchStoreTax
+handleError:false path -> logs [FAIL] "checkout: group per-store tax non-200" and contributes 0 tax.
+
+Backend laravel.log (correlation_id matches the app's calls 7ba55c6d..., 69c53fb9...):
+  production.ERROR: [FAIL] Undefined array key "item_type" {"type":"ErrorException","endpoint":"/api/v1/customer/order/get-Tax"}
+
+ROOT CAUSE: checkout_controller._buildOnlineCarts builds OnlineCart(..., 'Item') but never sets the
+named `itemType`, so OnlineCart.toJson OMITS the `item_type` key. The backend is_buy_now get-Tax branch
+(makeOrderDetails/normalizeOrderCartEntries) reads $c['item_type'] -> Undefined array key -> 500.
+
+DETERMINISTIC REPRO (API, is_buy_now=1, store 1 per-store body):
+  cart item WITHOUT item_type -> HTTP 500 {"message":"Something went wrong"}
+  cart item WITH  item_type:"Item" -> HTTP 200 {"tax_amount":0,...}
+
+IMPACT: multi-store bill tax is silently 0 (undercount for ANY taxed item; masked here only because Rice
+& Banana are tax=0). No user toast (by design), but the displayed Total would diverge from the actual
+group/place charge for taxed baskets. FIX: pass itemType:'Item' in _buildOnlineCarts (or make the backend
+is_buy_now branch tolerate a missing item_type).
