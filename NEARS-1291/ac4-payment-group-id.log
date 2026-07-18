@@ -1,0 +1,7 @@
+NEARS-1291 AC4 — payment-mobile group_id variant + gateway allow-list (BE-2)
+GET /payment-mobile?group_id=2af2f12f-...&customer_id=1&payment_method=stripe   -> HTTP 302 (proceeds to gateway; allow-listed)
+GET /payment-mobile?group_id=2af2f12f-...&customer_id=1&payment_method=fatoorah -> HTTP 403 {"code":"gateway","message":"This payment method is not available for group orders"} (allow-list reject)
+GET /payment-mobile?order_id=91110&...&payment_method=stripe                    -> HTTP 302 (single-order variant unchanged)
+Client URL construction (code review): payment_screen.dart:55-58 / payment_webview_screen.dart:55-58 emit
+  'group_id=${groupId}' when groupId present, else 'order_id=${orderModel.id}'. groupId is String (no int.parse).
+NOTE: live client payment webview NOT reachable via UI — blocked by the get-Tax 403 loop (see bug-gettax-403-loop).

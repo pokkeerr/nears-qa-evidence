@@ -1,0 +1,12 @@
+NEARS-1291 AC3 — group/place DB read-back (user 1 James Wilson, stores 1+2, scheduled)
+group/place response: {"group_id":"2af2f12f-e2d4-4292-873c-b34e99a870c3","order_ids":[91110,91111],"group_placed":true,...}
+
+SELECT id,user_id,zone_id,module_id,child_count FROM order_groups WHERE id='2af2f12f-...':
+  2af2f12f-e2d4-4292-873c-b34e99a870c3 | user 1 | zone 1 | module 1 | child_count 2
+
+SELECT id,store_id,order_group_id,order_status,scheduled FROM orders WHERE order_group_id='2af2f12f-...':
+  91110 | store 1 | 2af2f12f-... | pending | scheduled=1
+  91111 | store 2 | 2af2f12f-... | pending | scheduled=1
+
+COUNTS: order_groups=1, child_orders=2  (ONE group + N=2 children) — PASS
+group_id is a 36-char UUID String (groupId-is-String contract satisfied).
