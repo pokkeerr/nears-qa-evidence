@@ -1,0 +1,32 @@
+NEARS-1300 — Tax seed live API QA evidence (2026-07-19)
+Backend: php artisan serve :8000 (shared multi_food_db, read-only QA)
+Endpoint: POST /api/v1/customer/order/get-Tax  (customer auth:api, buy_now cart, no DB write)
+Customer: customer@nears.com (user id 6)
+
+SEED STATE (read-only confirm):
+  taxes id=3: name=VAT tax_rate=5.00 is_default=1 is_active=1
+  system_tax_setups id=3: tax_type=order_wise tax_payer=vendor tax_ids=[3] is_active=1 is_included=0 is_default=1
+  -> id=3 is the SOLE active vendor system_tax_setup (== CalculateTaxService .first())
+
+AC1 SINGLE-STORE (store 1 Nears Mart, module 1 grocery, zone 1):
+  item 41 Desi Cow Ghee price 40.00 x2 = 80.00 subtotal; running flash-sale -10% -> base 72.00
+    -> tax_amount=3.60  (= 5.00% of 72.00)  X-Request-Id 0f62786b-d2e6-47f1-90c2-c09564ab3127  HTTP 200
+  item 97 Rice 5kg price 15.03 x2 = 30.06 subtotal; flash-sale -10% -> base 27.054
+    -> tax_amount=1.3527 (= 5.00% of 27.054) X-Request-Id 45add677-18cf-4280-b492-e394f70feb4e  HTTP 200
+
+AC2 PER-STORE (multi-store code path, same vendor getCalculatedTax per store):
+  store 2 Fresh Mart, item 2 Red Apple 3.50 x10 = 35.00; item-disc 5% -> base 33.25
+    -> tax_amount=1.6625 (= 5.00% of 33.25) HTTP 200
+  store 3 Organic Paradise, item 12 Organic Strawberry 6.50 x5 = 32.50; item-disc 10% -> base 29.25
+    -> tax_amount=1.4625 (= 5.00% of 29.25) HTTP 200
+  Sigma per-store (3 stores) all non-zero -> multi-store sum reconciles per-store.
+  order_group_id column + order_groups table PRESENT in dev DB (NOT deploy-only as memo said).
+  Full group placement NOT exercised (avoids DB mutation on shared DB during concurrent NEARS-1299).
+
+AC3 CORRELATION JOIN (NEARS-564 shipped): response X-Request-Id echoed and joins laravel.log correlation_id.
+  e.g. 500 repro X-Request-Id 7284cccd-... matched laravel.log correlation_id 7284cccd-...
+
+REGRESSION: no CalculateTaxService/SystemTaxSetup/TaxModule errors in laravel.log (grep clean).
+  Successful tax request-ids have zero error entries.
+  Pre-existing (unrelated) buy_now input bug: [FAIL] Undefined array key "item_type"/"variant"
+    at get-Tax — occurred 01:40 & 03:32 today BEFORE this QA session; correctly logged (not silent).
