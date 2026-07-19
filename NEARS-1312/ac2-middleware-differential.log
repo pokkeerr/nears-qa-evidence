@@ -1,0 +1,23 @@
+AC2 — backend APIGuestMiddleware X-Guest-Token header read (falsifiable differential)
+Guest id=345 (holds a real token). Same shared DB; only the middleware code differs by port.
+Headers: zoneId:[1] moduleId:1 X-localization:en lat/long set.
+
+PRE-CHANGE backend :8000 (primary tree, NO X-Guest-Token read):
+  CASE 1 header-only (X-Guest-Token, no query token)   -> HTTP 401   (old code ignores the header)
+  CASE 2 legacy guest_token in query (no header)       -> HTTP 200   (old query path)
+
+POST-CHANGE backend :8001 (worktree, reads X-Guest-Token first):
+  CASE 1 header-only (X-Guest-Token, no query token)   -> HTTP 200   (header authenticates)
+  CASE 2 legacy guest_token in query (no header)       -> HTTP 200   (fallback retained, non-breaking)
+  CASE 3 WRONG X-Guest-Token value                     -> HTTP 401   (header is genuinely evaluated, not presence-only)
+  CASE 4 no token at all (guest_id only)               -> HTTP 401   (strict guard for a token-holding guest)
+
+Conclusion: the change is exactly what enables header auth; legacy query fallback preserved; wrong-token still rejected.
+
+LIVE app capture (UserApp on emulator-5556 -> logging proxy -> :8001), guest id=346:
+  POST /api/v1/customer/cart/add?guest_id=346
+    X-Guest-Token = PRESENT (GVWzjEij..)      Authorization = ABSENT
+    guest_token_in_query = False              guest_token_in_body = False
+    body = {"item_id":6,"price":"4.5","quantity":1,...}   (no guest_token field)
+    RESP 200 (5161 bytes)  -> backend authenticated the guest from the header, live from the app
+  GET /api/v1/customer/cart/list?guest_id=346  X-Guest-Token=PRESENT  guest_token_in_query=False  -> 200

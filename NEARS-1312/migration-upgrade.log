@@ -1,0 +1,13 @@
+MIGRATION — legacy plaintext guest_token -> secure storage, no forced logout (reviewer-flagged)
+Device emulator-5556, com.izzes.nears. Seeded a pre-upgrade legacy state:
+  PRE-LAUNCH: plain FlutterSharedPreferences.xml holds plaintext flutter.6ammart_guest_token (guest 346's token)
+              + flutter.6ammart_guest_id=346 ; FlutterSecureStorage.xml WIPED (as if never had secure store).
+Relaunched this build (am start). Observed:
+  POST-LAUNCH: plaintext 'guest_token' in plain prefs = 0        (removed by main() prefs.remove)
+               flutter.6ammart_guest_id = 346                    (UNCHANGED -> guest NOT logged out, NOT re-minted)
+               FlutterSecureStorage.xml + FlutterSecureKeyStorage.xml RECREATED (token migrated in, encrypted)
+               NO /auth/guest/request re-mint fired
+               First guest call after launch:
+                 GET /customer/cart/list?guest_id=346  X-Guest-Token=PRESENT(GVWzjEij..)  guest_token_in_query=False
+                 RESP 200 (5161 bytes) -> migrated token used via header; guest's existing cart intact
+Conclusion: transparent boot migration; in-session guest keeps their session; plaintext key gone.
