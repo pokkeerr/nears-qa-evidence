@@ -1,0 +1,19 @@
+NEARS-1311 AC1 — hijack blocked (LIVE HTTP, worktree backend :8011, grace mode default)
+============================================================================
+Setup (read-only SELECT): victim guest id=343 is token-bearing and OWNS a real
+guest cart row (carts.id=371, item_id=105, is_guest=1). User james.wilson id=1.
+
+Request: POST /api/v1/auth/login  email_or_phone=james.wilson@demo.com
+         login_type=manual field_type=email  guest_id=343  (NO guest_token)
+Response: HTTP/1.1 200 OK  {"token":"eyJ0eXAiOiJKV1Q..."}   <-- auth SUCCEEDS, NO 401
+
+Backend log (grep-scoped, PII-safe, correlated via echoed response X-Request-Id
+55881926-45af-4df0-9416-a9c8046ca856):
+[2026-07-19 22:59:44] production.WARNING: [FAIL] guest.cart.merge.rejected
+  {"trace_id":"4ba2d732...","correlation_id":"55881926-45af-4df0-9416-a9c8046ca856",
+   "reason":"token_mismatch","guest_id":"343","request_id":"55881926-45af-4df0-9416-a9c8046ca856"}
+  -> NO token in the line (PII-safe). reason=token_mismatch (foreign/absent token rejected).
+
+Post-condition (read-only SELECT): guest 343 cart row UNTOUCHED — still user_id=343,
+is_guest=1. user_id=1 has only its 2 pre-existing seed rows (created 2026-07-19 01:38,
+~21h before the 22:59 test) => ZERO merge, hijack blocked.

@@ -1,0 +1,12 @@
+NEARS-1311 scope#4 — NEARS-1309 apiGuestCheck non-regression (LIVE HTTP :8011, grace)
+======================================================================================
+The middleware refactor (APIGuestMiddleware now delegates to shared GuestTokenGuard)
+must not change the 1309 surface. Verified live:
+
+GET /api/v1/customer/order/list?guest_id=343 (foreign token-bearing, no token)
+   -> HTTP 401 {"errors":"Unauthorized"}         (rejected, as before)
+GET /api/v1/customer/order/list?guest_id=339 (legacy null-token, no token, grace)
+   -> HTTP 200 {"total_size":0,...}              (grace allows legacy, as before)
+GET /api/v1/customer/order/list?guest_id[]=1 (non-numeric array shape guard)
+   -> HTTP 401 {"errors":"Unauthorized"}         (shape guard preserved)
+=> 1309 behavior identical post-refactor. No regression.

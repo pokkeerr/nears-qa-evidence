@@ -1,0 +1,13 @@
+NEARS-1311 scope#6 — UserApp contract mirror (attach guest_token when non-empty)
+=================================================================================
+flutter test test/features/auth/guest_token_attach_test.dart -> All tests passed (4):
+ + login: token present  -> guest_id + guest_token both sent
+ + login: tokenless legacy guest -> guest_id sent, NO guest_token (grace path)
+ + otpLogin: guest_token attached alongside guest_id
+ + loginWithSocialMedia: guest_token attached alongside guest_id
+
+flutter analyze (2 changed files) -> No issues found:
+ - auth_repository.dart  (login/otp/social/update_info)
+ - verification_repository.dart (verifyPhone/firebaseAuthVerify; uses AuthHelper.getGuestToken())
+AuthHelper.getGuestToken() is an established shared helper (order/payment/checkout/cart repos).
+Purely additive: field attached only under `if (guestToken.isNotEmpty)`.

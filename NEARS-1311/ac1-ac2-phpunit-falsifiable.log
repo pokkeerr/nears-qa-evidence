@@ -1,0 +1,21 @@
+NEARS-1311 — phpunit GuestCartMergeEnumerationTest (8 tests) + falsifiability proof
+====================================================================================
+GREEN run (post-fix): 8/8 pass, 40 assertions (7 PHPUnit-version deprecations = noise)
+ ✔ Hijack is no op in strict mode
+ ✔ Hijack is no op in grace mode for token bearing guest
+ ✔ Legit merge with matching token in grace
+ ✔ Legit merge with matching token in strict
+ ✔ Legacy null token guest merges in grace
+ ✔ Legacy null token guest is no op in strict
+ ✔ Unknown and non numeric guest id are no op
+ ✔ Guest token guard decision matrix
+
+FALSIFIABILITY (mutation, applied to GuestTokenGuard::evaluate, then reverted):
+ * force-ALLOW  -> AC1 hijack tests FAIL: "guest cart row was re-keyed (hijacked)"
+     (test_hijack_is_no_op_in_strict_mode, _in_grace_mode_for_token_bearing_guest,
+      test_legacy_null_token_guest_is_no_op_in_strict) — 3 failures.
+ * force-DENY   -> AC2 merge tests FAIL: "legit own-cart merge did not happen"
+     (test_legit_merge_with_matching_token_in_grace/_strict,
+      test_legacy_null_token_guest_merges_in_grace) — 3 failures.
+Both mutations reverted; tree clean (git checkout -- GuestTokenGuard.php, 0 markers).
+=> the suite genuinely gates on the guard decision; not tautological.
