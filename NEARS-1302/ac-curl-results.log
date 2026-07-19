@@ -1,0 +1,29 @@
+NEARS-1302 get-Tax buy-now hardening — live QA evidence
+Backend: worktree feat/NEARS-1302-gettax-buynow, php artisan serve 127.0.0.1:8021, DB multi_food_db (read-only preview calc)
+Run time: 2026-07-19 18:33:58
+
+--- AC1 incomplete buy-now cart (expect 403) ---
+REQ: {"guest_id":1,"store_id":2,"order_type":"delivery","is_buy_now":1,"cart":"[{\"add_on_ids\":[],\"add_on_qtys\":[]}]"}
+STATUS: 403
+BODY: {"errors":[{"code":"cart","message":"Invalid cart payload"}]}
+
+--- AC1b empty buy-now cart (expect 403) ---
+REQ: {"guest_id":1,"store_id":2,"order_type":"delivery","is_buy_now":1,"cart":"[]"}
+STATUS: 403
+BODY: {"errors":[{"code":"cart","message":"Invalid cart payload"}]}
+
+--- AC2 non-numeric quantity food item16 (expect 403 not 500 TypeError) ---
+REQ: {"guest_id":1,"store_id":4,"order_type":"delivery","is_buy_now":1,"cart":"[{\"item_type\":\"App\\Models\\Item\",\"item_id\":16,\"quantity\":\"abc\",\"variant\":null}]"}
+STATUS: 403
+BODY: {"errors":[{"code":"cart","message":"Invalid cart payload"}]}
+
+--- AC-happy well-formed item39 missing variant (expect 200 tax) ---
+REQ: {"guest_id":1,"store_id":2,"order_type":"delivery","is_buy_now":1,"cart":"[{\"item_type\":\"App\\Models\\Item\",\"item_id\":39,\"quantity\":1}]"}
+STATUS: 200
+BODY: {"tax_amount":0.96,"tax_status":"excluded","tax_included":0}
+
+--- REG non-buy-now path (expect 200 unchanged) ---
+REQ: {"guest_id":1,"store_id":2,"order_type":"delivery","order_amount":50}
+STATUS: 200
+BODY: {"tax_amount":0,"tax_status":"excluded","tax_included":0}
+
