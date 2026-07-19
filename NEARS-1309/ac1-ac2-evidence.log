@@ -1,0 +1,57 @@
+NEARS-1309 QA EVIDENCE — guest session-token IDOR closure
+Backend: worktree feat/NEARS-1309-guest-token @ 127.0.0.1:8309 -> multi_food_db (guests.token varchar(64) present)
+config nears.guest_token_enforcement = grace (default)
+Device: emulator-5554, UserApp API_HOST=127.0.0.1:8309 (adb reverse)
+
+===== AC1 (enumeration closed) — GET /api/v1/customer/order/list =====
+Victim V minted via POST /auth/guest/request -> guest_id + guest_token(64ch) returned
+2a V guest_id + NO token          -> HTTP 401 {"errors":"Unauthorized"}
+2b V guest_id + FOREIGN real token-> HTTP 401
+2b' V guest_id + garbage token     -> HTTP 401
+3  V guest_id + CORRECT token      -> HTTP 200 {"total_size":0,...,"orders":[]}  (own data)
+4  array vector guest_id[]=V no tok -> HTTP 401 (not 500/200)
+5  legacy NULL-token guest (id=1) no token -> HTTP 200 (grace allows)
+   unknown guest_id 999999999      -> HTTP 401
+
+===== BE log correlation (Admin/storage/logs/laravel.log) =====
+[2026-07-19 21:48:35] production.WARNING: [FAIL] guest.token.rejected {"trace_id":"20800782102a2e1f0ac5b3d1d1090703","correlation_id":"f7d55cc1-5240-45ba-8643-d8927ef3be3e","reason":"token_mismatch","guest_id":"341","request_id":"f7d55cc1-5240-45ba-8643-d8927ef3be3e"} 
+[2026-07-19 21:48:35] production.WARNING: [FAIL] guest.token.rejected {"trace_id":"2237fd5c6a78f2e0ab5ad6e43524aad1","correlation_id":"e99ac9ff-1e7b-433b-8811-35c9b90018fe","reason":"token_mismatch","guest_id":"341","request_id":"e99ac9ff-1e7b-433b-8811-35c9b90018fe"} 
+[2026-07-19 21:48:35] production.WARNING: [FAIL] guest.token.rejected {"trace_id":"f702d68bf0f9c7a92933c553e7a9c882","correlation_id":"3434ee44-9f48-4247-a992-5871d1b7f695","reason":"token_mismatch","guest_id":"341","request_id":"3434ee44-9f48-4247-a992-5871d1b7f695"} 
+[2026-07-19 21:48:35] production.WARNING: [FAIL] guest.token.rejected {"trace_id":"34702982e9e52c61e0d9e4060d739427","correlation_id":"07931cc0-cd45-44fb-b34f-32f6e5abfa8f","reason":"token_mismatch","guest_id":"341","request_id":"07931cc0-cd45-44fb-b34f-32f6e5abfa8f"} 
+[2026-07-19 21:48:35] production.WARNING: [FAIL] guest.token.rejected {"trace_id":"abdc123a8115f2c45223f20aad2257b0","correlation_id":"8402f7c5-2a8a-424b-96ad-699202a1c766","reason":"token_mismatch","guest_id":"341","request_id":"8402f7c5-2a8a-424b-96ad-699202a1c766"} 
+[2026-07-19 21:48:36] production.WARNING: [FAIL] guest.token.rejected {"trace_id":"2bb6c53faf033778b97b10657d6e115b","correlation_id":"1ccf9e03-e756-47f4-b135-de86c903e84c","reason":"token_mismatch","guest_id":"341","request_id":"1ccf9e03-e756-47f4-b135-de86c903e84c"} 
+(reasons: token_mismatch / invalid_guest_id / unknown_guest; NO token value in any line = credential hygiene)
+
+===== AC2 (legit guest flows) =====
+UI-live as guest on emulator (all carry guest_token under the hood):
+I/flutter (17504): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+I/flutter (17504): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+I/flutter (17504): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+I/flutter (17504): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+I/flutter (17504): [NET] endpoint=/api/v1/customer/cart/remove-item http_status=200
+I/flutter (17504): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+I/flutter (17504): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+I/flutter (17504): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+I/flutter (17504): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+I/flutter (17504): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+I/flutter (17504): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+I/flutter (17504): [NET] endpoint=/api/v1/customer/order/get-surge-price http_status=200
+
+Guest bootstrap self-heal: stale guest_id -> cart/list 401 (paired [FAIL] w/ correlation_id, NOT silent) -> auto re-mint guest/request 200 -> cart/list 200
+
+API-level uniform coverage across apiGuestCheck family (valid guest_token vs no token):
+order/get-Tax          valid=200  no_token=401
+order/get-surge-price  valid=403(validation, middleware passed)  no_token=401
+order/place            valid=403  no_token=401
+order/group/validate   valid=403  no_token=401
+order/group/place      valid=403  no_token=401
+order/payment-failed   valid=200  no_token=401
+order/cancel           valid=403  no_token=401
+order/track            valid=401  no_token=401  (self-gates to registered — expected, not a regression)
+
+Guest checkout->place->cancel UI path: gated by business_settings.guest_checkout_status=0 (login required at checkout). Config gate, unrelated to NEARS-1309.
+
+===== Regression =====
+Registered user (Bearer, no guest_id/guest_token): order/list 200, cart/list 200 — unaffected
+App log occurrences of guest_token value: 0 (no credential leak app-side)
+phpunit targeted suites: 25/25 OK (OrderEndpointsGuestIdor, CartModuleIdGuard, CartUpdateNullGuard, OrderPaymentFailedIdor, TrackOrderAuthGuard, ParcelReturnAuth)
