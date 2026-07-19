@@ -1,0 +1,19 @@
+# NEARS-1297 QA falsifiability proof — the race tests CAN FAIL on pre-fix code
+# Method: QA temporarily reverted the CustomerLogic guard to partial_payment-ONLY
+#         (the pre-fix state) on the worktree copy, ran the 3 race tests, confirmed
+#         FAILURE, then restored the file EXACTLY (md5 ed172cbd9f7af0963e2cdea83ad61931
+#         verified identical before/after).
+# DB: multi_food_db_test_nears_nears_1297_wallet_race (isolated twin — dev DB untouched)
+#
+# Result on pre-fix guard:
+#   Tests: 3, Assertions: 6, Failures: 3
+#   test_race_second_order_place_debit_is_rejected            FAIL
+#   test_pos_wallet_reject_leaves_no_orphan_order_reference   FAIL
+#   test_aw11_pos_wallet_race_drain_rolls_back_order_and_reference FAIL
+#
+# KEY OBSERVATION: the failure dump showed the WalletTransaction persisted with
+#   'balance' => -15.0  — i.e. the wallet was driven NEGATIVE (double-spend), which
+#   is exactly the money-integrity bug NEARS-1297 closes. assertFalse($second) and
+#   assertGreaterThanOrEqual(0.0, $balance) both failed as designed.
+#
+# After restoring the fix: 20/20 GREEN (see postfix-green.log).
