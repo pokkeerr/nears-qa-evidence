@@ -1,0 +1,13 @@
+=== AC1/AC3 CallbackUrlValidator::safe() decisions ===
+  evil-absolute    in="https:\/\/attacker.example\/x"  -> NULL
+  proto-relative   in="\/\/attacker.example\/x"        -> NULL
+  backslash-smug   in="\/\\\/attacker.example\/x"      -> NULL
+  tab-bypass       in="\/\t\/evil.com"                 -> NULL
+  javascript-uri   in="javascript:alert(1)"            -> NULL
+  legit-relative   in="\/wallet"                       -> '/wallet'
+  app-host-abs     in="https:\/\/localhost\/x"         -> 'https://localhost/x'
+=== AC2 Processor::payment_response() actual Location header ===
+  evil-persisted   persisted="https:\/\/attacker.example\/x" -> Location: http://localhost/payment-success?token=cGF5bWVudF9tZXRob2Q9c3RyaXBlJiZhdHRyaWJ1dGVfaWQ9MSYmdHJhbnNhY3Rpb25fcmVmZXJlbmNlPXR4bl9xYQ%3D%3D
+  tab-bypass       persisted="\/\t\/evil.com"               -> Location: http://localhost/payment-success?token=cGF5bWVudF9tZXRob2Q9c3RyaXBlJiZhdHRyaWJ1dGVfaWQ9MSYmdHJhbnNhY3Rpb25fcmVmZXJlbmNlPXR4bl9xYQ%3D%3D
+  legit-relative   persisted="\/wallet"                     -> Location: http://localhost/wallet?flag=success&&token=cGF5bWVudF9tZXRob2Q9c3RyaXBlJiZhdHRyaWJ1dGVfaWQ9MSYmdHJhbnNhY3Rpb25fcmVmZXJlbmNlPXR4bl9xYQ==
+  app-host-abs     persisted="https:\/\/localhost\/return"  -> Location: https://localhost/return?flag=success&&token=cGF5bWVudF9tZXRob2Q9c3RyaXBlJiZhdHRyaWJ1dGVfaWQ9MSYmdHJhbnNhY3Rpb25fcmVmZXJlbmNlPXR4bl9xYQ==
