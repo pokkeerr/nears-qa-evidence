@@ -1,0 +1,30 @@
+BUG: documented `pkill -f "flutter run -d <serial>"` is a NO-OP on the canonical QA host
+NEARS-1324 — docs/data-qa/flutter-run-exit144-reconnect.md (§B repro) + docs/solutions/NEARS-1324-flutter-run-state-wipe.md (AC3 §B)
+
+The "simulate the drop" step of the falsifiable repro tells QA to run:
+    pkill -f "flutter run -d $S"
+
+On the profile's canonical QA host, `flutter` is a wrapper that execs the dart
+snapshot, so the real tool process command line is:
+
+$ ps -p 28627 -o command=
+/Users/Apple/Tools/flutter/bin/cache/dart-sdk/bin/dartvm --resolved_executable_name=/Users/Apple/Tools/flutter/bin/cache/dart-sdk/bin/dart --executable_name=/Users/Apple/Tools/flutter/bin/cache/dart-sdk/bin/dart --packages=/Users/Apple/Tools/flutter/packages/flutter_tools/.dart_tool/package_config.json /Users/Apple/Tools/flutter/bin/cache/flutter_tools.snapshot run -d emulator-5554
+
+The substring is "flutter_tools.snapshot run -d emulator-5554" — it does NOT contain
+"flutter run", so the documented pattern matches nothing:
+
+$ pgrep -fl "flutter run -d emulator-5554"
+(no match)
+DOCUMENTED pattern 'flutter run -d emulator-5554' matches NOTHING (rc=1) — pkill would be a NO-OP
+
+Impact: run verbatim, the pkill is silent (rc=1) and the original `flutter run`
+stays ALIVE holding the app's Dart VM service. The subsequent
+`scripts/qa-reconnect.sh` `flutter attach` then contends with the still-attached
+run — a confusing false-FAIL of the repro, not because the fix is broken.
+
+The FIX itself (qa-reconnect.sh / flutter attach) works — this defect is only in
+the repro's "simulate the drop" command. Suggested pattern:
+    pkill -f "flutter_tools.snapshot run -d $S"   # or: pkill -f "flutter_tools\.snapshot .*run .*$S"
+
+QA exercised the fix by killing the real tool pid directly (kill 28627); the
+package stayed installed and login+cart survived — so this does not block AC3.

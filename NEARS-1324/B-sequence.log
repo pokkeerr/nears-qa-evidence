@@ -1,0 +1,25 @@
+=== [B0] BASELINE pm list ===
+package:com.izzes.nears
+=== flutter run processes matching pattern ===
+5347
+=== [B1a] test the DOCUMENTED pkill pattern (dry: -e echo matches, no signal) ===
+DOCUMENTED pattern 'flutter run -d emulator-5554' matches NOTHING (rc=1) — pkill would be a NO-OP
+--- what the real tool cmdline actually contains: ---
+/Users/Apple/Tools/flutter/bin/cache/dart-sdk/bin/dartvm --resolved_executable_name=/Users/Apple/Tools/flutter/bin/cache/dart-sdk/bin/dart --executable_name=/Users/Apple/Tools/flutter/bin/cache/dart-sdk/bin/dart --packages=/Users/Apple/Tools/flutter/packages/flutter_tools/.dart_tool/package_config.json /Users/Apple/Tools/flutter/bin/cache/flutter_tools.snapshot run -d emulator-5554
+=== [B1b] KILL the real flutter run tool (pid 28627) to simulate exit-144 drop ===
+app pid on device BEFORE kill: 5347
+sent SIGTERM to flutter tool 28627
+--- flutter tool alive after kill? ---
+flutter tool 28627 GONE (drop simulated)
+=== [B2] pm list AFTER tool-kill (EXPECT still present) ===
+package:com.izzes.nears
+app pid on device AFTER kill: 
+=== [B3] re-open app from launcher (data intact on disk) ===
+Events injected: 1
+## Network stats: elapsed time=10ms (0ms mobile, 0ms wifi, 10ms not connected)
+app pid after relaunch: 5884
+=== [B4] pm list AFTER qa-reconnect attach (EXPECT still present) ===
+package:com.izzes.nears
+app pid (running under attach): 5884
+=== assert reconnect log shows NO install/uninstall ===
+CLEAN: no install/uninstall lines in reconnect log (attach only)
