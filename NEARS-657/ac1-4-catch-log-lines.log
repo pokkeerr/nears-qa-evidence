@@ -1,0 +1,32 @@
+NEARS-657 — CategoryController silent-catch logging — live QA evidence
+Worktree: /Users/Apple/Projects/nears-NEARS-657-silent-catch-log  (branch feat/NEARS-657-category-silent-catch-log, HEAD 2cc42bd0)
+Fault injection: forced a genuine DB QueryException inside each catch (config bad DB + DB::purge('mysql')), then read the structured line the fix wrote to Admin/storage/logs/laravel.log BEFORE the []/200 return.
+
+=== AC1-3: structured \Log::error fires before the []/200 response (real laravel.log lines) ===
+[2026-07-21 03:08:09] testing.ERROR: get_categories failed {"request_id":"qa-657-rid","endpoint":"categories","status":200,"error":"QueryException", ...debug message+trace...}
+[2026-07-21 03:08:10] testing.ERROR: get_childes failed {"request_id":"qa-657-rid","endpoint":"categories/childes","status":200,"error":"QueryException", ...debug message+trace...}
+[2026-07-21 03:08:10] testing.ERROR: get_all_products failed {"request_id":"qa-657-rid","endpoint":"categories/all-products","status":200,"error":"QueryException", ...debug message+trace...}
+
+=== AC4: APP_DEBUG=false null-drops message + trace (same trigger, debug off) ===
+[2026-07-21 03:08:10] testing.ERROR: get_childes failed {"request_id":"qa-657-rid","endpoint":"categories/childes","status":200,"error":"QueryException"}
+  -> only request_id / endpoint / status / error present. No message, no trace, no SQL. Production-safe.
+
+=== AC4 PII check: PASS ===
+Context keys constrained to allow-list {request_id, endpoint, status, error, message, trace}.
+No authorization / bearer / password / token / email / phone / request body / payload in any value.
+The debug-only `message` carries SQL statement text (table/column names, literal zone id) — SQL structure, not user PII — and is gated behind config('app.debug'); production (debug=false) emits class only.
+
+=== AC6: exception path still returns [] / HTTP 200 ===
+All 3 endpoints: response status 200, body exactly `[]`. Shape unchanged.
+
+=== Falsifiability proof (mandatory) ===
+Reverted CategoryController.php to the pre-fix commit (904a0d0c) and reran the same harness:
+  ✘ get_categories / get_childes / get_all_products / debug-false  — ALL FAILED: "no \Log::error captured" (Failed asserting that null is not null).
+Confirms the harness detects the exact silent-swallow the fix removes; it is not a static-read PASS. Fixed file then restored; worktree matches committed HEAD, clean.
+
+=== AC7: phpunit regression ===
+cmd: vendor/bin/phpunit --filter Category    -> Tests: 99, Assertions: 655, no failures (7 PHPUnit-framework deprecations only)
+Fault-injection harness (throwaway, removed after run): Tests: 4, Assertions: 78, OK.
+
+=== AC5: no debug primitives in the fix ===
+grep -E 'var_dump|dd\(|error_log\(|print_r' on CategoryController.php -> none. Only \Log::error (5 occurrences).
