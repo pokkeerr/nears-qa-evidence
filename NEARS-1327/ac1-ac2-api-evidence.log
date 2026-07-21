@@ -1,0 +1,33 @@
+NEARS-1327 QA — AC1/AC2 API evidence (server booted: php -d memory_limit=128M artisan serve --port=8091)
+
+=== AC1: GET /admin/item/get-items-flashsale (NO filters = full active set) ===
+HTTP=200  Content-Type: application/json  X-Request-Id: fa56d26e-b7e9-4503-9e1e-0f24a729f0a7
+size=1376496 bytes  time=1.056s
+JSON valid=yes  keys=options  item_options=14890 (+1 ---Select--- placeholder)
+store-name blank options = 0 / 14890  (eager-load with(['store:id,name']) restored correctly)
+running process confirmed: memory_limit=128M
+
+=== Module-filtered path the #choice_item select2 actually calls ===
+GET .../get-items-flashsale?module_id=1  -> HTTP 200, 14570 item options, 1.03s
+GET .../get-items-flashsale?module_id=4  -> HTTP 200, 6 item options, 0.11s
+
+=== Falsifiability A/B under identical 128M cap (throwaway CLI, worktree untouched) ===
+PRE-FIX (parent d3fc2936, ->get() full hydration + with('store')):
+  PHP Fatal error: Allowed memory size of 134217728 bytes exhausted
+  (in Eloquent HasAttributes.php) -> OOM confirmed
+FIXED (HEAD a8302500, ->lazy() + with(['store:id,name'])):
+  FIX_OK rows=14890 peak=58.5MB  (well under 128M) -> no OOM
+
+=== AC2: laravel.log scoped to request ===
+grep fa56d26e-b7e9-4503-9e1e-0f24a729f0a7  -> (no lines)
+grep -iE "allowed memory size|exhausted|FATAL"  -> (none)
+Pre-existing (baseline, unrelated): 6x "testing.WARNING [SECURITY] cross-store flash-sale access denied" from prior phpunit runs — regression note only.
+
+=== AC3: live browser (Playwright, isolated profile /tmp/nears-web-1327) ===
+Logged in as admin@admin.com; navigated /admin/flash-sale/add-product/1 (module_id=1)
+#choice_item option count = 14571 (14570 items + ---Select---)
+select2 initialized (2 select2-container spans)
+sample: '---Select---', 'Red Apple (Stock: 100) (Fresh Mart Grocery)', 'Broccoli (Stock: 80) (Fresh Mart Grocery)'
+
+=== Automated backstop ===
+vendor/bin/phpunit --filter Nears1327FlashSaleItemsMemoryTest -> OK (2 tests, 9 assertions)
