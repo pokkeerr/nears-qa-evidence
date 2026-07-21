@@ -1,0 +1,15 @@
+NEARS-388 backend contract proof (worktree code served on :8000, DB multi_food_db)
+run: 2026-07-21T06:42:49Z
+
+### DM latest-orders (DeliverymanController::get_latest_orders)
+default:   keys=['limit', 'offset', 'orders', 'total_size'] total_size=0 limit=25 offset=1
+limit=1000: capped -> 100
+limit=0:    floored -> 1
+
+### Vendor current-orders (VendorController::get_current_orders) — store 2
+default:   keys=['limit', 'offset', 'orders', 'total_size'] total_size=4 limit=25 offset=1 orders_len=4
+limit=1000: capped -> 100
+limit=0:    floored -> 1
+
+### Store details (StoreController::get_details) — must stay bare OBJECT
+is_object=True has_envelope_keys=False id=2 category_ids_count=18 category_details_count=18 price_range_present=True

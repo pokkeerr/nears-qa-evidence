@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-388
 
-**PASS — pagination envelope (DM latest-orders, Vendor current-orders) + store-details object contract verified live + curl**
+**PASS — envelope + clamp + object-contract proofs**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -11,6 +11,9 @@
 <td align="center" width="33%"><a href="vendorapp-running-orders.png"><img src="vendorapp-running-orders.png" width="240"></a><br><sub>vendorapp running orders</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`backend-envelope-curl.log`](backend-envelope-curl.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-388/` · public-repo scrub policy (no live secrets; verified clean).*
