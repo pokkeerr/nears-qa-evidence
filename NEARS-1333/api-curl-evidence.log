@@ -1,0 +1,22 @@
+NEARS-1333 [api] curl evidence — worktree backend :8010, DM id=1 (ali.hassan@demo.com)
+generated: Tue Jul 21 09:30:46 UTC 2026
+
+## AC1 withdraw_list
+-- no limit/offset:
+{"total_size":0,"limit":25,"offset":1,"withdraws":[]}
+-- limit=100&offset=1:
+{"total_size":0,"limit":100,"offset":1,"withdraws":[]}
+-- limit=200 (clamp->100):
+{"total_size":0,"limit":100,"offset":1,"withdraws":[]}
+-- no token:
+{"errors":[{"code":"token","message":"The token field is required."}]}
+
+## AC2 disbursement_report
+-- limit=25&offset=1:
+{"total_size":0,"limit":25,"offset":1,"pending":0,"completed":0,"canceled":0,"complete_day":0,"disbursements":[]}
+-- limit=10&offset=2:
+{"total_size":0,"limit":10,"offset":2,"pending":0,"completed":0,"canceled":0,"complete_day":0,"disbursements":[]}
+-- direct SUM cross-check (DM 1): pending/completed/canceled/count
+0.000	0.000	0.000	0
+-- withdraw_requests total rows (all DMs):
+0
