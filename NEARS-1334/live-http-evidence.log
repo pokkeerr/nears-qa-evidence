@@ -1,0 +1,46 @@
+NEARS-1334 QA — live HTTP evidence
+Server: php artisan serve --host=127.0.0.1 --port=8010 (worktree Admin/, DB multi_food_db, read-only)
+Route under test: GET /api/v1/vendor/profile (middleware: vendor.api -> VendorTokenIsValid)
+
+=== AC1: bogus vendorType header, non-empty bearer ===
+$ curl -H "Authorization: [REDACTED bearer, garbage value]" -H "vendorType: garbage" http://127.0.0.1:8010/api/v1/vendor/profile
+{"errors":[{"code":"auth-001","message":"Unauthorized."}]}
+HTTP_STATUS:401
+RESULT: PASS — fails closed, matches AC exactly.
+
+=== AC2: owner happy path (seeded auth_token, vendors.id=1) ===
+$ curl -H "Authorization: [REDACTED bearer, seeded owner auth_token]" -H "vendorType: owner" http://127.0.0.1:8010/api/v1/vendor/profile
+HTTP_STATUS:200
+{"id":1,"f_name":"Demo","l_name":"Store", ... "stores":[...]}
+RESULT: PASS — unchanged, still authenticates.
+
+=== AC3: employee happy path ===
+Read-only DB check: `vendor_employees` table has 0 rows in dev DB (no seeded employee auth_token exists) -> live HTTP repro not possible for this AC.
+Fallback per ticket's sanctioned evidence path: phpunit.
+$ vendor/bin/phpunit --filter VendorGuardSeedingTest --testdox
+ Owner token seeds vendor guard and store id ................ PASS
+ Employee token seeds both guards and store id ............... PASS
+ Missing vendor type header is rejected ....................... PASS
+ Invalid owner token is rejected and arms nothing ............. PASS
+ Unknown vendor type fails closed and arms nothing ............ PASS
+Tests: 5, Assertions: 21 — all green.
+RESULT: PASS (via phpunit, employee path unchanged and still authenticates + arms both guards).
+
+=== Falsifiability check (QA-independent re-verification) ===
+Temporarily reverted VendorTokenIsValid.php else-branch to pre-fix `$ok();` (local, not committed),
+re-ran test_unknown_vendor_type_fails_closed_and_arms_nothing:
+  FAIL — "unknown vendorType must NOT reach the protected route ($next) / Failed asserting that true is false."
+Restored fix, re-ran full VendorGuardSeedingTest suite -> 5/5 PASS again.
+Confirms the test is a real, falsifiable proof of the fix (not a tautology).
+
+=== Regression sweep ===
+1) Empty vendorType header, valid bearer -> 403 {"errors":[{"code":"vendor_type","message":"Vendor type required"}]} — unchanged pre-login gate.
+2) No bearer at all -> 401 {"errors":[{"code":"auth-001","message":"Unauthorized."}]} — unchanged.
+3) Owner happy path -> 200 full profile payload — unchanged (see AC2).
+4) Full `Security` phpunit testsuite (452 tests / 2211 assertions) -> all green, no regressions.
+
+=== Logs-first check ===
+storage/logs/laravel.log during the live curl session: no [ERR]/[FAIL] lines (checked before and after).
+[FAIL] lines present in the log are from the phpunit "testing" channel's own deliberate failure-path
+fixtures (SQL-secret-leak test, product-rating 500 test, store-not-found review tests) — unrelated to
+this route/middleware, pre-existing test behavior, not a regression.
