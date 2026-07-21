@@ -1,0 +1,21 @@
+NEARS-658 live cURL — /api/v1/categories, backend 127.0.0.1:8055 (worktree feat/NEARS-658-zoneid-cap), 2026-07-21
+Payloads: small=[1,2] (<=50), big=[1..60] (>50), huge=[1..10000]
+
+AC3 small (<=50) [1,2]  -> HTTP 200  time 0.408883s
+AC1 big  (60 ids >50)   -> HTTP 200  time 0.111985s
+AC2 huge (10000 ids)    -> HTTP 200  time 0.110667s   (< 0.5s bound)
+
+Payload validation (python json):
+  small: list len 36  keys=[childes,has_offers,icon_key,id,image_full_url,items_count,name,slug]
+  big:   list len 36  keys=[same]
+  huge:  list len 36
+  small == big  -> IDENTICAL (8778 bytes each)
+  small == huge -> IDENTICAL (8778 bytes each)
+  => cap is a no-op on the <=50 path; oversized headers truncate to first 50 with no response change.
+
+Regression spot-check (storeZoneAllowed via store details, normal zone header [1]):
+  GET /api/v1/stores/details/2  zoneId:[1]  -> HTTP 200  0.154671s  store id=2 "Fresh Mart Grocery" zone_id=1
+  GET /api/v1/categories moduleId:2 zoneId:[1,2] -> HTTP 200  0.128092s
+
+Logs: serve.log (live dev server) had ZERO error lines during all requests.
+      laravel.log [FAIL]/[ERR] lines are testing-env phpunit output only; none reference /api/v1/categories.
