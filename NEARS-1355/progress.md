@@ -1,0 +1,14 @@
+# NEARS-1355 NFilterChip QA progress
+- Build: worktree feat/NEARS-1355-nfilterchip HEAD 58664ee1, UserApp on emulator-5554 (light), guest/demo zone 1
+- Backstop: nears_dls analyze 0, test 322/322 (incl NFilterChip contract: AC8 fills, NEARS-602 offers, showCheck/showDropdown, onRemove isolation); UserApp chip suites 31 pass; a11y 13 pass
+- Login note: customer@nears.com + demo accounts 401 with 123456789 (seed/credential data issue, NOT ticket); [FAIL] log fires correctly w/ correlation_id each time
+- AC1: module view (Grocery&Food) shows default filter chips All/Nearest/Newly joined/Popular/Top Rated; logs clean; shot ac1-default-chips-module.png
+- AC1: PASS. All=mint fill+navy text selected; Popular tap flips it mint, All→white+hairline outline. Others white card+hairline. shots ac1-default-chips.png, ac1-popular-selected.png. Logs clean.
+- AC2: PASS (NEARS-602 offers chip, Nears Mart + Corner Grocer). At-rest=mint promo fill+navy text+navy local_offer glyph (ac2-offers-chip-atrest.png). Selected=navy fill+white text+MINT glyph (ac2-offers-chip-selected.png). Pixel-identical to spec. Logs clean.
+- NOTE: flutter run host detached (exit 0) mid-run → app data wiped, full re-onboard required (NEARS-1324 installer behavior). Re-drove as guest; app now stable (no run process holding it).
+- AC3: PASS live (store item search). showDropdown: ETA+Brand carry trailing caret (ac3-showdropdown.png). showCheck: Price selected shows LEADING check + mint fill; Organic unselected no check (ac3-showcheck-price-selected.png). Coupon showCheck (same flag) also proven by passing coupon_section_strip_test rendering real CouponSection. Logs clean.
+- AC4: PASS live (global_search_screen). Recent "milk" chip = white+hairline+trailing close-X; Trending chips non-removable (no X). Tapped close-X → chip removed AND no navigation (stayed on search, no results loaded) = isolation confirmed (ac4-recent-chips.png, ac4-after-remove.png). Also proven by 2 passing contract tests (tap-remove fires onRemove not onTap; tap-label fires onTap not onRemove). Logs clean.
+- AC5 RTL: PASS live (Arabic, 5554 locale switch). Filter chips mirror: الجميع (All) selected=mint fill+navy text at far RIGHT; unselected chips flow RTL white+hairline; sort-icon+bottom-nav mirrored. No overflow/RenderFlex. (ac5-rtl-chips.png). RTL golden n_filter_chip_rtl.png byte-identical. Dark DEFERRED per light-first; dark golden n_filter_chip_dark.png passes.
+- Regression sweep (bounded): home-module filter, store-screen category rail, store-item-search, global-search, all-store "See All" — all render NFilterChip cleanly, no red screens/overflow.
+- Clean boot: no NFilterChip errors across session. Only login 401 (seed-password data issue, not ticket; [FAIL] logged correctly w/ correlation_id).
+- Device-note: RTL done on 5554 via Arabic locale (avoids redundant 5-min 2nd build); 5556 was locked but released.
