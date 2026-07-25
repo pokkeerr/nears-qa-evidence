@@ -1,0 +1,22 @@
+NEARS-1387 — bottom-sheet quantity stepper tap-target regression (item_bottom_sheet.dart)
+Device: emulator-5558, Android, density 420dpi (2.625x), 1080x2340, light mode.
+
+MEASURED (live a11y/semantics bounds, item detail bottom sheet, Whole Milk 1L):
+  "Decrease Quantity" node bounds = [63,2196][142,2274]  -> 79 x 78 px -> 30.1 x 29.7 dp
+  "Increase Quantity" node bounds = [210,2196][288,2274] -> 78 x 78 px -> 29.7 x 29.7 dp
+  A true 48dp hit target at 420dpi would measure 126 px. Measured = 79 px = the 30dp circle.
+
+ROOT CAUSE:
+  OLD QuantityButton (deleted): Semantics(button) -> InkWell(onTap) -> ConstrainedBox(minWidth:48,minHeight:48) -> Center -> 30px circle.
+      The tap (InkWell) was on the OUTER 48dp box  => true 48dp hit target.
+  NEW migration (item_bottom_sheet.dart): SizedBox(48x48) -> Center -> NIconButton(diameter:30).
+      NIconButton's GestureDetector(onTap) is on the INNER 30px circle only.
+      GestureDetector default HitTestBehavior.deferToChild => the 18px padding in the SizedBox is DEAD (non-tappable).
+      The SizedBox(48) provides visual spacing but does NOT expand the hit area.
+
+  The call-site comment "48-box preserves the a11y tap target around the 30 circle" is factually incorrect:
+  the interactive region is 30dp, below the 48dp Material/WCAG 2.5.5 minimum and below the old widget's 48dp.
+
+FUNCTIONAL: taps still work (inc 1->2->3, dec 3->2, dec guarded at qty 1). Only the HIT-AREA shrank.
+IMPACT: AC5 explicitly requires "48dp tap targets work" — actual is 30dp. a11y touch-target regression introduced by this change.
+SCOPE: only item_bottom_sheet.dart stepper. item_widget active "+" (tap on CartCountView InkWell ~44dp) and image_viewer chevrons (NearsTokens.tapMin=44 circle) are NOT affected.
