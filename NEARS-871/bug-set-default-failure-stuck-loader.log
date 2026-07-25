@@ -1,0 +1,19 @@
+NEARS-871 delta QA — pre-existing defect surfaced on the set-default FAILURE path
+Screen: DeliveryApp > Profile > withdraw method (طريقة السحب) > 3-dot menu > "mark as default"
+Repro: airplane mode ON, tap the 3-dot "Show menu" -> "mark as default"
+
+withdraw_method_screen.dart onSelected (else branch) opens Get.dialog(CustomLoaderWidget)
+BEFORE calling makeDefaultMethod. disbursement_controller.makeDefaultMethod calls
+Get.back() ONLY on the isSuccess branch; the new !isSuccess else-branch (NEARS-1405)
+emits [ERR] + red snackbar but never dismisses the loader dialog -> spinner stuck.
+
+Result: red snackbar flashes (3s) then the CustomLoaderWidget spinner remains on screen
+indefinitely; user must press Back to escape. Pre-existing (the false path lacked a
+Get.back() before NEARS-1405 too) — surfaced now that the failure path is reachable/logged.
+
+Note: the Checkbox onChanged path (no loader dialog) is NOT affected — snackbar shows cleanly.
+
+Observed log at failure:
+[NET] POST endpoint=/api/v1/delivery-man/withdraw-method/make-default
+[FAIL] endpoint=/api/v1/delivery-man/withdraw-method/make-default http_status=null type=ApiFailure msg="api request threw" correlation_id=25f5122a-...
+[ERR] msg="set default disbursement method failed — service returned false"
