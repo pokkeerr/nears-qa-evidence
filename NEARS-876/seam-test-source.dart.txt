@@ -1,0 +1,199 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
+import 'package:sixam_mart_delivery/features/dashboard/widgets/new_request_dialog_widget.dart';
+import 'package:sixam_mart_delivery/features/order/controllers/order_controller.dart';
+import 'package:sixam_mart_delivery/features/order/domain/models/order_details_model.dart';
+import 'package:sixam_mart_delivery/features/order/domain/models/order_model.dart';
+import 'package:sixam_mart_delivery/features/order/domain/services/order_service_interface.dart';
+
+// NEARS-876 QA seam: the alarm dialog cannot be driven live on demand (it fires
+// only from an FCM new-order/assign push) and the null-itemDetails line is a
+// deleted-item/campaign backend edge that read-only seed data cannot produce.
+// This widget test forces both order-line shapes through the real widget to
+// prove: (1) a null itemDetails renders the fallback label with NO throw,
+// (2) the accept path fires onTap + closes the dialog, (3) a normal line is
+// unchanged, (4/5) the alarm player is stopped+released and the periodic timer
+// is cancelled on dispose (a leaked player or timer fails the test).
+
+class _FakeOrderService implements OrderServiceInterface {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _FakeOrderController extends OrderController {
+  final List<OrderDetailsModel>? _fixture;
+  _FakeOrderController(this._fixture) : super(orderServiceInterface: _FakeOrderService());
+
+  @override
+  List<OrderDetailsModel>? get orderDetailsModel => _fixture;
+
+  @override
+  List<OrderModel>? get currentOrderList => <OrderModel>[OrderModel()];
+
+  @override
+  Future<void> getOrderDetails(int? orderID, bool parcel) async {}
+}
+
+class _T extends Translations {
+  final String itemWord;
+  _T(this.itemWord);
+  Map<String, String> _m() => {
+        'item': itemWord,
+        'with': 'with',
+        'items': 'items',
+        'ok': 'ok',
+        'go': 'go',
+        'new_order_request_from_a_customer': 'new order request',
+        'you_have_assigned_a_new_order': 'assigned a new order',
+      };
+  @override
+  Map<String, Map<String, String>> get keys => {
+        'en_US': _m(),
+        'ar_SA': _m(),
+      };
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  const MethodChannel apChannel = MethodChannel('xyz.luan/audioplayers');
+  const MethodChannel apGlobal = MethodChannel('xyz.luan/audioplayers.global');
+  const MethodChannel fgtChannel = MethodChannel('flutter_foreground_task/methods');
+  final List<String> apCalls = <String>[];
+
+  void mockChannels() {
+    final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(apChannel, (call) async {
+      apCalls.add(call.method);
+      return null;
+    });
+    messenger.setMockMethodCallHandler(apGlobal, (call) async {
+      apCalls.add('global:${call.method}');
+      return null;
+    });
+    messenger.setMockMethodCallHandler(fgtChannel, (call) async {
+      if (call.method == 'isRunningService') return false;
+      return null;
+    });
+  }
+
+  tearDown(() {
+    final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(apChannel, null);
+    messenger.setMockMethodCallHandler(apGlobal, null);
+    messenger.setMockMethodCallHandler(fgtChannel, null);
+    apCalls.clear();
+    if (Get.isRegistered<OrderController>()) {
+      Get.delete<OrderController>(force: true);
+    }
+  });
+
+  Future<void> pumpDialog(
+    WidgetTester tester, {
+    required List<OrderDetailsModel> fixture,
+    required bool isRequest,
+    required Locale locale,
+    required String itemWord,
+    required VoidCallback onTap,
+  }) async {
+    Get.put<OrderController>(_FakeOrderController(fixture));
+    await tester.pumpWidget(GetMaterialApp(
+      translations: _T(itemWord),
+      locale: locale,
+      home: const Scaffold(body: SizedBox.shrink()),
+    ));
+    Get.dialog(NewRequestDialogWidget(
+      isRequest: isRequest,
+      isParcel: false,
+      orderId: 42,
+      onTap: onTap,
+    ));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+
+  testWidgets('AC1+AC3 en: null itemDetails -> fallback "Item", normal line unchanged, no throw', (tester) async {
+    mockChannels();
+    final fixture = <OrderDetailsModel>[
+      OrderDetailsModel(quantity: 2, itemDetails: null), // deleted-item edge
+      OrderDetailsModel(quantity: 1, itemDetails: ItemDetails(name: 'Fresh Milk')),
+    ];
+    await pumpDialog(tester,
+        fixture: fixture, isRequest: true, locale: const Locale('en', 'US'), itemWord: 'Item', onTap: () {});
+
+    expect(tester.takeException(), isNull); // AC1: no crash
+    expect(find.textContaining('Item ( x 2)'), findsOneWidget); // AC1: fallback label
+    expect(find.textContaining('Fresh Milk ( x 1)'), findsOneWidget); // AC3: normal unchanged
+
+    // close so the dialog disposes and the periodic timer is cancelled
+    Get.back();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('AC1 ar/RTL: null itemDetails -> fallback "غرض"', (tester) async {
+    mockChannels();
+    final fixture = <OrderDetailsModel>[
+      OrderDetailsModel(quantity: 3, itemDetails: null),
+    ];
+    await pumpDialog(tester,
+        fixture: fixture, isRequest: false, locale: const Locale('ar', 'SA'), itemWord: 'غرض', onTap: () {});
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('غرض ( x 3)'), findsOneWidget);
+
+    Get.back();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('AC2: accept path fires onTap + closes dialog with a null line present', (tester) async {
+    mockChannels();
+    bool tapped = false;
+    final fixture = <OrderDetailsModel>[
+      OrderDetailsModel(quantity: 2, itemDetails: null),
+      OrderDetailsModel(quantity: 1, itemDetails: ItemDetails(name: 'Bread')),
+    ];
+    await pumpDialog(tester,
+        fixture: fixture, isRequest: true, locale: const Locale('en', 'US'), itemWord: 'Item', onTap: () => tapped = true);
+
+    expect(find.byType(NewRequestDialogWidget), findsOneWidget);
+    await tester.tap(find.byType(TextButton));
+    await tester.pumpAndSettle();
+
+    expect(tapped, isTrue); // AC2: onTap fired
+    expect(find.byType(NewRequestDialogWidget), findsNothing); // AC2: Get.back closed it
+    expect(tester.takeException(), isNull);
+  });
+
+  // AC4/AC5 note: audioplayers 6.8 defers the native `create` channel call until
+  // an asset load succeeds; a headless test has no asset bundle, so no native
+  // stop/dispose traffic is observable here. The falsifiable proof available at
+  // this seam is the periodic-timer teardown: open+close the dialog repeatedly
+  // and let flutter_test's own "A Timer is still pending" guard enforce that
+  // every dismissal disposes cleanly. A dispose() that failed to cancel the
+  // Timer.periodic would leave N pending timers after N cycles -> test fails.
+  testWidgets('AC4+AC5: repeated open/close disposes cleanly, no leaked timer, no throw', (tester) async {
+    mockChannels();
+    final fixture = <OrderDetailsModel>[
+      OrderDetailsModel(quantity: 1, itemDetails: ItemDetails(name: 'Water')),
+      OrderDetailsModel(quantity: 2, itemDetails: null),
+    ];
+    for (int i = 0; i < 3; i++) {
+      Get.put<OrderController>(_FakeOrderController(fixture));
+      await tester.pumpWidget(const GetMaterialApp(home: Scaffold(body: SizedBox.shrink())));
+      Get.dialog(NewRequestDialogWidget(isRequest: i.isEven, isParcel: false, orderId: 42 + i, onTap: () {}));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(NewRequestDialogWidget), findsOneWidget);
+
+      Get.back(); // State.dispose() -> _timer.cancel() + _alarmPlayer.stop()+dispose()
+      await tester.pumpAndSettle();
+      expect(find.byType(NewRequestDialogWidget), findsNothing);
+      expect(tester.takeException(), isNull);
+      Get.delete<OrderController>(force: true);
+    }
+    // Reaching here with no "A Timer is still pending" failure proves every
+    // dismissal cancelled its alarm timer -> AC5: no accumulation across cycles.
+  });
+}

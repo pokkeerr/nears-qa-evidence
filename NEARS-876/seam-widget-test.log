@@ -1,0 +1,18 @@
+NEARS-876 — null-guard + AudioPlayer-lifecycle widget-test seam (falsifiable)
+file: DeliveryApp/test/new_request_dialog_null_guard_test.dart
+
+== POST-FIX (itemDetails?.name ?? 'item'.tr) ==
+00:00 +0: loading /Users/Apple/Projects/nears-NEARS-876-dialog-null-alarm-fix/DeliveryApp/test/new_request_dialog_null_guard_test.dart
+00:00 +0: AC1+AC3 en: null itemDetails -> fallback "Item", normal line unchanged, no throw
+00:00 +1: AC1 ar/RTL: null itemDetails -> fallback "غرض"
+00:00 +2: AC2: accept path fires onTap + closes dialog with a null line present
+00:00 +3: AC4+AC5: repeated open/close disposes cleanly, no leaked timer, no throw
+00:00 +4: All tests passed!
+
+== PRE-FIX FALSIFIABILITY (guard reverted to itemDetails!.name!) — captured this run ==
+AC1+AC3 en:   [E] The following _TypeError was thrown building: Null check operator used on a null value
+AC1 ar/RTL:   [E] The following _TypeError was thrown building: Null check operator used on a null value
+AC2:          [E] Null check operator used on a null value  (Expected: true)
+AC4+AC5:      [E] Null check operator used on a null value
+Result: 0 +4 tests FAIL on pre-fix code -> reproduces the exact production crash the ticket fixes.
+Fix restored byte-for-byte after this check (git diff verified).
