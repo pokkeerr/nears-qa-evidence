@@ -1,0 +1,37 @@
+=== NEARS-1391 NTooltip — QA automated backstop + seed reachability (2026-07-26, emulator-5558) ===
+
+--- DLS unit tests: packages/nears_dls/test/components/n_tooltip_test.dart ---
+All 16 tests passed. AC-relevant assertions on the ACTUAL rendered widget:
+ +8  default-icon target is a >=44dp box with literal-5 corners      [AC2 gate: >=44dp]
+ +9  default-icon glyph is info_outline @ 22 with iconColor
+ +10 nameTrigger child==null wraps Semantics(button) 'info' label     [AC2 a11y "info"]
+ +11 caller child + no semanticLabel left UNWRAPPED (NEARS-963 no-subsume) [AC1 trigger not subsumed -> navigates]
+ +12 caller child passes through untouched (halal tag 35x35)          [AC4/AC5 halal child]
+ +13 overlay bg/text invert with theme brightness (GetX-free)         [dark mode - deferred]
+ +14 tail geometry carried verbatim (14 / 20)
+ +15 isShowOnInit auto-shows after the 600ms guard with no error      [AC1 auto-show ~600ms]
+ (+1..+7 universal props: isVisible/isDisabled/isLoading/rtl/dark/size/variant)
+
+--- UserApp a11y tests (touched): all 10 passed ---
+ a11y_icon_labels_tail_test.dart, a11y_tail_of_tail_963_test.dart
+
+--- flutter analyze packages/nears_dls/lib/components/ntooltip/ ---
+ No issues found!
+
+--- Widgetbook web build ---
+ Compiled clean, served HTTP 200 at http://127.0.0.1:8899 ; NTooltip Playground + Gallery
+ use-cases registered in widgetbook/lib/main.directories.g.dart.
+ (Headless-Chromium canvas render blank = no-GPU tooling limit; headed MCP Chrome held by
+  a concurrent session. Component render corroborated by the 16 pump-and-assert unit tests.)
+
+=== Seed-data reachability (multi_food_db, read-only) — why 4 of 5 sites are not live-reachable ===
+ AC2 prescription info icon : SELECT COUNT(*) FROM pharmacy_item_details WHERE is_prescription_required=1  => 0
+                              (checkPrescriptionRequired needs a cart item with isPrescriptionRequired==true)
+ AC3 surge delivery-fee icon: SELECT COUNT(*) FROM surge_prices                                            => 0
+                              (needs store.selfDeliverySystem==0 AND surgePrice.customerNoteStatus==1)
+ AC4 item-detail halal      : SELECT COUNT(*) FROM store_configs WHERE halal_tag_status=1                  => 0
+ AC5 quick-view halal       : same store_configs.halal_tag_status flag = 0 for all 7 configs
+ AC1 home location tooltip  : reachable in principle (guest + null address) but app routing gates a
+                              null-address cold-start to the location picker, and the guest floating nav
+                              exposes no accessible label to drive the warm logout path. Behavior proven
+                              by unit tests (+15 auto-show, +11 no-subsume) + call-site code parity.
