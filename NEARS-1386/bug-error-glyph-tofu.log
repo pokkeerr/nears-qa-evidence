@@ -1,0 +1,33 @@
+NEARS-1386 QA — Error-status glyph renders as missing-glyph (tofu) box in Widgetbook (Flutter web)
+Surface: http://127.0.0.1:8899/#/?path=elements/toast/ntoast/error  (worktree feat/NEARS-1386-ntoast)
+
+SYMPTOM: The Error toast renders the deep-navy pill + white text correctly, but the leading
+20px glyph (intended CupertinoIcons.multiply_circle_fill / errorDark) paints as a boxy
+tofu/missing-glyph outline instead of a filled X-circle. Info/Success/Warning glyphs (all
+MaterialIcons) render correctly, so the pill/layout are fine — only the Cupertino glyph fails.
+
+ROOT CAUSE (deterministic, not a timing artifact): the served FontManifest.json bundles no
+CupertinoIcons font family. Neither packages/nears_dls/pubspec.yaml nor widgetbook/pubspec.yaml
+declares `cupertino_icons`, and it is absent from widgetbook/pubspec.lock. NToast is the ONLY
+DLS component that imports package:flutter/cupertino and uses a CupertinoIcons glyph, so this
+gap is first exposed by NEARS-1386.
+
+FontManifest families served at /assets/FontManifest.json:
+  MaterialIcons, Inter, PublicSans, packages/widgetbook/Poppins,
+  packages/material_symbols_icons/MaterialSymbols{Outlined,Rounded,Sharp}
+  -> NO CupertinoIcons entry.
+
+WHY TESTS ARE GREEN: n_toast_test.dart asserts visualFor(NStatus.error).icon ==
+CupertinoIcons.multiply_circle_fill (IconData equality) — passes regardless of whether the
+font is bundled/renderable. Green tests over a broken live render.
+
+SUGGESTED FIX (engineer): add `cupertino_icons` as a dependency so the font bundles on the
+storybook (and ideally declare it in packages/nears_dls/pubspec.yaml since the element hard-
+depends on a Cupertino glyph), then rebuild widgetbook. Alternatively swap the error glyph to a
+Material equivalent — but the element intentionally preserves CustomToast's exact error icon,
+so bundling the font is the faithful fix.
+
+NOTE: In the real UserApp (default Flutter template bundles cupertino_icons, as legacy
+CustomToast relied on) this glyph would render; the defect is confined to the storybook harness,
+which is the ONLY surface NToast can be demonstrated on today (presenter wiring deferred to
+NEARS-1390). It therefore blocks live demonstration of AC5/AC3 for the Error status.
