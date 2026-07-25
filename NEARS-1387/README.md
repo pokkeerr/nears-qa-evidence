@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1387
 
-**FAIL — NIconButton reconcile: AC1-4/6 pass; AC5 stepper 48dp tap-target regressed to 30dp**
+**PASS (fix-cycle 1) — AC5 stepper 48dp tap target restored + verified live**
 
-**5 screenshot(s).** Click any thumbnail for full resolution.
+**6 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -13,10 +13,12 @@
 <tr>
 <td align="center" width="33%"><a href="ac4-gallery-chevrons-rtl.png"><img src="ac4-gallery-chevrons-rtl.png" width="240"></a><br><sub>ac4 gallery chevrons rtl</sub></td>
 <td align="center" width="33%"><a href="ac5-bottomsheet-stepper.png"><img src="ac5-bottomsheet-stepper.png" width="240"></a><br><sub>ac5 bottomsheet stepper</sub></td>
+<td align="center" width="33%"><a href="ac5-refix-48dp-stepper.png"><img src="ac5-refix-48dp-stepper.png" width="240"></a><br><sub>ac5 refix 48dp stepper</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
+- [`ac5-refix-48dp-verified.log`](ac5-refix-48dp-verified.log)
 - [`bug-stepper-tap-target-30dp.log`](bug-stepper-tap-target-30dp.log)
 
 ---
