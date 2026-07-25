@@ -1,0 +1,11 @@
+# NEARS-1380 NImage QA progress (emulator-5554, james.wilson@demo.com, zone Dhaka)
+- AC1 home rail: PASS — Recommended-For-You store cover photos render (Nears Mart shelves, Fresh Mart produce). ac1-home-rails-2.png. logs clean.
+- AC1 store card: PASS — rail store cards render cover images. same shot.
+- AC1 item details: PASS — item cards (Banana photo, Red Apples seed-graphic, Orange photo) + item bottom-sheet thumbnail render. ac1-item-cards.png / ac1-item-details.png. logs clean (host-normalization localhost->10.0.2.2:8000 working).
+- AC2 isLoading skeleton: PASS — widgetbook Loading use-case shows NSkeleton box (no spinner/icon). wb-loading.png. unit test +3/+23 pass.
+- AC3 isVisible:false layout preserved: PASS (behav) — unit test +22 "reserves footprint (no collapse)" + +1 "not rendered". build() returns SizedBox(h,w).
+- AC4 branded fallback: PASS — live in cart (Nears Mart / Daily Fresh Market missing store logos -> soft-gray+storefront). wb-fallback/error.png. unit +21. pixel-identical to legacy CustomImage (#F8F9FA + storefront_outlined).
+- AC5 widgetbook story: PASS — 4 @UseCase (Default/Loading/Error/Fallback) generated + all render. wb-default/loading/error/fallback.png.
+- automated: nears_dls n_image_test 24/24 pass.
+- regression: cart/store/item/checkout-item image surfaces clean; no blank/broken thumbnails introduced. chat not reached (bounded sweep).
+- NOTE: dark mode NOT verified (deferred per light-first).
