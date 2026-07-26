@@ -1,0 +1,25 @@
+NEARS-1397 QA — task_bug: manual_login combined Email/Phone field drops keyboard+focus on email->phone swap
+Device: emulator-5558 (sdk_gphone16k_arm64), debug build from worktree feat/NEARS-1397-ninput-migrate
+Screen: sign-in (manual_login_widget.dart _emailOrPhoneField), light mode, English
+
+Repro:
+1. Open Login/Sign Up -> sign-in screen. Email/Phone field starts in EMAIL mode (NInput).
+2. Tap field: IME opens -> `dumpsys input_method | grep mInputShown` = mInputShown=true
+3. Type first digit "5": onChanged sets isNumberLogin=true -> _emailOrPhoneField rebuilds
+   returning NPhoneField (was NInput). Widget TYPE changes at tree position.
+4. After swap: mInputShown=FALSE (keyboard dismissed). Field shows "+971 | 5".
+5. Type next digit "0" (human pace, 2s later): does NOT register. Field still shows only "5".
+   User must re-tap the field to resume; every digit typed before the re-tap is lost.
+
+Observed IME state transition (authoritative, adb-independent):
+  before first digit:  mInputShown=true
+  after first digit:   mInputShown=false   <-- keyboard torn down by the NInput->NPhoneField element swap
+
+Parity break: legacy CustomTextField hosted BOTH email & phone modes in ONE stable widget
+(toggled picker visibility via countryDialCode null/non-null), so the EditableText/IME session
+survived the mode change. The new code swaps the whole widget TYPE (NInput <-> NPhoneField),
+disposing the old EditableText + its IME connection. Controller text persists (shared
+phoneController) but FOCUS + KEYBOARD do not -> dropped keystrokes.
+
+Breaks QA-scope point 2 ("controller/focus/validator survive the swap, no dropped keystrokes")
+and AC3 (sign-in manual phone-mode works).
