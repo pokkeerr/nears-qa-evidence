@@ -1,0 +1,18 @@
+NEARS-1397 finding (LOW, non-blocking, breaks_ac=false)
+Where: UserApp/lib/features/auth/widgets/sign_in/manual_login_widget.dart
+       EmailOrPhoneLoginField.build -> inputFormatters: isPhone ? [FilteringTextInputFormatter.allow([0-9])] : null
+       manual_login_widget onChanged reverse branch: (text.contains('@') || text.contains(notNumberRegExp)) && isNumberLogin
+
+Live observation (emulator-5558):
+ phone mode, field = "1501234567", keyboard up
+ -> typed 'a'  : field stayed "1501234567" (filtered)
+ -> typed '@'  : field stayed "1501234567" (filtered), still +971 phone mode
+ -> cleared to empty : flipped back to EMAIL mode (picker +971 gone, "Email/Phone" placeholder), keyboard stayed up
+ -> email mode typed "a@b" : landed unfiltered (email mode, no formatter)
+
+Impact: the onChanged reverse-toggle branches (contains('@') / contains(non-digit)) are unreachable while in phone
+mode because the digit-only inputFormatter strips those chars before onChanged sees them. Reverse email<-phone works
+ONLY by clearing the field. Divergence from legacy CustomTextField combined field (fixed emailAddress keyboard, no
+digit filter) where typing '@' flipped back. Does NOT block login (user clears to switch) and does NOT affect the
+TB1/AC3 keystroke/keyboard/focus retention, which is fully fixed. Suggest: either drop the now-dead onChanged reverse
+branches, or defer the digit-only filter until phone mode is confirmed, if mid-field reverse is desired.
