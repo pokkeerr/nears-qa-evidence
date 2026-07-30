@@ -1,0 +1,28 @@
+NEARS-893 — AC3 Google Maps key build-time injection proof (Android)
+
+[1] Tracked source has NO literal key (AC1):
+    git grep -F "REVOKED_SECRET" -- DeliveryApp/  => no matches
+    strings.xml carries only a comment; AndroidManifest references @string/google_api_key
+
+[2] Built DEBUG apk resource resolves to the REAL key (resValue injection from gitignored secrets.properties):
+    aapt2 dump resources app-debug.apk | grep google_api_key
+      resource 0x7f0f0044 string/google_api_key
+        () "REVOKED_SECRET"
+
+[3] Missing-secret path (AC3b): secrets.properties moved aside -> flutter build apk --debug => BUILD SUCCESSFUL
+    aapt2 dump resources app-debug.apk | grep google_api_key
+      resource 0x7f0f0044 string/google_api_key
+        () ""                       <-- empty fallback, still compiles
+    installed + launched (am start .MainActivity) => pidof alive, NO FATAL/AndroidRuntime crash. secret restored.
+
+[4] Regression: ./gradlew :app:processReleaseResources => BUILD SUCCESSFUL in 46s, no duplicate google_api_key.
+
+[5] Runtime: app launched with secret present -> home/orders/order-detail/request screens navigated clean;
+    logcat: zero "Google Maps"/"Authorization failure"/"API key" errors.
+    (One [FAIL] endpoint=/api/v1/auth/delivery-man/login http_status=401 correlation_id=d9c219c3... was a QA
+     mistyped-login, correctly logged with PII-safe correlation id — not a defect.)
+
+LIVE-RASTER LIMITATION: the sole in-app GoogleMap (order_location_screen) is reachable only from an
+order-request card; no order-request test data is reachable for the seeded delivery man (zone-2 request-state
+orders 171/172 belong to a self_delivery store + vehicle mismatch, so they don't broadcast). Data DoR gap —
+NOT fabricated via DML (read-only rule). Key mechanism proven at binary+manifest layer instead.
