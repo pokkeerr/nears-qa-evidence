@@ -1,0 +1,40 @@
+NEARS-1447 QA — update-fcm-token 403 on logout (post-fix, STILL REPRODUCES)
+Device: emulator-5556 | branch feat/NEARS-1447-fcm-token-logout-race | 2026-07-31
+
+== Live app [NET]/[FAIL] excerpts (logout cycles + notif-off) ==
+204:I/flutter ( 8015): [NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+205:I/flutter ( 8015): [NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=200
+251:I/flutter ( 8015): [NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+252:I/flutter ( 8015): [NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=403
+260:I/flutter ( 8015): [FAIL] endpoint=/api/v1/delivery-man/update-fcm-token http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=de3fb66e-3688-4183-999a-1451f003bf5e
+343:I/flutter ( 8015): [NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+344:I/flutter ( 8015): [NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=200
+375:I/flutter ( 8015): [NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+376:I/flutter ( 8015): [NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=403
+384:I/flutter ( 8015): [FAIL] endpoint=/api/v1/delivery-man/update-fcm-token http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=3e10ef5b-5efe-44fc-bbf2-add22e7731f1
+470:I/flutter ( 8015): [NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+471:I/flutter ( 8015): [NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=200
+502:I/flutter ( 8015): [NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+503:I/flutter ( 8015): [NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=403
+511:I/flutter ( 8015): [FAIL] endpoint=/api/v1/delivery-man/update-fcm-token http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=cde32150-2509-4ddb-89ef-ae0873150aaf
+598:I/flutter ( 8015): [NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+599:I/flutter ( 8015): [NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=200
+625:I/flutter ( 8015): [NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+626:I/flutter ( 8015): [NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=403
+634:I/flutter ( 8015): [FAIL] endpoint=/api/v1/delivery-man/update-fcm-token http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=6f15c700-8aff-4bc7-853e-0f4d47f46dcf
+636:I/flutter ( 8015): [NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+637:I/flutter ( 8015): [NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=200
+
+== Session tally ==
+   5 update-fcm-token http_status=200
+   8 update-fcm-token http_status=403
+
+== Read-only root-cause reproduction (curl to serving backend) ==
+valid token, NO fcm_token (mimics logout dispatchTokenClear body {_method:put,token}) -> HTTP 403
+valid token WITH fcm_token (mimics login/updateToken)                                  -> HTTP 200
+empty token, with fcm_token (the race path the fix targets, DmTokenIsValid)            -> HTTP 401
+
+== Backend cause ==
+DeliverymanController@update_fcm_token: Validator 'fcm_token'=>'required'; fails -> response 403.
+dispatchTokenClear() posts {"_method":"put","token":userToken} with NO fcm_token -> deterministic 403 on every logout/notif-off.
+Pre-fix (commit 7e3bc718) clearSharedData/setNotificationActive already omitted fcm_token -> 403 is pre-existing; the NEARS-1447 guard only prevents the empty-token 401 path.
