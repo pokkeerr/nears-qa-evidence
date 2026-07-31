@@ -1,0 +1,35 @@
+AC4 — tap routing keys off payload/notificationType, NOT notification id (routing-neutral).
+onDidReceiveNotificationResponse decodes payload then routes by notificationType:
+        if(load.payload!.isNotEmpty){
+          NotificationBodyModel payload = NotificationBodyModel.fromJson(jsonDecode(load.payload!));
+
+          final Map<NotificationType, Function> notificationActions = {
+            NotificationType.order: () => Get.toNamed(RouteHelper.getOrderDetailsRoute(payload.orderId, fromNotification: true)),
+            NotificationType.order_request: () => Get.toNamed(RouteHelper.getMainRoute('order-request')),
+            NotificationType.block: () => Get.offAllNamed(RouteHelper.getSignInRoute()),
+            NotificationType.unblock: () => Get.offAllNamed(RouteHelper.getSignInRoute()),
+            NotificationType.otp: () => null,
+            NotificationType.unassign: () => Get.to(const DashboardScreen(pageIndex: 1)),
+            NotificationType.message: () => Get.toNamed(RouteHelper.getChatRoute(notificationBody: payload, conversationId: payload.conversationId, fromNotification: true)),
+            NotificationType.withdraw: () => Get.toNamed(RouteHelper.getMyAccountRoute()),
+            NotificationType.general: () => Get.toNamed(RouteHelper.getNotificationRoute(fromNotification: true)),
+          };
+
+          notificationActions[payload.notificationType]?.call();
+...
+onMessageOpenedApp routes by notificationBody.notificationType (id never referenced):
+          NotificationBodyModel notificationBody = convertNotification(message.data)!;
+
+          final Map<NotificationType, Function> notificationActions = {
+            NotificationType.order: () => Get.toNamed(RouteHelper.getOrderDetailsRoute(notificationBody.orderId, fromNotification: true)),
+            NotificationType.order_request: () => Get.toNamed(RouteHelper.getMainRoute('order-request')),
+            NotificationType.block: () => Get.offAllNamed(RouteHelper.getSignInRoute()),
+            NotificationType.unblock: () => Get.offAllNamed(RouteHelper.getSignInRoute()),
+            NotificationType.otp: () => null,
+            NotificationType.unassign: () => Get.to(const DashboardScreen(pageIndex: 1)),
+            NotificationType.message: () => Get.toNamed(RouteHelper.getChatRoute(notificationBody: notificationBody, conversationId: notificationBody.conversationId, fromNotification: true)),
+            NotificationType.withdraw: () => Get.toNamed(RouteHelper.getMyAccountRoute()),
+            NotificationType.general: () => Get.toNamed(RouteHelper.getNotificationRoute(fromNotification: true)),
+          };
+
+          notificationActions[notificationBody.notificationType]?.call();
