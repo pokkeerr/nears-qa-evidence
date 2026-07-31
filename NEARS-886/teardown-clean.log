@@ -1,0 +1,26 @@
+# NEARS-886 AC-dispose — dashboard teardown log (logout -> Get.offAllNamed disposes DashboardScreen)
+# grep for disposed/PageController/used-after-disposed across teardown window:
+# match count = 0
+# (0 = clean: dispose() fix introduced no disposed exception)
+
+# flutter app lines during teardown window:
+I/flutter (15212): [NET] POST endpoint=/api/v1/delivery-man/record-location-data
+I/flutter (15212): [NET] endpoint=/api/v1/delivery-man/record-location-data http_status=200
+I/flutter (15212): [NET] GET endpoint=/api/v1/delivery-man/profile
+I/flutter (15212): [NET] endpoint=/api/v1/delivery-man/profile http_status=200
+I/flutter (15212): [NET] GET endpoint=/api/v1/delivery-man/current-orders
+I/flutter (15212): [NET] endpoint=/api/v1/delivery-man/current-orders http_status=200
+I/flutter (15212): [NET] GET endpoint=/api/v1/delivery-man/notifications
+I/flutter (15212): [NET] endpoint=/api/v1/delivery-man/notifications http_status=200
+I/flutter (15212): [NET] GET endpoint=/api/v1/delivery-man/profile
+I/flutter (15212): [NET] endpoint=/api/v1/delivery-man/profile http_status=200
+I/flutter (15212): [NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+I/flutter (15212): [NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=403
+I/flutter (15212): ----------------FIREBASE CRASHLYTICS----------------
+I/flutter (15212): The following exception was thrown unhandled api response:
+I/flutter (15212): ApiFailure(status: 403)
+I/flutter (15212): #0      ApiClient.handleResponse (package:sixam_mart_delivery/api/api_client.dart:615:22)
+I/flutter (15212): #1      ApiClient.postData (package:sixam_mart_delivery/api/api_client.dart:324:14)
+I/flutter (15212): <asynchronous suspension>
+I/flutter (15212): ----------------------------------------------------
+I/flutter (15212): [FAIL] endpoint=/api/v1/delivery-man/update-fcm-token http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=262dafb3-b55a-41a5-ba4f-c8e0418fa658
