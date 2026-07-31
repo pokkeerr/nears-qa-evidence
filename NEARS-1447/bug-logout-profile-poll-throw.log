@@ -1,0 +1,7 @@
+# NEARS-1447 QA — non-blocking observation: one-time /profile poll transport-throw during logout teardown
+# Occurred on LOGOUT cycle 1 only; did NOT recur on logout cycles 2/3/4. Not the update-fcm-token path.
+# Properly logged via AppLogger (has correlation_id) — not a silent failure. No user-facing toast, no crash; landed cleanly on sign-in.
+# Pre-existing logout-teardown race (in-flight profile poll cancelled when token/headers cleared). Not caused by the fcm-token POST deletion.
+---- log excerpt ----
+83:I/flutter (17117): The following exception was thrown api request threw:
+96:I/flutter (17117): [FAIL] endpoint=/api/v1/delivery-man/profile http_status=null type=ApiFailure msg="api request threw" correlation_id=55e4b8f8-3a5c-4f6a-b6b0-6c26daef8863
