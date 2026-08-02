@@ -1,0 +1,10 @@
+# PRE-EXISTING (not NEARS-1482). UserApp cold start after `adb shell pm clear com.izzes.nears`.
+# Stale Android-keystore material vs wiped prefs -> uncaught async error at startup;
+# app then sat on a blank splash (no widget tree, uiautomator dump empty) until reinstall.
+08-03 02:27:19.604 I flutter : Caused by: java.security.GeneralSecurityException: decryption failed
+08-03 02:27:19.604 I flutter :     at com.google.crypto.tink.aead.AeadWrapper$WrappedAead.decrypt(AeadWrapper.java:
+08-03 02:27:19.604 I flutter : #0  StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+08-03 02:27:19.604 I flutter : #1  MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+08-03 02:27:19.604 I flutter : #2  ApiClient.getStoredToken (package:sixam_mart/api/api_client.dart:173:20)
+08-03 02:27:19.604 I flutter : #3  main (package:sixam_mart/main.dart:197:31)
+08-03 02:27:19.603 I flutter : [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (PlatformException)"

@@ -43,6 +43,7 @@
 
 ### Other artifacts
 - [`bug-nointernet-retry-toast-assertion.log`](bug-nointernet-retry-toast-assertion.log)
+- [`bug-startup-securestorage-decrypt.log`](bug-startup-securestorage-decrypt.log)
 - [`progress.md`](progress.md)
 
 ---
