@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1372
 
-**PASS — NBadge status:success repointed to #006D3E; OPEN pill 6.45:1 vs CLOSED 6.46:1, matched pair**
+**PASS — NBadge status:success -> #006D3E; OPEN 6.45:1 / CLOSED 6.46:1 matched pair**
 
 **6 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -11,9 +11,9 @@
 <td align="center" width="33%"><a href="ac2-storecard-tile-closed-pill.png"><img src="ac2-storecard-tile-closed-pill.png" width="240"></a><br><sub>ac2 storecard tile closed pill</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ac4-userapp-ar-rtl-nbadge-mirrored.png"><img src="ac4-userapp-ar-rtl-nbadge-mirrored.png" width="240"></a><br><sub>ac4 userapp ar rtl nbadge mirrored</sub></td>
 <td align="center" width="33%"><a href="ac5-userapp-nonstatus-badges-unchanged.png"><img src="ac5-userapp-nonstatus-badges-unchanged.png" width="240"></a><br><sub>ac5 userapp nonstatus badges unchanged</sub></td>
-<td align="center" width="33%"><a href="userapp-ar-rtl-store-pills.png"><img src="userapp-ar-rtl-store-pills.png" width="240"></a><br><sub>userapp ar rtl store pills</sub></td>
-<td align="center" width="33%"><a href="userapp-food-home-closed-pills.png"><img src="userapp-food-home-closed-pills.png" width="240"></a><br><sub>userapp food home closed pills</sub></td>
+<td align="center" width="33%"><a href="regression-userapp-ltr-baseline-closed-pills.png"><img src="regression-userapp-ltr-baseline-closed-pills.png" width="240"></a><br><sub>regression userapp ltr baseline closed pills</sub></td>
 </tr>
 </table>
 
