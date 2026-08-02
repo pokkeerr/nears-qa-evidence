@@ -1,0 +1,22 @@
+############ AC2: QUERY-ONLY (?token=), NO header ############
+--- profile (http://127.0.0.1:8091/api/v1/delivery-man/profile?token=...) ---
+HTTP/1.1 200 OK
+>>>HTTP 200
+   body: {"id":1,"f_name":"Ali","l_name":"Hassan","phone":"+971565656656","email":"ali.hassan@demo.com","identity_number":"DL123456789","identity_type":"driving_license"
+--- current-orders (http://127.0.0.1:8091/api/v1/delivery-man/current-orders?token=...) ---
+HTTP/1.1 403 Forbidden
+>>>HTTP 403
+   body: {"errors":[{"code":"limit","message":"The limit field is required."},{"code":"offset","message":"The offset field is required."}]}
+--- message-list (http://127.0.0.1:8091/api/v1/delivery-man/message/list?token=...) ---
+HTTP/1.1 200 OK
+>>>HTTP 200
+   body: {"total_size":0,"limit":10,"offset":1,"conversation":[]}
+--- disbursement (http://127.0.0.1:8091/api/v1/delivery-man/get-disbursement-report?token=...) ---
+HTTP/1.1 403 Forbidden
+>>>HTTP 403
+   body: {"errors":[{"code":"limit","message":"The limit field is required."},{"code":"offset","message":"The offset field is required."}]}
+=== AC2 query-only WITH pagination ===
+{"total_size":0,"limit":10,"offset":1,"orders":[]}
+>>>HTTP 200
+{"total_size":0,"limit":10,"offset":1,"pending":0,"completed":0,"canceled":0,"complete_day":0,"disbursements":[]}
+>>>HTTP 200

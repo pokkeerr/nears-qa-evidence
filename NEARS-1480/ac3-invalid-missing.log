@@ -1,0 +1,12 @@
+############ AC3: INVALID / MISSING / PRECEDENCE ############
+-- (a) invalid token in BOTH header + query --
+body: {"errors":[{"code":"token","message":"The selected token is invalid."}]}
+-- (b) NO token at all --
+{"errors":[{"code":"token","message":"The token field is required."}]}
+>>>HTTP 401
+-- (c) precedence: valid HEADER + garbage ?token= → 200 as header's DM --
+{"id":1,"f_name":"Ali","l_name":"Hassan","phone":"+971565656656","email":"ali.hassan@demo.com","identity_number":"DL1234
+>>>HTTP 200
+-- (d) edge: array token ?token[]= (non-scalar guard) → 401, not 500 --
+{"errors":[{"code":"token","message":"The token field is required."}]}
+>>>HTTP 401
