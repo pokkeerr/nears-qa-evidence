@@ -1,0 +1,59 @@
+NEARS-863 — DeliveryApp DM auth header-only: LIVE network capture (consolidated)
+Device: emulator-5556 (Android)  |  App: com.izzes.nearsdelivery (debug, --dart-define=BASE_URL=http://10.0.2.2:8011)
+Backend: worktree Admin/ on :8010 (header-first DmTokenIsValid guard: bearerToken() ?: input('token'))
+Capture method: logging proxy on :8011 -> forwards to :8010; records METHOD, full path+query, Authorization header type, token-in-URL flag, status. Token values redacted.
+DM account: ali.hassan@demo.com / +971565656656
+
+LEGEND: AuthHeader=Bearer  => auth carried in Authorization header;  tokenInUrl=no => NO token= in path/query.
+
+--- AUTH (public, no token expected) ---
+POST /api/v1/auth/delivery-man/login                 | AuthHeader=NONE   | tokenInUrl=no -> 200
+POST /api/v1/delivery-man/update-fcm-token           | AuthHeader=Bearer | tokenInUrl=no -> 200
+
+--- order repo ---
+GET  /api/v1/delivery-man/latest-orders?limit=100                                   | Bearer | no -> 200
+GET  /api/v1/delivery-man/current-orders?offset=1&limit=10&order_status=all         | Bearer | no -> 200
+GET  /api/v1/delivery-man/all-orders?offset=1&limit=10&order_status=all             | Bearer | no -> 200
+GET  /api/v1/delivery-man/orders-count?type=current                                 | Bearer | no -> 200
+GET  /api/v1/delivery-man/orders-count?type=history                                 | Bearer | no -> 200
+GET  /api/v1/delivery-man/order?order_id=164   (order details)                      | Bearer | no -> 200
+
+--- disbursement repo ---
+GET  /api/v1/delivery-man/withdraw-method/list?limit=10&offset=1                    | Bearer | no -> 200
+GET  /api/v1/delivery-man/get-withdraw-method-list                                  | Bearer | no -> 200
+
+--- chat repo ---
+GET  /api/v1/delivery-man/message/list?offset=1&limit=10&type=customer              | Bearer | no -> 200
+GET  /api/v1/delivery-man/message/list?offset=1&limit=10&type=vendor               | Bearer | no -> 200
+GET  /api/v1/delivery-man/message/search-list?name=ali&limit=20&offset=1&type=vendor| Bearer | no -> 200
+
+--- my_account repo ---
+GET  /api/v1/delivery-man/wallet-payment-list                                       | Bearer | no -> 200
+GET  /api/v1/delivery-man/wallet-provided-earning-list                              | Bearer | no -> 200
+GET  /api/v1/delivery-man/loyalty-point-list?limit=10&offset=1                      | Bearer | no -> 200
+GET  /api/v1/delivery-man/get-withdraw-list?limit=100&offset=1                      | Bearer | no -> 200
+GET  /api/v1/delivery-man/earning-report?limit=10&offset=1&type=all&date_range=this_year&start_date=&end_date=   | Bearer | no -> 200
+GET  /api/v1/delivery-man/referral-report?limit=10&offset=1&type=all&date_range=this_year&start_date=&end_date=  | Bearer | no -> 200
+
+--- profile repo ---
+GET  /api/v1/delivery-man/profile                                                   | Bearer | no -> 200  (observed 8+ times across screens)
+POST /api/v1/delivery-man/record-location-data                                      | Bearer | no -> 200  (also 401 after deliberate token-regeneration test; still Bearer/no-url-token)
+
+--- notification repo ---
+GET  /api/v1/delivery-man/notifications                                             | Bearer | no -> 200
+
+--- refer_and_earn repo ---
+GET  /api/v1/delivery-man/referral-earning-list  -> NOT REACHED LIVE.
+  UI entry gated by profileModel.earnings == 1 (home_screen.dart:218 / profile_screen.dart:87); entry stays hidden for this account/config.
+  Verified instead by: (a) static grep — refer_and_earn_repository.dart:16 builds the URI with NO token= param;
+  (b) it uses the identical apiClient.getData(uri) header path proven header-only across all 6 repos above.
+
+=== CONTROL TESTS (direct curl, NOT app traffic) — prove the backend guard ===
+GET  /api/v1/delivery-man/profile   Authorization: Bearer <tok>, NO ?token=   -> 200   (header-only path works)
+GET  /api/v1/delivery-man/profile?token=<tok>   (legacy query, no header)     -> 200   (backward-compat ?: fallback intact)
+GET  /api/v1/delivery-man/profile   (no auth at all)                          -> 401   (guard enforces)
+
+CONCLUSION: Across 20+ distinct app-originated authenticated DM requests spanning all seven repos
+(order, disbursement, chat, my_account, profile, notification live; refer_and_earn static),
+EVERY request carried auth in the Authorization: Bearer header and NONE contained token= in the URL.
+The ONLY tokenInUrl=YES line in the whole session was the manual curl backward-compat control.
