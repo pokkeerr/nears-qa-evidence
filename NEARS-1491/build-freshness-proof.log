@@ -1,0 +1,30 @@
+BUILD FRESHNESS PROOF (falsifiable, with working controls)
+Method: pull the APK actually installed on the device, extract
+        assets/flutter_assets/kernel_blob.bin, grep Dart symbols.
+
+APK under test (emulator-5554, built from /Users/Apple/Projects/nears-NEARS-1491-taxi-removal):
+  CONTROLS (instrument works - must be > 0):
+    NotificationHelper   8
+    OrderScreen          6
+    order_status        23
+    getRunningOrders    11
+  REMOVED SYMBOLS (must be 0):
+    TaxiOrderDetailsScreen     0
+    TaxiMakePaymentBottomSheet 0
+    TaxiOrderController        0
+    TaxiHomeScreen             0
+    rental_module              0
+    trip_status                0
+
+CONTROL APK built from BASE commit 791af64a (same method, same instrument):
+    TaxiOrderDetailsScreen     13
+    TaxiMakePaymentBottomSheet  4
+    TaxiOrderController        13
+    TaxiHomeScreen              6
+    rental_module             137
+    trip_status                 6
+
+=> The grep provably CAN detect these symbols; it finds zero in the tested build.
+Independent corroboration: a runtime stack trace on 5554 printed the source path
+  /Users/Apple/Projects/nears-NEARS-1491-taxi-removal/UserApp/lib/main.dart
+confirming the running binary was compiled from THIS worktree.

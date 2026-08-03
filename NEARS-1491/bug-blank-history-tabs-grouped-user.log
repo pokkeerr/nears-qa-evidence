@@ -1,0 +1,22 @@
+BUG: All Orders / Cancelled tabs render an empty body (no cards, no empty state)
+     for a user whose only history order belongs to an order_group whose other
+     members are still ongoing.
+
+Repro (user james.wilson@demo.com / id 1, module Grocery & Food):
+  DB truth: order #168 canceled, order_group_id 9187de83-69a3-4fe6-a38c-a9d0e4bbf863
+            (sibling #167 pending -> group split across running/history)
+  API truth (direct, read-only):
+    GET /api/v1/customer/order/list?limit=10&offset=1  -> total_size: 1, returns #168
+  App: My Orders > All Orders  -> body blank (no card, no empty state)
+       My Orders > Cancelled   -> body blank
+       My Orders > Ongoing     -> renders correctly ("Orders from multiple stores" + #172)
+
+NOT a missing-empty-state bug: the empty state renders correctly for a zero-order
+user (michael.brown -> "No orders yet" / "No ongoing orders" / "No cancelled orders").
+
+CLASSIFICATION: PRE-EXISTING (regression_bug, not caused by NEARS-1491).
+Proven by same-device / same-account / same-data A/B on emulator-5554:
+  - NEARS-1491 build (0 taxi symbols in kernel_blob): All Orders blank, Cancelled blank
+  - BASE build 791af64a (13 TaxiOrderController / 137 rental_module symbols): IDENTICAL
+    All Orders blank, Cancelled blank, Ongoing renders.
+Owning widget lib/features/order/widgets/order_view_widget.dart is UNCHANGED by this ticket.
