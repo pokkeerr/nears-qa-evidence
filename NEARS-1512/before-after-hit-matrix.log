@@ -1,0 +1,61 @@
+NEARS-1512 — hit-test before/after matrix, Widgetbook release web, light mode.
+Story: components/nmoduleswitcher/nmoduleswitcher/playground?knobs={error:true}
+
+BEFORE = base 7780f5d6 built in a throwaway detached worktree, served on :8127
+AFTER  = the uncommitted 1512 worktree, freshly built, served on :8126
+Two different origins, two different builds, one probe, identical click points.
+Flutter-web semantics force-enabled in every run (36 nodes) — with semantics OFF
+the defect cannot exist and a pass would be meaningless.
+
+Targeting guards (this bug family has twice been decided by instrument error):
+  * targets resolved by EXACT aria-label / EXACT trimmed textContent;
+  * among matches the SMALLEST-AREA node wins — the 1440x900 root node matches a
+    substring and would otherwise steal the click (the trap that produced a
+    confident wrong verdict in both directions);
+  * every verdict echoes the chosen rect, the candidate count + their areas, and
+    the full document.elementsFromPoint() chain with each layer's role / rect /
+    computed pointer-events.
+
+--- the mechanism, observed directly on both builds ---
+BEFORE: card nodes are pe=none          role=menu  [305.2, 56, 280, 116] pe=none
+                                        role=group [305.2, 56, 280, 116] pe=none
+        no pe=all node exists at the card rect, so elementsFromPoint returns the
+        barrier: role=button [289, 0, 862, 900] pe=all  <-- TOPMOST at every in-card point
+AFTER:  an additional node appears at the SAME rect
+                                        role=None  [305.2, 56, 280, 116] pe=all
+        and it is topmost; the barrier drops to second in the chain.
+
+--- the five in-card points ---
+point                     click        BEFORE (:8127)      AFTER (:8126)
+P1 message centre         (461.2,86.0) OPEN -> CLOSED      OPEN -> OPEN
+P2 card top strip         (445.2,60.0) OPEN -> CLOSED      OPEN -> OPEN
+P3 bottom-left padding    (313.2,164.0)OPEN -> CLOSED      OPEN -> OPEN
+P4 inter-row gap          (445.2,102.0)OPEN -> CLOSED      OPEN -> OPEN
+P5 right edge             (579.2,114.0)OPEN -> CLOSED      OPEN -> OPEN
+5/5 dismissed before, 5/5 survive after.
+P1 is rect-centre-derived from the message node's own rect [353.2, 77, 216, 18];
+P2-P5 are offsets from the live card anchor rect [305.2, 56, 280, 116].
+
+--- the barrier must still work (and it is also the probe's positive control:
+    the SAME probe, SAME build, SAME session detects dismissal here) ---
+100 px right of card   (685.2,114.0)  AFTER: OPEN -> CLOSED   chain: barrier only
+100 px below card      (445.2,272.0)  AFTER: OPEN -> CLOSED   chain: barrier only
+RTL, 100 px left of card (754.8,114.0) AFTER: OPEN -> CLOSED  chain: barrier only
+non-error module list, right of menu (645.2,247.0) AFTER: menu dismissed,
+    chain shows the barrier topmost — no absorbing layer leaked into the row list.
+
+--- retry ---
+"Try again" (445.2,130.0)  AFTER: OPEN -> CLOSED
+  chain: role=button [321,108,248,44] pe=all  (topmost)
+       > role=None   [305,56,280,116] pe=all  (the new absorbing layer)
+       > role=button [289,0,862,900]  pe=all  (barrier)
+  Dismissal is OBSERVED. onRetry firing is INFERRED, not observed: the story's
+  onRetry is a no-op with no visible effect. The inference is that
+  `Navigator.of(ctx).maybePop(); onRetry!();` is one synchronous callback body —
+  the pop demonstrably ran and the runtime log is clean (no exception between the
+  two statements) — plus the unit pin in the 856-test suite.
+
+--- RTL ---
+absorbing node present and mirrored: role=None [854.8, 56, 280, 116] pe=all,
+card right 1134.8 == trigger right 1134.8.
+RTL message centre (1010.8,86.0): OPEN -> OPEN, chain shows [855,56,280,116] pe=all topmost.

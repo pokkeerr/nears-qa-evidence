@@ -1,0 +1,39 @@
+NEARS-1512 — visual-neutrality and B1/B2 regression check.
+
+Painted card measured by white-pixel scan on the full-page screenshot of each
+build (same method, same viewport 1440x900, same story/knobs):
+
+  metric    BEFORE (base 7780f5d6)   AFTER (1512)   delta
+  top       56                       56             0
+  bottom    171                      171            0
+  height    116                      116            0
+  left      306                      306            0
+  right     584                      584            0
+  width     279                      279            0
+
+Semantics rect identical too: role=menu [305.2, 56, 280, 116] on both builds.
+=> the menuPadding:zero + body-padding space3->space5 swap IS visually neutral.
+
+CORRECTION TO MY OWN FIRST READING (recorded so it is not repeated): I initially
+flagged a "card shrank 131 -> 116" finding by comparing the fixed build against my
+CYCLE-0 measurement (y 57..188). That baseline is the wrong revision — it is the
+original `PopupMenuItem(enabled:false)` host from before NEARS-1475's _NErrorEntry
+change, not this ticket's base. Against the actual base 7780f5d6 the geometry is
+byte-identical. Building the real pre-fix control is what caught it; a
+cross-revision baseline would have produced a false finding on the last
+authorized cycle.
+
+B1 — error glyph colour, identical crop (l316,t70,r348,b102) on both builds:
+  BEFORE: ('#FFFFFF',903), ('#BA1A1A',29), ('#E4A7A7',11)
+  AFTER : ('#FFFFFF',903), ('#BA1A1A',29), ('#E4A7A7',11)
+  core is full NearsTokens.error #BA1A1A (contrast 6.46:1). Not regressed, not dimmed.
+
+B2 — retry a11y node, AFTER build:
+  {"role":"button","rect":[321.2,108,248,44],"pe":"all"}  exact label "Try again",
+  candidates=1, and the message is a SEPARATE node [353.2,77,216,18].
+  Still its own activatable node, still clears the 44 dp floor. Not regressed.
+
+Non-error rows keep the SDK default 8 dp menu padding:
+  first row "Grocery, 12 stores open, current module" [305.2, 64, 240, 55] pe=all
+  (card top 56 + 8 = 64, unchanged), "Parcel" [305.2, 223, 240, 48] pe=all,
+  row select still fires and dismisses.
