@@ -1,0 +1,44 @@
+NEARS-1558 — [8] delta re-QA, fix cycle 3 (2026-08-04)
+Surface: Widgetbook web storybook (on-device blocked by NEARS-1534).
+
+BUILD / SERVE CHAIN
+  bundle   widgetbook/build/web/main.dart.js   mtime 2026-08-04 00:21:21   15048844 bytes
+  sha256   f6c8b659a463a3553bd0b74fc41eb254f3584e968269655ae7fb326c3b34e846
+  served bytes == disk bytes (fetched over HTTP, hashes identical)
+  server cwd (lsof, pid 52866) = /Users/Apple/Projects/nears-NEARS-1558-nmodulerow/widgetbook/build/web
+  component sha256 042f402be39bebcbe5c7bf44dc83b17142419450a776ea9ee966d1604e971007
+  SDK /Users/Apple/Tools/flutter = 3.41.9 (engine 9161402dc0)
+
+OVERFLOW-DETECTOR VALIDITY
+  The served bundle contains the debug overflow-indicator strings
+  ("BOTTOM OVERFLOWED", "RIGHT OVERFLOWED", "overflowed by", "Failed assertion"),
+  so the banner path is compiled in and a zero count is a real negative.
+  Flutter's 0xBFFFFF00 banner over navy #000080 blends to ~(191,191,32),
+  inside the detector threshold (r>170, g>150, b<120).
+
+FRAME HASHES (sha256[:16])
+  full page                                  band crop            band h   overflow px
+  00 landing default        535bc3c309208731  -                    -        -
+  01 arabic rtl 1.0x        d6e91d52864c3a4d  dd21651fbb850523     78       0
+  02 english 1.0x           b9c6952ac9cc0437  80a152c6105ba4e9     78       0
+  03 english 1.3x           b9c6952ac9cc0437  a2fd3b19349aa227     82       0
+  04 seven modules          b9c6952ac9cc0437  b4e8d113edfe7b80     78       0
+  05 arabic error 1.3x      97c349fc84f46ed2  0c86effe63f15738     82       0
+  06 unresolved band        15e0a0e85e55a0eb  980b6358368decc2     78       0
+  07 control NBottomNav     89801d96628b1580  -                    -        -
+  distinct band crops 6/6.  02/03/04 share a full-page frame because the
+  1400px-tall viewport shows those three Gallery rows at once; their band
+  crops are distinct, which is the load-bearing comparison.
+
+NAVIGATION PROOF
+  Driven by LABEL through Flutter's real DOM a11y tree (semantics enabled by
+  dispatching a click at flt-semantics-placeholder). No pixel coordinates.
+  Controls: the default landing page and a DIFFERENT component (NBottomNav)
+  both hash distinctly from every NModuleRow frame.
+
+CONSOLE
+  0 signal lines (no "overflow" / "RenderFlex" / "exception" / "assert" /
+  "failed") across all cases; 7 total lines, all WebGL performance warnings.
+
+AUTOMATED BACKSTOP
+  flutter test (packages/nears_dls, SDK 3.41.9): 977 passed / 0 failed.
