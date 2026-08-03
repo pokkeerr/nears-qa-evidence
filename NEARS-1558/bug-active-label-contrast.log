@@ -1,0 +1,25 @@
+NEARS-1558 / bug-active-label-contrast
+Surface: Widgetbook on Android emulator-5556 (light theme), NModuleRow Gallery + Playground.
+Revision under test: packages/nears_dls/lib/components/nmodulerow/n_module_row.dart, 387 lines,
+single shared `_onMint` constant (build produced 2026-08-03 20:11).
+
+MEASURED (pixel sampling of the rendered frames, not inferred):
+  ACTIVE tile label glyph pixels   = #00003C  (NearsTokens.textOnMint)
+  Background it is painted on      = #000080  (NearsTokens.navy, the row's own ColoredBox fill)
+  WCAG contrast ratio              = 1.23 : 1      <-- effectively invisible
+  INACTIVE tile label, same rows   = #A8A8D4 on #000080 = 6.91 : 1   (legible, correct)
+
+Reproduced on 4 independent frames / both locales:
+  04-playground-select-3.png   ACTIVE 'Parcel'    #00003C on #000080
+  04-playground-select-2.png   ACTIVE 'Pharmacy'  #00003C on #000080
+  03-gallery-...png  (RTL)     ACTIVE 'صيدلية'    #00003C on #000080
+  03-gallery-...png  (1.3x)    ACTIVE 'Pharmacy'  #00003C on #000080
+
+ROOT CAUSE (observed in source, _RowTile.build):
+  final Color fg = active ? NModuleRow._onMint : NearsTokens.textOnNavyDim;
+  ...one `fg` is then applied to BOTH the glyph (which sits ON the mint disc -> 14.8:1, correct)
+  AND the Text label (which sits BELOW the disc, on the navy field -> 1.23:1, wrong surface).
+
+NOT the escalated token swap: neither candidate token fixes the label.
+  textOnMint #00003C on navy = 1.23:1 ; the AC's navy #000080 on navy = 1.00:1.
+  The label needs an ON-NAVY foreground (the sibling NModuleSwitcher uses NearsTokens.textOnNavy).
