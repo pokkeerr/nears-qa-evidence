@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1475
 
-**PASS with 4 non-blocking task bugs — NModuleSwitcher live on Widgetbook release web (light mode)**
+**Delta re-QA c1: B1+B2 FIXED, B3 still reproduces, no regression**
 
-**4 screenshot(s).** Click any thumbnail for full resolution.
+**5 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -12,11 +12,13 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="error-state-overlay-stacked-retry.png"><img src="error-state-overlay-stacked-retry.png" width="240"></a><br><sub>error state overlay stacked retry</sub></td>
+<td align="center" width="33%"><a href="fix-error-panel-inert-host.png"><img src="fix-error-panel-inert-host.png" width="240"></a><br><sub>fix error panel inert host</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
 - [`bug-error-card-tap-dismisses.log`](bug-error-card-tap-dismisses.log)
+- [`bug-error-icon-38pct-opacity.log`](bug-error-icon-38pct-opacity.log)
 - [`bug-overlay-escapes-ancestor-mediaquery.log`](bug-overlay-escapes-ancestor-mediaquery.log)
 - [`bug-retry-not-exposed-to-a11y.log`](bug-retry-not-exposed-to-a11y.log)
 - [`progress.md`](progress.md)

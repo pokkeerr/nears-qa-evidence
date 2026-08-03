@@ -22,3 +22,52 @@ Side effect on evidence: because both taps close the overlay, "overlay closed" a
 cannot prove onRetry fired. Retry being a live control was proven separately by the
 hover repaint (see bug-retry-not-exposed-to-a11y.log); onRetry actually firing is
 covered by the unit test 'the retry button fires onRetry and dismisses the overlay'.
+
+
+================================================================================
+DELTA RE-QA CYCLE 1 (after the _NErrorEntry host swap) — STILL REPRODUCES.
+Rebuilt from the same worktree: flutter test 855/855 (run BEFORE the web build),
+flutter analyze clean, fresh `flutter build web --release` served on a NEW port
+(8124) so no stale asset could be reused from the first run's origin.
+================================================================================
+
+The engineer's non-repro hypothesis was: "the card is only ~280px wide, so x=445
+may have landed on the modal barrier". That is now DISPROVED by direct measurement
+of the live semantics tree — and my original card bounds are CONFIRMED, not corrected.
+
+--- card bounds, measured independently this run ---
+retry button node   : x 321.2 .. 569.2  (w 248, h 44)   role=button
+message text node   : x 353.2 .. 569.2  (y 77 .. 95, h 18)
+card = content + the component's own EdgeInsets.symmetric(horizontal: space4=16):
+      left  = 321.2 - 16 = 305.2
+      right = 569.2 + 16 = 585.2      => card is 280 wide, spanning x 305.2 .. 585.2
+First-run pixel scan said the white card ran x 306 .. 584. The two agree.
+x = 445 is 140 px inside the left edge and 140 px clear of the right edge.
+It was never on the barrier. 305 + 280 = 585, not 445.
+
+--- the decisive re-test: click resolved BY VISIBLE TEXT, not by coordinate ---
+This run did not compute a click point at all. It located the message's OWN
+semantics element by exact textContent and clicked the centre of its live rect:
+
+  taptext "We could not load your modules."
+      target rect l=353.2 t=77.0 w=216.0 h=18.0 -> click centre (461.2, 86.0)
+  grep  "try again"   -> (no match)
+  textbox "We could not load your modules." -> []
+  grep  "switch"      -> trigger node back   => overlay CLOSED
+
+A point that is the geometric centre of the message text's own rect cannot be the
+modal barrier. The overlay still dismisses.
+
+--- how much of the card is transparent to taps (new characterization) ---
+  click (461.2, 86.0)  message text centre                      -> DISMISSED
+  click (461, 102)     the 12 px gap between message and button -> DISMISSED
+  click (312, 170)     card's bottom-left padding column        -> DISMISSED
+  hover (461, 86)      message row, 260x30 rect                 -> 0 px change
+                       (pixel-identical census before/after: idle and hover both
+                        #FFFFFF 6758 / #BA1A1A 29 / #6A6A78 28) => genuinely inert
+  click far outside (900, 400)                                  -> DISMISSED (correct)
+
+So EVERY non-button point inside the card passes the pointer through to the barrier;
+only the NButton absorbs. The new host made the panel structurally tap-free, which
+removes an opaque hit-test surface rather than adding one — the fall-through is if
+anything more certain than before, not less.

@@ -58,3 +58,26 @@ proved with a positive control before any knob-dependent claim
   site exists yet (NEARS-1473).
 - **AC2 persistence half ("after the user's last visit", "clears once seen")** — no persisted
   module-seen state exists; deliberately not invented.
+
+---
+
+## Delta re-QA — cycle 1 (after the `_NErrorEntry` inert-host swap)
+
+Same worktree, still uncommitted. `flutter test` **855/855** and `flutter analyze` clean, both run
+**before** the rebuild; then a fresh `flutter build web --release` served on a **new port (8124)** so
+no asset from the first run's origin could be reused. Freshness discipline unchanged: live DOM
+reads in one session after a state-unique anchor, `knobs={isVisible:false}` positive control run
+first, Android `uifind.py` never touched.
+
+| bug | status | measured |
+|---|---|---|
+| B1 error icon opacity | **FIXED** | icon core now `#BA1A1A` (== NearsTokens.error); contrast **6.46:1** (was `#E5A8A8` / 2.0:1) |
+| B2 retry a11y node | **FIXED** | discrete `{"label":"Try again","role":"button","box":{x:321.2,y:108,w:248,h:44}}`; message is its own node at x=353.2,y=77,w=216,h=18 |
+| B3 tap on inert message dismisses | **NOT FIXED — still reproduces** | clicked the centre of the message text's OWN live rect (461.2, 86.0) → overlay dismissed. Card measured **x 305.2..585.2 (280 wide)** from the retry node + 16 px padding, confirming the first run's 306..584. Every non-button point inside the card falls through (message centre, the 12 px inter-row gap, the bottom-left padding column). |
+| B4 no-regression spot-check | **CLEAN** | overlay opens/lists/anchors identically (rows 55/55/49/48 at x=305.2); selected tint 11168 px `#D6F7E4` + 19 mint; NEW badge 364 px `#00FF99`; trigger dot 36 px; row select → `Switched to food` + dismiss; back-dismiss and tap-outside dismiss both work for the module list AND the error overlay; `isLoading`/`isDisabled`/`isVisible:false`/empty-gallery all byte-identical to cycle 0. Runtime log clean. |
+
+**On the disagreement (B3):** the engineer's hypothesis was that x=445 landed on the modal barrier
+because the card is "only ~280px wide". The card *is* 280 wide — but it starts at x≈305, so it ends
+at x≈585 and 445 was always 140 px inside it. My original bounds were right; no correction needed.
+The cycle-1 re-test removes the arithmetic from the argument entirely by clicking an element
+resolved **by its visible text**, not by a computed coordinate.

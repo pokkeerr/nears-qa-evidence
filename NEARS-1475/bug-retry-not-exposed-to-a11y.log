@@ -20,3 +20,21 @@ node is merged into the single menuitem node. There is no activatable a11y node 
 Cross-check (proves the button IS a live pointer target, i.e. the gap is a11y-only):
   hover(445,156) -> button region 320,130,250x50 repaints #FFFFFF -> #EBEBF5 (6882 px)
   hover(445,84)  -> message region 320,70,250x40 unchanged (0 px)
+
+
+================================================================================
+DELTA RE-QA CYCLE 1 — RESOLVED.
+================================================================================
+BEFORE: one merged node, no activatable retry:
+  {"label": "We could not load your modules.\nTry again", "role": "menuitem", ...}
+
+AFTER (_NErrorEntry adds no MergeSemantics):
+  {"label": "Try again", "role": "button",
+   "box": {"x": 321.2, "y": 108, "width": 248, "height": 44}}
+  and the message is now its own separate node:
+   textContent "We could not load your modules." at x=353.2 y=77 w=216 h=18
+
+The retry is reachable and activatable by assistive tech: it is a discrete
+role=button node with the accessible name "Try again", and its 248x44 box meets
+the 44 dp tap-target floor. Firing it by that node closes the overlay
+(taptext "Try again" -> message and button nodes both gone, trigger node back).

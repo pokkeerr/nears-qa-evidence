@@ -1,0 +1,14 @@
+NEARS-1475 — B1 RESOLVED in delta re-QA cycle 1.
+
+BEFORE (PopupMenuItem(enabled:false) host):
+  icon rect colour census, darkest = #E5A8A8  (= #BA1A1A composited at alpha 0.38)
+  contrast on the white card = 2.0:1   -> below the 3:1 non-text floor
+
+AFTER (_NErrorEntry inert host, merges no IconThemeData):
+  icon rect (316,70,32,32) census:
+    ('#FFFFFF', 903), ('#BA1A1A', 29), ('#E4A7A7', 11), ('#E5A8A8', 5)
+  darkest / core = #BA1A1A == NearsTokens.error exactly
+  contrast on the white card = 6.46:1  -> passes 3:1 and 4.5:1
+  (the residual #E4A7A7/#E5A8A8 pixels are anti-aliased glyph edges, not the core)
+
+Same rect, same build pipeline, same light theme. Fixed.
