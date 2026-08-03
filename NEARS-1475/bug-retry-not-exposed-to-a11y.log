@@ -1,0 +1,22 @@
+NEARS-1475 — QA live probe, Widgetbook release web build (Chrome/Playwright, light mode)
+Story: components/nmoduleswitcher/nmoduleswitcher/playground?knobs={error:true}
+Action: tap trigger "Switch module" -> error overlay open. Live DOM read of the Flutter
+web semantics tree (semantics enabled via flt-semantics-placeholder).
+
+--- accessibility nodes while the error overlay is OPEN ---
+{"label": "We could not load your modules.\nTry again", "role": "menuitem",
+ "box": {"x": 305.2, "y": 64, "width": 280, "height": 116}}
+{"label": "Dismiss menu", "role": "button", "box": {"x": 289.2, "y": 0, ...}}
+
+--- flt-semantics textContent dump (whole overlay) ---
+DOM: We could not load your modules.
+Try again|            <-- ONE node; aria-label empty, text merged
+
+EXPECTED: the retry control exposes its own button node (accessible name "Try again",
+role=button) so assistive tech can activate it.
+OBSERVED: PopupMenuItem wraps its child in MergeSemantics, so the NButton's own button
+node is merged into the single menuitem node. There is no activatable a11y node for retry.
+
+Cross-check (proves the button IS a live pointer target, i.e. the gap is a11y-only):
+  hover(445,156) -> button region 320,130,250x50 repaints #FFFFFF -> #EBEBF5 (6882 px)
+  hover(445,84)  -> message region 320,70,250x40 unchanged (0 px)

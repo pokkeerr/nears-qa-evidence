@@ -1,0 +1,24 @@
+NEARS-1475 — QA live probe, Widgetbook release web build (Chrome/Playwright, light mode)
+Story: components/nmoduleswitcher/nmoduleswitcher/playground?knobs={error:true}
+
+Error card measured from the live screenshot: x 306..584, y 57..188.
+
+--- control experiment (same session, live DOM reads between steps) ---
+step: tap "Switch module"      -> grep "could not" => node present  (overlay OPEN)
+step: click (445, 84)          -> inside the card, on the MESSAGE row
+step: grep "could not"         -> (no match)
+step: grep "switch"            -> trigger node back => overlay CLOSED
+
+step: click (445, 156)         -> inside the card, on the RETRY button
+step: grep "could not"         -> (no match)
+step: grep "switch"            -> trigger node back => overlay CLOSED
+
+EXPECTED: a tap on the inert error message text should be absorbed by the (disabled)
+menu item; only retry / tap-outside / back should dismiss.
+OBSERVED: a tap anywhere inside the error card dismisses the overlay, so a user aiming
+at the message loses the card and has to reopen it to reach "Try again".
+
+Side effect on evidence: because both taps close the overlay, "overlay closed" alone
+cannot prove onRetry fired. Retry being a live control was proven separately by the
+hover repaint (see bug-retry-not-exposed-to-a11y.log); onRetry actually firing is
+covered by the unit test 'the retry button fires onRetry and dismisses the overlay'.
