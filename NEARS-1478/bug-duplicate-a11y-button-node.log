@@ -1,0 +1,28 @@
+NEARS-1478 — duplicate a11y button node on the tappable banner
+Surface: Widgetbook (release web build from worktree), Gallery use case, light mode, 320dp.
+Instrument: Flutter web semantics DOM (accessibility enabled via flt-semantics-placeholder).
+
+Default (tappable) case renders TWO nested button nodes for one banner:
+
+  node-9   role=button  tabindex=None  flt-tappable=YES  288x48
+           aria-label='Order confirmed from Fresh Mart, arriving in 8 minutes'
+  node-10  role=button  tabindex=0     flt-tappable=YES  288x48
+           aria-label=''  text='Order confirmed · Fresh Mart\n8 MIN'
+
+Same shape on 'Long status' (node-16/node-17) and 'RTL' (node-20/node-21).
+
+Consequence:
+ - The banner's status content is reachable/announced TWICE: once as the curated
+   semanticLabel (node-9) and again as the raw row text (node-10).
+ - On web the only keyboard/AT focus stop (tabindex=0) is the INNER, UNLABELED
+   node — the curated label is on the node that is not focusable.
+
+FIXED PART (verified good, no regression): node-9 carries flt-tappable, which the
+Flutter web engine sets iff the node has SemanticsAction.tap and is not disabled
+(engine/semantics/tappable.dart: _isListening = enabledState != disabled && isTappable).
+So the labeled button DOES carry the tap action — the NEARS-1478 headline fix is live.
+
+Disabled case is correct and collapses to a single node:
+  node-35  role=button  aria-disabled=true  flt-tappable=NO
+Inert case (onTap: null) is correct:
+  node-35  role=group (not a button)  labeled  no chevron

@@ -1,0 +1,27 @@
+NEARS-1478 AC4 — RTL chevron does not mirror (root-caused)
+
+OBSERVED (live, Widgetbook release web build, RTL Gallery case + ar-SA Playground):
+the trailing chevron sits in the correct mirrored POSITION (far left in RTL) but the
+GLYPH still points right — identical direction to LTR. Reproduced in 3 independent
+renders (Gallery RTL cell; ar-SA locale with Arabic-Indic ETA; ar-SA with Western ETA).
+
+ROOT CAUSE — double flip cancels out:
+ 1. packages/nears_dls/lib/elements/icon/n_icon.dart wraps the glyph in
+    Transform.flip(key: NIcon.mirrorKey, flipX: true) when mirrorForRtl && isRtl && directional.
+ 2. Symbols.chevron_right is declared IconData(..., matchTextDirection: true)
+    (material_symbols_icons-4.2928.1/lib/symbols.dart).
+ 3. Flutter's own Icon widget already applies Transform scale(-1,1,1) under RTL when
+    icon.matchTextDirection is true (flutter/lib/src/widgets/icon.dart).
+Two horizontal flips = identity -> renders unmirrored.
+
+BLAST RADIUS: every name in NIcon._directional carries matchTextDirection: true —
+chevron_right, chevron_left, arrow_forward, arrow_back, arrow_forward_ios,
+arrow_back_ios, arrow_right_alt, arrow_left_alt, navigate_next, navigate_before,
+keyboard_arrow_right, keyboard_arrow_left, reply, undo, redo (15/15).
+NIcon's RTL mirroring is therefore a no-op DLS-wide, not specific to this banner.
+
+WHY TESTS DID NOT CATCH IT (false green):
+test/components/n_active_order_banner_test.dart:
+  expect(find.byKey(NIcon.mirrorKey), findsOneWidget);
+asserts only that NIcon's OWN Transform exists. It cannot observe Flutter Icon's
+second Transform, so it stays green while the rendered direction is wrong.
