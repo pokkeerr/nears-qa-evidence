@@ -1,0 +1,33 @@
+NEARS-1475 — QA live probe, Widgetbook release web build (Chrome/Playwright, light mode)
+Story: components/nmoduleswitcher/nmoduleswitcher/playground
+
+CLAIM UNDER TEST: the anchored overlay inherits an ANCESTOR-injected MediaQuery /
+Directionality. It does not — it opens as a route on the ROOT navigator.
+
+--- text scale: in-story text scales, overlay rows do not ---
+text-scale={factor:1.0}
+  app-bar location node "Tower 4, Al Reem":  x=357 y=12 w=706 h=36
+  overlay rows: 55 / 55 / 49 / 48
+text-scale={factor:1.3}
+  overlay rows: 55 / 55 / 49 / 48          <-- unchanged
+text-scale={factor:2.0}
+  app-bar location node "Tower 4, Al Reem":  x=357 y=2  w=706 h=56   <-- addon DOES apply
+  overlay rows: 55 / 55 / 49 / 48          <-- unchanged
+
+--- RTL: trigger + anchoring mirror, row internals do not ---
+locale={name:ar-SA}
+  trigger      x 305.2 -> 1090.8            (mirrored, 16px inset from logical start)
+  menu.right   1134.8 == trigger.right      (anchored to the logical near edge)
+  barrier      "Dismiss menu" -> "إغلاق القائمة"   (captured at the call site)
+  screenshot   ac4-rtl-arabic-overlay-open.png: row leading disc still LEFT,
+               check / NEW tag still RIGHT  <-- row internals not mirrored
+
+MECHANISM: showMenu captures the layout textDirection and the barrier label at the
+CALL SITE (so those mirror), but the item widgets are inflated inside the route, whose
+ancestors are the root navigator's Localizations / MediaQuery. In the real UserApp the
+app-level Localizations sits above the navigator, so this is expected to be a storybook
+artifact — but it means BOTH of the following are unproven, not proven:
+  * the overlay's 1.3x text-scale behaviour (unit test
+    'renders at 1.3x text scale without overflow' injects MediaQuery inside
+    MaterialApp.home, i.e. the same ancestry shape the overlay escapes);
+  * the overlay row's RTL internal mirroring.

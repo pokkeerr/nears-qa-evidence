@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1475
 
-**PASS with 3 non-blocking task bugs — NModuleSwitcher live on Widgetbook release web (light mode)**
+**PASS with 4 non-blocking task bugs — NModuleSwitcher live on Widgetbook release web (light mode)**
 
 **4 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -17,6 +17,7 @@
 
 ### Other artifacts
 - [`bug-error-card-tap-dismisses.log`](bug-error-card-tap-dismisses.log)
+- [`bug-overlay-escapes-ancestor-mediaquery.log`](bug-overlay-escapes-ancestor-mediaquery.log)
 - [`bug-retry-not-exposed-to-a11y.log`](bug-retry-not-exposed-to-a11y.log)
 - [`progress.md`](progress.md)
 
