@@ -1,0 +1,45 @@
+BUG (PRE-EXISTING, not caused by NEARS-1476)
+UserApp DLS golden test suite fails to lay out — 2/2 golden tests error before pixel comparison.
+
+Command: cd UserApp && flutter test test/golden/dls_golden_test.dart
+Result (this worktree, feat/NEARS-1476-availability-pill):
+  00:00 +0 -1: DLS components — light theme (variant: CI) [E]
+  00:00 +0 -2: DLS components — dark theme  (variant: CI) [E]
+  00:00 +0 -2: Some tests failed.
+
+PROOF OF PRE-EXISTENCE (falsifiable, run on the PRE-FIX build):
+  A throwaway worktree was created at the ticket BASE commit a28e8609 (detached) and the
+  IDENTICAL command was run there:
+    00:00 +0 -1: DLS components — light theme (variant: CI) [E]
+    00:00 +0 -2: DLS components — dark theme  (variant: CI) [E]
+    RenderFlex children have non-zero flex but incoming height constraints are unbounded.
+  Same 2 failures, same assertion => predates NEARS-1476.
+
+PRIMARY EXCEPTION:
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════
+The following assertion was thrown during performLayout():
+RenderFlex children have non-zero flex but incoming height constraints are unbounded.
+When a column is in a parent that does not provide a finite height constraint, for example
+if it is in a vertical scrollable, it will try to shrink-wrap its children along the
+vertical axis. Setting a flex on a child (e.g. using Expanded) indicates that the child is
+to expand to fill the remaining space in the vertical direction.
+
+Followed by cascading:
+  RenderBox was not laid out: RenderFlex#41816 ... 'hasSize' (box.dart:2251)
+  ("Multiple exceptions (19) were detected during the running of the current test")
+
+Frames point at the golden harness scaffold, not at any DLS component:
+  UserApp/test/golden/dls_golden_test.dart:66  Material
+  UserApp/test/golden/dls_golden_test.dart:68  SizedBox
+  UserApp/test/golden/dls_golden_test.dart:70  Padding
+
+NOTE ON NBadge: this file does contain `NBadge(label: '15 MIN')` (line 79), but the failure
+is a layout assertion in the harness column (unbounded height + flexed child), raised before
+any golden image is compared. It is unrelated to the NEARS-1476 `uppercase` prop, whose
+default (`true`) makes the rendered string byte-identical to the previous
+`label.toUpperCase()` output.
+
+IMPACT: the DLS golden suite currently provides NO pixel protection for any DLS component
+in UserApp — it errors out before comparing. Worth fixing so goldens can gate again.
+(For this ticket, pixel protection was obtained instead by diffing the live storybook
+against a base-commit build: 5 NBadge use-cases x LTR/RTL, all 0 differing pixels.)

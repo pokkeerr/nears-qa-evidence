@@ -1,0 +1,48 @@
+BUG (PRE-EXISTING, not caused by NEARS-1476)
+NBadge "Playground" use-case throws on build and renders the Flutter red error screen.
+
+Surface: Widgetbook storybook -> Elements > Badge > NBadge > Playground
+URL:     /#/?path=elements/badge/nbadge/playground
+
+PROOF OF PRE-EXISTENCE (falsifiable, run on the PRE-FIX build):
+  NEW  worktree build (feat/NEARS-1476-availability-pill, port 8567): errors
+  BASE build (detached a28e8609, port 8568):                          errors identically
+  Canvas pixel-diff NEW vs BASE for this use-case: 0 differing pixels
+  (i.e. both render the same red error screen; NEARS-1476 neither caused nor changed it)
+
+CONSOLE EXCERPT (port 8567, this worktree):
+══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY ╞═══════════════════════════════════
+The following TypeErrorImpl was thrown building
+UseCaseBuilder-[</?path=elements%2Fbadge%2Fnbadge%2Fplayground>](dirty, dependencies:
+[WidgetbookScope], state: _UseCaseBuilderState#a686f):
+Unexpected null value.
+
+The relevant error-causing widget was:
+  UseCaseBuilder-[</?path=elements%2Fbadge%2Fnbadge%2Fplayground>]
+  UseCaseBuilder:.../widgetbook-3.23.0/lib/src/workbench/workbench.dart:81:9
+
+Stack (top frames):
+  dart-sdk .../ddc_runtime/operations.dart 950:18   nullCheck
+  package:widgetbook/src/knobs/builders/object_knobs_builder.dart 54:6   dropdown
+  package:nears_widgetbook/elements/n_badge_stories.dart 37:25           buildNBadgePlayground
+
+ROOT CAUSE (indicated by the stack):
+  widgetbook/lib/elements/n_badge_stories.dart, the `status` knob:
+      context.knobs.object.dropdown<NStatus?>(
+        label: 'status',
+        options: const [null, ...NStatus.values],
+        initialOption: null,          <-- widgetbook 3.23 object dropdown nullChecks this
+        labelBuilder: (s) => s?.name ?? 'none',
+      )
+  A null `initialOption` (and/or the null entry in `options`) trips a nullCheck inside
+  widgetbook 3.23.0's object_knobs_builder.dropdown.
+
+IMPACT
+  - The NBadge Playground use-case is unusable in the storybook (all knobs unreachable).
+  - Consequence for NEARS-1476: the `uppercase` knob this ticket ADDED to the Playground
+    story is also unreachable for the same pre-existing reason. The ticket's own new
+    use-case ("Live signal — availability") renders correctly and carries a working
+    `uppercase` knob, so AC2/AC4 were demonstrated there instead.
+  - Gallery / Tag — Discount / Tag — New / Tag — Organic are unaffected and render fine.
+
+NOTE: other NBadge-sibling Playgrounds may share this pattern; not swept in this run.
