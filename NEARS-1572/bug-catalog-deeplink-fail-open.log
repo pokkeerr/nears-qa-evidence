@@ -1,0 +1,43 @@
+NEARS-1572 QA — pre-existing defect: catalog.yaml widgetbook deep links never select
+
+WHAT: every `widgetbook:` deep link in packages/nears_dls/catalog.yaml uses the
+form `?path=<...>`. The built storybook uses Flutter's DEFAULT hash URL strategy
+(widgetbook/lib/main.dart never calls usePathUrlStrategy), so the router only
+reads a path out of the hash fragment. `?path=` is therefore silently ignored and
+the app renders its default landing page instead — a textbook fail-open: no
+error, no 404, just a plausible-looking wrong screen.
+
+NOT specific to NEARS-1572 — reproduced on a pre-existing component (NAppBar).
+
+REPRO (storybook served at 127.0.0.1:8099 via
+  flutter run -d web-server --web-port 8099, from widgetbook/):
+
+  A. cataloged form, three DIFFERENT use cases:
+     ?path=components/nappbar/nappbar/playground
+     ?path=components/ntimecontextbar/ntimecontextbar/playground
+     ?path=components/ntimecontextbar/ntimecontextbar/windows
+
+     window.location.href  -> matches the requested URL in all three (so a
+                              naive "did the URL load?" assertion PASSES)
+     sha256(frame)[0:16]   -> e1467f6489b003b7  for ALL THREE
+     semantics labels      -> ['Knobs', 'Addons', 'No Knobs available',
+                               'Golden test with Widgetbook Cloud',
+                               'Docs ...', 'Examples ...', 'Deploy ...']
+                              i.e. the widgetbook landing page, not a use case.
+
+  B. hash form, same three use cases:
+     #/?path=components/ntimecontextbar/ntimecontextbar/playground -> d00906e7c3ca739e
+     #/?path=components/ntimecontextbar/ntimecontextbar/windows    -> 10f59f8378b16dba
+     #/?path=components/ntimecontextbar/ntimecontextbar/states     -> 4904f8c56458ac5c
+     three distinct hashes, knobs panel populated, component rendered.
+
+IMPACT: anyone (QA, ux-review, a reviewer following the catalog) who opens a
+cataloged deep link is shown the landing page and may believe they are looking
+at the component. Identical hashes across different links are the only tell.
+
+WHERE: packages/nears_dls/catalog.yaml (all ~45 entries, generated) — the fix
+belongs in the catalog generator, or in widgetbook/lib/main.dart by opting into
+usePathUrlStrategy(). NEARS-1572's three new entries inherit the existing
+convention; they are not the cause.
+
+SEVERITY: Medium. Tooling/verification integrity, no product-code impact.
