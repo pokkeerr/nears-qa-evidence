@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1573
 
-**FAIL — AC4 closed-store item addable; StoreCard name overlaps favourite in the compressed 2-up**
+**DELTA cycle 1 PASS — TB3, TB4 and AC4b all verified live; no new failures**
 
-**34 screenshot(s).** Click any thumbnail for full resolution.
+**40 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -57,6 +57,16 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="bug-storelist-failure-shows-wrong-empty-state.png"><img src="bug-storelist-failure-shows-wrong-empty-state.png" width="240"></a><br><sub>bug storelist failure shows wrong empty state</sub></td>
+<td align="center" width="33%"><a href="delta-ac4b-closed-item-inert.png"><img src="delta-ac4b-closed-item-inert.png" width="240"></a><br><sub>delta ac4b closed item inert</sub></td>
+<td align="center" width="33%"><a href="delta-ac4b-closed-vs-open-add-control.png"><img src="delta-ac4b-closed-vs-open-add-control.png" width="240"></a><br><sub>delta ac4b closed vs open add control</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-empty-healthy-still-location-copy.png"><img src="delta-empty-healthy-still-location-copy.png" width="240"></a><br><sub>delta empty healthy still location copy</sub></td>
+<td align="center" width="33%"><a href="delta-tb3-closed-store-in-grid.png"><img src="delta-tb3-closed-store-in-grid.png" width="240"></a><br><sub>delta tb3 closed store in grid</sub></td>
+<td align="center" width="33%"><a href="delta-tb4-error-retry-state.png"><img src="delta-tb4-error-retry-state.png" width="240"></a><br><sub>delta tb4 error retry state</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-tb4-retry-recovered.png"><img src="delta-tb4-retry-recovered.png" width="240"></a><br><sub>delta tb4 retry recovered</sub></td>
 <td align="center" width="33%"><a href="reg-food-home-mid.png"><img src="reg-food-home-mid.png" width="240"></a><br><sub>reg food home mid</sub></td>
 <td align="center" width="33%"><a href="reg-food-home-top.png"><img src="reg-food-home-top.png" width="240"></a><br><sub>reg food home top</sub></td>
 </tr>
@@ -69,6 +79,7 @@
 - [`ac6c-coldopen-flash-frame-analysis.log`](ac6c-coldopen-flash-frame-analysis.log)
 - [`bug-available-near-you-omits-nearer-stores.log`](bug-available-near-you-omits-nearer-stores.log)
 - [`bug-storelist-failure-shows-wrong-empty-state.log`](bug-storelist-failure-shows-wrong-empty-state.log)
+- [`delta-cycle1-verification.log`](delta-cycle1-verification.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1573/` · public-repo scrub policy (no live secrets; verified clean).*

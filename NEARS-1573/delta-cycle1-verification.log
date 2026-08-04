@@ -1,0 +1,92 @@
+NEARS-1573 — DELTA RE-QA cycle 1, verification record
+Build: worktree /Users/Apple/Projects/nears-NEARS-1573-grocery-home @ c465685b
+       (= 96538286 fix + c465685b test-only commit), Flutter 3.41.9, freshly built and installed.
+Device: emulator-5554 only (emulator-5556 still ~549MB free — below the ~570MB that already failed
+        on NEARS-1534 — and not mine to reclaim; same call as cycle 0, stated rather than worked around).
+
+--------------------------------------------------------------------------------
+TB3 — the dropped closed store (zone 2, customer@nears.com, saved address id 45)
+
+GRID ("Available Near You"), a11y text of all six tiles:
+  Abu Dhabi Fresh Market | Al Wahda Mall, Abu Dhabi | 30-60 | 0.00 KM FROM YOU | CLOSED
+  Fresh local            | 2-3 HOURS | 0.73 KM FROM YOU | CLOSES 23:59
+  Supermarket            | 3-5 DAYS  | 4.03 KM FROM YOU | CLOSES 23:59
+  Organic Shop           | 2-3 HOURS | 4.59 KM FROM YOU | CLOSED
+  Morning Mart           | 3-5 DAYS  | 4.89 KM FROM YOU | CLOSES 23:59
+  Online market          | 2-3 HOURS | 5.40 KM FROM YOU | CLOSES 23:59
+
+ALL-STORES LIST on the same screen, same two stores:
+  CLOSED | Abu Dhabi Fresh Market | 30-60      | 0.0 km | Closed
+  CLOSED | Organic Shop           | 2-3 hours  | 4.6 km | Closed
+
+=> My cycle-0 symptom is gone. The 0.00 km store I found rendering "0.0 km / CLOSED" in the list
+   while absent from the grid now appears in BOTH, marked closed, and it is the nearest tile.
+   Organic Shop (the other active=0 store) surfaced too. Cross-surface agreement holds.
+
+--------------------------------------------------------------------------------
+TB4 — store-list failure no longer reads as "your location is unserviceable"
+
+Harness: scripts/qa-tools/qa_fail_proxy.py (NEARS-1140), app built with
+         --dart-define=API_HOST=10.0.2.2:24318 so the proxy is in-path; passthrough by default.
+         `adb reverse` cannot be used for this app — it reaches the host via 10.0.2.2, which
+         bypasses the reverse tunnel entirely.
+
+(a) FAILURE COPY — fault ON (500 on /stores/get-stores/all), cache-free cold load:
+      "Couldn't load stores. Pull down to refresh."
+      "Please check your connection and try again"
+      "Retry"
+    grep for the location copy on the same screen: 0 matches for
+      "service not available in this area" / "change your delivery location" / "Change Location".
+    App log: [FAIL] endpoint=/api/v1/stores/get-stores/all http_status=500 type=ApiFailure
+
+(b) RETRY RECOVERS — cleared the rule, tapped Retry: the grid returned with all six tiles
+    (0.36 / 0.39 / 0.91 / 1.19 / 3.84 / 4.49 KM FROM YOU, mixed CLOSES / OPENS chips).
+
+(c) COLD LOAD NEVER FLASHES THE ERROR — 3 healthy cold opens under a throttled network
+    (adb emu network speed edge / delay gprs), 26 back-to-back screencaps each = 78 frames,
+    each scored by mean-absolute-difference against the captured ERROR-state frame:
+      run 1: 29.9 19.2 19.3 19.3 19.3 19.3 19.3 19.3 19.2 19.2 19.2 19.3 19.3 19.3 19.3 20.9 27.4 27.4 28.3 32.1 38.4 41.2 41.5 41.5 41.5 41.5
+      run 2: 29.9 19.2 19.3 19.3 19.3 19.3 19.3 19.3 19.2 19.2 19.2 19.3 19.3 19.3 19.3 19.3 19.3 27.4 27.5 28.7 33.7 38.6 41.4 41.5 41.5 41.5
+      run 3: 29.9 19.2 19.3 19.3 19.3 19.3 19.3 19.3 19.2 19.2 19.2 19.2 19.3 20.9 27.4 27.4 28.1 31.6 37.8 40.9 41.5 41.5 41.5 41.5 41.5 41.5
+    frames matching the ERROR state (MAD<12): NONE, any run.
+    Re-scored the same 78 frames against the EMPTY-state reference: NONE either.
+    Plateaus: 29.9 chooser -> 19.2/19.3 loading (~14 consecutive frames per run) -> 41.5 loaded.
+
+(d) THE NEW BRANCH DID NOT SWALLOW THE OLD ONE — healthy API, all zone-1 stores closed
+    (clock at UTC+14). Checked by the COPY the user reads, not the widget type:
+      "Service not available in this area"
+      "Please change your delivery location to access our services"
+      "Change Location"
+    and zero matches for "couldn't" / "retry" / "check your connection" / "refresh".
+
+--------------------------------------------------------------------------------
+AC4b — quick-add blocked on a closed store's item (zone 1, clock 22:12 so Fresh Mart Grocery
+       is closed while Corner Grocer is open)
+
+Side by side in Trending Nearby:
+  CLOSED | FRESH MART GROCERY | Coca Cola 500ml   bounds [45,1176][650,2151]  -> NO "Add To Cart" node
+          CORNER GROCER       | Mozzarella 200g   bounds [695,1176][1299,2151] -> "Add To Cart" at [1137,2016][1269,2124]
+Visually: the closed card renders a greyed inert "+" (the same treatment out-of-stock uses); the open
+card keeps the live mint "+". delta-ac4b-closed-vs-open-add-control.png
+
+LEAK CHECK — flag defaults false, other surfaces unchanged:
+  item_view_all_screen ("See All"): the SAME Coca Cola card still shows the CLOSED veil AND retains
+    "Add To Cart" at [488,1608][620,1716] inside its bounds [45,768][650,1743].
+  "Reorder your usuals" shelf: ABU DHABI FRESH MARKET / Orange Juice 1L card at [45,1896][540,2715]
+    retains "Add To Cart" at [348,2580][480,2688].
+
+--------------------------------------------------------------------------------
+TARGETED SWEEP of the fixed area (the screen was refactored into _content())
+
+Composition intact, top to bottom: Flash Sale -> Reorder your usuals -> Categories ->
+Available Near You -> Trending Nearby. Flash-sale header nodes on the screen: exactly 1.
+AC3 mixed re-proven in BOTH zones (zone 1 OPENS 08:00 / OPENS 09:00 / CLOSES 23:00; zone 2 CLOSED
+chips beside CLOSES 23:59). AC6 empty state re-proven. Guest and logged-in both exercised.
+
+SUITE: 2700 passed / 2 skipped / 6 failed. Failure NAME-SET byte-identical to baseline
+(coupon_controller_test x3, category_screen_back_button_test x1, dls_golden_test x2). No new failures.
+(The count differs from the 2695 quoted in the packet because c465685b — the test-only commit on top
+of 96538286 — adds tests; the name-set gate is unaffected.)
+
+TB2 (nearest-of-page-1) recognised, NOT re-reported per instruction: the zone-2 grid still omits the
+NEARS600 store at 4.34 km while showing 4.59 / 4.89 / 5.40 km tiles.
