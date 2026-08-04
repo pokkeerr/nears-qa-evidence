@@ -1,0 +1,25 @@
+NEARS-1573 — a store-list NETWORK FAILURE renders the AC6 "nothing open nearby" message
+Code-derived (not device-reproduced: could not cut the app's API without a rebuild; see QA notes).
+
+UserApp/lib/features/store/controllers/store_controller.dart, getStoreList():
+    if (storeModel == null && offset == 1 && emptyOnClientFailure && _storeModel == null) {
+      // NEARS-603/671: a null client model = network failure ...
+      _storeModel = StoreModel(stores: <Store>[], totalSize: 0, offset: 1);
+      _storeLoadFailed = true;
+      update();
+    }
+
+UserApp/lib/features/home/controllers/home_controller.dart:211 loads the module-home store list with
+    emptyOnClientFailure: true
+
+Consequence for the new gate:
+    hasOpenStoreNearby -> activeStoresIncludingClosed(<empty list>) -> [] (non-null)
+                       -> [].any(...) -> FALSE
+    grocery_home_screen.dart: `if (storeController.hasOpenStoreNearby == false) return _NothingOpenNearbyView();`
+=> On a transient store-list network failure the whole grocery module body is replaced with
+   "Service not available in this area / Please change your delivery location", steering the customer
+   to change their address for what is a connectivity error.
+
+The distinguishing flag already exists and is already consumed elsewhere on the SAME screen:
+   StoreController.storeLoadFailed -> home_screen.dart:485 passes it to the all-stores ItemView
+   (NEARS-603 / NEARS-671 precedent). The new gate does not read it.

@@ -1,0 +1,33 @@
+NEARS-1573 — "Available Near You" is not the 6 nearest stores
+Device: emulator-5554 · build from worktree feat/NEARS-1573-grocery-home @ b4dcceea
+Address: customer@nears.com saved address id 45 (24.453884, 54.3773438) — zone 2, module 1 (Grocery & Food)
+
+Grid rendered (6 tiles, ascending):
+  0.73 KM  Fresh local
+  4.03 KM  Supermarket
+  4.88 KM  Morning Mart
+  5.40 KM  Online market
+  6.71 KM  Smart Shopping
+  7.23 KM  Fresh supermarket
+
+Store-list API for the same zone/module (GET /api/v1/stores/get-stores/all, zoneId [2], moduleId 1):
+  id 4117  NEARS600 Offers QA Store       active=True  open=1   lat 24.45  lng 54.42   -> 4.35 km from origin
+  id 4118  NEARS600 Zero Offer QA Store   active=True  open=1   lat 24.46  lng 54.43   -> 5.38 km from origin
+Both are NEARER than three of the six tiles shown (5.40 / 6.71 / 7.23) and both are ACTIVE and OPEN.
+Both appear in the paginated all-stores list further down the SAME screen ("19 stores near you"),
+so they are reachable data, not out-of-zone.
+Re-checked AFTER scrolling the all-stores list far enough to page in the later offsets: the grid
+still showed the identical six tiles.
+
+Cause (code): AvailableNearYouView sorts/caps StoreController.storeModel!.stores, which is the
+paginated home store list (store_repository.dart: limit=12 per page). The "nearest 6" is therefore
+the nearest 6 OF THE LOADED PAGE(S), not of the zone.
+
+Second, related omission on the same surface:
+  id 8  Abu Dhabi Fresh Market  active=False  open=0  lat 24.4539 lng 54.3773  -> 0.0 km (the literal nearest store)
+  id 9  Organic Shop            active=False  open=0
+StoreController.activeStoresIncludingClosed() drops `active == false`, so the 0.0 km store is absent
+from the grid — while the all-stores list directly below it renders that same store as
+"Abu Dhabi Fresh Market · 0.0 km · CLOSED / Closed"
+(StoreCard -> isStoreOpenNow -> isStoreClosed returns true for !active, i.e. the app's own vocabulary
+calls an inactive store "Closed"). See bug-nearest-closed-store-dropped.png.
