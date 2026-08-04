@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1573
 
-**FAIL — AC4 quick-add adds a CLOSED store's item; AC3 grid omits nearer/closed stores**
+**FAIL — AC4 closed-store item addable; store-list 500 renders the AC6 empty state (live repro added)**
 
-**26 screenshot(s).** Click any thumbnail for full resolution.
+**27 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -43,9 +43,10 @@
 <tr>
 <td align="center" width="33%"><a href="bug-itemcard-overflow-ar-13x.png"><img src="bug-itemcard-overflow-ar-13x.png" width="240"></a><br><sub>bug itemcard overflow ar 13x</sub></td>
 <td align="center" width="33%"><a href="bug-nearest-closed-store-dropped.png"><img src="bug-nearest-closed-store-dropped.png" width="240"></a><br><sub>bug nearest closed store dropped</sub></td>
-<td align="center" width="33%"><a href="reg-food-home-mid.png"><img src="reg-food-home-mid.png" width="240"></a><br><sub>reg food home mid</sub></td>
+<td align="center" width="33%"><a href="bug-storelist-failure-shows-wrong-empty-state.png"><img src="bug-storelist-failure-shows-wrong-empty-state.png" width="240"></a><br><sub>bug storelist failure shows wrong empty state</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="reg-food-home-mid.png"><img src="reg-food-home-mid.png" width="240"></a><br><sub>reg food home mid</sub></td>
 <td align="center" width="33%"><a href="reg-food-home-top.png"><img src="reg-food-home-top.png" width="240"></a><br><sub>reg food home top</sub></td>
 <td align="center" width="33%"><a href="reg-pharmacy-home.png"><img src="reg-pharmacy-home.png" width="240"></a><br><sub>reg pharmacy home</sub></td>
 </tr>
