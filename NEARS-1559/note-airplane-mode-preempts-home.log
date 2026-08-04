@@ -1,0 +1,18 @@
+NEARS-1559 QA - method note (why the offline ACs were driven by cutting the API, not by airplane mode)
+
+First attempt: adb shell cmd connectivity airplane-mode enable + svc wifi/data disable, then
+pull-to-refresh on Home. Result: the app left Home entirely and rendered its global
+"No internet connection / Oops! / Try Again" screen (see
+note-airplane-mode-shows-global-no-internet-screen.png). That screen is driven by the splash-level
+connectivity_plus listener (UserApp/lib/features/splash/screens/splash_screen.dart), which
+pre-empts Home before the header's own offline arms can be exercised.
+
+So an OS-level network kill cannot reach HomeAppBar's warm-cache / no-cache arms at all.
+The offline ACs were instead driven by keeping the network interface UP and making the API
+unreachable, which is what actually produces a failed fetch on a live Home:
+
+  build:  flutter run --dart-define=API_HOST=localhost:8000
+  online: adb reverse tcp:8000 tcp:8000
+  offline: adb reverse --remove tcp:8000     (device: "nc 127.0.0.1 8000" -> Connection refused)
+
+The shared dev backend on port 8000 was never stopped - other sessions were unaffected.

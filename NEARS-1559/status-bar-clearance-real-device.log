@@ -1,0 +1,17 @@
+NEARS-1559 - status-bar clearance on a REAL device (emulator-5554, 1344x2992 @480dpi)
+MediaQuery.padding.top here = 53.0 logical (the unit tests pin a synthetic 24).
+Expected: HomeAppBar = 53 (hoisted navy inset) + 78 (NModuleRow) + 60 (NAppBar) = 191.0,
+and NAppBar's OWN box must be exactly 60 - i.e. removePadding(removeTop:true) stopped it
+re-baking the inset. A double-count would make it 113 and push the row under the glyphs.
+
+  creator: _SliverFloatingPersistentHeader ← SliverPersistentHeader
+  geometry: SliverGeometry(scrollExtent: 191.0, paintExtent: 191.0,
+  maxExtent: 191.0
+  creator: AnnotatedRegion<SystemUiOverlayStyle> ← HomeAppBar ←
+  size: Size(448.0, 191.0)
+  creator: Column ← GetBuilder<CartController> ←
+  size: Size(448.0, 191.0)
+  child 1: _RenderColoredBox#28d21 relayoutBoundary=up4
+  creator: ColoredBox ← Column ← GetBuilder<CartController> ←
+  size: Size(448.0, 53.0)
+  creator: SizedBox ← ColoredBox ← Column ←

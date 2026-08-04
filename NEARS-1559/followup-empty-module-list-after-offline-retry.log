@@ -1,0 +1,32 @@
+NEARS-1559 QA - FOLLOW-UP OBSERVATION (regression-candidate, NOT reproduced, NOT attributed to this diff)
+
+Observed once on emulator-5554 during artificial offline manipulation:
+
+  1. online, zone with 3 modules: _moduleList = List(len=3), row shows 3 tiles
+  2. API cut (adb reverse --remove tcp:8000; interface still up, socket refused)
+  3. tapped a DIFFERENT module tile in the row -> module switched fine (PharmacyHomeScreen),
+     but _moduleList went null and _moduleFetchFailed went true
+     -> row correctly showed its in-band "Something went wrong" + "Retry" (this part is CORRECT,
+        and is the AC's no-cache arm working as specified)
+  4. API restored, tapped "Retry" -> /api/v1/module returned 200
+     -> but _moduleList came back as List(len=0), _moduleFetchFailed=false, _zoneModulesSettled=true
+     -> NModuleRow unmounted entirely: no tiles, no error, no retry. Header collapsed to 113.0.
+  5. a subsequent ONLINE pull-to-refresh did NOT recover it - still len=0
+  6. only am force-stop + relaunch restored List(len=3)
+
+At step 4-5 LocationController showed _inZone=true, _zoneID=400.
+Backend directly:  curl -H "zoneId: [400]" /api/v1/module -> 1 module
+                   curl -H "zoneId: [2]"   /api/v1/module -> 4 modules
+So zone 400 genuinely is a single/near-empty-module zone, and NModuleRow hiding on a
+0/1-length list is CORRECT per HomeAppBar.rowVisible (>= 2).
+
+Why this is NOT filed against NEARS-1559:
+  - the diff only recomposes the header; it does not touch zone resolution or _prepareModuleList
+  - the row's hide-on-<2 behaviour is the specified behaviour
+  - the underlying zone flip is pre-existing overlapping-zone behaviour (an address can carry
+    several zone_ids), not introduced here
+  - I did NOT reproduce it, so it is not raised as a regression_bug either
+
+Worth a look by whoever owns zone resolution: a user who hits a transient module-fetch failure can
+end up parked in a zone whose module list is empty, with the switcher silently gone and no retry
+affordance, until the app is restarted.
