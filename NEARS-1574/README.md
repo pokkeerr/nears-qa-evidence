@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1574
 
-**PASS (with 1 unverifiable) — Food Home rebuild + NEARS-1582 cuisine taxonomy, emulator-5556, zone 1 + zone 2**
+**PASS — Food Home rebuild + NEARS-1582 cuisine taxonomy**
 
 **8 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -20,6 +20,9 @@
 <td align="center" width="33%"><a href="zone2-american-section-local-inactive-store47.png"><img src="zone2-american-section-local-inactive-store47.png" width="240"></a><br><sub>zone2 american section local inactive store47</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`bug-campaign-screen-rtl-overflow.log`](bug-campaign-screen-rtl-overflow.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1574/` · public-repo scrub policy (no live secrets; verified clean).*

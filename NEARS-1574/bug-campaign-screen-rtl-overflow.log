@@ -1,0 +1,17 @@
+Pre-existing (NOT introduced by NEARS-1574) — RenderFlex overflow in campaign screen under RTL.
+File is untouched by this ticket (git status clean for it on feat/NEARS-1574-food-home).
+Test still PASSES; the overflow is a rendering diagnostic printed during the test.
+
+Repro: cd UserApp && ~/Tools/flutter/bin/flutter test test/features/store/campaign_screen_reskin_test.dart
+
+  A RenderFlex overflowed by 75 pixels on the right.
+  The overflowing RenderFlex has an orientation of Axis.horizontal.
+  The specific RenderFlex in question is: RenderFlex#70102 relayoutBoundary=up16 OVERFLOWING:
+  A RenderFlex overflowed by 72 pixels on the right.
+  ...
+  textDirection: rtl
+  constraints: BoxConstraints(0.0<=w<=435.0, 0.0<=h<=Infinity)
+  size: Size(435.0, 15.0)
+
+Note: no RenderFlex/overflow was observed on the live device across the whole QA session
+(0 hits in logcat), so this is test-harness-geometry only at present.
