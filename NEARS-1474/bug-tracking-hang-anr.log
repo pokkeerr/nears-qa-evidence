@@ -1,0 +1,42 @@
+NEARS-1474 QA — regression CANDIDATE (pre-existing, NOT introduced by this ticket)
+OrderTrackingScreen can hang indefinitely when no location fix resolves.
+
+Observed once on emulator-5554 (device later found to be degraded — see note below).
+NOT reproducible on emulator-5556, where the same route loaded normally.
+
+Repro observed:
+  1. Dashboard -> running-order banner -> tap an order row (NEARS-1474 AC2 destination).
+  2. /track-order route pushed; screen renders a bare spinner.
+  3. NO /api/v1/customer/order/track request is ever issued (app log below).
+  4. Screen never resolves; input dispatch times out -> ANR.
+
+App log during the hang (emulator-5554, worktree build) — last lines before the hang;
+no track request appears at any point after the navigation:
+  I/flutter (19562): [NET] endpoint=/api/v1/module http_status=200
+  I/flutter (19562): [NET] endpoint=/api/v1/customer/order/buy-it-again http_status=200
+  I/flutter (19562): [INFO] msg="pusher init skipped: websocket disabled"
+  (no [NET] GET endpoint=/api/v1/customer/order/track — the call is never reached)
+
+System log:
+  I WindowManager: ANR in Window{82515aa u0 com.izzes.nears/com.izzes.nears.MainActivity}.
+    Reason:Input dispatching timed out (... is not responding. Waited 5001ms for KeyEvent).
+  E ActivityManager: ANR in com.izzes.nears (com.izzes.nears/.MainActivity)
+
+Code path that supports the observation (pre-existing, untouched by NEARS-1474):
+  UserApp/lib/features/order/screens/order_tracking_screen.dart  _loadData()
+    await Get.find<LocationController>().getCurrentLocation(true, notify: false, ...)
+    // wrapped in try/catch (NEARS-907) so a THROW cannot abort before trackOrder(),
+    // but there is no TIMEOUT — an await that never completes still strands the
+    // screen on its spinner and trackOrder() never runs.
+
+Device-degradation caveat (why this is a candidate, not a confirmed regression):
+emulator-5554 already had ANR traces predating this session's install
+(/data/anr/anr_2026-07-26-20-07-56, anr_2026-07-27-04-18-10, anr_2026-07-27-07-00-06,
+anr_2026-07-27-09-06-32 — the last predates the QA install at 09:06:49), and shortly
+afterwards its package manager wedged (`am start` reported
+"Activity class {com.izzes.nears/com.izzes.nears.MainActivity} does not exist" while
+`pm list packages` still listed com.izzes.nears). QA moved to emulator-5556 and
+re-demonstrated AC2 there cleanly.
+
+Scope: NOT a NEARS-1474 defect. The ticket only changes WHICH route the banner row
+opens; the hang (when it occurs) is inside the pre-existing tracking screen.
