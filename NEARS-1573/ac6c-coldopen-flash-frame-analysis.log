@@ -1,0 +1,38 @@
+NEARS-1573 — AC6 cold-open flash, frame-level check (named point)
+
+WHY NOT uiautomator: polling with `uiautomator dump` is NOT a usable instrument for this window.
+Under load the dump intermittently returns an empty tree (already filed as NEARS-1569), and it does so
+worst exactly while the app is busy resolving. A run instrumented per-sample showed 30/30 unusable
+dumps during the loading window — i.e. "zero empty-state hits" from that method would have been a
+false pass built on blank samples. Re-done with screencaps.
+
+METHOD
+  1. Reference frame of the ACTUAL empty state captured at scroll 0 in the grocery module body
+     (zone 1 Dhaka, device clock shifted to Pacific/Kiritimati so all 6 stores are closed).
+     -> ac6c-empty-state-reference-frame.png
+  2. Network throttled to widen the resolve window:  adb emu network speed edge / delay gprs
+     (473 600 bit/s, 35-200 ms latency) — the designer's "slow network" case.
+  3. 3 x cold open: force-stop -> launch -> tap Grocery -> 28 consecutive `adb exec-out screencap -p`
+     frames (no sleep; ~0.35 s/frame).
+  4. Each frame scored by mean-absolute-difference against the reference over the module-body band
+     y=700..2100 at scroll 0. Empty state would score ~0; a frame is called EMPTY if MAD < 12.
+
+RESULTS (MAD per frame, in capture order)
+run 1: 34.3 34.3 23.1 23.2 23.2 23.2 23.2 23.2 23.1 23.1 23.1 23.1 23.2 23.2 24.9 31.7 32.0 34.4 40.8 44.2 45.8 45.8 45.8 45.8 45.8 45.8 45.8 45.8
+run 2: 34.3 23.0 23.1 23.2 23.2 23.2 23.2 23.2 23.1 23.1 23.1 23.1 23.2 23.2 24.9 24.9 31.7 32.0 34.7 41.3 44.8 45.8 45.8 45.8 45.7 45.7 45.7 45.7
+run 3: 34.3 23.1 23.1 23.2 23.2 23.2 23.2 23.2 23.1 23.1 23.1 23.1 23.2 23.2 23.2 23.2 31.7 32.6 36.4 42.4 45.2 45.8 45.8 45.8 45.8 45.8 45.8 45.8
+
+  frames matching the empty state (MAD < 12):  NONE, in any run.  84 frames total.
+
+STATE READING (self-consistent, three distinct plateaus)
+  34.3  = module chooser (the frame(s) right after the tap)
+  23.1 / 23.2 = the grocery home LOADING state — held ~13 consecutive frames per run
+  45.8  = fully loaded content (identical score to the loaded reference frame)
+
+The 23.2 plateau was visually confirmed to be the real loading window, not the chooser:
+ac6c-coldopen-loading-shimmer-frame.png shows "Categories" with the 4x2 circular skeleton grid and
+"Available Near You" with the 2-up tile skeletons — i.e. the sections' own shimmers, which is what
+AC6 requires while `hasOpenStoreNearby` is null.
+
+CONCLUSION: no perceivable intermediate empty-state frame, including on a deliberately slow network,
+across 3 cold opens and ~39 frames sitting inside the loading window.
