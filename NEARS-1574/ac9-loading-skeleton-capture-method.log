@@ -1,0 +1,35 @@
+NEARS-1574 AC9 — loading branch (branch 1, hasOpenStoreNearby == null) recapture.
+
+WHY THE FIRST SHOT WAS WRONG
+The original ac9-loading-skeleton.png was DELETED. Its a11y measurement and its
+screencap were two separate adb round-trips, so the frame published was the
+CONTENT branch with flash-sale images still fetching (populated chip row + a real
+store tile reading "0.37 KM FROM YOU"), not the loading branch.
+
+INSTRUMENT THAT ACTUALLY WORKS
+Emulator-console `network delay/speed` shapes the emulated RADIO; the app reaches
+the host at 10.0.2.2 over a route that shaping does not slow, so the branch-1
+window stayed shorter than one uiautomator dump cycle (~1-2s) even at
+`delay gprs / speed gsm`. What works:
+  1. Let the app fully load the MODULE SELECTOR first (module data cached).
+  2. `kill -STOP <backend pid holding :8010>`  -> the store fetch hangs.
+  3. Tap into Food & Restaurant. storeModel stays null -> branch 1 holds open.
+  4. `kill -CONT` afterwards.
+(Suspending the backend BEFORE a cold start does not work: it stalls the module
+gate before the Food home ever mounts.)
+
+PROOF THE FRAME IS INSIDE THE WINDOW (sandwich capture)
+a11y dumped immediately BEFORE and immediately AFTER the screencap; the frame is
+kept only if BOTH satisfy the branch-1 signature. Both dumps came back
+byte-identical: xml_sha=3711a84f5d, 16 labelled nodes.
+
+BRANCH-1 SIGNATURE VERIFIED (spec section 5 branch table)
+  present : "Dinner spots near you" (bar reads the clock, not the network)
+  present : "Open Now Near You"
+  present : "Fastest Delivery" + "Same restaurants, sorted by delivery speed"
+  ABSENT  : "Filter by cuisine" and every cuisine chip  -> chip row self-hidden
+  ABSENT  : any "KM FROM YOU" / "CLOSES" / store name   -> no real store text
+  ~744px of unlabelled space between the header and "Fastest Delivery" = the
+  three shape-matched _StoreTileSkeletons (skeletons carry no a11y labels).
+Visual confirm: 3 shape-matched tile skeletons (image block + 2 text lines) under
+"Open Now Near You", horizontal rail placeholders under "Fastest Delivery".
