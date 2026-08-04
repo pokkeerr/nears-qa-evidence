@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1573
 
-**Cycle 2 layout PASS — TB5 gone at 1-column; meta chips now show the closing time**
+**Cycle 2 + pull-to-refresh addendum — copy is honest, both routes recover**
 
-**50 screenshot(s).** Click any thumbnail for full resolution.
+**51 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -67,25 +67,26 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="c2-bn-13x-zoom.png"><img src="c2-bn-13x-zoom.png" width="240"></a><br><sub>c2 bn 13x zoom</sub></td>
+<td align="center" width="33%"><a href="c2-pulltorefresh-recovered.png"><img src="c2-pulltorefresh-recovered.png" width="240"></a><br><sub>c2 pulltorefresh recovered</sub></td>
 <td align="center" width="33%"><a href="c2-rtl-ar-13x-zoom.png"><img src="c2-rtl-ar-13x-zoom.png" width="240"></a><br><sub>c2 rtl ar 13x zoom</sub></td>
-<td align="center" width="33%"><a href="c2-rtl-ar-1x-zoom.png"><img src="c2-rtl-ar-1x-zoom.png" width="240"></a><br><sub>c2 rtl ar 1x zoom</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="c2-rtl-ar-1x-zoom.png"><img src="c2-rtl-ar-1x-zoom.png" width="240"></a><br><sub>c2 rtl ar 1x zoom</sub></td>
 <td align="center" width="33%"><a href="c2-tb5-fixed-en-13x-zoom.png"><img src="c2-tb5-fixed-en-13x-zoom.png" width="240"></a><br><sub>c2 tb5 fixed en 13x zoom</sub></td>
 <td align="center" width="33%"><a href="c2-tb5-fixed-en-1x-zoom.png"><img src="c2-tb5-fixed-en-1x-zoom.png" width="240"></a><br><sub>c2 tb5 fixed en 1x zoom</sub></td>
-<td align="center" width="33%"><a href="delta-ac4b-closed-item-inert.png"><img src="delta-ac4b-closed-item-inert.png" width="240"></a><br><sub>delta ac4b closed item inert</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="delta-ac4b-closed-item-inert.png"><img src="delta-ac4b-closed-item-inert.png" width="240"></a><br><sub>delta ac4b closed item inert</sub></td>
 <td align="center" width="33%"><a href="delta-ac4b-closed-vs-open-add-control.png"><img src="delta-ac4b-closed-vs-open-add-control.png" width="240"></a><br><sub>delta ac4b closed vs open add control</sub></td>
 <td align="center" width="33%"><a href="delta-empty-healthy-still-location-copy.png"><img src="delta-empty-healthy-still-location-copy.png" width="240"></a><br><sub>delta empty healthy still location copy</sub></td>
-<td align="center" width="33%"><a href="delta-tb3-closed-store-in-grid.png"><img src="delta-tb3-closed-store-in-grid.png" width="240"></a><br><sub>delta tb3 closed store in grid</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="delta-tb3-closed-store-in-grid.png"><img src="delta-tb3-closed-store-in-grid.png" width="240"></a><br><sub>delta tb3 closed store in grid</sub></td>
 <td align="center" width="33%"><a href="delta-tb4-error-retry-state.png"><img src="delta-tb4-error-retry-state.png" width="240"></a><br><sub>delta tb4 error retry state</sub></td>
 <td align="center" width="33%"><a href="delta-tb4-retry-recovered.png"><img src="delta-tb4-retry-recovered.png" width="240"></a><br><sub>delta tb4 retry recovered</sub></td>
-<td align="center" width="33%"><a href="reg-food-home-mid.png"><img src="reg-food-home-mid.png" width="240"></a><br><sub>reg food home mid</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="reg-food-home-mid.png"><img src="reg-food-home-mid.png" width="240"></a><br><sub>reg food home mid</sub></td>
 <td align="center" width="33%"><a href="reg-food-home-top.png"><img src="reg-food-home-top.png" width="240"></a><br><sub>reg food home top</sub></td>
 <td align="center" width="33%"><a href="reg-pharmacy-home.png"><img src="reg-pharmacy-home.png" width="240"></a><br><sub>reg pharmacy home</sub></td>
 </tr>

@@ -41,3 +41,32 @@ EXPECTED, NOT FILED
 
 SUITE: 2700 passed / 2 skipped / 6 failed, failure name-set byte-identical to baseline
   (coupon_controller_test x3, category_screen_back_button_test x1, dls_golden_test x2).
+
+--------------------------------------------------------------------------------
+ADDENDUM — does pull-to-refresh actually work from the error state?
+(The copy promises it; the control offered is a Retry button. Checked directly.)
+
+Setup: build @ 4c5815fc with --dart-define=API_HOST=10.0.2.2:24318, fault proxy in path,
+       pm clear first so there is no local store cache, guest, zone 1.
+Host: home_screen.dart wraps the whole CustomScrollView in a RefreshIndicator
+      (onRefresh -> HomeController.refreshHomeData()) with AlwaysScrollableScrollPhysics,
+      so a pull is available even when the body is short.
+
+PULL 1 — fault still ON (500 on /stores/get-stores/all):
+  [NET]  GET endpoint=/api/v1/stores/get-stores/all
+  [NET]  endpoint=/api/v1/stores/get-stores/all http_status=500
+  [FAIL] endpoint=/api/v1/stores/get-stores/all http_status=500 type=ApiFailure
+  Screen: error view correctly PERSISTS ("Couldn't load stores…" / "Please check your
+  connection and try again" / "Retry"). So the gesture fires a real refetch, and a still-failing
+  refetch does not fall through to some other state.
+
+PULL 2 — fault cleared, same screen, same gesture:
+  [NET]  GET endpoint=/api/v1/stores/get-stores/all
+  [NET]  endpoint=/api/v1/stores/get-stores/all http_status=200
+  Screen: full content returns — Flash Sale, Categories, and Available Near You with all six
+  tiles (0.36 / 0.39 / 0.91 / 1.19 / 3.84 / 4.49 KM FROM YOU).
+
+CONCLUSION: the copy is HONEST — pull-to-refresh genuinely recovers from this state, and so does
+the Retry button (verified in cycle 1). Both routes work. The finding is therefore purely cosmetic:
+two working affordances described inconsistently, not an instruction that misleads. Downgrading my
+own earlier framing accordingly.
