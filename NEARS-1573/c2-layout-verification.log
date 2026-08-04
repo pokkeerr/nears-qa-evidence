@@ -1,0 +1,43 @@
+NEARS-1573 — fix-cycle 2 layout pass (1-column Available Near You)
+Build: worktree @ 4c5815fc, freshly built and installed on emulator-5554.
+emulator-5556 still ~549MB free — single-emulator again, same call, stated not worked around.
+
+CARD WIDTH — measured, not inferred
+  Tile a11y bounds: [45,2799][1299,2920]  ->  1299-45 = 1254 px
+  Emulator is 1344 px / 448 dp  ->  density 3.0  ->  1254 / 3 = 418 dp
+  Matches the engineer's pin exactly. The internal SizedBox(width:300) does NOT win: the cell's
+  tight constraint overrides it, so the card really is 418 dp and the name really did gain width.
+
+TB5 SYMPTOMS — both gone
+  en 1.0x  "Corner Grocer" renders IN FULL, no mid-word truncation, clear gap before the heart.
+           Address "Corner Grocer, Downtown" also full. (c2-tb5-fixed-en-1x-zoom.png)
+  en 1.3x  "Fresh Mart Grocery" (longest zone-1 name) renders IN FULL, clear gap before the heart,
+           NO glyph drawn under it. Address "123 Market Street, Downtown" full.
+           (c2-tb5-fixed-en-13x-zoom.png)
+
+META-CHIP TRUNCATION — reported as its own result, observed on device, not inferred from the width
+  This was "0.36 KM F..." / "CLOSES 23:..." at 2-up, hiding the actual closing time.
+  At 1-column it is RESOLVED in every combination checked:
+    en 1.0x   "0.36 KM FROM YOU"   "CLOSES 23:00"
+    en 1.3x   "4.49 KM FROM YOU"   "CLOSES 22:00"
+    ar 1.0x   "0.91 كم منك"        "يغلق 23:00"
+    ar 1.3x   "4.49 كم منك"        "يغلق 22:00"
+    bn 1.3x   "0.39 কিমি দূরে"      "বন্ধ হয় 23:00"
+  Every chip renders complete — no ellipsis, no collision — and the closing TIME is legible in all
+  five. The designer's prediction holds; this is the direct check it asked for.
+
+RTL / ARABIC at the new width
+  Fully mirrored at both scales: logo right, favourite left, distance chip right, status chip left,
+  section header right-aligned. Names and addresses complete. (c2-rtl-ar-1x-zoom.png, c2-rtl-ar-13x-zoom.png)
+
+OVERFLOW
+  adb logcat grepped for RenderFlex/overflowed after each locale+scale render: 0 lines, every time.
+  (Noting as before that this is NOT by itself evidence of no clipping — it was 0 while TB5 was live.
+  The visual checks above are what carry this result.)
+
+EXPECTED, NOT FILED
+  The section is visibly taller — six full-width tiles stack where three rows of two sat before, so
+  Trending Nearby and the lower flash slot move further down the scroll. Per the packet.
+
+SUITE: 2700 passed / 2 skipped / 6 failed, failure name-set byte-identical to baseline
+  (coupon_controller_test x3, category_screen_back_button_test x1, dls_golden_test x2).
