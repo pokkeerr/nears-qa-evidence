@@ -1,0 +1,28 @@
+NEARS-1575 QA — regression (pre-existing DLS defect, newly surfaced by this call site)
+Device emulator-5556, density 480dpi (px/3 = dp). Screen 1344x2992px = 448x997dp.
+
+Live a11y measurement, Pharmacy home, "Open 24h" chip SELECTED (uiautomator, unclipped —
+node lies wholly inside the chip band, no sticky-header intersection):
+
+  'Open 24h'      y=1294-1426  (44dp)  x=352-666   clk=true  View     <- chip body, meets floor
+  'Clear Filter'  y=1339-1381  (14dp)  x=588-630   clk=true  Button   <- remove glyph, BELOW floor
+
+Source (packages/nears_dls/lib/elements/nfilterchip/n_filter_chip.dart), unmodified by this
+branch (`git diff --stat e2e18cc1 -- packages/nears_dls` is empty):
+
+    if (onRemove != null) ...[
+      Semantics(
+        button: true,
+        label: removeSemanticLabel,
+        child: GestureDetector(
+          onTap: onRemove,
+          behavior: HitTestBehavior.opaque,
+          child: NIcon('close', px: 14, color: foreground),   // no padding / no min size
+        ),
+      ),
+    ],
+
+The GestureDetector wraps the 14px glyph directly, so the hit area IS 14dp — matching the
+measured node exactly. NOT AC-breaking: the chip's own 44dp body performs the same action
+(onTap toggles the selected chip back to unfiltered, verified live), so the small glyph is a
+redundant affordance, not the only way to clear.

@@ -1,0 +1,24 @@
+NEARS-1575 QA — pre-existing test failures (NOT caused by this change)
+
+Branch feat/NEARS-1575-pharmacy-home:  flutter test -> +2837 ~2 -6  (TEST_EXIT=1)
+Failing tests:
+  1. test/features/category/category_screen_back_button_test.dart :: standalone variant:
+     showBackButton true => back arrow present (deep link)
+  2-4. test/features/coupon/coupon_controller_test.dart :: applyCoupon min-purchase not met…
+       / applyTaxiCoupon below min-purchase (UC-03) / NEARS-382 UC-07 free_delivery coupon
+  5-6. test/golden/dls_golden_test.dart :: DLS components — light theme (variant: CI)
+       / dark theme (variant: CI)
+
+Falsifiable attribution — same tests re-run on a clean detached worktree at the BASE commit
+e2e18cc1 (git worktree add … --detach; flutter pub get):
+  base: test/features/category/…back_button + test/features/coupon/… ->  +20 -4  (same 4 fail)
+  base: test/golden/dls_golden_test.dart                              ->  +0  -2  (same 2 fail)
+All 6 reproduce at base => pre-existing, unrelated to NEARS-1575.
+
+This ticket's own 5 test files pass in full:
+  test/features/home/pharmacy_home_composition_test.dart
+  test/features/home/pharmacy_nearby_view_test.dart
+  test/features/home/pharmacy_otc_rail_test.dart
+  test/features/home/pharmacy_urgent_fallback_test.dart
+  test/features/store/pharmacy_open_predicates_test.dart
+  -> 00:03 +68: All tests passed!

@@ -1,0 +1,23 @@
+NEARS-1575 QA — task bug: every OTC rail chip renders the unknown-glyph "?" (Symbols.help)
+
+Live: Pharmacy home, "Shop OTC essentials" rail, all 5 chips (Pain Relief, Cold & Flu,
+Vitamins & Supplements, First Aid, Personal Care) show a circled "?" where the spec (§7)
+specifies an NIcon. See bug-otc-rail-unknown-icon-glyph.png.
+
+Chain, verified end to end:
+  1. DB: `SELECT icon_key FROM categories WHERE module_id=3` -> NULL on all 5 rows.
+  2. Call site (UserApp/lib/features/home/widgets/views/pharmacy_otc_rail_view.dart):
+        NIcon(NIcon.hasIcon(category.iconKey) ? category.iconKey : 'category', px: 16, …)
+     iconKey is NULL -> hasIcon false -> the literal 'category' is passed.
+  3. NIcon's own name map does NOT contain 'category'
+     (`grep -c "^\s*'category':" n_icon.dart` -> 0).
+  4. NIcon._resolve():  `return _names[name] ?? Symbols.help;`  -> Symbols.help = circled "?".
+
+NIcon's own doc comment names this exact failure:
+  "Gate on THIS [hasIcon], not on [_resolve] (which yields `Symbols.help` for unknowns), so an
+   unknown key falls through to the image fallback instead of rendering a `?`."
+The call site gates on hasIcon correctly, then substitutes a hardcoded fallback key that is
+itself unknown — defeating the guard it just used and producing precisely the "?" documented.
+
+Runtime logs are CLEAN for this path (0 [FAIL]/[ERR] in 225 flutter lines) — it is a silent
+visual defect, which is why it needs the screenshot rather than a log line.
