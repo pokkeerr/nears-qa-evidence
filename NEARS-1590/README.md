@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1590
 
-**PASS — 7/7 ACs demonstrated live on emulator-5556 (Food + legacy Grocery + RTL + small-screen), logs clean**
+**PASS — 7/7 ACs live; + per-bug artifacts for 3 pre-existing findings**
 
-**7 screenshot(s).** Click any thumbnail for full resolution.
+**9 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -16,11 +16,15 @@
 <td align="center" width="33%"><a href="ac7-small-screen-360dp-wrap.png"><img src="ac7-small-screen-360dp-wrap.png" width="240"></a><br><sub>ac7 small screen 360dp wrap</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="bug-cart-base-price-9-vs-8.png"><img src="bug-cart-base-price-9-vs-8.png" width="240"></a><br><sub>bug cart base price 9 vs 8</sub></td>
+<td align="center" width="33%"><a href="bug-currency-zero-decimals.png"><img src="bug-currency-zero-decimals.png" width="240"></a><br><sub>bug currency zero decimals</sub></td>
 <td align="center" width="33%"><a href="rtl-arabic-chip-plus-prefix.png"><img src="rtl-arabic-chip-plus-prefix.png" width="240"></a><br><sub>rtl arabic chip plus prefix</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
+- [`bug-coupon-list-422.log`](bug-coupon-list-422.log)
+- [`bug-store4-coords-outside-zone1.log`](bug-store4-coords-outside-zone1.log)
 - [`progress.md`](progress.md)
 
 ---
