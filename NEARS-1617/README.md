@@ -1,12 +1,17 @@
 # QA Evidence — NEARS-1617
 
-**PASS (AC2 BLOCKED, config-gated) — loyalty bottom sheet DLS reskin, emulator-5556 448x997dp light**
+**AC2 re-test: sheet rendered live at true 448x997dp mobile geometry, light+dark, no overflow**
 
-**7 screenshot(s).** Click any thumbnail for full resolution.
+**10 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
 <td align="center" width="33%"><a href="ac2-BLOCKED-mobile-448x997-no-cta.png"><img src="ac2-BLOCKED-mobile-448x997-no-cta.png" width="240"></a><br><sub>ac2 BLOCKED mobile 448x997 no cta</sub></td>
+<td align="center" width="33%"><a href="ac2-retest-1-dialog-opened-desktop-1344dp.png"><img src="ac2-retest-1-dialog-opened-desktop-1344dp.png" width="240"></a><br><sub>ac2 retest 1 dialog opened desktop 1344dp</sub></td>
+<td align="center" width="33%"><a href="ac2-retest-2-MOBILE-448x997dp-LIGHT.png"><img src="ac2-retest-2-MOBILE-448x997dp-LIGHT.png" width="240"></a><br><sub>ac2 retest 2 MOBILE 448x997dp LIGHT</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="ac2-retest-3-MOBILE-448x997dp-DARK.png"><img src="ac2-retest-3-MOBILE-448x997dp-DARK.png" width="240"></a><br><sub>ac2 retest 3 MOBILE 448x997dp DARK</sub></td>
 <td align="center" width="33%"><a href="ac3-desktop-sheet-ltr-light.png"><img src="ac3-desktop-sheet-ltr-light.png" width="240"></a><br><sub>ac3 desktop sheet ltr light</sub></td>
 <td align="center" width="33%"><a href="ac4-convert-inflight-loading.png"><img src="ac4-convert-inflight-loading.png" width="240"></a><br><sub>ac4 convert inflight loading</sub></td>
 </tr>
