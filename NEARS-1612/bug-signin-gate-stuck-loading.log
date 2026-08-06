@@ -1,0 +1,42 @@
+NEARS-1612 QA (fix_cycle 1) — PRE-EXISTING defect observed during AC6 verification
+Device: emulator-5554 (Pixel_10_Pro_3, 448x997dp) | worktree build feat/NEARS-1612-access-location
+Account: emily.johnson@demo.com (user 2, ZERO saved addresses)
+
+REPRO
+1. Log out to guest.
+2. From the Access Location guest branch tap "Log in/ Sign up".
+3. Sign in as emily.johnson@demo.com / 123456789.
+4. The sign-in flow lands on AccessLocationScreen (page='sign-in' -> fromHome=false, no back chevron).
+
+OBSERVED
+The screen renders the SIGNED-IN branch with addressList == null and stays on the
+loading frame indefinitely. It never resolves to the empty state.
+
+  a11y tree (stable, re-read after 10s):
+    Loading...
+    Set From Map
+    Set Location
+    Use Current Location
+
+  logcat (adb logcat -s flutter:V), buffer cleared immediately before sign-in:
+    02:57:46.131 I flutter : [NET] POST endpoint=/api/v1/auth/login
+    02:57:47.021 I flutter : [NET] endpoint=/api/v1/auth/login http_status=200
+    02:57:48.533 I flutter : analytics: login {method: email}
+    <<< NO /api/v1/customer/address/list request is ever issued >>>
+
+ROOT CAUSE (observed, not inferred from code alone)
+initState's `if (AuthHelper.isLoggedIn()) getAddressList();` evaluates BEFORE the
+sign-in token is committed, so the fetch is skipped; the later build() re-evaluates
+isLoggedIn() as true and renders the signed-in branch against a still-null
+addressList. Nothing re-triggers the fetch.
+
+PROOF THE STATE IS RECOVERABLE (i.e. the data is fine, the trigger is missing)
+Invoking the app's own AddressController.getAddressList() resolved it immediately:
+    02:59:06.357 I flutter : [NET] GET endpoint=/api/v1/customer/address/list
+    02:59:07.000 I flutter : [NET] endpoint=/api/v1/customer/address/list http_status=200
+  -> screen then correctly rendered "No saved address found".
+
+NOT CAUSED BY THIS TICKET
+At base cba2daa3 the same addressList == null frame rendered a CircularProgressIndicator;
+the identical stall existed, only the visual differed. NEARS-1612 changed the widget in
+that frame, not the fetch trigger. Filed as pre-existing, verdict-neutral.

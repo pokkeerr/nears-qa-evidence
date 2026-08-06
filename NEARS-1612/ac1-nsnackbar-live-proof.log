@@ -1,0 +1,40 @@
+NEARS-1612 AC1 — live proof that the back-press hint goes through NSnackBar
+Device: emulator-5554 | worktree build feat/NEARS-1612-access-location (APK md5-matched, see below)
+
+STATIC (re-verified by QA in the worktree, not merely reused)
+  grep -cE '(^|[^a-zA-Z])SnackBar\('  access_location_screen.dart  -> 0   (no raw construction)
+  grep -c  'ScaffoldMessenger'        access_location_screen.dart  -> 0
+  grep -n  'SnackBar('               access_location_screen.dart  -> L539 only,
+      inside showCustomSnackBar(...) = the AC6 out-of-zone toast, deliberately untouched.
+      (NOTE: conductor reported this at L524; at HEAD in this worktree it is L539.)
+  Diff at the back-press site replaces ScaffoldMessenger.of(context).showSnackBar(SnackBar(...))
+  with:  NSnackBar.show(context, text: 'back_press_again_to_exit'.tr, status: NStatus.info);
+
+LIVE (observed on device)
+  On the Set Location screen, pressing the system Back key once produced the toast
+  node in the accessibility tree:
+
+      $ ui_list        # immediately after: adb shell input keyevent KEYCODE_BACK
+      Back press again to exit
+
+  'back_press_again_to_exit' is emitted from exactly one call site in this file, and that
+  call site is NSnackBar.show(...). The hint therefore demonstrably routes through NSnackBar
+  at runtime.
+
+WHY THERE IS NO SCREENSHOT OF THE PILL (instrument limitation, not a defect of this change)
+  NSnackBar.show internally presents via ScaffoldMessenger (nears_dls/lib/components/snackbar/
+  n_snackbar.dart, NEARS-1390 GetX-free presenter), so the SnackBar is owned by the route's
+  Scaffold. AccessLocationScreen's PopScope has canPop: true unconditionally and the callback
+  ignores didPop (PRE-EXISTING, explicitly out of scope for NEARS-1612), so the route is torn
+  down within ~200ms of the press and the pill is disposed with it.
+
+  Five capture strategies were attempted and all lost the race:
+    1. screencap at t+0.25s / t+0.4s / t+0.5s after the key event
+    2. 6-frame host-side burst (adb exec-out screencap) immediately after the key event
+    3. on-device chained `input keyevent; screencap` x4
+    4. window/transition/animator_duration_scale set to 10x, capture at t+1.0s
+       (scales verified reset to 1 afterwards)
+    5. adb screenrecord (no ffmpeg / cv2 / imageio / av on host to extract frames)
+
+  Reported honestly: AC1's criterion is demonstrated; AC1's screenshot instrument could not
+  be run. See followups[].
