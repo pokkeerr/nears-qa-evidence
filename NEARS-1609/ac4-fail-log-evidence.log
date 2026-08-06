@@ -1,0 +1,22 @@
+NEARS-1609 — AC4 live log evidence (UserApp debug, emulator-5556, 2026-08-06T22:05:17Z)
+Build: APK mtime 2026-08-07T01:51:41 from worktree nears-NEARS-1609-profile-load-failure; installed 01:51:50; app pid 32517 for whole session (no restart).
+
+--- Induced failure #1 (device wifi+data disabled; backend untouched, still UP) ---
+[FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="api request threw" correlation_id=3eae9865-e632-458d-93b2-ebaceb443470
+[FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="profile load failed"
+
+--- Induced failure #2 (reproduction) ---
+[FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="api request threw" correlation_id=9a032173-f17d-4e0a-920d-1f3a901e3387
+[FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="profile load failed"
+
+--- Recovery in the SAME session (network re-enabled, screen re-entered, no restart) ---
+[NET] endpoint=/api/v1/customer/info http_status=200
+[NET] endpoint=/api/v1/customer/info http_status=200
+[NET] endpoint=/api/v1/customer/info http_status=200
+
+PII assertion: the 'profile load failed' line carries endpoint path + http_status + exception type + generic reason ONLY.
+No name, email, phone, user id, token, or query string present. Verified by scan.
+
+Count note (EXPECTED, owner-recorded followup, not a defect): 2 [FAIL] lines per failed load —
+  1x from api_client/ApiChecker (msg="api request threw", carries correlation_id)
+  1x from ProfileController (msg="profile load failed", the NEARS-1609 addition)
