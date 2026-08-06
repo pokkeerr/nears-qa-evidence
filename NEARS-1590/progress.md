@@ -41,3 +41,40 @@ and pre-existing `[FAIL] /api/v1/coupon/list http_status=422`.
   Reported as a SKIP, not a pass; the `flutter run` log was used instead and proven live.
 - Add-on `+` had no separate a11y label (row merges name+price+button into one node); tapped via
   live-resolved node bounds, never a hardcoded coordinate.
+
+---
+
+# Cycle 2 — DELTA re-QA, AC5 only (2026-08-06)
+
+Cycle-1 AC5 was reported "PASS (known gap, as specified)" because the packet instructed me to
+accept the missing `not_selected` key. The team lead escalated it and was right: an unselected
+chip announced `'{level}, {delta}'` then fell silent, so "this option is off" was
+indistinguishable from "no information about this option". AC5 was genuinely UNMET in cycle 1.
+
+**Build freshness (proven, not assumed):** APK rebuilt from the worktree and installed 18s before
+first probe; `unzip -p app-debug.apk assets/flutter_assets/assets/language/{en,ar}.json` shows the
+new `not_selected` key INSIDE the installed artifact. Not a stale APK.
+
+| AC | Result | Evidence |
+|----|--------|----------|
+| AC5 | PASS | 7/7 Food chips + 2/2 legacy chips + 7/7 Arabic chips carry an EXACT terminal state token; 0 silent |
+
+## Matching discipline (the trap)
+`not_selected` contains `selected`, and the en VALUE "not selected" also contains "selected".
+The Arabic pair repeats it: `غير محدد` contains `محدد`. Every check therefore compares the
+**last comma-separated segment for exact equality** — never a substring/`in` test.
+
+## Observed labels
+- Food unselected: `Large, +3 AED, not selected` (delta retained, state explicit)
+- Food selected:   `Large, +3 AED, selected`
+- Legacy (no delta): `250 ml, selected` / `500 ml, not selected`
+- Arabic: `Large, +د.إ. 3, غير محدد` → `محدد` on select; raw-key leaks found: 0
+- Both directions demonstrated on Food, legacy, and Arabic.
+
+## Instrument validity
+- `uinav.sh` SOURCED, never invoked.
+- `ui_errors` NOT used — established in cycle 1 as vacuous on this emulator (0 `I/flutter` lines
+  reach its logcat buffer). Kept out of the evidence chain entirely.
+- Log instrument: `flutter run` log, 943 lines, 298 `[NET]` entries, captured `items/details/16`
+  and `/84` — proven live. Zero `[ERR]`/`[FAIL]`/overflow/exception across all of cycle 2.
+- Per-sample validity counts reported for every sweep above.

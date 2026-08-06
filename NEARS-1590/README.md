@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1590
 
-**PASS — 7/7 ACs live; + per-bug artifacts for 3 pre-existing findings**
+**Cycle 2 DELTA: AC5 PASS — explicit not_selected on both call sites, EN + AR, both directions**
 
-**9 screenshot(s).** Click any thumbnail for full resolution.
+**12 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -13,6 +13,11 @@
 <tr>
 <td align="center" width="33%"><a href="ac2-cart-edit-prepopulated.png"><img src="ac2-cart-edit-prepopulated.png" width="240"></a><br><sub>ac2 cart edit prepopulated</sub></td>
 <td align="center" width="33%"><a href="ac2-cart-line-agrees-14aed.png"><img src="ac2-cart-line-agrees-14aed.png" width="240"></a><br><sub>ac2 cart line agrees 14aed</sub></td>
+<td align="center" width="33%"><a href="ac5-arabic-not-selected-renders.png"><img src="ac5-arabic-not-selected-renders.png" width="240"></a><br><sub>ac5 arabic not selected renders</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="ac5-food-not-selected-explicit.png"><img src="ac5-food-not-selected-explicit.png" width="240"></a><br><sub>ac5 food not selected explicit</sub></td>
+<td align="center" width="33%"><a href="ac5-legacy-grocery-both-branches.png"><img src="ac5-legacy-grocery-both-branches.png" width="240"></a><br><sub>ac5 legacy grocery both branches</sub></td>
 <td align="center" width="33%"><a href="ac7-small-screen-360dp-wrap.png"><img src="ac7-small-screen-360dp-wrap.png" width="240"></a><br><sub>ac7 small screen 360dp wrap</sub></td>
 </tr>
 <tr>
