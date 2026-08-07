@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1585
 
-**FAIL — fix-cycle 1 delta re-QA: AC2 not met on the deep-link entry path (module-gated hero rows silently dropped); TB-3, AC8, 1.3x scale, category rail all clean**
+**PASS — fix-cycle 2 delta re-QA: AC2 + AC1 restored on the deep-link path via the store-payload module_type fallback; guard directions hold; fallback correctly does not fire on normal nav**
 
-**21 screenshot(s).** Click any thumbnail for full resolution.
+**23 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -39,6 +39,10 @@
 <td align="center" width="33%"><a href="cycle1-bug-unusable-schedules-false-closed.png"><img src="cycle1-bug-unusable-schedules-false-closed.png" width="240"></a><br><sub>cycle1 bug unusable schedules false closed</sub></td>
 <td align="center" width="33%"><a href="cycle1-check3-closed-store47-veil-retained.png"><img src="cycle1-check3-closed-store47-veil-retained.png" width="240"></a><br><sub>cycle1 check3 closed store47 veil retained</sub></td>
 <td align="center" width="33%"><a href="cycle1-deeplink-store6-open-nostatus-noveil.png"><img src="cycle1-deeplink-store6-open-nostatus-noveil.png" width="240"></a><br><sub>cycle1 deeplink store6 open nostatus noveil</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cycle2-ac1-deeplink-grocery-rows-restored.png"><img src="cycle2-ac1-deeplink-grocery-rows-restored.png" width="240"></a><br><sub>cycle2 ac1 deeplink grocery rows restored</sub></td>
+<td align="center" width="33%"><a href="cycle2-step3-closed-store47-veil.png"><img src="cycle2-step3-closed-store47-veil.png" width="240"></a><br><sub>cycle2 step3 closed store47 veil</sub></td>
 </tr>
 </table>
 
