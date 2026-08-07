@@ -1,0 +1,21 @@
+NEARS-1681 - frame-level evidence summary (light mode; dark deferred)
+Device emulator-5560 (AVD nears_qa_wave56), Android 17, 1344x2992 @480.
+Capture: adb screenrecord (full launch window, recorder started BEFORE the activity)
+         -> AVFoundation frame extraction at 33ms (30fps) -> per-frame detection.
+Detector: solid mint #00FF99 CTA >=800px whose pixels sit mid-screen (max y <= 0.80).
+  Validated POSITIVE on the offline run (240/240 error frames, cy=0.602).
+  Rejects the language screen's bottom 'Next' CTA and blank launch frames.
+
+RUN                                     BUILD  FRAMES  NoInternetScreen frames
+ac1 cleared cache + healthy net + cold   HEAD     973   0
+ac1 cleared cache + healthy net + cold   BASE     646   84  <-- the bug, ~2.8s
+ac2 cleared cache + airplane + cold      HEAD     367   240 (expected: genuine failure)
+ac4 warm cache relaunch                  HEAD     642   0
+qa5 reconnect without tapping Retry      HEAD     516   252 -> single clean transition, no flicker
+sweep deep-link cold open                HEAD     586   0 (4 frames flagged = 'Module is not available' dialog, visually confirmed NOT NoInternetScreen)
+
+APK identity verified at artifact level for every run:
+  HEAD  app-debug.apk md5 74be1864e1208687ee56c46ad9fc6111 (kernel_blob contains isLocalProbe x6)
+  BASE  app-debug.apk md5 10a42d407b447ca458c522f736c26976 (kernel_blob contains isLocalProbe x0)
+  device md5 compared against the local file after each install; lastUpdateTime
+  re-checked before AND after every capture (foreign-install tripwire).
