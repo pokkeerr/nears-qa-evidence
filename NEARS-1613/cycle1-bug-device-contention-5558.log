@@ -1,0 +1,33 @@
+NEARS-1613 cycle-1 delta re-QA — BLOCKED: emulator-5558 contention
+captured: 2026-08-07 06:46:09 +04
+
+== 1. Lock ownership on emulator-5558 ==
+expected (per spawn brief): key NEARS-1613, pid 55217
+actual  : {"pid": 9668, "key": "NEARS-1615", "started": "2026-08-07T02:38:53Z"}
+pid 55217 (mine)      : DEAD
+pid 9668  (NEARS-1615): ALIVE
+-> my lock pid was dead; NEARS-1615 legitimately reclaimed the device (dead-pid rule).
+
+== 2. Installed APK is NOT the build under test ==
+device base.apk md5 : 198e3048a4a2b62b37019ad83fe2c368
+NEARS-1613 build md5: ad6747a5815e1124985e046d478897ef
+    lastUpdateTime=2026-08-07 06:39:08
+-> foreign build reinstalled at 06:04:58 and again 06:39:08, overwriting my verified install.
+
+== 3. Foreign build targets NEARS-1615's fault proxy, not mine ==
+host strings in installed APK:
+   3 10.0.2.2:8000
+   1 10.0.2.2:8010
+NEARS-1613 proxy :8099 /customer/info -> 401 (fault file empty)
+NEARS-1615 proxy :8010 /customer/info -> 503 (their fault ARMED)
+
+== 4. The false-PASS this prevented ==
+app log observed on the FOREIGN build (would have looked like a perfect AC1 pass):
+08-07 06:45:37.049 10606 10606 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="refer and earn: profile load failed"
+08-07 06:45:48.065 10606 10606 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=503 type=ApiFailure msg="api request failed"
+08-07 06:45:48.066 10606 10606 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="profile load failed"
+08-07 06:45:48.066 10606 10606 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="refer and earn: profile load failed"
+-> 503 came from NEARS-1615's proxy on their binary; NOT NEARS-1613 code under test.
+
+== 5. Shared backend untouched ==
+direct http://127.0.0.1:8000/api/v1/config -> 200

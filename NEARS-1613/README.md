@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1613
 
-**BLOCKED — 5/6 ACs verified live; AC1 screen-level branch unverifiable under device-scoped isolation; zero defects found (emulator-5558, worktree build)**
+**cycle-1 delta re-QA: BLOCKED — emulator-5558 reclaimed by live NEARS-1615 session; AC1/AC3 not demonstrable on the build under test**
 
 **5 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -18,6 +18,8 @@
 
 ### Other artifacts
 - [`bug-vendorapp-audioplayers-enoent.log`](bug-vendorapp-audioplayers-enoent.log)
+- [`cycle1-bug-device-contention-5558.log`](cycle1-bug-device-contention-5558.log)
+- [`cycle1-bug-disk-floor-miscalibrated.log`](cycle1-bug-disk-floor-miscalibrated.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1613/` · public-repo scrub policy (no live secrets; verified clean).*

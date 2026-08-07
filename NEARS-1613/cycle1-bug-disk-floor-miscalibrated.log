@@ -1,0 +1,24 @@
+NEARS-1613 cycle-1 byproduct: QA disk precheck floor (500MB) is miscalibrated for Android
+captured: 2026-08-07 06:46:42 +04  device: emulator-5558
+
+Profile rule (.claude/workflow-profile.md + nears-qa.md): acquire if >= 500MB (512000 KB) free.
+
+Observed: precheck PASSED at 519484 KB free (507 MB, 7.5 MB above floor).
+Then:     flutter run install FAILED ->
+          Failure [INSTALL_FAILED_INSUFFICIENT_STORAGE: Failed to override installation location]
+
+Mechanism: /data total = 6082144 KB. Android's low-storage reserve is 10% of total capped
+at 500MB => ~500MB is RESERVED and unusable. So '>=500MB free' == ~0MB usable.
+The debug APK is 144 MB (151290715 bytes), and a streamed install needs headroom beyond that.
+
+Second data point: install still FAILED at 732020 KB free (714 MB).
+Install only succeeded after reclaiming to ~1000000 KB (977 MB) free.
+
+Collateral observed while below the real threshold:
+ - 'cmd: Can't find service: package' (package manager service dropped)
+ - 'Failure calling service input: Broken pipe (32)'
+ - emulator rebooted twice; 'System UI isn't responding' ANR
+ - each failed install leaked ~220MB of staging, making the NEXT attempt worse
+
+Suggested floor: ~500MB Android reserve + 2x APK size => >= 1 GB free for a 144MB debug APK,
+or measure usable space rather than raw 'free'.
