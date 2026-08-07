@@ -1,0 +1,26 @@
+NEARS-1585 QA — task_bug (SAME ROOT CAUSE as bug-deeplink-status-copy-degrades):
+category chip rail collapses to "All" on the DEEP-LINK entry path.
+Device: emulator-5558, zone 1. Store: Fresh Mart Grocery (id 2) — 18 category_ids.
+
+Backend is correct on every variant tried:
+  GET /api/v1/stores/details/fresh-mart-grocery -> category_ids =
+      [4,5,7,8,10,11,12,13,120,103,62,51,53,50,140,121,146,49]   (18 entries)
+  GET /api/v1/categories (moduleId 1) -> 36 ids, and ALL 18 of the above are present,
+      so setCategoryList() should build 1 ("All") + 18 = 19 chips.
+
+VIA DEEP LINK  -> rail renders ONLY the "All" chip (18 categories missing).
+  adb shell am start -a android.intent.action.VIEW -p com.izzes.nears \
+    -d "https://6ammart-web.6amtech.com/store/fresh-mart-grocery?id=2&page=store&module=grocery"
+  a11y dump: exactly one chip node, "All/All" selected=true.
+  Confirmed VISUALLY too (screenshot of the rail band shows a single "All" pill) —
+  i.e. the chips are genuinely not built, not merely undumped.
+
+VIA NORMAL NAVIGATION (tap the store card in the Grocery list) -> rail populates:
+  All(selected) / Personal Care / Fresh Vegetables / Milk / ... and scrolls to reveal
+  Juices / Soft Drinks / Snacks & Chips / Bakery & Bread / Plant Based.
+
+Together with the status-copy bug (schedules missing) and the absent distance row,
+this indicates the store object reaching the store screen on the deep-link path is
+incomplete. One fix likely addresses all three symptoms.
+
+No [ERR]/[FAIL]/exception is logged on this path — it degrades SILENTLY.

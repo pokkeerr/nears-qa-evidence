@@ -1,0 +1,22 @@
+NEARS-1585 QA — task_bug (AC1, low severity, edge case):
+the self-delivery fee case renders "From 0 AED delivery".
+
+Store: Test Store (id 35, zone 2) — the ONLY store in the whole DB with
+self_delivery_system = 1 (SELECT COUNT(*) FROM stores WHERE self_delivery_system=1
+AND status=1  ->  1). Its minimum_shipping_charge is 0.00.
+
+StoreController.deliveryFeeText():
+    if (store.selfDeliverySystem == 1 && minimum != null)
+        return 'delivery_fee_from'.trParams({'amount': PriceConverter.convertPrice(minimum)});
+A minimum of 0 is non-null, so it passes the guard and the hero renders:
+    "From <U+2066>0 AED<U+2069> delivery"      (observed live, LTR and RTL)
+
+AC1 says this case should read "From {price}". The FORMAT is correct and the number is
+the store's real minimum_shipping_charge (so it is NOT an invented number, which AC1
+explicitly forbids) — but "From 0 AED delivery" states nothing useful and reads as
+"delivery starts at free", which collides with the separate free-delivery treatment.
+Suggest falling through to 'delivery_fee_calculated_at_checkout' when the minimum is 0.
+
+FIXTURE LIMITATION (reported honestly): because store 35 is the only self-delivery store
+and its minimum is 0, the "From {NON-ZERO price}" variant of AC1 could NOT be exercised
+on the current data. That sub-case is unverified, not passed.

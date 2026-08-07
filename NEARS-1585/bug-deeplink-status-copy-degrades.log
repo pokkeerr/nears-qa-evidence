@@ -1,0 +1,46 @@
+NEARS-1585 QA — task_bug: store-profile status copy degrades on the DEEP-LINK entry path
+Device: emulator-5558 (Android, zone 1 "Demo Zone — Dhaka"), debug APK from
+worktree feat/NEARS-1585-store-catalog. Device clock: Fri 2026-08-07 09:5x +04.
+Store: Sushi World (id 6, module_id 2 = Food, schedules day 0-6 = 11:00-22:00,
+active=1) — i.e. CLOSED now, opens 11:00 today.
+
+EXPECTED (per AC2, and per what the store LIST card renders for the same store):
+  "Opens 11:00"
+OBSERVED via deep link:
+  "Closed Now"
+
+A) Store LIST card (Food module list) — CORRECT:
+     Sushi World ... "Opens 11:00"
+   (siblings: Burger Palace "Opens 10:00", Pizza Heaven "Opens 11:00")
+
+B) Store PROFILE hero via NORMAL navigation (tap the card) — CORRECT:
+     Sushi World | 30-45 | 4.2 km | 555 Asian Boulevard | Opens 11:00
+
+C) Store PROFILE hero via DEEP LINK — WRONG (reproduced twice, incl. once with a
+   fully settled delivery location, and on both module params):
+     adb shell am start -a android.intent.action.VIEW -p com.izzes.nears \
+       -d "https://6ammart-web.6amtech.com/store/sushi-world?id=6&page=store&module=food"
+     Sushi World | 30-45 | 555 Asian Boulevard | Closed Now
+   (note: the distance row is also absent on this path)
+
+The badge renders as a solid RED NBadge(status: NStatus.error), i.e. the NEARS-1585
+Food branch IS the surface displaying the wrong copy — this is not the legacy pill.
+
+WHY THIS IS IN SCOPE: before NEARS-1585 the Food hero carried no status text at all
+(only a hardcoded 'closed_now' pill). NEARS-1585 introduces getStoreStatusText() on
+the hero, so the degraded copy is new surface added by this ticket. The same
+statusText feeds the Grocery hours row (AC1), so a Grocery store opened by deep link
+is exposed to the same degradation.
+
+MECHANISM (client-side; backend exonerated): getStoreStatusText() falls back to
+'closed_now' only when getStoreNextTransition() returns null, which for a non-null
+`active` store happens only when store.schedules is null/empty. The backend was
+verified to ALWAYS return 7 schedule rows for this store on every variant tried:
+  /api/v1/stores/details/sushi-world  with moduleId 1 -> 7 rows
+  /api/v1/stores/details/sushi-world  with moduleId 2 -> 7 rows
+  /api/v1/stores/details/6            with zoneId [1,2] -> 7 rows, days [0..6]
+so the store object reaching the header on the deep-link path is not the settled
+details payload. Root-causing left to the engineer.
+
+App logs during the deep-link render: no [ERR]/[FAIL]/exception — this fails SILENTLY.
+  [INFO] deep link store params storeID=6 moduleId=food page=store

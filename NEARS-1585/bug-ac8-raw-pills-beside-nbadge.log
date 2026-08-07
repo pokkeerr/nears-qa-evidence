@@ -1,0 +1,25 @@
+NEARS-1585 QA — task_bug (AC8, low severity / consistency):
+raw styled pills remain in the TOUCHED state-pill section where NBadge is the N* home.
+
+File: UserApp/lib/features/store/widgets/nears_store_header_sliver.dart
+Section: the "State pills — free delivery + store status" Wrap — this Wrap IS touched by
+this ticket (the `if (isFood) NBadge(...) else if (!isStoreOpen)` branch was inserted here,
+and the closed-pill line itself was edited from `if` to `else if`).
+
+Inside ONE Wrap the ticket now renders:
+  - the Food branch as   NBadge(label: statusText, status: ..., size: NSize.sm)
+  - the non-Food closed branch as a hand-rolled Container + BoxDecoration(color:
+    NearsTokens.error, borderRadius: NearsTokens.brPill) + Text(NearsText.labelSm) —
+    which is the same visual contract NBadge(status: NStatus.error, size: NSize.sm)
+    already provides, sitting directly beside it.
+  - the free-delivery pill likewise as a raw outlined Container + Text.
+
+Second instance (documented by the engineer as deliberate):
+File: UserApp/lib/features/store/widgets/store_description_view_widget.dart
+The new Grocery hours + delivery-fee rows use raw Text + robotoMedium.copyWith(...)
+rather than NearsText, with the stated rationale that the whole widget is pre-DLS and
+tokenized rows "would read as a third era".
+
+MITIGATION / COUNTER-ARGUMENT (for the team to weigh): the raw pills DO use design
+tokens (NearsTokens / NearsText), so this is DLS-component drift, not hardcoded styling.
+Reported rather than silently passed; not a functional defect and no user-visible bug.
