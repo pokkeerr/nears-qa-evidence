@@ -1,0 +1,39 @@
+BUG: POST /api/v1/customer/update-interest fails at transport - Save & Continue never completes
+Device: emulator-5556 | build: app-debug.apk from worktree nears-NEARS-1610-interest-screen @ bf2c864f | online, backend 200 on other endpoints
+Reproduced 2/2. DB proof: users.module_ids/interest for emily.johnson@demo.com stayed NULL (updated_at 2026-08-07 03:34:19, before the run).
+Save path is BYTE-IDENTICAL base(75083a5b) vs HEAD - 0 diff lines touch saveInterest/CTA => PRE-EXISTING, not caused by NEARS-1610.
+
+[NET] POST endpoint=/api/v1/customer/update-interest
+[FAIL] endpoint=/api/v1/customer/update-interest http_status=null type=ApiFailure msg="api request threw" correlation_id=36e90436-f318-498c-af00-26dddb1572d8
+[NET] POST endpoint=/api/v1/customer/update-interest
+[FAIL] endpoint=/api/v1/customer/update-interest http_status=null type=ApiFailure msg="api request threw" correlation_id=2feafbce-fc5a-4447-bc5a-fc9022f12d5a
+
+--- stack (attempt 1) ---
+----------------FIREBASE CRASHLYTICS----------------
+The following exception was thrown api request threw:
+ApiFailure(status: 0)
+#0      IOClient.send (package:http/src/io_client.dart:227:7)
+<asynchronous suspension>
+#1      BaseClient._sendUnstreamed (package:http/src/base_client.dart:93:32)
+<asynchronous suspension>
+#2      Future.timeout.<anonymous closure> (dart:async/future_impl.dart:1061:7)
+<asynchronous suspension>
+#3      ApiClient._send (package:sixam_mart/api/api_client.dart:691:24)
+<asynchronous suspension>
+#4      CategoryRepository.saveUserInterests (package:sixam_mart/features/category/domain/repositories/category_repository.dart:234:25)
+<asynchronous suspension>
+#5      CategoryService.saveUserInterests (package:sixam_mart/features/category/domain/services/category_service.dart:87:12)
+<asynchronous suspension>
+#6      CategoryController.saveInterest (package:sixam_mart/features/category/controllers/category_controller.dart:587:22)
+<asynchronous suspension>
+#7      _InterestScreenState.build.<anonymous closure>.<anonymous closure>.<anonymous closure> (package:sixam_mart/features/interest/screens/interest_screen.dart:229
+----------------------------------------------------
+[FAIL] endpoint=/api/v1/customer/update-interest http_status=null type=ApiFailure msg="api request threw" correlation_id=36e90436-f318-498c-af00-26dddb1572d8
+
+--- control: authenticated POST on the same base URL in the SAME session succeeded ---
+[NET] POST endpoint=/api/v1/customer/cm-firebase-token
+[NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200
+[NET] POST endpoint=/api/v1/customer/cm-firebase-token
+[NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200
+[NET] POST endpoint=/api/v1/customer/cm-firebase-token
+[NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200

@@ -1,0 +1,32 @@
+BUG: the new interest-screen error state (NearsErrorRetry / _categoryFetchFailed) is UNREACHABLE on Android
+Device: emulator-5556 | build bf2c864f
+
+MECHANISM - the only mobile entry point pre-gates on a SUCCESSFUL category list:
+  UserApp/lib/features/splash/controllers/module_controller.dart:786-800 (_showInterestPage)
+    await getCategoryList(true, allCategory:false)  <- dataSource defaults to LOCAL; the network leg
+    (_fetchFromClient) is fire-and-forget, so .then() sees ONLY the local-cache result
+    .then(): if (categoryList != null && isNotEmpty) Get.toNamed(interest) ELSE Get.offAllNamed(initial)
+  The other call site (location_controller.dart:800-812) is behind ResponsiveHelper.isDesktop()
+  = width >= 1300dp; the device is 448dp, so it is dead on mobile.
+
+CONSEQUENCE: entering the screen REQUIRES a local-cache HIT; the screen's own initState then
+re-reads the SAME cache key ~50ms later and hits again => _categoryList is never null =>
+_categoryFetchFailed can never be true while the screen is mounted.
+
+OBSERVED (module switch A->B->A, interest-card count per entry):
+  English  partition: A(cold)=0 cards  B(cold)=0 cards  A(warm)=20 cards
+  Arabic   partition: A(cold)=0 cards  B(cold)=0 cards  A(warm)=20 cards
+  => with a cold cache the user is bounced to home and NEVER sees the interest screen.
+
+OFFLINE ATTEMPT (AC2's own stated method: airplane mode, enter the screen):
+  airplane_mode_on=1 verified; module switch -> a full-screen error page appeared, but the log
+  proves it is the HOME/module error, not the interest screen:
+ModuleFetchFailure
+#0      ModuleController.getModules (package:sixam_mart/features/splash/controllers/module_controller.dart:635:22)
+[FAIL] endpoint=/api/v1/module http_status=null type=ModuleFetchFailure msg="zone module list fetch failed"
+#4      ItemRepository.getBuyItAgain (package:sixam_mart/features/item/domain/repositories/item_repository.dart:72:31)
+#5      ItemService.getBuyItAgain (package:sixam_mart/features/item/domain/services/item_service.dart:39:12)
+#6      ItemController.getBuyItAgain (package:sixam_mart/features/item/controllers/item_controller.dart:768:31)
+
+=> AC2's live verification cannot be executed as written; the added error branch is dead code on mobile.
+=> Same structural reason blocks AC8's error-state clause.
