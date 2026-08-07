@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1655
 
-**PASS — 7/7 ACs verified live on emulator-5558 (448x997dp)**
+**PASS — 7/7 ACs + 401 force-logout verified live**
 
-**16 screenshot(s).** Click any thumbnail for full resolution.
+**18 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -32,6 +32,8 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="10-AC7-pull-to-refresh.png"><img src="10-AC7-pull-to-refresh.png" width="240"></a><br><sub>AC7 pull to refresh</sub></td>
+<td align="center" width="33%"><a href="11-401-generic-error-refresh-recovers.png"><img src="11-401-generic-error-refresh-recovers.png" width="240"></a><br><sub>401 generic error refresh recovers</sub></td>
+<td align="center" width="33%"><a href="12-401-force-logout-session-cleared.png"><img src="12-401-force-logout-session-cleared.png" width="240"></a><br><sub>401 force logout session cleared</sub></td>
 </tr>
 </table>
 
