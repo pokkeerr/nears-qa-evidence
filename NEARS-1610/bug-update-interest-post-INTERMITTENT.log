@@ -1,0 +1,26 @@
+CORRECTED (delta re-QA) — POST /api/v1/customer/update-interest is INTERMITTENT, not hard-broken.
+Supersedes the earlier 'fails at transport / the DB write never lands / 2/2' wording, which over-generalised from 2 samples.
+
+SUCCESSFUL SAVE on the SAME build (bf2c864f) and SAME device (emulator-5556), 2026-08-07 09:41:
+  account robert.taylor@demo.com (virgin: module_ids NULL, interest NULL, updated_at 05:20:58)
+  selected exactly Cheese + Seafood; PREDICTED ids 8 and 47 before measuring
+  [NET] POST endpoint=/api/v1/customer/update-interest
+  [NET] endpoint=/api/v1/customer/update-interest http_status=200   <- no paired [FAIL]
+  DB after: module_ids=[1]  interest=[8,47]  updated_at=2026-08-07 09:41:28   <- prediction matched exactly
+  App ROUTED off the interest screen to the module home (Get.back() on success) => AC6(b) MET.
+
+EARLIER FAILURES (still real, still reproducible-in-window):
+  09:14:34 and 09:16:14 — ApiFailure(status: 0) from IOClient.send, ~4-15ms, DB unchanged at the time.
+  Both carried a paired [FAIL] with a correlation_id (logging contract satisfied).
+
+ATTRIBUTION NOTE — writes to emily.johnson@demo.com at 09:32:02 and 09:33:44 were NOT from this session:
+  * this session's logcat capture ran 09:00:03 -> 09:29:20 and contains exactly 2 update-interest POSTs, BOTH [FAIL]
+  * both writes post-date the capture AND the lock release; no taps were issued after ~09:27
+  * the written data includes category id 16 = Pizza (module_id=2) and module_ids [1,2] — a MODULE-2 save
+    that this session never performed (every module-2 entry bounced to home)
+  * a concurrent session held emulator-5554 + emulator-5558 (owner.json pid 93623, key NEARS-1585,
+    started 2026-08-07T05:26:11Z = 09:26 local) and shares the one dev DB multi_food_db
+  => the shared dev DB was being mutated by another lane; those rows are not evidence about this build.
+
+LIKELY CAUSE of the intermittent failure: dev-environment contention on the single-process
+'php artisan serve' backend, not a product defect. Unproven — root cause still undetermined.
