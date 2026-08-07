@@ -1,0 +1,18 @@
+NEARS-1607 QA -- PRE-EXISTING (regression_bug), proven by same-device base A/B on emulator-5554
+
+The Nears brand lockup on the splash renders PIN-ONLY under the Arabic (RTL) locale --
+the "Nears" wordmark does not paint. Stable across 3 consecutive screencaps.
+
+navy #000080 pixel cluster in the lockup band (stride-2 sample, device 1344x2992 @ density 480):
+  HEAD 560f4767  en : x 408-756  width 348  n=2774   (pin + wordmark)
+  HEAD 560f4767  ar : x 408-476  width  68  n= 970   (pin only)
+  BASE 27c6bf2a  ar : x 408-476  width  68  n= 970   (pin only -- IDENTICAL to HEAD)
+
+=> identical pixel counts at base and HEAD => NOT introduced by NEARS-1607.
+   The SvgPicture.asset(NearsAssets.logoNavy, width: 200) line is untouched by this diff
+   (git diff 27c6bf2a..HEAD -- splash_screen.dart matches nothing for SvgPicture/logoNavy/width: 200).
+
+NOTE ON AC8: AC8's stated requirement ("the brand lockup is not mirrored") is MET --
+the mint pin-dot sits at x 428-456 (centre 442) in BOTH en and ar, i.e. the pin stays on the
+left and the lockup is not mirrored. This defect is a separate, pre-existing asset/render issue
+surfaced by the AC8 check.

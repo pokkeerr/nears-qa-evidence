@@ -1,0 +1,28 @@
+NEARS-1607 QA -- PRE-EXISTING (regression_bug), proven by same-device base A/B on emulator-5554
+
+REPRO (deterministic, 2/2 on HEAD, 1/1 on BASE):
+ 1. adb shell pm clear com.izzes.nears
+ 2. adb shell pm revoke com.izzes.nears android.permission.ACCESS_FINE_LOCATION
+ 3. cold start -> language -> Next -> onboarding -> Skip -> deny the OS location dialog (reach the map gate)
+ 4. adb shell am force-stop com.izzes.nears ; relaunch
+ => app remains on the SPLASH loading branch indefinitely (>60s observed); never reaches the location gate.
+
+HEAD 560f4767 (apk md5 178ea3c42e9742d9796a272c358b4b70), logcat:
+  05:57:56.095 [INFO] msg="route: navigating to splash screen"
+  05:57:56.117 [INFO] msg="splash: location prefetch initiated"
+  05:58:00.521 [INFO] msg="splash: location prefetch skipped (permission not granted)"   <-- prefetch did NOTHING
+  05:58:00.593 [INFO] msg="splash: routing"
+  (no "route: initial route" ever follows)
+  screen a11y tree = single node content-desc="Loading..." ; pixels #fcf9f8 + #000080 + #00ff99 = splash
+
+BASE 27c6bf2a (apk md5 dcc4dfc6d470ccd4d719ab14067adaf1) -- SAME DEVICE, SAME STEPS:
+  identical outcome: stays on splash; a11y tree EMPTY (base splash uses LinearProgressIndicator,
+  which carries no semanticLabel); pixels #fcf9f8 + navy lockup at y1346-1436 x408-476.
+
+=> NOT caused by NEARS-1607. Suspected pre-existing cause, in files this ticket does NOT touch
+   (git diff --stat 27c6bf2a..HEAD for both = empty):
+   UserApp/lib/features/location/controllers/location_controller.dart :: _checkPermission()
+     bool hasInternet = await checkInternet();
+     if (!hasInternet) { return; }     <-- silent early return, no log, no user feedback, splash never left
+   reached from splash_route_helper.dart :: _forGuestUserRouteProcess() -> navigateToLocationScreen('splash').
+   Note this early return is also a logging-contract violation (silent failure path, no AppLogger.failure).

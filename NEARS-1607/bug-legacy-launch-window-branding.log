@@ -1,0 +1,15 @@
+NEARS-1607 QA -- PRE-EXISTING (regression_bug), out of scope for this ticket
+
+The Android NATIVE launch window (windowBackground shown before Flutter's first frame) still
+renders the legacy 6amMart green shopping-bag "M" mark on pure white -- not Nears branding.
+
+Observed on every cold start of com.izzes.nears on emulator-5554: device-side frame capture
+f1..f12 (05:14:29 -> 05:14:41, 12 consecutive frames) are byte-identical, dominant colours
+#ffffff (3,987,568 px) + #039d55 (11,186 px = the green bag). The Nears splash (#fcf9f8 +
+navy #000080 lockup) only appears afterwards, at f13.
+
+On this hardware the native window covers 7-17s of a debug cold start, so it is the FIRST and
+LONGEST-VISIBLE brand impression at launch.
+
+Not touched by NEARS-1607 (diff contains no android/ files). Belongs to the rebrand backlog:
+UserApp/android/app/src/main/res/ (launch_background.xml / ic_launcher).
