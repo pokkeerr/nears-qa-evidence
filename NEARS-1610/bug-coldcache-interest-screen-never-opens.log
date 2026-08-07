@@ -1,0 +1,23 @@
+NEARS-1610 — PRE-EXISTING (not introduced by this change)
+Cold category cache => the interest screen never opens at all.
+
+Repro (live, emulator-5556, network HEALTHY):
+ 1. Change app language (Settings > Language) -> LocalClient.clearCache() wipes the cache.
+    VERIFIED at storage layer: sqlite cache_response rows LIKE '/api/v1/categories%' == 0
+ 2. Select module "Food & Restaurant" (module 2), network UP, user emily.johnson@demo.com
+    (module_ids did not yet contain 2, so shouldShowInterestPage() == true).
+ OBSERVED: app routed straight to module-2 HOME. Interest screen never appeared.
+ 3. Immediately after, sqlite shows '/api/v1/categories 2' now PRESENT
+    -> the network fetch DID run, but completed AFTER the navigation gate had already decided.
+ 4. Re-select the SAME module (cache now warm) -> interest screen opens normally (10 cards).
+
+Mechanism (pre-existing, unchanged by NEARS-1610):
+  CategoryController.getCategoryList(local) awaits ONLY the cache read, then fires the
+  network leg WITHOUT await. ModuleController._showInterestPage()'s .then() therefore
+  evaluates `categoryList != null` while the network call is still in flight; on a cold
+  cache it is null, so the else-branch Get.offAllNamed(initialRoute) sends the user home.
+  The identical unawaited-recall shape exists on the base commit, so this predates the ticket.
+
+Consequence for AC2: the screen can only be ENTERED when categoryList is already non-null,
+but _categoryFetchFailed can only be raised when _categoryList IS null -> the NearsErrorRetry
+surface is not reachable by user navigation on mobile.
