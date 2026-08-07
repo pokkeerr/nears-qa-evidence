@@ -1,0 +1,31 @@
+NEARS-1652 QA (regression lane, PRE-EXISTING - not caused by this change)
+Repro: log in as customer@nears.com -> Profile > Orders > Order #165 (delivery partner NOT assigned) -> tap 'Chat'
+Effect: uncaught async _TypeError, navigation to ChatScreen never happens, user stuck on order tracking.
+Root cause: order_tracking_screen.dart:624 dereferences track!.deliveryMan!.id with no null guard;
+the screen itself renders 'Delivery partner has not been assigned yet', so deliveryMan is legitimately null.
+Not in the NEARS-1652 diff (git diff --name-only 5dc33725..5fba433a has 0 hits for order_tracking_screen).
+Device emulator-5558 - APK md5 2116a5c1f527e790e53ee74b6ac506b2 - worktree 5fba433a
+---- log excerpt ----
+----------------FIREBASE CRASHLYTICS----------------
+The following exception was thrown uncaught async error (_TypeError):
+UncaughtAsyncError
+#0      OrderTrackingScreenState.build.<anonymous closure>.<anonymous closure>.<anonymous closure> (package:sixam_mart/features/order/screens/order_tracking_screen.dart:624:75)
+#1      _InkResponseState.handleTap (package:flutter/src/material/ink_well.dart:1224:21)
+#2      GestureRecognizer.invokeCallback (package:flutter/src/gestures/recognizer.dart:345:24)
+#3      TapGestureRecognizer.handleTapUp (package:flutter/src/gestures/tap.dart:758:11)
+#4      BaseTapGestureRecognizer._checkUp (package:flutter/src/gestures/tap.dart:383:5)
+#5      BaseTapGestureRecognizer.acceptGesture (package:flutter/src/gestures/tap.dart:353:7)
+#6      GestureArenaManager.sweep (package:flutter/src/gestures/arena.dart:173:27)
+#7      GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:532:20)
+#8      GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:498:22)
+#9      RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#10     GestureBinding._handlePointerEventImm
+----------------------------------------------------
+[FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (_TypeError)"
+----------------FIREBASE CRASHLYTICS----------------
+The following exception was thrown uncaught async error (_TypeError):
+Null check operator used on a null value
+#0      OrderTrackingScreenState.build.<anonymous closure>.<anonymous closure>.<anonymous closure> (package:sixam_mart/features/order/screens/order_tracking_screen.dart:624:75)
+#1      _InkResponseState.handleTap (package:flutter/src/material/ink_well.dart:1224:21)
+#2      GestureRecognizer.invokeCallback (package:flutter/src/gestures/recognizer.dart:345:24)
+#3      TapGestureRecognizer.handleTapUp (package:flutter/src/gestures/tap.dart:758:11)
