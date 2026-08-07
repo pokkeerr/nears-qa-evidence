@@ -18,6 +18,8 @@
 
 ### Other artifacts
 - [`ac6-fail-lines.log`](ac6-fail-lines.log)
+- [`bug-pre-existing-test-failures.log`](bug-pre-existing-test-failures.log)
+- [`bug-wallet-pull-to-refresh-noop.log`](bug-wallet-pull-to-refresh-noop.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1611/` · public-repo scrub policy (no live secrets; verified clean).*

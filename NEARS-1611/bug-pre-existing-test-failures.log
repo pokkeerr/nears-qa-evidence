@@ -1,0 +1,27 @@
+NEARS-1611 QA — 6 pre-existing UserApp test failures (NOT caused by this change)
+SDK: /Users/Apple/Tools/flutter/bin/flutter (3.41.9, pinned)
+
+WORKTREE  feat/NEARS-1611-wallet-failure-states:   +2869 ~2 -6
+BASE      6e9740db (temp worktree, same SDK):      +20   -6   (same 3 files, run in isolation)
+WORKTREE  same 3 files run in isolation:           +20   -6
+=> byte-identical failure set at base => PRE-EXISTING. The diff touches only
+   UserApp/lib/features/wallet/{controllers,screens,widgets}; none of the failing
+   suites exercise wallet code.
+
+Failing tests (from `flutter test --reporter json`):
+1. test/features/category/category_screen_back_button_test.dart
+     standalone variant: showBackButton true => back arrow present (deep link)
+2. test/features/coupon/coupon_controller_test.dart
+     applyCoupon min-purchase not met throws on null Get.context after resetting discount
+       Expected: throws <Instance of 'TypeError'>
+         Actual: <Instance of 'Future<double?>'>  Which: emitted <0.0>
+3. test/features/coupon/coupon_controller_test.dart
+     applyTaxiCoupon order below min-purchase yields zero discount and shows snackbar (UC-03)
+       Expected: throws <Instance of 'TypeError'>   Actual: emitted <0.0>
+4. test/features/coupon/coupon_controller_test.dart
+     NEARS-382 coupon correctness UC-07: free_delivery coupon with zero delivery charge is accepted
+       Expected: throws <Instance of 'TypeError'>   Actual: emitted <0.0>
+5. test/golden/dls_golden_test.dart  DLS components - light theme (variant: CI)
+6. test/golden/dls_golden_test.dart  DLS components - dark theme (variant: CI)   [dark = non-blocking]
+
+Goldens were NOT regenerated (pinned SDK 3.41.9 used throughout).

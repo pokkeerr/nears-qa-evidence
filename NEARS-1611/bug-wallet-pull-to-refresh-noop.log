@@ -1,0 +1,22 @@
+NEARS-1611 QA — Wallet pull-to-refresh is a no-op when content does not overflow
+PRE-EXISTING: identical code at base 6e9740db.
+
+wallet_screen.dart: RefreshIndicator -> SingleChildScrollView(controller: scrollController, ...)
+  no `physics: AlwaysScrollableScrollPhysics()`
+  grep -n "physics" wallet_screen.dart  (worktree) -> 344: NeverScrollableScrollPhysics  (inner list only)
+  grep -n "physics" wallet_screen.dart  (base 6e9740db) -> 325: NeverScrollableScrollPhysics
+  => the outer scroll view cannot be over-dragged on a short list, so the
+     RefreshIndicator never fires.
+
+LIVE PROOF — user 3 Michael (4 transactions, content fits 448x997dp), emulator-5554.
+Three drag variants, logcat cleared before each, scoped to `[NET]`:
+  1. adb shell input swipe 672 1200 672 2200 700   -> 0 requests
+  2. adb shell input swipe 672 900  672 2400 300   -> 0 requests
+  3. stepped input motionevent DOWN/9x MOVE/UP     -> 0 requests
+Control: the same gesture pipeline DOES reach the app (ui_scroll_down reveals
+"My Wallet" on the Profile tab), so this is not a driver failure.
+
+IMPACT ON THIS TICKET: the ticket's own AC3 recipe ("open Wallet online, then
+disable the network and pull-to-refresh") is NOT EXECUTABLE for a short list.
+AC3 was demonstrated instead by entering Wallet offline with the profile already
+cached — a strictly stronger form of the same independence check.
