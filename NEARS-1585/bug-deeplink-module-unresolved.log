@@ -1,0 +1,57 @@
+NEARS-1585 fix-cycle 1 — task bug: module-gated hero rows silently dropped on the deep-link entry path
+Build: worktree feat/NEARS-1585-store-catalog, app-debug.apk md5 631212c1b2cabcf165f97501a259088e
+Runtime freshness gate PASSED (new members resolve in the running isolate).
+Device: emulator-5558, light mode, 2026-08-07 Fri (DateTime.weekday==5), font_scale 1.0
+
+MECHANISM (read live from the running isolate via Dart VM service `evaluate`):
+
+[Food] deep link /store/sushi-world?id=6&module=2&from_deeplink=true   (repeated 2/2, deterministic)
+  store.schedules len=7  days=[0,1,2,3,4,5,6]      <- schedules COMPLETE, not missing
+  canStateStatus=true    isStoreCurrentlyOpen=true
+  getStoreStatusText   = "Closes 22:00"            <- correct value computed
+  moduleTypeFor        = NULL                      <- DEFECT
+  ModuleController.moduleList.length = 0
+  RENDERED hero a11y   = 'Sushi World\n30-45\n555 Asian Boulevard'   <- NO status text
+  (normal navigation, same store, same build:
+   'Sushi World\n30-45\n4.2 km\n555 Asian Boulevard\nCloses 22:00'   <- status present)
+
+[Grocery] deep link /store/organic-paradise?id=3&module=1
+  moduleTypeFor=NULL  moduleList.len=0  canStateStatus=true
+  getStoreStatusText = "Closes 21:00"   (not rendered)
+  RENDERED = 'Organic Paradise\n25-35\n456 Green Avenue, Uptown\nFree Delivery'   <- hours row GONE
+  (normal nav same store: '...\n3.8 km\n456 Green Avenue, Uptown\nCloses 21:00\nFree Delivery')
+
+[Grocery, non-free-delivery] deep link /store/fresh-mart-grocery?id=2&module=1
+  moduleTypeFor=NULL  freeDelivery=false
+  getStoreStatusText = "Closes 22:00"                    (not rendered)
+  deliveryFeeText    = "Delivery fee shown at checkout"  (not rendered)
+  RENDERED = 'Fresh Mart Grocery\n30-45\n123 Market Street, Downtown'
+  -> BOTH the AC1 hours row AND the AC1 delivery-fee row are absent.
+
+ROOT CONDITION
+  getStoreDetails() runs `if (slug.isNotEmpty) setStoreAddressToUserAddress(store lat/lng)`,
+  i.e. a deep link relocates the user address onto the store's own coordinates. When those
+  coordinates fall outside every zone polygon, /api/v1/config/get-zone-id returns 404
+  ("location: inZone=false") and /api/v1/module then yields an EMPTY list. moduleTypeFor()
+  matches store.moduleId against that empty list and returns null, so isFood/isGrocery are
+  both false and every module-gated block is skipped.
+  In-zone deep links are unaffected (store 1 and store 39 render correctly by deep link).
+
+  Not a one-off fixture quirk — stores whose coordinates lie outside all zone polygons:
+    grocery 273 | food 3 | pharmacy 1   (status=1)
+  It is also a normal real-world path: any shared link to a store outside the recipient's zone.
+
+WIRE IS NOT AT FAULT
+  /api/v1/stores/details/sushi-world and /api/v1/stores/details/6 are byte-identical
+  (same key set, no differing values). schedules len=7 days=[0..6] under all 7 header
+  combinations tried (zoneId+moduleId / zoneId / moduleId / none / empty moduleId /
+  wrong moduleId / wrong zoneId).
+
+AVAILABLE FALLBACKS THE FIX DOES NOT USE
+  store.moduleId is present and correct (=2 for store 6, =1 for stores 2/3), and the deep-link
+  route itself carries `module=<id>`. The app has enough information to resolve the module
+  without ModuleController.moduleList.
+
+NOTE: the previously-reported "third shape" (schedules non-empty but no row matching today ->
+hero reads "Closed Now" while the list card reads open) did NOT reproduce and is not
+reachable from this data: schedules arrive complete on both entry paths.
