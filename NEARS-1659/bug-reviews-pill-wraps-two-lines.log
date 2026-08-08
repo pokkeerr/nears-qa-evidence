@@ -1,0 +1,16 @@
+NEARS-1659 — task bug: 'N Reviews' summary pill wraps to two lines (mobile, English)
+Screen: store reviews (Eco Market, store 19), emulator-5556 448x997dp, light, LTR.
+Measured from ac9-reviews-ltr-loaded.png (3 px/dp):
+  both pills (Expanded, equal flex): 65.7 dp wide -> inner width 55.7 dp
+    (65.7 - 2 x Dimensions.paddingSizeExtraSmall = 5.0)
+  '5 Ratings' ink width 50.0 dp, text block 10.3 dp tall  -> ONE line
+  '5 Reviews' text block 21.7 dp tall                     -> TWO lines
+  => sibling pills render at different heights (mint 60px vs outlined 90px device px)
+Mechanism (this diff, total_rating_review_view_widget.dart):
+  robotoMedium @ Dimensions.fontSizeExtraSmall (10.0, w500, letterSpacing 0)
+  -> NearsText.labelSm (11px, w600, letterSpacing 0.22)
+  All three changes increase advance width; '5 Reviews' sits ~0.5-1 dp over the fit.
+NOTE: no RenderFlex overflow and no clipping (0 overflow lines in the whole session log);
+the string is fully readable, so this does not literally break AC1/AC7's 'nothing clips'.
+CAVEAT: base commit 7e0c44ee was NOT built on device, so the base one-line render is
+inferred from the monotonic width increase, not directly observed.
