@@ -1,0 +1,23 @@
+NEARS-1658 — new widget test carries a name that states a claim its own body disproves.
+
+File: UserApp/test/features/review/review_widget_dls_test.dart
+Test: group('AC6 RTL') > testWidgets('the header row mirrors but the numeral and date do not')
+
+Run output (SDK /Users/Apple/Tools/flutter 3.41.9):
+  00:00 +8: AC6 RTL the header row mirrors but the numeral and date do not
+  00:00 +9: All tests passed!
+
+The body explicitly discloses the opposite of its own title:
+  // DISCLOSURE - the ticket's AC6 says "the date does not mirror". Measured
+  // against a legacy-style paragraph of the same string, the WORD order of
+  // "14 Mar 2026" DOES reorder to "2026 Mar 14" under an RTL base direction,
+  // identically before and after this conversion (legacy RTL first=276.0
+  // last=252.0 - token RTL first=274.0 last=248.0).
+
+The assertions actually made are (a) thumbnail mirrors, (b) no digit run reverses.
+Nothing asserts "the date does not mirror". A green line reading
+"...the numeral and date do not" is therefore a false-confidence trap for the
+next reader/agent, who will grep the suite and conclude AC6 is pinned.
+
+Severity: Low. No product-code defect. Rename to reflect what is asserted, e.g.
+"the header row mirrors and no digit run reverses (date word order is bidi, see DISCLOSURE)".
