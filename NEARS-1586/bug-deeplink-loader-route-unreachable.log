@@ -1,0 +1,34 @@
+NEARS-1586 QA — AC5 deliverable has no reachable consumer on Android/iOS.
+
+This ticket rebuilt the /item-details/:slug loader route (route_helper.dart:1231):
+   -  const Scaffold(body: Center(child: NSpinnerBox()))
+   +  Scaffold(appBar: NAppBar(title:'item_details', showBack:true, onBack:...),
+   +           body: const ItemBottomSheetShimmer())
+
+LIVE RESULT: that route is never entered from an external VIEW intent.
+  4 external launches, all delivered to com.izzes.nears/.MainActivity:
+    - warm  + item 84  -> item sheet opened, NO NAppBar 'Back' node ever present
+    - warm  + item 3   -> loadFailed sheet; dismiss lands on the PREVIOUS screen
+                          (Settings), not on a loader route
+    - cold  + item 3   -> splash (no a11y nodes) -> loadFailed sheet; dismiss
+                          reveals the offline splash, not the loader route
+    - cold  + item 86  -> splash -> ZoneWarningDialog; no loader route sampled
+                          (24 samples at 0.7s)
+
+ROOT CAUSE (read from the tree, not inferred):
+  UserApp/lib/helper/link_converter_helper.dart:125-137
+    } else if (link.startsWith(RouteHelper.itemDetails)) {
+      ... Future.delayed(500ms, () => openItemDeepLink(itemID, ...));
+  The helper calls openItemDeepLink DIRECTLY. It never Get.toNamed()s the
+  /item-details/:slug GetPage, so the Scaffold+NAppBar+skeleton is never built.
+  The only other reference, details_app_bar_widget.dart:106, uses
+  getItemDetailsRoute to build a SHARE URL STRING, not to navigate.
+  location_controller.dart:759 tests Get.currentRoute.startsWith(itemDetails),
+  which implies the route is reachable under GetX URL routing i.e. Flutter web.
+
+  UserApp has no web/ (or windows/macos/linux) platform scaffold - only
+  android/ and ios/ - so there is no runnable target on which the route builds.
+
+Consequence: AC5's "DLS skeleton, not a bare spinner" and "a back affordance now
+exists" could not be demonstrated live. The deep link itself DOES work (the item
+sheet opens from an external intent, 4/4 launches).

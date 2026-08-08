@@ -1,0 +1,29 @@
+NEARS-1586 QA — cart/add rejected out-of-zone for a store whose items added fine
+minutes earlier in the same session (guest).
+
+App log (correlated):
+  [NET] POST endpoint=/api/v1/customer/cart/add
+  [NET] endpoint=/api/v1/customer/cart/add http_status=403
+  [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure
+         msg="api request failed" correlation_id=f27cfbe9-1ae1-4a17-a05b-e0cbac86e86a
+
+Backend Admin/storage/logs/laravel.log, SAME correlation_id:
+  [2026-08-08 05:27:12] production.WARNING: cart add rejected: item out of zone
+    {"correlation_id":"f27cfbe9-1ae1-4a17-a05b-e0cbac86e86a",
+     "item_id":84,"store_id":2,"store_zone_id":1}
+
+Sequence in one guest session:
+  1. browse -> Fresh Mart Grocery (store 2) -> Banana -> add   => 200 OK
+  2. external deep link (module=1) -> item 84 (ALSO store 2)   => detail fetch OK
+  3. add                                                        => 403 out of zone
+
+NOT SILENT: a user-visible ZoneWarningDialog renders ("This item is not available
+in your area" / "Change Location"), AND the failure is paired with an
+AppLogger.failure [FAIL] line that joins to the backend log by X-Request-Id.
+The logging contract is satisfied.
+
+Attribution: this diff (621685a5..77dbec19) contains no zone, module or cart
+logic. route_helper.dart's only change is presentational (spinner -> NAppBar +
+skeleton). item_controller.dart gained only the cart/cartIndex pass-through.
+I did NOT run the base build, so I cannot prove it pre-existing - only that the
+changed lines cannot reach this behaviour. Filed as a regression candidate.

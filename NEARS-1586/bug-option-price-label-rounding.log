@@ -1,0 +1,19 @@
+NEARS-1586 QA — variation option-price LABELS round to whole currency while the
+footer total uses the exact value, so the label and the delta disagree.
+
+Item 16 Classic Cheeseburger, store 4. DB food_variations:
+  Size: Regular optionPrice "0", Large optionPrice "2.50"
+  Toppings: Tomato "0.50", Pickles "0.50", Grilled Onions "0.75", Fried Egg "1.25"
+Item price 8.99.
+
+Live a11y labels:  "Large, +9 AED"->rendered as "+3 AED";  "Tomato, +1 AED"
+Live footer totals (measured, stable across two reads each):
+  Regular          qty1 ->  9 AED   (8.99)
+  Large            qty1 -> 11 AED   (11.49)   label implies 12
+  Large + Tomato   qty1 -> 12 AED   (11.99)
+  Large + Tomato   qty2 -> 24 AED   (23.98)
+The totals are arithmetically CORRECT; only the chip labels mislead.
+
+Cause: 0-decimal currency display setting applied to sub-unit option prices.
+Owner: NEARS-1590's modifier chips + PriceConverter, below the line-1826 seam
+this ticket never touches. Pre-existing.

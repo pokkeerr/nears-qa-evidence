@@ -1,0 +1,27 @@
+NEARS-1586 QA — RenderFlex overflow inside the DLS NRating element at a very
+narrow viewport.
+
+Repro: adb shell wm size 360x640 && adb shell wm density 320
+       (=> 180 x 320 dp, i.e. HALF a real small phone; see note below)
+       open any item sheet.
+
+I/flutter: EXCEPTION CAUGHT BY RENDERING LIBRARY
+  A RenderFlex overflowed by 26 pixels on the right.
+  The relevant error-causing widget was:
+    Row  Row:packages/nears_dls/lib/elements/rating/n_rating.dart:70:21
+  creator: Row <- NRating <- Column <- Expanded <- Row <- Column <- Padding ...
+  constraints: BoxConstraints(0.0<=w<=44.0, 0.0<=h<=Infinity)
+  size: Size(44.0, 27.0)
++ 4 more: 124px right, 60px right, 41px right, 664px bottom.
+At 180x320dp the footer stepper and CTA are absent from the a11y tree entirely.
+
+AT A REALISTIC SMALL PHONE (720x1280 px @ density 320 = 360 x 640 dp):
+  ZERO new overflow lines; every footer control present and correctly sized -
+  Close 44x44dp, Decrease 44x44dp, Increase 44x44dp, CTA 198dp wide,
+  totals row 'Total Amount:' + amount with clear separation.
+
+Note on the instruction: `wm size 360x640` sets PIXELS; at density 320 (dpr 2.0)
+that is 180x320 dp, not the intended 360x640 dp. Both configurations were run and
+are reported separately so the unit ambiguity cannot produce a false PASS.
+
+Owner: packages/nears_dls NRating, not item_bottom_sheet.dart. Not this ticket's.

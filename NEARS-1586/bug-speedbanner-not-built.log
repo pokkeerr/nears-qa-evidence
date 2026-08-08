@@ -1,0 +1,19 @@
+NEARS-1586 QA — spec deviation: NSpeedBanner (design spec section 4.1 row 10 / 3.3) not built.
+
+Spec: render NSpeedBanner(text: ..., isVisible: item.deliveryTime != null) as region 10.
+Spec section 12 conditions only the COPY KEY on QA-3, not the widget.
+
+QA-3 measurement (the question the spec routed to QA):
+  $ curl -s "http://127.0.0.1:8000/api/v1/items/details/16" -H 'zoneId: [1]' -H 'moduleId: 2'
+    delivery_time: 20-30          <-- POPULATED, so the banner would render
+
+Build under test (HEAD 77dbec19):
+  $ grep -rn "NSpeedBanner" UserApp/lib
+  UserApp/lib/features/store/screens/store_screen.dart:2265:/// inverted [NSpeedBanner] (navy fill / mint accents) so it reads as a
+  -> zero occurrences in item_bottom_sheet.dart; the region was not built.
+
+Live: no speed/ETA banner node in the sheet's a11y tree on any item opened
+(items 16, 3, 2, 84, Rice 5kg).
+
+Impact: net-new region omitted. No AC names it and nothing regressed (the banner
+never existed on this surface), so breaks_ac = false.
