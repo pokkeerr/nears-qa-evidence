@@ -1,0 +1,24 @@
+NEARS-1741 QA — pre-existing tap-target defect (NOT introduced by this change)
+device emulator-5558, 448x997dp @ dpr 3.0, UserApp debug md5 34fa2a7ef282439e1fe18abd90a9ccd8
+measured from live uiautomator bounds on the Forgot Password screen (clickable nodes only)
+
+LTR (English):
+label                    w x h (dp)     >= 44dp
+Back                      44.0 x  44.0   OK
++971                      65.3 x  22.0   ** UNDER **   <-- NPhoneField country dial-code picker
+500000263 (phone field)  408.0 x  48.0   OK
+Try Again  (NEARS-1741)  374.0 x  44.0   OK
+Request OTP              408.0 x  52.0   OK
+Back to Log In           126.7 x  48.0   OK
+
+RTL (Arabic) — same sizes, mirrored positions:
+رجوع                      44.0 x  44.0   OK   (x0=384..428, right edge -> mirrored)
++971                      65.3 x  22.0   ** UNDER **   (x0=355..421)
+500000263                408.0 x  48.0   OK
+حاول ثانية (Try Again)   374.0 x  44.0   OK
+طلب رمز التحقق           408.0 x  52.0   OK
+العودة إلى تسجيل الدخول  168.7 x  48.0   OK
+
+The 22dp element is the country dial-code picker inside the shared NPhoneField
+component. forget_pass_screen.dart's NPhoneField usage is unchanged by commit
+420c733c apart from an added onChanged callback, so this is pre-existing.

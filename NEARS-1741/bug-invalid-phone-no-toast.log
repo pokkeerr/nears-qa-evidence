@@ -1,0 +1,21 @@
+NEARS-1741 QA — invalid phone does NOT raise `invalid_phone_number` (pre-existing)
+device emulator-5558, live backend config: is_sms_active=false, is_mail_active=true,
+firebase_otp_verification=1  =>  isPhone=true (screen renders the phone field), isEmail=true
+
+Repro: Forgot Password -> phone field "1" -> Request OTP
+Observed: no `invalid_phone_number` toast. The submit reaches the server and the
+inline error panel shows the BACKEND message:
+    "The email field is required when verification method is email."
+
+Cause (pre-existing, verification_controller.dart, present at base ec1dd137:412):
+    if (!phoneValid.isValid && !isEmail) { showCustomSnackBar('invalid_phone_number'.tr); ... }
+isEmail is TRUE under this config, so the guard never trips; CustomValidator returns
+phone='' for an invalid number and the empty phone is POSTed.
+
+logcat (both lines, one failed submit):
+08-09 18:20:20.917 I flutter : [FAIL] endpoint=/api/v1/auth/forgot-password http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=3acfff20-7532-416f-adf8-550a90765974
+08-09 18:20:20.925 I flutter : [FAIL] endpoint=/api/v1/auth/forgot-password http_status=null type=ApiFailure msg="forget-password request failed"
+
+commit 420c733c does not touch verification_controller.dart -> pre-existing, not a
+regression of this change. It does mean the QA packet's stated expectation
+("invalid phone -> invalid_phone_number toast still fires") is false on this config.
