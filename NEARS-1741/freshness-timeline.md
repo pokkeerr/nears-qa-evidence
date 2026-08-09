@@ -66,4 +66,47 @@ per-observation probing: it rules out a *reinstall during the window*, whereas t
 what identifies *which build* is running. Both edges of the chain are probes.
 
 **Residual, stated plainly:** the setup/navigation before 18:14:47 and the post-run regression
-sweep after ~18:29 are outside the pid-sampled window. Neither contains an AC observation.
+sweep after ~18:29 are outside the pid-*sampled* window. Neither contains an AC observation.
+
+---
+
+## Correction (2026-08-09, post-run): the continuity record is CONTINUOUS, not sampled
+
+My first write-up of this rested on 5 logcat instants with continuity *inferred* between them.
+That understated it. The `flutter run` log is a continuous record of the same process:
+
+- **`13970` is the ONLY distinct pid in the entire 1387-line run log** (`grep -ao "I/flutter
+  ([0-9 ]*)" | sort -u` → one result), first line to last.
+- **`Lost connection to device.` occurs exactly once, at line 1387** — the final line, my
+  teardown. A mid-run process death would have printed it earlier.
+
+So process identity is unbroken by a continuous record, not by interpolation between samples.
+
+**Pid reuse is ruled out, not merely improbable.** A live pid cannot be reused, and this process
+was alive continuously (no `Lost connection` until teardown). This does not need a
+"negligible" hedge.
+
+## Residuals named and rated
+
+**1. In-process code change via the live VM service (hot reload) — the one path pid continuity
+does NOT close.** A hot reload changes running code without touching the pid, and the
+`flutter run` attach was up on `127.0.0.1:64938` for the whole window. Rated **very low, with
+direct evidence rather than assertion**:
+
+- **Zero reload/restart events in the run log.** `grep -c "Reloaded .* librar\|Restarted
+  application\|Performing hot reload\|Performing hot restart"` → **0**. Negative control: the
+  same pattern matches a synthetic `Reloaded 1 of 900 libraries in 300ms` line → 1, so the
+  pattern works and the 0 is real. (Two earlier hits for a looser pattern were the startup key
+  legend — `r Hot reload.` / `R Hot restart.` — not events.)
+- **A reload could only have loaded identical source.** `git status --porcelain` over
+  `*.dart`, `UserApp/`, `packages/` in the worktree is **empty** — no product-code edit ever
+  landed there, before, during, or after the run.
+- The VM service is host-local behind a random auth token (`3-wnuqXgq-s=`); I held the device
+  lock; another worktree's `flutter run` targets its own device and its own port.
+
+**2. Unbracketed edges.** Setup/navigation before 18:14:47 and the regression sweep after
+~18:29. Neither contains an AC observation.
+
+**Still true and not softened:** none of this is per-observation probing. The chain rules out
+*reinstall* (pid) and *in-process replacement* (reload evidence); it is the two probes at the
+edges that identify *which build* was running.

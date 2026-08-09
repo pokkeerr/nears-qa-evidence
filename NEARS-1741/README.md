@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1741
 
-**PASS — NEARS-1741 + freshness bracketing record (old cadence, gap stated)**
+**PASS — freshness residuals named + rated (hot-reload path closed by log evidence)**
 
 **14 screenshot(s).** Click any thumbnail for full resolution.
 
