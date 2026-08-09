@@ -1,0 +1,14 @@
+FOLLOWUP (out of AC scope, iOS driver): ui_errors_ios has the SAME class of defect.
+- no validity channel: empty output at a dead/unbooted simulator reads as clean (no exit 2, no 'scanned N')
+- selector omits AppLogger [FAIL]/[ERR] and 'Another exception was thrown'
+- bare 'not found' (Android tightened this to '" not found' to avoid matching [WARN] msg="... not found")
+
+# ui_errors_ios [seconds]  -> stream the Runner process log briefly and surface
+# Flutter/Dart error signatures (empty = clean). Default 6s window.
+# Catches the GetX red-screen, type-cast crashes, widget exceptions, overflows.
+ui_errors_ios() {
+  local secs="${1:-6}"
+  xcrun simctl spawn booted log stream --style compact \
+      --predicate 'process == "Runner"' --timeout "${secs}s" 2>/dev/null \
+    | grep -aiE "FlutterError|EXCEPTION CAUGHT|is not a subtype|not found|overflowed by|Get\.(put|lazyPut)|Unhandled"
+}

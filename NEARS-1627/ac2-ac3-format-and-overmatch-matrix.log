@@ -1,0 +1,30 @@
+NEARS-1627 AC2/AC3 — post-fix vs pre-fix over BYTE-IDENTICAL real device buffers
+sourced: /Users/Apple/Projects/nears-NEARS-1627-uinav-errors-format/scripts/app-nav/uinav.sh md5=f3a3aad93e7886a41ffc981d0e107712
+pre-fix: c89c9c57:scripts/app-nav/uinav.sh md5=ca946df15c1c8f826bfc4a4ace9f6008
+
+SOURCED: /Users/Apple/Projects/nears-NEARS-1627-uinav-errors-format/scripts/app-nav/uinav.sh md5=f3a3aad93e7886a41ffc981d0e107712
+===== AC2: clean real window (5556 pre-probe, 220 real flutter lines, 0 errors) =====
+T1 clean-window                    post  rc=0  stdout_lines=0   stderr=ui_errors: <default device> scanned 220 flutter-tag lines of 85822 buffer lines; 0 match(es)
+T1 clean-window                    pre   rc=1  stdout_lines=0   stderr=
+===== discrimination: SAME function, error-laden buffer =====
+T2 5558 (11 real errors)           post  rc=0  stdout_lines=11  stderr=ui_errors: <default device> scanned 478 flutter-tag lines of 58760 buffer lines; 11 match(es)
+T2 5558 (11 real errors)           pre   rc=1  stdout_lines=0   stderr=
+===== exit-2: buffer with ZERO flutter-tag lines =====
+T3 no-flutter buffer               post  rc=2  stdout_lines=0   stderr=ui_errors: <default device> NOT ASSERTED: 0 flutter-tag lines scanned of 37922 buffer lines (app not running, buffer rot
+T3 no-flutter buffer               pre   rc=1  stdout_lines=0   stderr=
+===== AC3: caller pins NO format =====
+T4 -v threadtime REJECTED->fallback post  rc=0  stdout_lines=11  stderr=ui_errors: <default device> scanned 478 flutter-tag lines of 58760 buffer lines; 11 match(es)
+T4 -v threadtime REJECTED->fallback pre   rc=1  stdout_lines=0   stderr=
+T5 BRIEF-format buffer             post  rc=0  stdout_lines=11  stderr=ui_errors: <default device> scanned 478 flutter-tag lines of 58759 buffer lines; 11 match(es)
+T5 BRIEF-format buffer             pre   rc=1  stdout_lines=0   stderr=
+===== trap 3: no serial pinned, >1 device (adb returns empty+exit1) =====
+T6 no-serial multi-device          post  rc=2  stdout_lines=0   stderr=ui_errors: <no serial pinned> NOT ASSERTED: log buffer unreadable (no device, >1 device attached with no serial, or empt
+T6 no-serial multi-device          pre   rc=1  stdout_lines=0   stderr=
+
+=== selector edge cases (routine traffic must NOT match) ===
+08-09 20:00:00.004  100  100 E flutter : "HomeController" not found. You need to call "Get.put(HomeController())"
+08-09 20:00:00.005  100  100 E flutter : A RenderFlex overflowed by 42 pixels on the right.
+08-09 20:00:00.007  100  100 E flutter : [FAIL] endpoint=/api/v1/x http_status=500 type=ApiFailure msg="boom"
+ui_errors: <default device> scanned 7 flutter-tag lines of 8 buffer lines; 3 match(es)
+post-fix exit=0
+pre-fix  exit=1 (RED: 0 lines)
