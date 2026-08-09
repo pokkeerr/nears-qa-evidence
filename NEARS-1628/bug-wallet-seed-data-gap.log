@@ -1,0 +1,27 @@
+NEARS-1628 QA — pre-existing DATA gap: two wallet surfaces are untestable
+Found: 2026-08-09. NOT caused by this ticket's diff. Read-only queries only.
+
+1) The wallet bonus banner can never render in any QA run.
+   mysql> SELECT COUNT(*) FROM wallet_bonuses;        -> 0
+   Backend: WalletController@get_bonus does
+       WalletBonus::Active()->Running()->latest()->get()
+   so the endpoint returns [] for every user.
+   UserApp bonus_banner_widget.dart:20-21 gates on
+       fundBonusList != null && fundBonusList!.isNotEmpty
+   Live isolate on the success path (Dart VM service evaluate):
+       Get.find<WalletController>().fundBonusList!.length  -> 0
+   => "the bonus banner populates" is unreachable by construction.
+
+2) Wallet pagination / load-more can never fire.
+   mysql> SELECT COUNT(*) FROM wallet_transactions;   -> 6   (whole DB)
+   mysql> SELECT user_id, COUNT(*) FROM wallet_transactions GROUP BY user_id;
+          user_id 3 -> 4      user_id 1 -> 2
+   Request observed: GET /api/v1/customer/wallet/transactions?offset=1&limit=10
+   Live isolate: Get.find<WalletController>().canLoadMore -> false
+   => the scroll listener's load-more branch (wallet_screen.dart:96-113) is
+      unreachable; no seeded user has more than one page.
+
+Impact: every wallet ticket inherits two permanently undemonstrable ACs.
+Needs a versioned, identity-guarded seeder (>=1 Active+Running wallet_bonuses
+row, and >=11 wallet_transactions rows for one test user). QA cannot seed it
+(read-only DB rule).

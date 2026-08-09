@@ -1,0 +1,30 @@
+NEARS-1628 QA — pre-existing TOOLING defect in scripts/app-nav/uinav.sh (ui_errors)
+Found: 2026-08-09 ~22:00 on emulator-5558. NOT caused by this ticket's diff.
+
+ui_errors scans the WHOLE logcat buffer with no pid or time scoping, so it
+reports errors from long-dead FOREIGN processes as if they were the current
+run's. On a device I had just acquired, ui_errors returned 19 matches at
+exit 0 — every one of them from pid 9248, a dead process from a previous
+session, timestamped 20:08-20:45 while the device clock read 22:00.
+My own app was pid 16629 and had emitted ZERO errors.
+
+--- ui_errors output (misleading) ---
+08-09 20:09:01.984  9248  9248 I flutter : [FAIL] endpoint=/api/v1/auth/sign-up http_status=null type=ApiFailure msg="api request threw" correlation_id=e2099e34-...
+08-09 20:20:13.746  9248  9248 I flutter : [FAIL] endpoint=/api/v1/auth/sign-up http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=3ad18f91-...
+08-09 20:22:56.348  9248  9248 I flutter : [FAIL] endpoint=/api/v1/auth/forgot-password http_status=null type=ApiFailure msg="api request threw" correlation_id=f4fe7f33-...
+08-09 20:45:08.998  9248  9248 I flutter : [FAIL] endpoint=/api/v1/auth/login http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=30131063-...
+08-09 20:45:09.004  9248  9248 I flutter : [ERR] msg="error snackbar shown"
+ui_errors: emulator-5558 scanned 784 flutter-tag lines of 115845 buffer lines; 19 match(es)
+
+--- ground truth for the SAME moment, scoped to my own pid ---
+$ adb shell pidof com.izzes.nears   ->  16629
+$ adb shell 'date +"%m-%d %H:%M:%S"' ->  08-09 22:00:52
+$ adb logcat -d --pid=16629 | grep -c flutter                          -> 193
+$ adb logcat -d --pid=16629 | grep -E "\[FAIL\]|\[ERR\]|EXCEPTION"     -> (no output)
+
+Impact: a QA agent that trusts ui_errors on a shared/recycled pool device will
+FAIL a clean ticket on another session's stale errors. This survives the
+NEARS-1627 fix (e987a674), which corrected the SELECTOR (threadtime format,
+AppLogger tags, missing -s serial) but did not add pid/time scoping.
+Suggested fix: pass --pid=$(adb shell pidof <pkg>) and/or -T <since> in
+_uinav_logcat_dump, and report the pid the scan was scoped to.

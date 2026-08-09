@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1628
 
-**PASS with 2 ACs NOT TESTED (data gap: zero wallet_bonuses rows, 4 tx rows) — no-regression gate on the latent-leak fix**
+**PASS on all reachable ACs; 2 AC2 clauses NOT TESTED (data gap). Zero defects in the diff.**
 
 **7 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -21,6 +21,8 @@
 </table>
 
 ### Other artifacts
+- [`bug-uierrors-no-pid-scope.log`](bug-uierrors-no-pid-scope.log)
+- [`bug-wallet-seed-data-gap.log`](bug-wallet-seed-data-gap.log)
 - [`fault-proxy-wallet-traffic.log`](fault-proxy-wallet-traffic.log)
 - [`gate-test-failures.log`](gate-test-failures.log)
 - [`measure-isloading-fault.log`](measure-isloading-fault.log)
