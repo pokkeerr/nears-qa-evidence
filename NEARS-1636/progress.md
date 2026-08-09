@@ -1,0 +1,10 @@
+# NEARS-1636 QA progress (emulator-5556, worktree nears-NEARS-1636-editprofile-retry @22bd2de4)
+- build freshness: md5 caeba138d802399d8efd80da3fcfa7f1 (pre+post AC1); live isolate: _retryLoad present in _UpdateProfileScreenState + nears_error_retry.dart dep => FRESH
+- AC1 PASS — Edit Profile with /customer/info 503 renders NearsErrorRetry (Something went wrong / Please try again / Retry), no CircularProgressIndicator. shot ac1-error-state.png. logs: 3 failed loads, exactly 3 `msg="profile load failed"` (1 each), ui_errors exit 0 / 671 lines scanned / only injected-fault matches.
+- AC2 PASS — flag flipped to pass-through, Retry tapped 21:52:18 -> /customer/info 200, form rendered in-session (name/email/phone populated, Verified badge, Change Password, Update). No restart. shot ac2-after-retry.png (email/phone redacted).
+- AC3 PASS — model populated, flag flipped to fail, re-entered Edit Profile: 21:54:34 503 + one `profile load failed`, yet form still rendered and error-card labels absent (count 0). shot ac3-populated-form-survives-failed-refresh.png
+- AC1 re-entry clause PASS — app restarted with proxy failing: error card on fresh entry AND on re-entry (shot ac1b-reentry-error-state.png). System BACK exits the error state to the Profile menu.
+- AC4 PASS — restarted session: 4 failed loads -> exactly 4 `[FAIL] ... endpoint=/api/v1/customer/info ... msg="profile load failed"` (1:1). Line carries endpoint+status+type+msg only, no PII, no raw print. Paired api_client `msg="api request failed"` is the pre-existing transport log, a different message, not a duplicate.
+- RTL/Arabic error state PASS (shot rtl-arabic-error-state.png).
+- Logged-out: Edit Profile row is auth-gated OUT of the guest Profile menu and manifest sets flutter_deeplinking_enabled=false -> NotLoggedInScreen arm NOT demonstrable live. Source-verified untouched (guard requires isLoggedIn; guest arm at :575 unchanged).
+- Success-arm smoke PASS: avatar picker opens Android photo picker, Change Password screen opens, Update button + Verified badge render.
