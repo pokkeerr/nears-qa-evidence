@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1741
 
-**PASS — NEARS-1741 forgot-password recoverable submit-error surface, emulator-5558, APK 34fa2a7e**
+**PASS — NEARS-1741 + freshness bracketing record (old cadence, gap stated)**
 
 **14 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -34,6 +34,7 @@
 ### Other artifacts
 - [`bug-invalid-phone-no-toast.log`](bug-invalid-phone-no-toast.log)
 - [`bug-phone-picker-tap-target-22dp.log`](bug-phone-picker-tap-target-22dp.log)
+- [`freshness-timeline.md`](freshness-timeline.md)
 - [`progress.md`](progress.md)
 
 ---
