@@ -1,0 +1,36 @@
+NEARS-1664 AC4 — outbound launch intents observed on emulator-5558 (logcat -b all)
+(Platform redacts the URI payload as xxxx in ActivityTaskManager logs — the tel:
+value was read directly off the dialer UI: "+971 56 581 1159".)
+
+08-09 16:42  Call row tapped:
+  TaskInfo{... baseIntent=Intent { act=android.intent.action.VIEW dat=tel:xxxxxxxxxxxxx
+    flg=0x10000000 cmp=com.google.android.dialer/com.android.dialer.main.impl.MainActivity }}
+  mCurrentFocus=Window{... com.google.android.dialer/com.android.dialer.main.impl.MainActivity}
+  Dialer field rendered: +971 56 581 1159   (= business_settings.phone "+971565811159")
+
+08-09 16:43:06.650  Email row tapped:
+  I ActivityTaskManager: START u0 {act=android.intent.action.VIEW dat=mailto:xxxxx@xxxxx.xxx
+    xflg=0x4 cmp=com.google.android.gm/.ComposeActivityGmailExternal (has extras)}
+    with LAUNCH_MULTIPLE from uid 10291 (com.izzes.nears) result code=0
+  -> Gmail then forwarded to .welcome.WelcomeTourActivity because no Google account is
+     configured on this emulator. Environment condition, not an app defect: the mailto:
+     compose intent resolved and was accepted (result code=0).
+
+--- can_not_launch snackbar path (fault-injected: dialer + contacts disabled via
+    `pm disable-user`, so NO activity resolved tel:; both re-enabled afterwards) ---
+Observed on screen (a11y): "Can't launch +971565811159"   -> app stayed in com.izzes.nears
+Paired log line (NOT silent — showCustomSnackBar routes through AppLogger.error):
+
+I/UrlLauncher(10409): component name for tel:+971565811159 is null
+I/flutter (10409): ----------------FIREBASE CRASHLYTICS----------------
+I/flutter (10409): The following exception was thrown app error:
+I/flutter (10409): Exception: app_error
+I/flutter (10409): #0      AppLogger.error (package:sixam_mart/helper/app_logger.dart:98:18)
+I/flutter (10409): #1      showCustomSnackBar (package:sixam_mart/common/widgets/custom_snackbar.dart:30:17)
+I/flutter (10409): #2      _SupportScreenState.build.<anonymous closure> (package:sixam_mart/features/support/screens/support_screen.dart:49:15)
+I/flutter (10409): <asynchronous suspension>
+I/flutter (10409): ----------------------------------------------------
+I/flutter (10409): [ERR] msg="error snackbar shown"
+
+These 2 [ERR] lines are the ONLY [ERR]/[FAIL] in the entire live session and are
+the deliberately-injected taps. All other ACs: 0 [ERR]/[FAIL].
