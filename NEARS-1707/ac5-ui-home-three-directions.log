@@ -1,0 +1,28 @@
+NEARS-1707 AC5 — ui_home, all three directions, live on emulator-5556 (UserApp anchors Categories|Profile|Basket, home-tap Home)
+
+(a) PUSHED DETAIL -> HOME
+    On store detail: Categories rc=1, Profile rc=1, Basket rc=1 (absent)
+    ui_home -> rc=0; after: all four anchors rc=0, "Good evening, Customer" visible, mCurrentFocus com.izzes.nears/MainActivity
+
+(b) AMBIGUOUS ANCHOR -> STILL PRESENT, NO BACK-LOOP OUT   [the case the build phase could not run live]
+    On the Categories tab, the ANCHOR "Categories" is genuinely ambiguous:
+      AMBIGUOUS: "Categories" matched 2 distinct nodes
+        label="Categories" clickable=true  area=46080   at 432,2776   (nav tab)
+        label="Categories" clickable=false area=3924480 at 672,1460   (screen container)
+    FALSIFIABLE COUNTERFACTUAL: the PRE-FIX presence test `[ -z "$(uifind find Categories --exact)" ]`
+    evaluates TRUE against the new find() => would set present=0 => would press BACK. The rc-based
+    case statement (0|3 = present) is therefore load-bearing, not decorative.
+    ui_home -> rc=0; landed UserApp Home (screenshot ac5b-after-ui-home.png); app never left the foreground.
+
+(c) GENUINELY ABSENT ANCHOR -> BACK LOOP STILL FIRES
+    On the address bottom sheet: Categories rc=1, Profile rc=1, Basket rc=1
+    ui_home -> rc=0 after Back-looping out of the sheet; landed Home; selected address preserved.
+
+(b-second-half) AMBIGUOUS HOME-TAP -> --first fallback
+    Address screens show three chips labelled exactly "Home", identical area, three centres:
+      at 672,484 / 672,703 / 672,922  (picker)   and 672,978 / 672,1212 / 672,1446 (My Address)
+      ui_find "Home" --exact         -> rc=3
+      ui_find "Home" --exact --first -> "672 484" rc=0   (the exact inner call ui_home's fallback makes)
+    NOT REACHABLE IN SITU: on every UserApp screen where "Home" collides, the bottom nav is covered,
+    so anchors are absent and ui_home Backs out before reaching the home-tap. Branch verified by its
+    components, not end-to-end. Structural property of the app, not a defect in this change.

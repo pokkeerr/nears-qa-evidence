@@ -1,0 +1,23 @@
+NEARS-1707 regression sweep — everyday --exact labels QA depends on daily (emulator-5556, worktree scripts)
+
+HOME TAB          Home rc=0 (192,2776) | Basket rc=0 (912,2776) | Categories rc=0 (432,2776)
+                  Profile rc=0 (1152,2776) | Search rc=0 (672,2776) | Notification rc=0 (1104,483)
+                  Pharmacy rc=0 | Grocery & Food rc=0 | Food & Restaurant rc=0 | Nearest Stores rc=0
+                  See All rc=0 | Flash Sale rc=0 | Test Store (store card) rc=0 (348,1350)
+                  Add To Cart rc=3  <-- BLAST RADIUS, see below
+REAL TAPS OK      ui_tap "Test Store" --exact rc=0 | "Categories" rc=0 | "Basket" rc=0 | "Profile" rc=0
+                  "My Orders" rc=0 | "My Address" rc=0 | "Logout" rc=0 | "Yes" rc=0
+                  "Log in/ Sign up" rc=0 | "Sign In" rc=0 | "Email/Phone" rc=0 | "Change Location" rc=0
+                  "Abu Dhabi - United Arab Emirates" rc=0 | "Grocery & Food, 20 stores near you" rc=0
+ui_tap NOT FOUND  rc=1 ("NOT FOUND: ZZZ_NOT_ON_SCREEN")  — distinct from the rc=3 refusal
+
+NEWLY-LOUD LABELS (correct per AC2, but a behaviour change every caller inherits):
+  "Add To Cart" --exact on Home        rc=3  (2 real buttons, IDENTICAL area 10368, both clickable
+                                              -> the pre-fix tie-break here was a pure coin flip)
+  "Categories"  --exact on Categories  rc=3  (nav tab vs screen container)
+  "1 Item"      --exact on My Orders   rc=3  (4 order cards; pre-fix silently returned 672,2685)
+  "Home"        --exact on address scr rc=3  (3 saved-address chips)
+
+SOURCING TRAP A/B (worktree copy):
+  bash uinav.sh ui_list  -> 0 bytes stdout, rc=0   (trap intact, unchanged by this fix)
+  source uinav.sh; ui_list -> 55 labels printed

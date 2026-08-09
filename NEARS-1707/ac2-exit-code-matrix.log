@@ -1,0 +1,11 @@
+NEARS-1707 AC2 — four distinct exit codes, demonstrated live on emulator-5556
+Script under test: worktree uifind.py md5 fde0c6c9c4bf21fda6c7e36bd6963be7 (pre-fix primary = 3801eb14f734e3363dda53ec67d06798)
+
+rc=0 UNIQUE      ui_find "Basket" --exact      -> stdout "912 2776"
+rc=1 NOT FOUND   ui_find "ZZZ_NOT_ON_SCREEN"   -> stdout "" (empty line)
+rc=2 USAGE       ui_find                       -> stderr: usage: uifind.py find "<label>" [--exact] [--first]
+rc=3 AMBIGUOUS   ui_find "AED"                 -> stdout EMPTY, candidates on stderr:
+  AMBIGUOUS: "AED" matched 2 distinct nodes (use --first to accept any, or a more specific label):
+    label="-17%\nDish Soap 500ml\n<8 AED>\n<7 AED>"   clickable=true  area=413952  at 312,2528
+    label="-30%\nORGANIC\nNavel Oranges\n<19 AED>\n<13 AED>" clickable=true area=413952 at 876,2528
+Candidate line carries: label, clickable, area, cx,cy — as specified.

@@ -1,0 +1,16 @@
+NEARS-1707 AC1/AC4 — live A/B on the UserApp Sign In screen, same screen, same moment.
+Candidates present (raw):
+  label='Password'          clickable=True area=176256 at 672,1042   <- the FIELD
+  label='Show password'     clickable=True area=20736  at 1212,1042
+  label='Forgot Password?'  clickable=True area=18846  at 234,1489   <- smallest area = pre-fix winner
+
+POST-FIX (worktree, md5 fde0c6c9c4bf21fda6c7e36bd6963be7):
+  ui_find "Password"            -> "672 1042"  rc=0   (AC1: exact tier wins, resolves the FIELD)
+  ui_find "password" --first    -> "234 1489"  rc=0   (AC4: opt-in restores the old pick)
+
+PRE-FIX (primary tree, md5 3801eb14f734e3363dda53ec67d06798), SAME live screen:
+  find "Password"               -> "234 1489"  rc=0   (silently the WRONG control — the reported incident)
+
+AC1 live tap: ui_tap "Password" -> tapped 672 1042; 10-char input rendered as 10 masked chars in the
+focused Password field; Email/Phone left empty; "Forgot Password?" / "Sign In" / "Create Account"
+all still present => no navigation off Sign In. Screenshot: ac1-password-tap-lands-on-field.png
