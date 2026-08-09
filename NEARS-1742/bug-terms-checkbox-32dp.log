@@ -1,0 +1,26 @@
+NEARS-1742 QA — regression candidate (PRE-EXISTING, not introduced by this change)
+Terms & Conditions checkbox tap target below the 44dp minimum on sign_up_widget.dart
+
+Device: emulator-5558 (448 x 997 dp, density 480), UserApp debug from
+worktree /Users/Apple/Projects/nears-NEARS-1742-signup-states @ d5efc81e
+
+Live accessibility dump (scripts/app-nav + uiautomator), LTR / English:
+  text="" desc="" class=CheckBox clickable=true bounds=[60,2031][156,2127] px=96x96 dp=32.0x32.0
+
+Same element, RTL / Arabic (mirrored to the trailing edge, same size):
+  text="" desc="" class=CheckBox clickable=true bounds=[1188,2061][1284,2157] px=96x96 dp=32.0x32.0
+
+Desktop override (wm size 1400x2400, wm density 160 => 1400 dp wide):
+  text="" desc="" class=CheckBox clickable=true bounds=[978,1354][1010,1386] px=32x32 dp=32.0x32.0
+
+For contrast, the two targets NEARS-1742 DID touch both clear the minimum:
+  desc="Try Again"  class=Button dp=374.0x44.0   (LTR)
+  desc="حاول ثانية" class=Button dp=374.0x44.0   (RTL)
+  desc="Sign In"    class=Button dp=61.0x44.0    (LTR, was 30dp with no button role)
+  desc="تسجيل الدخول" class=Button dp=94.3x44.0  (RTL)
+
+Notes:
+- The checkbox is untouched by the NEARS-1742 diff (3 files: sign_up_widget.dart,
+  auth_controller.dart, post_auth_decision.dart) — it is 32dp at base as well.
+- It also carries no content-desc, so it announces with no accessible name.
+- Severity: low/medium (a11y). Does not block NEARS-1742.
