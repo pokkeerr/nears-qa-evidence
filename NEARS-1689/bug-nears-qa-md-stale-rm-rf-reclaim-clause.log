@@ -1,0 +1,46 @@
+BUG: nears-qa.md still describes the reclaim as "rm -rf + your own mkdir", which the
+     guard deliberately does NOT do
+File: .claude/agents/nears-qa.md line 47 (section "Device pool — acquire before booting")
+Severity: low | breaks_ac: false (reasoning below) | surface: docs (shipped by this change)
+
+Doc text (line 47, "Stale locks" bullet):
+
+  - **Stale locks:** `qa_lock_acquire` reclaims them for you -- a lock whose pid is dead,
+    or whose `anchor_started` no longer matches the live pid (pid reuse), is stale; note
+    the reclaim in the envelope. **The disk precheck above does NOT gate this step** --
+    reclaiming a dead-pid lock is just `rm -rf` + your own `mkdir`, it needs no additional
+    disk, ...
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The code under test explicitly rejects rm -rf as the reclaim primitive:
+
+  scripts/qa-lock-guard.sh:356-369 (comment in qa_lock_acquire)
+    # The reclaim is a compare-and-swap on a shared path, and `rm -rf` cannot be
+    # its primitive: `rm -rf` removes whatever is at the path, so two racers
+    # could each delete the OTHER's already-valid lock and both come away
+    # believing they hold the device -- precisely the cross-session clobber this
+    # ticket exists to close.
+    # `mv` (rename(2)) IS atomic, so it becomes the claim token: ...
+
+  scripts/qa-lock-guard.sh:398-408 (the actual mechanism)
+    if ! holder="$(_qa_lock_reserve_reclaim "$locks_dir" "$serial")"; then ... fi
+    reclaimed="$holder/lock"
+    if ! mv "$lock_dir" "$reclaimed" 2>/dev/null; then ... fi
+
+i.e. reserve-by-mkdir + atomic mv + re-validate + only then rm the moved-aside copy.
+
+Why I judged breaks_ac: false rather than failing AC4 ("no drift between doc and code"):
+the clause is vestigial from the pre-NEARS-1689 bullet, when the QA agent performed the
+reclaim by hand. Its operative claim is about DISK COST ("it needs no additional disk"),
+which remains true, and the same bullet's instruction now correctly delegates the whole
+step to `qa_lock_acquire`. No reader following this section would perform an rm -rf: the
+section's own rule two bullets earlier is "Acquire and release with the code, never by
+hand". Every scheme element an agent actually acts on (API, owner.json fields, anchor
+semantics, reclaim triggers, release refusal, same-session warning, 800MB floor) was
+verified matching the code. Flagging it so the team lead can overrule this judgement if
+they read AC4 more strictly.
+
+Suggested fix: drop the mechanism words -- "reclaiming a dead-pid lock needs no
+additional disk" carries the entire argument.
+
+Observed: 2026-08-09, worktree /Users/Apple/Projects/nears-NEARS-1689-qa-lock-liveness @ 01b545c7

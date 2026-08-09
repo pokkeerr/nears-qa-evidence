@@ -1,0 +1,34 @@
+BUG: the solution doc's suggested way to verify run_apps.sh cannot work as written
+File: docs/solutions/NEARS-1689-qa-lock-liveness.md (lines 235-238)
+Severity: low | breaks_ac: false | surface: docs (shipped by this change)
+
+The doc offers two ways to handle the run_apps.sh residual:
+
+  237  worktree exercises the **primary tree's unfixed** guard and will look unchanged. Verify `run_apps.sh` by
+  238  pointing `LOCK_GUARD` at the worktree copy, or accept it as verifiable only post-merge, and say which was
+
+The first option is not achievable without editing the file. run_apps.sh assigns both
+variables unconditionally -- neither honours a pre-set environment value:
+
+  scripts/run_apps.sh:5    ROOT_DIR="/Users/Apple/Projects/nears"
+  scripts/run_apps.sh:14   LOCK_GUARD="$ROOT_DIR/scripts/qa-lock-guard.sh"
+
+Contrast the same file's overridable vars, which use the ${VAR:-default} form:
+
+  scripts/run_apps.sh:10   FLUTTER_BIN="${FLUTTER_BIN:-/Users/Apple/Tools/flutter/bin/flutter}"
+  scripts/run_apps.sh:11   ADB_BIN="${ADB_BIN:-$SDK_ROOT/platform-tools/adb}"
+
+So `LOCK_GUARD=... bash scripts/run_apps.sh` is silently overwritten at line 14 and the
+primary tree's guard is sourced anyway.
+
+Impact: a future verifier following the doc's first option would believe they had
+exercised the worktree guard when they had not -- a false green, in a ticket about
+false greens. The doc's SECOND option ("accept it as verifiable only post-merge") is
+correct and is the path this QA run took, so nothing was mis-verified here.
+
+Suggested fix (engineer's call): either drop the first option from the doc, or make the
+two vars overridable -- ROOT_DIR="${ROOT_DIR:-/Users/Apple/Projects/nears}" and
+LOCK_GUARD="${LOCK_GUARD:-$ROOT_DIR/scripts/qa-lock-guard.sh}" -- which would also make
+the residual verifiable pre-merge.
+
+Observed: 2026-08-09, worktree /Users/Apple/Projects/nears-NEARS-1689-qa-lock-liveness @ 01b545c7
