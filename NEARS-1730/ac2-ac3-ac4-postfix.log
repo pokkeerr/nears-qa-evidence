@@ -1,0 +1,47 @@
+NEARS-1730 · POST-FIX — the SAME six fixtures against the worktree script.
+================================================================================================
+$ (cd z_primary && orphan-artifact-check.sh NEARS-9999 z_wt )   -> exit 0
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/z_primary, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/z_wt, fix: off) ==
+  INFO  tier-B unavailable (no /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/z_primary/tasks/runs/NEARS-9999.json) -- run-file attribution NOT asserted, not 'no matches'
+  INFO  mtime filter unavailable (no /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/z_primary/tasks/runs/NEARS-9999.json) -- nothing suppressed as pre-existing
+  WARN  unattributable dirty path -- cannot be tied to this run: docs/solutions/some-unrelated-note.md -- if THIS run wrote it, copy it into /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/z_wt by hand and re-run; if another session wrote it, leave it. Never auto-copied.
+  INFO  no dirty path in the primary tree could be attributed to 'NEARS-9999' (tier A: key in the path; tier B: one of 9 curated write-record fields of tasks/runs/NEARS-9999.json, dated inside this run) — NOTHING was compared against the worktree. Tier B is PARTIAL BY CONSTRUCTION: the run-file schema is not standardised, so this is 'nothing ATTRIBUTABLE was found', never 'this run wrote nothing else'
+  INFO  NO-COVERAGE means nothing was compared against the worktree — it is NOT the same as 'checked and clean'.
+-- result: NO-COVERAGE — 0 candidate(s) examined, 0 asserted (0 tier-A, 0 tier-B); 0 hard mismatch(es), 1 soft note(s); 1 primary-tree path(s) dirty: 0 allow-listed, 0 pre-existing, 0 routed to another run, 1 unattributable; tier-B coverage: PARTIAL (9 curated write-record field name(s) of 102 path-bearing key names measured across tasks/runs/; anything logged elsewhere or in prose reads as unattributable, and 0 path(s) were VETOED as recorded-not-written); degraded: tier-B unavailable (no run file), mtime filter unavailable (no run file) --
+footer md5: 74eee439dc662a5ae07b8ef179798538
+
+$ (cd y_primary && orphan-artifact-check.sh NEARS-9999 y_wt )   -> exit 0
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/y_primary, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/y_wt, fix: off) ==
+  INFO  tier-B unavailable (no /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/y_primary/tasks/runs/NEARS-9999.json) -- run-file attribution NOT asserted, not 'no matches'
+  INFO  mtime filter unavailable (no /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/y_primary/tasks/runs/NEARS-9999.json) -- nothing suppressed as pre-existing
+  PASS  already synced (identical content): docs/solutions/NEARS-9999-thing.md
+-- result: PASS — 1 candidate(s) examined, 1 asserted (1 tier-A, 0 tier-B); 0 hard mismatch(es), 0 soft note(s); 1 primary-tree path(s) dirty: 0 allow-listed, 0 pre-existing, 0 routed to another run, 0 unattributable; tier-B coverage: PARTIAL (9 curated write-record field name(s) of 102 path-bearing key names measured across tasks/runs/; anything logged elsewhere or in prose reads as unattributable, and 0 path(s) were VETOED as recorded-not-written); degraded: tier-B unavailable (no run file), mtime filter unavailable (no run file) --
+footer md5: f98b70d217c277f6b0d367ef9044741e
+
+$ (cd nogit && orphan-artifact-check.sh NEARS-9999 x_wt )   -> exit 0
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/nogit, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/x_wt, fix: off) ==
+  WARN  primary tree is not a git repo: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/nogit — NOTHING WAS SCANNED (SKIP, not a pass)
+  INFO  SKIP means the environment prevented scanning — it is NOT a clean bill of health.
+-- result: SKIP — 0 candidate(s) examined, 0 asserted (0 tier-A, 0 tier-B); 0 hard mismatch(es), 1 soft note(s); 0 primary-tree path(s) dirty: 0 allow-listed, 0 pre-existing, 0 routed to another run, 0 unattributable; tier-B coverage: PARTIAL (9 curated write-record field name(s) of 102 path-bearing key names measured across tasks/runs/; anything logged elsewhere or in prose reads as unattributable, and 0 path(s) were VETOED as recorded-not-written) --
+footer md5: 8558c3371f95f643eb7a7c9868575e6c
+
+$ (cd x_primary && orphan-artifact-check.sh NEARS-9999 x_wt )   -> exit 1
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/x_primary, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/x_wt, fix: off) ==
+  INFO  tier-B unavailable (no /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/x_primary/tasks/runs/NEARS-9999.json) -- run-file attribution NOT asserted, not 'no matches'
+  INFO  mtime filter unavailable (no /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/x_primary/tasks/runs/NEARS-9999.json) -- nothing suppressed as pre-existing
+  FAIL  orphaned artifact: docs/solutions/NEARS-9999-orphan.md
+-- result: FAIL — 1 candidate(s) examined, 1 asserted (1 tier-A, 0 tier-B); 1 hard mismatch(es), 0 soft note(s); 1 primary-tree path(s) dirty: 0 allow-listed, 0 pre-existing, 0 routed to another run, 0 unattributable; tier-B coverage: PARTIAL (9 curated write-record field name(s) of 102 path-bearing key names measured across tasks/runs/; anything logged elsewhere or in prose reads as unattributable, and 0 path(s) were VETOED as recorded-not-written); degraded: tier-B unavailable (no run file), mtime filter unavailable (no run file) --
+footer md5: 38864409f7c68f27154189b2fc4db928
+
+$ (cd d_primary && orphan-artifact-check.sh NEARS-9999 d_wt )   -> exit 1
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/d_primary, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/d_wt, fix: off) ==
+  FAIL  conflict -- docs/workflow/shared-notes.md differs between primary tree and worktree, resolve by hand [tier B: recorded in tasks/runs/NEARS-9999.json]
+-- result: FAIL — 1 candidate(s) examined, 1 asserted (0 tier-A, 1 tier-B); 1 hard mismatch(es), 0 soft note(s); 1 primary-tree path(s) dirty: 0 allow-listed, 0 pre-existing, 0 routed to another run, 0 unattributable; tier-B coverage: PARTIAL (9 curated write-record field name(s) of 102 path-bearing key names measured across tasks/runs/; anything logged elsewhere or in prose reads as unattributable, and 0 path(s) were VETOED as recorded-not-written) --
+footer md5: 892508fc33c05cdba6cc93337994b281
+
+$ (cd k_primary && orphan-artifact-check.sh NEARS-9999 k_wt )   -> exit 0
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/k_primary, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/k_wt, fix: off) ==
+  WARN  probable orphan, NOT copied [tier B: recorded in tasks/runs/NEARS-9999.json]: docs/workflow/new-shared-note.md -- this run's logbook records the write but the path is absent from the worktree. A logbook entry is weaker evidence than a key in the path, and this is the only case that can IMPORT content, so --fix will not touch it: confirm it is yours, copy it into /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/k_wt by hand, and re-run.
+-- result: PASS — 1 candidate(s) examined, 1 asserted (0 tier-A, 1 tier-B); 0 hard mismatch(es), 1 soft note(s); 1 primary-tree path(s) dirty: 0 allow-listed, 0 pre-existing, 0 routed to another run, 0 unattributable; tier-B coverage: PARTIAL (9 curated write-record field name(s) of 102 path-bearing key names measured across tasks/runs/; anything logged elsewhere or in prose reads as unattributable, and 0 path(s) were VETOED as recorded-not-written) --
+footer md5: d2b4153e52a9206f36f855770ac09669
+

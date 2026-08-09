@@ -1,0 +1,29 @@
+NEARS-1730 · REGRESSION — the three pre-existing fixtures (a)(b)(c) are UNMODIFIED and still pass
+==================================================================================================
+Source-level: fixture (a)..(c) block extracted from BOTH scripts and diffed.
+  pre-fix  block md5: b316ca5a210ed5c42ede912f34cc344d   (80 lines)
+  post-fix block md5: b316ca5a210ed5c42ede912f34cc344d   (80 lines)
+  diff: BYTE-IDENTICAL
+
+Behavioural: their 5 assertions in the live self-test run —
+    PASS: report mode FAILs the orphan (not present in worktree).
+    PASS: --fix copied the orphan into the worktree with identical content.
+    PASS: re-check after fix reports already-synced (no more orphan).
+    PASS: identical-content file reports PASS/no-op, never touched.
+    PASS: --fix refuses the conflict, FAILs, and overwrites neither copy.
+
+Base behaviours they encode, all still holding:
+  clean orphan  -> FAIL in report mode, then --fix copies it, then re-check reads already-synced
+  identical     -> PASS no-op, file never touched
+  real conflict -> FAIL, and --fix overwrites NEITHER copy
+
+Scope: git diff --name-only in the worktree = scripts/newtask-guards/orphan-artifact-check.sh 
+       bash -n syntax check: OK
+       executable bit: -rwxr-xr-x@
+       .sh / CI callers of this guard: 0 (exit-code consumers unchanged)
+
+ROBUSTNESS PROBE (not an AC): a tier-A path containing a SPACE — git C-quotes it in porcelain output.
+  git renders: ?? "docs/solutions/NEARS-9999 my note.md"
+    FIXED copied orphaned artifact into worktree: docs/solutions/NEARS-9999 my note.md
+  copied identical? YES
+  (the documented F4 limitation is OCTAL-ESCAPED non-ASCII, which fails loud; plain spaces work end-to-end)

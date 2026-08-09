@@ -1,0 +1,44 @@
+NEARS-1730 · LIVE PRIMARY TREE — REPORT MODE ONLY (never --fix against the shared tree)
+=======================================================================================
+cwd = /Users/Apple/Projects/nears (primary) ; script = the WORKTREE copy (the fix is uncommitted there)
+
+-- QA PREDICTION, stated BEFORE running --
+   13 dirty = 7 allow-listed (atlassian-sync, review-lessons, 5x tasks/recovery/*)
+            + 3 routed (NEARS-1588 / 1591 / 1614 design docs, another run's key)
+            + 1 tier-A asserted (this ticket's own solution doc, absent from the worktree) -> FAIL
+            + 1 pre-existing (F7-FLOW8-OVERNIGHT-PROMPT.md, mtime 15868s BEFORE started_epoch)
+            + 1 unattributable (F7-FLOW12-BUG-CLOSEOUT-PLAN.md, mtime 1486s AFTER started_epoch)
+   verdict FAIL, exit 1, 1 hard, 1 soft.
+
+-- dirty paths at run time --
+    M docs/workflow/review-lessons.json
+    M tasks/.atlassian-sync.json
+    M tasks/F7-FLOW12-BUG-CLOSEOUT-PLAN.md
+   ?? docs/design/NEARS-1588-pharmacy-otc-rx-split.md
+   ?? docs/design/NEARS-1591-pharmacy-dosage-block.md
+   ?? docs/design/NEARS-1614-onboarding-redesign-options.md
+   ?? docs/solutions/NEARS-1730-orphan-check-attribution-tiers.md
+   ?? tasks/F7-FLOW8-OVERNIGHT-PROMPT.md
+   ?? tasks/recovery/review-lessons-1627-promotions.json
+   ?? tasks/recovery/review-lessons-1628-promotion.json
+   ?? tasks/recovery/review-lessons-1707-promotion.json
+   ?? tasks/recovery/review-lessons-1729-promotions.json
+   ?? tasks/recovery/review-lessons-1762-promotion.json
+
+-- MEASURED --
+== orphan-artifact-check NEARS-1730 (primary: /Users/Apple/Projects/nears, worktree: /Users/Apple/Projects/nears-NEARS-1730-orphan-check-attribution, fix: off) ==
+  WARN  unattributable dirty path -- cannot be tied to this run: tasks/F7-FLOW12-BUG-CLOSEOUT-PLAN.md -- if THIS run wrote it, copy it into /Users/Apple/Projects/nears-NEARS-1730-orphan-check-attribution by hand and re-run; if another session wrote it, leave it. Never auto-copied.
+  INFO  another run's artifact -- ROUTE it to that run, do not adjudicate it here, never copied: docs/design/NEARS-1588-pharmacy-otc-rx-split.md
+  INFO  another run's artifact -- ROUTE it to that run, do not adjudicate it here, never copied: docs/design/NEARS-1591-pharmacy-dosage-block.md
+  INFO  another run's artifact -- ROUTE it to that run, do not adjudicate it here, never copied: docs/design/NEARS-1614-onboarding-redesign-options.md
+  FAIL  orphaned artifact: docs/solutions/NEARS-1730-orphan-check-attribution-tiers.md
+-- result: FAIL — 1 candidate(s) examined, 1 asserted (1 tier-A, 0 tier-B); 1 hard mismatch(es), 1 soft note(s); 13 primary-tree path(s) dirty: 7 allow-listed, 1 pre-existing, 3 routed to another run, 1 unattributable; tier-B coverage: PARTIAL (9 curated write-record field name(s) of 102 path-bearing key names measured across tasks/runs/; anything logged elsewhere or in prose reads as unattributable, and 0 path(s) were VETOED as recorded-not-written) --
+exit=1
+
+PREDICTION vs MEASUREMENT: all six numbers matched (13 dirty / 7 allow / 3 routed / 1 pre-existing / 1 unattributable / 1 tier-A asserted, FAIL, exit 1).
+The single hard FAIL is a TRUE tier-A positive: docs/solutions/NEARS-1730-orphan-check-attribution-tiers.md lives in the
+primary tree by design and is genuinely absent from the worktree. ZERO foreign-session files were claimed or copied.
+Contrast: the ticket's rejected fix-shape 3 would have emitted 9 notes here with 0 belonging to this run.
+
+-- side-effect check: the shared primary tree was NOT mutated --
+   dirty count after: 13

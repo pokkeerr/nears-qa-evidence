@@ -1,0 +1,41 @@
+NEARS-1730 · PRE-FIX baseline — script re-derived by QA from `git show 700ca314:`, not from the build's transcript.
+Fixtures: Z=zero-candidate · Y=tier-A synced · S=primary-not-a-repo · X=tier-A orphan · D=AC4 shared-doc-edited-in-place · K=AC4 no-key orphan missing
+================================================================================================
+$ (cd z_primary && orphan-artifact-check.sh NEARS-9999 z_wt )   -> exit 0
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/z_primary, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/z_wt, fix: off) ==
+  INFO  no changed path in primary-tree git status matches key 'NEARS-9999'
+-- result: 0 hard mismatch(es), 0 soft note(s) --
+footer md5: 5f7f99ba70cff526c8527c959a2544d8
+
+$ (cd y_primary && orphan-artifact-check.sh NEARS-9999 y_wt )   -> exit 0
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/y_primary, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/y_wt, fix: off) ==
+  PASS  already synced (identical content): docs/solutions/NEARS-9999-thing.md
+-- result: 0 hard mismatch(es), 0 soft note(s) --
+footer md5: 5f7f99ba70cff526c8527c959a2544d8
+
+$ (cd nogit && orphan-artifact-check.sh NEARS-9999 x_wt )   -> exit 0
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/nogit, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/x_wt, fix: off) ==
+  WARN  primary tree is not a git repo: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/nogit — skipped
+-- result: 0 hard mismatch(es), 0 soft note(s) --
+footer md5: 5f7f99ba70cff526c8527c959a2544d8
+
+$ (cd x_primary && orphan-artifact-check.sh NEARS-9999 x_wt )   -> exit 1
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/x_primary, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/x_wt, fix: off) ==
+  FAIL  orphaned artifact: docs/solutions/NEARS-9999-orphan.md
+-- result: 1 hard mismatch(es), 0 soft note(s) --
+footer md5: f30b21e84a5b87286050e845b3caf981
+
+$ (cd d_primary && orphan-artifact-check.sh NEARS-9999 d_wt )   -> exit 0
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/d_primary, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/d_wt, fix: off) ==
+  INFO  no changed path in primary-tree git status matches key 'NEARS-9999'
+-- result: 0 hard mismatch(es), 0 soft note(s) --
+footer md5: 5f7f99ba70cff526c8527c959a2544d8
+
+$ (cd k_primary && orphan-artifact-check.sh NEARS-9999 k_wt )   -> exit 0
+== orphan-artifact-check NEARS-9999 (primary: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/k_primary, worktree: /private/tmp/claude-501/-Users-Apple-Projects-nears/676baaf1-1d5f-487f-a7ec-79309f6b133a/scratchpad/qa1730/all/k_wt, fix: off) ==
+  INFO  no changed path in primary-tree git status matches key 'NEARS-9999'
+-- result: 0 hard mismatch(es), 0 soft note(s) --
+footer md5: 5f7f99ba70cff526c8527c959a2544d8
+
+RESULT: Z, Y and S all print footer md5 5f7f99ba70cff526c8527c959a2544d8 at exit 0 — absence, success and
+        nothing-scanned are BYTE-IDENTICAL. D and K (both AC4 readings) are INVISIBLE: 0 candidates, exit 0.

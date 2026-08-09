@@ -1,0 +1,24 @@
+NEARS-1730 · SELF-TEST VALIDITY COUNT + FALSIFIABILITY
+======================================================
+Fixture blocks executed : 21
+Fixture ids             : (a)(b)(c)(d)(e)(f)(g)(h)(i)(j)(k)(l)(m)(n)(p)(o)(q)(r)(s)(t)(u)
+Assertions PASS         : 24
+Assertions FAIL         : 0
+Assertions SKIPPED      : 0   <- SKIP is never PASS; 0 here means nothing went unasserted
+Overall                 : == self-test PASS == (exit 0)
+NOTE: the handed-in state said '24 fixtures'. Measured: 21 fixture blocks producing 24 assertions
+      (fixture (a) alone asserts 3: report mode, --fix copy, re-check).
+
+-- MUTATION CHECK: the suite must be able to come out RED. Mutations applied to a COPY, never the worktree. --
+
+[M1] verdict="NO-COVERAGE" -> verdict="PASS"  (fixture (e) must go red)
+     exit=1  FAILs=1  verdict=== self-test FAIL ==
+       FAIL: NO-COVERAGE verdict/validity count/exit not as expected (rc=0).
+
+[M2] DENY veto disabled: 'if orphan_run_denied' -> 'if false'  (fixtures (r)+(s) must go red)
+     exit=1  FAILs=2  verdict=== self-test FAIL ==
+       FAIL: fixture (r) -- an anti-field record was treated as a write record (rc=0). F1 IS OPEN ON THE STRUCTURED CHANNEL.
+       FAIL: fixture (s) -- the write field overrode the anti-field (rc=0).
+
+CONCLUSION: the self-test is falsifiable and TARGETED — each mutation reddened exactly the fixture(s)
+            that encode the mutated behaviour, and nothing else. A green run is therefore informative.
