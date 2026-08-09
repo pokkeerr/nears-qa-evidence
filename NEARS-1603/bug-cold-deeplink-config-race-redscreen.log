@@ -1,0 +1,58 @@
+NEARS-1603 QA — regression candidate (PRE-EXISTING, outside this diff)
+Red screen: "Null check operator used on a null value" on a COLD deep-link to a
+store route, observed once (1 of 7 cold-deep-link attempts) on emulator-5560,
+UserApp HEAD build (feat/NEARS-1603-promote-nerrorretry), app locale = Arabic.
+
+Repro attempts: HEAD en x2 (clean), HEAD ar x2 (1 red screen, 1 clean),
+BASE b41c99fd en x3 (clean), HEAD en throttled-network x1 (clean).
+NOT reproducible on demand.
+
+adb logcat -s flutter, cleared immediately before the failing launch
+(08-09 18:26:33 .. 18:26:40, pid 14671) — VERBATIM, full window, 21 lines:
+
+  08-09 18:26:33.977 I flutter : [IMPORTANT:...android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+  08-09 18:26:34.048 I flutter : The Dart VM service is listening on http://127.0.0.1:41297/...
+  08-09 18:26:35.118 I flutter : analytics: app_open {}
+  08-09 18:26:35.159 I flutter : [INFO] msg="route: building splash route, hasData=false"
+  08-09 18:26:35.316 I flutter : [INFO] msg="route: navigating to splash screen"
+  08-09 18:26:35.322 I flutter : [INFO] msg="splash: location prefetch initiated"
+  08-09 18:26:35.357 I flutter : [NET] GET endpoint=/api/v1/customer/cart/list
+  08-09 18:26:35.524 I flutter : [INFO] msg="deep link stream event, hasPrevious=false"
+  08-09 18:26:35.525 I flutter : [INFO] msg="deep link received"
+  08-09 18:26:35.527 I flutter : [INFO] msg="deep link converted, matched=true"
+  08-09 18:26:35.528 I flutter : [INFO] msg="deep link: triggering config data fetch"
+  08-09 18:26:35.528 I flutter : [INFO] msg="deep link: navigating to store route"
+  08-09 18:26:35.593 I flutter : [NET] GET endpoint=/api/v1/config
+  08-09 18:26:35.642 I flutter : [IMPORTANT:...] Using the Impeller rendering backend (OpenGLES).
+  08-09 18:26:36.031 I flutter : [INFO] msg="deep link store params storeID=999999 moduleId= page="
+  08-09 18:26:36.557 I flutter : [NET] endpoint=/api/v1/config http_status=200
+  08-09 18:26:36.571 I flutter : [INFO] msg="splash: deeplink resolved canRoute=true"
+  08-09 18:26:36.572 I flutter : [NET] endpoint=/api/v1/customer/cart/list http_status=200
+  08-09 18:26:40.111 I flutter : [INFO] msg="location: within 1km of selected address: true"
+  08-09 18:26:40.111 I flutter : [INFO] msg="splash: location prefetch completed"
+
+Key facts from the window:
+- The store route is pushed at 18:26:35.528 / params logged 18:26:36.031, BEFORE
+  /api/v1/config returns 200 at 18:26:36.557.
+- NO GET /api/v1/stores/details/... ever fired in this run. The store-details
+  fetch never started, so StoreLoadFailureView (the widget this ticket changed)
+  had not been built and could not be reached: it renders only after a fetch
+  resolves store == null && !isLoading.
+- Flutter printed no ErrorWidget stack to logcat (tag `flutter` or *:E) — the
+  message was only on the red ErrorWidget surface. Validity: 21 flutter lines in
+  the window, 0 lines matching FAIL|ERR|Exception|#0.
+
+Why this is NOT attributable to NEARS-1603:
+- The two UserApp files this diff touches are
+  lib/features/store/widgets/store_load_failure_view.dart and
+  lib/common/widgets/dls/nears_error_retry.dart. Neither contains a `!`
+  null-assertion; the only `!` in the delegate chain is `subtitle!` inside an
+  `if (subtitle != null)` guard in NEmptyState (unchanged by this diff).
+- store_screen.dart, which does dereference
+  Get.find<SplashController>().configModel!.moduleConfig!.module!... , is NOT in
+  the diff.
+
+Screenshot: NOT AVAILABLE — the capture (tmp-ar-state.png) was deleted by the QA
+agent during evidence-dir cleanup before it was renamed to a bug- artifact, and
+the defect did not reproduce on 4 subsequent attempts. Stated plainly rather
+than reconstructed.
