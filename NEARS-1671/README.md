@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1671
 
-**PASS — NErrorRetry in-flight latch verified live on 4 converted + 2 inherited sites; AC1 exact request counts, AC2 holds to slowest, dead-CTA clean**
+**PASS — NErrorRetry in-flight latch verified live (final, incl. teardown note)**
 
 **14 screenshot(s).** Click any thumbnail for full resolution.
 

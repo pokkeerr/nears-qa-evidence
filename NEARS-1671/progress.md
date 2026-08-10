@@ -115,3 +115,10 @@ only `[NET] ... http_status=403`. Duplicate request + a 403 + a silent failure p
 
 ## Automated backstop
 `packages/nears_dls` full suite on the pinned 3.41.9: **+1102, All tests passed** (goldens NOT regenerated).
+
+## Teardown
+Fault proxy killed (8671 now refused). Shared backend untouched (200). Device lock on `emulator-5560`
+released; device left running.
+**Left on the device:** the installed APK is pinned to `API_HOST=10.0.2.2:8671` by dart-define. With the
+proxy down, every request from it fails. The next session on `emulator-5560` must reinstall (a plain
+`flutter run`) rather than diagnose an app-wide network outage.
