@@ -1,0 +1,61 @@
+NEARS-1626 — [NET] measurements, device emulator-5558, app pid 23686 (bound), DEBUG build
+Installed APK md5 359c27a4eae4e90a356f170964a0fed0 (pre-fix baseline was ff867b47a3a57a854c732af02ebbdded)
+Account michael.brown@demo.com = multi_food_db.users.id 3 | wallet_transactions WHERE user_id=3 = 4 rows | wallet_bonuses = 0 rows
+
+--- AC1 / AC2-a  FAST swipe 672 1000 -> 672 2200 @100ms | wm size 1344x2992, density 480 (NO override) | PRE-FIX: 0
+08-10 05:28:16.444 23686 23686 I flutter : [NET] GET endpoint=/api/v1/customer/wallet/transactions
+08-10 05:28:16.445 23686 23686 I flutter : [NET] GET endpoint=/api/v1/customer/info
+08-10 05:28:17.319 23686 23686 I flutter : [NET] endpoint=/api/v1/customer/wallet/transactions http_status=200
+08-10 05:28:17.396 23686 23686 I flutter : [NET] endpoint=/api/v1/customer/info http_status=200
+COUNT = 4 | offset=2 requests: 0 | "reached end of pagination": 0 | [ERR]/[FAIL]: 0
+
+--- AC2-b  SLOW swipe 672 1000 -> 672 2200 @1200ms | 1344x2992 @480 (NO override) | PRE-FIX: 0
+08-10 05:28:52.911 [NET] GET endpoint=/api/v1/customer/wallet/transactions
+08-10 05:28:52.913 [NET] GET endpoint=/api/v1/customer/info
+08-10 05:28:53.573 [NET] endpoint=/api/v1/customer/wallet/transactions http_status=200
+08-10 05:28:53.601 [NET] endpoint=/api/v1/customer/info http_status=200
+COUNT = 4 | [ERR]/[FAIL]: 0
+
+--- AC2-c  STEPPED motionevent DOWN 672 1000 + 9x MOVE (1130,1260,1390,1520,1650,1780,1910,2040,2170) + UP 672 2170 | 1344x2992 @480 (NO override) | PRE-FIX: 0
+08-10 05:29:11.646 [NET] GET endpoint=/api/v1/customer/wallet/transactions
+08-10 05:29:11.647 [NET] GET endpoint=/api/v1/customer/info
+08-10 05:29:12.418 [NET] endpoint=/api/v1/customer/info http_status=200
+08-10 05:29:12.491 [NET] endpoint=/api/v1/customer/wallet/transactions http_status=200
+COUNT = 4 | [ERR]/[FAIL]: 0
+
+--- AC3  OVERFLOWING case, ONLY reachable via wm size 1344x1400 (density 480) | CONTROL-B expectation: 4
+viewport #2c915 constraints=BoxConstraints(0.0<=w<=448.0, 0.0<=h<=330.7) size=Size(448.0, 330.7) child RenderFlex=Size(448.0, 663.0)
+  => maxScrollExtent = 663.0 - 330.7 = 332.3 dp  (matches recorded CONTROL-B extent 332.3 dp exactly)
+08-10 05:30:55.767 [NET] GET endpoint=/api/v1/customer/wallet/transactions
+08-10 05:30:55.771 [NET] GET endpoint=/api/v1/customer/info
+08-10 05:30:56.448 [NET] endpoint=/api/v1/customer/wallet/transactions http_status=200
+08-10 05:30:56.511 [NET] endpoint=/api/v1/customer/info http_status=200
+COUNT = 4 | [ERR]/[FAIL]: 0
+wm size reset -> "Physical size: 1344x2992", Override-size line count = 0 (reset verified)
+
+--- RTL (Arabic) smoke | 1344x2992 @480 (NO override) | viewport #5bf68 size=670.0 child=670.0 => maxScrollExtent 0.0
+08-10 05:38:18.795 [NET] GET endpoint=/api/v1/customer/wallet/transactions
+08-10 05:38:18.799 [NET] GET endpoint=/api/v1/customer/info
+08-10 05:38:19.616 [NET] endpoint=/api/v1/customer/info http_status=200
+08-10 05:38:19.623 [NET] endpoint=/api/v1/customer/wallet/transactions http_status=200
+COUNT = 4 | [ERR]/[FAIL]: 0
+
+--- SIBLING SKELETON REGRESSION (must stay NeverScrollableScrollPhysics)
+Skeleton forced live via VM-service call Get.find<ProfileController>().clearUserInfo() (21 NSkeleton render nodes, viewport #06169).
+Made NON-VACUOUS with wm size 1344x1400: skeleton content 548.0 dp vs viewport 330.7 dp => overflowing by 217.3 dp.
+  4 separate drags (2 up, 1 down, 1 slow) -> viewport #06169 offset: Offset(0.0, -0.0)   [never moved]
+  [NET] during skeleton drags = 0
+ORACLE VALIDITY (same field, same widget type, same override, content restored):
+  wallet viewport #5b788 after ONE drag -> offset: Offset(0.0, -332.3)  [moved to max]
+=> the offset oracle provably responds; the skeleton provably does not scroll.
+
+--- WHOLE-SESSION LOG SWEEP, window 08-10 05:23:00.000 -> end
+[FAIL]/[ERR] from pid 23686 : 0
+[FAIL]/[ERR] from ANY pid    : 0
+unhandled exception / RenderFlex overflowed : 0
+non-200 http_status          : 0
+total [NET] lines            : 190
+
+--- ui_errors (NEARS-1628 / NEARS-1783 scoping defect, NOT a finding of this run)
+exit 0, 46 lines emitted — ALL from foreign pid 16629 timestamped 08-10 04:06:37,
+i.e. before this run's window opened at 05:23:00. Zero lines from pid 23686.

@@ -36,5 +36,9 @@
 </tr>
 </table>
 
+### Other artifacts
+- [`ac-net-measurements.log`](ac-net-measurements.log)
+- [`bug-preexisting-userapp-test-failures.log`](bug-preexisting-userapp-test-failures.log)
+
 ---
 *From `nears/docs/qa-evidence/NEARS-1626/` · public-repo scrub policy (no live secrets; verified clean).*

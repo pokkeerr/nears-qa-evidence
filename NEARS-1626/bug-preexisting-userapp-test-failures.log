@@ -1,0 +1,28 @@
+PRE-EXISTING (NOT caused by NEARS-1626) — UserApp `flutter test` full-suite failures
+SDK: /Users/Apple/Tools/flutter/bin/flutter 3.41.9 (pinned)
+
+FIX BUILD  — worktree /Users/Apple/Projects/nears-NEARS-1626-wallet-refresh-physics @ 72916077
+  full suite: 01:31 +3232 ~2 -6: Some tests failed.
+
+THE 6:
+  test/features/category/category_screen_back_button_test.dart: standalone variant: showBackButton true => back arrow present (deep link)
+  test/features/coupon/coupon_controller_test.dart: NEARS-382 coupon correctness UC-07: free_delivery coupon with zero delivery charge is accepted
+  test/features/coupon/coupon_controller_test.dart: applyCoupon min-purchase not met throws on null Get.context after resetting discount
+  test/features/coupon/coupon_controller_test.dart: applyTaxiCoupon order below min-purchase yields zero discount and shows snackbar (UC-03)
+  test/golden/dls_golden_test.dart: DLS components - dark theme (variant: CI)
+  test/golden/dls_golden_test.dart: DLS components - light theme (variant: CI)
+
+FALSIFIABLE BASE COMPARISON (the point of this artifact):
+  isolated run of those 3 files on the FIX build   (72916077): 00:01 +20 -6: Some tests failed.
+  isolated run of those 3 files on the PRE-FIX BASE (df316c3c): 00:01 +20 -6: Some tests failed.
+  -> IDENTICAL. The 6 failures reproduce on the parent commit, which does NOT
+     contain the physics line (verified: grep AlwaysScrollableScrollPhysics ->
+     ABSENT in base wallet_screen.dart).
+
+DISJOINTNESS:
+  commit 72916077 touches 4 files: UserApp/lib/features/wallet/screens/wallet_screen.dart,
+  test/features/wallet/wallet_paginate_pin_test.dart,
+  test/features/wallet/wallet_refresh_physics_test.dart, docs/solutions/NEARS-1626-*.md
+  None of the 6 failing test files reference "wallet" (grep -il wallet -> no match).
+
+WALLET SUITE ON THE FIX BUILD: 00:01 +56: All tests passed!
