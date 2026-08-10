@@ -1,0 +1,67 @@
+[
+ {
+  "toasts": [
+   "Duplicate value labels are not allowed forSize"
+  ],
+  "variation_textarea": "",
+  "response": {
+   "status": 200,
+   "body": "{\"errors\":[{\"code\":\"name\",\"message\":\"Duplicate value labels are not allowed forSize\"}]}"
+  },
+  "case": "V1-dup-label",
+  "desc": "vendor: two values share label 'Large'",
+  "url": "http://127.0.0.1:8098/vendor-panel/item/bulk-import",
+  "shot": "vendor-V1-duplicate-label-rejected.png"
+ },
+ {
+  "toasts": [],
+  "variation_textarea": "[{\"name\":\"Size\",\"type\":\"multi\",\"min\":\"1\",\"max\":\"2\",\"required\":\"off\",\"values\":[{\"label\":\"Large\",\"optionPrice\":\"10\"},{\"label\":\"Small\",\"optionPrice\":\"5\"}]}]",
+  "response": {
+   "status": 200,
+   "body": "{\"variation\":\"[{\\\"name\\\":\\\"Size\\\",\\\"type\\\":\\\"multi\\\",\\\"min\\\":\\\"1\\\",\\\"max\\\":\\\"2\\\",\\\"required\\\":\\\"off\\\",\\\"values\\\":[{\\\"label\\\":\\\"Large\\\",\\\"optionPrice\\\":\\\"10\\\"},{\\\"label\\\":\\\"Small\\\",\\\"optionPrice\\\":\\\"5\\\"}]}]\"}"
+  },
+  "case": "V2-distinct",
+  "desc": "vendor: distinct labels still generate",
+  "url": "http://127.0.0.1:8098/vendor-panel/item/bulk-import",
+  "shot": "vendor-V2-distinct-labels-generate.png"
+ },
+ {
+  "toasts": [
+   "Minimum value can not be greater then maximum value"
+  ],
+  "variation_textarea": "",
+  "response": {
+   "status": 200,
+   "body": "{\"errors\":[{\"code\":\"name\",\"message\":\"Minimum value can not be greater then maximum value\"}]}"
+  },
+  "case": "V3-min-gt-max",
+  "desc": "vendor regression: min > max",
+  "url": "http://127.0.0.1:8098/vendor-panel/item/bulk-import",
+  "shot": "vendor-V3-min-gt-max.png"
+ },
+ {
+  "toasts": [
+   "Please add more options or change the max value forSize"
+  ],
+  "variation_textarea": "",
+  "response": {
+   "status": 200,
+   "body": "{\"errors\":[{\"code\":\"name\",\"message\":\"Please add more options or change the max value forSize\"}]}"
+  },
+  "case": "V4-max-gt-count",
+  "desc": "vendor regression: max > count(values)",
+  "url": "http://127.0.0.1:8098/vendor-panel/item/bulk-import",
+  "shot": "vendor-V4-max-gt-count.png"
+ },
+ {
+  "case": "V5-missing-values",
+  "desc": "vendor regression: option with no values at all",
+  "response": {
+   "status": 200,
+   "body": "{\"errors\":[{\"code\":\"name\",\"message\":\"Please add options forSize\"}]}"
+  },
+  "toasts": null,
+  "variation_textarea": null,
+  "url": "http://127.0.0.1:8098/vendor-panel/item/food-variation-generate"
+ }
+]

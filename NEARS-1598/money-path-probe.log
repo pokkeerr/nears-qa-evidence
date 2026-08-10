@@ -1,0 +1,20 @@
+REAL PRODUCT: id=16 name=Classic Cheeseburger store_id=4 price=8.99
+food_variations (DB): [{"name":"Size","type":"single","min":0,"max":1,"required":"on","values":[{"label":"Regular","optionPrice":"0"},{"label":"Large","optionPrice":"2.50"}]},{"name":"Toppings","type":"multi","min":0,"max":5,"required":"off","values":[{"label":"Lettuce","optionPrice":"0"},{"label":"Tomato","optionPrice":"0.50"},{"label":"Pickles","optionPrice":"0.50"},{"label":"Grilled Onions","optionPrice":"0.75"},{"label":"Fried Egg","optionPrice":"1.25"}]}]
+------------------------------------------------------------------------
+AC4 real product | group 'Size' label 'Large' optionPrice=2.50
+  single group  -> new=2.5   old=2.5
+  REPEATED group-> new=2.5   old=5   (old scales, new must not)
+------------------------------------------------------------------------
+AC2 duplicate value label | food_variation_price new=10 old=20
+                          | get_varient        new=10 old=20
+  new variations: [{"name":"Size","type":"multi","min":1,"max":2,"values":[{"label":"Large","optionPrice":10}]}]
+------------------------------------------------------------------------
+AC3 duplicate group name  | food_variation_price new=10 old=20
+                          | get_varient        new=10 old=20
+                          | get_edit_varient   new=10
+------------------------------------------------------------------------
+CONTROL clean data (expect new == old) | price new=14 old=14 | varient new=14 old=14
+CONTROL variations new=[{"name":"Size","type":"multi","min":1,"max":2,"values":[{"label":"Large","optionPrice":10},{"label":"Small","optionPrice":4}]}] old=[{"name":"Size","type":"multi","min":1,"max":2,"values":[{"label":"Large","optionPrice":10},{"label":"Small","optionPrice":4}]}]
+AC4b order path get_varient (real product, REPEATED group) | new=2.5 old=5
+  new variations: [{"name":"Size","type":"single","min":0,"max":1,"required":"on","values":[{"label":"Large","optionPrice":"2.50"}]}]
+  old variations: [{"name":"Size","type":"single","min":0,"max":1,"required":"on","values":[{"label":"Large","optionPrice":"2.50"}]},{"name":"Size","type":"single","min":0,"max":1,"required":"on","values":[{"label":"Large","optionPrice":"2.50"}]}]
