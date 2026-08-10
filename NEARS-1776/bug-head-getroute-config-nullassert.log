@@ -1,0 +1,60 @@
+NEARS-1776 QA — the FIXED build still red-screens on a cold store deep-link
+Device emulator-5554, HEAD build c092e66c, installed APK md5 0d974fd609872637d0ed476a435a6f52
+(md5 re-verified identical before AND after the 30-attempt run).
+
+RESULT: 29 of 30 attempts = full-screen 'Null check operator used on a null value'
+        (RED_FRACTION 0.993). 1 attempt unclassified (app still on splash at t+22s).
+        BASE (unfixed, 5ab0de66) over the identical harness: 29/30.
+
+WHY THE FIX DOES NOT COVER IT — the throw happens BEFORE StoreScreen exists:
+  * In 58/58 red attempts across both builds, /api/v1/stores/details NEVER fired,
+    i.e. StoreScreen.initState never ran, i.e. its Scaffold.floatingActionButton
+    Visibility chain (the site NEARS-1776 guards) was never evaluated.
+  * In the ONE attempt that rendered the store screen, stores/details fired 4x
+    and it is also the ONLY attempt logging configNull=false.
+  * Perfect correlation: 29/29 red attempts log 'route: checkModuleId configNull=true';
+    the single clean attempt logs configNull=false.
+
+ACTUAL THROW SITE — UserApp/lib/helper/route_helper.dart, RouteHelper.getRoute():
+  static Widget getRoute(
+    Widget navigateTo, {
+    AccessLocationScreen? locationScreen,
+    bool byPuss = false,
+  }) {
+    double? minimumVersion = 0;
+    if (GetPlatform.isAndroid) {
+      minimumVersion =
+          Get.find<SplashController>().configModel!.appMinimumVersionAndroid;
+    } else if (GetPlatform.isIOS) {
+      minimumVersion =
+          Get.find<SplashController>().configModel!.appMinimumVersionIos;
+    }
+    return (AppConstants.appVersion < minimumVersion!)
+        ? const UpdateScreen(isUpdate: true)
+        : Get.find<SplashController>().configModel!.maintenanceMode!
+        ? const UpdateScreen(isUpdate: false)
+        : (AddressHelper.getUserAddressFromSharedPref() == null && !byPuss)
+
+_storePage() is 'getRoute(_waitForModule(...))'. Dart evaluates the argument first —
+which is why 'route: waiting for module=' and the checkModuleId lines DO appear —
+then getRoute's body runs and null-asserts configModel at line 1474 while config is
+still in flight. getRoute( is called 37x in route_helper.dart, so every one of those
+routes has the same exposure on a cold deep-link / notification tap.
+
+--- flutter log of red attempt 1 (no [FAIL]/[ERR]/stack is emitted; see the silent-failure bug) ---
+[INFO] msg="deep link store params storeID=1 moduleId=grocery-food page=store"
+[INFO] msg="route: waiting for module=grocery-food"
+[INFO] msg="route: checkModuleId configNull=true hasAddress=true fromDeeplink=true"
+[INFO] msg="route: triggering config data fetch from route helper"
+[INFO] msg="route: resolving zone before deep-link module match"
+[INFO] msg="location: inZone=true"
+[INFO] msg="route: zone resolved inZone=true"
+[INFO] msg="route: fetching modules"
+[INFO] msg="splash: deeplink resolved canRoute=true"
+📊 analytics: sectors_shown {sectors_count: 3, zone_id: 1}
+[INFO] msg="route: module fetch status=true"
+[INFO] msg="route: module match found=true for slug=grocery-food"
+[INFO] msg="home load started"
+[INFO] msg="location: within 1km of selected address: false"
+[INFO] msg="splash: location prefetch completed"
+[INFO] msg="location: inZone=true"

@@ -1,0 +1,35 @@
+NEARS-1776 QA — evidence that a full-screen Flutter ErrorWidget produces ZERO log output
+Device emulator-5556, BASE build (md5 d62648274e31a154778740b38aed43ef), attempt 1.
+Screen state at capture time: RED_FRACTION=0.993 (full-screen 'Null check operator used on a null value').
+
+--- grep of the FULL logcat buffer (all tags), attempt 1 window ---
+matches: 0
+
+--- ui_errors run against the live red screen (NEARS-1627 repaired validity counter) ---
+ui_errors: emulator-5556 scanned 78 flutter-tag lines of 1172 buffer lines; 0 match(es)  [exit 0]
+
+--- root cause of the blindness (pre-existing, NOT introduced by NEARS-1776) ---
+UserApp/lib/main.dart:90
+    // Route all uncaught framework errors to Crashlytics.
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+
+    // Route uncaught async errors (outside the Flutter framework) to Crashlytics.
+    PlatformDispatcher.instance.onError = handleUncaughtAsyncError;
+FirebaseCrashlytics collection is gated !kDebugMode (main.dart:81), i.e. OFF in debug,
+and assigning FlutterError.onError REPLACES the default FlutterError.presentError console dump.
+Net effect: a framework build error is user-visible as a full-screen red ErrorWidget while
+emitting no [FAIL], no [ERR], no stack and no Crashlytics record on any debug build.
+
+--- last 12 flutter lines actually emitted during the crashing attempt ---
+[NET] endpoint=/api/v1/items/discounted http_status=200
+[NET] endpoint=/api/v1/campaigns/basic http_status=200
+[NET] endpoint=/api/v1/items/recommended http_status=200
+[NET] endpoint=/api/v1/stores/get-stores/all http_status=200
+[NET] GET endpoint=/api/v1/customer/order/buy-it-again
+[NET] endpoint=/api/v1/campaigns/item http_status=200
+[NET] endpoint=/api/v1/advertisement/list http_status=200
+[NET] endpoint=/api/v1/items/popular http_status=200
+[NET] endpoint=/api/v1/customer/notifications http_status=200
+[NET] endpoint=/api/v1/coupon/list http_status=200
+[NET] endpoint=/api/v1/module http_status=200
+[NET] endpoint=/api/v1/customer/order/buy-it-again http_status=200
