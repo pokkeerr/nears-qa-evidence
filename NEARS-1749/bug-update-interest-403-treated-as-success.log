@@ -1,0 +1,23 @@
+NEARS-1749 delta re-QA — UNRELATED / PRE-EXISTING finding (regression-candidate)
+Surface: UserApp "Your Interests" onboarding screen (Grocery module, first entry after signup)
+Device: emulator-5554 · build: worktree feat/NEARS-1749-newuser-setup-states @ 57bb0e4c
+
+Repro (OBSERVED):
+ 1. Fresh signup -> pick module "Grocery & Food" -> "Your Interests" screen.
+ 2. Tap "Save & Continue" with ZERO interests selected -> nothing happens at all,
+    no inline error, no snackbar, no navigation, no network dispatch.
+ 3. Select one interest ("Snacks & Chips") -> tap "Save & Continue"
+    -> app navigates FORWARD to home as if the save succeeded.
+
+But the save actually FAILED with 403:
+
+08-10 16:42:20.273 12038 12038 I flutter : [FAIL] endpoint=/api/v1/customer/update-interest http_status=403 type=ApiFailure msg="api request failed" correlation_id=593dda41-66d5-427f-a21d-c8f2747f7e98
+
+Assessment:
+ - The failure IS logged (AppLogger [FAIL] present), so this is NOT a logging-contract
+   silent-failure violation.
+ - It IS a behaviour defect: a 403 is presented to the user as success (forward navigation,
+   no error surface), so the selected interests are silently discarded.
+ - Step 2 (zero selections) is a separate dead-tap with no feedback.
+ - NOT caused by NEARS-1749 and NOT on any surface this change touches.
+   Does not affect this ticket's verdict.

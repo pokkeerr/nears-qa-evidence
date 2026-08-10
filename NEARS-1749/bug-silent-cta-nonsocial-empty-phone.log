@@ -28,3 +28,20 @@ NPhoneField inside the `_isSocial ? NPhoneField(...) : NInput(email...)` ternary
 non-social path that widget does not exist, so the error has no renderer.
 Pre-change the same branch called showCustomSnackBar('invalid_phone_number'.tr) — visible.
 => NEARS-1749 converted a visible error into a silent dead-end on this entry path.
+
+--- PRE-CHANGE COMPARISON at d84d464b (OBSERVED in source, NOT booted) ---
+`git show d84d464b:UserApp/lib/features/auth/screens/new_user_setup_screen.dart`:
+  267  if (!phoneValid.isValid) {
+  268    showCustomSnackBar(
+  269      'invalid_phone_number'.tr,
+  270    );
+  271  } else { _updatePersonalInfo(authController, numberWithCountryCode); }
+The BRANCH STRUCTURE is identical pre-change (same `widget.phone == null || isEmpty` guard, same
+empty _phoneController on the non-social path). `grep -n "errorText" prechange.dart` -> ZERO hits:
+pre-change there was no inline renderer at all, the global snackbar was the ONLY surface.
+=> SPLIT: the can-never-succeed DEAD-END is PRE-EXISTING. The SILENCE is INTRODUCED by NEARS-1749,
+   which replaced the unconditional global snackbar with a setState on _phoneErrorText that only
+   the (unbuilt) NPhoneField renders.
+Residual: not booted on a pre-change build. The one unverified link is that showCustomSnackBar
+would actually paint on this path; it is called unconditionally with a non-empty message, so this
+is high-confidence but source-level, not device-level.

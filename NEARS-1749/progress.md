@@ -1,75 +1,114 @@
-# NEARS-1749 QA progress (live, appended as observed)
+# NEARS-1749 — delta re-QA (fix cycle 1)
 
-Tested sha: 7889eddf · worktree /Users/Apple/Projects/nears-NEARS-1749-newuser-setup-states
-Device: emulator-5562 (lock held for NEARS-1749, anchor pid 28462). Light mode only (dark deferred).
+- tested_sha: `57bb0e4c` (worktree `/Users/Apple/Projects/nears-NEARS-1749-newuser-setup-states`, branch `feat/NEARS-1749-newuser-setup-states`)
+- device: `emulator-5554` (see DRIFT below — 5562/5556 were NOT free)
+- SDK: `/Users/Apple/Tools/flutter` 3.41.9 (absolute), debug build from the worktree
 
-## Navigation finding (OBSERVED) — blocks live AC demo, NOT a product defect
-- `am start ... --es route '/new-user-setup-screen?...'` DOES reach the route (flutter's own
-  `--route` invocation fails first: it passes the route unquoted to `adb shell`, so the `&`
-  between query params splits the command — `exit code 127: --ez: inaccessible or not found`).
-- On that cold route launch the screen throws `Null check operator used on a null value`:
-  `new_user_setup_screen.dart` initState reads
-  `Get.find<SplashController>().configModel!.country!`, and config is only ever fetched by the
-  splash screen (`splash_screen.dart` -> `getConfigData`); `main.dart` does not prefetch it and
-  `SplashController` has no onInit cache load. Route-launching bypasses splash => config null.
-- `route_helper.dart` `_waitForModule`/`checkModuleId` cannot supply it either: with no saved
-  address it takes the `else` branch (modules only, no config); with a saved address and
-  `fromDeeplink:false` (which is what the newUserSetup GetPage passes) it early-returns.
-- => The red screen is an artifact of QA route injection, NOT a defect. Not reported as a bug.
-- Shot: nav-coldroute-configmodel-null-NOT-A-DEFECT.png
+## DRIFT — device pool
+- Brief said locks on `emulator-5562` + `emulator-5556` were "already held for NEARS-1749".
+  OBSERVED: both `owner.json` carry `key: NEARS-1554`, `pid 4523` (a live `claude`, NOT my
+  session anchor 28462). `qa_lock_check` returned rc=1 (BLOCKED) on 5556, 5562 AND 5558.
+  I did not steal them. Fell back to `emulator-5554`.
+- `emulator-5554` disk precheck initially **816072 KB = 796 MB free — 3 MB UNDER the 800 MB
+  floor**. Every other pool device was locked. Reclaimed by uninstalling a stale, unowned
+  `com.izzes.nearsdelivery` (70 MB APK, no lock on 5554) -> 1153184 KB = 1126 MB free, then
+  acquired the lock. `pm trim-caches 2000M` freed nothing.
 
-## Real-flow reachability (OBSERVED)
-- Entry points to the screen: verification_screen.dart (PostVerifyAction.newUserSetup),
-  social_login_widget.dart, sign_in_view.dart, existing_user_bottom_sheet.dart,
-  login_suggestion_bottomsheet.dart — all post-auth, all for a NEW (unregistered) user.
-- DB (read-only): `SELECT ... FROM users WHERE f_name IS NULL OR f_name='' OR email IS NULL
-  OR email=''` returns ZERO rows (10 users total). No seeded incomplete-profile account exists,
-  so no existing login lands on this screen.
-- Reaching it therefore requires registering a new phone/social account = a DB write. QA is
-  read-only on the DB, so this was NOT done.
+## §8 automated gate — OBSERVED
+`flutter test` (full UserApp suite) at 57bb0e4c: **`+3313 ~2 -6`** — matches the predicted
++3313 (baseline +3309 + 4 new pins). Extracted by `[E]` marker over the COMPLETE log
+(8611+ lines), not counter-increments, not a tail.
+- `[E]` count = 6, mapping exactly to the 3 confirmed pre-existing files:
+  - `test/features/category/category_screen_back_button_test.dart` x1
+  - `test/features/coupon/coupon_controller_test.dart` x3
+  - `test/golden/dls_golden_test.dart` x2
+- **No seventh name** -> no isolation/standalone re-run needed.
 
-## How the screen WAS driven (OBSERVED) — reusable recipe
-Route injection is impossible cold, but the screen is reachable in a fully-configured app:
-1. `am start -n com.izzes.nears/com.izzes.nears.MainActivity` (normal boot -> splash loads config).
-2. Read the VM-service URI from `adb logcat` ("Dart VM service is listening on ..."), `adb forward`.
-3. `flutter attach --debug-url=<uri>` from the worktree (registers the expression compiler; HTTP-only
-   RPC returns `_compileExpression: No compilation service available`, WebSocket + attach works).
-4. Over `ws://.../ws`: `evaluate(targetId=rootLib, expression=
-   'Get.toNamed("/new-user-setup-screen?name=QA Tester&login_type=social&phone=&email=&back_from_this=false&module=null")')`.
-   Pre-check `Get.find<SplashController>().configModel != null` -> "true" before navigating.
-No product code was modified. All taps re-derived from a live uiautomator dump (no hardcoded coords).
+## AC table (delta rows only)
+(filled in below as observed)
 
-## a11y bridge control (OBSERVED) — emulator-5562 is HEALTHY
-Dumped twice on the target screen; control "dump contains >=1 node with a non-empty label" is
-SATISFIED (6 labelled nodes). So an unnamed node on this device is a real finding, not bridge fault.
+## FALSE PREMISE in the brief — the named chain is unreachable (OBSERVED)
+The brief's chain ("unverified email -> PostAuthDecision(verifyEmail, loginType: manual) with
+number unset -> sign_in_view.dart:214") **cannot occur on this backend**:
+1. `Admin/app/Http/Controllers/Api/V1/Auth/CustomerAuthController.php` `manual_login()` has a
+   SINGLE success return and it **hardcodes** `'is_phone_verified'=>1, 'is_email_verified'=>1`.
+   So `_decideManualPostAuth` (auth_controller.dart) can never reach its `verifyEmail` branch —
+   `isEmailVerified` is always true. `sign_in_view.dart:214` is dead on this backend.
+2. `register()`'s email-verify branch is gated on `email_verification_status == 1`; that
+   business_settings row **does not exist** (query returned only `manual_login_status=1`).
+   No `otp_login_status`, no `social_login_status`, no `phone_verification_status` either.
+3. DB: 0 users with `is_phone_verified=1 AND is_email_verified=0`.
 
-## AC results (all OBSERVED live on emulator-5562, light mode, sha 7889eddf)
-| AC | result | evidence | logs |
-|---|---|---|---|
-| AC1 invalid-phone inline error (was a toast) | PASS | ac1-invalid-phone-inline-error.png — "Invalid phone number." under the field, error border, NO toast | `[WARN] msg="new-user setup: phone failed validation"` |
-| AC1 clear-on-edit (phone errorText) | PASS | one KEYCODE_DEL shrank the field 183px->126px, message gone | clean |
-| AC1 server-failure panel + retry | PASS | ac1-server-failure-panel-backend-message.png — panel carries the BACKEND message "The email field is required." (403), warning icon, "Try Again"; no generic copy | `[FAIL] endpoint=/api/v1/auth/update-info http_status=403 ... correlation_id=9ceca347` + screen `[FAIL] "new-user setup update-info failed"` |
-| AC1 retry re-invokes, single fire | PASS | one tap on Try Again -> exactly ONE new request (correlation_id 2094be29), no double-fire | as above |
-| AC1 transport failure | PASS | ac1-transport-failure-panel-no-global-toast.png (airplane mode) — panel shows "Connection to API server failed due to internet connection"; NO global snackbar beside it (DoD 0.2) | `[FAIL] ... msg="api request threw" correlation_id=5133aafb` |
-| AC2 AppLogger coverage, PII-safe | PASS | validation -> `.warn` (no e/st pair), server+transport -> `.failure`; no phone/name/payload in any line | see above |
-| AC3 CTA loading state | PASS | ac3-cta-loading-spinner-and-retry.png — spinner replaces "Done" in the mint CTA mid-flight; panel cleared on submit | clean |
-| AC4 toast census | PASS | `ScaffoldMessenger` 0, `showCustomSnackBar` 0 in new_user_setup_screen.dart (was 2) | n/a |
-| AC5 a11y | PARTIAL, as ruled at [2] | 6 interactive nodes OBSERVED: Back(named), +971 picker(named), Done/Try Again(named), 3 EditTexts announce their VALUE only. `semanticLabel` count 0 is correct by design. 2 nodes escalated to NEARS-1848 — NOT re-flagged | n/a |
-| AC6 success navigates | UNVERIFIABLE live | needs an authenticated 200 from update-info = a new/updated user row. QA is read-only on the DB and no seeded incomplete-profile user exists. Covered only by the green pin in new_user_setup_submit_error_test.dart | n/a |
-| AC7 no regression | PASS | Back from the screen returns to Home (module list renders: Grocery & Food 20 stores, Food & Restaurant 5, Pharmacy 5); no red screen, no new [ERR]/[FAIL]/overflow after the smoke | clean |
+## The chain that IS real and reachable (used instead)
+`phone: null` on the MANUAL path comes from `AuthFlowOutcome.needPersonalInfo`:
+- `CustomValidator.isPhoneValid()` returns `phone: ''` when `PhoneNumber.parse` throws (an email
+  input), so `validateAndLogin` sets `numberWithCountryCode = ''`.
+- `sign_in_view.dart:198` -> `getNewUserSetupScreen(phone: '')` -> URL `phone=` ->
+  `route_helper.dart` maps `'' -> null`. => `NewUserSetupScreen(loginType:'manual', phone: null)`.
+- Precondition: `is_personal_info == 0`, i.e. `if($user->f_name)` falsy. Register's validator is
+  `'name' => 'required'`, which ACCEPTS the string `"0"` — and `'0'` is falsy in PHP.
+  So a real UI signup with full name `0` produces the state. No DML, no injected route.
 
-## Automated backstop
-- Full suite at HEAD (worktree, /Users/Apple/Tools/flutter): `+3309 ~2 -6`.
-- Both new pin files ran green (new_user_setup_a11y_test.dart, new_user_setup_submit_error_test.dart).
-- The 6 failures ISOLATED and re-run standalone in BOTH trees:
-  - HEAD (worktree 7889eddf): `+20 -6`
-  - base (primary tree, branch feat/userapp-reskin2 @ 4d6b4396; merge-base with this branch is d84d464b): `+20 -6`
-  - IDENTICAL failure-name set in both: category_screen_back_button_test.dart x1,
-    coupon_controller_test.dart x3, dls_golden_test.dart x2 (light+dark).
-  => all six are pre-existing; NEARS-1749 introduces none. Section 8 gate satisfied.
+## Live demonstration — the REAL production chain (all OBSERVED, emulator-5554)
+Chain driven end-to-end through the UI, no injected route, no DML:
+1. UI signup (Create Account): full name `0`, email `qa1749d@example.com`, phone `+971561749051`,
+   password, terms checkbox (unlabeled CheckBox, `content-desc=""` — tapped at its live
+   tree-reported centre, not a hardcoded coordinate).
+   -> `[NET] POST /api/v1/auth/sign-up` -> `http_status=200`. DB row id=413, `f_name='0'`.
+2. Profile -> Logout -> Yes.
+3. Sign In with the EMAIL + password.
+   -> `manual_login` returns `is_personal_info = 0` (because `if($user->f_name)` is falsy for '0')
+   -> `AuthFlowOutcome.needPersonalInfo` -> `sign_in_view.dart:198`
+   -> **NewUserSetupScreen(loginType:'manual', phone: null)**.
+   Screen OBSERVED: "Complete your profile" / "User Name" / "E-mail" / "REFER CODE(OPTIONAL)" /
+   "Done" — and **NO phone field** (confirms `_isSocial == false`, `phone == null`).
+4. Tap Done with E-mail empty -> visible inline `⚠ Email field is required`, **no dispatch**.
+   (Client-side validation, correctly surfaced — not a silent path.)
+5. Fill E-mail, tap Done.
 
-## DEFECT (task_bug, breaks AC1) — silent CTA on the non-social entry path
-Independently reproduced live at 16:12 (see bug-silent-cta-nonsocial-empty-phone.log/.png).
-`loginType != 'social'` => NPhoneField is not built => `_phoneErrorText` has no renderer =>
-tapping Done with a valid name+email does NOTHING visible and dispatches NO request.
-Pre-change this branch showed a visible toast. VERDICT: FAIL.
+### The five required confirmations — ALL OBSERVED
+| # | Required | Observed |
+|---|---|---|
+| 1 | a panel appears | YES — panel rendered on screen |
+| 2 | it carries the backend message | YES — `The phone field is required.` |
+| 3 | a retry affordance exists | YES — `Try Again` |
+| 4 | an AppLogger line is emitted | YES — see excerpt below |
+| 5 | **`[NET] POST /api/v1/auth/update-info` IS dispatched** | **YES — this is the regression's closure** |
+
+```
+I/flutter: [NET] POST endpoint=/api/v1/auth/update-info
+I/flutter: [NET] endpoint=/api/v1/auth/update-info http_status=403
+I/flutter: [FAIL] endpoint=/api/v1/auth/update-info http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=d7de6e4c-b8c0-4c44-ad8d-26bc1b5da0b8
+I/flutter: [FAIL] endpoint=/api/v1/auth/update-info http_status=null type=ApiFailure msg="new-user setup update-info failed"
+   (thrown from new_user_setup_screen.dart:435 -> AppLogger.failure)
+```
+Per the BINDING instruction in the brief, the uncompletable-ness ("phone required" on a screen
+with no phone field) is the SEPARATE pre-existing defect owned by **NEARS-1859** and is scored
+**PASS** here: the failure is now visible, accurate and logged instead of silent.
+
+### Correlation join (NEARS-564) — OBSERVED
+App `correlation_id=d7de6e4c-b8c0-4c44-ad8d-26bc1b5da0b8` found in
+`Admin/storage/logs/laravel.log` (6 lines, same `trace_id=455194d68b8198fc73505e56802876ca`).
+Those 6 BE lines are all pre-existing OTel-exporter noise (OpenObserve not running), unrelated.
+
+### Retry single-fire — OBSERVED
+One tap of `Try Again` -> **exactly 1** `[NET] POST /api/v1/auth/update-info` (grep count = 1),
+fresh `correlation_id=9a3dbfda-6ceb-4722-b5e8-c3ce66565084`, panel persists, both `[FAIL]` lines
+re-emitted. No double-fire.
+
+### No new silent path on this screen — OBSERVED
+`ui_errors` validity: **scanned 518 flutter-tag lines of 173376 buffer lines; 5 matches**
+(a real validity count, not a vacuous zero). All 5 accounted for: 4 are the intended
+update-info failures above; the 5th is an UNRELATED pre-existing `update-interest` 403 —
+see `bug-update-interest-403-treated-as-success.log`.
+Every failure path exercised on this screen produced BOTH a user-visible surface AND a log line.
+
+### Social spot-check — NOT live-drivable in this environment
+`social_login_status` business_settings row does not exist -> no social entry point in the UI.
+INFERRED (not observed): the fix only ADDS `_isSocial &&` to the condition, so when `_isSocial`
+is true the expression is identical to pre-fix; the social path cannot have changed. The prior
+cycle demonstrated it live at 7889eddf.
+
+### Core-path smoke — OBSERVED
+Cold start -> splash -> language -> onboarding -> location -> module list -> Grocery home ->
+Profile tab. Clean.
