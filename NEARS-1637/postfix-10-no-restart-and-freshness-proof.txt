@@ -1,0 +1,110 @@
+NEARS-1637 — POST-FIX live QA proof sheet
+device: emulator-5558 (Android, 1344x2992 @3x = 448dp)  applicationId: com.izzes.nears
+build under test: worktree /Users/Apple/Projects/nears-NEARS-1637-referearn-locale
+                  branch feat/NEARS-1637-referearn-locale, HEAD df316c3c + UNCOMMITTED fix
+                  git diff --stat HEAD => 4 files changed, 6 insertions(+), 4 deletions(-)  [MATCHES reviewed change]
+SDK: /Users/Apple/Tools/flutter/bin/flutter 3.41.9 (rev 00b0c91f06)
+
+================ BUILD FRESHNESS — STAGE 1 (cheap pre-filter: md5) ================
+host-built APK  : 79a69c74897fc8f18d48f4e3d69b0bef
+installed on dev: 79a69c74897fc8f18d48f4e3d69b0bef   (re-read at EVERY observation below — never drifted)
+
+================ BUILD FRESHNESS — STAGE 2 (own-build symbol, LIVE isolate) ================
+Instrument: Dart VM service getObject on class AppConstants (package:sixam_mart/util/app_constants.dart).
+PRE-FIX shape (recorded on the repro run): dataList appears in class `fields` as
+    isStatic=True isFinal=True declaredType=List<String>
+POST-FIX shape REQUIRED: dataList must be ABSENT from `fields` and PRESENT in `functions` as a getter.
+
+Every reading below (before driving, and again after the AC2 reconnect):
+    VALIDITY_field_count=272            <- fields list is populated, so an ABSENT is a real absence
+    VALIDITY_function_count=278
+    CONTROL_static_fields_present=['appName', 'cookiesManagement']   <- control statics still visible
+    RESULT_dataList_in_fields=ABSENT
+    RESULT_dataList_getter=PRESENT kind=GetterFunction static=True const=False
+
+================ NO-RESTART PROOF — AC1 (English -> Arabic, one process) ================
+                              OBSERVATION A (EN, pre-switch)   OBSERVATION B (AR, post-switch)
+device app pid                26410                            26410                 IDENTICAL
+/proc/<pid>/stat starttime    4030717 jiffies                   4030717 jiffies       IDENTICAL
+/proc/<pid> mtime             1786328362                        1786328362            IDENTICAL
+UI isolate id                 isolates/3435507951601247         isolates/3435507951601247  IDENTICAL
+isolate startTime             1786328364309                     1786328364309         IDENTICAL
+VM startTime                  1786328364250                     1786328364249         +/-1 ms
+installed APK md5             79a69c...b0bef                    79a69c...b0bef        IDENTICAL
+
+NOTE on the 1 ms: repeated getVM reads of the SAME un-restarted VM returned both
+1786328364249 and 1786328364250 seconds apart -> VM-service rounding jitter, not a restart.
+The four jitter-free anchors (pid, kernel jiffies, isolate id, isolate startTime) are exactly equal.
+
+NO HOT RELOAD / NO HOT RESTART was performed at any point. The `flutter run`
+tooling channel dropped at launch ("Error connecting to the service protocol")
+and the app was thereafter driven as a standalone installed process over adb +
+a raw VM-service HTTP port forward, so no reload channel existed to use.
+
+================ NO-RESTART PROOF — AC3 (Arabic -> English, one process) ================
+                              OBSERVATION C (AR, pre-switch)   OBSERVATION D (EN, post-switch)
+device app pid                27395                            27395                 IDENTICAL
+/proc/<pid>/stat starttime    4086823 jiffies                   4086823 jiffies       IDENTICAL
+UI isolate id                 isolates/2770657774867759         isolates/2770657774867759  IDENTICAL
+isolate startTime             1786328924657                     1786328924657         IDENTICAL
+VM startTime                  1786328924628                     1786328924628         IDENTICAL
+installed APK md5             79a69c...b0bef                    79a69c...b0bef        IDENTICAL
+
+================ INSTRUMENT VALIDITY (it CAN come out differently) ================
+The deliberate AC2 kill+relaunch moved every anchor:
+    pid 26410 -> 27395 · jiffies 4030717 -> 4086823
+    isolate isolates/3435507951601247 -> isolates/2770657774867759
+    VM startTime 1786328364249 -> 1786328924628
+So "IDENTICAL" across A/B and C/D is a measurement, not a tautology.
+
+================ RENDERED STEPS OBSERVED ================
+A (EN, first touch of dataList):
+  Invite your friends & businesses
+  They register Nears with special offer
+  You made your earning !
+B (AR, after in-session switch, NO restart)   -- pre-fix these stayed byte-identical English:
+  قم بدعوة أصدقائك وشركاتك
+  يقومون بالتسجيل Nears مع عرض خاص
+  لقد حققت مكاسبك!
+AC2 (fresh process 27395, launched directly in AR, no reinstall): same three Arabic strings.
+D (EN, after in-session AR->EN switch, NO restart): back to the three English strings.
+
+================ ARABIC LAYOUT MEASUREMENTS (light mode) ================
+Refer & Earn "How it works" (48px-nominal navy circle, measured 120px = 40dp @3x):
+  step1 circle y[2355,2474] centre 2414.5 | text y[2387,2439] centre 2413.0 | delta -1.5 px (-0.5 dp)
+  step2 circle y[2511,2630] centre 2570.5 | text y[2550,2595] centre 2572.5 | delta +2.0 px (+0.7 dp)
+  step3 circle y[2667,2786] centre 2726.5 | text y[2706,2746] centre 2726.0 | delta -0.5 px (-0.2 dp)
+BottomSheetForMobile (32x32 circle, measured 96px = 32dp @3x):
+  step1 circle y[2464,2559] centre 2511.5 | text centre 2510.0 | delta -1.5 px
+  step2 circle y[2608,2703] centre 2655.5 | text centre 2657.5 | delta +2.0 px
+  step3 circle y[2752,2847] centre 2799.5 | text centre 2799.0 | delta -0.5 px
+Circles sit on the TRAILING (right) edge in RTL with text to their left, on both components.
+No clipping, no overflow, no ellipsis; all three steps fit on one line at 448dp.
+
+================ LOGS (bound to own pids, inside own run window) ================
+run window start (device clock): 08-10 06:19:37
+own pids: 26410, 27395
+  pid 26410: 285 total logcat lines,  0 matches for [FAIL]|[ERR]|EXCEPTION CAUGHT|RenderFlex|Unhandled|E/flutter
+  pid 27395: 261 total logcat lines,  0 matches for the same selector
+ui_errors: exit 0, 48 lines -- ALL foreign/out-of-window (NEARS-1783 trap):
+  pid 16629 (DEAD), 08-10 04:06:xx  -> a previous session, 2h13m before this run's window
+  pid 25966 (DEAD), 08-10 06:14:58 + 06:15:38 -> this run's FIRST launch, which ANR'd because
+      the emulator display was asleep (NEARS-1716); killed and replaced before the run window opened.
+      Both lines are client-side Future.timeout ApiFailure(status:0) on /api/v1/customer/cart/list
+      and /api/v1/config. Same build on the awake device made both calls successfully.
+
+================ AUTOMATED BACKSTOP ================
+/Users/Apple/Tools/flutter/bin/flutter test  (worktree UserApp, .dart_tool + build cleared first,
+meta pin re-verified 1.17.0)  ->  01:35 +3234 ~2 -6: Some tests failed.
+Failing set extracted with grep -E '\[E\]$' over the COMPLETE 17607-line log (never a tail):
+  1x test/features/category/category_screen_back_button_test.dart
+  3x test/features/coupon/coupon_controller_test.dart
+  2x test/golden/dls_golden_test.dart
+COMPOSITION MATCHES the documented 6-failure baseline exactly (3 files: coupon x3, golden x2, category x1).
+Ticket's own suite run alone: test/features/refer_and_earn/refer_and_earn_locale_switch_test.dart
+  -> 7 tests, 0 [E], "All tests passed!" (includes W2 desktop 1400x1300 and W4 BottomSheetForMobile).
+
+================ NOT OBSERVED LIVE ================
+BottomSheetViewWidget (the third render site) is gated behind ResponsiveHelper.isDesktop
+(width >= 1300). The device pool is 448dp. UNREACHABLE BY CONSTRUCTION on this surface:
+reported as NOT TESTED, not as a pass. Covered only by widget test W2 @ 1400x1300.
