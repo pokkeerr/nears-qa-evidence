@@ -1,0 +1,30 @@
+NEARS-1749 — silent CTA on the non-social entry path (empty widget.phone)
+device emulator-5562 (1080x2400@420 = 411x914 dp) · build md5 99287409f048ddf1b6476d51a1190615 · sha 7889eddf
+Repro: manual EMAIL+password sign-in for an account with is_personal_info=false ->
+NewUserSetupScreen(loginType='manual', phone=null) -> _isSocial=false -> NPhoneField NOT built.
+Tapping 'Done' with a valid name+email produces EXACTLY this and nothing on screen:
+
+I/flutter (12880): [WARN] msg="new-user setup: phone failed validation"
+
+No [NET] line -> /api/v1/auth/update-info was never called (proxy log confirms zero INTERCEPT).
+Pre-change (d84d464b) the same branch called showCustomSnackBar('invalid_phone_number'.tr) — visible.
+
+--- INDEPENDENT RE-REPRODUCTION (second QA agent, sha 7889eddf, emulator-5562, 2026-08-10 16:12) ---
+Navigated to loginType='manual' (phone=null) via the live-isolate Get.toNamed recipe in progress.md.
+OBSERVED: NPhoneField is NOT built (dump shows 3 EditTexts and NO '+971' country-code node).
+Filled USER NAME='QATester', E-MAIL='qa1749@example.com' (both valid), tapped 'Done'.
+Marked the log at 08-10 16:12:14 immediately before the tap. Everything emitted after the mark:
+
+  08-10 16:12:15.546 19411 I flutter : [WARN] msg="new-user setup: phone failed validation"
+
+No [NET] POST endpoint=/api/v1/auth/update-info after the mark (last one is 16:05:42, from the
+earlier airplane-mode test) => the request was never dispatched.
+Screen after the tap is BYTE-FOR-EYE IDENTICAL to before: no panel, no toast, no inline error,
+no spinner, no navigation. Shot: bug-silent-cta-nonsocial-empty-phone.png
+
+Mechanism (source, OBSERVED): the CTA branch at new_user_setup_screen.dart sets
+`_phoneErrorText = 'invalid_phone_number'.tr`, and `_phoneErrorText` is passed ONLY to the
+NPhoneField inside the `_isSocial ? NPhoneField(...) : NInput(email...)` ternary. On the
+non-social path that widget does not exist, so the error has no renderer.
+Pre-change the same branch called showCustomSnackBar('invalid_phone_number'.tr) — visible.
+=> NEARS-1749 converted a visible error into a silent dead-end on this entry path.
