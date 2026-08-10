@@ -83,3 +83,28 @@ focusable="true"` => announced as a button.
 
 ### Pre-existing, NOT this change: the lightbox Close (X) is inert (see bug-lightbox-close-inert.log)
 ### Pre-existing, NOT logged: NEARS-1829 22 px bottom-overflow banner, present in every shot.
+
+## Automated backstop
+`flutter test` (UserApp, worktree): 3346 pass / 2 skip / **6 fail**.
+Ticket's own area green: `flutter test test/features/chat/` = 129/129.
+The 6 are PRE-EXISTING — the same three files run at base `5ab0de66` in a detached worktree
+produced the SAME 6 (predicted 6, measured 6): category_screen_back_button x1,
+coupon_controller x3, dls_golden light+dark.
+
+## VERDICT: FAIL
+AC1, AC2, AC3, AC4 all demonstrated live and all PASS. The gate fails on the [7] UX review's
+explicit open visual point: the Retry CTA renders FULL-BLEED (x=0..1078 of 1080) instead of a
+centred pill, so `fullWidth: false` — which this change added deliberately, with a comment saying
+the CTA "would stretch across the whole black media viewer" without it — does not take effect.
+Root cause measured in the live render tree, not inferred: NButton's Container is
+Size(411.4, 44.0) under LOOSE constraints 0<=w<=411.4 while its inner Row is Size(40.3, 20.0);
+`Container(alignment: Alignment.center)` with a null width expands to the max constraint.
+
+## Teardown
+Proxy killed by PID (port 8791 refuses connections); other lanes' proxies on 8099/8010 untouched.
+`flutter run` stopped. Device lock on emulator-5562 released.
+NOTE FOR THE NEXT LANE: the APK left installed on emulator-5562 was built with
+`--dart-define=API_HOST=10.0.2.2:8791` and will NOT reach the backend now that the proxy is down —
+rebuild before reusing that device.
+DATABASE: zero writes. Only SELECT / DESCRIBE were issued against `multi_food_db`. (The app's own
+login created a Passport token exactly as any real login does; no QA-authored DML at all.)
