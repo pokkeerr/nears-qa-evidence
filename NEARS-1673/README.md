@@ -11,6 +11,7 @@
 </table>
 
 ### Other artifacts
+- [`bug-preexisting-userapp-suite-failures.log`](bug-preexisting-userapp-suite-failures.log)
 - [`bug-recommended-items-typeerror-offline.log`](bug-recommended-items-typeerror-offline.log)
 - [`progress.md`](progress.md)
 

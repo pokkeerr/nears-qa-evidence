@@ -1,0 +1,20 @@
+NEARS-1673 QA — PRE-EXISTING UserApp unit-suite failures (regression_bugs lane).
+Command: /Users/Apple/Tools/flutter/bin/flutter test  (pinned SDK 3.41.9)
+Worktree: nears-NEARS-1673-cold-cache-interest-gate, HEAD ef1885ca
+Result: +3233 ~2 -6  (3233 passed, 2 skipped, 6 FAILED)
+
+The 6 failures, identified by where the failure counter INCREMENTS
+(the trailing -6 is cumulative and matches every later line — do not grep it directly):
+  1. test/features/chat/attachment_viewer_dls_test.dart
+  2. test/features/checkout/payment_model_zone_id_test.dart
+  3. test/features/checkout/group_place_order_body_test.dart
+  4. test/features/checkout/checkout_null_payment_config_no_crash_test.dart
+  5. test/features/store/campaign_screen_reskin_test.dart
+  6. test/golden/dls_golden_test.dart — DLS components dark theme [E]
+
+Attribution: the NEARS-1673 diff touches ONLY
+  UserApp/lib/features/category/controllers/category_controller.dart
+  UserApp/test/features/category/category_controller_test.dart
+All 6 files above contain ZERO references to CategoryController/category_controller
+(grep -c = 0 in each), so they are unreachable from this change: pre-existing.
+The ticket's own tests are 45/45 GREEN.
