@@ -1,10 +1,11 @@
 # QA Evidence — NEARS-1790
 
-**PASS (hermetic) — AC1+AC2 met by test; live device NOT TESTED (add-fund config-gated off, 403 digital_payment_is_disable)**
+**PASS (hermetic) — AC1+AC2 met by test; live NOT TESTED (config-gated)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
 ### Other artifacts
+- [`bug-addfund-silent-failure.log`](bug-addfund-silent-failure.log)
 - [`bug-prefix-pin-red.log`](bug-prefix-pin-red.log)
 - [`mutation-map.txt`](mutation-map.txt)
 - [`suite-postfix-failures.txt`](suite-postfix-failures.txt)

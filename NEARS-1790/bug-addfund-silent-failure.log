@@ -1,0 +1,30 @@
+NEARS-1790 QA — PRE-EXISTING silent-failure path on the add-fund money path
+(present identically at base 349366b5 and at HEAD fd65f879 — NOT introduced by this change)
+
+UserApp/lib/features/wallet/domain/repositories/wallet_repository.dart:16
+    Future<String?> addFundToWallet(double amount, String paymentMethod) async {
+      String? redirectUrl;
+      Response response = await apiClient.postData(AppConstants.addFundUri, {...});
+      if (response.statusCode == 200) {
+        redirectUrl = response.body['redirect_link'];
+      }
+      return redirectUrl;              // <-- non-200 (incl. 403 digital_payment_is_disable) => bare null
+
+UserApp/lib/features/wallet/controllers/wallet_controller.dart:169
+      String? redirectUrl = await walletServiceInterface.addFundToWallet(...);
+      if (redirectUrl != null) { Get.back(); Get.toNamed(payment); }
+      // no else branch: no AppLogger.failure, no showCustomSnackBar
+
+CONSEQUENCE: a failed Add Fund (the 403 this very environment returns) produces
+NO user feedback, NO [FAIL] console line and NO Crashlytics non-fatal. The button
+simply re-arms and nothing happens.
+
+CONTRAST: the sibling fetch on the same controller DOES log its null sentinel —
+wallet_controller.dart getWalletTransactionList:
+      AppLogger.failure(const ApiFailure.transport(), StackTrace.current,
+        'wallet transaction list load failed', endpoint: AppConstants.walletTransactionUri);
+
+Second, narrower arm: a THROWN hand-off propagates out of the unawaited call at
+add_fund_dialogue_widget.dart:228 as an unhandled async error, also unlogged.
+NEARS-1790's try/finally correctly stops the flag latching on that path, but adds
+no logging (out of scope for this ticket).
