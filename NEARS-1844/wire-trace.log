@@ -1,0 +1,38 @@
+NEARS-1844 — item view-all pagination, observed on the wire
+(QA logging reverse proxy: app --dart-define=API_HOST=10.0.2.2:8134 -> 127.0.0.1:8000)
+device emulator-5554 | installed APK md5 963e1039fdd599fb10203e886033b786 (pre AND post observation)
+worktree /Users/Apple/Projects/nears-NEARS-1844-pagesize @ 5985eca7 | Flutter 3.41.9
+
+--- A. unfiltered popular view-all, header reads (85). ceil(85/25)=4 -> load-more offsets 2,3,4 and STOP
+        pre-fix ceil(85/10)=9 would have fired offsets 2..9 (8 requests)
+    2026-08-11T01:09:53.083 GET /api/v1/items/popular?type=all&offset=1&limit=25 [zoneId=[1] moduleId=2]   <- view-all opened
+    2026-08-11T01:10:25.015 GET /api/v1/items/popular?type=all&offset=2&limit=25 [zoneId=[1] moduleId=2]
+    2026-08-11T01:10:27.893 GET /api/v1/items/popular?type=all&offset=3&limit=25 [zoneId=[1] moduleId=2]
+    2026-08-11T01:10:30.904 GET /api/v1/items/popular?type=all&offset=4&limit=25 [zoneId=[1] moduleId=2]
+    (45 further bottom-swipes after offset=4: ZERO additional requests)
+
+--- B. search=rg, header reads (22)  [the observable window (10,25]]
+        ceil(22/25)=1 -> ZERO load-more.  pre-fix ceil(22/10)=3 would have fired offsets 2 and 3
+    2026-08-11T01:12:07.441 GET /api/v1/items/popular?type=all&offset=1&limit=25&search=rg [zoneId=[1] moduleId=2]
+    (40 bottom-swipes: no offset>1 line exists -> the gate never passed)
+
+--- C. search=c, header reads (49)   [POSITIVE CONTROL — proves the swipe does reach the trigger in a filtered list]
+        ceil(49/25)=2 -> exactly ONE load-more.  pre-fix ceil(49/10)=5 would have fired offsets 2,3,4,5
+    2026-08-11T01:13:54.630 GET /api/v1/items/popular?type=all&offset=1&limit=25&search=c [zoneId=[1] moduleId=2]
+    2026-08-11T01:15:04.232 GET /api/v1/items/popular?type=all&offset=2&limit=25&search=c [zoneId=[1] moduleId=2]
+    (55 further bottom-swipes: ZERO additional requests)
+
+--- the app's own gate log, bound to app pid 1926 (device clock was set to 13:0x for store-open hours)
+    08-11 13:08:50.801 I/flutter ( 1926): [INFO] msg="item view-all: reached end of pagination, offset=2"
+    08-11 13:08:53.729 I/flutter ( 1926): [INFO] msg="item view-all: reached end of pagination, offset=3"
+    08-11 13:08:56.675 I/flutter ( 1926): [INFO] msg="item view-all: reached end of pagination, offset=4"
+    08-11 13:13:30.027 I/flutter ( 1926): [INFO] msg="item view-all: reached end of pagination, offset=2"
+    4 gate passes total = 3 (case A) + 0 (case B) + 1 (case C). Exactly as the fixed divisor predicts.
+
+--- decoy left literal on purpose: unpaginated buy-it-again still requests limit=25, rail populated
+    2026-08-11T01:00:44.689 GET /api/v1/customer/order/buy-it-again?limit=25&offset=1 [zoneId=[1] moduleId=2]
+
+--- untouched neighbours that share the constant idiom (limits unchanged)
+    2026-08-11T01:24:36.984 GET /api/v1/search/unified?name=app&offset=1&limit=10 [zoneId=[1] moduleId=1]
+    2026-08-11T01:28:11.484 GET /api/v1/customer/wallet/transactions?offset=1&limit=10&type=all [zoneId=[1] moduleId=1]
+    (20 further buy-it-again calls in the run, all identical limit=25 — trimmed)
