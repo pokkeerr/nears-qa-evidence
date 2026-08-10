@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1626
 
-**PASS — wallet pull-to-refresh fires on a short list (0 -> 4 [NET]) on emulator-5558 @ 448x997dp**
+**PASS — pull-to-refresh fires on a short list (0 -> 4 [NET] on all 3 drag variants); includes the PRE-FIX baseline shots (prefix-*) proving the 0 case**
 
-**17 screenshot(s).** Click any thumbnail for full resolution.
+**20 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -33,6 +33,11 @@
 <tr>
 <td align="center" width="33%"><a href="41-wallet-arabic-rtl.png"><img src="41-wallet-arabic-rtl.png" width="240"></a><br><sub>wallet arabic rtl</sub></td>
 <td align="center" width="33%"><a href="42-arabic-after-refresh.png"><img src="42-arabic-after-refresh.png" width="240"></a><br><sub>arabic after refresh</sub></td>
+<td align="center" width="33%"><a href="prefix-00-boot.png"><img src="prefix-00-boot.png" width="240"></a><br><sub>prefix 00 boot</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="prefix-01-wallet-shortlist.png"><img src="prefix-01-wallet-shortlist.png" width="240"></a><br><sub>prefix 01 wallet shortlist</sub></td>
+<td align="center" width="33%"><a href="prefix-02-wallet-nooverflow-restored.png"><img src="prefix-02-wallet-nooverflow-restored.png" width="240"></a><br><sub>prefix 02 wallet nooverflow restored</sub></td>
 </tr>
 </table>
 
