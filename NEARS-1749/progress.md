@@ -112,3 +112,47 @@ cycle demonstrated it live at 7889eddf.
 ### Core-path smoke — OBSERVED
 Cold start -> splash -> language -> onboarding -> location -> module list -> Grocery home ->
 Profile tab. Clean.
+
+## Post-scoring device validation on emulator-5554 (all OBSERVED, after the PASS)
+Requested by the conductor because 5562's healthy-bridge result is device-scoped and does not
+transfer. Lock re-acquired for these checks, then released.
+
+### APK freshness — DEFINITIVE
+| Check | Result |
+|---|---|
+| on-device `base.apk` md5 | `516ea2e604e569cc8f09a846e719f85f` |
+| worktree `build/app/outputs/flutter-apk/app-debug.apk` md5 | `516ea2e604e569cc8f09a846e719f85f` — **IDENTICAL** |
+| codePath | single intact path, no partial/split install |
+| versionName | `3.8.0` |
+| firstInstallTime / lastUpdateTime | both `2026-08-10 16:31:10` — **no reinstall before, during or after the run** |
+| app pid | **12038, still alive** — the exact pid stamped on every `[NET]`/`[FAIL]` line I scored |
+| free space now | 856320 KB = 836 MB, still above the 800 MB floor |
+
+pid continuity + identical md5 + `firstInstallTime == lastUpdateTime` together rule out the
+stale-APK class for this run: the process that rendered the panel and dispatched the request is
+the same process running the byte-identical worktree build.
+
+### a11y bridge control on 5554 — HEALTHY
+Dumped twice (first dump can return nothing — Flutter builds semantics only once an a11y client
+attaches, and the dump IS that client). Coarse control: **8 nodes with a non-empty label**
+(requirement: >=1). 5554 is NOT the 5560 broken-bridge class. No specific string was used as the
+control, per the en/ar rendering caveat.
+
+### Live-isolate symbol probe on 5554 — SATISFIED
+The currently-running app paints UI that does not exist at base:
+```
+content-desc="The phone field is required."   <- submit-error panel (new in NEARS-1749)
+content-desc="Try Again"                      <- retry affordance (new in NEARS-1749)
+content-desc="Complete your profile"
+content-desc="Done"
+```
+Not probed on this path: `NPhoneField` inline `errorText` (social branch only — that field is
+not built here, which is the whole point of the fix) and the CTA spinner (transient; covered by
+AC3 in the prior cycle).
+
+### The strongest freshness evidence is behavioural, and it inverts the stale-APK risk
+The conductor's concern is that a stale APK shows the OLD silent-CTA behaviour and reads as
+"the fix didn't work". I observed the **opposite**: `[NET] POST /api/v1/auth/update-info` IS
+dispatched. At base (`7889eddf`) that exact path provably does NOT dispatch — that was the FAIL.
+A stale or foreign APK cannot manufacture post-fix behaviour, so the observed dispatch is itself
+proof the running binary is at or after `d08b4cdb`. Verdict stands unchanged: **PASS**.

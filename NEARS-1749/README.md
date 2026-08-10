@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1749
 
-**PASS (delta re-QA, fix cycle 1) @ 57bb0e4c — regression closed on the real production chain**
+**PASS (delta re-QA cycle 1) @ 57bb0e4c + device validation on emulator-5554**
 
 **8 screenshot(s).** Click any thumbnail for full resolution.
 
