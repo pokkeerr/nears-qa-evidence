@@ -1,0 +1,29 @@
+NEARS-1629 — AC-A live sequence, popular axis (item_view_all_screen, 'Most Popular Items', total 290)
+device emulator-5554 · wm size 1344x2992 · wm density 480 (=448x997dp) · light mode · app pid 4467
+installed apk md5 cc86e0a24dd7be448eb2a73636d258de (== locally built worktree apk)
+ONE SCREEN VISIT THROUGHOUT — screen never popped between the failure and the recovery.
+
+--- page 2, online (no-regression control) ---
+ : [INFO] msg="item view-all: reached end of pagination, offset=2"
+ : [NET] GET endpoint=/api/v1/items/popular
+ : [NET] endpoint=/api/v1/items/popular http_status=200
+
+--- airplane mode ON: offsets 3 and 4 (DEFECT PIN: offset=4 can only exist if the flag cleared) ---
+ : [INFO] msg="item view-all: reached end of pagination, offset=3"
+ : [NET] GET endpoint=/api/v1/items/popular
+ : [FAIL] endpoint=/api/v1/items/popular http_status=null type=ApiFailure msg="api request threw" correlation_id=2260c0fd-f02f-48ab-b8e2-0409430aba9a
+ : [INFO] msg="item view-all: reached end of pagination, offset=4"
+ : [NET] GET endpoint=/api/v1/items/popular
+ : [FAIL] endpoint=/api/v1/items/popular http_status=null type=ApiFailure msg="api request threw" correlation_id=29b036ed-96c9-48b1-847c-205179f3814f
+ : [INFO] msg="item view-all: reached end of pagination, offset=5"
+ : [NET] GET endpoint=/api/v1/items/popular
+
+--- airplane mode OFF, same visit: offset 5 loads ---
+ : [INFO] msg="item view-all: reached end of pagination, offset=5"
+ : [NET] GET endpoint=/api/v1/items/popular
+ : [NET] endpoint=/api/v1/items/popular http_status=200
+ : [NET] GET endpoint=/api/v1/items/popular
+
+--- live isolate state after the sequence (Dart VM service field read) ---
+_isLoading = false ; _offset = 5 ; _offsetList = ['1','2','3','4','5'] ; _pageSize = 290
+_popularItemList = 75  (= 3 successful pages x 25; the 2 airplane offsets appended nothing => no duplicates)

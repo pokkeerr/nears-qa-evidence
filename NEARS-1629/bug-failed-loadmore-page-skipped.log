@@ -1,0 +1,21 @@
+PRE-EXISTING (not caused by NEARS-1629) — a failed load-more page is SKIPPED, never retried.
+Where: UserApp/lib/features/item/screens/item_view_all_screen.dart:67
+  itemController.setOffset(itemController.offset + 1);   <-- increments BEFORE the fetch
+  ...then getPopularItemList(offset: itemController.offset.toString())
+and item_controller.dart getPopularItemList adds the offset to _offsetList BEFORE awaiting,
+so a failed offset is both consumed and marked fetched, and the already-fetched short-circuit
+blocks any retry of it.
+
+Observed live on emulator-5554 (Most Popular Items, total 290), one screen visit:
+  offset=2 -> 200            (25 items appended)
+  offset=3 -> [FAIL] offline (0 appended, offset consumed)
+  offset=4 -> [FAIL] offline (0 appended, offset consumed)
+  offset=5 -> 200            (25 items appended)
+  final live isolate read: _popularItemList = 75, _offsetList = ['1','2','3','4','5']
+  => the ~50 items belonging to pages 3 and 4 are unreachable for the rest of the visit;
+     the user sees page 1,2,5 content contiguously with no gap indication and no retry.
+
+Why this is NOT a defect in NEARS-1629: pre-fix the sequence stopped dead at offset=3 and
+no later page loaded at all, so the skip was unobservable. The fix strictly improves the
+outcome; it neither introduced nor was expected to address the increment-before-fetch.
+Severity Low. Surface UserApp / item view-all (all axes) + brands_product_screen (same shape).

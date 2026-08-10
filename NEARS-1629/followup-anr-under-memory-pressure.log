@@ -1,0 +1,17 @@
+OBSERVATION (environment-suspected, NOT attributed to NEARS-1629) — UserApp ANR on emulator-5554
+Context: 4 emulators + 3 backends live on one host during this run (concurrent QA sessions).
+
+08-10 13:47:54.365   287   287 I lowmemorykiller: Kill 'com.google.android.projection.gearhead:car' (19450), uid 10142, oom_score_adj 985 to free 76256kB rss, 27616kB anon rss, 30576kB swap, 0kB dmabuf_pss, 0kB dmabuf_rss; reason: low watermark is breached
+08-10 13:48:02.323 15872  6233 E ActivityManager: ANR in com.izzes.nears (com.izzes.nears/.MainActivity)
+08-10 13:48:02.323 15872  6233 E ActivityManager: Reason: Input dispatching timed out (2da0812 com.izzes.nears/com.izzes.nears.MainActivity is not responding. Waited 5090ms for MotionEvent).
+08-10 13:57:25.757 15872  7707 E ActivityManager: ANR in com.izzes.nears (com.izzes.nears/.MainActivity)
+
+At the moment of the ANR: device MemFree 155136 kB of MemTotal 3081072 kB;
+app RSS 682 MB, peak 942 MB (Dart VM service _currentRSS/_maxRSS, pid 4467).
+Dart isolates were runnable/Resume and still drawing (Choreographer 'Skipped 699 frames',
+HWUI 'Davey! duration=1069ms') - i.e. jank under memory pressure, not a Dart deadlock.
+ZERO [FAIL]/[ERR] lines from the app pid in that window.
+
+The app was later killed by the lowmemorykiller ('Lost connection to device'); recovered with
+scripts/qa-reconnect.sh, and the installed APK md5 was unchanged across the whole session.
+Recommend confirming on an unloaded host before treating the 942 MB peak RSS as a product defect.

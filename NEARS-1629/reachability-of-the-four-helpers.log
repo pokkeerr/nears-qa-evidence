@@ -1,0 +1,30 @@
+NEARS-1629 — measured reachability of the 4 changed helpers (why 3 of 4 are live-unverified)
+worktree /Users/Apple/Projects/nears-NEARS-1629-isloading-leak @ e46b42b2
+
+[1] popular  (_preparePopularItems)   -> LIVE-DEMONSTRATED. Entry: grocery home 'Trending Nearby' > See All.
+    grocery_home_screen.dart:100 mounts TrendingNearbyView -> getItemViewAllScreen(true,false).
+
+[2] reviewed (_preparedReviewedItems) -> LIVE-UNVERIFIED, two independent measured reasons:
+    (a) entry point: BestReviewItemView is mounted at exactly ONE site -
+        lib/features/home/screens/modules/food_home_screen.dart:155:        const BestReviewItemView(),
+        i.e. the FOOD home only; it self-hides when reviewedItemList.isEmpty.
+    (b) data: /api/v1/items/most-reviewed total_size, measured live against the local backend:
+        zone1/mod1=0  zone1/mod2=0  zone1/mod3=0  zone2/mod1=3  zone2/mod2=0  zone2/mod3=0
+        max anywhere = 3. Food (mod2) = 0 -> rail hidden -> no 'See All'.
+        Even if opened, paginate(3)=ceil(3/10)=1 page, so the screen's 'offset < pageSize'
+        load-more branch (item_view_all_screen.dart:66) can never fire. A page 2 needs >25.
+    Live isolate read in the Food module confirmed: _reviewedItemList = List(len=0).
+
+[3] discounted (_prepareDiscountedItems) -> LIVE-UNVERIFIED: the isSpecial=true screen has NO caller.
+    All getItemViewAllScreen call sites in lib/ (exhaustive):
+        lib/features/home/widgets/views/best_reviewed_item_view.dart:33:            onAction: () => Get.toNamed(RouteHelper.getItemViewAllScreen(false, false)),
+        lib/features/home/widgets/views/most_popular_item_view.dart:59:                                  RouteHelper.getItemViewAllScreen(true, false),
+        lib/features/home/widgets/views/trending_nearby_view.dart:58:                          RouteHelper.getItemViewAllScreen(true, false),
+        lib/helper/route_helper.dart:502:  static String getItemViewAllScreen(bool isPopular, bool isSpecial) =>
+        -> 3 call sites, every one passes isSpecial=false. ItemViewAllScreen(isSpecial:true) is unreachable,
+        and item_view_all_screen.dart:79 (the discounted load-more) sits behind exactly that flag.
+
+[4] brands (BrandsController.getBrandItemList) -> LIVE-UNVERIFIED. SELECT COUNT(*) FROM brands = 0
+    (measured read-only against multi_food_db), so the home brands rail never renders,
+    BrandsItemScreen has no entry point, and /api/v1/brand/items/{id} has no valid id.
+    Not seeded / not forced: the DB is read-only for QA.
