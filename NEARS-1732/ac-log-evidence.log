@@ -1,0 +1,36 @@
+NEARS-1732 — live QA log evidence (emulator-5562, branch feat/NEARS-1732-video-error-state @ 5f1d1ad2, light mode)
+
+== AC1: broken.mp4 (404) — lightbox state at 2s intervals from the tap ==
+t=+2.1s  Close | Loading
+t=+4.1s  Close | Loading
+t=+6.1s  Close | Error loading video | Retry
+t=+8.1s .. +20.1s  error state persists (8 consecutive polls)
+proxy /broken.mp4 hits 0 -> 4 (ExoPlayer's 4 internal attempts = ONE logical failure)
+
+== AC3: slow.mp4 (6s delay, real 1,293,015-byte h264 mp4) ==
+t=+2.0s / +4.0s / +6.0s / +8.1s   Close | Loading      error-detector = no
+t=+10.5s  '00:02 / 00:04' | Close   <- Chewie mounted AND PLAYING
+t=+12.6s..+16.6s  Close (controls auto-hidden)
+frame motion: 4 screencaps ~0.6s apart -> consecutive diffs 734049 / 664460 / 653824 differing px
+negative control: same measurement on a finished (frozen) player = 0 differing px
+
+== AC4: every [FAIL] emitted in the whole session (4 of 4 identical) ==
+I/flutter (30944): [FAIL] endpoint=null http_status=null type=ChatVideoInitFailure msg="chat video init failed (PlatformException)"
+Crashlytics debug block printed alongside it:
+  ----------------FIREBASE CRASHLYTICS----------------
+  The following exception was thrown chat video init failed (PlatformException):
+  ChatVideoInitFailure
+URL-leak grep over the flutter-run console since each failure: 0 hits for '8971' / 'broken.mp4'
+  (same grep on the proxy log = 11 hits, so the pattern is proven to match)
+logcat --pid=30944 during a failure: 30 lines captured, 0 URL hits
+
+== Sticky failure (D3) — proven by ABSENCE of traffic ==
+swipe to page 2 (image) and back to page 1: /broken.mp4 hits 12 -> 12, [FAIL] count 3 -> 3
+
+== Retry (D1) ==
+tap Retry -> Close|Loading (2 polls) -> Close|Error loading video|Retry
+/broken.mp4 hits 4 -> 8 (a real second attempt), one additional [FAIL]
+
+== Known, expected, NOT a regression of this ticket ==
+3x 'A RenderFlex overflowed by 22 pixels on the bottom' at image_preview_widget.dart:244 (the root Column) = NEARS-1829, pre-existing, out of scope.
+It does NOT obscure the error state: the state is centred at y=1000..1476 and renders in full.
