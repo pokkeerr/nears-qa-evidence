@@ -1,0 +1,85 @@
+NEARS-1736 — on-device pixel oracle for the item-sheet modal barrier dim
+========================================================================
+Date        2026-08-11
+Branch      feat/NEARS-1736-barrier-dim-guard @ base f30af607 (worktree
+            /Users/Apple/Projects/nears-NEARS-1736-barrier-dim-guard)
+SDK         /Users/Apple/Tools/flutter 3.41.9 (absolute path, pinned)
+Devices     emulator-5556 (guard build)  1344x2992 px @ 480dpi = 448x997 dp
+            emulator-5558 (control build) 1344x2992 px @ 480dpi = 448x997 dp
+            Light mode (settings secure ui_night_mode = 1). Zone 2 (Abu Dhabi).
+APK md5     guard   (alpha 0.20) f5233568241ac5443334ffc4bb4e2321
+            control (alpha 0.54) 5e71476048ec4210c5ab0115f08c7eec
+            Both md5s verified against the INSTALLED /data/app/.../base.apk
+            immediately before AND after every observation — unchanged.
+
+Oracle
+------
+A black barrier at alpha a composites source-over in 8-bit sRGB as
+    dimmed = original * (1 - a)
+so per channel  a = 1 - dimmed/original.
+Two full-frame screencaps of the SAME screen (sheet closed / sheet open) are
+differenced over a region the barrier covers but the sheet does not.
+Sampling region: x 0..1344, y 160..560 (device px) — below the status bar,
+above the sheet's top edge (~y 600). Channel samples with original < 60 are
+discarded (no signal). 537,600 pixels -> 1,114,285 usable channel samples.
+
+Region validity (row scout, 80px bands, guard build):
+  y 160..560  median a = 0.2000-0.2031, 100.0% of samples within +/-0.02
+  y 560..640  consistency collapses to 66-73% -> sheet edge
+  y >= 640    incoherent (sheet content, not barrier)
+0.0% of pixels in the sampled region are byte-identical between the two frames,
+i.e. the barrier demonstrably composited over every sampled pixel.
+
+RESULT 1 — cart-edit entry, GUARD build (alpha 0.20)   [the ticket's named path]
+--------------------------------------------------------------------------------
+Entry: Basket -> tap the cart line "Dish Soap 500ml" (cart_item_widget.dart ->
+ItemController.presentItemDetailSheet with cart + cartIndex). Confirmed the
+cart-edit variant by the CTA label "Update In Cart" (not "Add To Cart").
+  R   n=290,468   mean 0.2000  median 0.2000  sd 0.0005  range [0.1935, 0.2063]
+  G   n=290,609   mean 0.2000  median 0.2000  sd 0.0005  range [0.1935, 0.2063]
+  B   n=533,208   mean 0.2014  median 0.2000  sd 0.0016  range [0.1935, 0.2063]
+  ALL n=1,114,285 mean 0.2007  median 0.2000  sd 0.0014
+  |a - 0.20| = 0.0007      |a - 0.54| = 0.3393
+Shots: 01-guard-a020-cart-no-sheet.png / 02-guard-a020-cart-sheet-open.png
+
+RESULT 2 — non-cart entry, GUARD build (alpha 0.20)   [comparison]
+-------------------------------------------------------------------
+Entry: Basket -> "You May Also Like!" card "Canned Beans" (generic entry, CTA
+"Add To Cart"). Same region, same device, same APK.
+  R   n=290,468   mean 0.2000  sd 0.0004
+  G   n=290,609   mean 0.2000  sd 0.0005
+  B   n=533,208   mean 0.2014  sd 0.0016
+  ALL n=1,114,285 mean 0.2007  median 0.2000  sd 0.0014
+Identical to the cart-edit entry — one presenter, one barrier.
+
+RESULT 3 — POSITIVE CONTROL, cart-edit entry, MUTATED build (alpha 0.54)
+-------------------------------------------------------------------------
+Second APK built from the same worktree with item_controller.dart:1204 changed
+to `alpha: 0.54`, installed on emulator-5558, same navigation, same region.
+  R   n=290,468   mean 0.5411  median 0.5412  sd 0.0006  range [0.5323, 0.5469]
+  G   n=290,609   mean 0.5410  median 0.5412  sd 0.0007  range [0.5323, 0.5469]
+  B   n=533,208   mean 0.5401  median 0.5403  sd 0.0011  range [0.5323, 0.5469]
+  ALL n=1,114,285 mean 0.5406  median 0.5412  sd 0.0010
+  |a - 0.54| = 0.0006      |a - 0.20| = 0.3406
+Shots: 03-control-a054-cart-no-sheet.png / 04-control-a054-cart-sheet-open.png
+The oracle therefore reads BOTH values correctly on a real device. This is an
+EMPIRICAL two-sided control, not an arithmetic exclusion. The mutation was
+reverted (`git checkout -- item_controller.dart`) and the worktree verified
+back to its pre-mutation state.
+
+Separation: 0.2007 vs 0.5406, pooled sd ~0.0012 -> ~283 sd apart.
+
+Logs
+----
+adb logcat -s flutter:V, buffers cleared at launch on both devices:
+0 matches for [FAIL] / [ERR] / EXCEPTION / Unhandled / RenderFlex across the
+whole session on BOTH builds. Observed traffic is normal
+([NET] /api/v1/items/details/... http_status=200, analytics view_item).
+
+Regression glance (guard build, 5556)
+-------------------------------------
+Cart row -> sheet opens; carousel "1 / 4", Description, Increase/Decrease
+quantity, Total Amount, "Update In Cart" CTA, Close all present; the in-sheet
+stepper updated the cart line 1 -> 2 kg (documented in-cart-stepper behaviour,
+item_bottom_sheet.dart) and Close returned to the cart. Quantity restored to 1.
+No errors.
