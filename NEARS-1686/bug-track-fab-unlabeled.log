@@ -1,0 +1,32 @@
+PRE-EXISTING a11y defect — NOT caused by NEARS-1686. Observed 2026-08-10 on
+emulator-5556, UserApp debug build from
+feat/NEARS-1686-tracking-chat-null-guard @ 47ff0410, English, light mode.
+
+Surface: UserApp order_details_screen.dart — the "track order" FloatingActionButton
+(child = NAssetImage(Images.trackLocationIcon)) carries no Semantics label, so it
+is invisible to label-based drivers AND to screen readers.
+
+Live a11y tree (order #170, status pending) — the FAB is an unlabeled ImageView:
+
+    class=android.widget.ImageView clickable=true bounds=[1128,2254][1296,2422]
+
+ui_find exit codes on that same screen (captured without a pipe, so the code is
+ui_find's own):
+
+    [Order Tracking] rc=0 out='672 447'     <-- the details-timeline SECTION HEADING
+    [Chat]           rc=1 out=''
+    [Call]           rc=1 out=''
+    [Track Order]    rc=1 out=''
+
+The trap: `ui_find "Track"` returns rc=0 on this screen, but it has matched the
+"Order Tracking" section heading, not the FAB. Tapping it is a no-op that reads
+as a successful navigation:
+
+    tap 'Order Tracking' @ 672 447   ->  a11y dump unchanged, still on details
+
+The FAB could only be driven by resolving the last `ImageView clickable=true`
+from ui_nodes and tapping its live-resolved centre (1212, 2338).
+
+Impact: TalkBack announces an unlabeled button; QA cannot drive the primary
+entry point to order tracking by label. Out of the NEARS-1686 fence
+(order_details_screen.dart, not order_tracking_screen.dart) — routed, not filed.
