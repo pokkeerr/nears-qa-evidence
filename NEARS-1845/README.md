@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1845
 
-**PASS — NEARS-1845 loyalty double-emit: exactly 1 [FAIL] per failed load (5 injected failures -> 5 lines), NEARS-1613 retry state intact**
+**PASS — NEARS-1845: exactly 1 [FAIL] per failed load on both reachable paths; plus a measured non-blocking silent band (201..399)**
 
-**5 screenshot(s).** Click any thumbnail for full resolution.
+**6 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -12,9 +12,13 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="ac2-retry-recovers.png"><img src="ac2-retry-recovers.png" width="240"></a><br><sub>ac2 retry recovers</sub></td>
+<td align="center" width="33%"><a href="bug-silent-204-band.png"><img src="bug-silent-204-band.png" width="240"></a><br><sub>bug silent 204 band</sub></td>
 <td align="center" width="33%"><a href="regression-loadmore-page2-fail.png"><img src="regression-loadmore-page2-fail.png" width="240"></a><br><sub>regression loadmore page2 fail</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`bug-silent-2xx-3xx-band.log`](bug-silent-2xx-3xx-band.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1845/` · public-repo scrub policy (no live secrets; verified clean).*

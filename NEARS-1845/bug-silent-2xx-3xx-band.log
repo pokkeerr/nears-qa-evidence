@@ -1,0 +1,42 @@
+NEARS-1845 QA — silent failure path on the 201..399 status band
+Device emulator-5558 · app pid 15894 · build bb7aca4b (live-isolate verified POST-FIX)
+Fault injected by the QA stdlib proxy on 10.0.2.2:8899, endpoint
+/api/v1/customer/loyalty-point/transactions ONLY. Shared backend untouched.
+
+Measured, one screen-load per status, [FAIL]/[ERR] counted in a pid-bound
+logcat window opened immediately before each load:
+
+  status 201 -> NearsErrorRetry shown, [FAIL] count = 0   <-- SILENT
+  status 204 -> NearsErrorRetry shown, [FAIL] count = 0   <-- SILENT
+  status 399 -> NearsErrorRetry shown, [FAIL] count = 0   <-- SILENT
+  status 500 -> NearsErrorRetry shown, [FAIL] count = 1   <-- covered (control)
+
+The 500 control ran LAST in the same sequence and returned 1, so the three
+zeroes are real measurements, not a dead counter.
+
+The 500 line, for contrast (the only one emitted across all four loads):
+08-10 17:10:23.438 15894 15894 I flutter : [FAIL] endpoint=/api/v1/customer/loyalty-point/transactions http_status=500 type=ApiFailure msg="api request failed"
+
+Mechanism: ApiChecker.checkApi only emits for status >= 400 or null, and
+ApiClient._send's catch only fires on a throw. LoyaltyRepository returns null
+for ANY status != 200, so 201..399 reaches LoyaltyController's else-branch --
+which, after this ticket removed its AppLogger.failure, logs nothing at all.
+Pre-fix this band emitted exactly 1 (the controller's own line); post-fix it
+emits 0. Net: this diff traded a duplicate on the >=400 band for a silence on
+the 201..399 band.
+
+NOT origin-reachable on this backend (verified independently, not taken from
+the ticket's own doc):
+  - Admin/app/Http/Controllers/Api/V1/LoyaltyPointController.php @transactions
+    returns only response()->json($data, 200) or 403.
+  - Unauthenticated GET really does emit a 302 (Location: /authentication-failed),
+    but package:http follows it and that route returns JSON 401 -> client
+    observes 401 -> covered. Verified: curl -L final=401 redirects=1.
+  - Wrong method -> 405. All framework codes are >= 400.
+So reaching this band needs a misbehaving proxy/CDN/captive portal, or a future
+backend that returns 204 for an empty list.
+
+Disclosed in docs/solutions/NEARS-1845-loyalty-double-emit.md section 1 (P3/P4/P5)
+and scoped out with a named followup: widen ApiChecker.checkApi's emit condition
+from ">= 400 || == null" to "any status that is not 200", which closes the band
+for all inheriting call sites at once.
