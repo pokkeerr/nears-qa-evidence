@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1718
 
-**PRE-FIX measurement (phase 3.5): ar+bn do NOT overflow at base — ticket premise refuted for both**
+**PASS — post-fix: order-id row no overflow in en/ar/bn/es at scale 1.0 and 1.3 (max reachable); id #158 whole in every case**
 
-**13 screenshot(s).** Click any thumbnail for full resolution.
+**29 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -27,11 +27,38 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="evidence-glyph-coverage-ar-bn-en.png"><img src="evidence-glyph-coverage-ar-bn-en.png" width="240"></a><br><sub>evidence glyph coverage ar bn en</sub></td>
+<td align="center" width="33%"><a href="post-01-ar-scale1.0.png"><img src="post-01-ar-scale1.0.png" width="240"></a><br><sub>post 01 ar scale1.0</sub></td>
+<td align="center" width="33%"><a href="post-02-ar-scale1.3.png"><img src="post-02-ar-scale1.3.png" width="240"></a><br><sub>post 02 ar scale1.3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="post-03-bn-scale1.0.png"><img src="post-03-bn-scale1.0.png" width="240"></a><br><sub>post 03 bn scale1.0</sub></td>
+<td align="center" width="33%"><a href="post-04-bn-scale1.3.png"><img src="post-04-bn-scale1.3.png" width="240"></a><br><sub>post 04 bn scale1.3</sub></td>
+<td align="center" width="33%"><a href="post-05-es-scale1.0.png"><img src="post-05-es-scale1.0.png" width="240"></a><br><sub>post 05 es scale1.0</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="post-06-es-scale1.3.png"><img src="post-06-es-scale1.3.png" width="240"></a><br><sub>post 06 es scale1.3</sub></td>
+<td align="center" width="33%"><a href="v2-POSCTRL-en-80dp.png"><img src="v2-POSCTRL-en-80dp.png" width="240"></a><br><sub>v2 POSCTRL en 80dp</sub></td>
+<td align="center" width="33%"><a href="v2-ZOOM-bn-ar-1.3.png"><img src="v2-ZOOM-bn-ar-1.3.png" width="240"></a><br><sub>v2 ZOOM bn ar 1.3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v2-ZOOM-ellipsis-check.png"><img src="v2-ZOOM-ellipsis-check.png" width="240"></a><br><sub>v2 ZOOM ellipsis check</sub></td>
+<td align="center" width="33%"><a href="v2-ZOOM-es-1.3-ellipsis.png"><img src="v2-ZOOM-es-1.3-ellipsis.png" width="240"></a><br><sub>v2 ZOOM es 1.3 ellipsis</sub></td>
+<td align="center" width="33%"><a href="v2-ar-1.0.png"><img src="v2-ar-1.0.png" width="240"></a><br><sub>v2 ar 1.0</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v2-ar-1.3.png"><img src="v2-ar-1.3.png" width="240"></a><br><sub>v2 ar 1.3</sub></td>
+<td align="center" width="33%"><a href="v2-bn-1.0.png"><img src="v2-bn-1.0.png" width="240"></a><br><sub>v2 bn 1.0</sub></td>
+<td align="center" width="33%"><a href="v2-bn-1.3.png"><img src="v2-bn-1.3.png" width="240"></a><br><sub>v2 bn 1.3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="v2-en-1.0.png"><img src="v2-en-1.0.png" width="240"></a><br><sub>v2 en 1.0</sub></td>
+<td align="center" width="33%"><a href="v2-es-1.3.png"><img src="v2-es-1.3.png" width="240"></a><br><sub>v2 es 1.3</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
 - [`bug-flutererror-onerror-swallows-framework-errors.log`](bug-flutererror-onerror-swallows-framework-errors.log)
+- [`v2-measurements.txt`](v2-measurements.txt)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1718/` · public-repo scrub policy (no live secrets; verified clean).*
