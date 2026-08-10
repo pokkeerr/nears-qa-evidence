@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1751
 
-**PASS — persistent recovery panel verified live on the manual sign-in submit; pre-fix silent failure pinned on base 3bf46592**
+**Delta re-QA 5a25466a — mobile navy hero renders byte-for-byte identical to 3aa01e19 (0 differing px in the panel region)**
 
-**8 screenshot(s).** Click any thumbnail for full resolution.
+**9 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -16,6 +16,7 @@
 <td align="center" width="33%"><a href="bug-authdialog-mobile-white-on-white.png"><img src="bug-authdialog-mobile-white-on-white.png" width="240"></a><br><sub>bug authdialog mobile white on white</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="delta-5a25466a-panel-mobile-navy-hero.png"><img src="delta-5a25466a-panel-mobile-navy-hero.png" width="240"></a><br><sub>delta 5a25466a panel mobile navy hero</sub></td>
 <td align="center" width="33%"><a href="negative-control-empty-fields.png"><img src="negative-control-empty-fields.png" width="240"></a><br><sub>negative control empty fields</sub></td>
 <td align="center" width="33%"><a href="prefix-silent-failure.png"><img src="prefix-silent-failure.png" width="240"></a><br><sub>prefix silent failure</sub></td>
 </tr>

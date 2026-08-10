@@ -139,3 +139,36 @@ goldens were regenerated.
 Live-confirmed environment-blocked: the sign-in screen renders only the manual form (Email/Phone,
 Password, Remember me, Sign In, Forgot Password, Create Account, Continue as Guest) — there is no
 OTP toggle to drive. Not a defect.
+
+---
+
+## DELTA RE-QA — tip `5a25466a` (was `3aa01e19`), one question only
+
+`onNavyHero` now arrives by declaration (`sign_in_screen.dart:241` passes `true`; the desktop card
+at `:551` and `AuthDialogWidget` take the `false` default) instead of being inferred from
+`!ResponsiveHelper.isDesktop(context)`. The only risk this carries is a **light panel on navy**.
+
+Same device (`emulator-5562`), same geometry (1080x2400 @420dpi), same fault (`503` empty reason
+phrase + `{"error":"maintenance"}` on port 8107), same crop boxes — so the two runs are directly
+comparable.
+
+| measure | `3aa01e19` | `5a25466a` |
+|---|---|---|
+| message-text a11y bounds | `[171,695][983,753]` | `[171,695][983,753]` |
+| Try Again a11y bounds | `[97,784][983,900]` | `[97,784][983,900]` |
+| a11y node count | 23 | 23 |
+| dominant fill (navyGlass over navy) | `#1F1F6B` x39,432 · `#1F1F72` x37,343 · `#1F1F70` x20,160 | **identical** |
+| `errorDark #FFB4AB` (glyph) | 378 px | **378 px** |
+| `textOnNavy #FFFFFF` | 12,017 px | **12,017 px** |
+| `errorSurface #FFDAD6` | 0 px | **0 px** |
+| `onErrorSurface #93000A` | 0 px | **0 px** |
+| `error #BA1A1A` | 0 px | **0 px** |
+| near-white in the persistence box | 12,721 | **12,721** |
+
+**Pixel diff of the panel region between the two builds: 0 differing px out of 253,500.**
+Byte-for-byte identical. The palette moved from inference to declaration with no change to the
+rendered result. Logs clean: exactly one `[FAIL] endpoint=/api/v1/auth/login http_status=503
+type=ApiFailure`, zero `[ERR]`. Shot: `delta-5a25466a-panel-mobile-navy-hero.png`.
+
+The `AuthDialogWidget`-at-mobile case was **not** re-attempted, per instruction — it is unreachable
+by navigation and is recorded as a resize/foldable-shaped followup.
