@@ -1,0 +1,18 @@
+NEARS-1747 — the panel's server-message branch is dead for this endpoint.
+
+Proxy injected (503 body actually returned to the app):
+  {"errors":[{"code":"guest_auth","message":"Guest sign-in is temporarily unavailable. Please try again."}]}
+
+Live a11y-tree poll after the failure (emulator-5556, EN, 1.5s cadence):
+  t=1  "Guest sign-in is temporarily unavailable. Please try again."   <- transient ApiClient toast
+       "Sorry, something went wrong"                                    <- the new persistent panel
+       "Try Again"
+  t=2..t=6  "Sorry, something went wrong" + "Try Again"   (toast gone, panel persists)
+
+Mechanism: AuthRepository.guestLogin calls apiClient.postData(...) with the default
+handleError: true. api_client.dart handleResponse() -> non-200 -> ApiChecker.checkApi(response0)
+then `return const Response();`. ResponseModel(false, response.statusText) therefore always
+carries a null message, so _guestLogin's
+  (message == null || message.isEmpty) ? 'sorry_something_went_wrong'.tr : message
+can only ever take the generic branch. The server message reaches the user via the
+pre-existing transient toast only.
