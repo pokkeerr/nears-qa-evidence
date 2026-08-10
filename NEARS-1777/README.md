@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1777
 
-**PASS — coupon refresh-failed row proven live on injected failure; pre-fix stale-grid repro captured**
+**PASS — 8/8 ACs; pre-fix stale-grid repro captured; 1 low task-bug (log class mislabel)**
 
 **15 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -31,6 +31,9 @@
 <td align="center" width="33%"><a href="prefix-02-BASE-stale-grid-no-affordance.png"><img src="prefix-02-BASE-stale-grid-no-affordance.png" width="240"></a><br><sub>prefix 02 BASE stale grid no affordance</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`bug-coupon-fail-log-mislabels-transport.log`](bug-coupon-fail-log-mislabels-transport.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1777/` · public-repo scrub policy (no live secrets; verified clean).*

@@ -1,0 +1,22 @@
+NEARS-1777 QA — new [FAIL] line mislabels an HTTP 500 as a transport failure
+Device emulator-5554 (1344x2992 @480 = 448x997dp) · APK md5 a9fe9bbd0721e1a7ba8e6b9a6dee442b (fix build, 69b37858)
+Injection: fault proxy, scope /api/v1/coupon/list, mode=500 (server-error class). Proxy log: FAULT[500] GET /api/v1/coupon/list
+
+adb logcat -s flutter (verbatim):
+08-10 23:20:40.857 27232 27232 I flutter : [FAIL] endpoint=/api/v1/coupon/list http_status=500 type=ApiFailure msg="api request failed"
+08-10 23:20:40.858 27232 27232 I flutter : ----------------FIREBASE CRASHLYTICS----------------
+08-10 23:20:40.858 27232 27232 I flutter : The following exception was thrown coupon list load failed:
+08-10 23:20:40.858 27232 27232 I flutter : ApiFailure(transport)
+08-10 23:20:40.858 27232 27232 I flutter : #0      CouponController.getCouponList (package:sixam_mart/features/coupon/controllers/coupon_controller.dart:60:20)
+08-10 23:20:40.859 27232 27232 I flutter : [FAIL] endpoint=/api/v1/coupon/list http_status=null type=ApiFailure msg="coupon list load failed"
+
+Contrast — same code path under a REAL transport fault (proxy mode=refuse, client timeout after ~40s):
+08-10 23:36:40.753 29808 29808 I flutter : [FAIL] endpoint=/api/v1/coupon/list http_status=null type=ApiFailure transport_error=timeout msg="api request threw" correlation_id=142479a5-e5c1-4172-b8a1-e5bf07fc76ce
+08-10 23:36:40.761 29808 29808 I flutter : [FAIL] endpoint=/api/v1/coupon/list http_status=null type=ApiFailure msg="coupon list load failed"
+
+The new controller line is byte-identical in both classes: it always passes const ApiFailure.transport()
+(coupon_controller.dart:59), which forces transport=true and status=null regardless of the real failure.
+NEARS-1667 exists to keep the failure class diagnosable from app logs; this line regresses that for the
+coupon path. Nothing is silent (the adjacent api_client line still carries http_status=500), but the
+coupon failure now emits TWO [FAIL] lines and TWO Crashlytics non-fatals per single failure, one of which
+asserts a class that did not occur.
