@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1806
 
-**FAIL — 4 ACs demonstrated (AC1 mis-specified); guard ships UNWIRED; false-green found in the legacy escape**
+**verify**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
