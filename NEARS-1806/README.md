@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1806
 
-**PASS — [8] final gate, fix cycle 4 verified hermetically (147/147, 6 mutations, BUG 7 repro reproduced)**
+**verify**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
