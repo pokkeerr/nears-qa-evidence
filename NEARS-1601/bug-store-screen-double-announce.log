@@ -1,0 +1,74 @@
+NEARS-1601 — task_bug: store_screen chips gain a SECOND focus stop (double-announce)
+=====================================================================================
+Device: emulator-5556 (448x997dp, density 480)   Surface: UserApp store_screen (Burger Palace)
+Fix APK md5:  06395b9316fabc85e927810551587120  (worktree feat/NEARS-1601-nfilterchip-semantics @ 6e9c6c21)
+Base APK md5: 2b9ffbb45025ac55f5051f34dde51231  (detached @ 38464d91, merge-base)
+Oracle: `adb shell uiautomator dump` = the real Android AccessibilityNodeInfo tree a screen
+reader consumes. Corroborated by Flutter `ext.flutter.debugDumpSemanticsTreeInTraversalOrder`.
+
+WHY: UserApp/lib/features/store/screens/store_screen.dart wraps NFilterChip in its OWN
+Semantics(button:true, selected:..., label:...) at lines 1682 and 1740 — a pre-1601
+compensating workaround for the very gap 1601 fixes (its own comment says "an unwrapped chip
+announced no selection state at all — silence, not 'not selected'"). It is the ONLY call site
+that does this (verified by scanning all 29 NFilterChip call sites). Now that the element
+publishes selection natively, the wrapper is redundant AND it no longer merges: the new
+Semantics(selected:, button:) inserted between the wrapper and the InkWell splits what used to
+be one node into two.
+
+-------------------------------------------------------------------------------------
+MERGE-BASE (pre-fix) — ONE focus stop per chip, label duplicated INSIDE the one node
+-------------------------------------------------------------------------------------
+content-desc='All\nAll'              selected=true  clickable=true  focusable=true
+content-desc='Offers filter\nOffers' selected=false clickable=true  focusable=true
+content-desc='Sides\nSides'          selected=false clickable=true  focusable=true
+content-desc='Drinks\nDrinks'        selected=false clickable=true  focusable=true
+content-desc='Pizza\nPizza'          selected=false clickable=true  focusable=true
+content-desc='Burgers\nBurgers'      selected=false clickable=true  focusable=true
+
+Flutter tree corroboration (base):
+       │ │   │   flags: isButton, isFocusable, hasSelectedState
+       │ │   │   label:
+       │ │   │     "Sides
+       │ │   │     Sides"
+
+-------------------------------------------------------------------------------------
+FIX BUILD (post-1601) — TWO focus stops per chip, EACH carrying the selection state
+-------------------------------------------------------------------------------------
+content-desc='All'           selected=true  clickable=false focusable=true   <-- wrapper node
+content-desc='All'           selected=true  clickable=true  focusable=true   <-- chip node
+content-desc='Offers filter' selected=false clickable=false focusable=true
+content-desc='Offers'        selected=false clickable=true  focusable=true
+content-desc='Sides'         selected=false clickable=false focusable=true
+content-desc='Sides'         selected=false clickable=true  focusable=true
+content-desc='Drinks'        selected=false clickable=false focusable=true
+content-desc='Drinks'        selected=false clickable=true  focusable=true
+content-desc='Pizza'         selected=false clickable=false focusable=true
+content-desc='Pizza'         selected=false clickable=true  focusable=true
+content-desc='Burgers'       selected=false clickable=false focusable=true
+content-desc='Burgers'       selected=false clickable=true  focusable=true
+
+Flutter tree corroboration (fix), nested parent -> child:
+         │   │ │ flags: isButton, hasSelectedState
+         │   │ │ label: "Offers filter"
+         │   │ └─SemanticsNode#1032
+         │   │     flags: isButton, isFocusable, hasSelectedState
+         │   │     label: "Offers"
+
+-------------------------------------------------------------------------------------
+IMPACT
+-------------------------------------------------------------------------------------
+TalkBack focus stops on the store category rail go 6 -> 12; every chip announces its name and
+its selection state twice ("Sides, not selected, button" ... "Sides, not selected, button").
+Both builds are defective, but the axis the ticket exists to fix — say the state exactly once —
+regresses here: state was published once pre-fix, twice post-fix.
+
+CONFINED TO store_screen. All other NFilterChip surfaces observed live show exactly ONE node per
+chip: cuisine_filter_row, category_screen, search_screen(history), store_item_search_screen,
+all_store_filter_widget, all_store_screen, add_address_screen, item_bottom_sheet (both sites).
+
+SUGGESTED FIX (engineer): delete the now-redundant Semantics(button:, selected:, label:)
+wrappers at store_screen.dart:1682 and :1740 — the same cleanup 1601 already performed on
+item_bottom_sheet's hand-wired state word. Not applied here: QA does not edit product code.
+
+NOTE: the DLS unit suite (23/23 green, incl. 4 new NEARS-1601 tests) CANNOT catch this — it
+exercises NFilterChip in isolation, never wrapped in a call site's own Semantics.
