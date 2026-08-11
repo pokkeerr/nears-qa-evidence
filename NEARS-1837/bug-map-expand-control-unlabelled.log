@@ -1,0 +1,28 @@
+NEARS-1837 QA — PRE-EXISTING a11y defect (NOT caused by this ticket; this ticket changes no
+product code). Observed live on emulator-5554, BASELINE build md5 4cbaef2e42d553c1711be0b1a56b59d8.
+
+WHERE: UserApp/lib/features/auth/widgets/select_location_view_widget.dart, the `widget.fromView`
+fullscreen-expand control (30x30 Container, Icon(Icons.fullscreen_rounded, size 20)) inside the
+Location Info card of Vendor Registration.
+
+WHAT: the control has NO Semantics wrapper and no tooltip, so it projects NO accessibility
+label. A screen-reader user cannot identify or reach it by name, and it is the ONLY route to
+the fullscreen map (which is where the zoom controls live at all — the zoom card is gated on
+`!widget.fromView`). Adjacent controls in the same widget DO carry labels
+("Use my current location"), so this is an omission, not a platform limit.
+
+RAW NODE (dump zoneset-d2.xml, emulator-5554, 2026-08-11):
+  <node index="..." text="" resource-id="" class="android.view.View" package="com.izzes.nears"
+   content-desc="" checkable="false" checked="false" clickable="true" enabled="true"
+   focusable="true" focused="false" scrollable="false" long-clickable="false"
+   password="false" selected="false" bounds="[1131,2221][1266,2311]" drawing-order="0" hint="" />
+
+Same-dump positive control proving the dump is interpretable (i.e. the empty content-desc is a
+real absence, not a dead instrument):
+  <node ... class="android.widget.Button" content-desc="Use my current location" clickable="true"
+   bounds="[1131,2341][1266,2431]" />
+
+Bounds 135x90 px @ 480dpi = 45x30 dp — also under the 44dp minimum on one axis.
+
+IMPACT: blocks a11y access to the whole fullscreen store-location map for TalkBack users.
+QA had to resolve this node by a structural predicate because no label exists.
