@@ -1,0 +1,18 @@
+FOLLOWUP — solution doc §1 still carries the stale `32` denominator that §7's BUG 11 row calls gone.
+
+docs/solutions/NEARS-1806-base-descent-guard.md line 53 (I-2 operand row):
+the shipped allow list is the 32 names in `EV_FIELDS`
+
+Live value (measured):
+  EV_FIELD_COUNT = 35
+  real EV_FIELDS word count = 35 (asserted by C18)
+
+Scope of §7 BUG 11's claim: "the stale 32 denominator is gone from both files".
+'Both files' scopes to the guard + its self-test, and there the claim is TRUE (
+    scripts/newtask-guards/base-descent-check.test.sh:57:#       only SHA-shaped values are `agentId` (17-hex), `apk_md5` (32-hex) and a
+    scripts/newtask-guards/base-descent-check.sh:173:#   * `apk_md5`, `built_md5`, `snapshot_md5`, `uinav_md5` … are 32-hex;
+  — both are '32-hex' md5 references, not denominators).
+
+NOT a false green: nothing gates on the doc sentence; the runtime denominator is 35 and C18
+reddens if EV_FIELD_COUNT ever diverges from the list. Doc drift only. §7 line 382's
+'0 of 32' is a legitimate historical statement about the pre-widening state and is fine.

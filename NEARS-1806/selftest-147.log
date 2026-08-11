@@ -1,0 +1,169 @@
+== base-descent-check.test.sh (NEARS-1806) ==
+-- W1/W2/W3, C18: the header's non-fixture claims --
+  ok   W1: the guard is UNWIRED — outside the guard, this suite, the unapplied wiring diff, its solution doc and qa-evidence transcripts, no file in the repo mentions it (the header and the runtime footer both claim this)
+  ok   W2: new-task.md still carries exactly 3 `merge-base --is-ancestor` sites, as the header states
+  ok   W3: worktree-prune.sh's call really is `is-ancestor $branch $BASE` — branch merged INTO base, the operands in the opposite order to I-1's
+  ok   C18: EV_FIELD_COUNT=35 equals the allow list's real length (35 names) — the 'N of 35 curated key name(s)' denominator is true
+  ok   C18: the allow list is duplicate-free, so its length is also its coverage
+  ok   C18: the array-shaped evidence key `commits` is on the allow list (fix cycle 3 widening)
+  ok   C18: the array-shaped evidence key `commit_shas` is on the allow list (fix cycle 3 widening)
+  ok   C18: the array-shaped evidence key `branch_commits` is on the allow list (fix cycle 3 widening)
+-- P1/P2: rebase onto a DESCENDANT of the recorded base --
+  ok   P1 fixture is valid: B' is a genuine descendant of the recorded base B
+  ok   P1 fixture: the rebase genuinely replanted C1 (897f448 -> c1dc163)
+  ok   P1 (red at base): TODAY'S form `is-ancestor <base> HEAD` reads TRUE after the rebase — it does NOT catch the replant
+  ok   P2 (AC1 trap): AC1's form `merge-base(base,HEAD) == base` ALSO reads TRUE — implementing AC1 verbatim would have caught nothing
+  ok   P1: the guard reports the replant as STALE (exit 3)
+  ok   P1: I-2 is the invariant that discriminates
+  ok   P1: the orphaned evidence SHA is named in the output
+  ok   P1: I-1 still reads PASS — the base relationship really did survive, which is why it is the wrong operand
+  ok   P1: STALE is distinguished from a hard stop
+  ok   P1: the remedy names verify-by-content (AC3 companion rule)
+-- C1 (AC4): an un-rebased branch must still pass --
+  ok   C1 (green BEFORE): today's form passes this fixture at base — C1 guards against a NEW false negative
+  ok   C1 (green AFTER): the un-rebased branch passes all three invariants (exit 0)
+  ok   C1: verdict word is PASS
+  ok   C1: zero failures, zero stale
+  ok   C1: assertions_made=4 (>=3) — the pass is not vacuous
+  ok   C1: I-3 asserted and held
+  ok   C1 (BUG 12 pin): even on a full PASS the result line's coverage note states that the I-2 harvest is an allow list and therefore partial — the one claim a green run must not drop, since a green run is when a reader is least likely to look
+-- C2: a branch from an UNRELATED root must FAIL I-1 --
+  ok   C2: an unrelated-history branch is a hard FAIL (exit 1)
+  ok   C2: I-1 is the invariant that fires
+  ok   C2: the STOP semantics of the replaced check are preserved verbatim
+-- C3: the base advanced after the worktree was cut --
+  ok   C3: BASE-ADVANCED gets its own exit code, not I-1's and not I-2's (exit 5)
+  ok   C3: I-3 is named as the invariant that fired
+  ok   C3: I-1 correctly still passes — proof the two are different questions
+  ok   C3 (message text): the remediation instruction is spelled out
+  ok   C3 (message text): the I-2/I-3 COUPLING is stated, so a rebase done on this guard's own instruction cannot surprise the engineer
+  ok   C3 (coupling proven): after obeying the remedy, the very next run really does report STALE (exit 3)
+-- C4-C10: nothing-asserted must never be exit 0 --
+  ok   C4: a run file with no `base` field is NOTHING-ASSERTED (exit 4)
+  ok   C4: and it is never exit 0 (exit 4, not 0)
+  ok   C4: the reason is printed
+  ok   C4: the output says in its own words that this is not clean
+  ok   C5: a branch-name base is NOTHING-ASSERTED for I-1 (exit 4)
+  ok   C5: the operand-type reason is named
+  ok   C5: it must NOT silently pass as I-3 wearing I-1's name
+  ok   C6: zero harvestable evidence SHAs is NOTHING-ASSERTED, not a clean I-2 (exit 4)
+  ok   C6: both counts are printed — how many keys were looked at and how many SHAs were found
+  ok   C6: the harvest states its own incompleteness
+  ok   C6B fixture is valid: the run file really is unparseable JSON
+  ok   C6B: an unparseable run file is NOTHING-ASSERTED, never a quiet clean run (exit 4)
+  ok   C6B (BUG 12 pin): the DEGRADED state is announced by name
+  ok   C6B (BUG 12 pin): and its coverage claim is asserted — 'no evidence found' and 'the file could not be read' are different facts, and only this note distinguishes them
+  ok   C7: an absent run file is NOTHING-ASSERTED (exit 4)
+  ok   C7: and it is never exit 0 (exit 4, not 0)
+  ok   C7: the reason names the missing path
+  ok   C8: a sibling-repo SHA base is a measurement artifact -> NOTHING-ASSERTED (exit 4)
+  ok   C8: it is explicitly NOT reported as a violated base (19 AP-* files are not 19 dead bases) (exit 4, not 1)
+  ok   C8: the reason is unresolvability, not descent
+  ok   C8: the sibling-repo cause is named
+  ok   C8 (BUG 12 pin): the unresolvable note's coverage claim is asserted — an unresolvable SHA is skipped rather than judged, so `stale=N` is a floor, and this fixture is a run where that is literally true
+  ok   C8 (BUG 12 pin): with the tally to match — BOTH this file's SHAs (the AP-* base and its recorded commit) went unresolved and neither was judged, so the sentence and the counter cannot drift apart
+  ok   C9: BASE_DESCENT_LEGACY=1 downgrades the exit for a resumed run whose only finding is that nothing was asserted (exit 0)
+  ok   C9: but the VERDICT WORD still reads NOTHING-ASSERTED — the escape cannot fake a PASS
+  ok   C9 (scope): this fixture carries NO real violation — that is why the downgrade is allowed here, and C14 covers the case where it is not
+  ok   C9: the downgrade announces what exit 0 does and does not mean (it replaced the old 'can never manufacture a green', which was false — see C14)
+  ok   C10: agentId / apk_md5 / an epoch / a deliberate pre_rebase_sha are all SHA-shaped and are all correctly NOT harvested
+  ok   C10: and harvesting nothing is NOTHING-ASSERTED, not a clean I-2 (exit 4)
+-- C11/C12: --runs-dir OMITTED from inside a genuine linked worktree --
+  ok   C11 fixture is valid: a genuine linked worktree whose --git-common-dir points at the main tree
+  ok   C11 fixture is realistic: tasks/runs exists ONLY in the main tree (gitignored, as in the real repo)
+  ok   C11 (THE PATH): with --runs-dir omitted, the traversal resolves the run file to the MAIN tree
+  ok   C11 (THE PATH): and never to a tasks/runs inside the linked worktree — that fall-through is the silent failure
+  ok   C11: the run file is not read as absent — an absent read is how the fall-through disguises itself
+  ok   C11: the production shape produces a real PASS (exit 0)
+  ok   C11: I-1 was genuinely asserted against the main tree's recorded base
+  ok   C12 fixture is valid: a decoy run file really exists at the fall-through path
+  ok   C12 (precedence): the main tree's run file still wins over a decoy sitting at the fall-through path
+  ok   C12: the decoy's unresolvable base was never read — a fall-through would return a confident WRONG verdict, not an absent one
+  ok   C12: and the verdict is still the main tree's PASS (exit 0)
+-- C13: --evidence mode must not quote a curated-key denominator it never used --
+  ok   C13: explicit operands, both reachable -> PASS (exit 0)
+  ok   C13: the harvest line names its real source — the flags, not the allow list
+  ok   C13: no allow-list denominator is printed in a mode that never consults the allow list (it used to print a curated-key denominator — '1 of <the then-current count>' — for ANY number of flags)
+  ok   C13 (BUG 12 pin): the coverage sentence this mode prints is asserted, not merely written — it claims no run file was harvested and no allow list consulted, which is exactly what the two assertions above establish
+  ok   C13 (BUG 12 pin): and the result line's own coverage note says the same thing, so the two cannot drift apart
+-- C14: BASE_DESCENT_LEGACY=1 must be REFUSED when a real violation was found --
+  ok   C14 fixture is valid: the recorded evidence SHA really is unreachable from HEAD (a reachable one would make the case vacuous)
+  ok   C14 (baseline, no escape): nothing-asserted outranks stale, so the run is exit 4 and the staleness is riding underneath it (exit 4)
+  ok   C14 (baseline): and the run really did find staleness — the precondition for the hole
+  ok   C14 (THE FIX): the escape must NOT turn a run carrying real staleness into exit 0 (exit 4, not 0)
+  ok   C14: the exit is left exactly where the violation put it (exit 4)
+  ok   C14: the refusal is announced, not silent
+  ok   C14: and it NAMES the residual violation that refused it
+  ok   C14: the staleness is still reported in the result line
+  ok   C14 (control): with NO residual violation the escape still downgrades 4 -> 0 — the gate discriminates, it did not just disable the escape (exit 0)
+  ok   C14 (control): and the verdict word still reads NOTHING-ASSERTED
+  ok   C14 (control): no refusal is printed when there is nothing to refuse
+-- C15: an orphan under a NON-allow-listed key must break coverage: FULL --
+  ok   C15: the exit is UNCHANGED — this fix is labelling, not harvesting, and must not silently start failing runs (exit 0)
+  ok   C15: the orphan is genuinely invisible to the harvest — that is the honest part, and it stays
+  ok   C15 (THE FIX): coverage must NOT read FULL while SHA-shaped values sit under keys the guard never examined
+  ok   C15: it reads PARTIAL instead
+  ok   C15: and the machine-readable tally counts what was skipped
+  ok   C15: the skipped key NAMES are printed, so the reader can go and look
+  ok   C15: the tally says what it is — what was not looked at — and the words 'UPPER BOUND', which were false while C16's array case existed, are gone
+  ok   C15: the deleted false claim stays deleted (it was replaced, not repaired — see C16)
+  ok   C15 (control): a run file whose every SHA sits under an examined key still reads FULL — coverage is not now a constant
+  ok   C15 (control): with a zero tally to match
+-- C16: array-recorded SHAs are keyed on their nearest string ancestor --
+  ok   C16 fixture is valid: both SHAs are ARRAY elements, not scalars under their key
+  ok   C16 (THE FIX, half 1): an ORPHANED SHA recorded inside a `commits` array is now harvested and asserted — it used to be invisible, and the run read exit 4 having asserted nothing about it (exit 3)
+  ok   C16: and the orphaned array element is NAMED in the output
+  ok   C16: both array elements are harvested under the CONTAINING key name `commits`, not under their indices
+  ok   C16 (THE FIX, half 2): an array SHA under a NON-allow-listed key is now COUNTED as skipped — being in neither tally is what made the deleted 'upper bound' claim false
+  ok   C16: and the skipped key is named by its containing field, not by an array index
+-- C23: a nested base/base_ref is examined by nothing, so it must be COUNTED --
+  ok   C23 fixture is valid: the SHA recorded at phases.9b.base is genuinely unreachable from HEAD
+  ok   C23 (THE FIX): a SHA under a NESTED base / base_ref is COUNTED as unexamined — the exclusion is top-level only, because the top level is the only place I-1 and I-3 look
+  ok   C23: and the nested key names are printed, so a reader can go and look at them
+  ok   C23 (THE FIX): coverage must NOT read FULL over a SHA that no invariant examined — that is the C15 false green, reached through a different key name
+  ok   C23: it reads PARTIAL instead
+  ok   C23 (STILL BLIND, PINNED AS SUCH): the exit is UNCHANGED. Counting is not asserting — this fix makes the nested SHA visible, it does not make it checked (exit 0)
+  ok   C23 (STILL BLIND): the unreachable nested SHA is asserted by NO invariant — I-2's allow list excludes base-naming keys and I-1/I-3 read only the root — so it is reported, never caught
+  ok   C23 (control): a TOP-LEVEL `base` SHA is still excluded — I-1 really does examine it, and it is reported on I-1's own line
+  ok   C23 (control): so coverage still reaches FULL on a clean file — the tally did not just become a constant
+-- C17: --evidence alongside a run KEY must be a usage error --
+  ok   C17 (THE FIX): --key with --evidence is a usage error, not a quietly-substituted harvest (exit 2)
+  ok   C17: and specifically not the exit 0 it used to return over a run file whose own recorded SHA was orphaned (exit 2, not 0)
+  ok   C17: the refusal names the reason
+  ok   C17: and names the key it refused, so the caller can see which half to drop
+  ok   C17: a usage error asserts nothing, so it prints no verdict line to be mistaken for one
+  ok   C17 (precedence 2 > 1): a usage error outranks even the I-1 FAIL this fixture would otherwise report (exit 2)
+-- C19/C20: the phase matrix is behaviour, not decoration --
+  ok   C19: with --phase omitted the run reports phase 9b
+  ok   C19: and I-3 is genuinely IN SCOPE — forgetting the flag gets the widest required set, not a quiet narrow pass
+  ok   C19: no invariant was skipped by default
+  ok   C20: at [6] nothing is committed yet, so zero harvested evidence is a real PASS — I-2 is optional in that row of the matrix (exit 0)
+  ok   C20: and the pass is honest about I-2 having asserted nothing
+  ok   C20: which the output states in words, not just in a counter
+  ok   C20 (discriminator): the SAME file at [9b], where I-2 is REQUIRED, is exit 4 — so the matrix really is what decides, and [6]'s pass is not the guard being lax everywhere (exit 4)
+-- C22: assertions_made is printed when the news is bad --
+  ok   C22 (setup): the I-1 FAIL path (exit 1)
+  ok   C22: exit 1 still prints its validity count — a guard that tallies only when green teaches readers that silence means pass
+  ok   C22 (setup): the NOTHING-ASSERTED path (exit 4)
+  ok   C22: exit 4 prints it too
+-- C24: with git absent, exit 4 and NO tally line — the second exception --
+  ok   C24: git absent means the guard could not run, so it exits 4 — never 0, same rule as every other unrunnable path (exit 4)
+  ok   C24: and it says so in words on the way out, not just in a code
+  ok   C24: it prints NO tally line — the SECOND documented exception to C22's rule (the first is a usage error); both exit before an operand is resolved, so there is nothing to tally
+-- C14C: BASE-ADVANCED must refuse the escape too --
+  ok   C14C (baseline): nothing-asserted also outranks BASE-ADVANCED, so exit 5 is hiding under exit 4 (exit 4)
+  ok   C14C (baseline): and I-3 really did fire — the precondition for this second hole
+  ok   C14C (THE FIX): the escape must not turn a BASE-ADVANCED run into exit 0 either — staleness was not the only thing riding through (exit 4, not 0)
+  ok   C14C: the refusal names I-3 as the residual
+-- C21: 1 > 4 and 3 > 5 --
+  ok   C21 (1 > 4): an I-1 FAIL wins over the two required invariants that asserted nothing in the same run (exit 1)
+  ok   C21: and the run really did carry the nothing-asserted findings it outranked
+  ok   C21 (3 > 5): with BOTH a stale evidence SHA and an advanced base, the STALE exit wins (exit 3)
+  ok   C21: and the BASE-ADVANCED it outranked is still printed, not swallowed
+-- EQ: is-ancestor(base,HEAD) == (merge-base(base,HEAD) == base), everywhere --
+  ok   EQ (post-rebase, base advanced): both forms read TRUE — AC1's form is the same predicate here too
+  ok   EQ (un-rebased branch): both forms read TRUE — AC1's form is the same predicate here too
+  ok   EQ (unrelated history): both forms read FALSE — AC1's form is the same predicate here too
+  ok   EQ (rebased, base advanced again): both forms read TRUE — AC1's form is the same predicate here too
+== base-descent-check.test: assertions:147 ==
+PASS: base-descent-check.test.sh

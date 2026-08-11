@@ -1,0 +1,27 @@
+MUTATION MATRIX — NEARS-1806 fix cycle 4 verification (hermetic)
+Harness: a fake repo root at $SCRATCH/mutrepo containing only
+  scripts/newtask-guards/{base-descent-check.sh,base-descent-check.test.sh,worktree-prune.sh}
+  .claude/commands/new-task.md
+so that W1/W2/W3 (which resolve $here/../..) still assert.
+
+POSITIVE CONTROL (unmutated copy in the fake root): exit 0, 147 ok, 0 FAIL
+
+MUT-A  revert BOTH jq filters to $p[-1]                       -> 5 FAIL, cases: C16
+MUT-B  drop the --key + --evidence rejection                  -> 5 FAIL, cases: C17
+MUT-C  restore the ANY-DEPTH base/base_ref exclusion (BUG 7)  -> 4 FAIL, cases: C23
+MUT-D  drop the base/base_ref exclusion entirely              -> 9 FAIL, cases: C15 C16 C23 (incl. C23 control)
+MUT-E  git-not-found path -> exit 0 (BUG 9)                   -> 1 FAIL, cases: C24
+MUT-F  delete 'the stale count is therefore a FLOOR' (BUG 12) -> 1 FAIL, cases: C8
+
+MUT-A and MUT-B reproduce the engineer's re-verification counts exactly (5/C16, 5/C17),
+confirming the C23 case added this cycle disturbs neither.
+MUT-C + MUT-D together prove C23 pins the scoping in BOTH directions.
+
+----- BUG 7 from-scratch repro (independent fixture: orphan commit at phases.9b.base) -----
+PRE-FIX  (MUT-C guard):
+unexamined=0 coverage: FULL  rc=0
+POST-FIX (shipped guard):
+stale=0 unexamined=1 coverage: PARTIAL  rc=0
+
+unexamined key names printed post-fix:
+UNEXAMINED: 1 SHA-shaped value(s) in this run file sit under key name(s) this guard never examines [base].

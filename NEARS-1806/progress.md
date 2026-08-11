@@ -67,3 +67,71 @@ change) and widened the equivalence pin from one fixture (P2) to four (EQ) — n
   survives 3x in the wiring diff + the solution doc and is now 517 of 899; stale "32" denominator in
   comments (live 35); "FLOOR, not a total" / "DEGRADED" / the [7]-[8] matrix row carry no pins.
   -> bug-minor-unpinned-and-stale-claims.log
+
+================================================================================
+## [8] FINAL GATE — fix cycle 4 verification (appended 2026-08-11, QA pass 4)
+================================================================================
+## Corroborations of the owner's own facts
+- self-test 147/147, exit 0, 0 `^  FAIL ` lines, ok count 147 == printed total  -> CONFIRMED
+- fence: all five protected files TRACKED and UNMODIFIED vs base (empty `git diff --name-only`) -> CONFIRMED
+- worktree-prune.test.sh 47 assertions PASS -> CONFIRMED
+- `git apply --check` on the wiring diff -> OK
+- NEARS-1689 headline still names all four orphans (f92c5a30 21161505 31591f19 01b545c7) -> CONFIRMED
+- diff is 4 NEW files, 2372 insertions, ZERO deletions, zero existing files touched
+
+## Mutation matrix (fake-repo harness; positive control = unmutated copy 147 ok / 0 FAIL)
+MUT-A  revert BOTH jq filters to $p[-1]                 -> 5 FAIL, all C16      (engineer's claim: 5, all C16)  MATCH
+MUT-B  drop the --key + --evidence rejection            -> 5 FAIL, all C17      (engineer's claim: 5, all C17)  MATCH
+MUT-C  restore the ANY-DEPTH base/base_ref exclusion    -> 4 FAIL, all C23      (BUG 7 pin, faithful)           MATCH
+MUT-D  drop the exclusion entirely                      -> 9 FAIL incl. C23 control + C15 control + C15/C16
+MUT-E  git-not-found path -> exit 0                     -> 1 FAIL, C24          (BUG 9 pin)                     MATCH
+MUT-F  delete "the stale count is therefore a FLOOR"    -> 1 FAIL, C8           (BUG 12 pin)                    MATCH
+=> C23 is pinned in BOTH directions; neither "exclude at any depth" nor "never exclude" survives the suite.
+
+## BUG 7 — independent from-scratch repro (my own fixture, orphan commit at phases.9b.base)
+PRE-FIX  (MUT-C)  unexamined=0  coverage: FULL     rc=0
+POST-FIX (shipped) unexamined=1 coverage: PARTIAL  [base]  stale=0  rc=0
+Matches the owner's own repro exactly. Exit deliberately unchanged and pinned by C23's assert_rc 0 + stale=0.
+
+## Legacy escape (live)
+(a) pure nothing-asserted + LEGACY=1        -> rc 0, verdict word still NOTHING-ASSERTED  (C9)
+(a') same without LEGACY                    -> rc 4
+(b) nothing-asserted + real stale residual  -> rc 4, "REFUSED: I-2 STALE (n_stale=1)"      (C14)
+
+## Wiring handoff hashes (all four verified by applying into a scratch tree)
+PRE  new-task.md     2596a31dad4068c6a2749e20de06ff341d604d4a / 39abcd00c4cd48f9ba5162238476e678  == live
+PRE  workflow.json   2e3ba0b4e4374b9b0c78139aaf076701b53c4786 / 200ae9d61b2dfadc194fe05aaaa3fae4  == live
+POST new-task.md     51a275ad35b9f4cac773bea042b89fd4c5cd44f8 / 659cb8850a01090f93b6ae3d32362e58  == applied
+POST workflow.json   5b0ada60ad2affafa74a330ff456d76a5db35a2a / e0df6cffe53f7527dd64653016099033  == applied
+post-apply: jq OK; "the same base-descent assert as" -> 0; is-ancestor survivors 1 (new-task.md) + 2 (workflow.json) + 1 (worktree-prune.sh) = the 4 intentional
+
+## BUG 10 — the volatile number
+`516 of 898` is GONE from all three applied sites. Replaced with
+"dated measurement, 2026-08-11: 517 of 899 parseable, a figure that DRIFTS DAILY, so re-measure with the
+census command in base-descent-check.sh's header rather than quoting this one". Reads dated-and-stale-able.
+Independent re-measure today: 906 files / 900 parseable / 333 SHA / 518 branch-name — i.e. it HAS already
+drifted by one since the dated measurement, which is exactly what the wording predicts. Framing honest.
+
+## UNWIRED
+Live grep finds only the 4 self-excluded files. W1 asserts it, and W1 is NOT a constant-true:
+an accidental scratchpad copy of the guard reddened W1 during this pass ("the guard is no longer UNWIRED").
+
+### Disposition of the fix-cycle-4 strike list (BUGS 7-12)
+BUG 7  CLOSED — verified by independent from-scratch repro + MUT-C/MUT-D. See mutation-matrix.log.
+BUG 8  CLOSED — all 5 'removed outright' rows re-checked against the shipped guard by grep:
+         row 1 (five scenarios / truth table)      0 hits  TRUE
+         row 2 (NEARS-1689 demo SHAs)              0 hits for all 6 probes  TRUE
+         row 3 (review-lessons forensic para)      1 condensed successor at guard L91-95  PARTLY FALSE, row corrected
+         row 4 (sibling-guard exit-4 rationale)    sentence LIVE at guard L126-132, reworded+kept,
+                                                   now tagged [C4, C7, C24]; C4/C7/C24 each assert rc!=0  FALSE, row corrected
+         row 5 (corpus counts in runtime output)   corpus numbers appear ONLY in the dated header
+                                                   census (L217/227/229); positive-controlled  TRUE
+       Both corrections are recorded in the doc's own table. The countermeasure held.
+BUG 9  CLOSED — C24 pins it; MUT-E reddens exactly C24.
+BUG 10 CLOSED — 516 of 898 gone from all 3 applied sites, replaced by a dated + re-measure form.
+BUG 11 CLOSED IN CODE — EV_FIELD_COUNT=35 == real list length (C18). RESIDUAL IN THE DOC ONLY:
+       solution doc §1 L53 still says 'the 32 names in EV_FIELDS'. Followup, not a gate finding —
+       nothing gates on it and C18 keeps the runtime denominator honest. See followup-doc-32-denominator.log.
+BUG 12 CLOSED — MUT-F reddens exactly C8; C13/C6B/C1 present.
+
+### VERDICT: PASS. No reachable false green found. No claim the code does not honour, in the guard.
