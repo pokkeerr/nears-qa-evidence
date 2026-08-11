@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1806
 
-**FAIL (fix-cycle 3, final delta re-QA) — BUG 5 + BUG 6 closed and mutation-proven; 2 new claim defects (BUG 7 nested-base blind spot -> false coverage FULL; BUG 8 false row in the claim audit) + 4 Low**
+**PASS — [8] final gate, fix cycle 4 verified hermetically (147/147, 6 mutations, BUG 7 repro reproduced)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
