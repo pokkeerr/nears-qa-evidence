@@ -1,0 +1,19 @@
+NEARS-1874 live QA — RTL observation (pre-existing, NOT caused by this diff)
+device emulator-5554  wm size 1344x2992  wm density 480  status-bar top inset 159px (53.0dp)
+APK md5 e8d0ea211013c8dc4892da7f93f11680 (worktree fix/NEARS-1874-lightbox-close @ 41ef60e2)
+
+Close button a11y bounds, chat lightbox (ImagePreviewWidget), same fixture (conversation 47 / message 75):
+  LTR (English, app pid 15155 / 23097):  content-desc="Close"  bounds=[1200,219][1344,363]
+  RTL (Arabic, app pid 15155):           content-desc="يغلق"   bounds=[1200,219][1344,363]
+
+The control does NOT mirror: it stays on the physical RIGHT in both directions.
+Cause (unchanged by this diff — line untouched at 148f0779..41ef60e2):
+  UserApp/lib/features/chat/widgets/image_preview_widget.dart:256
+    alignment: Alignment.centerRight        <-- physical, not AlignmentDirectional.centerEnd
+
+AC-relevant part still holds in RTL: top=219px >= 159px inset, and a single tap at
+(1272,225) — 2dp inside the button's TOP edge — dismissed the lightbox and returned to
+the chat thread. Tap-only logcat window (pid 15155): 0 [FAIL]/[ERR]/exception lines.
+
+Reported, not fixed, per the spawn instruction ("an RTL regression is already open
+against this file"); see docs/solutions/NEARS-1874-lightbox-close.md line 121.
