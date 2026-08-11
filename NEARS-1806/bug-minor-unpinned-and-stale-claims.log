@@ -1,0 +1,85 @@
+BUGS 9-12 (all Low) — remaining unpinned / stale self-descriptions after the cycle-3 ruling.
+Grouped: each is a one-line strike or a one-line correction. None is a false green.
+
+────────────────────────────────────────────────────────────────────────────
+BUG 9 — "the tally is printed on EVERY path that reaches a verdict" has a SECOND,
+        undocumented exception at exit 4.
+
+  base-descent-check.sh L116-119:
+    #   Every invariant is printed, and the `-- result:` tally line with it, on every
+    #   path that reaches a verdict — including exit 1 and exit 4 [C22]. A usage error
+    #   (exit 2) is the documented exception: it exits before any operand is resolved,
+    #   so there is nothing to tally.
+
+  L334 exits 4 — a documented VERDICT code — printing no invariants and no tally:
+    command -v git >/dev/null 2>&1 || { echo "... git not found — NOTHING WAS ASSERTED
+      (this is not a pass)" >&2; exit 4; }
+
+  $ env PATH=/nonexistent-dir /bin/bash base-descent-check.sh --key FOO --runs-dir /tmp
+  base-descent-check: git not found — NOTHING WAS ASSERTED (this is not a pass)
+  exit=4      has '-- result:'?  NO
+
+  C22 pins the claim only for the two paths it exercises (exit 1 via C2's fixture, exit 4
+  via C4's), so the pin is NARROWER than the sentence — the cycle-1/cycle-2 pattern exactly.
+  Practically unreachable (no git = the script can do nothing) and it is not a green.
+  FIX: name the git-absent path as a second exception, or say "every path that resolves an
+  operand".
+
+────────────────────────────────────────────────────────────────────────────
+BUG 10 — the deleted corpus statistic "516 of 898" survives in the change-set's OTHER
+         artifacts, and is now wrong.
+
+  $ grep -c '516 of 898' tasks/recovery/NEARS-1806-wiring.diff
+  3            (diff line 75 prose, line 214 = the [6] prose it installs,
+                line 236 = workflow.json R8; line 223's [9b] prose carries "516 run files")
+  docs/solutions/NEARS-1806-base-descent-guard.md:46  "516 of 898 run files record `base`
+                as a branch NAME"
+
+  Re-measured with the guard header's own census method, 2026-08-11, tasks/runs/*.json:
+    905 files, 899 parseable — base=SHA 333 · base=BRANCH NAME 517 · base absent 49.
+    => the live figure is 517 of 899, not 516 of 898.
+
+  The guard itself handles this correctly (the number was pulled from runtime output and
+  the surviving census is dated + carries its reproduction command). The wiring diff does
+  not — and it is the artifact that BECOMES normative workflow prose when applied, in three
+  places. Applying it installs a stale statistic as a live fact in [6], [9b] and R8.
+  FIX: date the number in the diff and the doc, or replace it with "the majority of run
+  files" + the reproduction command, as the guard header already does.
+
+────────────────────────────────────────────────────────────────────────────
+BUG 11 — a stale denominator ("32") survives inside the file whose C18 exists to keep that
+         denominator honest. Live value is 35.
+
+  base-descent-check.sh L515 (comment above the --evidence branch):
+    # curated allow list is NEVER consulted, so "N of 32 curated key name(s)" has
+  base-descent-check.test.sh L105, L581, L627 — "1 of 32", "the 32-name allow list"
+
+  Runtime prints 35 everywhere (EV_FIELD_COUNT=35, asserted equal to the real list length
+  by C18 — verified: 35 names, duplicate-free). Comments only, no runtime impact.
+  FIX: 32 -> 35, or drop the literal from the comments (C18 owns the number).
+
+────────────────────────────────────────────────────────────────────────────
+BUG 12 — surviving RUNTIME-OUTPUT coverage claims with zero pins (the ruling's letter).
+
+  a) "$n_unresolvable SHA(s) did not resolve ... The stale count is therefore a FLOOR,
+      not a total."                       (L608-610)
+     $ grep -c 'FLOOR, not a total' base-descent-check.test.sh  ->  0
+     TRUE, but nothing reddens if it stops being true. It is a statement about what this
+     run proved — precisely the sentence class the ruling covers.
+
+  b) "DEGRADED: run file <state> ... zero keys could be read."   (L602-604)
+     $ grep -c 'DEGRADED: run file' base-descent-check.test.sh  ->  0
+     Reached by C7's fixture (absent run file) but never asserted.
+
+  c) The phase matrix row "[7] [8]  I-1 required · I-2 required · I-3 n/a" (L265) carries
+     no pin. ([6] -> C20, [9b] -> C1, and "I-3 n/a at 7" is incidentally pinned by C13
+     since a 9b-scoped I-3 would make C13 exit 4 instead of 0. "I-2 required at [7]/[8]"
+     and all of [8] are unexercised.)
+
+  d) "Each ADJACENT pair in that chain is pinned" for `2 > 1 > 4 > 3 > 5 > 0` (L112-114)
+     enumerates FOUR pairs; the chain has FIVE. The fifth (5 > 0) IS pinned — C3 exits 5
+     on a fixture that would otherwise be 0 — but it is not cited, so the enumeration
+     under-reports its own coverage. Cosmetic; the claim itself holds.
+
+  FIX: pin (a) and (b) with one assert_contains each, add a phase-7/8 case for (c), cite
+  C3 for (d) — or delete the sentences, per the ruling.

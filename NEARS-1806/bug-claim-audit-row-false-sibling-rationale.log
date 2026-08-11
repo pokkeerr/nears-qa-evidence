@@ -1,0 +1,40 @@
+BUG 8 — the fix-cycle-3 CLAIM AUDIT reports a deletion that did not happen.
+
+THE AUDIT'S OWN CLAIM
+  docs/solutions/NEARS-1806-base-descent-guard.md, §"fix cycle 3" (line 344):
+    "The unpinnable sentences that were removed outright: the ad-hoc 'five scenarios' AC1
+     measurement, the real-history b41c99fd/f92c5a30 demo block, the review-lessons
+     forensic paragraph, THE SIBLING-GUARD RATIONALE FOR EXIT 4, and every corpus count
+     in the runtime output"
+
+THE SENTENCE IS STILL THERE
+  scripts/newtask-guards/base-descent-check.sh L121-122:
+    #   Exit 4 is a DELIBERATE departure from the sibling guards' `SKIP -> exit 0`. In
+    #   an epic about false greens, a guard that could not run must not be exit-0.
+
+  $ grep -n "DELIBERATE departure" scripts/newtask-guards/base-descent-check.sh
+  121:#   Exit 4 is a DELIBERATE departure from the sibling guards' `SKIP -> exit 0`. In
+
+  It carries NO [Cnn] bracket, and no case in base-descent-check.test.sh asserts anything
+  about the sibling guards' exit convention. By the guard's own stated rule (L15-19:
+  "a self-description either names a case ... that goes RED when it stops being true, or
+  it is DELETED"), this sentence should not have shipped — and the audit table says it
+  did not ship. It did.
+
+TRUTH OF THE SURVIVING SENTENCE (checked, so the record is complete)
+  7 of 14 sibling guards in scripts/newtask-guards/ print a SKIP verdict and exit 0
+  (audit-crosscheck, doc-citation-content, doc-citation-resolve, logging-lint,
+   orphan-artifact-check, smart-commit-lint, workflow-json-drift, tooling-drift-reset).
+  So the sentence is TRUE. It is nonetheless UNPINNED, and the claim audit records it as
+  deleted. The defect is the audit row, not the fact.
+
+WHY THIS MATTERS FOR THIS CYCLE SPECIFICALLY
+  The claim audit WAS the deliverable of fix cycle 3. A row that reports a strike that was
+  never made is the same failure mode the cycle existed to end — a confident sentence about
+  coverage that the artifact does not honour — one level up, in the audit rather than the
+  guard.
+
+FIX (one of)
+  * delete L121-122 from the guard (then the audit row becomes true); or
+  * keep the sentence, pin it with a case that greps the sibling guards for `SKIP` +
+    `exit 0` (the W3 pattern already in the suite), and correct the audit row.
