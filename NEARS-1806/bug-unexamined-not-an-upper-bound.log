@@ -1,0 +1,41 @@
+NEARS-1806 re-QA (fix-cycle 2) — BUG 5: `unexamined=N` is NOT an upper bound on what the harvest skipped.
+Tip 534d9093. Hermetic (no device, no app). All output verbatim.
+
+CAUSE (base-descent-check.sh, both jq blocks — harvest ~L456-463 and unexamined ~L482-489):
+    | select(($p[-1] | type) == "string")
+`paths(scalars)` gives an ARRAY element a NUMERIC last path component, so every SHA that is an
+array ELEMENT is filtered out of BOTH the harvest AND the unexamined tally. It is therefore
+skipped and NOT counted as skipped. Pre-existing since db5328d8; what 534d9093 added is the
+"UPPER BOUND" claim that is false because of it.
+
+PROOF 1 — real corpus file, /Users/Apple/Projects/nears/tasks/runs/NEARS-1364.json
+  array SHAs present:   6.commits.0=2e3882aa   6.commits.1=383c5c4a
+  guard output:
+    -- result: NOTHING-ASSERTED — assertions_made=2 (I-1 0, I-2 2, I-3 0); passed=2 failed=0
+       stale=0 not_asserted=1 unresolvable=0 unexamined=3; harvest=2 sha(s) from 2/32 curated
+       key name(s); coverage: PARTIAL ...
+  The two `6.commits[]` SHAs are in neither harvest (2 = the scalar keys) nor unexamined (3 =
+  agentId/epoch family). Two skipped values, zero of them counted.
+
+PROOF 2 — same on NEARS-1090.json (phases.6.commits.0=913691b0, .1=0fa4f8ea; unexamined=4, neither counted)
+PROOF 3 — NEARS-1252.json: 5 x phases.6.commit_shas[] skipped; unexamined=12 names only
+          [agentId,cache_creation,cache_read,ours,started_epoch]. None of the 5 counted.
+
+CORPUS SCALE: 13 of 905 run files carry SHA-shaped array elements; 9 of those 13 ALSO carry a
+scalar allow-listed SHA (the shape that lets I-2 assert and read PASS). Key paths in live use:
+  30 x phases.6.commits   17 x phases.9b.commits   8 x phases.6.commit_shas
+   8 x merge.branch_commits   5 x tickets.<KEY>.commits   4 x branch_commits
+
+ESCALATION TO A FALSE GREEN (scratch fixture, /tmp probe repo, phase 9b):
+  run file: {"base":<reachable>,"base_ref":"main","commit":<reachable>,
+             "phases":{"9b":{"commits":[<ORPHAN>],"evidence":[<ORPHAN>]}}}
+  -- result: PASS — assertions_made=3 (I-1 1, I-2 1, I-3 1); passed=3 failed=0 stale=0
+     not_asserted=0 unresolvable=0 unexamined=0; coverage: FULL ...; exit=0 --
+  Verdict word PASS, coverage FULL, exit 0, over a genuinely unreachable recorded commit.
+  Contrast, same orphan moved to an OBJECT key `review_sha` (the C15 shape):
+  -- ... unexamined=1; coverage: PARTIAL ... — the compensating control fires only for objects.
+
+NOTE (faithful): the array SHAs found in the live corpus today all resolve AND are reachable
+from HEAD, so no orphan is being hidden in the repo right now. The defect is (a) the shipped
+"UPPER BOUND" sentence is false, and (b) the false-green shape is constructible on the project's
+own recording convention.

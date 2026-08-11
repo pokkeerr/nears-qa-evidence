@@ -1,0 +1,38 @@
+NEARS-1806 re-QA (fix-cycle 2) — BUG 6: `--key` + `--evidence` silently REPLACES the run-file
+harvest and hard-disables the `unexamined` control, yielding PASS / coverage FULL / exit 0 over
+a run-file orphan sitting under an ALLOW-LISTED key.
+Tip 534d9093. Hermetic. Verbatim output.
+
+CAUSE: base-descent-check.sh ~L450 `if [ -n "$OPT_EVIDENCE" ]` takes precedence over the run-file
+branch, and ~L481 gates the unexamined tally on `[ "$harvest_src" != "--evidence" ]`, forcing
+n_unexamined=0. Nothing rejects `--key` together with `--evidence`.
+
+FIXTURE (scratch repo): run file NEARS-PA.json
+  {"key":"NEARS-PA","base":"<BASE>","base_ref":"main","commit":"<ORPHAN>"}
+
+WITHOUT the flag  (base-descent-check.sh --key NEARS-PA --phase 9b --worktree ... --runs-dir ...):
+  -- result: STALE — assertions_made=3 (I-1 1, I-2 1, I-3 1); passed=2 failed=0 stale=1
+     not_asserted=0 unresolvable=0 unexamined=0; harvest=1 sha(s) from 1/32 curated key name(s);
+     coverage: FULL (...); exit=3 --
+  EXIT=3
+
+WITH `--evidence <any reachable sha>` added, everything else identical:
+  -- result: PASS — assertions_made=3 (I-1 1, I-2 1, I-3 1); passed=3 failed=0 stale=0
+     not_asserted=0 unresolvable=0 unexamined=0; harvest=1 sha(s) from explicit --evidence
+     flag(s); coverage: FULL (I-2 operands were supplied explicitly; no run file was harvested);
+     exit=0 --
+  EXIT=0
+
+The orphan is under `commit`, an ALLOW-LISTED key — the guard would have named it. The verdict
+word reads PASS (not NOTHING-ASSERTED), so "read the word, not the code" does not rescue the
+caller here. The BUG-2 invariant "coverage is NEVER FULL while unexamined > 0" is bypassed
+because unexamined is forced to 0 in this mode.
+
+REACHABILITY (faithful): tasks/recovery/NEARS-1806-wiring.diff invokes only
+`--key <KEY> --phase ...`; no proposed or existing caller passes --evidence with --key. The guard
+is UNWIRED. So this is an unexercised invocation combination, not a live regression today.
+
+RELATED, same family, NOT a false green: an allow-listed key holding an ARRAY
+  {"commit":["<ORPHAN>","<REACHABLE>"]}  ->  harvest=0, unexamined=0, I-2 NOT-ASSERTED,
+  -- result: NOTHING-ASSERTED ... exit=4 --
+  Two SHAs skipped, tally says zero — but the verdict fails safe.
