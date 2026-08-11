@@ -1,0 +1,29 @@
+NEARS-1885 QA [8] — mutation probe M4: the pin suite does NOT discriminate the follow-up round-trip window
+worktree /Users/Apple/Projects/nears-NEARS-1885-wallet-adjust-guard @ 2266376d | Flutter 3.41.9 (/Users/Apple/Tools/flutter)
+Probe ran on a throwaway copy of DeliveryApp under the QA scratchpad — the worktree was never modified.
+
+--- mutation applied to my_account_controller.dart (SHIPPED CODE IS NOT THIS; this is the probe) ---
+      ResponseModel responseModel = await myAccountServiceInterface.makeWalletAdjustment();
++     _isAdjustingWallet = false;   // cleared BEFORE getProfile() and getWalletProvidedEarningList()
+
+This mutation re-opens a real duplicate-submit window across the two further awaited round trips
+(ProfileController.getProfile + getWalletProvidedEarningList) that follow the POST.
+
+--- result: SURVIVED (no assertion reddened) ---
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6747fd87-c934-4a38-9b27-270c767d9b35/scratchpad/probe/test/my_account_wallet_adjustment_guard_test.dart
+00:00 +0: A — the confirm control is NOT loading when only the shared account flag is raised and no adjustment is in flight
+00:00 +1: B — the controller refuses a second makeWalletAdjustment while the first hand-off is still pending
+00:00 +2: C — the confirm control stays loading across a mid-flight earning-report resolution
+00:00 +3: D — a throwing hand-off must not latch the guard: the clear lives in a finally
+00:00 +4: E — a single successful adjustment: spinner, one pop, success snackbar
+00:00 +5: All tests passed!
+
+--- contrast: the three mutations the suite DOES kill ---
+ASSERTION A2
+ASSERTION B1
+ASSERTION C1
+ASSERTION D1
+ASSERTION E1
+M1 remove the re-entry guard        -> +4 -1  (ASSERTION B1)
+M2 clear inline instead of finally  -> +4 -1  (ASSERTION D1)
+M3 widget rebound to _isLoading     -> +2 -3  (ASSERTION A2, C1, E1)
