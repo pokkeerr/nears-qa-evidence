@@ -1,0 +1,54 @@
+NEARS-1874 — PRE-FIX PROBE, mechanism confirmation
+Date: 2026-08-11  Device: emulator-5554 (locked, key NEARS-1874)
+Worktree: /Users/Apple/Projects/nears-NEARS-1874-lightbox-close  Branch: fix/NEARS-1874-lightbox-close @ 148f0779
+SDK: ~/Tools/flutter/bin/flutter (3.41.9, pinned)
+APK md5 (before probe): 6f94b47ef3afdb46bc5769b50dfeadc5
+APK md5 (after  probe): 6f94b47ef3afdb46bc5769b50dfeadc5   <- unchanged, capture valid
+App pid on device: 13751 (continuous across all four probes)
+
+== GEOMETRY (measured on THIS device, not the ticket's) ==
+wm size:    Physical 1344x2992   (no override)
+wm density: Physical 480         -> dpr 3.0
+dumpsys window displays, ROTATION_0:
+  overrideNonDecorInsets=[0,159][0,72]        -> top inset 159 px = 53.0 dp
+corroborated by the app's own inset callback:
+  D/VRI[MainActivity](13751): WindowInsets changed: 1344x2992 statusBars:[0,159,0,0] navigationBars:[0,0,0,72]
+
+Close button a11y bounds (dumped twice, identical):  [1200,60][1344,204]
+  -> x 400-448 dp, y 20-68 dp   (== SizedBox(paddingSizeLarge=20) + 48 dp IconButton, as predicted from source)
+  -> centre (1272, 132) px = (424, 44) dp
+Only ONE labelled node in the lightbox: 'Close'. No 'Previous' -> single-file fixture, expected.
+
+== LOAD-BEARING ARITHMETIC ==
+  status-bar inset top = 159 px = 53 dp
+  button centre y      = 132 px = 44 dp
+  132 < 159  ->  the centre is 27 px (9 dp) ABOVE the inset, i.e. inside the status-bar window.
+  button spans y 60..204 px; only y 159..204 px (45 px = 15 dp) lies below the inset and is reachable.
+
+== THE FOUR PROBES ==
+(a) input tap 1272 132  (measured centre)          PREDICT fail  -> RESULT fail. Dump x2: ['Close'] still present. Lightbox open.
+(b) input tap 1272 200  (inside bounds, below 159) PREDICT pass  -> RESULT pass. Lightbox dismissed; chat screen returned
+                                                                    (conv 47 confirmed by '07:24 PM | 16-Jul-2026').
+(c) input swipe 1272 132 1272 132 400 (held press, SAME failing point)
+                                                   PREDICT fail  -> RESULT fail, and STRONGER than predicted: the gesture
+                                                                    pulled down the ANDROID NOTIFICATION SHADE
+                                                                    (dump: 'Clear all silent notifications', 'Notification
+                                                                    history', 'Wi-Fi,AndroidWifi', 'Battery 100 percent.').
+                                                                    SystemUI consumed it; it never reached Flutter.
+(d) keyevent 4 (hardware BACK)                     PREDICT pass  -> RESULT pass. Lightbox dismissed -> chat screen.
+                                                                    (Sanity control: the lightbox was genuinely open throughout.)
+
+== LOGS ==
+ui_errors emulator-5554 (sourced): scanned 1013 flutter-tag lines of 94830 buffer lines; 9 match(es)  <- non-vacuous
+Our pid 13751 produced exactly two lines during the probe window, both at lightbox OPEN, none at any tap:
+  08-11 15:44:21.584 I/flutter (13751): [FAIL] framework_error library=rendering type=FlutterError msg="A RenderFlex overflowed by 22 pixels on the bottom."   <- first open
+  08-11 15:45:18.059 I/flutter (13751): [FAIL] framework_error library=rendering type=FlutterError msg="A RenderFlex overflowed by 22 pixels on the bottom."   <- re-open for probe (c)
+Zero log output on probes (a), (b), (c), (d). The silence on the failing tap is explained: no event arrives.
+Other 7 matches are older pids (8911, 9245) from prior sessions — not this probe.
+
+== MECHANISM VERDICT ==
+CONFIRMED. The Close button is painted under the system status bar. Its centre (44 dp) is above the
+53 dp status-bar inset, so a tap there is consumed by SystemUI and never reaches Flutter — which is
+exactly why there is no exception and no log line. Only the bottom 15 dp of the 48 dp button is
+actually hittable. The rival "synthetic tap too fast for the recogniser" theory is dead: a 400 ms
+held press at the same point opened the notification shade instead of reaching the app.
