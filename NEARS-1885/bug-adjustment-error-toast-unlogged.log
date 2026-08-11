@@ -1,0 +1,32 @@
+NEARS-1885 QA [8] — PRE-EXISTING silent-failure path in makeWalletAdjustment (NOT introduced by this change)
+Rule: docs/platform/logging-contract.md — every generic error toast needs a paired AppLogger.failure(...).
+
+--- DeliveryApp/lib/features/my_account/domain/repositories/my_account_repository.dart (unchanged by this ticket) ---
+  Future<ResponseModel> makeWalletAdjustment() async {
+    ResponseModel responseModel;
+    Response response = await apiClient.postData(AppConstants.makeWalletAdjustmentUri, {'token': _getUserToken()}, handleError: false);
+    if(response.statusCode == 200) {
+      responseModel = ResponseModel(true, 'wallet_adjustment_successfully'.tr);
+    }else {
+      responseModel = ResponseModel(false, response.statusText);
+    }
+    return responseModel;
+  }
+
+postData(..., handleError: false) => ApiClient shows nothing; the controller's else branch is the only signal:
+--- controller else branch @ HEAD 2266376d ---
+        showCustomSnackBar(responseModel.message, isError: false);
+      }else{
+        Get.back();
+        showCustomSnackBar(responseModel.message, isError: true);
+      }
+
+grep AppLogger in the whole my_account feature:
+/Users/Apple/Projects/nears-NEARS-1885-wallet-adjust-guard/DeliveryApp/lib/features/my_account/controllers/my_account_controller.dart:393:        AppLogger.failure(e, st, 'earning_invoice_save_failed');
+/Users/Apple/Projects/nears-NEARS-1885-wallet-adjust-guard/DeliveryApp/lib/features/my_account/screens/payment_screen.dart:122:    AppLogger.info('payment webview onLoadError code=$code');
+/Users/Apple/Projects/nears-NEARS-1885-wallet-adjust-guard/DeliveryApp/lib/features/my_account/screens/payment_screen.dart:163:        AppLogger.info('payment redirect terminal_state=${isSuccess ? 'success' : isFailed ? 'fail' : 'cancel'}');
+
+Identical else branch exists at base f19cd505 -> PRE-EXISTING, regression lane, non-blocking for this ticket.
+Second, related gap: a throw inside the try (e.g. getWalletProvidedEarningList) escapes uncaught -
+post-fix the finally reverts the spinner to 'ok' with NO toast and NO [FAIL] line. Also pre-existing
+(base had no try/catch either, and latched the spinner instead).

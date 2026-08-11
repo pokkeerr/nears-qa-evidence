@@ -1,10 +1,11 @@
 # QA Evidence — NEARS-1885
 
-**QA [8] PASS on hermetic evidence — 232/0, 4 mutation probes; live QA unreachable by owner gate**
+**QA [8] evidence — 2 bug artifacts**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
 ### Other artifacts
+- [`bug-adjustment-error-toast-unlogged.log`](bug-adjustment-error-toast-unlogged.log)
 - [`bug-pin-suite-misses-followup-window.log`](bug-pin-suite-misses-followup-window.log)
 
 ---
