@@ -90,7 +90,17 @@ Root cause, pinned at source:
   `backgroundColor: backgroundColor ?? Colors.transparent`.
 - All three mount sites call `Get.bottomSheet(...)` with **no** `backgroundColor`
   (`verification_screen.dart:467`, `social_login_widget.dart:464`,
-  `login_suggestion_bottomsheet.dart:297`); the app declares no `bottomSheetTheme`.
+  `login_suggestion_bottomsheet.dart:297`).
+- **Correction (2026-08-11, raised by the conductor and verified here):** an earlier version of
+  this log said "the app declares no `bottomSheetTheme`". That is **false** — 
+  `packages/nears_dls/lib/tokens/nears_theme.dart:151-162` declares one with
+  `modalBackgroundColor: NearsTokens.surfaceCard`, and `UserApp/lib/theme/light_theme.dart:12`
+  delegates straight to `NearsTheme.light`, so it is genuinely mounted. The original grep
+  searched `UserApp/lib/` only and missed the package. **It changes nothing:** GetX passes
+  `backgroundColor` as an **explicit** argument, and an explicit argument beats a theme
+  default — the sheet receives an explicit `Colors.transparent` no matter what the theme
+  declares. The mechanism is "explicit argument overrides theme", not "no theme exists". The
+  finding itself never rested on this: the missing surface was measured on-device.
 - `NBottomSheet`'s widget constructor paints no surface by design — the surface comes only
   from its `NBottomSheet.show()` presenter, which sets
   `backgroundColor: Theme.of(context).cardColor`.
@@ -156,3 +166,60 @@ identically on base `fda1b44c`** (`+20 -4` for those two files alone) — pre-ex
 Module grid, Grocery module home, store screen, item-detail sheet, verification screen,
 sign-in (manual + OTP), new-user setup, login-suggestion sheet, settings/language.
 `ui_errors` over the sweep: 0 matches. No new red screens or overflows.
+
+---
+
+# Delta re-QA — tip `f95c5c79` (2026-08-11)
+
+**Verdict: PASS.** Scope as agreed with the conductor: AC5 + AC1/AC3/AC6 + a ~60 s smoke.
+Every other row of the first pass is reused as recorded and was **not** re-demonstrated.
+
+Device `emulator-5554`, free `/data` **re-measured at acquisition: 856 356 KB (836 MB)**, above
+the 800 MB floor. Clock again 49 s behind host. Geometry unchanged at 448x997 dp,
+`font_scale` 1.0. Freshness: this build was pointed at a **new** session-unique port
+`--dart-define=API_HOST=10.0.2.2:8153`, distinct from both earlier builds; 10 requests
+landed there, and no earlier build can produce them.
+
+## AC5 — the surface is back
+Three-way pixel comparison at x=30 on the sheet body rows where the defect was measured,
+**clean mount, no panel** — the state where the defect lived:
+
+| build | y2200 | y2300 | y2400 | y2500 | y2600 |
+|---|---|---|---|---|---|
+| pre-ticket base `fda1b44c` | (255,255,255) | (255,255,255) | (255,255,255) | (255,255,255) | (255,255,255) |
+| defect build `fb2f27da` | (116,114,114) | (116,114,114) | (116,114,114) | (116,114,114) | (116,114,114) |
+| **fix build `f95c5c79`** | **(255,255,255)** | **(255,255,255)** | **(255,255,255)** | **(255,255,255)** | **(255,255,255)** |
+
+Surface extent, not just those rows: top edge 1916 px (638 dp), height 1076 px (358 dp),
+0.3596 of screen — against pre-ticket 1898 px / 1094 px / 0.3656. A 6 dp difference, consistent
+with the handle geometry swap (NBottomSheet's 40x4 + 10/5 margins for the old 35x5 +
+`paddingSizeLarge`), not a layout regression. Content bounds are **identical** to the defect
+build's clean mount, so the wrapper shifted nothing.
+Panel state also opaque: `delta-03-panel-on-real-surface.png` samples (255,255,255) at
+y=2100/2250/2350/2680, and the composition reads correctly end to end — rounded top corners,
+drag handle, avatar, name, body copy, panel, both buttons, no collision with the screen behind.
+RTL likewise: `delta-04-rtl-panel-on-surface.png` samples (255,255,255) at y=2050/2200/2350/2680.
+
+## AC1 — failure persistence held
+Real backend 404 (mode = passthrough, no injection). Sheet still mounted, both choices back,
+panel "OTP does not match". Re-press re-submits (delta = 1, on a settled sheet).
+Logs: `[FAIL] type=ApiFailure msg="existing user sheet submit failed"` paired with the
+api_client line `http_status=404 correlation_id=97c1a9a3-…`. No `[ERR] "error snackbar shown"`.
+
+## AC3 — loading held
+10 s hold: pressed choice → node labelled `Loading`; `No` reads
+`clickable="false" enabled="false"`; the row stays mounted, no bare centred spinner.
+**Three taps during the hold (two on the dimmed choice, one on the spinning one) produced
+exactly ONE request** — `IgnorePointer` still holds under the new wrapper.
+
+## AC6 — a11y and RTL held
+Panel message on exactly **one** node. `No` 197x50 dp, `Yes, It's Me` 196x52 dp, both with
+semanticLabels. RTL: `لا` at x 695-1284 (right), `نعم، إنه أنا` at x 60-650 (left) — mirrored,
+panel at 60-1284, warning glyph at the start edge.
+**AC6a stays `BLOCKED (env)`** — TalkBack speech is still not capturable here.
+
+## Smoke + pins
+Cold open → module home in ~16 s, `ui_errors` 0 matches.
+`flutter test test/features/auth/existing_user_sheet_error_test.dart` → **+18, all passed**,
+including the new `P13/AC5` (mobile owns its opaque surface on a clean mount) and
+`P13b/AC5` (desktop keeps surface + 550 width).
