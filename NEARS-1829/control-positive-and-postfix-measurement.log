@@ -1,0 +1,68 @@
+NEARS-1829 — instrument qualification + measurement, emulator-5556 (448x997dp), light mode
+==========================================================================================
+
+[1] PRE-FIX LIVE CONTROL — flutter run session, app pid 10933, logcat cleared 18:48:52
+    live-isolate source sha256 65e46bfee01775b0 (MainAxisSize.min=true, SafeArea=false)
+    installed APK md5 6f5b0e014871986694ca16ec840d9697
+
+08-11 18:48:55.388 10933 10933 I flutter : [FAIL] framework_error library=rendering library type=FlutterError msg="A RenderFlex overflowed by 22 pixels on the bottom."
+ui_errors: emulator-5556 scanned 1 flutter-tag lines of 332 buffer lines; 1 match(es)   [exit 0]
+
+  console (Channel B), same event:
+  The relevant error-causing widget was:
+    Column
+    Column:file:///Users/Apple/Projects/nears-NEARS-1829-lightbox-overflow/UserApp/lib/features/chat/widgets/image_preview_widget.dart:244:14
+  The specific RenderFlex in question is: RenderFlex#a0241 OVERFLOWING:
+    constraints: BoxConstraints(w=448.0, h=973.3)
+    size: Size(448.0, 973.3)
+    mainAxisSize: min
+
+  => BOTH candidate channels QUALIFIED. Magnitude 22 was predicted before measuring.
+
+[2] POST-FIX, IN-SESSION LIVENESS CONTROL — same build/process/widget, app pid 13132
+    live-isolate source sha256 5cb6f6cb3e5483ce (MainAxisSize.max=true, .min=false)
+    installed APK md5 f076de01f2e3aa8b819a922ef4ee0c0e
+    viewport temporarily shrunk: wm size 1344x240
+
+08-11 18:58:43.659 13132 13132 I flutter : [FAIL] framework_error library=rendering library type=FlutterError msg="A RenderFlex overflowed by 65 pixels on the bottom."
+    constraints: BoxConstraints(w=448.0, h=3.0)      (20 + 48 - 3 = 65, exact)
+
+[3] POST-FIX MEASUREMENT at the real 448x997dp — SAME logcat buffer as [2]
+    wm size reset; lightbox closed and reopened; device clock 18:59:20+
+
+ui_errors: emulator-5556 scanned 1 flutter-tag lines of 1690 buffer lines; 1 match(es)   [exit 0]
+  the single match is the 18:58:43.659 control line from [2]; ZERO overflow lines after the restore.
+raw `logcat -d | grep -F "overflowed by"` across the whole buffer: 1 (the control), 0 at real geometry.
+
+[4] POSITIVE HALF — live render tree (ext.flutter.debugDumpRenderTree), lightbox open at 448x997dp
+  RenderFlex#c42dc  creator: Column <- MediaQuery <- Padding <- SafeArea <- Padding <- DecoratedBox
+                             <- ConstrainedBox <- Container <- ImagePreviewWidget
+    parentData: offset=Offset(0.0, 53.0)
+    constraints: BoxConstraints(w=448.0, h=920.3)
+    size:        Size(448.0, 920.3)          <-- fills exactly, does not exceed
+    mainAxisSize: max
+    child 1 RenderConstrainedBox  offset=(224.0, 0.0)  size=Size(0.0, 20.0)
+    child 2 RenderPositionedBox   offset=(0.0, 20.0)   size=Size(448.0, 48.0)
+    child 3 RenderStack           offset=(0.0, 68.0)   flex=1  fit=FlexFit.tight   size=Size(428.0, 852.3)
+  53.0 + 920.3 = 973.3 = the viewer's full height. OVERFLOWING markers in the ENTIRE render tree: 0.
+
+[5] AC2 GEOMETRY
+  post-fix Close rect [1200,219][1344,363]  -> top 219px = 73.0dp >= 53.0dp status bar; height 48dp
+  pre-fix  Close rect [1200,60][1344,204]   -> top  60px = 20.0dp, 99px under the status bar
+  tap issued at (1272, 225) = 2dp INSIDE the top edge -> lightbox popped, back on conversation 47
+  arrow Row in the live render tree has exactly ONE child: SizedBox.shrink <- Expanded <- Spacer
+  semantics labels "previous"/"next" in tree: 0 / 0 ; arrow_back/arrow_forward glyphs: 0 / 0
+
+[6] TEST GATE at own tip a589cf06 (clean tree): 3570 passed, 2 skipped, 4 failed
+  test/features/category/category_screen_back_button_test.dart  x1
+  test/features/coupon/coupon_controller_test.dart              x3
+  (extracted with grep -E '\[E\]$' over the complete 12,685-line log)
+
+[7] THIRD INSTRUMENT — the overflow BANNER measured by pixel (AC1's visual clause)
+  Flutter's hazard stripe is 75%-opacity yellow over black -> RGB (191,191,0) alternating ~50/50
+  with (0,0,0). A first pass filtering r>200 returned 0 on the PRE-FIX control too, i.e. it was
+  MIS-CALIBRATED and its zero asserted nothing; recalibrated to 150<=r,g<=225, b<60, |r-g|<15:
+    control-prefix-lightbox-overflow-22px.png   -> 95676 hazard-stripe px   [POSITIVE, as required]
+    ac1-postfix-lightbox-no-overflow.png        ->     0                    [ZERO]
+    ac2-postfix-close-below-statusbar.png       ->     0                    [ZERO]
+  In the pre-fix capture the stripe occupies image rows ~2600-2900.
