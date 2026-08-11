@@ -1,0 +1,34 @@
+NEARS-1877 — the F1 "corrupt/truncated local cache row" path, observed LIVE and unprompted.
+
+Not manufactured. On the first warm launch of the HEAD build (dd239138) on emulator-5560 the
+config row left in cache_response_new_db.sqlite decoded as invalid JSON, so LocalClient.cachedFetch
+threw straight out of jsonDecode. This is the exact path the [7a] F1 finding predicted and the one
+the close-out certification calls "reachable only from a corrupt or truncated local cache row".
+
+The fix classified it and rendered a retryable surface instead of a terminal spinner.
+
+08-11 13:52:54.302 I flutter : ----------------FIREBASE CRASHLYTICS----------------
+08-11 13:52:54.303 I flutter : The following exception was thrown config fetch threw:
+08-11 13:52:54.303 I flutter : ApiFailure(status: null, kind: config_fetch_threw)
+08-11 13:52:54.303 I flutter : #0      _ChunkedJsonParser.fail (dart:convert-patch/convert_patch.dart:1467:5)
+08-11 13:52:54.303 I flutter : #1      _ChunkedJsonParser.parseNumber (dart:convert-patch/convert_patch.dart:1333:9)
+08-11 13:52:54.303 I flutter : #2      _ChunkedJsonParser.parse (dart:convert-patch/convert_patch.dart:935:22)
+08-11 13:52:54.303 I flutter : #3      _parseJson (dart:convert-patch/convert_patch.dart:35:10)
+08-11 13:52:54.303 I flutter : #4      JsonDecoder.convert (dart:convert/json.dart:641:36)
+08-11 13:52:54.303 I flutter : #5      JsonCodec.decode (dart:convert/json.dart:223:41)
+08-11 13:52:54.303 I flutter : #6      jsonDecode (dart:convert/json.dart:160:12)
+08-11 13:52:54.303 I flutter : #7      LocalClient.cachedFetch (package:sixam_mart/api/local_client.dart:59:24)
+08-11 13:52:54.303 I flutter : #8      SplashRepository.getConfigData (.../splash_repository.dart:28:30)
+08-11 13:52:54.303 I flutter : #9      SplashService.getConfigData (.../splash_service.dart:16:25)
+08-11 13:52:54.303 I flutter : #10     SplashController._fetchConfigData (.../splash_controller.dart:204:18)
+08-11 13:52:54.303 I flutter : ----------------------------------------------------
+08-11 13:52:54.329 I flutter : [FAIL] endpoint=/api/v1/config http_status=null type=ApiFailure transport_error=config_fetch_threw msg="config fetch threw"
+
+Rendered result (a11y, light mode): "No internet connection" / "Oops!" / "Try Again"  -- i.e. the
+classified failure surface with a working Retry, NOT a terminal spinner.
+
+Retry recovery, same session: retryConfigFetch forces DataSourceEnum.client, bypassing the corrupt
+local row. One tap recovered to the fully rendered home screen (modules, store rails, order card).
+
+The log line is PII-safe: a const ApiFailure sentinel, endpoint path only, no payload, no exception
+text on the [FAIL] line itself.
