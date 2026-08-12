@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1600
 
-**PASS — NFilterChip content-sized in Wrap hosts; 8 non-Wrap call sites + both item-sheet variation paths regression-clean (emulator-5556, light mode)**
+**NFilterChip shrink-wraps in a Wrap — AC1/AC3/AC4 live evidence**
 
 **16 screenshot(s).** Click any thumbnail for full resolution.
 
