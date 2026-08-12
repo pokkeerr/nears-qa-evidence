@@ -1,0 +1,39 @@
+== POSITIVE CONTROL: the md5 discriminator is only valid if each screen is
+   byte-stable across repeats AND the two devices differ from each other. ==
+   emulator-5554 ref md5 = 341ea4d4b184bc3e01a69efc4d261a8a  (102655 bytes)
+   emulator-5560 ref md5 = 6ee64f7a4a82bcc6b7238a9b5b01464e  (616989 bytes)
+  PASS  CONTROL: emulator-5554 is byte-stable across repeat captures
+  PASS  CONTROL: emulator-5560 is byte-stable across repeat captures
+  PASS  CONTROL: the two devices are visually DISTINCT (md5 differ)
+   dims A=(1344, 2992) B=(1344, 2992)
+   pixel MSE(A,B) = 8342.2  (0 would mean identical screens)
+
+== 1. ui_shot -s <serial> -> bytes must match THAT device's reference ==
+   rc=0  UINAV_LAST_SHOT_SERIAL='emulator-5554'  md5=341ea4d4b184bc3e01a69efc4d261a8a
+  PASS  ui_shot -s emulator-5554 succeeded
+  PASS  shot bytes == emulator-5554 reference (came from the REQUESTED device)
+  PASS  shot bytes != emulator-5560 reference (did NOT come from the other device)
+  PASS  $UINAV_LAST_SHOT_SERIAL == requested serial (emulator-5554)
+   rc=0  UINAV_LAST_SHOT_SERIAL='emulator-5560'  md5=6ee64f7a4a82bcc6b7238a9b5b01464e
+  PASS  ui_shot -s emulator-5560 succeeded
+  PASS  shot bytes == emulator-5560 reference
+  PASS  $UINAV_LAST_SHOT_SERIAL == requested serial (emulator-5560)
+  PASS  THE TWO SHOTS DIFFER BY md5 (the effect, not the announcement)
+
+== 2. $ANDROID_SERIAL export path (no flag) ==
+   ANDROID_SERIAL=emulator-5560 -> rc=0 serial='emulator-5560' md5=6ee64f7a4a82bcc6b7238a9b5b01464e
+  PASS  ui_shot with $ANDROID_SERIAL=emulator-5560 succeeded (3 devices attached)
+  PASS  env-pinned shot bytes == emulator-5560 reference
+  PASS  $UINAV_LAST_SHOT_SERIAL == emulator-5560
+
+== 3. PRECEDENCE: -s must BEAT $ANDROID_SERIAL ==
+   ANDROID_SERIAL=emulator-5560, -s emulator-5554 -> serial='emulator-5554' md5=341ea4d4b184bc3e01a69efc4d261a8a
+  PASS  bytes == emulator-5554 (the -s flag won, per documented order)
+  PASS  $UINAV_LAST_SHOT_SERIAL == emulator-5554
+
+== 4. a serial that is NOT attached -> refuse with 2, no artifact ==
+   ! ui_shot: NOT ASSERTED: serial 'emulator-9999' is not attached (attached: emulator-5554 emulator-5560 emulator-5562)
+  PASS  rc=2 NOTHING ASSERTED for an unattached serial (got 2)
+  PASS  no artifact written for an unattached serial
+
+-- AC2 validity: 18 assertion(s); 18 passed; 0 failed

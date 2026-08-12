@@ -1,0 +1,161 @@
+== uinav.test.sh (NEARS-1784) ==
+-- subject: /Users/Apple/Projects/nears-NEARS-1784-screencap-pin/scripts/app-nav/uinav.sh
+-- subject md5: b3110c9bd47339e9323a86726883b9d2
+-- DEVICE-FREE: a green run here is NOT AC1/AC2/AC3 evidence. All three ACs are [behav]/'demonstrated live' and are proven by QA on the real pool.
+-- case H: FIXTURE VALIDITY — the stub is the adb under test, and the subject is a sourced library
+  ok   H1: the adb resolved from inside the subject's shell is the STUB — no case can reach the real device pool
+  ok   H2: the stub records adb's argv, so every pin assertion below is on the CALL, not on a log line
+  ok   H3: INVOKING (not sourcing) uinav.sh exits 0 — the documented false-pass trap (exit 0)
+  ok   H3: ...with completely empty output, indistinguishable from a clean run that found nothing. Source it; never invoke it
+-- case 1: POSITIVE CONTROL (AC1 shape) — 5 attached, nothing pinned: ui_shot must REFUSE, name the devices, and leave no artifact
+  ok   1: exit 3 = AMBIGUOUS (the file's existing vocabulary — NEARS-1707), not adb's opaque 255 (exit 3)
+  ok   1: the refusal is prefixed with the call site, mirroring ui_errors:
+  ok   1: the refusal NAMES emulator-5554 — a refusal that does not list the candidates is undiagnosable from a log
+  ok   1: the refusal NAMES emulator-5556 — a refusal that does not list the candidates is undiagnosable from a log
+  ok   1: the refusal NAMES emulator-5558 — a refusal that does not list the candidates is undiagnosable from a log
+  ok   1: the refusal NAMES emulator-5560 — a refusal that does not list the candidates is undiagnosable from a log
+  ok   1: the refusal NAMES emulator-5562 — a refusal that does not list the candidates is undiagnosable from a log
+  ok   1 (THE DEFECT): the destination does not exist — assert ABSENCE, not emptiness; a 0-byte PNG is what this ticket exists to kill
+  ok   1 (EFFECT): adb was never asked to capture — the refusal happens before the device is touched
+  ok   1: stdout stays empty — ui_shot's stdout contract is path-only (NEARS-1627)
+-- case 1P: DEFECT PIN — the PRE-FIX one-liner, executed against the SAME fixture, really does leave a 0-byte file
+  ok   1P: the pre-fix form did return non-zero — ui_shot was ALREADY loud, so 'returns non-zero on ambiguity' is a RED-LESS assertion and is not what this ticket fixed (exit 255, not 0)
+  ok   1P (THE REAL DEFECT): the pre-fix form left a 0-BYTE file at the destination — `>` truncates before adb runs. Case 1 is the assertion that this no longer happens
+-- case 2: NEGATIVE CONTROL (AC3 shape) — exactly 1 attached, nothing pinned: auto-resolve, no false alarm, and the pin still reaches adb
+  ok   2: the single-device case succeeds — auto-resolve is what makes AC3 structurally true rather than hopefully true (exit 0)
+  ok   2: stdout still carries the path (the ui_shot <path> form documented in three guides is unbroken)
+  ok   2 (NEGATIVE CONTROL): one device raises no ambiguity refusal — no new failure mode on the honest case
+  ok   2 (NEGATIVE CONTROL): and no nothing-asserted refusal either
+  ok   2 (EFFECT): the auto-resolved serial was PASSED to adb — an auto-resolve that leaves the call unpinned pins nothing
+  ok   2 (MACHINE-READABLE): $UINAV_LAST_SHOT_SERIAL publishes which device answered — assertable because the file is SOURCED
+  ok   2: $UINAV_LAST_SHOT_PATH accompanies it
+  ok   2: $UINAV_LAST_SHOT_BYTES is a non-zero byte count
+  ok   2 (EFFECT): the bytes on disk came from emulator-5554 — the payload, not the announcement
+-- case 3: AC2 shape — $ANDROID_SERIAL steers the capture with all five attached
+  ok   3: an ambient pin resolves cleanly even with four other devices attached (exit 0)
+  ok   3 (EFFECT): -s emulator-5558 reached adb
+  ok   3: and the published serial is the one that was asked for
+  ok   3 (EFFECT): the file's bytes came from emulator-5558
+-- case 4: AC2 shape — the -s flag wins over an ambient $ANDROID_SERIAL, and the path stays $1
+  ok   4: the explicit flag resolves (exit 0)
+  ok   4 (EFFECT/PRECEDENCE): -s beat $ANDROID_SERIAL at the adb call
+  ok   4 (PRECEDENCE): the ambient serial was not used for anything
+  ok   4: the published serial matches the flag
+  ok   4: the path really did land at $1 after the flag was shifted off, carrying 5562's bytes
+  ok   4: the zero-argument form still works (exit 0)
+  ok   4: ...and still defaults to /tmp/uinav_shot.png
+-- case 5: TRUNCATION REGRESSION — a refused capture must not destroy the PNG already at the destination
+  ok   5: the ambiguous capture is refused (exit 3)
+  ok   5 (THE SECOND HALF OF THE DEFECT): the pre-existing bytes are byte-identical — `> $p` truncated them before adb ever ran
+-- case 6: A CRLF-MANGLED exec-out payload is rejected — it is non-empty, so a size-only check would pass it
+  ok   6: a mangled payload is not a successful capture (exit 2, not 0)
+  ok   6: exit 2 = NOTHING ASSERTED (NEARS-1627's vocabulary) (exit 2)
+  ok   6: and nothing is left at the destination
+  ok   6: the reason names the payload, not the device
+  ok   6 (M5 pin): the published serial is NOT set by a capture that failed validation — a global set before validation would launder a refusal into provenance
+-- case 7: An EMPTY payload at adb rc 0 is rejected — the exact silent shape the ticket reports
+  ok   7: zero bytes at rc 0 is NOTHING ASSERTED, never a pass (exit 2)
+  ok   7: no 0-byte artifact is published
+  ok   7: and stdout does not print a path for a file that does not exist
+-- case 8: ENUMERATION — only `device` state counts as a candidate
+  ok   8: one `device` + one `offline` is NOT ambiguous — the offline entry is not a candidate (exit 0)
+  ok   8: and the live device is the one chosen
+  ok   8 (M4 pin): the offline serial was never captured from — dropping $2=="device" resolves to a dead device
+  ok   8: offline + unauthorized = ZERO candidates -> NOTHING ASSERTED, not an auto-resolve onto a dead device (exit 2)
+  ok   8: with the reason stated
+-- case 9: A pinned serial that is NOT attached is refused BEFORE adb is called
+  ok   9: exit 2 — the pin names a device that is not there (exit 2)
+  ok   9: the bogus serial is quoted back
+  ok   9: and the real attached list is printed, so the operator can see the typo
+  ok   9 (EFFECT): the resolver validates against the enumerated list rather than trusting a probe's rc (a bogus -s gives adb rc 255, indistinguishable from other failures)
+  ok   9: no artifact
+-- case 10: ZERO devices attached is NOTHING ASSERTED, never an ambiguity
+  ok   10: exit 2, not 3 — nothing to choose between is a different fact from too much to choose between (exit 2)
+  ok   10: the reason is explicit
+-- case 11: ui_capture SUCCESS — the markdown block carries _device: provenance
+  ok   11: a resolvable capture still produces a block (exit 0)
+  ok   11: the _shot: line is unchanged (NEARS-1627's block contract)
+  ok   11 (DURABLE PROVENANCE): the additive _device: field — this block is pasted into docs/apps/*/*-screen-inventory.md, so a wrong-device shot must be checkable after the fact
+  ok   11: the label list is unchanged
+  ok   11 (EFFECT): the label list was read from the SAME device the shot came from — an unpinned resolver would read a different device's screen into the same block
+  ok   11 (EFFECT): and ui_errors was scanned on that device too, rather than falling into its no-serial branch
+-- case 12: ui_capture REFUSAL — no _shot: line for a file that does not exist
+  ok   12 (AC1's REAL SITE): the block returns non-zero — pre-fix this returned 0 from its trailing echo (exit 3, not 0)
+  ok   12: no _shot: line is printed for a capture that never happened
+  ok   12: the block is aborted, not half-printed into a doc
+  ok   12: and no 0-byte PNG is left to be cited as evidence
+-- case 12P: DEFECT PIN — the PRE-FIX ui_capture lines, executed: rc 0, a _shot: line, and a 0-byte file
+  ok   12P: the pre-fix form returned 0 — a silent false green, and the reason ui_shot's already-loud rc must not be reported as AC1 evidence (exit 0)
+  ok   12P: ...while printing _shot: for the file
+  ok   12P: ...which was 0 bytes. This is the exact artifact AC1 names, and case 12 is the assertion that it cannot recur
+-- case 13: TIER B — ui_tap must not claim a tap it never delivered; ui_back/ui_scroll_* refuse when ambiguous
+  ok   13: an unpinned tap with five attached is refused (exit 3)
+  ok   13 (THE ORDERING DEFECT): stdout carries NO success line — pre-fix the claim was printed BEFORE adb was asked to act
+  ok   13 (EFFECT): and no tap reached any device
+  ok   13: the resolvable tap succeeds (exit 0)
+  ok   13: ...and only THEN prints its success line
+  ok   13 (EFFECT): the tap was pinned
+  ok   13 (EFFECT): and the coordinates were resolved from the same device — a pinned tap on coordinates read off another device is the wrong-device bug wearing a pin
+  ok   13: ui_back refuses on an ambiguous device set (exit 3)
+  ok   13: ui_scroll_down likewise (exit 3)
+  ok   13: ui_scroll_up likewise (exit 3)
+  ok   13 (NEGATIVE CONTROL): with one device the gestures still work (exit 0)
+  ok   13 (EFFECT): pinned
+-- case 14: TIER C — ui_pkg must distinguish 'no device' from 'unknown package', and ui_home must not Back-loop a device it never read
+  ok   14 (BEHAVIOUR-PRESERVING): the happy path is unchanged (exit 0)
+  ok   14: ...and returns the same package string as before
+  ok   14 (EFFECT): pinned
+  ok   14 (THE SILENT SITE): unpinned + five attached is now non-zero — pre-fix the pipeline exit was `cut`'s 0 and the stderr was swallowed by 2>/dev/null (exit 3, not 0)
+  ok   14: with empty stdout, which is exactly why the 0 exit was so dangerous
+  ok   14: a device that cannot be read is NOTHING ASSERTED, not 'unknown package' (exit 2)
+  ok   14: ui_home refuses an ambiguous device set (exit 3)
+  ok   14 (THE 5x BACK LOOP): no Back was pressed — pre-fix, an unreadable device produced an empty package, which was read as 'unknown' and answered with five Backs on a device that was never selected
+  ok   14 (QA-4's new case): a pin naming a DETACHED device is NOTHING ASSERTED (exit 2)
+  ok   14: and again, no Back loop
+  ok   14 (NEGATIVE CONTROL): the single-device landing still works (exit 0)
+  ok   14 (EFFECT): it tapped the home anchor on the resolved device
+  ok   14 (EFFECT): and probed its anchors there
+-- case 15: ZSH — agents source this driver from zsh, and the file already documents a zsh-only `local` leak
+  ok   15 (FIXTURE VALIDITY): zsh's adb is the stub too — macOS path_helper rebuilds PATH from rc files and demoted it once already
+  ok   15: the refusal behaves identically under zsh (exit 3)
+  ok   15: same message
+  ok   15: same absence of an artifact
+  ok   15: and the success path resolves under zsh too (exit 0)
+  ok   15: with the global published in the caller's zsh shell
+  ok   15: ui_pkg's stdout carries no leaked `local` echo under zsh
+  ok   15: ui_capture succeeds under zsh (exit 0)
+  ok   15: with its provenance line
+  ok   15: and NO `name=value` leak anywhere in the block — zsh prints one for a bare re-declared `local`, and bash stays silent, so a bash-only check would miss it
+-- case 16: SET -E CALLER — the refusal still reports its reason, and no temp file is orphaned
+  ok   16: the validation refusal survives set -e (exit 2)
+  ok   16 (THE POINT): ...and still prints WHY — an abort before the message is an exit code with no diagnosis
+  ok   16: nothing at the destination
+  ok   16: and no orphaned .uinav.<pid> temp file is left beside it
+  ok   16: ui_capture propagates the resolver's exit under set -e too (exit 3)
+  ok   16: with its own reason line, not just ui_shot's
+-- case 17: SET -E on the uifind rc captures — ui_tap's and ui_home's ORDINARY outcomes must not abort the caller
+  ok   17 (FIXTURE VALIDITY): the subject's shell resolves `mktemp` to the stub and it lands in the pinned dir — without this, 'the dir is empty' is what a dead instrument reports too
+  ok   17 (FIXTURE VALIDITY): and a COMPLETED ui_tap leaves none behind — so a leftover below is attributable to the abort, not to ui_tap always leaking
+  ok   17a: a not-found tap still returns 1 under set -e (exit 1)
+  ok   17a (THE EFFECT): the diagnostic REACHES stderr — a bare `xy=$(…); rc=$?` aborts before it, leaving the caller a bare exit code with no reason
+  ok   17a: and no success line
+  ok   17a: the mktemp scratch file is cleaned up — the abort skips `rm -f $err` too, orphaning one file per failed tap
+  ok   17b: an ambiguous tap still returns 3 under set -e (exit 3)
+  ok   17b: ui_tap's own refusal line survives
+  ok   17b (THE EFFECT): and uifind's CANDIDATE LIST is forwarded by `cat $err >&2` — NEARS-1707's whole point, and the first thing an abort drops
+  ok   17b: scratch file cleaned up here too
+  ok   17c: ui_home completes under set -e after an absent anchor (exit 0)
+  ok   17c (THE EFFECT): the Back that escapes the pushed screen was actually pressed — an abort at the rc=1 probe means ui_home does nothing at all
+  ok   17c (THE EFFECT): ...and it then landed on the home tab
+  ok   17d (THE EFFECT): the ambiguous-hometap fallback is announced — the rc2 capture aborts before this line, so the documented best-effort landing silently never happens
+  ok   17d: and ui_home still returns 0 (exit 0)
+-- case 18: CAPTURE TEMP (CWE-377/CWE-59) — the intermediate file must not be derivable from the destination + $$
+  ok   18: both captures succeed (exit 0)
+  ok   18 (FIXTURE VALIDITY): a temp file was observed in the destination directory during BOTH captures (s.png.000017 / s.png.000018) — without an observation there is nothing to assert about its name
+  ok   18: the temp is CO-LOCATED with the destination (same directory), so the mv stays atomic and cross-device-safe
+  ok   18 (THE FIX): the temp is NOT the guessable `<dest>.uinav.$$` name (shell pid was 10008, temp was s.png.000017)
+  ok   18 (THE PROPERTY): two captures from the SAME shell produced DIFFERENT temp names — the name carries randomness, it is not a function of ($p, $$)
+  ok   18: and no temp survives the capture
+
+-- result: PASS
+-- validity: 133 assertion(s) across 21 case(s); 0 skipped; 0 failed

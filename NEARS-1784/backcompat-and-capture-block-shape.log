@@ -1,0 +1,40 @@
+== BACKWARD COMPAT: ui_shot /tmp/x.png  (path as $1, no flag, documented in 3 docs) ==
+   rc=0  stdout='/tmp/x.png'
+   ! ui_shot: emulator-5554 captured 102655 bytes -> /tmp/x.png
+  PASS  legacy 'ui_shot <path>' still returns 0
+  PASS  stdout is exactly the path (contract unchanged): '/tmp/x.png'
+  PASS  /tmp/x.png written and non-empty (102655 bytes)
+  PASS  file is a real PNG (magic 89504e470d0a1a0a)
+  FAIL  $UINAV_LAST_SHOT_PATH == /tmp/x.png
+
+== ui_capture stdout must be a CLEAN markdown block (no rc= / validity leak) ==
+   rc=0
+   ------------------ stdout verbatim ------------------
+   | #### QA1784 Block Shape
+   | _shot: /private/tmp/claude-501/-Users-Apple-Projects-nears/4f6b598d-d85d-4b07-8ef6-7160bc21c2f3/scratchpad/qa1784/cap_block.png_
+   | _device: emulator-5554_
+   | labels:
+   |   - Back
+   |   - John Doe G1
+   |   - [NEARS-1180 QA] message 1 — Can I get this delivered before 6pm?
+   |   - [NEARS-1180 QA] message 1 — Can I get this delivered before 6pm?
+   |   - ‪07:33 PM | 16-Jul-2026 ‬
+   |   - ‪07:33 PM | 16-Jul-2026 ‬
+   | errors: none
+   | ---
+   -----------------------------------------------------
+   --- stderr ---
+   ! ui_shot: emulator-5554 captured 102655 bytes -> /private/tmp/claude-501/-Users-Apple-Projects-nears/4f6b598d-d85d-4b07-8ef6-7160bc21c2f3/scratchpad/qa1784/cap_block.png
+   ! ui_errors: emulator-5554 scanned 2 flutter-tag lines of 6250 buffer lines; 0 match(es)
+  PASS  ui_capture -s succeeded
+  PASS  line 1 = '#### <name>'
+  PASS  line 2 = '_shot: <path>_'
+  PASS  line 3 = '_device: emulator-5554' (additive provenance, correct serial)
+  PASS  line 4 = 'labels:'
+  PASS  last line = '---'
+  PASS  exactly one 'errors:' line
+  PASS  no stray lines inside the label list (found 0)
+  PASS  no 'rc=' / validity / trace leakage on stdout (found 0)
+   (label count in block: 6)
+
+-- EXTRAS validity: 14 assertion(s); 13 passed; 1 failed

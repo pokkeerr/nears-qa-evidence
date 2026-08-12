@@ -1,0 +1,34 @@
+== attached devices (the fixture) ==
+   emulator-5554
+   emulator-5560
+   emulator-5562
+   ANDROID_SERIAL='<unset>'
+
+== A. ui_capture (the genuinely silent pre-fix site) over a PRE-PLANTED VALID PNG ==
+   planted: 102746 bytes md5=68d01df32bb6ae8758f0ea1894f5e2f9
+   ui_capture rc=3
+   --- stdout (0 line(s)) ---
+   --- stderr ---
+   ! ui_shot: AMBIGUOUS device selection: 3 devices attached and no -s / $ANDROID_SERIAL - emulator-5554 emulator-5560 emulator-5562; refusing to capture
+   ! ui_capture: NOT ASSERTED: screenshot refused (ui_shot rc=3) - no block printed for 'AC1 Ambiguous Screen'
+  PASS  ui_capture returns non-zero (3=AMBIGUOUS), got rc=3
+  PASS  ui_capture stdout is EMPTY (no '_shot:' block laundered into docs)
+  PASS  stderr carries an AMBIGUOUS refusal
+  PASS  stderr NAMES all 3 attached serials (named 3)
+  PASS  pre-existing PNG SURVIVES byte-identical (102746 bytes, md5 68d01df32bb6ae8758f0ea1894f5e2f9)
+  PASS  destination is NOT 0-byte
+
+== B. ui_shot to an ABSENT destination -> assert ABSENCE, not emptiness ==
+   ui_shot rc=3
+   ! ui_shot: AMBIGUOUS device selection: 3 devices attached and no -s / $ANDROID_SERIAL - emulator-5554 emulator-5560 emulator-5562; refusing to capture
+  PASS  ui_shot returns 3 (AMBIGUOUS), got rc=3
+  PASS  destination file does NOT EXIST (no 0-byte artifact created)
+  PASS  ui_shot printed no path on stdout
+
+== C. no temp/scratch leftovers beside the destinations ==
+  PASS  zero 'name.png.XXXXXX' temp leftovers (found 0)
+
+== D. provenance globals NOT published by a refused capture ==
+  PASS  UINAV_LAST_SHOT_SERIAL unset/empty after refusal (='<empty>')
+
+-- AC1 validity: 11 assertion(s); 11 passed; 0 failed
