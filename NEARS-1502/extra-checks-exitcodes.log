@@ -1,0 +1,34 @@
+########## CHECK 4: exit-code contract (0/1/3) — 4 must not have displaced them ##########
+PRESENT_UNIQUE_RC=0 (expect 0) coords='672 421'
+ABSENT_RC=1 (expect 1) stdout=''
+AMBIGUOUS_RC=0 (expect 3) stdout='1215 2808'
+USAGE_RC=2 (expect 2)
+USAGE_NOARG_RC=2 (expect 2)
+########## CHECK 3: unpinned with 3 devices attached ##########
+3
+UNPINNED_RC=4 (expect 4)
+uifind: no serial pinned NOT ASSERTED: device ambiguous: 3 devices attached (emulator-5554, emulator-5560, emulator-5562) and ANDROID_SERIAL is not set - pin one, or the tree returned is some other screen's - an empty result is NOT an empty screen
+UNPINNED_STDOUT_LINES=0
+########## CHECK 2b: unreachable serial is NAMED, exits 4, no traceback ##########
+BAD_SERIAL_RC=4 (expect 4)
+uifind: emulator-9999 NOT ASSERTED: dump failed: adb shell uiautomator dump exited 1 - adb: device 'emulator-9999' not found - an empty result is NOT an empty screen
+TRACEBACK_COUNT=0
+########## CHECK 5: /sdcard litter after a clean run ##########
+ls: /sdcard/uinav-*.xml: No such file or directory
+ls: /sdcard/collide-*.xml: No such file or directory
+
+########## ADDENDUM: exit code 3 (AMBIGUOUS) on a GENUINELY ambiguous label ##########
+# The 'More' probe above returned 0 correctly: 'More' is a MERGED multi-line
+# content-desc, so its split candidate and its parent are the SAME node -> unique.
+# A label matching two DISTINCT nodes, located in-process against one dump:
+uifind: emulator-5562 dumped 12200 bytes from /sdcard/uinav-10f5de11568346f3a212b3f22d7c09c3.xml; parsed 34 node(s), 13 labelled
+  ambiguous label found: '6 stores near you' -> 2 distinct nodes
+uifind: emulator-5562 dumped 12200 bytes from /sdcard/uinav-bacd3d78ee074a2ca3dd49fd35d70296.xml; parsed 34 node(s), 13 labelled
+AMBIGUOUS: "6 stores near you" matched 2 distinct nodes (use --first to accept any, or a more specific label):
+  label="6 stores near you"  clickable=true  area=342144  at 357,961
+  label="6 stores near you"  clickable=true  area=342144  at 357,1573
+
+AMBIGUOUS_CLI_RC=3
+uifind: emulator-5562 dumped 12200 bytes from /sdcard/uinav-17cc729cc19a483b8ca6f17ecbcfa1f1.xml; parsed 34 node(s), 13 labelled
+357 961
+AMBIGUOUS_WITH_FIRST_RC=0 (expect 0 - --first opt-in still works)

@@ -1,0 +1,40 @@
+NEARS-1502 AC1 — induced uiautomator failure, pre-fix vs post-fix
+device: emulator-5562 | app: com.izzes.nears | 2026-08-12T01:57:56Z
+pre-fix artifact: git show f8f14670:scripts/app-nav/uifind.py (md5 fde0c6c9c4bf21fda6c7e36bd6963be7)
+post-fix under test: scripts/app-nav/uifind.py (md5 ec145b17dd45d40c82cccb9a74a3f779)
+
+########## navigate to screen X (carries the marker 'Trending near you') ##########
+########## seed screen X into the PRE-FIX fixed path /sdcard/uinav.xml ##########
+SEED_LABELS=10
+PREMISE_1 X_HAS_MARKER_RC=0  (0 required)
+4050d81bb9d4b7c9255dbba1c31d89c1  /sdcard/uinav.xml
+########## move to screen Y ##########
+Y_LABELS=29
+uifind: emulator-5562 dumped 12200 bytes from /sdcard/uinav-82836f962e1d4e0a9152d7cebb171b57.xml; parsed 34 node(s), 13 labelled
+PREMISE_2 Y_HAS_MARKER_RC=1  (1 required: live screen != seeded screen X)
+
+########## 8 induced-collision attempts against BOTH artifacts ##########
+attempt 1 | PRE  rc=0 labels=10 stale=YES  | POST rc=0 labels=29 stale=no
+attempt 2 | PRE  rc=0 labels=10 stale=YES  | POST rc=4 labels=0 stale=no
+attempt 3 | PRE  rc=0 labels=10 stale=YES  | POST rc=4 labels=0 stale=no
+attempt 4 | PRE  rc=0 labels=10 stale=YES  | POST rc=4 labels=0 stale=no
+attempt 5 | PRE  rc=0 labels=10 stale=YES  | POST rc=4 labels=0 stale=no
+attempt 6 | PRE  rc=0 labels=10 stale=YES  | POST rc=0 labels=29 stale=no
+attempt 7 | PRE  rc=0 labels=10 stale=YES  | POST rc=4 labels=0 stale=no
+attempt 8 | PRE  rc=0 labels=10 stale=YES  | POST rc=0 labels=29 stale=no
+
+########## TALLY (8 attempts; the collision is probabilistic by nature) ##########
+PRE-FIX : rc0=8/8 (never fails)  |  served the STALE screen X while live was Y: 8/8
+POST-FIX: exit4=5/8               |  served the STALE screen X: 0/8   <-- must be 0
+
+########## verbatim POST-FIX exit-4 stderr ##########
+uifind: emulator-5562 NOT ASSERTED: dump failed: adb shell uiautomator dump exited 137 - no output - an empty result is NOT an empty screen
+########## PRE-FIX stderr bytes under the same induced failure (silence) ##########
+  attempt 1: 0 bytes
+  attempt 2: 0 bytes
+  attempt 3: 0 bytes
+  attempt 4: 0 bytes
+  attempt 5: 0 bytes
+  attempt 6: 0 bytes
+  attempt 7: 0 bytes
+  attempt 8: 0 bytes

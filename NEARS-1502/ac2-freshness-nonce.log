@@ -1,0 +1,25 @@
+NONCE=QA1502NONCE1727610338
+=== STATE 1 (app, no nonce anywhere on the device) ===
+S1_RC=0
+uifind: emulator-5562 dumped 12200 bytes from /sdcard/uinav-45df0c19741b4d1f8ef49ad20a6190d9.xml; parsed 34 node(s), 13 labelled
+S1_NONCE_GREPRC=1 count=0
+=== induce state 2: post a notification carrying the nonce, open the shade ===
+=== ASSERT INDUCTION IS REAL (raw adb dump, independent of the tool under test) ===
+INDUCTION_GREPRC=0 count=1
+=== STATE 2 DUMP UNDER TEST: must contain the nonce ===
+S2_RC=0
+uifind: emulator-5562 dumped 48207 bytes from /sdcard/uinav-252ab741f4234976ac130d11168145e8.xml; parsed 126 node(s), 28 labelled
+S2_NONCE_GREPRC=0 count=1
+=== induce state 3: cancel the notification + collapse => nonce gone from the device ===
+=== STATE 3 DUMP UNDER TEST: nonce must be GONE (no stale carry-forward) ===
+S3_RC=0
+uifind: emulator-5562 dumped 12200 bytes from /sdcard/uinav-f7854dcd4f694d1fab7c6fb71b090b35.xml; parsed 34 node(s), 13 labelled
+S3_NONCE_GREPRC=1 count=0
+=== unique remote path per invocation ===
+   1 uinav-252ab741f4234976ac130d11168145e8.xml
+   1 uinav-45df0c19741b4d1f8ef49ad20a6190d9.xml
+   1 uinav-f7854dcd4f694d1fab7c6fb71b090b35.xml
+=== legacy shared path md5 (expect unchanged 8502debaac7b21c809abcf98d6006f87) ===
+4050d81bb9d4b7c9255dbba1c31d89c1  /sdcard/uinav.xml
+=== litter ===
+ls: /sdcard/uinav-*.xml: No such file or directory

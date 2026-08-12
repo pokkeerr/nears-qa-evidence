@@ -1,0 +1,105 @@
+NEARS-1502 automated backstop, re-run in QA's hands  2026-08-12T02:02:27Z
+worktree: /Users/Apple/Projects/nears-NEARS-1502-uifind-failopen  branch: feat/NEARS-1502-uifind-failopen
+
+$ bash scripts/app-nav/uifind_dump.test.sh
+== uifind_dump.test.sh (NEARS-1502) ==
+   subject: /Users/Apple/Projects/nears-NEARS-1502-uifind-failopen/scripts/app-nav/uifind.py
+
+-- case 0: FIXTURE VALIDITY — the stub really shadows adb, and the stale file really is present
+  ok   0: `adb` on PATH resolves to the stub, not the real binary
+  ok   0: the stub was actually invoked (1 call(s)) — every verdict below rests on a live instrument
+  ok   0: the pre-fix fixed path /sdcard/uinav.xml is pre-seeded with a stale tree (the positive control's premise)
+  ok   0: the stale tree carries 19 distinct labels — the count M-6 measured being served silently
+-- case 1: NEGATIVE CONTROL — a real live dump PASSES, with no false alarm
+  ok   1: a successful dump still exits 0 (exit 0)
+  ok   1: the FRESH tree's sentinel is returned
+  ok   1 (FRESHNESS, by content): the stale tree still sitting at the old fixed path is NOT what came back
+  ok   1: no refusal is raised on a good dump — the check discriminates, it is not unconditional
+  ok   1: a validity line is published, naming the device
+  ok   1: …and the node count it actually parsed
+-- case 2: POSITIVE CONTROL — dump FAILS while a stale file sits at the read path: must REFUSE, not serve it
+  ok   2 (PREMISE): a 19-label stale tree is present at /sdcard/uinav.xml at the moment of the call
+  ok   2: exit 4 NOT ASSERTED (pre-fix this is exit 0) (exit 4)
+  ok   2 (THE DEFECT): ZERO labels on stdout — pre-fix this printed 19 from a 14-hour-old file
+  ok   2: the stale sentinel is never served
+  ok   2 (THE MESSAGE, not just the code): the refusal is announced on stderr
+  ok   2: …and says what the emptiness does not mean
+  ok   2: the reason quotes the evidence (the adb exit code)
+-- case 3: MARKER-LIAR CONTROL (M-4) — marker printed at rc 0, file never written: must still refuse
+  ok   3: exit 4 — this is the case that kills marker-only and rc-only checking (exit 4)
+  ok   3: no labels
+  ok   3: refusal announced
+-- case 4: SIGKILL COLLISION (M-5, the 'already registered' crash) — dump killed mid-flight
+  ok   4: exit 4 (exit 4)
+  ok   4: the SIGKILL returncode is quoted — visible only because the dump moved to `adb shell`
+  ok   4: no labels
+-- case 5: DEVICE AMBIGUOUS (M-7) — several devices attached and no ANDROID_SERIAL
+  ok   5: exit 4 — 'I could not observe' is not 'I observed nothing' (exit 4)
+  ok   5: the message counts them
+  ok   5: …and names them, so it is actionable
+-- case 6: CAT ERROR TEXT ON STDOUT (M-1) — 72 bytes of shell error at rc 0 must not reach the parser
+  ok   6: exit 4, not a bare ParseError traceback at exit 1 (exit 4)
+  ok   6: no traceback — the failure is reported, not crashed
+  ok   6: the reason names what actually went wrong
+-- case 7: DISCRIMINATION — a genuinely EMPTY screen is NOT a failure
+  ok   7 (THE CORE DELIVERABLE): a fresh, well-formed, node-less tree exits per the NORMAL contract — never 4 (exit 0)
+  ok   7: no labels, correctly
+  ok   7: and it is NOT reported as nothing-asserted
+  ok   7: the validity line publishes the honest zero
+  ok   7: …with the caveat that 0 nodes can also be an unbuilt semantics tree
+-- case 8: UNIQUE REMOTE PATH — the guarantee AC2 rests on
+  ok   8: two consecutive calls dumped to DIFFERENT remote paths (/sdcard/uinav-8c23c25b26ca4dbd9dac6040b97e0274.xml vs /sdcard/uinav-3862febaef1a496c9d054198cfc44ced.xml)
+  ok   8: each call reads back exactly the path IT dumped to
+  ok   8: the shared fixed path is no longer used at all
+  ok   8: the validity line names the remote path the tree came from
+-- case 9: CLEANUP — the unique file is removed after the read (litter is bounded)
+  ok   9: the call removed its own remote file
+-- case 10: SERIAL PIN + ANNOUNCEMENT — the silent wrong-device read becomes visible
+  ok   10: exit 0 (exit 0)
+  ok   10: all 3 adb invocation(s) carried -s emulator-5554, 0 unpinned — the device is pinned by uifind.py itself, not left ambient
+  ok   10 (THE POINT): the validity line NAMES the device, so a tree from the wrong screen is identifiable
+-- case 11: AC3 BACKWARD COMPATIBILITY — 0/1/2/3 keep their exact meanings on the happy path
+  ok   11: a unique hit is still 0 (exit 0)
+  ok   11: …and still prints 'cx cy', byte for byte
+  ok   11: not-found is still 1 — and now MEANS not-found, because infra failure left for 4 (exit 1)
+  ok   11: an ambiguous substring is still 3 (exit 3)
+  ok   11: with the candidate list
+  ok   11: an unknown command is still 2 with the device BROKEN — never laundered into 4 (exit 2)
+  ok   11 (ORDERING): the mis-invocation made ZERO adb invocations — settled before the device is touched
+  ok   11 (…NOR COST A DUMP): no dump was taken for a command that could never use one
+  ok   11: a missing find argument is still 2 under the OTHER 4-producing state (3 devices, unpinned) (exit 2)
+  ok   11 (ORDERING): …and the ambiguity pre-check was not reached either — zero adb invocations
+  ok   11 (THE FIX, at the contract level): an infra failure that used to arrive as 1 now arrives as 4 — ui_home's existing error arm can finally fire (exit 4)
+-- case 12: THE GUARANTEE, ISOLATED — a LYING dump (rc 0 + marker, nothing written) cannot serve the stale file
+  ok   12 (PREMISE): the stale tree is present at the old fixed path at the moment of the call
+  ok   12 (THE MECHANISM): a dump that CLAIMS success but wrote nothing is still refused (exit 4)
+  ok   12: zero labels — the rc could not save us here, only the unique path could
+  ok   12: the stale sentinel is not served
+-- case 13: MARKER ABSENT but the tree is VALID — the marker is corroboration, never the gate
+  ok   13: exit 0 — an absent marker is NOT a failed dump; the guarantee is the path, not the string (exit 0)
+  ok   13: the fresh tree is still served
+  ok   13: …and the anomaly is still reported, so it is not silently normalised
+  ok   13: but it is not escalated into a refusal
+-- case 14: DEVICE UNREACHABLE (rc 255) — its own row in the three-outcome table
+  ok   14: exit 4 — distinct from the ambiguity pre-check, which never reaches the dump (exit 4)
+  ok   14: the reason quotes adb's own returncode
+  ok   14: the refusal is announced
+  ok   14: no labels
+-- case 15: ADB ABSENT — subprocess.run RAISES rather than returning an rc
+  ok   15 (PREMISE): adb really is absent under the probe PATH — without this the case measures nothing
+  ok   15: exit 4, not the traceback-at-exit-1 that reads as 'label not found' (exit 4)
+  ok   15: the refusal is announced, with a reason
+  ok   15: no traceback escapes to the caller
+  ok   15: stdout is empty — nothing plausible is left for a $(…) capture
+
+-- result: PASS
+-- validity: 70 assertion(s) across 16 case(s); 0 skipped; 0 failed
+EXIT=0
+
+$ python3 scripts/app-nav/test_uifind.py
+.........................................
+----------------------------------------------------------------------
+Ran 41 tests in 0.002s
+
+OK
+EXIT=0

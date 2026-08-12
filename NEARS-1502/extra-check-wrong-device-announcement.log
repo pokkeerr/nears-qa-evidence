@@ -1,0 +1,17 @@
+NEARS-1502 EXTRA CHECK 2 — the validity line NAMES the device the tree came from
+Two devices, same moment, same tool. 5560 runs the SAME app in ARABIC on a
+different screen; 5562 in English. Without the serial on the line these two
+trees are indistinguishable to an operator — this is the NEARS-1482 hazard
+(a wrong-screen tap that switched the app locale).
+
+-- emulator-5560 (lock acquired for two read-only dumps, then released) --
+uifind: emulator-5560 dumped 20455 bytes from /sdcard/uinav-4d1861a09a694ee4b52da45c009ffee4.xml; parsed 57 node(s), 28 labelled
+   first labels: 2 / 20-30 / 25-40 / 3.1 كم / 5.3 كم / 6 المطاعم القريبة منك   (48 labels, Arabic)
+
+-- emulator-5562 (this run's locked device), same moment --
+uifind: emulator-5562 dumped 12200 bytes from /sdcard/uinav-a9144de69ed34f1985d1c111f52fd9bd.xml; parsed 34 node(s), 13 labelled   (29 labels, English)
+
+-- and an unreachable serial is named too, at exit 4, with no traceback --
+uifind: emulator-9999 NOT ASSERTED: dump failed: adb shell uiautomator dump exited 1 - adb: device 'emulator-9999' not found - an empty result is NOT an empty screen
+BAD_SERIAL_RC=4
+TRACEBACK_COUNT=0
