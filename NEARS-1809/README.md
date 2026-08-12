@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1809
 
-**PASS — AC1-AC4 test-verified (34/34) + live-verified on emulator-5554 (mobile arm)**
+**PASS — AC1-AC4 test-verified (34/34) + live-verified on emulator-5554 (mobile arm), build identity md5-pinned**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
