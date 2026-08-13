@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1735
 
-**PASS — NBottomSheet.show radius/barrierColor/backgroundColor: defaults reproduce 15dp/black54/cardColor exactly (measured); NEARS-1586 params reproduce 32dp top-only + black@0.20 (measured)**
+**PASS — plus bug artifact for the transparent-background demo gap**
 
-**18 screenshot(s).** Click any thumbnail for full resolution.
+**19 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -21,18 +21,21 @@
 <td align="center" width="33%"><a href="after-nears1586.png"><img src="after-nears1586.png" width="240"></a><br><sub>after nears1586</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="bug-1586-demo-radius-not-paintable.png"><img src="bug-1586-demo-radius-not-paintable.png" width="240"></a><br><sub>bug 1586 demo radius not paintable</sub></td>
 <td align="center" width="33%"><a href="ua-00-checkout-base.png"><img src="ua-00-checkout-base.png" width="240"></a><br><sub>ua 00 checkout base</sub></td>
 <td align="center" width="33%"><a href="ua-00-notif-base.png"><img src="ua-00-notif-base.png" width="240"></a><br><sub>ua 00 notif base</sub></td>
-<td align="center" width="33%"><a href="ua-00-orderdetails-base.png"><img src="ua-00-orderdetails-base.png" width="240"></a><br><sub>ua 00 orderdetails base</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ua-00-orderdetails-base.png"><img src="ua-00-orderdetails-base.png" width="240"></a><br><sub>ua 00 orderdetails base</sub></td>
 <td align="center" width="33%"><a href="ua-00-viewall-base.png"><img src="ua-00-viewall-base.png" width="240"></a><br><sub>ua 00 viewall base</sub></td>
 <td align="center" width="33%"><a href="ua-checkout-address-sheet.png"><img src="ua-checkout-address-sheet.png" width="240"></a><br><sub>ua checkout address sheet</sub></td>
-<td align="center" width="33%"><a href="ua-filter-sheet.png"><img src="ua-filter-sheet.png" width="240"></a><br><sub>ua filter sheet</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ua-filter-sheet.png"><img src="ua-filter-sheet.png" width="240"></a><br><sub>ua filter sheet</sub></td>
 <td align="center" width="33%"><a href="ua-notif-sheet.png"><img src="ua-notif-sheet.png" width="240"></a><br><sub>ua notif sheet</sub></td>
 <td align="center" width="33%"><a href="ua-order-help-sheet.png"><img src="ua-order-help-sheet.png" width="240"></a><br><sub>ua order help sheet</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="ua-sort-sheet.png"><img src="ua-sort-sheet.png" width="240"></a><br><sub>ua sort sheet</sub></td>
 </tr>
 </table>
