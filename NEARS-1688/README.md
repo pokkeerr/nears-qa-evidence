@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1688
 
-**PASS — compose-unavailable notice verified live on emulator-5564: 4 locales, RTL, 1.3x scale, loading arm empty, open composer intact**
+**PASS on AC1-AC4 — plus one task_bug: shipped icon 'lock' contradicts the [7d]-adjudicated 'info'**
 
 **11 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -27,6 +27,7 @@
 </table>
 
 ### Other artifacts
+- [`bug-icon-lock-vs-reviewed-info.log`](bug-icon-lock-vs-reviewed-info.log)
 - [`progress.md`](progress.md)
 
 ---

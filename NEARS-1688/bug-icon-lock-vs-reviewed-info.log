@@ -1,0 +1,37 @@
+NEARS-1688 — shipped icon contradicts this ticket's own [7d]-adjudicated design correction
+
+== SHIPPED CODE (worktree HEAD 82f8e749, committed 2026-08-13 19:53:42) ==
+    final Widget row = Row(
+      children: [
+        const NIcon(
+          'lock',
+          px: 18,
+          color: NearsTokens.textMuted,
+          mirrorForRtl: false,
+        ),
+
+== DESIGN DOC docs/design/NEARS-1688-chat-compose-unavailable-notice.md ==
+   (uncommitted; file mtime 2026-08-13 20:07:17 = 14 min AFTER the code commit)
++Two things changed after the first build, both adjudicated at the [7d] review, **before
++any QA evidence existed** (cheap to fix at that point — no screenshots to re-shoot):
++
++1. **Icon: `lock` → `info`.** The team lead flagged that a padlock asserts a *permission*
++   state ("you are not allowed"), and that is not what this state is — the customer is
++   fully permitted to message, they simply have no active order yet, which is a
++   precondition, not an authorization failure. On reflection I agree, and the point
++   sharpens further in this *specific* surface: a padlock sitting on a **chat compose
++   row** reads, in the dominant messaging-app vocabulary, as "this conversation is
++   locked/muted/archived" (a moderation action) far more readily than "complete an
++   action to unlock this feature" (a gamification precondition) — and moderation-lock is
++   exactly the harsher, false read the owner's "not an error, not a fault" instruction
++   was written to prevent. `info` carries no permission/restriction connotation at all,
++   so it can't be misread that way, at the (accepted) cost of being more generic. Full
++   reasoning: "Icon choice," below.
++2. **Copy key confirmed as shipped: `messaging_unavailable`, not this doc's original
++   draft key `chat_compose_locked`.** The team lead (not the engineer) named it, matching
++   the file's existing user-facing state-vocabulary convention (`no_messages_yet`,
+
+== IMPACT ==
+Build under QA renders a padlock. All 10 QA screenshots therefore show 'lock';
+they need re-shooting if/when the icon is corrected to 'info'.
+Functional ACs 1-4 are unaffected and PASS. QA does not fix - routing to the engineer.
