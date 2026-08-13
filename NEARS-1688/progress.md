@@ -97,3 +97,68 @@ Shot: regression-attach-preview-strip-intact.png
 conversation list, gated chat (x2 threads), open vendor chat, admin chat, profile, settings +
 language switching (x6 switches), module home smoke. No new [FAIL]/[ERR]: total stayed 22, all
 22 traceable to my own deliberate network cut (every one transport/socket), all PII-safe.
+
+### task_bug — shipped icon 'lock' vs [7d]-adjudicated 'info'
+chat_screen.dart:1674 renders NIcon('lock') at HEAD 82f8e749 (committed 19:53:42).
+docs/design/NEARS-1688-chat-compose-unavailable-notice.md (mtime 20:07:17, UNCOMMITTED) records a
+[7d] ux-review ruling that the icon must be 'info' — a padlock asserts a permission state, and on
+a compose row reads as "conversation locked/muted" (moderation), the exact false read this ticket
+exists to prevent. Ruling never reached the code. All 10 QA shots show the padlock and would need
+re-shooting. breaks_ac:false (AC1-4 functionally met) -> verdict stays PASS, routed to engineer.
+Artifact: bug-icon-lock-vs-reviewed-info.log
+
+### FINAL: PASS on AC1-AC4. 1 task_bug (icon, non-AC-breaking), 1 regression_bug (pre-existing
+attachment leak). Device lock released; emulator-5564 left running; font_scale restored 1.0.
+
+## ===== DELTA RE-QA — fix cycle 1, HEAD 501a57f5 (was 82f8e749) =====
+Rebuilt + reinstalled from the worktree: lastUpdateTime 20:10:53 -> **20:58:59** (newer, so not a
+stale APK). Code delta verified as exactly 1 insertion / 1 deletion: NIcon('lock') -> NIcon('info')
+at chat_screen.dart:1673; px/color/mirrorForRtl untouched. 'info': Symbols.info confirmed at
+n_icon.dart:215, same map as 'lock' at :196.
+
+GLYPH — hard measurement, not eyeballed. Live render tree off the running isolate:
+  U+E88E (Symbols.info) present, count = 1
+  U+E899 (Symbols.lock) present = FALSE, count = 0
+  painting node: family packages/material_symbols_icons/MaterialSymbolsOutlined, size 18.0,
+  color RGB(0.4157,0.4157,0.4706) = textMuted  -> px and colour provably unchanged.
+BOTH ARMS by construction: _ComposeUnavailableNotice builds `row` (containing the single NIcon)
+ONCE and both the isDesktop and mobile return paths embed that same row — one glyph site, so the
+desktop arm cannot differ. Desktop not separately bootable on a phone emulator; stated as a
+code-structure guarantee, not a live desktop demo.
+
+RTL MIRROR re-measured with the new glyph (measured, not assumed):
+  LTR(en) [108,2908][1314,2962]   RTL(ar) [30,2902][1236,2962]
+  108-30 = 78  and  1314-1236 = 78  -> MATCH. Byte-identical to the padlock run; the number did
+  not move, which is the expected result since px:18 is unchanged.
+
+RE-SHOT (padlock versions overwritten in place, nothing stale left alongside):
+  ac1-en-gated-notice-conv48.png, ac2-ar-rtl-notice.png, ac2-ar-rtl-notice-textscale-1.3.png,
+  ac2-es-notice.png, ac2-bn-notice.png, ac2-bn-notice-textscale-1.3.png
+  The other 5 artifacts show NO notice (empty loading slot / open composer / attach strip) and
+  remain current and correct.
+
+1.3x TEXT SCALE with the new glyph (scale confirmed applied before measuring):
+  ar 60 -> 78px (1.30x), exact vs ar.json, no ellipsis, mirror still 78/78
+  bn 57 -> 75px (1.32x), exact vs bn.json, no ellipsis
+  Both byte-identical to the padlock run -> the swap changed no layout. Scale restored to 1.0.
+
+TONE (the new qa_point): PASS in my judgement. The rendered glyph is an outline circled lowercase
+"i" in textMuted at the same optical weight as the sentence. It carries no permission or
+restriction semantics, and specifically does NOT read as "conversation locked/muted/archived" —
+the false moderation reading the padlock was ruled to carry. Outline-only and untinted (no red or
+amber, no fill), so it also does not read as an error or warning; it sits as a quiet annotation on
+the sentence rather than a status badge. Honest limitation: `info` is generic — it does not itself
+say "you need an order"; the sentence carries that. That trade was explicitly accepted at review.
+
+TEST-OUTPUT [FAIL] LINES — measured from my own cycle-0 suite log, not relayed: 394 [FAIL] lines
+appear in the raw output. They are AppLogger emissions from tests that DELIBERATELY exercise
+failure paths (19x "chat: message thread fetch failed", 19x "chat: conversation list fetch
+failed", 25x "api request threw", plus profile/coupon/wallet degrade tests). NONE coincides with
+the 4 real [E] failures (coupon x3, category x1). [FAIL] in test stdout is instrumentation, not a
+failure signal — the only failure signal is [E], which is 4 = baseline.
+
+NOT re-run, per scope and because the glyph cannot reach them: loading arm, gate-true attach
+regression, non-interactivity, TalkBack semantics class, locale copy strings, full suite.
+Cycle-0 results for those stand.
+
+DELTA VERDICT: PASS.

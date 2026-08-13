@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1688
 
-**PASS on AC1-AC4 — plus one task_bug: shipped icon 'lock' contradicts the [7d]-adjudicated 'info'**
+**DELTA re-QA PASS (fix cycle 1, HEAD 501a57f5) — glyph is now info (U+E88E), padlock absent from the render tree; all 6 notice shots re-taken**
 
 **11 screenshot(s).** Click any thumbnail for full resolution.
 
