@@ -1,0 +1,26 @@
+NEARS-1967 QA — UNRELATED OBSERVATION (not caused by the change under test)
+Device emulator-5556 / com.izzes.nears pid 4779 / debug build f18c5888ebd83cc0d5e137847c5f79ff
+Trigger: store-registration map marker left OUTSIDE every zone polygon (QA pan), then idle.
+Symptom: repeated /api/v1/config/get-zone-id 404 -> 'prompting location picker' loop,
+         main-thread wedge, system ANR dialog that does not clear on Wait.
+--- scoped logcat --pid=4779 ---
+08-13 20:45:49.828  4779  4779 I Choreographer: Skipped 135 frames!  The application may be doing too much work on its main thread.
+08-13 20:45:56.917  4779  4779 I flutter : [NET] GET endpoint=/api/v1/config/get-zone-id
+08-13 20:45:56.981  4779  4936 I HWUI    : Davey! duration=3397ms ...
+08-13 20:45:58.341  4779  4779 I Choreographer: Skipped 497 frames!  The application may be doing too much work on its main thread.
+08-13 20:46:06.448  4779  9299 I HWUI    : Davey! duration=15588ms ...
+08-13 20:46:12.834  4779  4936 I HWUI    : Davey! duration=726ms ...
+08-13 20:46:13.682  4779  4779 I flutter : [NET] endpoint=/api/v1/config/get-zone-id http_status=404
+08-13 20:46:13.683  4779  4779 I flutter : [INFO] msg="get-zone-id: no zone / out of zone — prompting location picker"
+08-13 20:46:13.840  4779  4791 I HWUI    : Davey! duration=985ms ...
+08-13 20:46:15.861  4779  4779 I flutter : [NET] GET endpoint=/api/v1/config/get-zone-id
+08-13 20:46:15.868  4779  4779 I Choreographer: Skipped 122 frames!  The application may be doing too much work on its main thread.
+08-13 20:46:16.096  4779  4791 I HWUI    : Davey! duration=2164ms ...
+08-13 20:46:16.435  4779  4779 I Choreographer: Skipped 33 frames!  The application may be doing too much work on its main thread.
+08-13 20:46:18.727  4779  6644 I HWUI    : Davey! duration=1070ms ...
+08-13 20:46:18.731  4779  4779 I Choreographer: Skipped 62 frames!  The application may be doing too much work on its main thread.
+08-13 20:46:18.859  4779  4779 I flutter : [NET] endpoint=/api/v1/config/get-zone-id http_status=404
+08-13 20:46:18.859  4779  4779 I flutter : [INFO] msg="get-zone-id: no zone / out of zone — prompting location picker"
+08-13 20:46:19.662  4779  4779 I Choreographer: Skipped 46 frames!  The application may be doing too much work on its main thread.
+08-13 20:46:19.773  4779  6008 I HWUI    : Davey! duration=855ms ...
+08-13 20:46:20.548  4779  4780 I com.izzes.nears: Wrote stack traces to tombstoned
