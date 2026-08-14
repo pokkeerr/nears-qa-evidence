@@ -1,0 +1,15 @@
+NEARS-1868 device smoke #2 — generic 4xx toast path (emulator-5566), real backend.
+Reorder of an out-of-zone order -> POST /api/v1/customer/cart/add 403. Reproduced 3x.
+
+08-15 01:47:36.673 I/flutter (10052): [NET] endpoint=/api/v1/customer/cart/add http_status=403
+08-15 01:47:36.683 I/flutter (10052): [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="api request failed" correlation_id=7b880632-0579-4407-840f-d0119546e2f9
+08-15 01:47:36.689 I/flutter (10052): [ERR] msg="error snackbar shown"
+08-15 01:48:22.135 I/flutter (10052): [NET] endpoint=/api/v1/customer/cart/add http_status=403
+08-15 01:48:22.136 I/flutter (10052): [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="api request failed" correlation_id=2de48457-8499-433c-b071-5347bfb698c8
+08-15 01:48:22.138 I/flutter (10052): [ERR] msg="error snackbar shown"
+08-15 01:48:37.936 I/flutter (10052): [NET] endpoint=/api/v1/customer/cart/add http_status=403
+08-15 01:48:37.937 I/flutter (10052): [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="api request failed" correlation_id=a59f9565-a61e-42fc-803a-207cc83b1905
+
+RESULT: exactly ONE checkApi [FAIL] per 403 + ONE snackbar. Unchanged by this diff:
+403 >= 400 fired under the OLD guard too, and the snackbar/401 branches sit OUTSIDE
+the edited condition (byte-identical at diff level).

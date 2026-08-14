@@ -1,0 +1,28 @@
+NEARS-1868 AC1/AC2 — 201..399 band forced LIVE on emulator-5566 via a transparent
+proxy (127.0.0.1:8099 -> 8000) injecting a status on /api/v1/module. No DB mutation.
+Metric = checkApi [FAIL] ApiFailure lines per module RESPONSE (1:1 expected).
+
+STATUS     module responses(NET)  checkApi [FAIL]
+201        2                      2
+204        1                      1
+399        2                      2
+500 (POSITIVE CONTROL) 2                      2
+200 (NEG CONTROL) 2                      0
+
+--- 201 (rerun; first attempt produced NO module request = no observation) ---
+08-15 01:55:41.045 I/flutter (12226): [NET] endpoint=/api/v1/module http_status=201
+08-15 01:55:41.063 I/flutter (12226): [FAIL] endpoint=/api/v1/module http_status=201 type=ApiFailure msg="api request failed"
+08-15 01:55:43.433 I/flutter (12226): [NET] endpoint=/api/v1/module http_status=201
+08-15 01:55:43.440 I/flutter (12226): [FAIL] endpoint=/api/v1/module http_status=201 type=ApiFailure msg="api request failed"
+--- 204 ---
+08-15 01:54:31.638 I/flutter (11676): [NET] endpoint=/api/v1/module http_status=204
+08-15 01:54:31.662 I/flutter (11676): [FAIL] endpoint=/api/v1/module http_status=204 type=ApiFailure msg="api request failed"
+--- 399 ---
+08-15 01:54:37.266 I/flutter (11839): [NET] endpoint=/api/v1/module http_status=399
+08-15 01:54:37.282 I/flutter (11839): [FAIL] endpoint=/api/v1/module http_status=399 type=ApiFailure msg="api request failed"
+--- 500 POSITIVE CONTROL (same sweep) ---
+08-15 01:54:47.341 I/flutter (11972): [NET] endpoint=/api/v1/module http_status=500
+08-15 01:54:47.372 I/flutter (11972): [FAIL] endpoint=/api/v1/module http_status=500 type=ApiFailure msg="api request failed"
+--- 200 NEGATIVE CONTROL: responses present, zero [FAIL] ---
+08-15 01:55:00.998 I/flutter (12098): [NET] endpoint=/api/v1/module http_status=200
+08-15 01:55:01.529 I/flutter (12098): [NET] endpoint=/api/v1/module http_status=200

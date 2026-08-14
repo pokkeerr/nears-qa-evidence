@@ -1,0 +1,36 @@
+NEARS-1868 — QA's OWN mutation battery at HEAD b3f2524 (SDK 3.41.9, pinned absolute path).
+Seam: real ApiClient + real repository; only http.BaseClient is faked. NOT a repo mock.
+
+[POST-FIX, HEAD as committed]  loyalty_status_band_test.dart + staples_transport_sentinel_test.dart
+  7/7 PASS. Observed [FAIL] lines: 201, 204, 399, 500. 200 -> none.
+
+[M1 = PRE-FIX guard restored]  ((statusCode ?? 0) >= 400 || statusCode == null)
+  mutation proven landed:
+    -    if (response.statusCode != 200 && response.statusCode != 1) {
+    +    if ((response.statusCode ?? 0) >= 400 || response.statusCode == null) {
+  201  -> RED, recorder.errors == []  (length 0)
+  204  -> RED, recorder.errors == []  (length 0)
+  399  -> RED, recorder.errors == []  (length 0)
+  500  -> GREEN, exactly 1, "[FAIL] http_status=500" PRINTED IN THE SAME RUN   <-- POSITIVE CONTROL
+  200  -> GREEN (negative control, 0 records)
+  staples offline sentinel -> GREEN ; staples 500 control -> GREEN
+  => the three zeroes are REAL ABSENCES, not a dead instrument.
+
+[M2 = literal `!= 200`, dropping the `!= 1` sentinel exclusion]
+    -    if (response.statusCode != 200 && response.statusCode != 1) {
+    +    if (response.statusCode != 200) {
+  staples offline sentinel -> RED at 2 records ("has length of <2>")
+  => the `!= 1` exclusion is load-bearing and genuinely pinned (NEARS-1238 double-log).
+
+[M3 = instrument vacuity check] ApiChecker.checkApi removed from staples_service.getStaples()
+    -    ApiChecker.checkApi(response);
+    +    // M3 QA MUTATION: checkApi removed
+  staples 500 POSITIVE CONTROL -> RED (0 records)
+  staples offline sentinel     -> GREEN (stays green: it asserts only an ABSENCE)
+  => the cycle-1 positive control genuinely discriminates; it is NOT vacuous.
+
+Tree restored to b3f2524 after every mutation; `git status --porcelain` empty, `git diff HEAD` = 0.
+
+[REGRESSION SWEEP] 7 pinned files -> 50/50 PASS, incl. the invariant
+  "a 401 DOES reach ApiChecker force-logout; a 500 through the very same seam does not".
+[FULL SUITE] flutter test (UserApp): 3849 passed / 0 failed / 2 skipped, exit 0.

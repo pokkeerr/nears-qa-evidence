@@ -1,0 +1,16 @@
+NEARS-1868 device smoke #1 — 401 force-logout regression (emulator-5566).
+Pre-state: logged in, cart badge = 2, on Home. 401 injected at the proxy.
+
+4:08-15 01:52:05.194 I/flutter (11144): [NET] endpoint=/api/v1/customer/notifications http_status=401
+5:08-15 01:52:05.194 I/flutter (11144): [NET] endpoint=/api/v1/customer/notifications http_status=401
+17:08-15 01:52:05.208 I/flutter (11144): [FAIL] endpoint=/api/v1/customer/notifications http_status=401 type=ApiFailure msg="api request failed"
+20:08-15 01:52:05.395 I/flutter (11144): [NET] POST endpoint=/api/v1/auth/guest/request
+21:08-15 01:52:05.999 I/flutter (11144): [NET] endpoint=/api/v1/auth/guest/request http_status=200
+22:08-15 01:52:06.045 I/flutter (11144): [INFO] msg="route: initial route module=grocery-food"
+
+RESULT: exactly ONE checkApi [FAIL] for the 401; clearSharedData -> guest re-mint
+(POST /api/v1/auth/guest/request 200); landed on 'route: initial route'.
+Cart badge 2 -> absent after logout (post-401 a11y dump had no numeric badge):
+  labels after logout: Cart / Change Location / Notification / Select Your Location
+NOTE: the later repeated-401 cascade + backend 'Too Many Requests' is an artifact of
+the injector answering EVERY endpoint with 401, not product behaviour.
