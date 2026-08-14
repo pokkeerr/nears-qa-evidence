@@ -1,0 +1,36 @@
+NEARS-2029 QA — PRE-EXISTING regression finding (NOT caused by this change)
+Store-registration module fetch: client sends ?zone_id=, backend filters by the zoneId HEADER only.
+
+CLIENT (unchanged by NEARS-2029 — not in the diff):
+  UserApp/lib/features/auth/domain/repositories/deliveryman_registration_repository.dart  _getModules()
+    apiClient.getData('${AppConstants.moduleUri}?zone_id=$zoneId',
+      headers: {'Content-Type': ..., localizationKey: ...});     <-- explicit headers REPLACE
+                                                                      ApiClient's default zoneId header
+
+BACKEND: Admin/app/Http/Controllers/Api/V1/ModuleController.php index()
+  if (! $request->hasHeader('zoneId') || empty(...)) { $zone = Zone::where('status',1)->where('is_default',1)->first() ?? Zone::first(); $request->headers->set('zoneId', json_encode([$zone->id])); }
+  ...filters by header only. The ?zone_id query param is never read.
+
+MEASURED (local backend 127.0.0.1:8000, 2026-08-14):
+  $ curl -s "http://127.0.0.1:8000/api/v1/module?zone_id=3" -> ['Grocery & Food','Food & Restaurant','Pharmacy','Parcel Delivery']
+  $ curl -s "http://127.0.0.1:8000/api/v1/module?zone_id=1" -> ['Grocery & Food','Food & Restaurant','Pharmacy','Parcel Delivery']
+  CONTROL (header form, which the server DOES honour):
+  $ curl -s "http://127.0.0.1:8000/api/v1/module" -H "zoneId: [3]" -> [{"id":4,"module_name":"QA Single-Store Grocery",...}]
+  $ curl -s "http://127.0.0.1:8000/api/v1/module" -H "zoneId: [1]" -> ['Grocery & Food','Food & Restaurant','Pharmacy','Parcel Delivery','NEARS-475 Suspended Grocery']
+
+DB (read-only): SELECT z.id, z.name, GROUP_CONCAT(m.module_name) ... module_zone
+  1  Main Service Zone      Grocery & Food,Food & Restaurant,Pharmacy,Parcel Delivery,NEARS-475 Suspended Grocery
+  2  Abu Dhabi Zone         Grocery & Food,Food & Restaurant,Pharmacy,Parcel Delivery
+  3  Single Store QA Zone   QA Single-Store Grocery
+
+LIVE (emulator-5558, post-fix build md5 114eb600e08e035cf66611d8f006a593):
+  Vendor Info -> Select Zone -> "Single Store QA Zone" (zone id 3) selected (trigger reads it).
+  logcat: 13:40:32  [NET] GET endpoint=/api/v1/module  -> http_status=200   (a real refetch fired)
+  Module dropdown overlay then listed: Food & Restaurant / Grocery & Food / Pharmacy
+  Expected for zone 3: QA Single-Store Grocery (only).
+  Screenshot: ac2-02-module-overlay-zone3-modules.png
+
+IMPACT: the vendor-registration module dropdown always offers the DEFAULT zone's modules,
+so a vendor registering in a non-default zone can pick a module that zone does not serve.
+PRE-EXISTING: NEARS-2029's diff touches only module_view_widget.dart (+2 test files, 1 doc);
+the fetch path and the backend are byte-identical to base 4bb5294f.
