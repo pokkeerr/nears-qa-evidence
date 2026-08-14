@@ -1,0 +1,44 @@
+NEARS-1863 — live campaign endpoint traffic, UserApp on emulator-5558
+Build: worktree /Users/Apple/Projects/nears-NEARS-1863-campaign-cache-key @ c06e48a4 (fix/NEARS-1863-campaign-cache-key)
+Backend: http://10.0.2.2:8000 (real local Laravel), zone 1, light mode.
+
+The two campaign lists are fetched independently on every module entry — the live
+proxy for "the two cacheIds no longer share a root". Zero [FAIL]/[ERR] on any pass.
+
+--- COLD START (fresh install, empty disk cache) — Food module ---
+I/flutter: [NET] GET endpoint=/api/v1/campaigns/basic
+I/flutter: [NET] GET endpoint=/api/v1/campaigns/item
+I/flutter: [NET] endpoint=/api/v1/campaigns/basic http_status=200
+I/flutter: [NET] endpoint=/api/v1/campaigns/item http_status=200
+
+--- MODULE SWITCH (Food -> Grocery & Food) — keys are module-scoped ---
+I/flutter: [NET] GET endpoint=/api/v1/campaigns/basic
+I/flutter: [NET] GET endpoint=/api/v1/campaigns/item
+I/flutter: [NET] endpoint=/api/v1/campaigns/basic http_status=200
+I/flutter: [NET] endpoint=/api/v1/campaigns/item http_status=200
+
+--- AFTER NEARS-1554 POP (back to sector picker mid fan-out, then re-enter Pharmacy) ---
+campaign refresh NOT silently skipped:
+I/flutter: [NET] GET endpoint=/api/v1/campaigns/basic
+I/flutter: [NET] GET endpoint=/api/v1/campaigns/item
+I/flutter: [NET] endpoint=/api/v1/campaigns/basic http_status=200
+I/flutter: [NET] endpoint=/api/v1/campaigns/item http_status=200
+
+--- WARM START (force-stop + restart, disk cache populated, data preserved) ---
+08-15 03:05:51.968 I/flutter: [NET] GET endpoint=/api/v1/campaigns/basic
+08-15 03:05:51.972 I/flutter: [NET] GET endpoint=/api/v1/campaigns/item
+08-15 03:05:53.388 I/flutter: [NET] endpoint=/api/v1/campaigns/basic http_status=200
+08-15 03:05:55.865 I/flutter: [NET] endpoint=/api/v1/campaigns/item http_status=200
+
+--- POST-OFFLINE RECOVERY (self-heal direction: cache row absent -> chained client fetch repopulates, no manual step) ---
+08-15 03:09:09.913 I/flutter: [NET] GET endpoint=/api/v1/campaigns/basic
+08-15 03:09:09.916 I/flutter: [NET] GET endpoint=/api/v1/campaigns/item
+08-15 03:09:11.499 I/flutter: [NET] endpoint=/api/v1/campaigns/basic http_status=200
+08-15 03:09:11.584 I/flutter: [NET] endpoint=/api/v1/campaigns/item http_status=200
+
+--- OFFLINE COLD START — graceful, no crash ---
+UI: "Oops!" / "No internet connection" / "Try Again"   (see offline-cold-start-graceful.png)
+app process still alive; zero FATAL / AndroidRuntime crash lines.
+Every failure carries a paired [FAIL] + correlation_id (logging contract satisfied, no silent failure):
+I/flutter: [FAIL] endpoint=/api/v1/config/get-zone-id http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=42ada750-6058-48f4-8ecf-dcdc26ac36d9
+I/flutter: [FAIL] endpoint=/api/v1/module http_status=null type=ModuleFetchFailure msg="zone module list fetch failed"

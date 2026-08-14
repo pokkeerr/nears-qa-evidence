@@ -1,0 +1,42 @@
+NEARS-1863 — DATA DoR GAP: neither campaign rail has renderable data in multi_food_db.
+Blocks the live-render half of QA scenarios 1-3 (item rail renders / banner rail unchanged /
+both rails render DIFFERENT content simultaneously). NOT a defect in this change.
+Read-only queries only — no DML, nothing seeded to manufacture a pass.
+
+--- item-campaign rail (fed by _getItemCampaignList, the builder this ticket re-rooted) ---
+mysql> SELECT COUNT(*) AS item_campaign_rows FROM item_campaigns;
+item_campaign_rows
+0
+
+  => the table is EMPTY platform-wide. No zone, module or account can render this rail.
+
+--- basic/banner rail (fed by _getBasicCampaignList) ---
+mysql> SELECT id,title,status,module_id FROM campaigns;
+id  title                        status  module_id
+1   QA Single-Store Campaign A   1       1
+2   QA Single-Store Campaign B   1       1
+
+mysql> SELECT * FROM campaign_store LIMIT 5;
+campaign_id  store_id  campaign_status
+1            21        confirmed
+
+mysql> SELECT id,name,zone_id,module_id,status FROM stores WHERE id=21;
+id  name         zone_id  module_id  status
+21  Fast Market  2        1          0
+
+  => the only linked store is zone 2 AND status=0 (inactive); the app under test runs in
+     zone 1, so the banner rail is empty here too.
+
+--- confirmed against the live API (both return an empty list) ---
+$ curl -s -H "zoneId: [1]" -H "moduleId: 1" -H "latitude: 23.8103" -H "longitude: 90.4125" \
+       http://127.0.0.1:8000/api/v1/campaigns/item
+[]
+$ curl -s -H "zoneId: [1]" -H "moduleId: 1" -H "latitude: 23.8103" -H "longitude: 90.4125" \
+       http://127.0.0.1:8000/api/v1/campaigns/basic
+[]
+
+Consequence: the endpoints are provably fetched independently and return 200 (see
+campaign-endpoint-independence.log), but no rail CONTENT can be shown on screen, so the
+"banners must never appear inside the item rail" proxy cannot be exercised visually.
+Fix = a seeder adding >=1 active item_campaign + >=1 basic campaign on an ACTIVE store in
+zone 1. Versioned seeder/migration only, per the read-only DB rule.
