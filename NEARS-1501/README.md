@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1501
 
-**PASS — AC1 demonstrated live via instrumented A/B (fix present: toast visible + [WARN] overlay branch; fix reverted: no toast + _scaffolds.isNotEmpty assert)**
+**PASS — AC1 demonstrated live via instrumented A/B on emulator-5558**
 
 **5 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -19,6 +19,7 @@
 ### Other artifacts
 - [`ac1-buildA-warn-positive-control.log`](ac1-buildA-warn-positive-control.log)
 - [`ac1-buildB-assertion-control.log`](ac1-buildB-assertion-control.log)
+- [`bug-category-back-button-test-preexisting.log`](bug-category-back-button-test-preexisting.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1501/` · public-repo scrub policy (no live secrets; verified clean).*
