@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1745
 
-**FAIL — AC4 tertiary conversion truncates 'Forgot Password?' in EN at 360dp; 2 DLS contrast findings**
+**Delta cycle 1: B1 FIXED — Forgot Password? whole at 360dp EN; stacking degradation observed at the 1.3 clamp**
 
-**10 screenshot(s).** Click any thumbnail for full resolution.
+**13 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -12,6 +12,11 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="bug-ncheckbox-secondary-label-contrast.png"><img src="bug-ncheckbox-secondary-label-contrast.png" width="240"></a><br><sub>bug ncheckbox secondary label contrast</sub></td>
+<td align="center" width="33%"><a href="delta-ac3-isloading-disabled-overflowbar.png"><img src="delta-ac3-isloading-disabled-overflowbar.png" width="240"></a><br><sub>delta ac3 isloading disabled overflowbar</sub></td>
+<td align="center" width="33%"><a href="delta-b1-FIXED-360dp-en.png"><img src="delta-b1-FIXED-360dp-en.png" width="240"></a><br><sub>delta b1 FIXED 360dp en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-stacking-textscale13-360dp-en.png"><img src="delta-stacking-textscale13-360dp-en.png" width="240"></a><br><sub>delta stacking textscale13 360dp en</sub></td>
 <td align="center" width="33%"><a href="q1-rtl-mse-ltr-en-360dp.png"><img src="q1-rtl-mse-ltr-en-360dp.png" width="240"></a><br><sub>q1 rtl mse ltr en 360dp</sub></td>
 <td align="center" width="33%"><a href="q1-rtl-mse-rtl-ar-360dp.png"><img src="q1-rtl-mse-rtl-ar-360dp.png" width="240"></a><br><sub>q1 rtl mse rtl ar 360dp</sub></td>
 </tr>
