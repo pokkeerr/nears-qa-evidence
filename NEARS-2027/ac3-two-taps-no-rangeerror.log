@@ -1,0 +1,45 @@
+NEARS-2027 — AC1 (module unset) + AC3 (two taps) log evidence
+Device emulator-5556 | app pid 3472 | com.izzes.nears | APK md5 8e396579cd34ac2e7f2ba6ace6fa830d
+Geometry ACTIVE during capture: Override size 2400x1800 @ Override density 240
+  => dp = px * 160 / density = 2400*160/240 x 1800*160/240 = 1600 x 1200 dp  (>= 1300 => isDesktop arm)
+
+Window opened 06:14:32 (logcat -c). TAP 1 at 06:14:33, TAP 2 at 06:14:42.
+
+--- TAP 1 ---
+08-14 06:14:33.758  3472  3472 I flutter : ----------------FIREBASE CRASHLYTICS----------------
+08-14 06:14:33.758  3472  3472 I flutter : The following exception was thrown app error:
+08-14 06:14:33.758  3472  3472 I flutter : Exception: app_error
+08-14 06:14:33.758  3472  3472 I flutter : #0      AppLogger.error (package:sixam_mart/helper/app_logger.dart:103:18)
+08-14 06:14:33.758  3472  3472 I flutter : #1      showCustomSnackBar (package:sixam_mart/common/widgets/custom_snackbar.dart:30:17)
+08-14 06:14:33.758  3472  3472 I flutter : #2      _StoreRegistrationScreenState._submitData (package:sixam_mart/features/auth/screens/store_registration_screen.dart:3661:13)
+08-14 06:14:33.758  3472  3472 I flutter : #3      _StoreRegistrationScreenState.buttonView.<anonymous closure>.<anonymous closure> (package:sixam_mart/features/auth/screens/store_registration_screen.dart:3558:25)
+08-14 06:14:33.758  3472  3472 I flutter : ----------------------------------------------------
+08-14 06:14:33.758  3472  3472 I flutter : [ERR] msg="error snackbar shown"
+
+--- TAP 2 ---
+08-14 06:14:44.019  3472  3472 I flutter : ----------------FIREBASE CRASHLYTICS----------------
+08-14 06:14:44.019  3472  3472 I flutter : The following exception was thrown app error:
+08-14 06:14:44.019  3472  3472 I flutter : Exception: app_error
+08-14 06:14:44.019  3472  3472 I flutter : #0      AppLogger.error (package:sixam_mart/helper/app_logger.dart:103:18)
+08-14 06:14:44.019  3472  3472 I flutter : #1      showCustomSnackBar (package:sixam_mart/common/widgets/custom_snackbar.dart:30:17)
+08-14 06:14:44.019  3472  3472 I flutter : #2      _StoreRegistrationScreenState._submitData (package:sixam_mart/features/auth/screens/store_registration_screen.dart:3661:13)
+08-14 06:14:44.019  3472  3472 I flutter : #3      _StoreRegistrationScreenState.buttonView.<anonymous closure>.<anonymous closure> (package:sixam_mart/features/auth/screens/store_registration_screen.dart:3558:25)
+08-14 06:14:44.019  3472  3472 I flutter : ----------------------------------------------------
+08-14 06:14:44.020  3472  3472 I flutter : [ERR] msg="error snackbar shown"
+
+Source line pinned by BOTH stack traces (post-fix tree, this worktree):
+  3660:           } else if (storeRegController.selectedModuleIndex == -1) {
+  3661:             showCustomSnackBar('please_select_module_first'.tr);
+  3662:             return;                                <-- the line under test
+
+Assertions:
+* Both taps land on the SAME branch (line 3661) => the second tap did not advance state.
+* grep RangeError|Unhandled Exception|EXCEPTION CAUGHT|FlutterError|[FAIL] over the window: ZERO hits.
+* validateAndRegisterStore never appears in the trace => never reached => no vendor row written.
+* The two [ERR] lines are the logging-contract-REQUIRED pairing for the warning toast
+  (AppLogger.error called from showCustomSnackBar), not an unhandled failure.
+
+Instrument positive controls (so an empty result is a real negative, not a dead scanner):
+* ui_errors exit 0, "scanned 32 flutter-tag lines of 1855 buffer lines; 2 match(es)" -> scanner alive and matching.
+* Submit button node flipped enabled=false -> enabled=true across the run while Reset stayed
+  enabled=true -> the uiautomator dump discriminates states, it is not returning a fixed answer.
