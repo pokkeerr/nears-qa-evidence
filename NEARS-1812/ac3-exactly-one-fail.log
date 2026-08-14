@@ -1,0 +1,28 @@
+NEARS-1812 AC3 — the load-bearing log evidence (device emulator-5554, build 3.8.0 debug, Flutter 3.41.9)
+Method: nav-guide pass-through proxy (NEARS-1686 QA recipe). No DB write. One field rewritten on one endpoint.
+
+--- proxy proves what the BACKEND actually returned (assertion 4: no default address substituted) ---
+REWRITE /api/v1/customer/order/track?order_id=158 order_type 'delivery'->'take_away' store_id=2 store_address='123 Market Street, Downtown'
+REWRITE /api/v1/customer/order/track?order_id=158 order_type 'delivery'->'take_away' store_id=2 store_address='123 Market Street, Downtown'
+REWRITE /api/v1/customer/order/track?order_id=158 order_type 'delivery'->'take_away' store_id=2 store_address='123 Market Street, Downtown'
+
+--- EXACTLY ONE [FAIL] across 13 payload rewrites / 21 track polls over 80s ---
+I/flutter (30903): [FAIL] endpoint=/api/v1/customer/order/track http_status=null type=ApiFailure msg="order-tracking: store address missing, rendered empty"
+strict count of AC3 [FAIL] lines: 1
+all [FAIL]/[ERR] on this build:    1
+
+--- the report's own stack (frame #0 is the dedupe helper => a deliberate report, NOT an escaped exception) ---
+I/flutter (30903): The following exception was thrown order-tracking: store address missing, rendered empty:
+I/flutter (30903): ApiFailure(status: null)
+I/flutter (30903): #0      _logMissingStoreAddressOnce (package:sixam_mart/features/order/widgets/track_details_view_widget.dart:29:16)
+I/flutter (30903): #1      _TripRouteSection.build (package:sixam_mart/features/order/widgets/track_details_view_widget.dart:433:7)
+
+--- PII sweep, positive controls in the same pass ---
+123 Market Street      0
+Abu Dhabi              0
+565811199              0
++971                   0
+token=                 0
+Bearer                 0
+order_id=              0
+[NET]                  196 (control, >0)
