@@ -1,0 +1,16 @@
+### AC2 — scratch 'assert_rc 0 1 "should fail"' moves counters AND fails the run
+world: w1_fixed_scratch (post-fix file + scratch call), invoked BARE, streams separated
+EXIT=1   stderr=0 bytes
+77:== worktree-prune.test: assertions:52 ==
+78:FAIL: worktree-prune.test.sh
+-- the ONLY in-suite FAIL line, identified BY NAME:
+76:  FAIL should fail -- expected exit 1, got 0
+
+-- EXIT-CODE ATTRIBUTION (the tail runs the floor check BEFORE the fail check):
+   asserts=52 >= 50  => floor CLEARED
+   floor message 'only N assertions ran' => ABSENT (grep below)
+   (absent — grep found no match)
+   therefore exit 1 is attributable to fail=1, not to a floor trip.
+
+-- argument order note: assert_rc <actual> <expected> <label>. 'assert_rc 0 1' reads
+   actual=0 / expected=1 and prints 'expected exit 1, got 0'. It fails, so AC2 holds.

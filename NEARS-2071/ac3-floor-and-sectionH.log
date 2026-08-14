@@ -1,0 +1,21 @@
+### AC3 — no scratch call: floor still holds, section H unchanged
+-- authoritative IN-SITU run of the worktree candidate, BARE:
+EXIT=0   stderr=0 bytes
+76:== worktree-prune.test: assertions:51 ==
+77:PASS: worktree-prune.test.sh
+   51 >= 50 floor holds; floor message absent; verdict PASS.
+
+-- section H still runs exactly 4 assertions (Ha..Hd), all ok:
+72:  ok   Ha --help exits 0
+73:  ok   Hb --help reaches the on-by-default rationale near the end of the header
+74:  ok   Hc ...and the EXIT-CODE line — the LAST header line, and precisely what the old slice ate
+75:  ok   Hd ...and stops at the end of the header instead of leaking shell source, so Hc cannot be met by dumping the whole file
+
+-- section H EXECUTABLE line l.385 vs base l.381: BYTE-IDENTICAL (cmp rc=0)
+[ "$rc" -eq 0 ] && ok "Ha --help exits 0" || bad "Ha --help exited $rc, not 0"
+-- section H executable block FIXED vs BASE: only the 3->4 COMMENT lines differ.
+
+-- stdout equivalence to base, mktemp path masked:
+   same file run twice, RAW diff = 20 differing lines (all mktemp paths)
+   same file run twice, MASKED diff = EMPTY  => variance IS the temp path
+   base vs fixed-no-scratch, MASKED diff = EMPTY (77 lines each)

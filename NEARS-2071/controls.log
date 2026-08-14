@@ -1,0 +1,21 @@
+### CONTROLS (each requires a POSITIVE)
+-- anchors asserted to match EXACTLY ONCE before any edit:
+   'tail-echo (scratch insertion point)'      matched 1 time  OK
+   'assert_rc definition block (3 lines)'     matched 1 time  OK
+   'tail-echo in BASE'                        matched 1 time  OK
+   => a silently-failed substitution cannot masquerade as a passing world.
+
+-- CONTROL A: every world byte-differs (6 distinct sha256):
+   e9f6b943 w0_fixed_noscratch   7c85c2db w1_fixed_scratch
+   277e8b93 m1_removal           1ab0b2ba m2_neuter
+   76e2ff7f pc_positive_ctrl     2eb1d8fb base_noscratch
+
+-- CONTROL B: definition probe differs per world (matched LINES, not counts):
+   w0/w1/pc : 68:assert_rc() { # $1=actual $2=expected $3=label
+   m1       : (NO DEFINITION LINE - grep exit 1)
+   m2       : 68:assert_rc() { ok "$3"; }
+   base     : (NO DEFINITION LINE - grep exit 1)
+
+-- POSITIVE CONTROL on the helper itself: scratch 'assert_rc 0 0 "control"'
+   => assertions:52, PASS, exit 0, stderr empty.
+   The helper is NOT hardwired to fail, so AC2's FAIL came from the COMPARISON.

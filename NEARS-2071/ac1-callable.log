@@ -1,0 +1,16 @@
+### AC1 — assert_rc is a CALLABLE function
+-- definition probe on the candidate (matched lines):
+68:assert_rc() { # $1=actual $2=expected $3=label
+381:# Written when this suite had no assert_rc: the missing call left both the assertion counter and
+383:# this section raised the count by 3, not 4. NEARS-2071 added assert_rc above; this one check
+   => l.68 definition; l.381/383 are PROSE ONLY. No scratch call is committed.
+
+-- direct callability probe (helpers l.51-70 sourced into a scratch shell):
+type -t assert_rc = function
+  FAIL should fail -- expected exit 1, got 0
+after mismatch: asserts=1 fail=1
+  ok   control equal
+after match:    asserts=2 fail=1
+
+-- in-suite proof (contrast): M1 removal emits 'assert_rc: command not found' on stderr
+   and the counter does NOT move (51); the fixed world moves it (52) with 0 bytes stderr.
