@@ -1,0 +1,22 @@
+NEARS-2027 QA — PRE-EXISTING defect found while driving the screen (NOT caused by this diff)
+
+Repro (desktop arm, 1600x1200 dp; the same code path exists on the mobile arm and was seen there too):
+1. Open Vendor Registration. Modules for zoneList[0] load correctly on cold init
+   (getZoneList -> await getModules(zoneList[0].id)).
+2. Tap the in-map "Use my current location" (or drag/search the map into any zone).
+3. The map's auto-zone-detect runs:
+     storeRegController.setZoneIndex(foundZoneIndex, canUpdate: false)
+   In setZoneIndex (store_registration_controller.dart) that sets
+     _moduleList = null; _selectedModuleIndex = -1;
+   and, because canUpdate == false, it SKIPS the getModules(...) reload.
+4. Result: the module dropdown renders "Not Available Module" and is unselectable.
+   Since selectedModuleIndex stays -1, every submit is blocked on
+   'please_select_module_first' with no way forward from the UI.
+
+Workaround a user is unlikely to find: re-pick the SAME zone from the Select Zone dropdown, which
+calls setZoneIndex(index) with the default canUpdate: true and reloads the modules.
+
+Server data is fine: GET /api/v1/module?zone_id=1 returns 5 modules.
+
+Evidence shot: bug-module-dropdown-empty-after-current-location.png ("Not Available Module" in the
+Select Module slot while the zone reads "Main Service Zone").

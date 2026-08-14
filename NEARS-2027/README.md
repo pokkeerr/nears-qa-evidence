@@ -2,7 +2,7 @@
 
 **PASS (3/3 reachable ACs) — desktop submit blocks on validation, no RangeError; AC1 zone-unset NOT TESTED (env-blocked)**
 
-**12 screenshot(s).** Click any thumbnail for full resolution.
+**13 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -25,10 +25,14 @@
 <td align="center" width="33%"><a href="10-mobile-step1.png"><img src="10-mobile-step1.png" width="240"></a><br><sub>mobile step1</sub></td>
 <td align="center" width="33%"><a href="11-mobile-arm-regression.png"><img src="11-mobile-arm-regression.png" width="240"></a><br><sub>mobile arm regression</sub></td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="bug-module-dropdown-empty-after-current-location.png"><img src="bug-module-dropdown-empty-after-current-location.png" width="240"></a><br><sub>bug module dropdown empty after current location</sub></td>
+</tr>
 </table>
 
 ### Other artifacts
 - [`ac3-two-taps-no-rangeerror.log`](ac3-two-taps-no-rangeerror.log)
+- [`bug-module-dropdown-empty-after-current-location.log`](bug-module-dropdown-empty-after-current-location.log)
 - [`progress.md`](progress.md)
 
 ---
