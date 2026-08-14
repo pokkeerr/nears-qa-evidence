@@ -1,0 +1,16 @@
+NEARS-1812 QA — pre-existing a11y defect: the ONLY route to OrderTrackingScreen has no accessible name
+device: emulator-5554 | build: com.izzes.nears 3.8.0 (debug, worktree fix/NEARS-1812-track-details-unwraps)
+screen: order details (#91119) -> map card -> track FloatingActionButton
+source: UserApp/lib/features/order/screens/order_details_screen.dart:243 FloatingActionButton(child: NAssetImage(Images.trackLocationIcon)) - no Semantics wrapper
+
+live uiautomator node (the FAB) - content-desc EMPTY:
+<node clickable="true" content-desc="" text="" bounds="[1128,2254][1296,2422]" class="android.view.View" package="com.izzes.nears"/>
+
+positive control - sibling controls on the SAME screen DO carry names:
+<node content-desc="Google Map" clickable="true" bounds="[48,2179][1296,2539]"/>
+<node content-desc="Cancel Order" clickable="true" bounds="[45,2503][1299,2653]"/>
+<node content-desc="Get Help" clickable="true" bounds="[48,2722][660,2872]"/>
+<node content-desc="Reorder Items" clickable="true" bounds="[684,2722][1296,2872]"/>
+
+impact: TalkBack announces an unlabelled button; label-based QA tooling (ui_tap) cannot address it.
+pre-existing: NOT touched by the NEARS-1812 diff (2 files: order_tracking_screen.dart, track_details_view_widget.dart).
