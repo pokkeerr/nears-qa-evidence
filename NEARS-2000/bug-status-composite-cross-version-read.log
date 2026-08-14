@@ -1,0 +1,26 @@
+REGRESSION (PRE-EXISTING, NEARS-1987 — reader is byte-identical at base ed912d97):
+`--status` composes its verdict from SEPARATE per-field `sed` processes, so a status record
+replaced between two of them yields a classification assembled from TWO record versions.
+
+The python writer IS atomic (tempfile + os.replace, graphify_refresh.py RefreshStatus._write,
+docstring: "a torn read would be classified"). The SHELL reader defeats that: `_gr_field` is
+invoked ~11 times for the classification inputs, each opening the file independently.
+
+REPRODUCED, 3 real refreshes, 1393 polls, 1 hit (~0.07%):
+  === COMPOSITE-READ HIT (poll 2, rc=1) ===
+  graphify-refresh --status (NEARS-1987): .../graphify-out/.refresh-status.json
+  state: failed
+  phase: startup (budget 900s, elapsed 0s in this phase)
+  pid: 60109 on host Ahmad-Izzeddin-2.local (not alive)
+  recorded: state=done exit=none nodes=none edges=none
+  run_id: TORN-1 (record) / TORN-1 (lock)
+  FAIL  graphify-refresh --status: the refresh recorded state: failed (exit unknown) during phase 'startup'.
+
+Fields are cross-version: `state=done` and `pid=60109` come from the PREVIOUS run's terminal
+record; `exit` is absent and `run_id=TORN-1` come from the NEW run's first record. `exit` absent
+-> `_gr_num "" 1` = 1 -> the "done with a non-zero exit is a FAILURE wearing the wrong word"
+branch fires -> a hard FAIL + exit 1 for a refresh that was perfectly healthy and IN FLIGHT.
+Independently seen once more, unprompted, during AC4.
+
+NOT introduced by NEARS-2000 (base commit's `_gr_field` is byte-identical), so it does not fail
+this run — but NEARS-2000 is what makes concurrent poll-during-write the normal case.

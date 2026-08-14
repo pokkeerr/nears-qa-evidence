@@ -1,0 +1,225 @@
+  ok   0a fixture control: the spawned worker pid 68083 is ALIVE (the liveness signal has something real to read)
+  ok   0b fixture control: pid 68085 is provably DEAD (the crashed cases have a real dead pid)
+§1 AC1 — the did-not-happen output and the happened-and-passed output, side by side
+  ok   1a no status record at all is exit 4, NOT 0
+  ok   1b and names the state on its own line
+  ok   1c and the verdict WORD is SKIP / NOTHING WAS ASSERTED
+  ok   1d a completed refresh is exit 0
+  ok   1e and names THAT state on its own line
+  ok   1f and the verdict WORD is OK
+  ok   1g and reports what the terminal record actually measured
+  ok   1h AC1: the verdict WORDS differ ('SKIP' vs 'OK'), not merely the exit codes (4 vs 0)
+§2 each state gets its own word and its own exit code
+  ok   2a never-run: exit 4
+  ok   2b running: exit 3 — a domain code, because 'ask again later' is none of PASS/FAIL/USAGE/NOTHING-ASSERTED
+  ok   2b2 running: the verdict WORD is RUNNING
+  ok   2b3 running: it says so, because killing a live refresh on suspicion is the incident this exists after
+  ok   2b4 running: the recorded host is PRINTED (pid liveness only means anything on that host)
+  ok   2c hung: exit 1 — pid ALIVE but parked past its phase budget
+  ok   2c2 hung: named on its own line
+  ok   2c3 hung: the verdict says PARKED, not 'running'
+  ok   2d crashed: exit 1 — pid dead with no terminal record
+  ok   2d2 crashed: named on its own line
+  ok   2e failed: exit 1
+  ok   2e2 failed: named on its own line
+  ok   2f done: exit 0
+  ok   2g unreadable: a record with no state is exit 4, never 0 — a file we cannot read is not evidence
+  ok   2g2 unreadable: and says nothing was asserted
+  ok   2h a running record with NO phase timestamp is exit 4 — with signal 2 missing, 'running' would be a guess
+§3 the WRITER and the READER agree — end to end, no hand-written fixture
+  ok   3a a LIVE writer's own record classifies as running (exit 3)
+  ok   3b POSITIVE: the reader prints the writer's OWN pid (68618) — the two halves agree on the field
+  ok   3c and on the phase counters the writer wrote
+  ok   3d the writer's TERMINAL record classifies as done (exit 0)
+  ok   3e and the reader reads back the node/edge counts the writer recorded
+  ok   3f and the stamp the writer recorded
+  ok   3g the atomic write left no .tmp debris beside the record
+  ok   3h the python validity line names the STAMP
+  ok   3i ...and HEAD, in the same line — 'up to date' can no longer be read as 'stamped at your commit'
+  ok   3j the 'up to date' branch prints the stamp/HEAD validity line before returning
+  ok   3k ...and names built_at_commit explicitly when it differs from HEAD
+  ok   3l POSITIVE: the phase table extraction found 10 declared phase(s) to compare
+  ok   3m every declared phase is instrumented and every instrumented phase is declared — phase_total is a count of work that is really bounded
+§4 AC4, BOTH directions — exit 4 absorbs neither a real failure nor a real success
+  ok   4a a recorded failure is exit 1 — the new exit-4 path does not absorb it
+  ok   4b and the output contains the literal word 'failed'
+  ok   4c POSITIVE CONTROL: a genuine success is exit 0 — this classifier is not hardwired to non-zero
+  ok   4c2 POSITIVE CONTROL: and prints the stamp/HEAD PAIR carrying the fixture's own stamp
+  ok   4c3 POSITIVE CONTROL: with the verdict WORD OK
+  ok   4d a terminal record saying 'done' with a NON-ZERO exit is a FAIL — the word alone is not the verdict
+§5 --status works with graphify NOT importable, and is handled BEFORE the import gate
+  ok   5a --status classifies correctly under a bogus interpreter — reading JSON needs no graphify
+  ok   5a2 ...and never reaches the import gate at all
+  ok   5b STRUCTURAL: the --status handler (line 285) precedes the import gate (line 470)
+  ok   5c POSITIVE CONTROL: without --status the bogus interpreter IS rejected (exit 2) — so 5a2's silence is evidence, not an artefact
+  ok   5c2 ...with the gate's own message
+§6 MUTATION M1a — the classifier degraded to pid liveness only (a heartbeat). THIS IS AC3.
+  ok   6a mutation anchor 'M1A_ANCHOR' matched exactly 1 line before mutating
+  ok   6a mutant differs from the original
+  ok   6a2 M1a: with only pid liveness left, the HUNG fixture reports rc=3 instead of 1 — §2c goes RED
+  ok   6a3 M1a: the heartbeat calls the parked refresh 'running' — the exact conflation AC3 forbids
+  ok   6a4 M1a: and §2c3's expected verdict line is gone — two assertions redden, so it cannot be half-restored
+§6 MUTATION M1b — 'pid dead' treated as done
+  ok   6b mutation anchor 'M1B_ANCHOR' matched exactly 1 line before mutating
+  ok   6b mutant differs from the original
+  ok   6b2 M1b: a refresh that DIED mid-phase now reports rc=0 — §2d goes RED
+  ok   6b3 M1b: and the crashed verdict disappears entirely
+§6 MUTATION M1c — a missing status file defaulted to done
+  ok   6c mutation anchor 'M1C_ANCHOR' matched exactly 1 line before mutating
+  ok   6c mutant differs from the original
+  ok   6c2 M1c: no record at all now reports rc=0 — §1a/§2a go RED, which is this epic's defect verbatim
+  ok   6c3 M1c: and the NOTHING WAS ASSERTED banner is gone — silence would read as success again
+§7 the WIRING STATUS honesty pin
+  ok   7a no .claude/ caller passes --status, and the header SAYS the reader is unwired
+  ok   7b the header also states which half IS wired — 'unwired' applied to the whole file would be the opposite error
+  ok   7c0 POSITIVE CONTROL on the detector: all 4 synthetic caller forms (bash-prefixed, ./-prefixed, a Makefile recipe, a CI run: step) are detected — a count of 0 below is a real measurement, not a dead regex
+  ok   7c0b NEGATIVE CONTROL on the detector: the three PROSE shapes (a sentence naming the path, an assignment, a backticked mention) are not read as callers — so the pin discriminates instead of firing on any mention
+  ok   7c POSITIVE CONTROL: 16 file(s) repo-wide mention graphify-refresh.sh via git grep (tracked files), so the caller count below is a real measurement
+  ok   7c2 POSITIVE CONTROL on the exclusion list: both excluded self-matches (the script, this suite) are really present in the corpus before exclusion — the two names are not stale
+  ok   7c2b every one of the 1 scanned file(s) was actually READ — no grep error was counted as 'contains no caller'
+  ok   7c3 no executable file in this repo invokes graphify-refresh.sh as a command (1 executable-capable mentioning file(s) scanned), and the header SAYS the exit-5 refusal has no programmatic handler
+§8 usage errors stay 2
+  ok   8a an unknown flag exits 2
+  ok   8b a stray positional after --status exits 2, rather than being ignored
+  ok   8c --help exits 0
+  ok   8d ...and prints the exit-code table
+  ok   8e ...and stops at the end of the header instead of leaking shell source
+  ok   8f ...while still reaching the LAST header section (so the pin above cannot be satisfied by slicing too little)
+  ok   8g ...and reaches the exit-5 rationale, a section added in the header's middle — growth that pushes the tail past the slice reddens here
+  ok   8h ...and the very LAST line of the header, which is the line silent truncation-by-growth eats first
+§10 NEARS-2000 — the lock seam is DERIVED from the status seam, and an acquire really runs
+  ok   10a STRUCTURAL: LOCK_DIR is derived from the status seam's dirname — ONE seam governs both, so a test cannot set one and forget the other
+  ok   10b no GRAPHIFY_LOCK_DIR env var exists — a second seam would be a seam a future case forgets, and forgetting it means writing the live shared graphify-out/
+  ok   10c an acquire really CREATED a lock directory, at /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//grefreshT.IGF7lJ/lockrun/.refresh.lock
+  ok   10d ...and it is UNDER this run's own temp dir — AC6 holds by construction from the one seam, not by discipline
+  ok   10e POSITIVE CONTROL: the FIRST invocation genuinely ACQUIRED AND RAN — witness lines = 1, not 0. A guard that refused everything would satisfy every refusal assertion below, and a negative-only control passes on a dead instrument
+  ok   10f the lock records the launch identity the caller exported
+  ok   10g ...and the WRAPPER pid (69235), which is known at mkdir time — so there is no unguarded startup window
+  ok   10h ...and a refresh_pid (69323) that is a LIVE writer — the two-pid liveness rule has something real to read
+  ok   10i the exec handoff to python is GONE — a trap cannot survive exec, so while it was there no release path could exist at all
+  ok   10j no executable line uses rm -rf — release is rm -f owner.json plus a NON-RECURSIVE rmdir, so a lock dir holding anything unexpected is left alone and visible
+§11 AC1 — a second invocation against a REAL in-flight first one
+  ok   11a AC1: a second invocation against a LIVE holder exits 5 — distinct from 0/1/2/3/4
+  ok   11b AC1: ...and the verdict WORD is BUSY
+  ok   11c AC1: the leading verdict word is BUSY — none of OK/SKIP/FAIL/RUNNING, so a reader who reads the WORD can tell a refusal from every other outcome
+  ok   11d AC1: ...and it NAMES the current holder's run id
+  ok   11e ...and BOTH of the holder's pids
+  ok   11f ...and the lock path
+  ok   11g ...and says a refusal is not a failure: under a sprint it is the normal steady state, and a normal outcome dressed as an error trains readers to delete the lock
+  ok   11h ...and warns the holder's HEAD may predate your merge, so 'someone else is already doing it' is not 'your change is covered'
+  ok   11i AC1, COUNTED: the witness is STILL 1 after the refusal — no second writer started. This is a counted quantity, not an inference from an exit code
+§12 AC3 BOTH directions — a live holder refused, a dead one reclaimed
+  ok   12a fixture control: the wrapper is dead and the WRITER (69323) is still alive — the state the two-pid rule exists for is really staged
+  ok   12b a lock whose WRAPPER died but whose WRITER is alive is STILL refused — a single-pid design would have called this reclaimable while a writer was running
+  ok   12c ...and the witness is still 1
+  ok   12d fixture control: BOTH recorded pids are now dead, killed by the pids this suite captured at spawn
+  ok   12d2 ...and the stale lock is still on disk: a SIGKILLed holder runs no trap, which is exactly the state that has to be reclaimable
+  ok   12e AC3 direction 2: with the holder dead, a refresh ACQUIRES and runs — a guard that refused forever would be a deadlock, not a fix
+  ok   12f ...and says so LOUDLY rather than silently taking the lock
+  ok   12g ...and the witness went 1 -> 2: a real second writer ran, once the first was really gone
+  ok   12h the reclaim left no moved-aside lock debris behind
+  ok   12i an EMPTY lock dir — a writer that died between its mkdir and its first write — fails OPEN after a bounded settle, rather than denying the graph permanently with no visible holder
+  ok   12j ...announced on the way past, so the fail-open is a stated limit and not a hidden one
+  ok   12k fixture control: both recorded pids are LIVE, and only the RECORDED start time was perturbed — that is the pid-recycle condition, not a dead holder wearing a costume
+  ok   12l a LIVE pid whose recorded start time disagrees with ps is RECLAIMED — the pid was recycled, so it is not the holder. 12b's identical-but-unperturbed holder was refused; the recorded start time is the only difference between the two
+  ok   12m ...and the reclaiming run really ran (witness 4 -> 5)
+§13 AC4 — --status tells MY run from someone else's
+  ok   13a AC4: --status with the launcher's OWN id answers yes — matched on the LOCK channel, which carries the id from the instant of launch, before python has written any record
+  ok   13b AC4, THE CASE THAT MATTERS: a DIFFERENT id answers no — two sessions polling one live refresh no longer read byte-identical output and both conclude it is theirs
+  ok   13c AC4: a caller with no id of its own is told unknown — it says it cannot tell instead of guessing yes
+  ok   13d --status names the holder: run id and both pids, so a poller can see WHOSE refresh is in flight
+  ok   13e AC5: a terminal done record still exits 0 with the identity lines added — the new --status output is additive and changed no verdict
+  ok   13f ...and the RECORD channel matches too, so a run can still identify itself after its lock is released
+  ok   13g ...and with no lock on disk --status says none, rather than leaving the reader to assume
+  ok   13h ...and a different id against that same record still answers no
+  ok   13i a PRE-GUARD refresh — one launched before this shipped, or a bare python3 run — records no id, and --status says unknown rather than attributing it to whoever polls
+§14 MUTATIONS M2a-M2f — each one names the case it reddens
+§14 MUTATION M2a — the refusal branch replaced by an allow. THIS IS AC2.
+  ok   14a mutation anchor 'M2A_ANCHOR' matched exactly 1 line before mutating
+  ok   14a mutant differs from the original
+  ok   14a2 M2a, AC2 VERBATIM AND COUNTED: with the refusal removed the witness went 7 -> 8 — a SECOND WRITER REALLY STARTED against a live holder, and §11i goes RED
+  ok   14a3 M2a: ...and the mutant exited 0 instead of 5, so §11a reddens too — the refusal cannot be half-restored
+  ok   14a4 M2a: and it did NOT reclaim — the second writer started straight over a LIVE holder, which is the incident verbatim
+§14 MUTATION M2b — a LIVE holder treated as stale
+  ok   14b mutation anchor 'M2B_ANCHOR' matched exactly 1 line before mutating
+  ok   14b mutant differs from the original
+  ok   14b2 M2b: with the liveness test inverted a LIVE holder is reclaimed — §11a's refusal goes RED
+  ok   14b3 M2b: ...and a second writer ran over the live one (witness 9 -> 10) — so the refusal is driven by LIVENESS, not by the mere presence of a lock file
+§14 MUTATION M2c — the dead-holder reclaim removed, so it always refuses
+  ok   14c mutation anchor 'M2C_ANCHOR' matched exactly 1 line before mutating
+  ok   14c mutant differs from the original
+  ok   14c2 M2c: with the reclaim removed a DEAD holder's lock refuses forever — §12e goes RED. AC3's second direction is independently pinned, because a guard that never reclaims is a deadlock and not a fix
+  ok   14c3 M2c: ...and no writer ever runs again (witness stuck at 11)
+§14 MUTATION M2d — the pid-recycle compare removed
+  ok   14d mutation anchor 'M2D_ANCHOR' matched exactly 1 line before mutating
+  ok   14d mutant differs from the original
+  ok   14d2 M2d: with the recycle compare removed, a live pid that is NOT the recorded holder still refuses — §12l goes RED, so NEARS-1805's blind spot cannot silently return
+  ok   14d3 M2d: ...and the reclaim never happens (witness stuck at 12)
+§14 MUTATION M2e — run_id_match hardwired to yes
+  ok   14e mutation anchor 'M2E_ANCHOR' matched exactly 1 line before mutating
+  ok   14e mutant differs from the original
+  ok   14e2 M2e: with the comparison hardwired, SOMEONE ELSE'S run reports yes — §13b/§13h go RED. AC4 is falsifiable: the match is a COMPARISON, not an announcement
+§14 MUTATION M2f — LOCK_DIR hardwired off the status seam
+  ok   14f mutation anchor 'M2F_ANCHOR' matched exactly 1 line before mutating
+  ok   14f mutant differs from the original
+  ok   14f2 M2f: with LOCK_DIR hardwired away from the seam, NO lock appears under $TMP — §10c/§10d go RED. In a tree that HAS a graphify-out/ this mutant locks the LIVE shared directory, so AC6 is caught by a test rather than by discipline
+  ok   14f3 M2f: ...and it created no graphify-out/ under its own ROOT either — an environment it cannot lock in is refused, never treated as free
+  ok   14f4 M2f: and that refusal is exit 2 (USAGE), not a silent unguarded refresh
+§15 NEARS-2000 cycle 1 — the symlinked lock path, the framing on ALL FOUR refusals, and the two honesty pins
+  ok   15a0 FIXTURE CONTROL: /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//grefreshT.IGF7lJ/symrun/.refresh.lock really IS a symlink, it really resolves to a DIRECTORY, and that directory really holds the victim file — so the -d dereference this guards against is genuinely reachable
+  ok   15a a SYMLINK at the lock path exits 2 — the same 'an environment we cannot lock in is NEVER treated as free' branch a plain FILE at that path already took, not the reclaim path
+  ok   15a2 ...and the message NAMES it as a symlink rather than reporting a generic lock failure
+  ok   15a3 ...and it did NOT take the reclaim path, which is the path that does the deleting
+  ok   15b THE FILE OUTSIDE THE LOCK SURVIVES: /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//grefreshT.IGF7lJ/victim-guarded/owner.json is still there after a full invocation against the symlinked lock path
+  ok   15b2 ...and the symlink itself is left exactly where it was: never trusted, never moved, never reclaimed, so a human can see and remove it
+  ok   15b3 ...and no writer ran (witness still 12) — the refusal is a refusal, not a refresh that happened to complain
+  ok   15b4 the whole symlink fixture lives under this run's own temp dir (/var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//grefreshT.IGF7lJ/symrun)
+§15 MUTATION M2g — the symlink guard removed. THIS REPRODUCES THE DELETION.
+  ok   15m mutation anchor 'M2G_ANCHOR' matched exactly 1 line before mutating
+  ok   15m mutant differs from the original
+  ok   15m2 M2g, THE DEFECT VERBATIM: with the guard removed the mutant DELETED /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//grefreshT.IGF7lJ/victim-unguarded/owner.json — a file outside the lock tree entirely. §15b goes RED, so the guard is the only thing standing between a symlinked lock path and deletion outside it
+  ok   15m3 M2g: ...and the mutant exited 0 instead of 2 — §15a reddens too, so the refusal cannot be half-restored
+  ok   15m4 M2g: ...by taking the RECLAIM path, which is the mechanism: the symlink is moved aside and the rm -f then resolves through it
+  ok   15c0 CONTROL: the stale-lock fixture really does drive an unmutated run down the RECLAIM path (exit 0) — so the three forced-branch probes below are forcing branches that are genuinely reachable, not dead code
+  ok   15c0b ...announced, which is the path the three refusals below live on
+  ok   15c0c ...and it really ran a writer (witness 13 -> 14)
+  ok   15c mutation anchor 'M2H_ANCHOR' matched exactly 1 line before mutating
+  ok   15c mutant differs from the original
+  ok   15c2 the reclaim-slot-exhaustion path exits 5
+  ok   15c3 ...with its OWN reason line, so it stays tellable apart from the other three
+  ok   15c4 ...AND carries the same framing as the live-holder refusal — a reader who hits this path is told it is not an incident, which before this it was not
+  ok   15c5 ...including the two instructions the framing exists to give
+  ok   15d mutation anchor 'M2I_ANCHOR' matched exactly 1 line before mutating
+  ok   15d mutant differs from the original
+  ok   15d2 the lost-reclaim-race path exits 5
+  ok   15d3 ...with its OWN reason line
+  ok   15d4 ...AND the framing
+  ok   15e mutation anchor 'M2J_ANCHOR' matched exactly 1 line before mutating
+  ok   15e mutant differs from the original
+  ok   15e2 the lock-retaken-during-reclaim path exits 5
+  ok   15e3 ...with its OWN reason line
+  ok   15e4 ...AND the framing
+  ok   15e5 all FOUR exit-5 paths were exercised and all four leading BUSY lines are DISTINCT (4/4 unique) — the shared framing did not collapse four reasons into one message
+  ok   15e6 STRUCTURAL: the script has exactly 4 'exit 5' sites and exactly 4 _gr_busy_framing call sites — a fifth refusal added without the framing reddens here
+  ok   15f0 FIXTURE CONTROL: pid 68083 is still alive, so both cases below are staged on a genuinely live pid and differ ONLY in the recorded start-time field
+  ok   15f an owner.json with NO recorded pid_started still HOLDS the lock (exit 5) — with the field absent the check degrades to bare liveness, which over-holds. That is the direction the header now states, and it is the safe one
+  ok   15f2 ...and no writer started (witness still 14)
+  ok   15f3 THE DISCRIMINATING CONTROL: the SAME live pid with a WRONG recorded pid_started is reclaimed (exit 0) — so 15f's refusal really is the absent field falling back to bare kill -0, not this fixture being un-reclaimable
+  ok   15f4 ...announced as a reclaim
+  ok   15g0 CONTROL: an ordinary run whose refresh_pid write SUCCEEDS exits 0...
+  ok   15g0b ...and prints no warning — so the warning below is conditional on the failure, not unconditional noise
+  ok   15g mutation anchor 'M2K_ANCHOR' matched exactly 1 line before mutating
+  ok   15g mutant differs from the original
+  ok   15g2 a FAILED refresh_pid write says so on stderr — it used to be swallowed by || true, which is the silence this whole file exists to remove
+  ok   15g3 ...and names the consequence, so a reader knows what was lost rather than just that something failed
+  ok   15g4 ...and it is NOT fatal: the refresh still ran and returned its own exit code, because the lock is held and only the writer-pid half of liveness was lost
+  ok   15g5 STRUCTURAL: no _gr_write_owner call site swallows its failure with || true
+§9 the safety properties, asserted against this suite's own source
+  ok   9a exactly ONE --status invocation site in this suite (1), so every --status run goes through the GRAPHIFY_STATUS_FILE seam (9e generalises this to the lock-mode launchers)
+  ok   9b neither the suite nor the script invokes a name-matching killer anywhere
+  ok   9c every fixture lives under this run's own temp dir (/var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//grefreshT.IGF7lJ)
+  ok   9d 1 spawned worker(s) still live at the end (<=1 expected: the liveness fixture), all reaped by pid in the EXIT trap
+  ok   9e POSITIVE: all 4 invocation sites set GRAPHIFY_STATUS_FILE on the SAME LINE as the bash call, so no launch here — including the backgrounded real wrapper — can reach the live graphify-out/
+  ok   9f every LOCK this suite created lives under this run's own temp dir (/var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//grefreshT.IGF7lJ/lockrun/.refresh.lock)
+  ok   9g and no lock was left in the repo's own graphify-out/ — the live shared directory is untouched by this suite
+PASS  graphify-refresh.test: running/hung/crashed/failed/done separation AND the concurrency guard (exclusion + launch identity) pinned — assertions:200 (0 skipped).

@@ -1,0 +1,37 @@
+=================== ATTACK 1: COLD 6-WAY ACQUIRE RACE (no prior holder) ===================
+--- exit codes ---
+1 0
+2 5
+3 5
+4 5
+5 5
+6 5
+acquired(exit 0)  = 1
+refused(exit 5)   = 5
+other             = 0
+reclaim-announcing runs = 0
+lock left behind = none
+
+=================== ATTACK 2: SIGINT a holder I STARTED ===================
+holder wrapper=2621 writer=0  (both spawned by THIS script)
+SIGINT: wrapper exit=0  (128+2=130 expected-ish)
+  writer still alive? YES-LEAKED
+  lock after         = RELEASED
+  next invocation:
+    exit=0
+    (no reclaim/busy line — the lock was cleanly released)
+
+=================== ATTACK 3: SIGTERM a holder I STARTED ===================
+holder wrapper=4170 writer=0
+SIGTERM: wrapper exit=143
+  writer still alive? YES-LEAKED
+  lock after         = RELEASED
+  next invocation:
+    exit=0
+    (no reclaim/busy line — the lock was cleanly released)
+
+=================== ATTACK 4: SIGKILL the WRITER only (wrapper survives) ===================
+killing ONLY writer 5129 (spawned by this script), leaving wrapper 5094
+  wrapper exit=137  (should be a faithful 137, not 0)
+  lock after = RELEASED
+  next invocation exit=0

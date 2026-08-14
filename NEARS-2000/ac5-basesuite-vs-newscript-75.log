@@ -1,0 +1,87 @@
+  ok   0a fixture control: the spawned worker pid 72972 is ALIVE (the liveness signal has something real to read)
+  ok   0b fixture control: pid 72974 is provably DEAD (the crashed cases have a real dead pid)
+§1 AC1 — the did-not-happen output and the happened-and-passed output, side by side
+  ok   1a no status record at all is exit 4, NOT 0
+  ok   1b and names the state on its own line
+  ok   1c and the verdict WORD is SKIP / NOTHING WAS ASSERTED
+  ok   1d a completed refresh is exit 0
+  ok   1e and names THAT state on its own line
+  ok   1f and the verdict WORD is OK
+  ok   1g and reports what the terminal record actually measured
+  ok   1h AC1: the verdict WORDS differ ('SKIP' vs 'OK'), not merely the exit codes (4 vs 0)
+§2 each state gets its own word and its own exit code
+  ok   2a never-run: exit 4
+  ok   2b running: exit 3 — a domain code, because 'ask again later' is none of PASS/FAIL/USAGE/NOTHING-ASSERTED
+  ok   2b2 running: the verdict WORD is RUNNING
+  ok   2b3 running: it says so, because killing a live refresh on suspicion is the incident this exists after
+  ok   2b4 running: the recorded host is PRINTED (pid liveness only means anything on that host)
+  ok   2c hung: exit 1 — pid ALIVE but parked past its phase budget
+  ok   2c2 hung: named on its own line
+  ok   2c3 hung: the verdict says PARKED, not 'running'
+  ok   2d crashed: exit 1 — pid dead with no terminal record
+  ok   2d2 crashed: named on its own line
+  ok   2e failed: exit 1
+  ok   2e2 failed: named on its own line
+  ok   2f done: exit 0
+  ok   2g unreadable: a record with no state is exit 4, never 0 — a file we cannot read is not evidence
+  ok   2g2 unreadable: and says nothing was asserted
+  ok   2h a running record with NO phase timestamp is exit 4 — with signal 2 missing, 'running' would be a guess
+§3 the WRITER and the READER agree — end to end, no hand-written fixture
+  ok   3a a LIVE writer's own record classifies as running (exit 3)
+  ok   3b POSITIVE: the reader prints the writer's OWN pid (73509) — the two halves agree on the field
+  ok   3c and on the phase counters the writer wrote
+  ok   3d the writer's TERMINAL record classifies as done (exit 0)
+  ok   3e and the reader reads back the node/edge counts the writer recorded
+  ok   3f and the stamp the writer recorded
+  ok   3g the atomic write left no .tmp debris beside the record
+  ok   3h the python validity line names the STAMP
+  ok   3i ...and HEAD, in the same line — 'up to date' can no longer be read as 'stamped at your commit'
+  ok   3j the 'up to date' branch prints the stamp/HEAD validity line before returning
+  ok   3k ...and names built_at_commit explicitly when it differs from HEAD
+  ok   3l POSITIVE: the phase table extraction found 10 declared phase(s) to compare
+  ok   3m every declared phase is instrumented and every instrumented phase is declared — phase_total is a count of work that is really bounded
+§4 AC4, BOTH directions — exit 4 absorbs neither a real failure nor a real success
+  ok   4a a recorded failure is exit 1 — the new exit-4 path does not absorb it
+  ok   4b and the output contains the literal word 'failed'
+  ok   4c POSITIVE CONTROL: a genuine success is exit 0 — this classifier is not hardwired to non-zero
+  ok   4c2 POSITIVE CONTROL: and prints the stamp/HEAD PAIR carrying the fixture's own stamp
+  ok   4c3 POSITIVE CONTROL: with the verdict WORD OK
+  ok   4d a terminal record saying 'done' with a NON-ZERO exit is a FAIL — the word alone is not the verdict
+§5 --status works with graphify NOT importable, and is handled BEFORE the import gate
+  ok   5a --status classifies correctly under a bogus interpreter — reading JSON needs no graphify
+  ok   5a2 ...and never reaches the import gate at all
+  ok   5b STRUCTURAL: the --status handler (line 285) precedes the import gate (line 470)
+  ok   5c POSITIVE CONTROL: without --status the bogus interpreter IS rejected (exit 2) — so 5a2's silence is evidence, not an artefact
+  ok   5c2 ...with the gate's own message
+§6 MUTATION M1a — the classifier degraded to pid liveness only (a heartbeat). THIS IS AC3.
+  ok   6a mutation anchor 'M1A_ANCHOR' matched exactly 1 line before mutating
+  ok   6a mutant differs from the original
+  ok   6a2 M1a: with only pid liveness left, the HUNG fixture reports rc=3 instead of 1 — §2c goes RED
+  ok   6a3 M1a: the heartbeat calls the parked refresh 'running' — the exact conflation AC3 forbids
+  ok   6a4 M1a: and §2c3's expected verdict line is gone — two assertions redden, so it cannot be half-restored
+§6 MUTATION M1b — 'pid dead' treated as done
+  ok   6b mutation anchor 'M1B_ANCHOR' matched exactly 1 line before mutating
+  ok   6b mutant differs from the original
+  ok   6b2 M1b: a refresh that DIED mid-phase now reports rc=0 — §2d goes RED
+  ok   6b3 M1b: and the crashed verdict disappears entirely
+§6 MUTATION M1c — a missing status file defaulted to done
+  ok   6c mutation anchor 'M1C_ANCHOR' matched exactly 1 line before mutating
+  ok   6c mutant differs from the original
+  ok   6c2 M1c: no record at all now reports rc=0 — §1a/§2a go RED, which is this epic's defect verbatim
+  ok   6c3 M1c: and the NOTHING WAS ASSERTED banner is gone — silence would read as success again
+§7 the WIRING STATUS honesty pin
+  ok   7a no .claude/ caller passes --status, and the header SAYS the reader is unwired
+  ok   7b the header also states which half IS wired — 'unwired' applied to the whole file would be the opposite error
+§8 usage errors stay 2
+  ok   8a an unknown flag exits 2
+  ok   8b a stray positional after --status exits 2, rather than being ignored
+  ok   8c --help exits 0
+  ok   8d ...and prints the exit-code table
+  ok   8e ...and stops at the end of the header instead of leaking shell source
+  ok   8f ...while still reaching the LAST header section (so the pin above cannot be satisfied by slicing too little)
+§9 the safety properties, asserted against this suite's own source
+  ok   9a exactly ONE invocation site in this suite (1), so every run goes through the GRAPHIFY_STATUS_FILE seam
+  ok   9b neither the suite nor the script invokes a name-matching killer anywhere
+  ok   9c every fixture lives under this run's own temp dir (/var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//grefreshT.Zm9ELW)
+  ok   9d 1 spawned worker(s) still live at the end (<=1 expected: the liveness fixture), all reaped by pid in the EXIT trap
+PASS  graphify-refresh.test: running/hung/crashed/failed/done separation pinned — assertions:75 (0 skipped).

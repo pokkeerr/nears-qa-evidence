@@ -1,0 +1,35 @@
+BUG: SIGINT (Ctrl-C) no longer interrupts a graphify refresh — REGRESSION vs base ed912d97
+where: scripts/graphify-refresh.sh, the writer launch (`"$PYTHON" scripts/graphify_refresh.py &` + wait)
+       base ed912d97 line 272 launched it as: `exec "$PYTHON" scripts/graphify_refresh.py`
+
+OBSERVED (product, real refresh, worktree feat/NEARS-2000-graphify-refresh-lock @ 14d52960+):
+  t0=07:06:10 wrapper=58926 writer=59027
+    PID  PPID  PGID STAT COMMAND
+  58926 58915 58926 S    bash scripts/graphify-refresh.sh
+  59027 58926 58926 R    .../Python scripts/graphify_refresh.py
+  t1=07:06:12 -> SIGINT to wrapper 58926   (kill rc=0)
+  t2=07:06:14 wrapper=alive writer=alive
+  t3=07:06:39 wrapper exit=0     <-- ran to completion, 27s AFTER the interrupt
+
+SIGINT sent DIRECTLY to the writer, bypassing the wrapper's trap, is also ignored:
+  t1=07:07:03 -> SIGINT DIRECTLY to python WRITER 60109   (kill rc=0)
+  t2=07:07:04 writer=alive wrapper=alive
+  t3=07:07:30 wrapper exit=0
+
+6/6 retried trials with an early SIGINT: "run completed before the signal landed (exit 0)".
+SIGTERM, by contrast, is faithful:  wrapper exit=143, writer gone, lock RELEASED,
+stdout truncated after the "lock: ... (held by run ...)" line, next invocation exit=0.
+
+MECHANISM CONTROL (isolates the launch shape; spawned from python so no shell SIG_IGN
+inheritance contaminates the parent):
+  A  `python & ; wait`  (the launch shape NEARS-2000 introduced):
+    A: SIGINT -> still running 3s later => the child IGNORED SIGINT (SIG_IGN)
+  B  `exec python`      (the launch shape at base ed912d97):
+    B: SIGINT -> parent bash exited rc=-2  => the child DIED on SIGINT (SIG_DFL)
+POSIX: a non-interactive shell sets SIGINT/SIGQUIT to SIG_IGN for ASYNC commands, and
+SIG_IGN survives exec. So the writer can never see SIGINT, and the wrapper's
+`trap '_gr_forward INT' INT` forwards a signal the child is constitutionally deaf to.
+
+WHY IT MATTERS FOR THIS TICKET: an operator who Ctrl-Cs a long refresh now gets nothing.
+The next escalation is kill/pkill — the exact incident NEARS-2000 exists to prevent.
+NOT a deadlock: SIGTERM and SIGKILL both work and the lock is released/reclaimable.

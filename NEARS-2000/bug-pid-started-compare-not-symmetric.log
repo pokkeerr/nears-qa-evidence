@@ -1,0 +1,32 @@
+BUG: the pid-recycle compare is NOT symmetric — an externally-written owner.json with a raw
+`ps -o lstart=` value makes a LIVE holder read as reclaimable (fail-OPEN)
+where: scripts/graphify-refresh.sh, `_gr_pid_holds` (the `$_hn` = `$_hs` compare)
+
+The header immediately above `_gr_norm_started` states:
+  "BOTH sides of the pid-reuse compare go through this: raw `ps -o lstart=` emits a DOUBLE
+   space before a single-digit day and can carry trailing blanks, so normalising only the
+   write side makes a LIVE holder compare unequal and read as reclaimable — NEARS-1805's
+   lesson, and the comparison is symmetric here instead."
+The code does not do that. `_gr_pid_holds` normalises only the LIVE side (via
+`_gr_proc_started`); the RECORDED side (`$_hs`) is used verbatim as read from owner.json.
+Normalisation happens at WRITE time only, inside `_gr_write_owner`.
+
+MEASURED — identical live holder, identical lock, ONLY the whitespace of pid_started differs:
+  RAW  pid_started='Fri Aug 14 06:43:39 2026    '  (verbatim `ps -o lstart=`)
+    -> EXIT 0
+       "[graphify-refresh] RECLAIMING a stale lock ...
+         stale holder: run LIVE-RUN pid 94778/94778 — no recorded pid is both alive and un-recycled."
+       HOLDER_STILL_ALIVE=yes     <-- a LIVE holder was reclaimed
+  NORM pid_started='Fri Aug 14 06:45:15 2026'      (what _gr_write_owner writes)
+    -> EXIT 5
+       "BUSY  graphify-refresh: a refresh is ALREADY IN FLIGHT — refusing to start a second writer.
+         holder:  run LIVE-RUN-NORM  pid 97163 (wrapper) / 97163 (writer) ..."
+       HOLDER_ALIVE=yes
+
+REACHABILITY: not reachable through the script's own writes (they are normalised), so AC3(b)
+passes for product-written locks. Reachable for any owner.json written by a hand/operator/
+older/external writer — and the header's own fail-CLOSED promise ("it can only over-hold,
+never mis-kill") does not hold in that case: it fails OPEN.
+The suite does not cover it: `perturb_started` plants a DELIBERATELY MISMATCHED time
+("Thu Jan  1 00:00:00 1970"); no fixture plants a MATCHING-but-raw value.
+Candidate one-liner (engineering's call): `_hs="$(_gr_norm_started "$_hs")"` in `_gr_pid_holds`.

@@ -1,0 +1,20 @@
+A_WRAPPER=77850 A_RUN=QA-A-1786675168
+A_PYTHON_CHILD=77903
+A_PHASE_AT_RACE=startup
+--- proof the child is alive and burning CPU (ps) ---
+  PID  PPID STAT      TIME  %CPU ELAPSED COMMAND
+77903 77850 S      0:00.04   2.5   00:00 /opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python scripts/graphify_refresh.py
+--- lock owner.json at the moment of the race ---
+{"schema": 1, "run_id": "QA-A-1786675168", "run_id_source": "env", "pid": 77850, "pid_kind": "wrapper", "pid_started": "Fri Aug 14 06:39:28 2026", "refresh_pid": 77903, "refresh_started": "Fri Aug 14 06:39:28 2026", "host": "Ahmad-Izzeddin-2.local", "head_at_launch": "14d52960dd1baaa0b86a9a1fd2ab7a3fe65e0ef0", "started": "2026-08-14T02:39:28Z", "cwd": "/Users/Apple/Projects/nears-NEARS-2000-graphify-refresh-lock"}
+B_EXIT=5
+B_LATENCY_SECS=0.09
+--- A still alive AFTER B returned? ---
+A_WRAPPER_ALIVE=yes
+A_CHILD_ALIVE=yes
+--- writers at this instant ---
+77903 
+A_EXIT=0
+--- lock after A finished ---
+ls: graphify-out/.refresh.lock: No such file or directory
+--- peak concurrent writers observed ---
+1

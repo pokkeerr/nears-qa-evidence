@@ -1,0 +1,51 @@
+### while MY run (QA-MINE-1786675545) is in flight ###
+--- caller A polls with ITS OWN id ---
+graphify-refresh --status (NEARS-1987): /Users/Apple/Projects/nears-NEARS-2000-graphify-refresh-lock/graphify-out/.refresh-status.json
+state: failed
+phase: startup (budget 900s, elapsed 0s in this phase)
+pid: 90005 on host Ahmad-Izzeddin-2.local (not alive)
+recorded: state=done exit=none nodes=none edges=none
+run_id: QA-MINE-1786675545 (record) / QA-MINE-1786675545 (lock)
+run_id_match: yes
+lock: held by run QA-MINE-1786675545 pid 98024/98094 since 2026-08-14T02:45:45Z at HEAD 14d52960dd1baaa0b86a9a1fd2ab7a3fe65e0ef0 -- /Users/Apple/Projects/nears-NEARS-2000-graphify-refresh-lock/graphify-out/.refresh.lock
+FAIL  graphify-refresh --status: the refresh recorded state: failed (exit unknown) during phase 'startup'.
+        Re-run it and read its own stderr — this reader reports the recorded outcome, it does not diagnose it.
+        validity: 10 phase(s) declared, 0 completed, stamp 14d52960dd1baaa0b86a9a1fd2ab7a3fe65e0ef0 vs HEAD 14d52960dd1baaa0b86a9a1fd2ab7a3fe65e0ef0
+exit=1
+
+--- caller C polls with a DIFFERENT id (someone else's run) ---
+graphify-refresh --status (NEARS-1987): /Users/Apple/Projects/nears-NEARS-2000-graphify-refresh-lock/graphify-out/.refresh-status.json
+state: running
+phase: startup (budget 300s, elapsed 0s in this phase)
+pid: 98094 on host Ahmad-Izzeddin-2.local (alive)
+recorded: state=running exit=none nodes=none edges=none
+run_id: QA-MINE-1786675545 (record) / QA-MINE-1786675545 (lock)
+run_id_match: no
+lock: held by run QA-MINE-1786675545 pid 98024/98094 since 2026-08-14T02:45:45Z at HEAD 14d52960dd1baaa0b86a9a1fd2ab7a3fe65e0ef0 -- /Users/Apple/Projects/nears-NEARS-2000-graphify-refresh-lock/graphify-out/.refresh.lock
+RUNNING  graphify-refresh --status: a refresh is IN FLIGHT — pid 98094 is alive and phase 'startup' is 0s into its 300s budget.
+        This is neither PASS nor FAIL: ask again later. DO NOT kill it — that is the incident this instrument was built after.
+        validity: 10 phase(s) declared, 0 completed, stamp 14d52960dd1baaa0b86a9a1fd2ab7a3fe65e0ef0 vs HEAD 14d52960dd1baaa0b86a9a1fd2ab7a3fe65e0ef0
+exit=3
+
+--- caller D polls with NO id at all ---
+graphify-refresh --status (NEARS-1987): /Users/Apple/Projects/nears-NEARS-2000-graphify-refresh-lock/graphify-out/.refresh-status.json
+state: running
+phase: detect (budget 300s, elapsed 0s in this phase)
+pid: 98094 on host Ahmad-Izzeddin-2.local (alive)
+recorded: state=running exit=none nodes=none edges=none
+run_id: QA-MINE-1786675545 (record) / QA-MINE-1786675545 (lock)
+run_id_match: unknown
+lock: held by run QA-MINE-1786675545 pid 98024/98094 since 2026-08-14T02:45:45Z at HEAD 14d52960dd1baaa0b86a9a1fd2ab7a3fe65e0ef0 -- /Users/Apple/Projects/nears-NEARS-2000-graphify-refresh-lock/graphify-out/.refresh.lock
+RUNNING  graphify-refresh --status: a refresh is IN FLIGHT — pid 98094 is alive and phase 'detect' is 0s into its 300s budget.
+        This is neither PASS nor FAIL: ask again later. DO NOT kill it — that is the incident this instrument was built after.
+        validity: 10 phase(s) declared, 0 completed, stamp 14d52960dd1baaa0b86a9a1fd2ab7a3fe65e0ef0 vs HEAD 14d52960dd1baaa0b86a9a1fd2ab7a3fe65e0ef0
+exit=3
+holder exit=0
+
+### after it finished (lock released, RECORD channel only) ###
+state: done
+run_id: QA-MINE-1786675545 (record) / none (lock)
+run_id_match: yes
+lock: none -- /Users/Apple/Projects/nears-NEARS-2000-graphify-refresh-lock/graphify-out/.refresh.lock
+OK    graphify-refresh --status: the last refresh COMPLETED (state: done, exit 0) after phase 'manifest'.
+run_id_match: no
