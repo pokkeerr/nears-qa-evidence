@@ -1,0 +1,23 @@
+NEARS-1483 QA — logged endpoint is a hardcoded constant, wrong on 2 of 3 entry paths
+device: emulator-5558 | build: 8f2eb548
+
+payment_webview_failure_helper.dart:12
+  static const String endpoint = '/payment-mobile';
+...passed verbatim as AppLogger.failure(..., endpoint: endpoint) on BOTH callbacks.
+
+But selectedUrl is only /payment-mobile on the CHECKOUT path
+(payment_webview_screen.dart: selectedUrl = baseUrl + '/payment-mobile?...').
+  - wallet path       : selectedUrl = widget.addFundUrl
+  - subscription path : selectedUrl = widget.subscriptionUrl
+
+MEASURED on device, wallet add-fund path, via the webview's own DevTools endpoint
+(adb forward tcp:9222 localabstract:webview_devtools_remote_<pid> -> /json/list):
+  URL: http://10.0.2.2:8000/payment/razor-pay/pay?payment_id=REDACTED
+
+=> a wallet/subscription gateway failure would be logged as endpoint=/payment-mobile,
+   naming an endpoint that was never requested. PII-safe, but misdirects triage.
+   AC3 asks for a PII-safe log line, which this is; the endpoint VALUE is the defect.
+
+Unit-test output confirming the emitted shape (gate test, 5/5 green):
+  [FAIL] endpoint=/payment-mobile http_status=null type=ApiFailure msg="payment_webview_load_failed"
+  [FAIL] endpoint=/payment-mobile http_status=502 type=ApiFailure msg="payment_webview_http_error"
