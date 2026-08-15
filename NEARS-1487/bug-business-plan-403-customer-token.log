@@ -1,0 +1,34 @@
+BUG (pre-existing, NOT NEARS-1487): POST /api/v1/vendor/business_plan returns 403
+for a UserApp customer Passport token, so the paid-subscription vendor
+registration flow cannot complete from the UserApp.
+
+Observed live on emulator-5556, UserApp debug build of
+fix/NEARS-1487-subscription-retry @ dac9cdf4, backend = primary tree
+Admin/ on :8000 (shared, unmodified by this ticket).
+
+--- app runtime log (logcat, cleared immediately before the Confirm tap) ---
+[NET] POST endpoint=/api/v1/vendor/business_plan
+[NET] endpoint=/api/v1/vendor/business_plan http_status=403
+[FAIL] endpoint=/api/v1/vendor/business_plan http_status=403 type=ApiFailure msg="api request failed" correlation_id=2deabb99-eda3-4e3b-a1da-7b8a5867d663
+
+--- backend response body (curl, same endpoint) ---
+HTTP 403 {"errors":{"message":"Permission denied"}}
+
+--- observed UI effect ---
+Get.currentRoute stayed at /subscription-payment?store-id=4116&package-id=1
+after tapping Confirm: no navigation, no redirect_link, user is stuck.
+
+--- mechanism (read, then confirmed live) ---
+Admin/app/Http/Controllers/Api/V1/Vendor/SubscriptionController.php
+  business_plan() -> authorizeStore()
+authorizeStore() resolves the bearer token ONLY against
+Vendor::where('auth_token', $token) / VendorEmployee::where('auth_token', ...).
+A UserApp caller always sends the CUSTOMER Passport token, so $vendorId is null
+and the method returns 403 "Permission denied" before the allowPending branch
+(which is only reachable when NO token is sent at all) can apply.
+In the real journey the registering user has only a customer token, so the
+paid-subscription branch is unreachable from the UserApp.
+
+Note: the app DOES emit the paired AppLogger.failure line above, so the
+logging contract is satisfied - this is a functional defect, not a silent
+failure path.

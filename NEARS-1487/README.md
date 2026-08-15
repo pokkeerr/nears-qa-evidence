@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1487
 
-**PASS — AC1/AC2 demonstrated live on emulator-5556; retry lands on /subscription-payment?store-id=4116&package-id=1**
+**PASS — plus one pre-existing backend 403 defect logged**
 
 **4 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -16,6 +16,7 @@
 </table>
 
 ### Other artifacts
+- [`bug-business-plan-403-customer-token.log`](bug-business-plan-403-customer-token.log)
 - [`progress.md`](progress.md)
 
 ---
