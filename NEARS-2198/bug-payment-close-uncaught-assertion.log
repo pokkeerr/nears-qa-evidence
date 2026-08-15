@@ -1,0 +1,16 @@
+NEARS-2198 QA (2026-08-16, emulator-5556) — PRE-EXISTING, reproduced on the BASE build.
+
+Closing the payment webview raises a debug-only navigator assertion:
+
+  08-16 00:42:36.865 19476 19476 I flutter : [FAIL] endpoint=null http_status=null
+      type=UncaughtAsyncError msg="uncaught async error (_AssertionError)"
+
+Attribution check (NEARS-1483 §10e says check the base build before blaming the change):
+reproduced on the BASE build 8f5a7f43 (installed APK md5 238189f1a0f7930724c48784dd849e39,
+content-verified pre-fix: 0 occurrences of subscriptionOutcomeFromCallbackUrl):
+
+  08-16 01:00:33.872 22664 22664 I flutter : [FAIL] endpoint=null http_status=null
+      type=UncaughtAsyncError msg="uncaught async error (_AssertionError)"
+
+=> present on both builds, therefore NOT introduced by NEARS-2198. Debug-only
+(_exitApp() -> Get.dialog() during the pop -> !_debugLocked).

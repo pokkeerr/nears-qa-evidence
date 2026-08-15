@@ -1,0 +1,28 @@
+NEARS-2198 QA (2026-08-16, emulator-5556) — PRE-EXISTING, not introduced by this change.
+
+RouteHelper.getPaymentRoute interpolates subscriptionUrl / addFundUrl RAW (unencoded)
+into its own query string (UserApp/lib/helper/route_helper.dart §getPaymentRoute):
+
+  '$payment?id=$id&...&add-fund-url=$addFundUrl&...&subscription-url=$subscriptionUrl
+   &store_id=$storeId&create_account=$createAccount&create_user_id=$createUserId
+   &group_id=$groupId&payment_token=$paymentToken'
+
+So any '&' inside the injected URL terminates the `subscription-url` value and the
+remainder is re-parsed as sibling route parameters.
+
+MEASURED (relay log, initial redirect_link delivered via the route):
+  injected : http://10.0.2.2:8001/subscription-success?flag=fail&&token=eyJvcmRlciI6IjkxMTA4In0=
+  fetched  : GET /subscription-success?flag=fail                      <-- truncated at the first '&'
+
+  injected : http://10.0.2.2:8001/subscription-success?token=eyJvcmRlciI6IjkxMTA4In0=&&flag=success
+  fetched  : GET /subscription-success?token=eyJvcmRlciI6IjkxMTA4In0= <-- flag lost entirely
+
+Impact on THIS ticket: none. Production delivers the callback as an in-webview redirect
+from Processor.php §payment_response, which never passes through getPaymentRoute — verified
+live by re-running every case through a gateway 302, where onLoadStart received the full
+'?flag=..&&token=..' URL and every AC passed.
+
+Latent risk (why it is still worth a ticket): the parameters that FOLLOW the url in the
+route string — store_id, create_account, create_user_id, group_id (NEARS-1291),
+payment_token (NEARS-1301) — can be clobbered by a same-named query parameter carried
+inside the injected URL. Fix shape: Uri.encodeComponent() the url values.
