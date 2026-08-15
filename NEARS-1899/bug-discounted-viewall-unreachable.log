@@ -1,0 +1,19 @@
+NEARS-1899 QA — pre-existing finding: Discounted (and Reviewed) item view-all screens are unreachable
+Measured at branch fix/NEARS-1899-item-cacheid HEAD 530468be, cwd UserApp/
+
+$ grep -rn "getItemViewAllScreen(" lib/     # the ONLY builder of the view-all route URL
+grep: lib/: No such file or directory
+
+$ grep -n "isSpecial" lib/helper/route_helper.dart   # isSpecial comes only from the URL param
+grep: lib/helper/route_helper.dart: No such file or directory
+
+$ grep -rn "discountedItemList" lib/  (excluding controller/domain)  # only consumer is the unreachable screen
+grep: lib/: No such file or directory
+
+$ grep -rn "BestReviewedItemView" lib/   # reviewed rail widget is never composed
+grep: lib/: No such file or directory
+(zero hits outside its own definition file)
+
+CONCLUSION: all 3 call sites pass isSpecial=false, so special=true is never routed;
+the discounted axis has no home rail either. Pre-existing; NOT introduced by NEARS-1899
+(this change touched only the cacheId builders in item_repository.dart).

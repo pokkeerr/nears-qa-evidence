@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1899
 
-**PASS — NEARS-1899 cacheId offset/search components verified live on emulator-5558**
+**PASS — NEARS-1899 live QA + pre-existing reachability finding**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -13,6 +13,7 @@
 - [`ac3-popular-reentry-page1.log`](ac3-popular-reentry-page1.log)
 - [`ac3-popular-search-chocolate.log`](ac3-popular-search-chocolate.log)
 - [`ac3-popular-search-ketchup.log`](ac3-popular-search-ketchup.log)
+- [`bug-discounted-viewall-unreachable.log`](bug-discounted-viewall-unreachable.log)
 - [`emptystate-after-clear.log`](emptystate-after-clear.log)
 - [`emptystate-no-items-found.log`](emptystate-no-items-found.log)
 - [`log-gate-full-session.log`](log-gate-full-session.log)
