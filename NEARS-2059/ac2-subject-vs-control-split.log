@@ -1,0 +1,15 @@
+NEARS-2059 AC2 — DECISIVE MEASUREMENT: subject render and positive control inside ONE logcat buffer window.
+Device emulator-5562 | build: DEBUG (app-debug.apk, pkg flags DEBUGGABLE) | UserApp @ feat/NEARS-2059-storereg-overflow-recon (UserApp/lib byte-identical to base fa3a77ca)
+Device clock runs ~11s BEHIND host; all timestamps below are DEVICE time.
+Buffer: adb logcat -b all -c immediately before; captured with adb logcat -b all -d -v time.
+Window: 08-15 16:54:18.709 -> 08-15 16:55:06.141   total lines scanned = 4724
+Split marker (control trigger): 08-15 16:54:55.586  adbd 'wm size 360x640'
+
+SUBJECT sub-window  16:54:18.709 -> 16:54:55.586  (1600x1200 dp, dpr 1.5, desktop arm + footer scrolled into view)
+  lines_scanned=3476   app_pid(4802)_lines=114   grep -ci overflowed = 0   MATCHED LINES: (none)
+
+CONTROL sub-window  16:54:55.586 -> 16:55:06.141  (360x640 px @ density 320 = 180x320 dp)
+  lines_scanned=1248   app_pid(4802)_lines=48    grep -ci overflowed = 1   MATCHED LINE:
+08-15 16:55:00.978 I/flutter ( 4802): [FAIL] framework_error library=rendering library type=FlutterError msg="A RenderFlex overflowed by 4.5 pixels on the right."
+
+=> The logging instrument is PROVEN LIVE inside the very same buffer that recorded the subject's zero.
