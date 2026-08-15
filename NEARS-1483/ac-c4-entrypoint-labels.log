@@ -1,0 +1,33 @@
+# AC-C4 — entry-point labels are distinct in the field
+
+## Field (live, wallet path, POST build 20a077bb)
+logcat-POST-refuse.txt:08-15 17:38:24.584 I/flutter ( 5102): The following exception was thrown payment_webview_load_failed:
+logcat-POST-refuse.txt:08-15 17:38:24.587 I/flutter ( 5102): [FAIL] endpoint=gateway:wallet-add-fund http_status=null type=ApiFailure msg="payment_webview_load_failed"
+logcat-POST-502.txt:08-15 17:39:44.909 I/flutter ( 5102): The following exception was thrown payment_webview_http_error:
+logcat-POST-502.txt:08-15 17:39:44.910 I/flutter ( 5102): [FAIL] endpoint=gateway:wallet-add-fund http_status=502 type=ApiFailure msg="payment_webview_http_error"
+
+endpoint=gateway:wallet-add-fund on BOTH the transport and the HTTP callback.
+NOT /payment-mobile.
+
+Falsifier + could the instrument produce it?  YES: /payment-mobile is a live
+value of the same enum and the unit run below actually emits that exact string,
+so a mislabelled wallet failure would have been visible. It did not occur.
+
+## order + subscription labels: unit seam only, NOT field-demonstrated
+The order label needs a real Place Order (a DB write) -- forbidden by the
+read-only rule. Covered by the gate test:
+  00:00 +5: endpoint label per entry point each entry point logs its OWN label, and only order is a real route
+  [FAIL] endpoint=/payment-mobile http_status=null type=ApiFailure msg="payment_webview_load_failed"
+  [FAIL] endpoint=gateway:wallet-add-fund http_status=null type=ApiFailure msg="payment_webview_load_failed"
+  [FAIL] endpoint=gateway:subscription http_status=null type=ApiFailure msg="payment_webview_load_failed"
+  00:00 +6: endpoint label per entry point the wallet and subscription labels are distinct, constant, and query-free
+
+## Note on the ticket's framing
+The brief says the old code 'hardcoded one label for every flow'. Measured:
+the old code logged NO endpoint at all -- AppLogger.warn(String) has no
+endpoint parameter. The fix therefore ADDS the label dimension rather than
+correcting a wrong one.
+
+## Unrelated [FAIL] lines in the same captures
+A pre-existing UncaughtAsyncError fires on payment-CANCEL on both builds.
+See bug-payment-back-navigator-assert.log. Not this change, not in any AC window.

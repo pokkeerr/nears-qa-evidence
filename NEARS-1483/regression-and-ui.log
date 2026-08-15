@@ -1,0 +1,19 @@
+# Regression — normal successful payment load (POST build, proxy in pass-through)
+
+Real gateway page, nothing rewritten:
+  pass	GET	/payment/razor-pay/pay?payment_id=452902de-4a06-4d85-b62e-f07dc5349259
+  pass	POST	/payment/razor-pay/create-order
+
+counts: [FAIL]=0 [ERR]=0 [WARN]=0
+lifecycle:
+  08-15 17:46:39.276 I/flutter ( 5102): [INFO] msg="payment screen initialised"
+  08-15 17:46:39.385 I/flutter ( 5102): [INFO] msg="payment browser created"
+  08-15 17:46:40.402 I/flutter ( 5102): [INFO] msg="payment webview load start"
+  08-15 17:46:46.816 I/flutter ( 5102): [INFO] msg="payment webview load stop"
+
+## No UI change (a11y tree, PRE vs POST, identical)
+  PaymentScreen PRE : Back / Payment / Processing payment   (4281 bytes, 12 nodes, 3 labelled)
+  PaymentScreen POST: Back / Payment / Processing payment   (4281 bytes, 12 nodes, 3 labelled)
+  Back dialog PRE   : Cancel Add Fund / Dismiss / Do you want to cancel this add fund? (4321 bytes)
+  Back dialog POST  : Cancel Add Fund / Dismiss / Do you want to cancel this add fund? (4321 bytes)
+No error state, no retry, no overlay was added -- as the owner specified.

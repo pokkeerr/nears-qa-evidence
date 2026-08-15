@@ -1,0 +1,24 @@
+# AC-C3 — NEGATIVE CONTROL: sub-resource failure must NOT log
+Build: POST 20a077bb
+
+Page: main frame 200 OK, carrying two failing sub-resources
+  <img src=/nears-qa-missing.png>            -> proxy answers 502
+  <img src=http://10.0.2.2:9099/...dead.png> -> connection refused
+
+## Result
+counts: [FAIL]=0 [ERR]=0 [WARN]=0
+main-frame positive control (page really loaded):
+  08-15 17:45:26.879 I/flutter ( 5102): [INFO] msg="payment webview load start"
+  08-15 17:45:27.386 I/flutter ( 5102): [INFO] msg="payment webview load stop"
+proxy proves the sub-resource was really requested + really failed:
+  subres	GET	/nears-qa-missing.png
+  curl http://127.0.0.1:8001/nears-qa-missing.png -> HTTP 502
+
+## WHY THIS CONTROL IS NOT VACUOUS
+Frame-ness is the ONLY variable between AC-C2 and AC-C3:
+  502 on the MAIN FRAME      -> exactly 1 [FAIL] http_status=502
+  502 on a SUB-RESOURCE      -> 0 [FAIL]
+and for the transport class, the SAME url (10.0.2.2:9099):
+  as MAIN FRAME  -> 1 [FAIL] payment_webview_load_failed
+  as SUB-RESOURCE-> 0 [FAIL]
+So a broken gate (or no gate) would have produced a line here. It did not.

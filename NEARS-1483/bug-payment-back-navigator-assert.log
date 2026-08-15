@@ -1,0 +1,30 @@
+# PRE-EXISTING (not NEARS-1483): back on PaymentScreen throws an uncaught
+# navigator assertion — Get.dialog() is pushed while the navigator is locked.
+
+## Reproduces IDENTICALLY on BOTH builds — so it is NOT caused by this change
+  PRE  base e6c135e8  (pid 3926): 08-15 17:34:51.475
+  POST 20a077bb       (pid 5102): 17:39:02.818 / 17:40:19.983 / 17:44:51.731 / 17:46:05.702
+  The diff does not touch _exitApp or the PopScope — only MyInAppBrowser's
+  onReceivedError / onReceivedHttpError callbacks.
+
+## Trigger
+  PaymentScreen -> press Back (system back or the NAppBar back)
+
+## Verbatim (PRE build, base commit)
+08-15 17:34:51.476 I/flutter ( 3926): 'package:flutter/src/widgets/navigator.dart': Failed assertion: line 5064 pos 12: '!_debugLocked': is not true.
+08-15 17:34:51.476 I/flutter ( 3926): #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:67:4)
+08-15 17:34:51.476 I/flutter ( 3926): #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:49:5)
+08-15 17:34:51.476 I/flutter ( 3926): #2      NavigatorState._pushEntry (package:flutter/src/widgets/navigator.dart:5064:12)
+  ...
+08-15 17:34:51.463 I/flutter ( 3926): #6      PaymentScreenState._exitApp (package:sixam_mart/features/payment/screens/payment_screen.dart:155:18)
+08-15 17:34:51.463 I/flutter ( 3926): #7      PaymentScreenState.build.<anonymous closure> (package:sixam_mart/features/payment/screens/payment_screen.dart:122:9)
+08-15 17:34:51.463 I/flutter ( 3926): #9      _PopScopeState.onPopInvokedWithResult (package:flutter/src/widgets/pop_scope.dart:181:12)
+
+## Mechanism
+  payment_screen.dart PopScope.onPopInvokedWithResult -> _exitApp() -> Get.dialog()
+  Navigator.push during the pop => assert(!_debugLocked) fails.
+
+## Severity note
+  _debugLocked is a DEBUG-ONLY assert, so release builds do not throw here.
+  User-visible behaviour is unaffected (the cancel dialog does appear).
+  It does, however, book an UncaughtAsyncError [FAIL] on every payment-cancel.

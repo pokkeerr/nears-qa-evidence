@@ -1,0 +1,24 @@
+# NEARS-1483 — Task 1: is isForMainFrame true on the failing main-frame path?
+
+Build: PRE-fix (base e6c135e8), UserApp debug APK md5 a639a4a09bbe8a3b9a63b3046db92724
+Device: emulator-5558 (nears_qa_wave56)
+Induced: wallet add-fund redirect_link rewritten to http://10.0.2.2:9099/nears-qa-dead (nothing listening)
+
+## Grep run (verbatim)
+  /usr/bin/grep -c -F '[WARN] msg="payment webview load error' logcat-PRE-refuse.txt
+  -> 1
+
+## Matching line
+08-15 17:33:44.612 I/flutter ( 3926): [WARN] msg="payment webview load error code=-6"
+
+## All contract tags in the same capture
+[FAIL]=0  [ERR]=0  [WARN]=1
+
+## ANSWER
+1 line => request.isForMainFrame is TRUE on this path on Android.
+The deprecated onLoadError WAS alive in debug on Android; it was NOT dead code.
+The real defect is the LEVEL, not the callback: [WARN] is kDebugMode-gated in
+AppLogger, so the failure reached no production sink.
+
+## Webview also rendered
+  net::ERR_CONNECTION_REFUSED / Webpage not available (chromium default error page)

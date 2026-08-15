@@ -1,0 +1,29 @@
+# AC-C1 — main-frame transport failure is logged, PII-safe (POST-fix)
+Build: POST 20a077bb, APK md5 9dafc34a5acbdd323859e50a83b6a9b1
+
+Induced: redirect_link -> http://10.0.2.2:9099/nears-qa-dead (connection refused)
+
+## [FAIL] lines
+08-15 17:38:24.587 I/flutter ( 5102): [FAIL] endpoint=gateway:wallet-add-fund http_status=null type=ApiFailure msg="payment_webview_load_failed"
+08-15 17:39:02.818 I/flutter ( 5102): [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (_AssertionError)"
+
+counts: [FAIL]=1 [ERR]=0 [WARN]=0
+
+## PII falsifier probes against that line (a HIT = FAIL)
+  ://            0
+  ?              0
+  payment_token  0
+  order_id       0
+  payment_id     0
+  10.0.2.2       0
+  nears-qa-dead  0
+  token          0
+  (http          1 -- from 'http_status=', NOT a url; substring artefact)
+
+## Probe validity (same probes vs a synthetic line that DOES carry a url)
+  http 2 / ? 1 / payment_token 1 / order_id 1  -> probes fire when the PII is present
+
+## Note on what the real url carries
+  the unmodified redirect_link measured in the regression run was
+  /payment/razor-pay/pay?payment_id=452902de-... -- a payment_id query param,
+  exactly the PII this AC guards. None of it reached the log line.
