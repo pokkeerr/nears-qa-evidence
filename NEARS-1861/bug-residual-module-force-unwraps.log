@@ -1,0 +1,44 @@
+NEARS-1861 [8] QA — PRE-EXISTING, OUT OF TICKET SCOPE (regression-candidate, NOT a task bug)
+
+Residual `Get.find<ModuleController>().module!` force-unwraps still live on the
+FIXED tree (6cfbfdf5). Same failure class as the ticket (active sector null
+mid-flight -> _TypeError), but at sites this ticket never claimed to sweep.
+
+Instrument: whitespace-flattening regex scan over UserApp/lib (line-grep is
+unreliable here — these chains span up to 6 physical lines).
+Regex: (Get\.find<ModuleController>\(\)|\bmoduleController)\s*\.\s*module\s*!(?![=])
+  The (?![=]) is load-bearing: without it `module != null` matches and the scan
+  over-reports (50 hits vs the true 24). First pass had that defect.
+
+POSITIVE CONTROL — the scan reproduces the ticket's own 7 sites at base 82bcaae1:
+  banner_repository.dart        base=1  fixed=0
+  brands_repository.dart        base=1  fixed=0
+  flash_sale_repository.dart    base=1  fixed=0
+  store_repository.dart         base=2  fixed=0
+  favourite_repository.dart     base=1  fixed=0
+  payment_webview_screen.dart   base=1  fixed=0
+  TOTAL base=7 fixed=0  <- matches the declared 7-site sweep exactly.
+The instrument therefore CAN produce the "found a force-unwrap" result and does.
+
+Fixed tree: 24 ModuleController-rooted `module!` sites total; 16 guarded by a
+`module != null` in the preceding window. Of the 8 unguarded, after reading each:
+
+  LIVE + async-reachable (highest concern, same class as the ticket):
+    lib/features/location/controllers/location_controller.dart:685
+      final ModuleModel current = Get.find<ModuleController>().module!;
+      -> inside an async zone-switch continuation, after an awaited fetch.
+         Structurally the same "module went null across an await" hazard.
+
+  LIVE, synchronous:
+    lib/features/store/domain/services/store_service.dart:257, :260  (.slug)
+    lib/features/store/widgets/store_description_view_widget.dart:238, :304
+      getModuleConfig(Get.find<ModuleController>().module!.moduleType!)
+
+  DEAD:
+    store_service.dart:249, :252 — behind AppConstants.useReactWebsite,
+      hardcoded false in this workspace.
+    store_description_view_widget.dart:43 — inside a commented-out block.
+      (Instrument limitation: the scan does not strip comments; caught by reading.)
+
+Not a defect IN this change — every one of these predates 6cfbfdf5 and the diff
+neither introduced nor touched them. Filed as a followup, not a task bug.

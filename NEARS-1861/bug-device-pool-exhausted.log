@@ -1,0 +1,26 @@
+NEARS-1861 [8] QA — BLOCKED: whole Android pool occupied, no lock files present
+Probed 2026-08-15 11:07-11:18 (10 polls, 60s apart) via qa_lock_acquire from
+/Users/Apple/Projects/nears/scripts/qa-lock-guard.sh (absolute source).
+
+$HOME/.nears/qa-locks/ was EMPTY the whole time — every holder is a bare
+`flutter run`, the documented residual lock bypass (profile §Run artifacts).
+
+  emulator-5558  dartvm 36726 (ppid 1, started 06:15:55, etime 05:03) + adb logcat 36791
+                 device proc com.izzes.nears:24017          verdict=occupied
+  emulator-5556  dartvm 12439 (ppid 1, started 05:55:06, etime 05:24) + adb logcat 12588
+                 device proc com.izzes.nears:12918          verdict=occupied
+  emulator-5554  dartvm 38647 (ppid 1, started 04:58:20, etime 06:21) + adb logcat 38752
+                 + adb logcat 93024                          verdict=occupied
+                 (sprint runner confirmed 5554 as a live foreign lane)
+
+All three carry a LIVE dartaotruntime child, i.e. the flutter run is still pumping.
+QA_LOCK_PROBE_OVERRIDE deliberately NOT used: not certain this is residue.
+
+Disk precheck (informational, all pass the 800MB floor):
+  emulator-5558  1247804 KB free (79% used)
+  emulator-5556   975692 KB free (84% used)
+
+4th out-of-pool emulator deliberately NOT booted:
+  host load average 18.08 / 18.77 / 19.35
+  qemu pid 46125 at 991.4% CPU, pid 11612 at 147.2% CPU
+  -> booting a 4th AVD would destabilise the three live foreign lanes.
