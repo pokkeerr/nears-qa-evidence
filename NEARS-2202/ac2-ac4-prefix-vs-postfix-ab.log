@@ -1,0 +1,14 @@
+NEARS-2202 AC2/AC4 live A/B on the SAME endpoint + SAME fixture (item 270, 5 reviews).
+Field NAMES only - no response body, no values, ever.
+
+PRE-FIX   primary tree :8000 (pre-2202 code)
+  HTTP 200 | reviews[] count: 5 | total_size: 5
+  review[0] has "customer": True | has "customer_name": False
+  AC2 FIELD NAMES PRESENT ANYWHERE: ['cm_firebase_token', 'email', 'loyalty_point', 'phone', 'ref_code', 'social_id', 'temp_token', 'wallet_balance', 'zone_id']
+
+POST-FIX  worktree :8311 (HEAD 4e1e71b0)
+  HTTP 200 | reviews[] count: 5 | total_size: 5
+  review[0] has "customer": False | has "customer_name": True
+  AC2 FIELD NAMES PRESENT ANYWHERE: NONE
+
+=> PRE-FIX leaks 9 field names; POST-FIX leaks NONE. Instrument proven live (it fires on the pre-fix payload).

@@ -1,0 +1,13 @@
+PRE-EXISTING (NOT NEARS-2202). VendorApp Customer Reviews screen: raw print() + unguarded null-check.
+Site: VendorApp/lib/features/review/screens/customer_review_screen.dart:38
+  print('Review length : ${storeController.storeReviewList!.length}');
+Two violations: (a) raw print in product code (logging contract), (b) '!' on a nullable list -> _TypeError when storeReviewList is null (observed on rebuild during logout).
+Endpoint behind this screen is /api/v1/vendor/item/reviews - NOT the endpoint NEARS-2202 changed.
+
+--- verbatim app log excerpt ---
+I/flutter (16457): [FAIL] framework_error library=widgets library type=_TypeError msg="Null check operator used on a null value"
+I/flutter (16457): [FAIL] framework_error   at #0      _CustomerReviewScreenState.build.<anonymous closure> (package:sixam_mart_store/features/review/screens/customer_review_screen.dart:38:65)
+I/flutter (16457): [FAIL] framework_error   at #1      GetBuilderState.build (package:get/get_state_manager/src/simple/get_state.dart:212:26)
+I/flutter (16457): [FAIL] framework_error   at #2      StatefulElement.build (package:flutter/src/widgets/framework.dart:5931:27)
+--
+Null check operator used on a null value

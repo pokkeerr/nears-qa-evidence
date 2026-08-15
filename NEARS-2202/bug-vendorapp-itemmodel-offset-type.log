@@ -1,0 +1,22 @@
+PRE-EXISTING (NOT NEARS-2202). VendorApp All Items list never renders.
+Surface: VendorApp -> Menu -> All Items (and Store screen + search); device emulator-5556; vendor ecomarket@demo.com (store 19).
+Mechanism (both sides measured):
+  BE  Admin/app/Http/Controllers/Api/V1/Vendor/VendorController.php get_items -> $offset = max((int)($request->offset ?? 1), 1); response 'offset' => $offset  (INT)
+  FE  VendorApp/lib/features/store/domain/models/item_model.dart:32  _offset = json['offset'];  where  String? get offset  (line 31 does json['limit'].toString(), line 32 does not)
+Effect: getItemList throws on EVERY vendor -> itemList stays null -> permanent shimmer, no error state.
+Blast: item_details_screen (the NEARS-2202 reviews-strip surface) is UNREACHABLE in the app.
+Also: no AppLogger [FAIL] line paired with this throw (silent failure path).
+
+--- verbatim app log excerpt ---
+I/flutter (16457): type 'int' is not a subtype of type 'String?'
+I/flutter (16457): #0      new ItemModel.fromJson (package:sixam_mart_store/features/store/domain/models/item_model.dart:32:5)
+I/flutter (16457): #1      StoreRepository.getItemList (package:sixam_mart_store/features/store/domain/repositories/store_repository.dart:32:29)
+I/flutter (16457): <asynchronous suspension>
+I/flutter (16457): #2      StoreService.getItemList (package:sixam_mart_store/features/store/domain/services/store_service.dart:25:12)
+I/flutter (16457): <asynchronous suspension>
+I/flutter (16457): #3      StoreController.getItemList (package:sixam_mart_store/features/store/controllers/store_controller.dart:495:30)
+I/flutter (16457): <asynchronous suspension>
+I/flutter (16457): ----------------------------------------------------
+--
+I/flutter (16457): type 'int' is not a subtype of type 'String?'
+I/flutter (16457): #0      new ItemModel.fromJson (package:sixam_mart_store/features/store/domain/models/item_model.dart:32:5)
