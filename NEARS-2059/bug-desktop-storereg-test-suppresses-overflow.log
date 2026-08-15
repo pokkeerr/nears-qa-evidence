@@ -1,0 +1,35 @@
+NEARS-2059 QA — PRE-EXISTING (not caused by this ticket; UserApp/lib diff vs base fa3a77ca = 0 lines).
+Coverage hole: the shipped desktop store-registration widget test suppresses the exact error class it provokes.
+
+FILE: UserApp/test/features/auth/store_registration_desktop_submit_blocks_test.dart
+----- lines 197-207 -----
+    // fails the test.
+    final void Function(FlutterErrorDetails)? priorOnError =
+        FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      if (details.library == 'rendering library' &&
+          details.exceptionAsString().startsWith('A RenderFlex overflowed')) {
+        return;
+      }
+      priorOnError?.call(details);
+    };
+    addTearDown(() => FlutterError.onError = priorOnError);
+-------------------------
+
+EFFECT: FlutterError.onError early-returns on any 'A RenderFlex overflowed' from the rendering
+library, so the test reports green whether or not the desktop arm overflows.
+
+MEASURED THIS RUN:
+  $ ~/Tools/flutter/bin/flutter test test/features/auth/store_registration_desktop_submit_blocks_test.dart
+  rc=0, 'All tests passed!', grep -ci overflowed over the test output = 0
+  ... while NEARS-2059's static-analysis probe, which copied this file and changed ONLY the
+  filter body from discarding to recording, printed: PROBE_COUNT: 1 /
+  'A RenderFlex overflowed by 75 pixels on the right.'
+
+WHY IT STILL MATTERS EVEN THOUGH LIVE IS CLEAN: this run proved the 75px overflow is a
+flutter_test uniform-advance-font artifact with no live counterpart (0 overflow at both
+1600x1200dp and 1400x1000dp, positive control firing in the same buffer). But the filter is
+unconditional, so a GENUINE future RenderFlex regression on the desktop store-registration
+arm would also be swallowed and the suite would stay green.
+
+SEVERITY: low. NOT a blocker for NEARS-2059 (verdict PASS). Routed as pre-existing.

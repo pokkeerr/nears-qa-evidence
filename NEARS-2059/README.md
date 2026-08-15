@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2059
 
-**PASS — zero live RenderFlex overflow at footer_view.dart at 1600x1200dp and 1400x1000dp; positive control fired in the same logcat buffer**
+**PASS — zero live overflow; +1 pre-existing test-suppression finding**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -13,6 +13,7 @@
 
 ### Other artifacts
 - [`ac2-subject-vs-control-split.log`](ac2-subject-vs-control-split.log)
+- [`bug-desktop-storereg-test-suppresses-overflow.log`](bug-desktop-storereg-test-suppresses-overflow.log)
 - [`control-nrating-item-sheet.log`](control-nrating-item-sheet.log)
 - [`static-analysis.md`](static-analysis.md)
 
