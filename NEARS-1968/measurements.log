@@ -1,0 +1,172 @@
+NEARS-1968 — snackbar live region: device-layer measurements
+=============================================================================
+Device : emulator-5558 (sdk_gphone16k_arm64, 1344x2992, density 3.0)
+App    : UserApp, **DEBUG** build, worktree
+         /Users/Apple/Projects/nears-NEARS-1968-snackbar-live-region
+         branch fix/NEARS-1968-snackbar-live-region @ cfa1afce (fix UNCOMMITTED)
+Backend: http://10.0.2.2:8000 (real local Laravel), app logged OUT (Guest User)
+Locale : en (light mode; dark deferred, not booted)
+
+WHICH BYTES RAN — proved by reading the source out of the LIVE isolate
+(ext getObject on the Script), NOT by an APK md5: a debug APK is not
+byte-reproducible, so an md5 change proves nothing about content.
+  FIX  build: messageText: Semantics(container: true, liveRegion: true, ...)
+  BASE build: messageText: NSnackBar(text: message, status: status)
+  file md5 fix 22b9f316d3586b15019051e6edf71ece / base 02a679a690b85200d1b8d3d2ed731524
+
+WHICH CALL SITE IS WHICH PATH — settled by ext.flutter.debugDumpApp, not by
+assumption. Two upstream descriptions of the repro were wrong; a third nearly
+was. The module-home store card is NOT the GetX path.
+  * module home store card heart  -> store_card_with_distance.dart:194
+        showCustomSnackBar('you_are_not_logged_in'.tr)   [no getXSnackBar]
+        widget tree shows Hero(tag: <SnackBar Hero tag - NSnackBar>)
+        => MATERIAL ScaffoldMessenger path (UNCHANGED by this fix)
+  * item bottom-sheet heart       -> item_bottom_sheet.dart:562
+        showCustomSnackBar('you_are_not_logged_in'.tr, getXSnackBar: true)
+        => GetX OVERLAY path (the only path this fix changes)
+  * no-internet retry             -> no_internet_screen.dart:61 (getXSnackBar: true)
+        stack trace captured in logcat confirms the call site
+
+INSTRUMENTS
+  A. uiautomator dump  -> the real AccessibilityNodeInfo tree. Proves PRESENCE.
+     Cannot show a live-region attribute. Every dump below asserts >=1 positive
+     control node in the SAME dump; a dump without one is NO OBSERVATION.
+     Dump cost on this host was 6-9s (two emulators at ~180% CPU each) vs a 3s
+     toast, so the observation window was widened by re-triggering the same call
+     site on a 1.2s loop. Elapsed times are stated per row.
+  B. ext.flutter.debugDumpSemanticsTreeInTraversalOrder (VM service) -> the
+     isLiveRegion FLAG + exact label. Sub-second, so it lands inside the 3s window.
+  C. TalkBack utterances = "requestAudioFocus ... SpeechControllerImpl" +
+     "GoogleTTSServiceImpl: Synthesis request" in logcat. TalkBack on a production
+     build does not log the spoken TEXT and this emulator refuses `adb root`, so
+     the text identity comes from instrument B (the label TalkBack reads) and the
+     COUNT from instrument C. Never blended.
+
+-----------------------------------------------------------------------------
+AC1 — is the toast text present in the Android a11y tree? BOTH paths, base+fix
+-----------------------------------------------------------------------------
+[B] GetX path, BASE, item sheet         semantics_nodes=36
+    CONTROL 'Favourite' PRESENT, 'Description' PRESENT  -> instrument live
+    before tap: 0 nodes match, 0 isLiveRegion in tree
+    +1.24s: SemanticsNode#346  label='You are not logged in'  flags=[]  liveRegion=False
+    +1.52s: identical
+[A] GetX path, BASE, item sheet         nodes=41, dumps at +4.01s / +8.23s
+    CONTROL 'Favourite' PRESENT, 'Description' PRESENT
+    content-desc='You are not logged in' focusable=true clickable=false
+    bounds=[0,2278][1344,2920]  -> exactly ONE focus stop
+    => TEXT IS PRESENT AT BASE. PREMISE FALSIFIED on the GetX path.
+
+[B] GetX path, FIX, item sheet          semantics_nodes=37
+    CONTROL 'Favourite' PRESENT, 'Description' PRESENT
+    SemanticsNode#2238 / #393 label='You are not logged in' flags=[isLiveRegion]
+    ALL isLiveRegion nodes in tree: 1   substring-only nodes: 0
+[A] GetX path, FIX, item sheet          nodes=40
+    content-desc='You are not logged in' focusable=true  bounds=[78,2326][1266,2572]
+    exactly ONE focus stop, no concatenation
+
+[B] ScaffoldMessenger path, BASE, module home   semantics_nodes=73
+    CONTROL 'Home' PRESENT, 'Categories' PRESENT
+    SemanticsNode#152 label='You are not logged in' flags=[isLiveRegion]
+    Rect.fromLTRB(0.0, 796.3, 448.0, 893.3), actions: dismiss, scrollLeft, scrollRight
+    => ALREADY a live region at BASE (Flutter Material SnackBar supplies it:
+       flutter/lib/src/material/snack_bar.dart:830 liveRegion: true)
+[A] ScaffoldMessenger path, BASE/FIX             nodes=55/56, dumps +9.06s / +11.51s
+    content-desc='You are not logged in' focusable=true, exactly ONE focus stop
+    => TEXT IS PRESENT AT BASE. PREMISE FALSIFIED on the ScaffoldMessenger path.
+
+VERDICT AC1: the ticket's premise ("toast text absent from the Android a11y tree
+app-wide") is FALSE ON BOTH PATHS. The text was already present, and already
+carried one focus stop, before the fix. What was genuinely missing was the
+live-region FLAG on the GetX path only — see AC2.
+
+-----------------------------------------------------------------------------
+AC2 — does a GetX-path toast announce under TalkBack, exactly once?
+-----------------------------------------------------------------------------
+Procedure. Under TalkBack touch-exploration a single injected tap only moves a11y
+focus; it never activates. So: (i) CONTROL = tap a focusable neighbour with
+touch-exploration ON, expect >=1 utterance, proving instrument C is live; then
+(ii) MEASURE = touch-exploration OFF so the tap ACTIVATES with no focus speech to
+confound, poll the semantics tree for toast instances (a contiguous run = one
+toast) and count utterances in the same window.
+A DOUBLE-tap injected as two `input tap`s is delegated by TouchExplorer as two
+real taps => two activations; that run was discarded as an instrumentation
+artifact, not reported as a product double-announce. (For the record it produced
+2 toasts and 2 utterances — a 1:1 ratio, i.e. still no doubling.)
+
+  BASE, GetX path (item sheet)
+    CONTROL: 2 utterance(s)                                  -> INSTRUMENT LIVE
+    MEASURE: 1 toast instance, SemanticsNode#406 liveRegion=False
+             0 TalkBack utterance(s)
+    => visible toast, text in the tree, and NO ANNOUNCEMENT.
+
+  FIX, GetX path (item sheet)
+    CONTROL: 2 utterance(s)                                  -> INSTRUMENT LIVE
+    MEASURE: 1 toast instance, SemanticsNode#393 liveRegion=True
+             1 TalkBack utterance
+    => announced, EXACTLY ONCE. label == the message exactly ("equals", never
+       "contains"); substring-only matches = 0; isLiveRegion nodes in tree = 1.
+
+VERDICT AC2: MET. Clean A/B on one device, one procedure: 0 -> 1 utterance, with
+the only delta being the 11-line wrapper.
+
+-----------------------------------------------------------------------------
+REGRESSION SWEEP
+-----------------------------------------------------------------------------
+1. ScaffoldMessenger path (~319 call sites) — must still announce exactly once,
+   and must NOT gain a nested live region.
+     FIX, module-home store card: 1 toast instance, exactly 1 isLiveRegion node
+     in the whole tree, label exactly equal to the message, 0 substring-only
+     nodes, exactly 1 uiautomator focus stop.
+     TalkBack: 1 toast -> 1 utterance; and in the discarded double-activation
+     run, 2 toasts -> 2 utterances. Ratio 1:1 both ways. NO DOUBLE-ANNOUNCE.
+     (The fix deliberately does not touch this branch, and the measurement agrees.)
+
+2. NEARS-1501 Scaffold-less fallback — no-internet screen, mounted bare by
+   Get.offAll, retry tapped while still offline (wifi+data disabled):
+     1 toast instance, SemanticsNode#877 liveRegion=True,
+     label exactly 'Please check your connection and try again',
+     uiautomator content-desc exact, 1 focus stop, controls 'Try Again'/'Oops!'
+     PRESENT. Nothing thrown. logcat stack confirms no_internet_screen.dart:61.
+
+3. Zero visual change — base vs fix screenshots of the SAME GetX toast on the
+   SAME screen, pill measured by colour-matched bounding box:
+     BASE pill colour (0,0,60) bbox (96,2326)-(1032,2812)
+     FIX  pill colour (0,0,60) bbox (96,2326)-(1032,2812)   -> IDENTICAL
+   (A raw whole-screen pixel diff is NOT usable here: both frames are mid-
+   animation and the status-bar clock differs, so it reports differences that
+   have nothing to do with the change.)
+
+4. RTL / Arabic (locale switched in-app to عربى, then switched back to English):
+     FIX, GetX path: 1 toast instance, SemanticsNode#753 flags=[isLiveRegion],
+     label exactly 'لم تقم بتسجيل الدخول', substring-only nodes 0,
+     isLiveRegion nodes in tree 1. Controls 'مفضل' / 'وصف' PRESENT.
+
+-----------------------------------------------------------------------------
+LOGS
+-----------------------------------------------------------------------------
+Every toast trigger emits `[ERR] msg="error snackbar shown"` from
+AppLogger.error via custom_snackbar.dart:30. That is the DESIGNED, content-free
+NEARS-568 breadcrumb for error toasts, not a defect — no message text, no PII.
+The Scaffold-less path additionally emits the designed
+`[WARN] msg="showCustomSnackBar: no visible scaffold, used overlay"`.
+No unhandled exception, no red screen, no unexpected [FAIL] during any AC.
+
+-----------------------------------------------------------------------------
+AUTOMATED BACKSTOP
+-----------------------------------------------------------------------------
+/Users/Apple/Tools/flutter/bin/flutter test \
+  test/common/widgets/custom_snackbar_live_region_test.dart \
+  test/common/widgets/custom_snackbar_scaffoldless_test.dart
+  -> +8 All tests passed (4 live-region + 4 NEARS-1501 scaffoldless), names printed.
+
+-----------------------------------------------------------------------------
+NOT OBSERVED / NOT RUN (stated rather than invented)
+-----------------------------------------------------------------------------
+* TalkBack's spoken TEXT is not machine-readable here: TalkBack does not log it
+  on a production build and `adb root` is refused ("adbd cannot run as root in
+  production builds"). TalkBack's own "Display speech output" overlay was enabled
+  and DID work, but ANR'd TalkBack repeatedly on this loaded host, so it was
+  turned back off. Text identity therefore rests on instrument B (the exact
+  semantics label TalkBack consumes); the COUNT rests on instrument C.
+* Release-mode behaviour was not exercised. All rows above are DEBUG.
+* Dark mode not booted (deferred, light-first).
