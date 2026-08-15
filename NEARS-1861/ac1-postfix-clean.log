@@ -1,0 +1,21 @@
+NEARS-1861 AC1 POST-FIX — commit 11500328 debug APK, emulator-5558, light mode, LTR
+Repro (identical to the pre-fix positive control): sector picker -> tap sector -> system Back
+at 0.4s/0.7s/1.0s/1.5s while the home fan-out is in flight. 3 sectors x 4 delays = 12 pop-backs.
+Window: 910 logcat lines, 232 flutter-tagged, 0 matches for
+  Null check|_TypeError|Unhandled Exception|EXCEPTION CAUGHT|[FAIL]|[ERR]|is not a subtype
+
+Fan-out actually fired during the window (proves the rails were mid-load, not idle):
+  24 [NET] GET endpoint=/api/v1/customer/cart/list
+  20 [NET] GET endpoint=/api/v1/stores/get-stores/all
+  18 [NET] GET endpoint=/api/v1/module
+  17 [NET] GET endpoint=/api/v1/banners
+   6 [NET] GET endpoint=/api/v1/config/get-zone-id
+   2 [NET] GET endpoint=/api/v1/other-banners
+   2 [NET] GET endpoint=/api/v1/items/recommended
+   2 [NET] GET endpoint=/api/v1/items/popular
+   2 [NET] GET endpoint=/api/v1/items/most-reviewed
+   2 [NET] GET endpoint=/api/v1/items/discounted
+   2 [NET] GET endpoint=/api/v1/home/all
+   2 [NET] GET endpoint=/api/v1/campaigns/item
+   2 [NET] GET endpoint=/api/v1/campaigns/basic
+   2 [NET] GET endpoint=/api/v1/advertisement/list

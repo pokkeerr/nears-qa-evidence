@@ -1,0 +1,35 @@
+NEARS-1861 QA followup (regression-candidate, PRE-EXISTING, NOT introduced by this ticket)
+
+UserApp/lib/features/payment/controllers/payment_controller.dart  maxCodAmount getter:
+
+  double? get maxCodAmount {
+    double? maximumCodOrderAmount;
+    zoneLoop:
+    for(ZoneData zData in AddressHelper.getUserAddressFromSharedPref()!.zoneData!) {
+      for(Modules m in zData.modules!) {
+        if(m.id == Get.find<ModuleController>().module?.id) {
+          maximumCodOrderAmount = m.pivot!.maximumCodOrderAmount;
+          break zoneLoop;
+        }
+      }
+    }
+    return maximumCodOrderAmount;
+  }
+
+This is the exact naive-nullable-comparison that NEARS-1861's OWN test file
+(UserApp/test/features/favourite/favourite_module_id_filter_test.dart) documents as a
+REGRESSION trap: both sides are int?, so a null active module matches a zone module
+whose id is null and picks up ITS cod cap. NEARS-1861 fixed this shape in
+favourite_repository.dart and payment_webview_screen.dart by hoisting the read and
+gating on non-null; payment_controller.dart still carries the naive form.
+
+PRE-EXISTING - proven, not inferred:
+  git diff --name-only 82bcaae1..11500328 does NOT list payment_controller.dart
+  git show 82bcaae1:.../payment_controller.dart line 101 already reads
+    if(m.id == Get.find<ModuleController>().module?.id) {
+
+Consumer impact: maxCodAmount feeds payment_screen.dart:78 -> the COD ceiling.
+A wrong cap here silently changes which orders may switch to Cash on Delivery.
+Not in NEARS-1861's AC set; does NOT affect this run's verdict.
+Not among the already-filed residuals NEARS-2171/2172 (location_controller,
+store_service, store_description_view_widget).
