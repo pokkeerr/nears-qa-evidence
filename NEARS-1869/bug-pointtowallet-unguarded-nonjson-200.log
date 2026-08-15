@@ -1,0 +1,26 @@
+PRE-EXISTING (not introduced by NEARS-1869) — same non-JSON-200 crash class, wallet money path.
+File: UserApp/lib/features/loyalty/domain/repositories/loyalty_repository.dart
+Function: pointToWallet() — proven BYTE-IDENTICAL base 066fcc95 -> HEAD ee15b0d3 (sha256 9d63a648...)
+
+  Future<ResponseModel> pointToWallet({int? point}) async {
+    ResponseModel responseModel;
+    Response response = await apiClient.postData(AppConstants.loyaltyPointTransferUri, {"point": point});
+    if (response.statusCode == 200) {
+      responseModel = ResponseModel(true, response.body['message']);   // <-- unguarded index on a non-Map body
+    } else {
+      responseModel = ResponseModel(false, response.statusText);
+    }
+    return responseModel;
+  }
+
+NEARS-1869 widened the sibling _getLoyaltyTransactionList gate to `statusCode == 200 && response.body is Map`.
+pointToWallet still indexes response.body['message'] behind a bare `statusCode == 200`, so a captive-portal /
+hostile-proxy HTML 200 on /api/v1/customer/loyalty-point/point-transfer throws the same
+  type 'String' is not a subtype of type 'Map<String, dynamic>'
+on a MONEY path, with no AppLogger.failure emitter (silent-failure path).
+
+NOT live-reproducible in this run: the Convert CTA is config-gated behind `exchangeRate > 0`
+(loyalty_card_widget.dart:100) and the shared dev DB has business_settings
+loyalty_point_exchange_rate = 0, so the CTA never renders. Opening it needs a business_settings
+mutation, which the QA read-only DB rule forbids. Static finding + config evidence only.
+Out of NEARS-1869's AC scope -> regression lane, does not block this ticket.

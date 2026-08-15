@@ -1,0 +1,19 @@
+NEARS-1869 — RTL/Arabic mirroring verified by PIXEL GEOMETRY (a11y bounds), not by eye.
+Device emulator-5554, screen width 1344px. Mirror predicate: x_rtl = 1344 - x_ltr.
+Surface: Loyalty screen, Point History in the NearsErrorRetry state (non-JSON 200 injected).
+
+element                     LTR bounds              RTL bounds              expected mirror     result
+--------------------------------------------------------------------------------------------------
+Back (رجوع)                 [48,177][192,321]       [1152,177][1296,321]    [1152..1296]        EXACT
+Notification (إشعار)        [912,177][1056,321]     [288,177][432,321]      [288..432]          EXACT
+Cart (سلة التسوق)           [1056,177][1200,321]    [144,177][288,321]      [144..288]          EXACT
+card label LOYALTY POINTS   [108,447][445,489]      [1104,447][1236,495]    right edge 1236     EXACT (right-aligned)
+points value 199            [108,513][310,657]      [1034,519][1236,663]    right edge 1236     EXACT (right-aligned)
+Point History heading       [48,1218][412,1302]     [1014,1251][1296,1344]  right edge 1296     EXACT (right-aligned)
+"Something went wrong"      [403,1782][941,1851]    [557,1824][787,1902]    centre stays 672    centre 672 = 672 OK
+"Please try again"          [530,1881][814,1935]    [510,1932][834,1989]    centre stays 672    centre 672 = 672 OK
+Retry button                [108,1995][1236,2139]   [108,2049][1236,2193]   symmetric           centre 672 = 672 OK
+
+Every leading/trailing-anchored element mirrors to the pixel; every centred element keeps
+centre_x = 672 = 1344/2. Vertical offsets differ (Arabic line metrics) — not mirrored, expected.
+[FAIL] count on the RTL fetch = 1 (identical to LTR).
