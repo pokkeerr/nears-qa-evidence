@@ -1,0 +1,141 @@
+NEARS-1870 — MUTATION TRANSCRIPTS (re-run independently by QA, not taken on the engineer's word)
+SDK: /Users/Apple/Tools/flutter/bin/flutter (3.41.9)
+worktree: /Users/Apple/Projects/nears-NEARS-1870-loyalty-session-guard
+branch:   fix/NEARS-1870-loyalty-stale-session-guard
+HEAD:     2db5fe57ac116eadeb7e71b384fcfbba9a75119e (verified before, between and after both mutations)
+
+Each mutation was PROVEN LANDED by `git diff` on the mutated file BEFORE its result was
+believed — an inapplicable mutation and a working control both print a clean PASS.
+Verdicts below are read off the reported FAILURE MESSAGE, never off an exit code.
+
+
+================================================================================
+MUTATION 1 — remove ONLY the guard from loyalty_controller.dart
+             §getLoyaltyTransactionList
+================================================================================
+
+PROOF IT LANDED (git diff, exactly 3 lines removed, nothing else):
+
+    @@ -57,9 +57,6 @@ class LoyaltyController extends GetxController implements GetxService {
+           _offsetList.add(offset);
+           final int session = _transactionListSession;
+           TransactionModel? transactionModel = await loyaltyServiceInterface.getLoyaltyTransactionList(offset);
+    -      if (session != _transactionListSession) {
+    -        return;
+    -      }
+
+    $ /usr/bin/grep -n -F 'session != _transactionListSession' <controller>
+    GUARD ABSENT — confirmed removed
+
+RESULT: 2 passed, 3 failed (the 3 failures named explicitly with [E] below;
+        the 2 passes are AC2 and AC1b by elimination, not by counter reading).
+
+--- AC1 FAILED (the named-field message the fix exists to produce) ---
+  Expected: {
+              'dispatchedFlights': 2,
+              'midRows': ['new-0', 'new-1', 'new-2'],
+              'midError': false,
+              'finalRows': ['new-0', 'new-1', 'new-2'],
+    Actual: {
+              'dispatchedFlights': 2,
+              'midRows': ['new-0', 'new-1', 'new-2'],
+              'midError': false,
+              'finalRows': ['new-0', 'new-1', 'new-2'],
+     Which: at location ['finalError'] is <true> instead of <false>
+  test/features/loyalty/loyalty_stale_session_test.dart 121:9
+
+  >> VERBATIM MATCH to the message the engineer reported.
+  >> Note the positive control held: midRows/midError are CORRECT, so the newer
+     session really landed; only the superseded failure's write-back differs.
+
+--- placement coverage (stale offset 1 success) FAILED ---
+     Which: at location ['finalRows'][0] is 'stale-0' instead of 'new-0'
+     Actual finalRows: ['stale-0','stale-1','stale-2','stale-3','stale-4']
+     Actual finalPageSize: 50  (expected 20)
+
+--- placement coverage (stale offset 2 load-more) FAILED ---
+     Which: at location ['finalRows'][2] is
+            ['reloaded-0','reloaded-1','stale2-0','stale2-1','stale2-2','stale2-3']
+            which longer than expected
+
+--- AC2 PASSED, AC1b PASSED (unchanged by this mutation) ---
+  >> AC1b staying GREEN under the mutation is itself the proof that AC1b does NOT
+     discriminate this fix. It is a regression guard on the NEARS-1609 compound
+     guard and is NOT evidence for NEARS-1870.
+
+
+================================================================================
+MUTATION 2 — make the guard return UNCONDITIONALLY (over-broad control)
+================================================================================
+
+PROOF IT LANDED (git diff):
+
+    @@ -57,7 +57,7 @@ class LoyaltyController extends GetxController implements GetxService {
+           TransactionModel? transactionModel = await loyaltyServiceInterface.getLoyaltyTransactionList(offset);
+    -      if (session != _transactionListSession) {
+    +      if (true) {
+             return;
+           }
+
+RESULT: 0 passed, 5 failed.
+
+--- AC2 FAILED (the control that proves the guard is not over-broad) ---
+  ══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞══
+  The following TestFailure was thrown running a test:
+  Expected: true
+    Actual: <false>
+  #4  main.<anonymous closure>.<anonymous closure>
+      (loyalty_stale_session_test.dart:267:9)
+
+  >> VERBATIM MATCH to the message the engineer reported.
+  >> That assertion site is `expect(controller.transactionListError, isTrue)` —
+     i.e. an over-broad guard silently kills the entire error surface, and AC2 is
+     what catches it.
+
+--- ALSO FAILED under mutation 2 (QA observation, broader than the engineer's report) ---
+  AC1, both placement-coverage tests, and AC1b also fail, because an
+  unconditional return suppresses EVERY write-back including the newer session's
+  (AC1 finalRows/midRows go empty; AC1b midRows 3 -> 0). The engineer reported
+  only AC2; that is not a contradiction (they did not claim exclusivity), but the
+  accurate statement is "all five fail", with AC2 carrying the reported message.
+
+
+================================================================================
+RESTORE VERIFICATION (after EACH mutation)
+================================================================================
+  $ git checkout -- UserApp/lib/features/loyalty/controllers/loyalty_controller.dart
+  $ git rev-parse HEAD   -> 2db5fe57ac116eadeb7e71b384fcfbba9a75119e   (unchanged)
+  $ git status --short   -> only `?? tasks/recovery/NEARS-1870-review-lessons-promotion.json`
+                            (pre-existing untracked file, NOT created by QA, not compiled)
+  $ git diff -- <controller>  -> empty
+  $ confirming re-run: flutter test test/features/loyalty/ -> "All tests passed!" (46/46)
+
+
+================================================================================
+SUPPORTING GREP — the [2b] restatement of AC1, verified independently
+================================================================================
+Claim under test: `transactionListError`'s ONLY render consumer is the NEARS-1609
+COMPOUND guard, so the original AC1 wording was unprovable (vacuous green).
+
+  $ /usr/bin/grep -rn -F 'transactionListError' lib/
+  lib/features/loyalty/controllers/loyalty_controller.dart:36:  bool _transactionListError = false;
+  lib/features/loyalty/controllers/loyalty_controller.dart:37:  bool get transactionListError => _transactionListError;
+  lib/features/loyalty/controllers/loyalty_controller.dart:46:    _transactionListError = false;
+  lib/features/loyalty/controllers/loyalty_controller.dart:80:        _transactionListError = true;
+  lib/features/loyalty/widgets/loyalty_history_widget.dart:29:            loyaltyController.transactionListError &&
+  lib/features/wallet/controllers/wallet_controller.dart:19:  bool _transactionListError = false;
+  lib/features/wallet/controllers/wallet_controller.dart:20:  bool get transactionListError => _transactionListError;
+  lib/features/wallet/controllers/wallet_controller.dart:110:      _transactionListError = false;
+  lib/features/wallet/controllers/wallet_controller.dart:121:      _transactionListError = false;
+  lib/features/wallet/controllers/wallet_controller.dart:155:        _transactionListError = true;
+  lib/features/wallet/widgets/wallet_history_widget.dart:116:            if (walletController.transactionListError &&
+
+  $ /usr/bin/grep -n -F -A2 'transactionListError' lib/features/loyalty/widgets/loyalty_history_widget.dart
+  29:            loyaltyController.transactionListError &&
+  30-                    loyaltyController.transactionList == null
+  31-                ? Padding(
+
+  CONFIRMED: within lib/, the only RENDER consumer of LoyaltyController's flag is
+  loyalty_history_widget.dart §build line 29, and it IS compound. The wallet hits
+  are a DIFFERENT controller's identically-named field (separate symbol), not a
+  consumer of the loyalty flag.
