@@ -1,0 +1,66 @@
+NEARS-1934 QA — regression candidate (PRE-EXISTING, unrelated to this ticket)
+"Best Reviewed Items" rail does not render on the Food home in ZONE 2 (Abu Dhabi),
+while it renders normally in ZONE 1.
+
+Observed: 2026-08-15, UserApp debug build, emulator-5556, worktree
+/Users/Apple/Projects/nears-NEARS-1934-food-hours (branch feat/NEARS-1934-food-hours).
+Account customer@nears.com, delivery address "Abu Dhabi - United Arab Emirates" (zone 2).
+Device clock 23:30 (NEARS-1934 fixture APPLIED, so the module gate was open and the
+full rail stack was rendering).
+
+WHY THIS IS NOT CAUSED BY NEARS-1934
+NEARS-1934 changes only store_schedule opening/closing times for stores 39 and 49.
+The Best Reviewed rail's contents are time-independent, and the SAME fixture state in
+zone 1 renders the rail correctly. Trading hours cannot select this rail's data.
+
+--- 1. ZONE 1 (control): rail renders ---
+Section titles captured on the zone-1 Food home at device clock 23:35:
+  Best Reviewed Items      <-- PRESENT
+  Most Popular Items
+with items: Classic Cheeseburger 4.5 (40) 9 AED, Fresh Lemonade 4.3 (21) 30 AED
+
+--- 2. ZONE 2: rail absent across a 6-viewport scroll sweep ---
+Sweep validity (each step is one full uiautomator viewport dump):
+  step a:  78 labels; MostPopular=0; BestRev=0
+  step b:  56 labels; MostPopular=0; BestRev=0
+  step c:  45 labels; MostPopular=0; BestRev=0
+  step d: 106 labels; MostPopular=1; BestRev=0
+  step e:  66 labels; MostPopular=0; BestRev=0
+  step f:  63 labels; MostPopular=0; BestRev=0
+
+Positive control on the sweep — section titles it DID capture in zone 2:
+  Buy It Again
+  Categories
+  Flash Sale
+  Most Popular Items
+  New on Nears
+  Open Now Near You
+  Popular
+"Best Reviewed Items" is absent from all six. Per food_home_screen.dart section
+"_content", BestReviewItemView is mounted immediately BEFORE ItemThatYouLoveView
+("Buy It Again"), and the viewport containing "Buy It Again" (step c) was captured
+in full and does not contain the Best Reviewed title.
+
+--- 3. The data and the endpoint are both healthy in zone 2 ---
+DB (read-only SELECT) — reviewed, active module-2 items per zone:
+  zone_id  items_with_reviews
+  1        30
+  2        30
+
+App network log (adb logcat -s flutter), zone 2 session:
+  08-15 23:31:31.213 I flutter : [NET] GET endpoint=/api/v1/items/most-reviewed
+  08-15 23:31:40.118 I flutter : [NET] endpoint=/api/v1/items/most-reviewed http_status=200
+  08-15 23:32:10.229 I flutter : [NET] GET endpoint=/api/v1/items/most-reviewed
+  08-15 23:32:30.920 I flutter : [NET] endpoint=/api/v1/items/most-reviewed http_status=200
+
+Direct API check (read-only GET, both zones return a populated payload):
+  zoneId [1] moduleId 2 -> {"total_size":30, ... "products":[{"id":118,"name":"French Fries" ...
+  zoneId [2] moduleId 2 -> {"total_size":30, ... "products":[{"id":542,"name":"Chicago Style Cheese" ...
+
+So: data exists, endpoint returns 200 with 30 products, yet the rail does not mount
+in zone 2. Mechanism NOT identified — needs triage. No [FAIL]/[ERR] line was emitted
+(0 error-class lines in 359 flutter log lines for the whole session), so if this is a
+swallowed empty/error path it is also a logging-contract gap.
+
+Severity: medium (a whole merchandising rail silently missing for every zone-2
+customer). Not a blocker for NEARS-1934 — filed as a separate pre-existing defect.
