@@ -1,0 +1,20 @@
+NEARS-2184 QA — regression_bug (PRE-EXISTING, not caused by this diff): a 403 on
+/api/v1/stores/details/{id} is swallowed with NO paired AppLogger.failure line.
+
+Observed twice on emulator-5556, on two different app processes, while browsing the cart /
+store surfaces:
+  08-16 03:02:15.117  23920  I flutter : [NET] endpoint=/api/v1/stores/details/17 http_status=403
+  08-16 03:03:23.200  24827  I flutter : [NET] endpoint=/api/v1/stores/details/17 http_status=403
+Neither is followed by a [FAIL]/[ERR] line (grep over each pid's full flutter-tag buffer for
+"\[ERR\]|\[FAIL\]" returns only the unrelated common-condition entry).
+
+Cause is NOT the module header — identical response with and without it:
+  $ curl -H 'zoneId: [1]' -H 'moduleId: 1' 'http://127.0.0.1:8000/api/v1/stores/details/17'
+  403 {"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+  $ curl -H 'zoneId: [1]'                  'http://127.0.0.1:8000/api/v1/stores/details/17'
+  403 {"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+
+So: an out-of-zone store detail fetch fails on the wire and the app logs only the routine
+[NET] status line — a silent failure path per docs/platform/logging-contract.md (every
+failure path needs a paired AppLogger.failure). Pre-existing behaviour, reachable
+independently of NEARS-2184; filed for the PO's backlog, not against this change.

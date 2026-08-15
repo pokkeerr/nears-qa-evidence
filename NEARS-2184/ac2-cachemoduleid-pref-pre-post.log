@@ -1,0 +1,43 @@
+NEARS-2184 — AC2 device evidence: persisted `cacheModuleId` pref across a sector back-out
+Device emulator-5556 (Android), UserApp debug build from worktree
+/Users/Apple/Projects/nears-NEARS-2184-stale-module-header @ bd931010.
+Zone 1 ("Main Service Zone", address "House: 10 Av 2, Dhaka 1216"), sector picker showed
+3 sectors (Grocery & Food / Food & Restaurant / Pharmacy) — so the dashboard back guard's
+`moduleList.length != 1` precondition HELD and the back press really reached removeModule().
+
+Instrument (same command both readings):
+  adb -s emulator-5556 shell run-as com.izzes.nears \
+    cat /data/data/com.izzes.nears/shared_prefs/FlutterSharedPreferences.xml \
+    | tr '<' '\n<' | grep -aF flutter.cacheModuleId
+
+--- PRE (positive control) — Pharmacy selected, module home mounted ---
+KEY PRESENT
+module id= 3 name= Pharmacy
+
+--- POST — ONE Android back press on the Pharmacy module home ---
+cacheModuleId_key_count=0        (key ABSENT)
+screen after the back press: "What are you shopping for?" sector picker
+
+--- Repeat #2 (Grocery selected, double back press) ---
+PRE : module id= 1 name= Grocery & Food
+POST: cacheModuleId_present=0
+
+--- Repeat #3 (Grocery selected, single back press) ---
+PRE : module id= 1 name= Grocery & Food
+POST: cacheModuleId_present=0
+
+--- Persistence across process death ---
+After a back-out, `am force-stop` + relaunch: the key is still absent and the app boots
+straight to the sector picker ([INFO] msg="route: initial route module=null").
+
+Full key list on device after a back-out (cacheModuleId is gone, everything else intact —
+no logout, session/address/cart prefs all still present):
+  flutter.6ammart_cart_list, flutter.6ammart_country_code,
+  flutter.6ammart_dm_registration_success, flutter.6ammart_intro,
+  flutter.6ammart_language_code, flutter.6ammart_login_suggestion,
+  flutter.6ammart_notification, flutter.6ammart_notification_count,
+  flutter.6ammart_payment_incomplete_bottomsheet, flutter.6ammart_reffer_bottomsheet_show,
+  flutter.6ammart_search_history, flutter.6ammart_store_registration,
+  flutter.6ammart_suggested_location, flutter.6ammart_theme,
+  flutter.6ammart_user_address, flutter.cache_country_code,
+  flutter.cache_language_code, flutter.s5_cache_token_purged

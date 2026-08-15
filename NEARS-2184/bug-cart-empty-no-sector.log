@@ -1,0 +1,37 @@
+NEARS-2184 — task_bug evidence: after a sector back-out + app restart, the basket renders
+"Your cart is empty" and the cart badge disappears, although the customer's cart is intact.
+
+Account: customer@nears.com (users.id = 6), zone 1. Server truth, read-only:
+  mysql> SELECT c.id,c.item_id,c.quantity,c.module_id,i.name FROM carts c
+         LEFT JOIN items i ON i.id=c.item_id WHERE c.user_id=6;
+  34  | 95  | 1 | 1 | Broccoli
+  36  | 96  | 4 | 1 | Fresh Organic Tomato
+  468 | 99  | 9 | 1 | Mango
+  469 | 251 | 1 | 1 | Navel Oranges
+  (4 rows, 15 units — UNCHANGED before and after every step below: no wipe.)
+
+Mechanism (product code, unchanged by me):
+  CartController.getCartDataOnline() is guarded by
+    if (ModuleHelper.getModule() != null || ModuleHelper.getCacheModule() != null)
+  This fix nulls BOTH on a back-out, so the online cart is never fetched while no sector is
+  selected; the local `flutter.6ammart_cart_list` pref is empty (84 bytes, empty-list b64
+  prefix), so the cart screen has nothing to render.
+
+A/B on the SAME build (only the cacheModuleId pref differs — no code change, no file surgery):
+
+ [A] pre-fix-equivalent state: sector selected, then `am force-stop` + relaunch
+     (so cacheModuleId is PRESENT and module is null — exactly the pre-fix post-back-out state)
+     -> sector picker's cart icon carries badge "2"
+     -> tapping it renders the real cart: Mango 9 kg, Navel Oranges, Cola 1.5L, 21/23 AED …
+
+ [B] post-fix state: back press on the module home (cacheModuleId cleared), `am force-stop`
+     + relaunch
+     -> sector picker's cart icon shows the bare "Cart" label, NO badge
+     -> tapping it renders "Your cart is empty"   [screenshot: bug-cart-empty-no-sector.png]
+     -> selecting any sector again immediately restores badge + all 4 items.
+
+In-session (no restart) the badge keeps its last value, so the symptom needs the restart —
+which is the ordinary case for a user who backs out and comes back later.
+No data is lost; the state is a misrepresentation, not a wipe.
+App log for the whole sequence: clean (no [ERR]/[FAIL], /api/v1/customer/info -> 200, no
+forced logout).

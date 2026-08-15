@@ -1,0 +1,41 @@
+NEARS-2184 — task_bug evidence: a chained request from the DEPARTED sector 403s after the
+back-out and raises a [FAIL] / Crashlytics non-fatal.
+
+Refutes the design doc's [7] contract-sync line
+(docs/solutions/NEARS-2184-stale-module-header.md §Blast radius):
+  "Measured at [7] contract-sync: the newly-403ing set is EMPTY."
+Measured live on emulator-5556, build bd931010 — the set is NOT empty.
+
+--- App log (UserApp pid 23920, logcat, device clock) ---
+08-16 02:56:56.552  I flutter : [NET] GET endpoint=/api/v1/banners            <- back-out fan-out
+08-16 02:57:12.404  I flutter : [NET] endpoint=/api/v1/common-condition http_status=200
+08-16 02:57:12.405  I flutter : [NET] GET endpoint=/api/v1/common-condition/items/1
+08-16 02:57:27.898  I flutter : [NET] endpoint=/api/v1/common-condition/items/1 http_status=403
+08-16 02:57:27.920  I flutter : [FAIL] endpoint=/api/v1/common-condition/items/1 http_status=403 \
+                                type=ApiFailure msg="api request failed" \
+                                correlation_id=b1a73807-9c33-44b9-b96b-4260a7d9e815
+
+Sequence: Pharmacy module home -> ONE back press (back-out at 02:56:56) -> the pharmacy
+home's own chained load (`common-condition` -> `common-condition/items/{id}`) dispatched at
+02:57:12, i.e. AFTER the module was cleared, so it went out with no moduleId header.
+
+--- Backend branch, curl control pair (host, port 8000, same backend the app used) ---
+$ curl -H 'zoneId: [1]' '/api/v1/common-condition/items/1?limit=10&offset=1'
+403 {"errors":[{"code":"moduleId","message":"Module id required"}]}
+$ curl -H 'zoneId: [1]' -H 'moduleId: 3' '/api/v1/common-condition/items/1?limit=10&offset=1'
+200 {"total_size":2,...,"products":[{"id":32,"name":"Paracetamol 500mg",...
+(Admin/app/Http/Middleware/ModuleCheckMiddleware.php: 403 `module_id_required` is emitted
+iff the moduleId header is ABSENT.)
+
+User-visible impact: NONE observed — the screen the request feeds (Pharmacy home) is already
+gone and the sector picker rendered clean. The cost is log/Crashlytics noise on an ordinary
+gesture, and the [7] "empty set" measurement being wrong.
+
+NOTE — a SECOND 403 seen in the same session is NOT this ticket's:
+08-16 03:02:15  [NET] endpoint=/api/v1/stores/details/17 http_status=403
+$ curl -H 'zoneId: [1]' -H 'moduleId: 1' '/api/v1/stores/details/17'
+403 {"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+$ curl -H 'zoneId: [1]'                  '/api/v1/stores/details/17'
+403 {"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+Identical with AND without the header -> `out_of_zone`, pre-existing, unrelated to this diff.
+It also emits NO paired [FAIL] line (silent 403) -> filed separately in regression_bugs.
