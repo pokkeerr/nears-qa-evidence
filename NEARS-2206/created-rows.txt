@@ -1,0 +1,20 @@
+NEARS-2206 QA cycle 2 - CREATED-ROW RECORD (owner-approved single fixture, multi_food_db)
+Instrument: POST /api/v1/auth/vendor/register (the product's own public endpoint), HTTP 200 -> {"store_id":91108,"type":"commission"}
+
+vendors        id=91108  email=nears2206.qa.pending@demo.local  phone=+101600002206  status=NULL (pending)  auth_token=NULL
+stores         id=91108  name='NEARS-2206 QA Pending Store'  vendor_id=91108  zone_id=1  module_id=1  status=0  store_business_model=commission
+translations   id=157 (key=name), id=158 (key=address)  translationable_type=App\Models\Store  translationable_id=91108
+store_schedule 0 rows (module 1 'Grocery & Food' is not always_open)
+payment_requests 4 rows, ALL payer_id=91108 (side effect of Payment::generate_link during the redirect_link assertions):
+                 9cd0ad24-46c8-449f-a7c3-e616f7c195c6 / ce0bf17d-488a-4c55-a89b-6732a0d5b454 / 48c63ed9-d147-421e-8221-da85ecac407c / 48d6edad-526d-4b92-9983-3e7ccea1c8b7
+
+TABLE COUNT DELTA (pre -> post, whole run):
+vendors | 47 | 63 | vendors | 48 | 91108
+stores | 1001 | 4118 | stores | 1002 | 91108
+translations | 150 | 156 | translations | 152 | 158
+store_schedule | 7000 | 28791 | store_schedule | 7000 | 28791
+store_wallets | 24 | 24 | store_wallets | 24 | 24
+store_subscriptions | 1 | 1 | store_subscriptions | 1 | 1
+
+NOTHING PRE-EXISTING MUTATED: stores.id=4116 still status=0 store_business_model=commission updated_at=2026-06-20 20:58:48 (predates this run).
+store_schedule / store_wallets / store_subscriptions counts and max ids identical pre and post.

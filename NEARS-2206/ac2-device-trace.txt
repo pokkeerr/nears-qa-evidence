@@ -1,0 +1,21 @@
+NEARS-2206 QA cycle 2 - AC#2 device trace (emulator-5556, UserApp debug from worktree, --dart-define=API_HOST=10.0.2.2:8206)
+
+app pid 15567; VM service ws://127.0.0.1:65322/CIeXPrd3xPI=/ws
+auth state: Get.find<AuthController>().isLoggedIn() -> true (logged in as emily.johnson@demo.com via the app's own AuthController.login)
+ApiClient._mainHeaders['Authorization'] -> 'Bearer <REDACTED-JWT-PREFIX>' (length 984 = 'Bearer ' + 977-char Passport JWT)
+business_repo.setUpBusinessPlan calls apiClient.postData(uri, body) with NO header override -> the request carried that bearer
+
+route BEFORE Confirm : /subscription-payment?store-id=91108&package-id=1
+UI labels observed   : Confirm | Continue with 7 day free trial | Pay Via Online | Paypal | Razor pay | Vendor Registration
+tap 'Razor pay'      -> paymentIndex=1, digitalPaymentName=razor_pay
+tap 'Confirm'        -> app log:
+                        [NET] POST endpoint=/api/v1/vendor/business_plan
+                        [NET] endpoint=/api/v1/vendor/business_plan http_status=200
+
+route AFTER Confirm:
+EXPR Uri.parse(Get.currentRoute).path
+  -> /payment
+EXPR (Uri.parse(Get.currentRoute).queryParameters['subscription-url'] ?? 'MISSING')
+  -> http://10.0.2.2:8206/payment/razor-pay/pay?payment_id=48d6edad-526d-4b92-9983-3e7ccea1c8b7
+EXPR Get.currentRoute.contains('store_id=91108').toString()
+  -> true
