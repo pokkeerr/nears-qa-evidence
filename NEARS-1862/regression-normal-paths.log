@@ -1,0 +1,117 @@
+NEARS-1862 — normal-path regression sweep + automated backstop
+Device emulator-5558 · debug build from fix/NEARS-1862-home-toctou-module-guard @ 16b93800
+Account emily.johnson@demo.com (id 2, claimed via qa_account_claim), zone 1 "Main Service Zone"
+(6 grocery / 6 food / 6 pharmacy active stores — no NEARS-1095 storeless-module trap).
+Product images bootstrapped (worktree-bootstrap-images.sh: 3932 files linked, public/storage
+created), so blank thumbnails would have been real, not a fresh-worktree artifact.
+
+================================================================
+GROCERY — cold open (baseline control for the AC-1/AC-2 absence observations)
+================================================================
+  /api/v1/home/all                                  <-- consolidated banners+categories+store rails
+  /api/v1/flash-sales
+  /api/v1/other-banners                             (promotional banners)
+  /api/v1/items/discounted
+  /api/v1/items/popular
+  /api/v1/items/most-reviewed
+  /api/v1/items/recommended
+  /api/v1/campaigns/basic
+  /api/v1/campaigns/item
+  /api/v1/stores/get-stores/all?store_type=all&offset=1&limit=12
+  /api/v1/advertisement/list
+  /api/v1/customer/order/buy-it-again
+  /api/v1/customer/wish-list, /api/v1/cashback/list, /api/v1/coupon/list
+  + real /storage/... category, store and cover images (not placeholders)
+Rendered rails: Flash Sale (live countdown), Categories (Fruits & Vegetables, Dairy & Eggs,
+Beverages, Cheese, Personal Care, General Items), discounted items (Banana -10%,
+Red Apples -14%, Orange Juice 1L -29%). ui_errors: 0 matches.
+NOTE: /api/v1/banners and /api/v1/stores/recommended correctly did NOT fire — home/all
+succeeded, so the `if (!homeAllOk)` per-rail fallback is skipped. Unchanged by this ticket.
+
+================================================================
+GROCERY — pull-to-refresh (after the B1 race, i.e. the recovery path)
+================================================================
+Full refresh fan-out fired: banners, categories, flash-sales, other-banners,
+items/discounted, items/popular, items/most-reviewed, stores/popular, stores/latest,
+campaigns/item, stores get-stores?store_type=all, buy-it-again,
++ post-wait campaigns/basic and advertisement/list. ui_errors: 0 matches.
+
+================================================================
+FOOD — cold open + pull-to-refresh
+================================================================
+Cold open fired the full rail set (home/all, flash-sales, other-banners, items
+discounted/popular/most-reviewed/recommended, campaigns basic+item, advertisement/list,
+store list, buy-it-again). Content is food-specific with no stale grocery leakage:
+Salmon Nigiri (5pc) -14%, Double Bacon Burger -18%, Veggie Maki -30%, store
+"555 Asian Boulevard" 0.86 KM FROM YOU, cuisine chips (All / American), 30-45 min ETA.
+Pull-to-refresh fired the complete wait group + both post-wait calls. ui_errors: 0 matches.
+
+================================================================
+PHARMACY — cold open + pull-to-refresh (also exercises the B3 branch)
+================================================================
+Cold open fired the full rail set PLUS the pharmacy-only tail:
+  /api/v1/common-condition
+  /api/v1/common-condition/items/1?limit=15&offset=1
+  /api/v1/items/basic?offset=1&limit=50
+Pull-to-refresh fired the complete wait group, the pharmacy tail (common-condition,
+items/basic) and both post-wait calls. Content pharmacy-specific (First Aid Kit -11%,
+CLOSES 23:00, 20-40 min). ui_errors: 0 matches.
+
+================================================================
+RE-ENTRY after back-out (no stale cross-module content)
+================================================================
+Sector picker -> Grocery after having been in Pharmacy: rendered Banana, Red Apples,
+Orange Juice 1L, Fresh Vegetables, Dairy & Eggs — no pharmacy or food items leaked.
+
+================================================================
+WARM RE-OPEN / cache side effect (the removed `...-null` cache writes)
+================================================================
+App force-stopped and cold-started: lands on the sector picker (module selection is not
+persisted across a restart — pre-existing behaviour, unrelated to this ticket).
+Re-entering Grocery with /api/v1/home/all + /items/* + /stores/* + /categories held 18s:
+the home showed its skeleton, then populated completely once the network was released
+(20 distinct API endpoints). No crash, no stuck skeleton, no stale paint. ui_errors: 0.
+
+================================================================
+AUTOMATED BACKSTOP
+================================================================
+cmd: /Users/Apple/Tools/flutter/bin/flutter test --reporter json   (no path args, from
+     <worktree>/UserApp, SDK 3.41.9 by absolute path)
+Counted with testDone.hidden (NOT testStart.metadata.hidden).
+  suites loaded ........ 445        (base 444; +1 = this ticket's new file)
+  real tests ........... 3947       (base 3938; +9 = this ticket's new file)
+  passed ............... 3945
+  skipped .............. 2
+  failed / error ....... 0
+  final reporter event . {"type":"done","success":true}
+All 445 suite paths resolve under
+/Users/Apple/Projects/nears-NEARS-1862-home-toctou-module-guard/UserApp/ — the run is
+from the ticket worktree, not the primary tree.
+
+SKIPS BY NAME (from the JSON reporter, both expected):
+  test/features/home/module_view_grid_test.dart ::
+    mixed-claim row alignment a no-claim tile lines up with its pilled neighbour @1.0
+  test/features/home/module_view_grid_test.dart ::
+    mixed-claim row alignment a no-claim tile lines up with its pilled neighbour @1.3
+
+NEW GUARD SUITE — test/features/home/home_controller_module_toctou_guard_test.dart, 9/9 pass:
+  AC-1  module cleared during getHomeAll -> no module rail is dispatched
+  AC-1  positive control — module survives getHomeAll -> the same rails fire
+  AC-2/B1 module cleared during syncZoneData -> wait group skipped AND the pinned
+          setRefreshing(false) still fires
+  AC-2/B1 positive control — module survives syncZoneData -> wait group fires
+  AC-2/B2 module cleared inside the wait group -> the two unawaited calls are skipped
+          while the group's own calls DID fire
+  AC-2/B2 positive control — module survives the wait group -> both unawaited calls fire
+  AC-2/B3 real ModuleController: a null module makes isPharmacy and isShop false
+  AC-2/B3 module cleared during the login Future.wait -> the pharmacy/shop tail calls skipped
+  AC-2/B3 positive control — pharmacy module survives the login wait -> the tail calls fire
+
+flutter analyze: 5 issues, all pre-existing at base and in files this ticket does not touch
+(cart_screen.dart:289, a11y_icon_labels_tail_test.dart:90, single_store_hero_view_test.dart:185,
+loyalty_controller_test.dart:45, item_review_prefill_test.dart:14). ZERO new.
+
+LOGS-FIRST GATE: logcat swept for [FAIL] / [ERR] / Unhandled / EXCEPTION CAUGHT /
+"Null check operator" / NoSuchMethodError across the whole session buffer -> 0 matches.
+Instrument validity: ui_errors reported scanning 104-523 flutter-tag lines per check
+(a positive count, not an empty/vacuous read).

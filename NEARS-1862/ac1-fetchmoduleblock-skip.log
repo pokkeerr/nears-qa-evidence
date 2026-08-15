@@ -1,0 +1,56 @@
+NEARS-1862 — AC-1 live demonstration: _fetchModuleBlock re-read after `await getHomeAll()`
+Device emulator-5558 · debug build from fix/NEARS-1862-home-toctou-module-guard @ 16b93800
+Instrument: logging + latency-injecting reverse proxy (host :8888 -> Laravel :8000);
+app built with --dart-define=API_HOST=10.0.2.2:8888. `/api/v1/home/all` held 20s to widen
+the mid-await window. Transcript captured live from the proxy request log.
+
+METHOD
+  T0     tap "Grocery & Food" on the sector picker  -> cold module load starts
+  T+4s   system BACK -> sector picker (ModuleController.removeModule() sets module = null)
+  T+21s  the held /api/v1/home/all returns; _fetchModuleBlock resumes past its await
+
+TIMELINE (api requests only)
+  14:41:43.894 REQ  GET /api/v1/config/get-zone-id?lat=...&lng=...
+  14:41:43.897 REQ  GET /api/v1/cashback/list
+  14:41:43.901 REQ  GET /api/v1/customer/wish-list
+  14:41:43.902 REQ  GET /api/v1/customer/cart/list
+  14:41:44.503 REQ  GET /api/v1/home/all  [HOLD 20.0s]     <-- await suspension point
+  14:41:47.649 REQ  GET /api/v1/module                     <-- back-out: removeModule() fan-out
+  14:41:47.655 REQ  GET /api/v1/customer/address/list
+  14:41:47.656 REQ  GET /api/v1/banners?featured=1
+  14:41:47.657 REQ  GET /api/v1/stores/get-stores/all?featured=1&offset=1&limit=50
+  14:42:05     RESP GET /api/v1/home/all -> 200 (153349 bytes)   <-- await resumes HERE
+  14:42:05.911 REQ  GET /api/v1/customer/info
+  14:42:06.919 REQ  GET /api/v1/stores/get-stores/all?featured=1&offset=1&limit=50
+  14:42:06.919 REQ  GET /api/v1/module
+  14:42:06.920 REQ  GET /api/v1/customer/address/list
+  14:42:06.921 REQ  GET /api/v1/coupon/list
+  14:42:06.921 REQ  GET /api/v1/banners?featured=1
+  14:42:06.922 REQ  GET /api/v1/customer/notifications
+  (observation window ran to 14:42:21 — nothing further)
+
+RESULT — every post-await module rail was SKIPPED. Absent after 14:42:05:
+  /api/v1/flash-sales
+  /api/v1/other-banners                      (promotional banners)
+  /api/v1/items/discounted
+  /api/v1/items/popular
+  /api/v1/items/most-reviewed
+  /api/v1/items/recommended
+  /api/v1/campaigns/basic
+  /api/v1/campaigns/item
+  /api/v1/stores/get-stores/all?store_type=all&offset=1&limit=12   (paginated store list)
+  /api/v1/advertisement/list
+  /api/v1/customer/order/buy-it-again
+
+All traffic after the await carries the sector picker's `?featured=1` signature
+(removeModule()'s own fan-out) — not the module rails, which are distinguished by
+`store_type=all` and the /items/* + /campaigns/* endpoints.
+
+BASELINE (control) — the same grocery cold open WITHOUT the back-out, captured at
+14:38 in this session, fired all 11 endpoints listed above. The instrument therefore
+demonstrably records them; their absence here is an observation, not a blind spot.
+
+FALSIFYING RESULT THAT DID NOT OCCUR: any of the 11 rail endpoints appearing after
+14:42:05. That is exactly what the pre-fix code would have produced.
+
+No crash. ui_errors: 0 matches. logcat [FAIL]/[ERR]/Unhandled/EXCEPTION CAUGHT: 0 matches.

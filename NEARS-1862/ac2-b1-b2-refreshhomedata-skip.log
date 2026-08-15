@@ -1,0 +1,85 @@
+NEARS-1862 — AC-2 live demonstration: refreshHomeData re-reads at B1 and B2
+Device emulator-5558 · debug build from fix/NEARS-1862-home-toctou-module-guard @ 16b93800
+Instrument: logging + latency-injecting reverse proxy (host :8888 -> Laravel :8000).
+Transcripts captured live from the proxy request log.
+
+================================================================
+B1 — module cleared during `await syncZoneData()` (held /api/v1/config/get-zone-id 20s)
+================================================================
+METHOD
+  T0    pull-to-refresh on the grocery module home  -> refreshHomeData() starts
+  T+3s  system BACK -> sector picker (module = null)
+  T+20s the held get-zone-id returns; refreshHomeData resumes past its await
+
+TIMELINE
+  14:39:50.120 REQ  GET /api/v1/config/get-zone-id?lat=...&lng=...  [HOLD 20.0s]  <-- suspension
+  14:39:53.721 REQ  GET /api/v1/stores/get-stores/all?featured=1&offset=1&limit=50 <-- back-out
+  14:39:53.723 REQ  GET /api/v1/module
+  14:39:53.724 REQ  GET /api/v1/customer/address/list
+  14:39:53.727 REQ  GET /api/v1/banners?featured=1
+  14:39:54     RESP GET /api/v1/stores/get-stores/all?featured=1... -> 200 (64253 bytes)
+  14:39:55     RESP GET /api/v1/module -> 200 (94768 bytes)
+  14:39:55     RESP GET /api/v1/customer/address/list -> 200 (53 bytes)
+  14:39:55     RESP GET /api/v1/banners?featured=1 -> 200 (31414 bytes)
+  14:40:10     RESP GET /api/v1/config/get-zone-id -> 200 (8530 bytes)   <-- await resumes HERE
+  (observation window ran to 14:40:30 — ZERO further API requests)
+
+RESULT — the entire Future.wait group AND both post-wait calls were skipped. Absent:
+  /api/v1/banners, /api/v1/flash-sales, /api/v1/other-banners, /api/v1/categories,
+  /api/v1/items/discounted, /api/v1/items/popular, /api/v1/items/most-reviewed,
+  /api/v1/stores/popular, /api/v1/stores/latest, /api/v1/campaigns/item,
+  /api/v1/stores/get-stores/all?store_type=all, /api/v1/customer/order/buy-it-again,
+  /api/v1/campaigns/basic, /api/v1/advertisement/list
+
+SPINNER / NO-WEDGE CHECK (the specific risk of the new early exit): the early return
+calls setRefreshing(false) before returning because the pinned unconditional call sits
+at the method tail and is NOT in a `finally`. Post-race recovery was verified live:
+re-entering Grocery at 14:40:3x fired the complete cold-open set, and an immediate
+pull-to-refresh fired the complete refresh fan-out again (campaigns/basic and
+advertisement/list each fired twice = cold open + refresh). No stuck spinner, no wedge.
+
+================================================================
+B2 — module cleared DURING the main Future.wait (held /api/v1/categories 20s)
+================================================================
+METHOD
+  T0    pull-to-refresh on the grocery module home
+  T+5s  system BACK -> sector picker (module = null) while the group is still awaiting
+  T+20s the held /api/v1/categories returns; the group completes; execution reaches the
+        B2 re-read guard wrapping the two unawaited calls
+
+TIMELINE
+  14:43:13.976 REQ  GET /api/v1/config/get-zone-id?lat=...&lng=...
+  14:43:14.996 REQ  GET /api/v1/stores/get-stores/all?store_type=all&offset=1&limit=12
+  14:43:15.012 REQ  GET /api/v1/customer/order/buy-it-again?limit=25&offset=1
+  14:43:15.013 REQ  GET /api/v1/items/most-reviewed?...
+  14:43:15.017 REQ  GET /api/v1/items/popular?...
+  14:43:15.021 REQ  GET /api/v1/stores/latest?type=all
+  14:43:15.021 REQ  GET /api/v1/campaigns/item
+  14:43:15.021 REQ  GET /api/v1/categories  [HOLD 20.0s]      <-- gates the whole group
+  14:43:15.021 REQ  GET /api/v1/stores/popular?type=all
+  14:43:15.021 REQ  GET /api/v1/flash-sales
+  14:43:15.022 REQ  GET /api/v1/items/discounted?...
+  14:43:15.023 REQ  GET /api/v1/banners
+  14:43:15.024 REQ  GET /api/v1/other-banners
+  14:43:18.392 REQ  GET /api/v1/stores/get-stores/all?featured=1&offset=1&limit=50 <-- back-out
+  14:43:18.396 REQ  GET /api/v1/module
+  14:43:18.398 REQ  GET /api/v1/customer/address/list
+  14:43:18.399 REQ  GET /api/v1/banners?featured=1
+  14:43:19.815 REQ  GET /api/v1/customer/notifications
+  14:43:19.817 REQ  GET /api/v1/customer/info
+  14:43:22.942 REQ  GET /api/v1/coupon/list
+  14:43:35     RESP GET /api/v1/categories -> 200 (8254 bytes)   <-- group completes HERE
+  (observation window ran to 14:43:51 — no campaigns/basic, no advertisement/list)
+
+RESULT — matches the unit suite's B2 case exactly: the group's OWN calls DID fire
+(they were already dispatched before the back-out), while the two post-wait
+module-scoped calls were SKIPPED:
+  ABSENT: /api/v1/campaigns/basic
+  ABSENT: /api/v1/advertisement/list
+
+CONTROL: on every normal grocery/food/pharmacy refresh in this session both
+/api/v1/campaigns/basic and /api/v1/advertisement/list fired. Their absence here is an
+observation against a known-good baseline, not an instrument gap.
+
+No crash in either case. ui_errors after B1: 0 matches (109 flutter-tag lines scanned).
+ui_errors after B2: 0 matches (333 flutter-tag lines scanned).
