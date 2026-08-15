@@ -1,0 +1,23 @@
+NEARS-2206 — why AC#1, AC#2, AC#3 have NO LIVE COVERAGE (not "clean", not a pass).
+
+All three require a PENDING store (a store whose vendor has vendors.status != 1).
+Measured read-only against multi_food_db on 2026-08-15:
+
+  SELECT COUNT(*), SUM(status=1), SUM(status<>1) FROM vendors;
+    -> vendors_total=47   status_1=47   status_not_1=0
+
+  POSITIVE CONTROL (proves the JOIN instrument fires, i.e. a 0 is a real 0):
+  SELECT COUNT(*) FROM stores s JOIN vendors v ON v.id=s.vendor_id;
+    -> 1001 rows
+
+  SELECT COUNT(*) FROM stores s JOIN vendors v ON v.id=s.vendor_id WHERE v.status<>1;
+    -> pending_capable_stores = 0
+
+Store 4116 (used by NEARS-1487 §11i) has vendor_id=1, vendors.status=1 => OPERATING.
+Post-fix it CORRECTLY returns 403 there, not 200. A "fail" observed on 4116 would be
+a FALSE fail.
+
+Creating a pending store requires DML / a seeder / a live store registration. QA is
+READ-ONLY on multi_food_db by hard rule and owner approval for a live registration was
+requested and NOT granted. Therefore AC#1/#2/#3 are reported NO-COVERAGE (live), and
+are covered only by the automated backstop below.

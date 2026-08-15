@@ -1,0 +1,38 @@
+NEARS-2206 — reusable backend-QA gotchas found during this run.
+(Not yet promoted to docs/data-qa/verification-checks.md: that file is shared and
+concurrent lanes are live, so promotion is raised as a followup instead of edited here.)
+
+1. GREP OVER-MATCH VIA THE PER-WORKTREE TEST DB NAME.
+   The NEARS-1199 private test DB is named after the worktree slug, e.g.
+   multi_food_db_test_nears_nears_2206_business_plan_403. So grepping laravel.log for a
+   feature word like "business_plan" matches every `testing`-channel line that merely
+   prints the database name. Here that was 30 hits, all of them noise. Scope BE-log
+   greps by the ENDPOINT PATH ("/api/v1/vendor/business_plan"), and read the matched
+   lines -- a count alone reads as a real endpoint failure.
+
+2. A VALIDATOR 403 SILENTLY MASKS THE AUTHORIZATION 403 YOU MEANT TO TEST.
+   Api/V1/Vendor/SubscriptionController validates BEFORE authorizeStore, and a
+   validation failure ALSO returns 403 (Helpers::error_processor). A probe missing a
+   required field returns 403 without ever reaching the authorization code -- a dead
+   instrument that reads as a clean pass. Tell them apart by BODY SHAPE:
+     validator      -> {"errors":[{"code":"...","message":"..."}]}      (ARRAY)
+     authorizeStore -> {"errors":{"message":"Permission denied"}}       (OBJECT)
+   Best liveness control: send an unknown store_id and require 404 "Store not found" --
+   that can only be produced from inside authorizeStore.
+   Required params: business_plan -> store_id + business_plan(+package_id,payment_gateway
+   if subscription); cancel-subscription -> store_id + subscription_id;
+   check-product-limits -> store_id + package_id. None use `exists:` rules, so a
+   nonexistent id passes validation and lets you probe authorization with zero write risk.
+
+3. "DB UNCHANGED AFTER A DENIAL" IS OFTEN VACUOUS ON A REAL STORE.
+   business_plan=commission does $store->store_business_model='commission'; $store->save().
+   On a store that is ALREADY 'commission' the model is not dirty, so save() emits no
+   UPDATE and updated_at does not move -- a successful 200 would be byte-identical to a
+   403. Measured on store 4116 (already commission, 0 store_subscriptions rows).
+   Before asserting "no mutation", check the counterfactual is observable, or say so.
+
+4. `php artisan serve` FLOODS laravel.log WITH production-channel [FAIL] LINES.
+   OpenTelemetry export failures, one batch per request, because no local collector
+   listens. phpunit is immune (phpunit.xml sets OTEL_SDK_DISABLED, NEARS-270); artisan
+   serve is not. Expect it in every live BE-QA capture and do not attribute it to the
+   ticket. Filed as a regression_bug on this run.

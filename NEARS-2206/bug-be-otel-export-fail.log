@@ -1,0 +1,16 @@
+regression_bug evidence — pre-existing, unrelated to NEARS-2206.
+Admin/storage/logs/laravel.log, channel `production`:
+
+[2026-08-15 21:21:00] production.ERROR: [FAIL] OpenTelemetry export failed (telemetry batch dropped): Export failure
+[2026-08-15 21:21:00] production.ERROR: [FAIL] OpenTelemetry export failed (telemetry batch dropped): Export failure
+[2026-08-15 21:31:30] production.ERROR: [FAIL] OpenTelemetry export failed (telemetry batch dropped): Export failure
+[2026-08-15 22:31:13] production.ERROR: [FAIL] OpenTelemetry export failed (telemetry batch dropped): Export failure {"trace_id":"34bbc2c84df11b97a9d497e415cf33..."}
+
+Every local `php artisan serve` request emits a production-channel ERROR-level [FAIL]
+because no OpenTelemetry collector is listening. phpunit is immune (phpunit.xml sets
+OTEL_SDK_DISABLED=true, NEARS-270) but `artisan serve` is not, so every dev/QA backend
+boot floods laravel.log with ERROR-level noise. Earliest occurrence 21:21:00 predates
+this ticket's QA server boot (~22:29), so it is not caused by NEARS-2206.
+Impact: dilutes the [FAIL] channel that the NEARS-566 QA log gate depends on.
+Suggested: default the exporter to inert when no collector endpoint is reachable, or
+downgrade the local-dev export failure below ERROR.

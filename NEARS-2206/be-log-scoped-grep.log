@@ -1,0 +1,22 @@
+NEARS-2206 — BE log check ([api] ACs). Admin/storage/logs/laravel.log, grep-scoped only.
+Size before this QA run: 245867 bytes. After: 253880 bytes.
+
+PATTERN "/api/v1/vendor"      -> 0 matches (grep rc=1, genuine absence)
+   => NO [FAIL] line for /api/v1/vendor/business_plan at all. The endpoint's denials
+      (403/401) are returned without an error log, as designed.
+
+PATTERN "business_plan"       -> 30 matches, ALL of them OVER-MATCHES, read not counted:
+   [2026-08-15 22:20:10] testing.ERROR: [FAIL] module-id drift check failed
+       {"exit_code":1,"database":"multi_food_db_test_nears_nears_2206_business_plan_403"...
+   The substring "business_plan" is present only inside the phpunit per-worktree TEST
+   DATABASE NAME, on channel `testing`. None is an endpoint failure. (A count alone
+   would have been misleading here.)
+
+PATTERN "[FAIL]"              -> 159 matches file-wide; the only class emitted during
+   this QA run on channel `production` is:
+   [2026-08-15 22:31:13] production.ERROR: [FAIL] OpenTelemetry export failed
+       (telemetry batch dropped): Export failure
+   PRE-EXISTING: earliest occurrences 2026-08-15 21:21:00, i.e. BEFORE this run's
+   server boot (~22:29). Environmental (no local OTel collector); structurally
+   independent of which controller handled the request. Filed as a regression_bug,
+   NOT a FAIL of this run.

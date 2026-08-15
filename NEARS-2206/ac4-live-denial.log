@@ -1,0 +1,39 @@
+NEARS-2206 — AC#4 LIVE (security guard): a customer bearer cannot mutate an OPERATING store.
+Backend: php artisan serve --host=127.0.0.1 --port=8021, booted FROM the worktree
+         (/Users/Apple/Projects/nears-NEARS-2206-business-plan-403/Admin, cwd verified via lsof).
+Branch fix/NEARS-2206-business-plan-403 @ fcdd5876
+SubscriptionController.php md5 = 9c4f9209c4a3e0553397792f9d3c47ba
+Bearer: real customer Passport JWT for emily.johnson@demo.com (user id 2),
+        POST /api/v1/auth/login -> HTTP 200, token len 980, 3 JWT segments.
+Target: store 4116 (vendor_id=1, vendors.status=1 => OPERATING).
+
+POST /api/v1/vendor/business_plan   store_id=4116  business_plan=commission
+  A  customer Passport bearer  -> HTTP 403  {"errors":{"message":"Permission denied"}}
+  B  NO bearer                 -> HTTP 401  {"errors":{"message":"Unauthorized"}}
+  C  garbage bearer            -> HTTP 403  {"errors":{"message":"Permission denied"}}
+
+LIVENESS CONTROLS (prove the request reached authorizeStore, not the validator):
+  D  store_id=999999 + bearer  -> HTTP 404  {"errors":{"message":"Store not found"}}
+       => validation passed; authorizeStore's Store::find() ran. Instrument is LIVE.
+  E  business_plan omitted     -> HTTP 403  {"errors":[{"code":"business_plan","message":"..."}]}
+       => validator 403 is an ARRAY-shaped body; A/C are OBJECT-shaped
+          ({"errors":{"message":...}}). So A's 403 is an AUTHORIZATION denial,
+          structurally distinguishable from a validation 403.
+
+A vs B is the discriminating 401/403 split the fix introduces, demonstrated live.
+
+DB re-read (SELECT only, multi_food_db):
+  PRE : id=4116 vendor_id=1 store_business_model=commission status=0 updated_at=2026-06-20 20:58:48
+  POST: id=4116 vendor_id=1 store_business_model=commission status=0 updated_at=2026-06-20 20:58:48
+  store_subscriptions WHERE store_id=4116 -> 0 rows (PRE and POST)
+
+*** HONEST LIMIT — this DB assertion is NON-DISCRIMINATING on store 4116. ***
+The commission success path does: $store->store_business_model='commission'; $store->save();
+and StoreSubscription::where(store_id)->update(status=0). Store 4116 is ALREADY
+'commission', so the Eloquent model is not dirty and save() would emit no UPDATE
+(updated_at would not move either); and it has 0 store_subscriptions rows, so the
+builder update would affect 0 rows. A successful 200 would therefore have left the
+DB byte-identical to a 403. The DB re-read CORROBORATES but CANNOT discriminate.
+The discriminating instrument for AC#4 is the HTTP status + body shape above.
+No operating store with store_business_model='subscription' exists in multi_food_db
+(measured: 0), so no non-vacuous live mutation target is reachable read-only.

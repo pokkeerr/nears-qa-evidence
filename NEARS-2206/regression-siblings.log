@@ -1,0 +1,33 @@
+NEARS-2206 — regression sweep: the OTHER authorizeStore call sites.
+
+Code read (Admin/app/Http/Controllers/Api/V1/Vendor/SubscriptionController.php):
+  private function authorizeStore(Request $request, $store_id, bool $allowPending = false)
+  call sites:
+    L105  business_plan()        allowPending: true    <- the only changed-behaviour path
+    L232  cancelSubscription()   allowPending default false
+    L304  checkProductLimits()   allowPending default false
+  (package_view() and transaction() take no store_id from an unauthenticated caller;
+   transaction() is on the VendorTokenIsValid-guarded group, not this one.)
+
+With allowPending=false the new pending fall-through can never fire, so a non-vendor
+bearer takes: $vendorId null -> skip vendor block -> pending block skipped ->
+`if ($token) return 403`. Identical to base. Delta = zero. Verified LIVE:
+
+  POST /api/v1/vendor/cancel-subscription  store_id=4116 subscription_id=999999
+     customer bearer -> 403 {"errors":{"message":"Permission denied"}}
+     no bearer       -> 401 {"errors":{"message":"Unauthorized"}}
+     LIVENESS store_id=999999 -> 404 "Store not found"  (authorizeStore reached)
+  GET  /api/v1/vendor/check-product-limits?store_id=4116&package_id=1
+     customer bearer -> 403 {"errors":{"message":"Permission denied"}}
+     no bearer       -> 401 {"errors":{"message":"Unauthorized"}}
+     LIVENESS store_id=999999 -> 404 "Store not found"  (authorizeStore reached)
+
+NOTE on instrument validity: a FIRST sweep sent only store_id and got 403 from the
+VALIDATOR (array-shaped body: {"errors":[{"code":"subscription_id",...}]}) without ever
+reaching authorizeStore -- a dead instrument that would have read as a clean pass.
+The results above are the re-run with required params supplied; the 404 liveness
+control is what proves authorizeStore actually ran.
+subscription_id=999999 does not exist, and the cancel path is a query-builder
+update keyed on that id, so even a hypothetical authorization pass writes 0 rows.
+Confirmed after the sweep: SELECT COUNT(*) FROM store_subscriptions
+WHERE id=999999 OR store_id=4116 -> 0.

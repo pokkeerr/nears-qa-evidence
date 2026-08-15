@@ -1,0 +1,47 @@
+NEARS-2206 — automated backstop, re-run by QA from the worktree (not inherited).
+cwd: /Users/Apple/Projects/nears-NEARS-2206-business-plan-403/Admin  @ fcdd5876
+Private per-worktree test DB: multi_food_db_test_nears_nears_2206_business_plan_403
+(phpunit NEVER touches multi_food_db — CreatesApplication hard-aborts if it would.)
+
+1) TARGETED
+   vendor/bin/phpunit --configuration phpunit.xml --filter SubscriptionStoreAuthTest --testdox
+   => Tests: 11, Assertions: 36, Failures: 0, PHPUnit Deprecations: 7
+   => bare exit code 0 (measured WITHOUT a pipeline: `cmd > file 2>&1; echo $?`)
+   All 11 green:
+     Authenticated vendor cannot cancel another stores subscription
+     Authenticated vendor can set own stores business plan
+     Tokenless business plan rejected for operating store
+     Tokenless business plan allowed during registration              [AC#3]
+     Non vendor token may set commission plan during registration     [AC#1 commission]
+     Non vendor token gets subscription payment link during registration [AC#1 subscription]
+     Non vendor token cannot change plan of operating store           [AC#4]
+     Expired vendor shaped token cannot change plan of operating store
+     Denial status distinguishes a present bearer from no bearer      [401/403 pin]
+     Authenticated vendor cannot set another stores business plan
+     Unknown store id is 404 with and without a token
+
+2) FULL BACKEND SUITE
+   vendor/bin/phpunit --configuration phpunit.xml
+   => Tests: 1324, Assertions: 12224, Failures: 4, Deprecations: 1, Skipped: 1
+   All 4 failures are Tests\Feature\QaDataGapsSeedTest (measured: failures outside
+   that class = 0). Root cause in the output is the seeder's own env guard:
+     "Nears1093QaDataGapsSeeder REFUSED: ... NEARS_SEED_ALLOW_DB=NULL"
+   i.e. an unset env var in this worktree, not a product regression. The conductor
+   separately reproduced the identical 4 with BOTH ticket files reverted to base.
+
+COVERAGE CAVEAT (stated, not hidden): SubscriptionStoreAuthTest calls the controller
+directly -- app(SubscriptionController::class)->business_plan($this->req(...)) --
+bypassing the HTTP kernel and route middleware. QA verified live that the route group
+`['prefix'=>'vendor','namespace'=>'Vendor']` in routes/api/v1/api.php carries NO
+middleware, so the direct call is behaviourally equivalent; and the live HTTP results
+for the operating-store paths (403 with bearer / 401 without / 404 unknown store)
+match the unit expectations exactly. The harness is therefore validated against live
+HTTP for every path QA could reach.
+
+FIXTURE-QUALITY NOTE: the suite's CUSTOMER_TOKEN is the opaque literal
+'customer-passport-token-xyz', not a real Passport JWT. QA's live run confirms that is
+faithful: a REAL customer Passport JWT (probe A) and a garbage string (probe C) both
+returned an identical 403, because authorizeStore only does a string lookup against
+vendors.auth_token / vendor_employees.auth_token and never parses the token.
+The suite also guards this with assertResolvesToNoVendor() -- a positive fixture-premise
+assertion, so the "non-vendor" claim is not assumed.
