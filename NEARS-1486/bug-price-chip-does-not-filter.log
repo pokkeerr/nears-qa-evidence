@@ -1,0 +1,61 @@
+NEARS-1486 QA [8] — PRE-EXISTING finding (NOT caused by this ticket)
+Surface: UserApp -> store -> app-bar search -> StoreItemSearchScreen ("Price" DLS filter chip)
+Device: emulator-5556 (Pixel_10_Pro_3, Android, light mode) | branch fix/NEARS-1486-dead-filter-chips @ b3372ea5
+Store: Nears Mart (store_id=1, zone 1) | query: "o"
+
+CLAIM: the surviving "Price" chip does NOT filter in-store search results. It is the same
+dead-chip class this ticket removed ETA and Brand for. It was untouched by the diff, so it is
+reported as a pre-existing defect, not a regression of this change.
+
+--- 1. SOURCE: the in-store search request carries no discount/filter param ---
+UserApp/lib/features/store/domain/repositories/store_repository.dart  (getStoreSearchItemList)
+
+  Response response = await apiClient.getData(
+    '${AppConstants.searchUri}items/search?store_id=$storeID&name=$searchText&offset=$offset&limit=10&type=$type&category_id=${categoryID ?? ''}',
+  );
+
+  -> params sent: store_id, name, offset, limit, type, category_id
+  -> NO 'discounted' / 'filter' param exists on this call.
+
+UserApp/lib/features/store/controllers/store_controller.dart
+
+  void toggleDiscountedItems() {
+    _isDiscountedItems = !_isDiscountedItems;
+    if (_isDiscountedItems) { _filter!.add("discounted"); } else { _filter!.remove("discounted"); }
+    update();
+  }
+
+  -> _filter is consumed by getStoreItemList (the store BROWSE grid, which does send
+     &filter=$filterString) but is never read by getStoreSearchItemList. On the search
+     screen the toggle therefore only flips the chip's own selected pixel state.
+
+--- 2. LIVE: identical result set with the chip OFF and ON ---
+Full scroll-through of the result list, both states, same query "o", same store:
+
+  Price OFF : Brown Eggs, Cola 1.5L, Desi Cow Ghee, Dish Soap, Mango, Sample Product, Tomatoes, Watermelon   (8)
+  Price ON  : Brown Eggs, Cola 1.5L, Desi Cow Ghee, Dish Soap, Mango, Sample Product, Tomatoes, Watermelon   (8)
+
+  DELTA: none. Sets are identical.
+
+  DB cross-check (read-only) — items.discount for those 8 rows:
+    Tomatoes = 18.00 ; all seven others = 0.00
+  i.e. 7 of 8 rows carry no item-level discount yet survive a "discounted" filter that
+  is supposedly ON.
+
+--- 3. CONTROL: the sibling chip on the same rail DOES filter ---
+Same screen, same query, same run — "Organic" (which sends a real &type=veg param):
+
+  Organic OFF : 8 items (list above)
+  Organic ON  : Brown Eggs, Cola 1.5L, Dish Soap, Mango, Tomatoes, Watermelon           (6)
+  DELTA: -2, exactly the two items with items.veg = 0 (Desi Cow Ghee, Sample Product).
+
+  So the instrument (query, refetch, list re-render, dump) is proven live: it CAN show a
+  result-set change on this exact screen. The Price no-delta is a real no-delta, not a
+  dead measurement.
+
+--- 4. NETWORK LOG for the Price tap (refetch fires, filter is absent) ---
+  I/flutter (12918): [NET] GET endpoint=/api/v1/items/search
+  I/flutter (12918): [NET] endpoint=/api/v1/items/search http_status=200
+  (no [ERR] / [FAIL] — the call succeeds, it just carries no discount predicate)
+
+--- 5. Same behaviour reproduced in RTL/Arabic ("سعر") and on a second store (Tower Mart, id 38).
