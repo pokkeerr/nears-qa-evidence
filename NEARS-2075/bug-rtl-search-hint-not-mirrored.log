@@ -1,0 +1,35 @@
+BUG (PRE-EXISTING / REGRESSION LANE, not introduced by NEARS-2075 sha 2147f779)
+Location-search field hint text does not mirror under RTL.
+
+SURFACE: UserApp -> Profile -> Open Vendor -> Vendor Info -> Location Info
+         embedded map card (SelectLocationViewWidget, fromView: true)
+DEVICE : emulator-5554, override 1344x2992 @480 (1dp = 3px), light mode
+LOCALE : ar (عربى), Directionality confirmed rtl via VM Service render tree
+         (textDirection: rtl = 715 vs ltr = 38; LTR baseline was rtl=0 / ltr=509)
+
+SOURCE (untouched by this commit -- outside the corrected 7-edit in-scope set):
+  UserApp/lib/features/auth/widgets/select_location_view_widget.dart
+    L419:  padding: const EdgeInsets.only(left: 10),
+    L420:  alignment: Alignment.centerLeft,
+  Both are PHYSICAL, so they do not resolve under RTL.
+  Directional equivalents: EdgeInsetsDirectional.only(start: 10)
+                           AlignmentDirectional.centerStart
+
+MEASUREMENT (raw `adb exec-out screencap`, exact-pixel scan of the glyph columns
+inside the search field; the field's own box-shadow excluded by grouping runs):
+
+  search field box (a11y bounds), IDENTICAL in both locales: x 108 .. 1236
+    LTR  glyph column groups = [(142,322), (343,488), (510,600)]
+    RTL  glyph column groups = [(141,182), (201,294), (314,358), (376,459)]
+
+  Both locales begin their text at x ~= 141, i.e. 33px (~11dp) from the field's
+  PHYSICAL LEFT edge. Under RTL the Arabic hint 'ابحث عن الموقع هنا' therefore sits
+  at the visual END of a full-width field instead of the visual START (right).
+
+NOTE: the search field's BOX is pixel-identical in both directions (108..1236),
+so this ticket's negative control still holds. Only the inner text alignment and
+padding fail to mirror.
+
+NOT A BLOCKER FOR NEARS-2075: the commit under test changes only the 4 overlay
+Positioned sites + their 3 paired margins; L419/L420 are not among them and are
+byte-identical to base eef39b50.

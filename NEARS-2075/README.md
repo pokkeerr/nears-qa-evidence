@@ -15,5 +15,8 @@
 </tr>
 </table>
 
+### Other artifacts
+- [`bug-rtl-search-hint-not-mirrored.log`](bug-rtl-search-hint-not-mirrored.log)
+
 ---
 *From `nears/docs/qa-evidence/NEARS-2075/` · public-repo scrub policy (no live secrets; verified clean).*
