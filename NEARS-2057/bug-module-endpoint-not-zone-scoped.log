@@ -1,0 +1,44 @@
+NEARS-2057 QA — regression_bug evidence (PRE-EXISTING, NOT caused by this change)
+Title: /api/v1/module is not zone-scoped for the Flutter client — every zone returns the same modules
+Observed: 2026-08-16, emulator-5554, branch fix/NEARS-2057-module-reload-after-map-zone-detect @ 40440b44
+
+--- 1. Backend: the zoneId HEADER scopes correctly ---
+$ curl -s -H "zoneId: [1]"   http://127.0.0.1:8000/api/v1/module
+  5 modules: Grocery & Food, Food & Restaurant, Pharmacy, Parcel Delivery, NEARS-475 Suspended Grocery
+$ curl -s -H "zoneId: [2]"   http://127.0.0.1:8000/api/v1/module
+  4 modules: Grocery & Food, Food & Restaurant, Pharmacy, Parcel Delivery
+$ curl -s -H "zoneId: [364]" http://127.0.0.1:8000/api/v1/module
+  1 module : Grocery & Food
+$ curl -s -H "zoneId: [365]" http://127.0.0.1:8000/api/v1/module
+  1 module : Grocery & Food
+
+--- 2. Backend: the zone_id QUERY PARAM is inert (what the client actually sends) ---
+$ curl -s "http://127.0.0.1:8000/api/v1/module?zone_id=1"      -> 4 modules
+$ curl -s "http://127.0.0.1:8000/api/v1/module?zone_id=2"      -> 4 modules
+$ curl -s "http://127.0.0.1:8000/api/v1/module?zone_id=365"    -> 4 modules
+$ curl -s "http://127.0.0.1:8000/api/v1/module?zone_id=999999" -> 4 modules
+Identical for a non-existent zone => the query param is dead code.
+
+--- 3. Client sends the query param and DROPS the global zoneId header ---
+UserApp/lib/features/auth/domain/repositories/deliveryman_registration_repository.dart:46
+    Response response = await apiClient.getData('${AppConstants.moduleUri}?zone_id=$zoneId',
+      headers: { 'Content-Type': ..., AppConstants.localizationKey: ... },   // no zoneId
+    );
+UserApp/lib/api/api_client.dart:691 -> `headers ?? _mainHeaders` (REPLACE, not merge),
+so the global zoneId header never reaches this endpoint.
+
+--- 4. Live on-device confirmation ---
+Zone selected via map auto-detect = "Baqala Zone 01" (zone id 364).
+By header, zone 364 has exactly ONE module (Grocery & Food).
+The module dropdown on the Vendor Info step nevertheless offered the unscoped default set,
+including at minimum "Grocery & Food" AND "Pharmacy" (a11y dump of the opened NSelect):
+    'Grocery & Food'
+    'Pharmacy'
+=> a store owner in Baqala Zone 01 can select a module that zone does not serve.
+
+--- Impact / routing ---
+Pre-existing, independent of NEARS-2057. NEARS-2057 restores the module RELOAD on a
+map-driven zone change (verified PASS); it does not and cannot make the reloaded list
+zone-correct while the endpoint ignores the client's zone. This is why AC1's
+"with that zone's modules" clause is NOT demonstrable today.
+Routing: PO backlog (own ticket), NOT a child bug of NEARS-2057.
