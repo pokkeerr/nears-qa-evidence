@@ -1,0 +1,28 @@
+NEARS-2302 — AC1/AC2 live auth matrix (php artisan serve from the run worktree, port 8302)
+Route: GET /api/v1/delivery-man/profile (read-only, identity-revealing)
+Token: SELECTed read-only from delivery_men.auth_token. No DML anywhere in this run.
+
+  [AC1] Authorization: Bearer <tok>, no ?token=, no body   -> HTTP 200, resolved id=1
+  [AC2] ?token=<tok> only, no header, no body              -> HTTP 200, resolved id=1
+  [NEG] no credential at all                               -> HTTP 401
+        {"errors":[{"code":"token","message":"The token field is required."}]}
+
+  Both positives resolve the SAME delivery man (id=1). Re-confirmed a second time
+  after the app login rotated the auth_token, through the wire tap, same results.
+
+AC2 BODY-TOKEN back-compat (the ~6 POST/PUT call sites that send the token in the body).
+Proven on a REAL PUT without any DB write: update_fcm_token validates fcm_token FIRST
+and returns 403 before it reaches the UPDATE, so a 403 means the guard already
+authenticated the request from the body.
+
+  token in BODY only, fcm_token omitted   -> HTTP 403 {"code":"fcm_token", "...required"}
+                                             => guard ACCEPTED the body token
+  CONTROL: fcm_token present, NO token    -> HTTP 401 {"code":"token","...required"}
+                                             => the 403 above is discriminating
+  CONTROL: BOGUS token in body            -> HTTP 401 {"code":"token","...invalid"}
+                                             => body-token resolution really validates
+
+  Post-run read-only check: delivery_men.id=1 fcm_token still holds its real FCM value,
+  never the probe string. Nothing was written.
+
+phpunit DmTokenIsValidHeaderAuthTest (post-fix): Tests: 7, Assertions: 17 — OK, 7/7.

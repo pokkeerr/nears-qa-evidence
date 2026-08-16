@@ -1,0 +1,10 @@
+5) Tests\Feature\TestDbFreshnessGuardTest::testDropStaleSkipsACloneThatIsCurrentlyInUse
+--drop-stale rebuilt a clone with a LIVE connection open against it — the exact cross-run corruption class cr-1 exists to prevent.
+Failed asserting that true is false.
+  Admin/tests/Feature/TestDbFreshnessGuardTest.php:95
+
+ISOLATION RUN (same tree, same commit): Tests: 3, Assertions: 17 — OK, 3/3 PASS.
+Coupling to this ticket's change: grep -cF 'DmTokenIsValid' on the test file = 0.
+Environment at failure time: 90 'multi_food_db_test%' clone databases present
+(concurrent /new-task lanes), which is the live-connection condition the cr-1
+assertion trips on. Unrelated to the DmTokenIsValid port.

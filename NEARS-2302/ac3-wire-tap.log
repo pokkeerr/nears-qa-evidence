@@ -1,0 +1,58 @@
+NEARS-2302 — AC3 wire tap: every request DeliveryApp put on the wire.
+Tap sits between emulator and Laravel (adb reverse 8302 -> proxy 8399 -> laravel 8302).
+Lines with NO-AUTH-HEADER are QA's own deliberate curl probes, NOT the app.
+----------------------------------------------------------------------
+19:38:13 GET /api/v1/delivery-man/profile?token=<AUTH_TOKEN_REDACTED> | NO-AUTH-HEADER | QUERY-HAS-token= | body-clean
+          -> 401
+19:38:13 GET /api/v1/delivery-man/profile | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 401
+19:38:25 GET /api/v1/delivery-man/profile | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+19:38:26 GET /api/v1/delivery-man/profile?token=<AUTH_TOKEN_REDACTED> | NO-AUTH-HEADER | QUERY-HAS-token= | body-clean
+          -> 200
+19:38:26 PUT /api/v1/delivery-man/update-fcm-token | NO-AUTH-HEADER | query-clean | BODY-HAS-token=
+          -> 403
+19:38:26 GET /api/v1/delivery-man/profile | NO-AUTH-HEADER | query-clean | body-clean
+          -> 401
+19:38:37 GET /api/v1/delivery-man/profile | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+19:38:52 GET /api/v1/delivery-man/profile | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+19:38:52 GET /api/v1/delivery-man/message/list?offset=1&limit=10&type=customer | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+          -> 200
+19:39:06 POST /api/v1/delivery-man/record-location-data | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+19:39:15 GET /api/v1/delivery-man/wallet-payment-list | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+19:39:15 GET /api/v1/delivery-man/loyalty-point-list?limit=10&offset=1 | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+19:39:15 GET /api/v1/delivery-man/withdraw-method/list?limit=10&offset=1 | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+19:39:15 GET /api/v1/delivery-man/wallet-provided-earning-list | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+19:39:15 GET /api/v1/delivery-man/profile | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+19:39:15 GET /api/v1/delivery-man/get-withdraw-method-list | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+19:39:15 GET /api/v1/delivery-man/get-withdraw-list?limit=100&offset=1 | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+          -> 200
+          -> 200
+          -> 200
+          -> 200
+          -> 200
+          -> 200
+19:39:29 GET /api/v1/delivery-man/earning-report?limit=10&offset=1&type=all&date_range=this_year&start_date=&end_date= | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+19:39:43 GET /api/v1/delivery-man/withdraw-method/list?limit=10&offset=1 | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+19:39:43 GET /api/v1/delivery-man/get-withdraw-method-list | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+          -> 200
+19:40:20 GET /api/v1/delivery-man/profile | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+19:40:21 GET /api/v1/delivery-man/current-orders?offset=1&limit=10&order_status=all | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+19:40:21 GET /api/v1/delivery-man/notifications | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+19:41:00 GET /api/v1/delivery-man/orders-count?type=current | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+19:41:00 GET /api/v1/delivery-man/current-orders?offset=1&limit=10&order_status=all | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+          -> 200
+19:41:16 POST /api/v1/delivery-man/record-location-data | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
+19:43:26 POST /api/v1/delivery-man/record-location-data | BEARER:<PRESENT_REDACTED> | query-clean | body-clean
+          -> 200
