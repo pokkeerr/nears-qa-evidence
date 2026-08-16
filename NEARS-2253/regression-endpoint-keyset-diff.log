@@ -1,0 +1,103 @@
+NEARS-2253 regression sweep — recursive response KEY-PATH set, base commit (f50dc5cf^) vs fix,
+captured live off one running backend booted from the fix worktree, same fixtures, same params.
+List indices collapse to [] so a differing row count cannot masquerade as a schema change.
+
+endpoint                         pre  post  verdict
+--------------------------------------------------------------------------------
+dm-all-orders                    230   230  IDENTICAL
+dm-current-orders                  4     4  IDENTICAL   << VACUOUS: empty result set, see note
+dm-latest-orders                   4     4  IDENTICAL   << VACUOUS: empty result set, see note
+dm-order                         149   149  IDENTICAL
+vendor-all-orders                229   229  IDENTICAL
+vendor-canceled-orders             4     4  IDENTICAL   << VACUOUS: empty result set, see note
+vendor-completed-orders          229   229  IDENTICAL
+vendor-current-orders            229   229  IDENTICAL
+vendor-order                     175   158  CHANGED  -23 +6
+vendor-order-details             137   137  IDENTICAL
+vendor-pos-orders                  4     4  IDENTICAL   << VACUOUS: empty result set, see note
+vendor26-canceled-orders         240   240  IDENTICAL
+vendor26-order                   182   158  CHANGED  -30 +6
+
+### vendor-order
+  REMOVED (23):
+    - delivery_man.active
+    - delivery_man.application_status
+    - delivery_man.assigned_order_count
+    - delivery_man.created_at
+    - delivery_man.current_orders
+    - delivery_man.earning
+    - delivery_man.email
+    - delivery_man.fcm_token
+    - delivery_man.identity_number
+    - delivery_man.identity_type
+    - delivery_man.image
+    - delivery_man.loyalty_point
+    - delivery_man.order_count
+    - delivery_man.phone
+    - delivery_man.ref_by
+    - delivery_man.ref_code
+    - delivery_man.status
+    - delivery_man.storage
+    - delivery_man.store_id
+    - delivery_man.type
+    - delivery_man.updated_at
+    - delivery_man.vehicle_id
+    - delivery_man.zone_id
+  ADDED   (6):
+    + delivery_man.available
+    + delivery_man.avg_rating
+    + delivery_man.lat
+    + delivery_man.lng
+    + delivery_man.location
+    + delivery_man.rating_count
+### vendor26-order
+  REMOVED (30):
+    - delivery_man.active
+    - delivery_man.application_status
+    - delivery_man.assigned_order_count
+    - delivery_man.created_at
+    - delivery_man.current_orders
+    - delivery_man.earning
+    - delivery_man.email
+    - delivery_man.fcm_token
+    - delivery_man.identity_number
+    - delivery_man.identity_type
+    - delivery_man.image
+    - delivery_man.loyalty_point
+    - delivery_man.order_count
+    - delivery_man.phone
+    - delivery_man.ref_by
+    - delivery_man.ref_code
+    - delivery_man.status
+    - delivery_man.storage
+    - delivery_man.storage[].created_at
+    - delivery_man.storage[].data_id
+    - delivery_man.storage[].data_type
+    - delivery_man.storage[].id
+    - delivery_man.storage[].key
+    - delivery_man.storage[].updated_at
+    - delivery_man.storage[].value
+    - delivery_man.store_id
+    - delivery_man.type
+    - delivery_man.updated_at
+    - delivery_man.vehicle_id
+    - delivery_man.zone_id
+  ADDED   (6):
+    + delivery_man.available
+    + delivery_man.avg_rating
+    + delivery_man.lat
+    + delivery_man.lng
+    + delivery_man.location
+    + delivery_man.rating_count
+
+NOTE on the four VACUOUS rows — an empty result set proves nothing, so they are called out
+rather than counted as coverage:
+  dm-current-orders / dm-latest-orders : every one of the 25 delivery_man-assigned orders in the
+      dev DB is order_status='delivered'; these two endpoints serve non-terminal work only, so no
+      read-only fixture can populate them. dm-order and dm-all-orders ARE populated (149 / 230 key
+      paths, both IDENTICAL) and cover the delivery-man surface.
+  vendor-canceled-orders (vendor 1) : vendor 1 has zero canceled orders. vendor26-canceled-orders
+      IS populated (240 key paths, IDENTICAL) and covers the endpoint.
+  vendor-pos-orders : the dev DB contains ZERO orders with order_type='pos', so this endpoint
+      cannot be populated read-only at all. Covered instead by static read (POSController.php:164
+      eager-loads 'customer' only) plus the mutation-confirmed relationLoaded guard test.

@@ -1,0 +1,32 @@
+NEARS-2253 — owner-accepted risk, verified AS RULED. This is NOT a defect and NOT a clean pass.
+
+RULING 1: phone is NOT revealed to the vendor.  CONFIRMED ABSENT.
+  Live GET /api/v1/vendor/order?order_id=163: 'phone' not in the delivery_man node.
+  Pre/post diff records it under REMOVED — the vendor USED to receive it and no longer does.
+  Pinned by test_vendor_get_order_delivery_man_is_projected_to_the_allow_list.
+
+RULING 2: lat / lng / location / available ARE present, deliberately.  CONFIRMED PRESENT.
+  Live values on order 163: lat non-null (str), lng non-null (str), location non-null (str),
+  available non-null (int).
+
+  Recording the risk precisely, because the measurement sharpens what was accepted:
+  these four keys are NET-NEW to this endpoint. Pre-fix the vendor received the raw
+  DeliveryMan model, which does NOT carry them — they are computed by
+  deliverymen_data_formatting. The pre/post key-path diff shows them under ADDED, not
+  retained. So the fix removes 23 PII keys and introduces 6, four of which constitute the
+  courier live-location channel the security reviewer raised as High.
+
+  The reviewer's mechanism is confirmed in the tree and on the wire:
+    DeliveryMan::last_location() (app/Models/DeliveryMan.php:146-149) =
+      hasOne(DeliveryHistory::class, 'delivery_man_id')->latestOfMany()
+    — keyed on delivery_man_id, NOT order_id. It is the courier's CURRENT position,
+      not their position on this order.
+    VendorController::get_order applies no order_status filter. Order 163 is
+      order_status='delivered' and still returned HTTP 200 with non-null lat/lng/location.
+    Net effect: a store owner can poll a long-since-delivered order id indefinitely and
+      read where that courier is right now.
+
+  The owner was shown that finding in full at the approval gate and chose SHIP AS BUILT.
+  QA therefore records it as an ACCEPTED RISK. It is not filed as a bug and does not
+  affect the verdict. If the ruling is ever revisited, the seam is the 
+  parameter on Helpers::project_order_delivery_man (currently no caller passes true).

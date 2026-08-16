@@ -1,0 +1,21 @@
+NEARS-2253 — pre-existing suite failures, NOT attributable to this change.
+Full backend suite on the fix: Tests: 1369, Assertions: 12997, Errors: 1, Failures: 4, Skipped: 1 (7m15s).
+
+Independently re-confirmed: the two changed source files were replaced with their
+base-commit (f50dc5cf^) versions and these same 5 tests re-run -> IDENTICAL result
+(Tests: 21, Errors: 1, Failures: 4). Both files then restored from QA-made copies and md5-verified.
+
+1) ERROR  Tests\Feature\Security\ZoneContainsSqlInjectionTest::test_contains_scope_binds_its_argument
+     BadMethodCallException: Call to undefined method Illuminate\Database\Eloquent\Builder::contains()
+     tests/Feature/Security/ZoneContainsSqlInjectionTest.php:17
+     Already tracked as NEARS-2242 / NEARS-2258 (contradictory remedies, awaiting owner adjudication).
+
+2-5) FAIL  Tests\Feature\QaDataGapsSeedTest  (4 tests)
+     test_before_seeding_arabic_silently_falls_back_to_english   :55  (1 !== 0)
+     test_it_inserts_exactly_eleven_arabic_rows                  :114 (12 !== 11)
+     test_down_removes_only_what_the_seeder_added                :221 (1 !== 0)
+     test_it_refuses_to_run_without_the_env_guard...             :300 (1 !== 0)
+     Root cause is environmental, and the seeder says so itself:
+       RuntimeException: Nears1093QaDataGapsSeeder REFUSED: connected database is
+       "multi_food_db_test_nears_nears_2253_vendor_dm_pii" but NEARS_SEED_ALLOW_DB=NULL.
+     Neither class touches Helpers::order_data_formatting or the vendor order surface.

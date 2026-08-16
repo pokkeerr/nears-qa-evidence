@@ -1,0 +1,36 @@
+NEARS-2253 AC2 — Store Panel / VendorApp order-details, no-change baseline.
+
+AC2's premise is FALSE as written and was not chased. It describes a flow reading
+delivery-man name/rating/LOCATION. No such flow exists. Measured, not assumed:
+
+STORE PANEL — structurally unreachable from this fix.
+  App\Http\Controllers\Vendor\OrderController@details (:212-234) builds its OWN Eloquent
+  query, eager-loading delivery_man as delivery_men.* plus an orders_count subselect, and
+  passes the raw Order MODEL to view('vendor-views.order.order-view').
+  grep -c 'order_data_formatting' app/Http/Controllers/Vendor/OrderController.php = 0
+  The projection lives INSIDE order_data_formatting, so it cannot reach this page at all.
+  The DM card (vendor-views/order/order-view.blade.php:783-810) prints image_full_url,
+  f_name+l_name, orders_count, phone, email. No lat/lng/location anywhere in the card.
+
+  Rendered live against order 163 on the FIX build (read-only):
+    delivery_man present : yes
+    name                 : D D
+    orders_delivered     : 1
+    phone rendered       : non-empty
+    email rendered       : non-empty
+    image_full_url       : non-empty
+  Every expression the card prints still resolves. Phone and email still render to the
+  store owner here — server-side off the Order model — which is why removing them from the
+  API costs no live consumer anything.
+
+VENDORAPP — parses the node, renders none of it, cannot crash on the narrower payload.
+  order_model.dart:200 DOES call DeliveryMan.fromJson(json['delivery_man']) on this response.
+  Its DeliveryMan (order_model.dart:295-328) declares every field nullable (int? / String?)
+  and fromJson uses plain map lookups with NO force-unwrap, so the keys the projection removes
+  (phone, email, zone_id, active, application_status) simply arrive null.
+  The only render block, order_details_screen.dart:842-899 — tel: launcher included — is
+  commented out in its entirety. No other live consumer of order.deliveryMan exists in lib/.
+  VendorApp parses no lat/lng: the model has no such fields.
+
+The phpunit AC2 intact-guard (assertDeliveryManNodeIntact) additionally pins that all ten
+allow-listed keys are still present and that delivery_man is an OBJECT, not a list.

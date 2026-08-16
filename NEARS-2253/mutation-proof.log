@@ -1,0 +1,26 @@
+NEARS-2253 mutation proof — the AC tests are not rubber stamps.
+
+MUTATION A: both self::project_order_delivery_man() calls removed from order_data_formatting.
+  (assertion order in the two vendor tests temporarily swapped so the leak-name RED surfaces
+   ahead of the AC2 intact-guard; swap alone was re-run GREEN first, then restored, md5-verified.)
+  RESULT: 2/2 RED, on the field names.
+  test_vendor_get_order_delivery_man_is_projected_to_the_allow_list ->
+    Fields found leaking: email, identity_number, identity_type, image, fcm_token, zone_id,
+    created_at, updated_at, status, active, earning, current_orders, type, store_id,
+    application_status, order_count, assigned_order_count, vehicle_id, loyalty_point,
+    ref_code, ref_by, rating, storage
+  test_vendor_get_order_body_carries_no_delivery_man_identity_columns -> FAILED INDEPENDENTLY:
+    Fields found leaking: identity_number, identity_type, fcm_token, earning, current_orders,
+    application_status, assigned_order_count, vehicle_id
+
+MUTATION B: the relationLoaded('delivery_man') guard removed from project_order_delivery_man.
+  RESULT: 1/8 RED — test_vendor_completed_orders_gains_no_delivery_man_node, ALONE:
+    'completed-orders GAINED a delivery_man key ... Failed asserting that an array does not
+     have the key delivery_man.'
+  The other 7 stayed green. The guard is load-bearing and independently pinned.
+
+RESTORE: both files restored from QA-made file copies (never git checkout, uncommitted work
+  lives in that tree) and md5-verified back to their committed values:
+    Helpers.php            1a93110183feea3e849f4071082a5285
+    VendorController.php   16dec0388abd828ea5440776f4d0c898
+    OrderDeliveryManPiiTest.php  9f2cb38ef184fab5057d998cd060a8b8
