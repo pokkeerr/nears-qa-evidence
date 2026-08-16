@@ -1,0 +1,42 @@
+NEARS-2266 QA — regression candidate (PRE-EXISTING VendorApp defect, not caused by this change)
+VendorApp getOrderDetails() calls Map.forEach with a ONE-argument closure.
+
+VendorApp/lib/features/order/domain/repositories/order_repository.dart:54-62
+
+  @override
+  Future<List<OrderDetailsModel>?> getOrderDetails(int orderID) async {
+    List<OrderDetailsModel>? orderDetailsModel;
+    Response response = await apiClient.getData('${AppConstants.orderDetailsUri}$orderID');
+    if(response.statusCode == 200) {
+      orderDetailsModel = [];
+      response.body.forEach((orderDetails) => orderDetailsModel!.add(OrderDetailsModel.fromJson(orderDetails)));
+    }
+    return orderDetailsModel;
+  }
+
+`response.body` is `dynamic`, so the arity is not checked at compile time.
+GET /api/v1/vendor/order-details returns a LIST only on the order_details branch
+(VendorController.php:601-604). On the raw-model branch (VendorController.php:605-613 —
+order_type == 'parcel' OR prescription_order == 1) it returns a MAP (the order object).
+Map.forEach requires a two-argument closure, so this line throws at runtime for exactly the
+two order shapes NEARS-2266 is about.
+
+Verdict: NOT live-reproducible in this QA run, and not attributable to NEARS-2266.
+  - the only parcel order reachable through the vendor guard (91112) 500s before returning a
+    body at all (see bug-vendor-order-details-500-null-receiver-details.log), and
+  - 91112 is excluded from every VendorApp order list by NotDigitalOrder() because its
+    payment_method is NULL, so the screen cannot be opened from the UI, and
+  - there are ZERO rows with prescription_order = 1 in multi_food_db.
+Static reading only; filed so it is not lost.
+
+Supporting measurements (read-only):
+  $ mysql -u root multi_food_db -N -e "SELECT COUNT(*) FROM orders WHERE prescription_order=1;"
+    0
+  $ mysql -u root multi_food_db -N -e \
+      "SELECT id,order_type,payment_method FROM orders WHERE store_id=1 ORDER BY id DESC;"
+    91113 delivery cash_on_delivery
+    91112 parcel   NULL
+    91110 delivery cash_on_delivery
+    163   delivery cash_on_delivery
+  $ curl .../api/v1/vendor/all-orders        -> 91113, 91110, 166, 165, 164, 163  (no 91112)
+  $ curl .../api/v1/vendor/current-orders    -> 91113, 91110, 165                 (no 91112)

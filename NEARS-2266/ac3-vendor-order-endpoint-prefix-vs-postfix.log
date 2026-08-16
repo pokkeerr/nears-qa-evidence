@@ -1,0 +1,33 @@
+NEARS-2266 QA — AC3 evidence: the endpoint that feeds VendorApp's customer card is unchanged.
+
+VendorApp order_details_screen.dart:543-607 renders the "Customer Details" card from
+`_orderModel`, which OrderRepository.get() loads from
+AppConstants.currentOrderDetailsUri = '/api/v1/vendor/order?order_id=' — a DIFFERENT endpoint
+from the one NEARS-2266 fixes (orderDetailsUri = '/api/v1/vendor/order-details?order_id=').
+
+Both backends served concurrently from their own trees, same DB, same vendor token:
+  :8266  worktree  fix/NEARS-2266-vendor-order-details-pii @ eebba02b   (POST-fix)
+  :8000  primary   feat/userapp-reskin2                                 (PRE-fix)
+
+  $ curl "http://127.0.0.1:8266/api/v1/vendor/order?order_id=91112" -H "Authorization: Bearer <tok>" -H "vendorType: owner"
+    HTTP 200
+  $ curl "http://127.0.0.1:8000/api/v1/vendor/order?order_id=91112" ...
+    HTTP 200
+
+  $ python3 -c "compare the two decoded bodies key by key"
+    DIFFERENT
+    only-wt  set()
+    only-pri set()
+    DIFF customer                  ... 'image_full_url': 'http://127.0.0.1:8266/...'  ||  'http://127.0.0.1:8000/...'
+    DIFF module                    ... (same, only the thumbnail_full_url host:port)
+    DIFF order_attachment_full_url ['http://127.0.0.1:8266/...']                      ||  ['http://127.0.0.1:8000/...']
+
+The ONLY differences are the host:port embedded in generated *_full_url values — an artifact of
+running the two servers on different ports, not a behavioural difference. 101 top-level keys,
+identical on both sides.
+
+Customer node served by the POST-fix bytes for parcel order 91112:
+  {"id": 410, "f_name": "T", "l_name": "U", "phone": "+99981234567",
+   "image_full_url": "http://127.0.0.1:8266/public/assets/admin/img/160x160/img2.jpg"}
+= the NEARS-2237 allow-list plus the revealed `phone` (order_status 'pending', non-terminal),
+which is exactly what the card and its tel: launcher read. No regression.

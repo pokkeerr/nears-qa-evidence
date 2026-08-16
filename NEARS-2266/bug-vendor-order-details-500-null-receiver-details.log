@@ -1,0 +1,42 @@
+NEARS-2266 QA — regression bug evidence (PRE-EXISTING, not caused by this change)
+GET /api/v1/vendor/order-details?order_id=91112 returns HTTP 500 on BOTH pre-fix and post-fix bytes.
+
+Repro (vendor demo.store@gmail.com, store 1, parcel order 91112, zero order_details rows):
+
+  # post-fix bytes (worktree fix/NEARS-2266-vendor-order-details-pii @ eebba02b, served :8266)
+  $ curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+      "http://127.0.0.1:8266/api/v1/vendor/order-details?order_id=91112" \
+      -H "Authorization: Bearer <vendor auth_token>" -H "vendorType: owner"
+  HTTP 500      body: {"message":"Something went wrong"}
+
+  # pre-fix bytes (primary tree feat/userapp-reskin2, served :8000)
+  $ curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+      "http://127.0.0.1:8000/api/v1/vendor/order-details?order_id=91112" ...
+  HTTP 500      body: {"message":"Something went wrong"}
+
+Identical on both sides => independent of NEARS-2266.
+
+Backend log (Admin/storage/logs/laravel.log, worktree, endpoint-scoped grep):
+
+  [2026-08-16 14:32:26] production.ERROR: [FAIL] Syntax error
+    {"trace_id":"30a9698248f7f7ec9f2a544bbc4d74d6",
+     "correlation_id":"e3e730b4-9c56-4116-8ffc-4b12cc89391b",
+     "type":"InvalidArgumentException",
+     "endpoint":"/api/v1/vendor/order-details"}
+
+NOT a silent failure — the path is logged via AppLogger/Log with a correlation id, so no
+logging-contract finding.
+
+Mechanism (as measured by the backend engineer and confirmed here):
+  orders.receiver_details IS NULL on 91112
+    $ mysql -u root multi_food_db -N -e \
+        "SELECT id, receiver_details IS NULL FROM orders WHERE id=91112;"
+      91112   1
+  Order::getReceiverDetailsAttribute (Admin/app/Models/Order.php:127-140) json_decode()s that
+  NULL, which leaves json_last_error() dirty. Model::toJson()'s JSON_THROW_ON_ERROR does not
+  reset that global state, so JsonResponse::setData throws
+  InvalidArgumentException: Syntax error.
+
+Blast radius: every vendor order whose receiver_details is NULL/non-JSON and which reaches the
+raw-model branch of VendorController::get_order_details (parcel or prescription_order=1 with
+zero order_details rows).
