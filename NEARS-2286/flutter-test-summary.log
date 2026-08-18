@@ -1,0 +1,25 @@
+$ ~/Tools/flutter/bin/flutter test --reporter compact
+(UserApp/, worktree feat/NEARS-2286-analyzer-info-findings, Flutter 3.41.9)
+
+Final tally: 02:15 +4057 ~2 -1: Some tests failed.
+  = 4057 passed, 2 skipped, 1 failed
+
+The 1 failure is a load/compile failure (marked [E]) in
+test/features/chat/attachment_viewer_dls_test.dart:162 — untouched by this
+ticket's 9-file diff:
+
+  loading .../test/features/chat/attachment_viewer_dls_test.dart [E]
+  Failed to load "...attachment_viewer_dls_test.dart":
+  Compilation failed for testPath=...attachment_viewer_dls_test.dart:
+  test/features/chat/attachment_viewer_dls_test.dart:162:13: Error: No named
+  parameter with the name 'isRightMessage'.
+
+No other [E] failure markers appear anywhere in the full run (grep -n "\[E\]"
+matches exactly this one line). test/helper/destination_resolver_test.dart
+ran clean this pass (all its cases passed) — matches the ticket's
+"flaky timer-based failures" characterization (untouched file, intermittent,
+not reproduced in this run).
+
+Cross-check: `git diff feat/userapp-reskin2 -- <both files>` is EMPTY —
+byte-identical to the base branch, confirming both predate/are untouched by
+this ticket's changes.

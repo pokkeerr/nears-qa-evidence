@@ -1,0 +1,29 @@
+NEARS-2286 — cart_screen.dart:289 visual-regression spot-check (code-level proof)
+
+Diff: `Container(child: NSurfaceCard(...))` -> `NSurfaceCard(...)` directly.
+The removed Container had ONLY a `child:` argument — no margin, padding,
+decoration, color, alignment, or constraints.
+
+Flutter SDK proof (~/Tools/flutter/packages/flutter/lib/src/widgets/container.dart,
+Container.build(), lines 387-427): with child non-null and alignment,
+padding/decoration effective-padding, color, clipBehavior, decoration and
+foregroundDecoration all null/default, every wrapping conditional evaluates
+false and `current` remains exactly `child` — build() returns the child
+widget UNMODIFIED. This is a mathematically-provable no-op in the widget
+tree: zero layout/paint difference is possible.
+
+Separately: the touched branch is inside
+`ResponsiveHelper.isMobile(context) ? <mobile path, untouched> : NSurfaceCard(...)`.
+lib/helper/responsive_helper.dart:6 hardcodes `isMobile` to `return true;`
+(commit 23a140e7, "drop ResponsiveHelper.isWeb + shallow route helper
+(stage 6)", pre-dates this ticket, part of the documented mobile-only
+reskin deprioritization of web/desktop layout). Because isMobile() always
+returns true, the touched `: NSurfaceCard(...)` (desktop/tablet) branch is
+UNREACHABLE on any device/screen width in the current UserApp build — it
+cannot be exercised live regardless of device chosen. This is pre-existing,
+unrelated to NEARS-2286, not filed as a bug (matches known "web
+deprioritized, mobile-only" project direction).
+
+Conclusion: live/visual verification of this branch is not just
+unnecessary but structurally impossible right now. Code-level proof above
+substitutes for it: the change is a provable no-op.
