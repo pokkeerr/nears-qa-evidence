@@ -1,0 +1,44 @@
+NEARS-2203 AC2 — live behavioral proof (device-free, backend: local multi_food_db, worktree feat/NEARS-2203-seeder-rollback-env-guard @ e4533752)
+
+--- Pre-state: fixture rows already present from a prior run ---
+$ mysql -u root multi_food_db -e "SELECT count(*) FROM reviews WHERE review_id LIKE 'nears1038-%';"
+8
+$ mysql -u root multi_food_db -e "SELECT id, rating FROM stores WHERE id IN (19,21,35);"
+19  {"1":0,"2":0,"3":4,"4":0,"5":1}
+21  {"1":0,"2":0,"3":0,"4":4,"5":1}
+35  {"1":0,"2":0,"3":0,"4":0,"5":5}
+
+--- NEGATIVE CONTROL: NEARS_SEED_ALLOW_DB unset, run the OLD unprefixed rollback form ---
+$ unset NEARS_SEED_ALLOW_DB
+$ php artisan tinker --execute="(new Database\Seeders\Nears1038RatingSpreadQaSeeder())->down();"
+   RuntimeException  Nears1038RatingSpreadQaSeeder REFUSED: connected database is "multi_food_db" but NEARS_SEED_ALLOW_DB=NULL. Set NEARS_SEED_ALLOW_DB to the exact target DB name to confirm intent. Live multi_food_db is READ-ONLY by hard rule — mutating it requires explicit user approval.
+
+Rows confirmed untouched after the refused attempt:
+$ mysql -u root multi_food_db -e "SELECT count(*) FROM reviews WHERE review_id LIKE 'nears1038-%';"
+8   (unchanged)
+
+--- POSITIVE: corrected, published rollback command (from the seeder's own docblock post-fix) ---
+$ NEARS_SEED_ALLOW_DB=multi_food_db php artisan tinker --execute="(new Database\Seeders\Nears1038RatingSpreadQaSeeder())->down();"
+(no output — down() only calls $this->command?->info(...) which is a no-op outside an Artisan command context; exit 0, no exception)
+
+Rows after rollback:
+$ mysql -u root multi_food_db -e "SELECT count(*) FROM reviews WHERE review_id LIKE 'nears1038-%';"
+0
+$ mysql -u root multi_food_db -e "SELECT id, rating FROM stores WHERE id IN (19,21,35);"
+19  NULL
+21  NULL
+35  {"1":0,"2":0,"3":0,"4":0,"5":5}   <- untouched anchor store, confirming down() removed ONLY this seeder's own rows
+
+--- Fixture state restored afterward (courtesy to concurrent sessions on the shared DB) ---
+$ NEARS_SEED_ALLOW_DB=multi_food_db php artisan db:seed --class=Nears1038RatingSpreadQaSeeder --force && php artisan cache:clear
+NEARS-1038: store 21 — 4 reviews @ 4★ ensured.
+NEARS-1038: store 19 — 4 reviews @ 3★ ensured.
+NEARS-1038 rating-spread fixture ready (expected top_rated order: 35 > 21 > 19). Run: php artisan cache:clear
+Application cache cleared successfully.
+
+$ mysql -u root multi_food_db -e "SELECT count(*) FROM reviews WHERE review_id LIKE 'nears1038-%'; SELECT id, rating FROM stores WHERE id IN (19,21,35);"
+8
+19  {"1":0,"2":0,"3":4,"4":0,"5":1}
+21  {"1":0,"2":0,"3":0,"4":4,"5":1}
+35  {"1":0,"2":0,"3":0,"4":0,"5":5}
+(matches pre-state exactly — fixture fully restored)

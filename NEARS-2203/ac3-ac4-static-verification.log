@@ -1,0 +1,64 @@
+NEARS-2203 AC3/AC4 — static verification (worktree feat/NEARS-2203-seeder-rollback-env-guard @ e4533752)
+
+--- Diff scope (regression sweep) ---
+$ git diff feat/userapp-reskin2..e4533752 --stat
+ Admin/database/seeders/Nears1026ConditionCountQaSeeder.php     |  2 +-
+ Admin/database/seeders/Nears1038RatingSpreadQaSeeder.php       |  2 +-
+ Admin/database/seeders/Nears2055LongNameDeliveryManSeeder.php  |  2 +-
+ Admin/database/seeders/Nears2058DefaultLocationSeeder.php      |  2 +-
+ Admin/database/seeders/Nears600StoreOffersQaSeeder.php         |  2 +-
+ Admin/database/seeders/Nears736AdvertisementFixturesSeeder.php |  2 +-
+ Admin/database/seeders/Nears736DisbursementFixturesSeeder.php  |  2 +-
+ Admin/database/seeders/QaBannerDuplicateSeeder.php             |  2 +-
+ docs/data-qa/dev-seed-qa-fixtures.md                           | 10 +++++-----
+ 9 files changed, 13 insertions(+), 13 deletions(-)
+--> 9 files exactly as expected; every hunk (checked full diff) is a docblock/doc-comment
+    line adding "NEARS_SEED_ALLOW_DB=<db>" before the existing `php artisan tinker --execute=...->down();`
+    command — no code/logic changes.
+
+--- AC3: 8 seeders, each matched to its own seed-up db value ---
+Nears1026ConditionCountQaSeeder.php       -> NEARS_SEED_ALLOW_DB=multi_food_db      (matches its own db:seed command)
+Nears1038RatingSpreadQaSeeder.php         -> NEARS_SEED_ALLOW_DB=multi_food_db
+Nears2055LongNameDeliveryManSeeder.php    -> NEARS_SEED_ALLOW_DB=multi_food_db
+Nears2058DefaultLocationSeeder.php        -> NEARS_SEED_ALLOW_DB=multi_food_db
+Nears600StoreOffersQaSeeder.php           -> NEARS_SEED_ALLOW_DB=multi_food_db
+Nears736AdvertisementFixturesSeeder.php   -> NEARS_SEED_ALLOW_DB=multi_food_db_test (matches its own db:seed command)
+Nears736DisbursementFixturesSeeder.php    -> NEARS_SEED_ALLOW_DB=multi_food_db_test
+QaBannerDuplicateSeeder.php               -> NEARS_SEED_ALLOW_DB=multi_food_db
+All 8 confirmed by direct grep of each file's docblock post-fix; all 8 down() methods
+independently confirmed to call $this->assertAllowedDatabase() (via targeted awk extraction
+of each down() body).
+
+--- AC3: the 3 seeders the engineer left untouched, individually verified ---
+Nears1847BestReviewedSeeder.php:
+  line 28: NEARS_SEED_ALLOW_DB=multi_food_db php artisan tinker --execute="(new Database\Seeders\Nears1847BestReviewedSeeder())->down();"
+  down() (line 123-125) calls $this->assertAllowedDatabase() -> ALREADY correct pre-fix, rightly untouched.
+
+Nears1934FoodTradingHoursSeeder.php:
+  line 32: NEARS_SEED_ALLOW_DB=multi_food_db php artisan tinker --execute="(new Database\Seeders\Nears1934FoodTradingHoursSeeder())->down();"
+  down() (line 77-79) calls $this->assertAllowedDatabase() -> ALREADY correct pre-fix, rightly untouched.
+
+Nears489IconKeyDemoSeeder.php:
+  line 24: php artisan tinker --execute="(new Database\Seeders\Nears489IconKeyDemoSeeder())->down();"  (no prefix)
+  down() (line 65-82) read in full: zero calls to assertAllowedDatabase or any guard.
+  -> genuinely UNGUARDED, correctly left unprefixed (a prefix here would be misleading, not required).
+
+--- AC4: docs/data-qa/dev-seed-qa-fixtures.md, 5 fixed teardown lines + 1 untouched ---
+Nears1038RatingSpreadQaSeeder  -> teardown line now carries NEARS_SEED_ALLOW_DB=multi_food_db  (confirmed in diff + AC2 live run above)
+Nears1093QaDataGapsSeeder      -> teardown line now carries NEARS_SEED_ALLOW_DB=multi_food_db
+Nears1590FoodModifierFixtureSeeder -> teardown line now carries NEARS_SEED_ALLOW_DB=multi_food_db
+Nears1665NotificationWindowSeeder  -> teardown line now carries NEARS_SEED_ALLOW_DB=multi_food_db
+Nears1618PaymentFixtureSeeder      -> teardown line now carries NEARS_SEED_ALLOW_DB=multi_food_db
+(all 5 confirmed via `git diff` above, doc hunk shown line-by-line)
+
+Nears475HideModuleFixtureSeeder -> doc entry left unprefixed (line 41 of the seeder file itself:
+  "php artisan tinker --execute=...->down();" no prefix).
+  Seeder's down() (line 207-224) read in full: zero calls to assertAllowedDatabase or any guard.
+  -> genuinely UNGUARDED, correctly left unprefixed.
+
+--- Automated backstop (non-blocking per QA scope) ---
+Pre-existing red confirmed at review (145 err / 28 fail) on base branch, unrelated to this diff.
+Targeted overlap check:
+$ grep -rl "Nears1026ConditionCountQaSeeder\|Nears1038RatingSpreadQaSeeder\|Nears2055LongNameDeliveryManSeeder\|Nears2058DefaultLocationSeeder\|Nears600StoreOffersQaSeeder\|Nears736AdvertisementFixturesSeeder\|Nears736DisbursementFixturesSeeder\|QaBannerDuplicateSeeder" tests/
+(no output — zero test files reference any of the 8 touched seeder classes; the pre-existing
+red suite cannot be affected by this comment/doc-only diff)
