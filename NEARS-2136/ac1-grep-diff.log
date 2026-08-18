@@ -1,0 +1,18 @@
+=== AC1: grep for dead branch (exit code, no output = confirmed removed) ===
+$ grep -n "body == null" UserApp/lib/api/api_client.dart
+exit code: 1
+
+=== diff vs base feat/userapp-reskin2 ===
+diff --git a/UserApp/lib/api/api_client.dart b/UserApp/lib/api/api_client.dart
+index 74d1f1a6..15893437 100644
+--- a/UserApp/lib/api/api_client.dart
++++ b/UserApp/lib/api/api_client.dart
+@@ -1101,8 +1101,6 @@ class ApiClient extends GetxService {
+           statusText: response0.body['message'],
+         );
+       }
+-    } else if (response0.statusCode != 200 && response0.body == null) {
+-      response0 = Response(statusCode: 0, statusText: noInternetMessage);
+     }
+     // NEARS-770 — PII: path-only, never the raw URI query string.
+     // NEARS-770-R1 — log the round-trip once, skipping the branch that calls
