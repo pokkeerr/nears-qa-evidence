@@ -15,5 +15,8 @@
 </tr>
 </table>
 
+### Other artifacts
+- [`bug-chat-attachment-viewer-compile-error.log`](bug-chat-attachment-viewer-compile-error.log)
+
 ---
 *From `nears/docs/qa-evidence/NEARS-1951/` · public-repo scrub policy (no live secrets; verified clean).*
