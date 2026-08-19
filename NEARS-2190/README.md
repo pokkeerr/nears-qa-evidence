@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-2190
 
-**cycle-2 delta re-QA: AC2 STILL FAILS -- rapid double back-press silently swallows the exit dialog (needs a 3rd back-press), AC1+barrier-reappear PASS**
+**cycle3: FAIL - rapid double back-press at ~500ms gap still ends with dialog dismissed (canPop-gate only covers ~200-250ms transition, not the full 500ms window the original repro established); ~150ms gap correctly absorbed (2/2); barrier-tap timing (early absorb / late dismiss) confirmed correct per F1 review fix**
 
-**8 screenshot(s).** Click any thumbnail for full resolution.
+**11 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -17,6 +17,11 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="checkout-cod-only-config-limitation.png"><img src="checkout-cod-only-config-limitation.png" width="240"></a><br><sub>checkout cod only config limitation</sub></td>
+<td align="center" width="33%"><a href="cycle3-ac3-single-back-dialog.png"><img src="cycle3-ac3-single-back-dialog.png" width="240"></a><br><sub>cycle3 ac3 single back dialog</sub></td>
+<td align="center" width="33%"><a href="cycle3-doubleback-150ms-trial1.png"><img src="cycle3-doubleback-150ms-trial1.png" width="240"></a><br><sub>cycle3 doubleback 150ms trial1</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cycle3-doubleback-500ms-trial4-FAIL.png"><img src="cycle3-doubleback-500ms-trial4-FAIL.png" width="240"></a><br><sub>cycle3 doubleback 500ms trial4 FAIL</sub></td>
 <td align="center" width="33%"><a href="regression-barrier-dismiss-state.png"><img src="regression-barrier-dismiss-state.png" width="240"></a><br><sub>regression barrier dismiss state</sub></td>
 </tr>
 </table>
