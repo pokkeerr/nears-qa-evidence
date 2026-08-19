@@ -1,0 +1,30 @@
+Repro: logged-in customer (customer@nears.com), cart holds an item from
+Nears Mart (store_id=1, zone_id=1 / Demo Zone). Delivery address switched to
+the saved "Abu Dhabi - United Arab Emirates" address (zone_id=2 only, verified
+via `SELECT id,name FROM zones WHERE ST_Contains(coordinates,
+ST_GeomFromText('POINT(54.425 24.45)'))` -> only zone 2). Tapped
+"Proceed to Checkout" -> CheckoutController.initCheckoutData(1) ->
+StoreController.getStoreDetails -> backend 403 out_of_zone.
+
+adb logcat (emulator-5558, package com.izzes.nears, pid 8435):
+
+08-19 15:17:11.660 I/flutter ( 8435): [NET] GET endpoint=/api/v1/stores/details/1
+08-19 15:17:12.375 I/flutter ( 8435): [NET] endpoint=/api/v1/stores/details/1 http_status=403
+08-19 15:17:12.375 I/flutter ( 8435): [WARN] msg="store: details out of zone"
+08-19 15:17:12.375 I/flutter ( 8435): The following exception was thrown store: details out of zone:
+08-19 15:17:12.375 I/flutter ( 8435): ApiFailure(status: 403)
+08-19 15:17:12.375 I/flutter ( 8435): #0      StoreController.getStoreDetails (package:sixam_mart/features/store/controllers/store_controller.dart:932:24)
+08-19 15:17:12.375 I/flutter ( 8435): <asynchronous suspension>
+08-19 15:17:12.375 I/flutter ( 8435): #1      CheckoutController.initCheckoutData (package:sixam_mart/features/checkout/controllers/checkout_controller.dart:463:14)
+08-19 15:17:12.375 I/flutter ( 8435): <asynchronous suspension>
+08-19 15:17:12.375 I/flutter ( 8435): ----------------------------------------------------
+08-19 15:17:12.375 I/flutter ( 8435): [FAIL] endpoint=/api/v1/stores/details/ http_status=403 type=ApiFailure msg="store: details out of zone" correlation_id=dfe0c054-e299-419c-b30b-8552a0c0476b
+
+PII-safety check on the [FAIL] line:
+- type=ApiFailure (const sentinel, not the raw HTTP exception)
+- recorded error object toString() == "ApiFailure(status: 403)" -- status only,
+  no message/body/url
+- endpoint=/api/v1/stores/details/  -- path only (AppConstants.storeDetailsUri),
+  no id, no query string
+- correlation_id=dfe0c054-e299-419c-b30b-8552a0c0476b -- present, PII-free UUIDv4
+- no response body, no backend statusText anywhere on the [FAIL] line
