@@ -1,0 +1,23 @@
+AC1 scenario -- existing query string:
+URL: /subscription-success?flag=success&&flag=failed&&token=c29tZXRva2Vu
+parse_str result:
+Array
+(
+    [flag] => failed
+    [token] => c29tZXRva2Vu
+)
+flag === payment_flag (server value)? YES
+mangled ?flag key present? NO (good)
+
+AC2 scenario -- no existing query string:
+URL: /subscription-success?flag=failed&&token=c29tZXRva2Vu
+Matches unchanged "?flag=...&&token=..." shape? YES
+
+Regression-candidate (fragment) probe -- pre-existing on base branch too:
+URL: /wallet#evil-fragment?flag=failed&&token=abc123
+Array
+(
+    [path] => /wallet
+    [fragment] => evil-fragment?flag=failed&&token=abc123
+)
+flag/token land inside the fragment, not the query string -- reproduces identically pre-fix (CallbackUrlValidator.php byte-identical to base, and base Processor.php also hardcoded a bare "?" here).
