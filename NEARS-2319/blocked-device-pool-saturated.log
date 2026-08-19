@@ -1,0 +1,51 @@
+QA-lite [m4] NEARS-2319 — BLOCKED: device pool saturated
+Timestamp window: 2026-08-20 00:59 - 01:07 +04 (bounded poll, ~7min via qa_lock_check
+loop + ~5min earlier manual checks = ~12min total, exceeding the profile's "poll ~60s
+up to 10 min" bound before declaring BLOCKED)
+
+Pool per .claude/workflow-profile.md: emulator-5554, emulator-5556, emulator-5558
+(emulator-5560 excluded — known broken uiautomator bridge, NEARS-1727)
+
+=== emulator-5554 ===
+verdict=occupied rc=3
+Foreign host drivers (not this session): pid 73401 (flutter dartvm run -d emulator-5554),
+pid 73505 (adb -s emulator-5554 logcat). No lock file present — a bare `flutter run`
+never writes one (documented residual bypass, NEARS-1689/1270).
+device procs: com.izzes.nears:6144
+
+=== emulator-5556 ===
+verdict=occupied rc=3
+Foreign host drivers (not this session): pid 32172 (flutter dartvm run -d emulator-5556),
+pid 32294 (adb -s emulator-5556 logcat). No lock file present, same bypass shape.
+device procs: com.izzes.nears:6732 com.izzes.nearsvendor:3281
+
+=== emulator-5558 ===
+verdict=PHANTOM HOLD rc=5
+Lock file: $HOME/.nears/qa-locks/emulator-5558/owner.json
+holder key: NEARS-2130, holder pid: 10132 (confirmed alive, elapsed >1 day)
+Device NOT in `adb devices` enumeration (not booted/attached) — guard refuses to
+reclaim (holder is alive; guard's own wording: "a not-attached serial is refused at
+acquire regardless" of reclaim).
+
+Conclusion: all 3 pool devices occupied by live, non-reclaimable sessions at the time
+of this run. No device acquired; no lock held by this QA session; nothing to release.
+
+What WAS verified without a device (static + automated only):
+- AC3 [static]: grep-confirmed live — UserApp/lib/features/auth/widgets/select_location_view_widget.dart
+  L419-420 read exactly `EdgeInsetsDirectional.only(start: 10)` / `AlignmentDirectional.centerStart`.
+- Pre-flight: baseUrl resolves to local dev backend (10.0.2.2:8000 / 127.0.0.1:8000 per
+  platform), not a demo/placeholder host. Backend confirmed up (HTTP 302 on /admin).
+- `flutter analyze` on the touched file: clean, 0 issues.
+- `flutter test test/features/auth/` (285 tests, includes 45 pre-existing tests for this
+  widget): 285/285 passed.
+- `flutter test` (full UserApp suite): 1 failure in test/helper/destination_resolver_test.dart
+  (unrelated file, not touched by this ticket) — reproduces as 11/11 PASS when run in
+  isolation, so it reads as cross-test-pollution/flake in the full-suite run, not a real
+  regression from this change. Flagged as a regression-candidate followup for the
+  conductor, not filed as a task_bug (outside this ticket's touched surface).
+
+AC1 (LTR unchanged) and AC2 (RTL mirrored, pixel-measured) COULD NOT be demonstrated
+live — both require driving the booted UserApp on a pool device to reach Vendor
+Registration -> Location Info and pixel-scan the rendered hint glyph position in each
+locale, exactly as the ticket demands ("measure, don't eyeball"). No device was
+available in the polled window.
