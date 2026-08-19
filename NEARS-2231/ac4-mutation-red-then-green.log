@@ -1,0 +1,43 @@
+NEARS-2231 QA — AC4 live mutation re-verification (QA agent, independent of engineer/code-reviewer report)
+
+Step 1: commented out the Helpers::review_customer_formatting() loop in
+Admin/app/Http/Controllers/Api/V1/Vendor/DeliveryManController.php::preview()
+Ran: vendor/bin/phpunit --configuration phpunit.xml --filter DeliveryManPreviewReviewsPiiTest --testdox
+
+RESULT: RED (pinned message)
+----
+F...                                                                4 / 4 (100%)
+
+Delivery Man Preview Reviews Pii (Tests\Feature\Security\DeliveryManPreviewReviewsPii)
+ ✘ Preview reviews have no customer relation and no reviewer pii
+   │
+   │ NEARS-2231: the `customer` relation is still on the review row — the reviewer User model must not be serialized at all
+   │ Failed asserting that an array does not have the key 'customer'.
+   │
+   │ /Users/Apple/Projects/nears-NEARS-2231-dm-preview-reviews-pii/Admin/tests/Feature/Security/DeliveryManPreviewReviewsPiiTest.php:249
+   │
+ ✔ Preview with no reviews does not throw
+ ✔ Store scope guard hides a foreign vendors delivery man
+ ✔ Pii finder detects the fields on a raw reviewer payload
+
+FAILURES!
+Tests: 4, Assertions: 28, Failures: 1.
+----
+
+Step 2: restored the loop verbatim (git diff --stat confirmed identical to pre-mutation: "1 file changed, 4 insertions(+)")
+Ran the same filter again.
+
+RESULT: GREEN
+----
+....                                                                4 / 4 (100%)
+
+Delivery Man Preview Reviews Pii (Tests\Feature\Security\DeliveryManPreviewReviewsPii)
+ ✔ Preview reviews have no customer relation and no reviewer pii
+ ✔ Preview with no reviews does not throw
+ ✔ Store scope guard hides a foreign vendors delivery man
+ ✔ Pii finder detects the fields on a raw reviewer payload
+
+OK (4 tests, 43 assertions)
+----
+
+Conclusion: RED->GREEN independently reproduced by QA, matches engineer/code-reviewer's prior report.
