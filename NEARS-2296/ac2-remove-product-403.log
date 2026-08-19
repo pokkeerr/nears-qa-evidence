@@ -1,0 +1,13 @@
+Same session (ecomarket@demo.com, store_id=19).
+Attack: DELETE /vendor-panel/item/flash-sale/1/product/3 (flash_sale_item id=25, item_id=3 belongs to store_id=2, NOT store 19)
+
+Request header sent:  X-Request-Id: bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb
+Response: HTTP/1.1 403 Forbidden
+Response header echoed: X-Request-Id: bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb
+
+Admin/storage/logs/laravel.log — grep -F "bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb" | grep "cross-store":
+[2026-08-19 04:22:57] production.WARNING: [WARN] cross-store flash-sale access denied {"trace_id":"e7408f43b93491fe8ae3ea602591ed23","correlation_id":"bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb","vendor_store_id":19,"requested_item_id":"3","sale_id":"1"}
+
+Exactly ONE matching WARNING line for this attempt. DB verified unchanged (flash_sale_items id=25 not deleted).
+
+Regression control (same session type, legitimate owner): logged in as ahmed.khan@demo.com (store_id=2, actual owner of item 3), POST join-product item_id=3 (already-in-sale) -> HTTP 302 (Toastr "already exists" redirect), X-Request-Id cccccccc-3333-4333-8333-cccccccccccc produced NO "cross-store" WARN line in laravel.log -- confirms the retag did not introduce a false-positive block/log on the legitimate same-store path.

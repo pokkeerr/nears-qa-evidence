@@ -1,0 +1,22 @@
+Sweep: grep -rnoE "['\"]\[[A-Z_]+\]" <tree> | grep -oE "\[[A-Z_]+\]" | sort | uniq -c
+
+Admin/app:
+  31 [FAIL]
+   5 [WARN]
+   5 [INFO]
+   2 [REDACTED]
+   1 [ERR]
+
+UserApp/lib, DeliveryApp/lib, VendorApp/lib (each identical):
+   3 [FAIL]
+   2 [NET]
+   1 [WARN]
+   1 [INFO]
+   1 [EVT]
+   1 [ERR]
+
+Only the six contract tags ([FAIL]/[ERR]/[WARN]/[INFO]/[NET]/[EVT]) appear as log-message-prefix tags.
+[REDACTED] occurrences confirmed NOT a severity tag:
+  Admin/app/Observability/PiiSpanProcessor.php:67   -- default config value for a PII redaction placeholder
+  Admin/app/Observability/OtelDiagnosticLogger.php:221-222 -- inline preg_replace substitution mid-string (credential/bearer-token scrubbing), never the first token of a Log:: call
+Neither is a Log::* call prefix. Confirmed still present, unchanged, out of scope per the ticket.

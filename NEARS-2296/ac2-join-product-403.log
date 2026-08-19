@@ -1,0 +1,12 @@
+Backend: worktree php artisan serve --host=127.0.0.1 --port=8020 (this worktree's Admin/)
+Vendor session: ecomarket@demo.com (store_id=19, "Eco Market") — logged in via /login_submit
+Attack: POST /vendor-panel/item/flash-sale/1/join-product item_id=3 (item 3 belongs to store_id=2, "Fresh Mart Grocery", NOT store 19)
+
+Request header sent:  X-Request-Id: aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa
+Response: HTTP/1.1 403 Forbidden
+Response header echoed: X-Request-Id: aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa
+
+Admin/storage/logs/laravel.log — grep -F "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa" | grep "cross-store":
+[2026-08-19 04:22:15] production.WARNING: [WARN] cross-store flash-sale access denied {"trace_id":"4e0b353d64332ad8dae2c8027bc6caef","correlation_id":"aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa","vendor_store_id":19,"requested_item_id":"3","sale_id":1}
+
+Exactly ONE matching WARNING line for this attempt. DB verified unchanged afterward (flash_sale_items id=25 for item 3 still present — no write occurred, 403 short-circuited before ->save()).
