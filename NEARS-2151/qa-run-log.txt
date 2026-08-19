@@ -1,0 +1,75 @@
+NEARS-2151 — BannerRepository._getPromotionalBannerList PII-safe log guard
+QA re-run (fix cycle 1), worktree: nears-NEARS-2151-banner-promotional-log-guard
+Flutter 3.41.9 (pinned SDK, ~/Tools/flutter)
+
+== Targeted test file (re-run by QA, not just trusted from engineer report) ==
+$ flutter test test/features/banner/banner_repository_promotional_log_guard_test.dart --reporter expanded
+
+00:00 +0: AC1 non-Map 200: returns null, no throw
+[FAIL] endpoint=/api/v1/other-banners http_status=200 type=ApiFailure msg="promotional banner: non-map 200 body (String)"
+00:00 +1: AC1 non-Map 200: emits exactly ONE PII-safe AppLogger.failure
+[FAIL] endpoint=/api/v1/other-banners http_status=200 type=ApiFailure msg="promotional banner: non-map 200 body (String)"
+00:00 +2: AC2 control: Map body 200 still parses and logs nothing
+00:00 +3: AC3 non-200 status: returns null, no log call
+00:00 +4: All tests passed!
+
+Log line is PII-safe: endpoint is path-only (AppConstants.promotionalBannerUri, no query),
+http_status is numeric, msg carries only response.body.runtimeType ("String") — never the
+actual body content. Matches NEARS-1869 loyalty-guard precedent and the
+docs/platform/logging-contract.md PII allow-list.
+
+== Mutation check (performed live by QA — git stash the fix, re-run, git stash pop) ==
+PRE-FIX (else-if branch removed):
+00:00 +0: AC1 non-Map 200: returns null, no throw
+00:00 +1 -1: AC1 non-Map 200: emits exactly ONE PII-safe AppLogger.failure [E]
+  Expected: an object with length of <1>
+    Actual: []
+     Which: has length of <0>
+00:00 +2 -1: AC2 control: Map body 200 still parses and logs nothing
+00:00 +3 -1: Some tests failed.
+=> Confirms 0 log lines pre-fix, 1 log line post-fix (AC1 mutation-checked, not just green-by-construction).
+File restored immediately after (git stash pop); diff verified identical to pre-stash.
+
+== Regression sweep: banner feature + home banner-adjacent surfaces ==
+$ flutter test test/features/banner/ test/features/home/banner_photo_hero_overflow_test.dart \
+    test/features/home/banner_view_raw_url_test.dart test/features/home/banner_store_tap_null_address_test.dart \
+    --reporter compact
+...
++47: All tests passed!
+(includes banner_controller_test.dart — exercises _getBannerList / taxi / featured paths,
+all pass unchanged, confirming NEARS-2150's _getBannerList scope is untouched by this diff)
+
+== Full UserApp suite (re-run independently by QA) ==
+$ flutter test --reporter compact
+...
+02:05 +4061 ~2 -1: Some tests failed.
+
+Only ONE failing entry in the entire run:
+  loading .../test/features/chat/attachment_viewer_dls_test.dart [E]
+  Compilation failed: test/features/chat/attachment_viewer_dls_test.dart:162:13:
+  Error: No named parameter with the name 'isRightMessage'.
+=> Pre-existing compile-time signature mismatch in an unrelated chat widget test file.
+   `git diff` / `git status` confirm ZERO changes under lib/features/chat or
+   test/features/chat on this branch — unrelated to NEARS-2151, not caused by this change.
+
+NOTE (drift): the engineer's report cited "2 pre-existing failures" (chat/attachment_viewer_dls_test.dart
+AND location/location_abort_rollback_test.dart), and a 4058/4060 total. QA's independent re-run this
+session shows only the ONE chat compile failure — location_abort_rollback_test.dart's tests all ran and
+passed cleanly in this run (visible around timestamp 00:48-00:49 in the full log), and the total was
+4061 passed / 2 skipped / 1 failed = 4064 examined. Does not change the verdict: the one real failure
+is confirmed pre-existing and unrelated either way. Flagged as drift, not a blocker.
+
+== flutter analyze (changed files only) ==
+$ flutter analyze lib/features/banner/domain/repositories/banner_repository.dart \
+    test/features/banner/banner_repository_promotional_log_guard_test.dart
+No issues found! (ran in 3.4s)
+
+== Verification method statement ==
+No visual/UI diff exists for this ticket (logging-only guard, banner section renders
+identically in all cases) and no [ui] verify-tag / design reference was supplied, so the
+NEARS-567 visual-verification gate does not fire (0 screenshots taken, correctly). No live
+device/app boot was performed — QA instead independently re-ran the automated backstop
+(engineer's new test file + a mutation check + a scoped regression sweep + the full suite),
+per this ticket's own scope note that the automated backstop is sufficient live verification
+for this class of change. This is a device-free ticket per the profile's device-free lane —
+no QA device lock was acquired.
