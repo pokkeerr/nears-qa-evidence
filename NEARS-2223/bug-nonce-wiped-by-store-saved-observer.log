@@ -1,0 +1,81 @@
+NEARS-2223 QA — task_bug: registration_nonce is wiped from cache within the SAME
+request that mints it, on every self-registration under the ACTUAL default config
+(subscription_business_model=0, commission_business_model=1 — verified live against
+multi_food_db's real business_settings row, not a QA-environment artifact).
+
+Root cause: Admin/app/Models/Store.php boot() static::saved() hook (PRE-EXISTING,
+unrelated to this ticket) calls Helpers::deleteCacheData('advertisement_') and
+Helpers::deleteCacheData('banner_') on EVERY Store save (create or update).
+Helpers::deleteCacheData() (Admin/app/CentralLogics/Helpers.php:4772) ends with an
+UNCONDITIONAL Artisan::call('cache:clear') — a full cache-store flush, not scoped
+to the $prefix argument. CACHE_DRIVER=database in both this worktree's .env and the
+primary tree's .env (confirmed identical), so this flush hits the same 'cache' table
+Helpers::mintRegistrationNonce()/consumeRegistrationNonce() use for the nonce.
+
+VendorLoginController::register() calls Helpers::mintRegistrationNonce($store->id)
+right after the FIRST $store->save(), then — on the default/commission path — sets
+$store->store_business_model = 'commission' and calls $store->save() AGAIN before
+returning the response. That second save fires static::saved() -> cache:clear(),
+deleting the reg_nonce cache row that was written moments earlier IN THE SAME
+REQUEST, before the HTTP response is even returned to the client.
+
+=== Live reproduction (isolated QA backend, port 8090, DB copy multi_food_db_qa_nears2223,
+config reverted to match production default: subscription_business_model=0,
+commission_business_model=1) ===
+
+$ curl -s -X POST http://127.0.0.1:8090/api/v1/auth/vendor/register -F ... (store G)
+{"store_id":91121,"registration_nonce":"OTExMjF8MTc4NzExNzk5NnxmNTBmMzE0MWQyYjc5MmYyMzNlNWY0ZTRiZjZlZjBlZTRkZTFmMjBlMjZjMDRhMDJhMWQwZjczZTkxNDMwOGY4","type":"commission", ...}
+
+$ mysql -u root multi_food_db_qa_nears2223 -e "SELECT \`key\` FROM cache WHERE \`key\` LIKE '%reg_nonce%';"
+(zero rows — the nonce is already gone before this query, run immediately after register() returned)
+
+$ curl -s -w "\nHTTP_STATUS:%{http_code}\n" -X POST http://127.0.0.1:8090/api/v1/vendor/business_plan \
+    -F "store_id=91121" -F "business_plan=commission" -F "registration_nonce=<the nonce above>"
+{"errors":{"message":"Unauthorized"}}
+HTTP_STATUS:401
+
+=== Same defect confirmed via the REAL UserApp UI (emulator-5558, live drive) ===
+Filtered flutter run log, immediately after tapping Submit on the "Choose your
+business plan" screen (Commission Base, the only option since subscription is
+disabled in this config):
+
+I/flutter (20013): [INFO] msg="multipart POST endpoint=/api/v1/auth/vendor/register"
+I/flutter (20013): [NET] endpoint=/api/v1/auth/vendor/register http_status=200
+I/flutter (20013): [NET] POST endpoint=/api/v1/vendor/business_plan
+I/flutter (20013): [NET] endpoint=/api/v1/vendor/business_plan http_status=401
+I/flutter (20013): [FAIL] endpoint=/api/v1/vendor/business_plan http_status=401 type=ApiFailure msg="api request failed" correlation_id=85951edc-c49c-4b83-bd60-6d0ae3ae3f26
+
+Backend log correlation (Admin/storage/logs/laravel.log):
+[2026-08-19 09:43:xx] production.WARNING: subscription.allow_pending {"trace_id":"...","correlation_id":"85951edc-c49c-4b83-bd60-6d0ae3ae3f26","store_id":91123,"outcome":"denied"}
+
+=== Impact ===
+1. AC2 ("valid, single-use nonce succeeds once") FAILS under the real/default config
+   — the nonce is dead on arrival, not merely single-use-after-first-success. AC2
+   only demonstrated PASS in this QA run under a NARROW, non-default config variant
+   (both business models enabled AND no business_plan/package_id sent at register()
+   time, so the register()-side second save never fires) — that is not the shape of
+   a real registration.
+2. The explicitly-flagged riskiest AC (F1, "select a PAID subscription package ...
+   reaches SubscriptionPaymentScreen and completes without a spurious 401") is
+   WORSE for the subscription/package_id branch: register() itself does
+   `$store->package_id = ...; $store->save();` — a second save — AFTER minting,
+   so a subscription/package registration's nonce is ALWAYS dead before the
+   client can use it. Reproduced live via curl (store 91120, business_plan=subscription
+   &package_id=1 at register time, then business_plan() with payment_gateway=free_trial
+   -> 401, confirmed dead-on-arrival via the cache table before any business_plan call).
+3. The UserApp then SILENTLY routes the user to the ordinary customer home screen
+   with no error dialog/toast after this 401 — the vendor's business-plan setup
+   silently fails with no user-facing indication anything went wrong (see
+   bug-nonce-wiped-silent-401-home.png). This is a NEW regression this ticket's nonce
+   check introduces in combination with the pre-existing cache:clear side effect —
+   before NEARS-2223, this call essentially never failed for the allowPending path.
+
+Not this ticket's automated backstop's fault to have missed this: Admin/phpunit.xml
+forces CACHE_DRIVER=array (isolated per-test-process cache, not the shared 'database'
+driver used in dev/prod) AND RegistrationNonceTest never round-trips through
+VendorLoginController::register()'s real Store::save() sequence — it mints nonces
+directly via Helpers::mintRegistrationNonce() in the SAME test method, so the
+register()-triggered cache:clear() never fires in the suite. Confirmed green:
+`vendor/bin/phpunit --filter RegistrationNonceTest` (9/9) and
+`--filter SubscriptionStoreAuthTest` (11/11) — this is a real, environment-specific
+gap between the pinned suite and production/dev config, not a false alarm.

@@ -1,0 +1,46 @@
+NEARS-2223 QA — task_bug: AC3 ("the allowPending branch, when taken, produces
+exactly ONE structured log line ... grep-verified in laravel.log") fails on the
+GRANTED path in the real environment.
+
+Code (Admin/app/Http/Controllers/Api/V1/Vendor/SubscriptionController.php,
+authorizeStore):
+    Log::{$ok ? 'info' : 'warning'}('subscription.allow_pending', ['store_id' => $store->id, 'outcome' => $ok ? 'granted' : 'denied']);
+
+Both this worktree's Admin/.env and the primary tree's Admin/.env set
+LOG_LEVEL=warning (confirmed identical, not a QA-environment artifact). Laravel's
+minimum log level for the 'stack'/default channel is therefore 'warning' — any
+Log::info(...) call is silently dropped before it reaches the Monolog handler,
+never written to storage/logs/laravel.log.
+
+=== Live proof ===
+$ grep -n "^LOG_LEVEL" Admin/.env
+LOG_LEVEL=warning
+
+$ php artisan tinker --execute="Log::info('qa_test_info_marker_xyz', ['a'=>1]); Log::warning('qa_test_warning_marker_xyz', ['a'=>1]);"
+$ grep -n "qa_test_info_marker_xyz\|qa_test_warning_marker_xyz" storage/logs/laravel.log
+4081:[2026-08-19 09:25:51] production.WARNING: qa_test_warning_marker_xyz {"a":1}
+(the info marker line is entirely absent — zero matches)
+
+=== Consequence for AC3 ===
+The one successful (granted) live business_plan call demonstrated in this QA run
+(store 91114, commission path) produced ZERO matching log lines in laravel.log —
+grep -n "91114" storage/logs/laravel.log returns nothing at all, not even a
+"granted" line. Only the DENIED (Log::warning) path is observable in production/dev
+logs, e.g.:
+[2026-08-19 09:20:14] production.WARNING: subscription.allow_pending {"trace_id":"a391fc9c7a60651f88824b1ea60913c1","correlation_id":"30869d58-611d-42b1-be2f-039b05786a23","store_id":91114,"outcome":"denied"}
+(this line is from the REPLAY call for the same store, which is correctly denied —
+the earlier GRANT for the same store_id has no corresponding log line at all).
+
+=== Why the pinned test missed it ===
+Admin/tests/Feature/Security/RegistrationNonceTest.php::test_allow_pending_branch_logs_exactly_one_line_on_grant
+uses Log::spy(), which intercepts calls at the Facade layer and asserts they were
+CALLED — it never engages the real Monolog handler + LOG_LEVEL minimum-level
+filter, so it cannot observe (and therefore cannot catch) an Log::info() call being
+dropped by the actual environment's configured log level. The test is
+green (confirmed: vendor/bin/phpunit --filter RegistrationNonceTest, 9/9) but does
+not exercise the failure mode that exists in the real, deployed configuration.
+
+Fix direction (not implemented by QA — reported for the engineer): either use
+Log::warning() unconditionally for this line (matching the denied path, and the
+existing otp-send/auth limiter logging convention elsewhere in this codebase), or
+add a dedicated log channel/level for this line that survives LOG_LEVEL=warning.
