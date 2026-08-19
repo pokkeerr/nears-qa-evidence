@@ -1,0 +1,36 @@
+Pre-existing regression-candidate (NOT attributable to this ticket's fix).
+Observed once during QA navigation, immediately after switching in-app locale
+to Arabic via Settings -> Language -> عربى -> تحديث (the documented
+Get.updateLocale -> forceAppUpdate() -> engine.performReassemble() path,
+see docs/platform/localization.md "Static/const evaluation freezes locale").
+
+adb -s emulator-5554 logcat -d -s flutter:I (excerpt):
+
+08-20 00:20:56.191  6144  6144 I flutter : ----------------FIREBASE CRASHLYTICS----------------
+08-20 00:20:56.191  6144  6144 I flutter : The following exception was thrown uncaught async error (_AssertionError):
+08-20 00:20:56.191  6144  6144 I flutter : UncaughtAsyncError
+08-20 00:20:56.192  6144  6144 I flutter : #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:67:4)
+08-20 00:20:56.192  6144  6144 I flutter : #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:49:5)
+08-20 00:20:56.192  6144  6144 I flutter : #2      Element.markNeedsBuild.<anonymous closure> (package:flutter/src/widgets/framework.dart:5348:16)
+08-20 00:20:56.192  6144  6144 I flutter : #3      Element.markNeedsBuild (package:flutter/src/widgets/framework.dart:5385:6)
+08-20 00:20:56.192  6144  6144 I flutter : #4      Element.reassemble (package:flutter/src/widgets/framework.dart:3755:5)
+...
+08-20 00:20:56.192  6144  6144 I flutter : #11     BuildOwner.buildScope (package:flutter/src/widgets/framework.dart:3111:18)
+08-20 00:20:56.192  6144  6144 I flutter : #12     _LayoutBuilderElement._re...
+08-20 00:20:56.224  6144  6144 I flutter : 'package:flutter/src/widgets/framework.dart': Failed assertion: line 5348 pos 16: 'owner!._debugCurrentBuildTarget != null': is not true.
+08-20 00:20:56.222  6144  6144 I flutter : [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (_AssertionError)"
+
+Why excluded from this ticket's verdict:
+- endpoint=null: not an API/network failure path.
+- Entire stack trace is inside Flutter framework internals
+  (Element/BuildOwner reassemble bookkeeping) -- zero frames in app code,
+  and definitely none in select_location_view_widget.dart (the fix's only
+  touched file).
+- Matches the app's OWN documented locale-switch mechanism
+  (docs/platform/localization.md), which deliberately calls
+  engine.performReassemble() on every in-app language switch to force
+  const-widget refresh -- this fires on ANY locale switch app-wide, not
+  specific to the Vendor Registration / Location Info surface.
+- assert() is stripped in release builds; debug-mode-only artifact.
+- App did not crash / red-screen; RTL demonstration (pixel measurement of
+  the search-hint mirroring) succeeded cleanly in the very next actions.
