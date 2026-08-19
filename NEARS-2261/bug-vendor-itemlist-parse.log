@@ -1,0 +1,46 @@
+Pre-existing regression (NOT in NEARS-2261's diff — item_widget.dart/test file only).
+Confirmed live on emulator-5556, VendorApp, both ItemWidget call sites, both EN and AR locale.
+Matches prior finding docs/qa-evidence/NEARS-540/bug-vendor-itemlist-parse.log (same file/line).
+
+=== EN, category_product_screen.dart (Menu -> Categories -> Milk) 17:04:35 ===
+I/flutter ( 5147): type 'int' is not a subtype of type 'String?'
+I/flutter ( 5147): #0      new ItemModel.fromJson (package:sixam_mart_store/features/store/domain/models/item_model.dart:32:5)
+I/flutter ( 5147): #1      CategoryRepository.getCategoryItemList (package:sixam_mart_store/features/category/domain/repositories/category_repository.dart:39:29)
+I/flutter ( 5147): <asynchronous suspension>
+I/flutter ( 5147): #2      CategoryService.getCategoryItemList (package:sixam_mart_store/features/category/domain/services/category_service.dart:22:12)
+I/flutter ( 5147): <asynchronous suspension>
+I/flutter ( 5147): #3      CategoryController.getCategoryItemList (package:sixam_mart_store/features/category/controllers/category_controller.dart:126:30)
+I/flutter ( 5147): <asynchronous suspension>
+I/flutter ( 5147): [NET] endpoint=/api/v1/vendor/categories/category-wise-products/7 http_status=200
+
+=== EN, item_view_widget.dart (Menu -> All Items) 17:09:29 ===
+I/flutter ( 5147): type 'int' is not a subtype of type 'String?'
+I/flutter ( 5147): #0      new ItemModel.fromJson (package:sixam_mart_store/features/store/domain/models/item_model.dart:32:5)
+I/flutter ( 5147): #1      StoreRepository.getItemList (package:sixam_mart_store/features/store/domain/repositories/store_repository.dart:32:29)
+I/flutter ( 5147): <asynchronous suspension>
+I/flutter ( 5147): #2      StoreService.getItemList (package:sixam_mart_store/features/store/domain/services/store_service.dart:25:12)
+I/flutter ( 5147): <asynchronous suspension>
+I/flutter ( 5147): #3      StoreController.getItemList (package:sixam_mart_store/features/store/controllers/store_controller.dart:495:30)
+I/flutter ( 5147): <asynchronous suspension>
+
+=== AR locale, same Milk category, re-confirmed 17:11:43 / 17:12:00 / 17:12:14 / 17:12:40 (multiple childes/category-wise-products refetches) ===
+I/flutter ( 5147): type 'int' is not a subtype of type 'String?'
+(same stack: ItemModel.fromJson item_model.dart:32:5)
+
+Root cause (read, not touched by this ticket's diff):
+  VendorApp/lib/features/store/domain/models/item_model.dart:32
+    _offset = json['offset'];              // field declared `String? _offset`
+  Backend always returns offset as an int:
+    Admin/app/Http/Controllers/Api/V1/Vendor/CategoryController.php:66,85
+    Admin/app/Http/Controllers/Api/V1/Vendor/ItemController.php:1194,1240 (and 1321,1345)
+      $offset = max((int) ($request['offset'] ?? 1), 1); ... 'offset' => $offset,
+  No try/catch anywhere in the await chain (CategoryRepository/StoreRepository ->
+  Service -> Controller), so the thrown TypeError aborts the async fn after the
+  await; _itemList/itemList stays null and _isLoading never flips to false ->
+  the item-card list screen is stuck in its shimmer/skeleton state forever, for
+  ANY category or "All Items" fetch, in either language.
+
+Effect on this QA run: blocks a full-screen live render of ItemWidget/ItemRatingBadge
+via both TL-named call sites. Component-level live verification instead via
+`flutter test test/item_widget_rating_count_rtl_test.dart` (pumps the real,
+unmocked ItemRatingBadge production widget) — see QA comment for detail.
