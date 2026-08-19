@@ -1,0 +1,72 @@
+NEARS-2248 — live QA evidence (no UI consumer for this data; network/log verification)
+Worktree: /Users/Apple/Projects/nears-NEARS-2248-common-condition-403-noise
+Branch: feat/NEARS-2248-common-condition-403-noise
+
+=== 1. Live-run of the pinned unit suite (real AppLogger/CrashRecorder seam, not mocked) ===
+$ ~/Tools/flutter/bin/flutter test test/features/item/item_repository_condition_wise_403_test.dart --reporter expanded
+
+00:00 +0: AC1 — back-out-of-sector 403 opts out of the generic [FAIL] getData is called with handleError:false and logError:false
+[INFO] msg="common-condition items: module-scoped 403 (expected on sector switch) correlation_id=null"
+00:00 +1: AC1 — back-out-of-sector 403 opts out of the generic [FAIL] a 403 records NO Crashlytics non-fatal
+[INFO] msg="common-condition items: module-scoped 403 (expected on sector switch) correlation_id=null"
+00:00 +2: AC2 — the 403 still logs an informational trace, not a silent swallow a 403 fires AppLogger.info with the correlation id, never [FAIL]
+00:00 +3: Regression — a genuine 5xx/unclassified status is NOT swallowed by the opt-out a 500 still records a PII-safe AppLogger.failure
+[FAIL] endpoint=/api/v1/common-condition/items/ http_status=500 type=ApiFailure msg="unhandled api response" correlation_id=req-canary-500
+00:00 +4: Regression — a genuine 5xx/unclassified status is NOT swallowed by the opt-out getData is still called with handleError:false/logError:false on a 5xx (repo owns classification unconditionally)
+[FAIL] endpoint=/api/v1/common-condition/items/ http_status=500 type=ApiFailure msg="unhandled api response"
+00:00 +5: happy path unaffected a 200 parses and returns items, logs nothing
+00:00 +6: All tests passed!
+
+=== 2. flutter analyze — both changed files ===
+$ ~/Tools/flutter/bin/flutter analyze lib/features/item/domain/repositories/item_repository.dart lib/api/api_client.dart
+Analyzing 2 items...
+No issues found! (ran in 11.8s)
+
+=== 3. Wider item-feature regression sweep ===
+$ ~/Tools/flutter/bin/flutter test test/features/item/ --reporter compact
+...
+00:08 +216: All tests passed!
+
+=== 4. Live curl against the REAL local backend (Admin, port 8000) reproducing AC1/AC2's trigger condition
+       (no moduleId header = a departed sector) ===
+$ curl -s -i -H "X-Request-Id: qa-2248-canary-1787135818" -H "zoneId: [1]" \
+    "http://127.0.0.1:8000/api/v1/common-condition/items/4?limit=15&offset=1"
+
+HTTP/1.1 403 Forbidden
+X-Request-Id: 35fb011d-19d0-48cf-8204-45007abeef1b   (SetRequestId minted its own — my supplied id was not a strict v4)
+{"errors":[{"code":"moduleId","message":"Module id required"}]}
+
+=== 5. AC2 backend-unchanged check ===
+$ grep -F "35fb011d-19d0-48cf-8204-45007abeef1b" /Users/Apple/Projects/nears/Admin/storage/logs/laravel.log
+(no output — ModuleCheckMiddleware returns response()->json(...,403) directly; it is not a
+thrown exception, so it never reaches the withExceptions()->report() [FAIL] hook, and it
+contains no Log:: call of its own. This is confirmed PRE-EXISTING/unchanged: `git status`/`git
+diff feat/userapp-reskin2` on the worktree shows ZERO files touched under Admin/ by this
+ticket — only UserApp/lib/features/item/domain/repositories/item_repository.dart (modified)
+and the new test file. The backend's handling of this 403 — including the absence of any
+laravel.log line for it — is provably identical to before this ticket.)
+
+=== 6. Code-path parity check: real ApiClient.getData (not the unit test's spy) ===
+lib/api/api_client.dart:1109-1144 — with handleError:false + logError:false, handleResponse()
+only ever emits a debug-only [NET] console trace (AppLogger.net, no Crashlytics) and returns
+the raw Response untouched; it does NOT call ApiChecker.checkApi (which is the generic-[FAIL]
++ snackbar path). This confirms the SpyApiClient unit test's premise (repo's own branch is the
+ONLY log source) matches the real production ApiClient, not just the test double.
+
+=== 7. Pre-fix behavior confirmed via diff read (why this was noisy) ===
+Before this fix, `_getConditionsWiseItems` called `getData(...)` with the DEFAULT
+handleError:true. ApiChecker.checkApi (lib/api/api_checker.dart) unconditionally fires
+AppLogger.failure -> [FAIL] + Crashlytics non-fatal for ANY non-200/non-1, AND shows the user
+a generic snackbar (`showCustomSnackBar(response.statusText, ...)`) with the raw backend
+message — meaning every sector back-out during the Pharmacy module home load surfaced a
+spurious "Module id required" toast to real users, for a value (`conditionWiseProduct`) that
+is never read by any widget (see #8).
+
+=== 8. Zero-UI-consumer confirmation (why no live device/emulator boot was performed) ===
+$ grep -rln "conditionWiseProduct" lib/features/ | grep -v controllers/item_controller.dart
+lib/features/item/domain/repositories/item_repository.dart
+(only the repository + its own controller state holder reference this field; ZERO widget
+files read it — matches the ticket's own NEARS-1592 claim that its only UI consumer was
+deleted). item_controller.dart:1024-1036 (getConditionsWiseItem) simply leaves
+_conditionWiseProduct null on a non-200 and calls update() — a GetBuilder rebuild with no
+bound listener for this field, i.e. no visual effect, before or after this fix.
