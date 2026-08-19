@@ -1,0 +1,21 @@
+NEARS-2293 AC4 — live curl against the PATCHED worktree server (127.0.0.1:8299,
+cwd verified = nears-NEARS-2293-zone-module-leak/Admin), demonstrating
+NEARS-2079's zone-scoping mechanism (header `zoneId` and query `zone_id`
+fallback) is unaffected by this ticket's zones[] allow-list.
+
+$ curl -s "http://127.0.0.1:8299/api/v1/module" -H "zoneId: [1]" -> module ids [1,2,3,5,6]
+$ curl -s "http://127.0.0.1:8299/api/v1/module" -H "zoneId: [2]" -> module ids [1,2,3,5]
+$ curl -s "http://127.0.0.1:8299/api/v1/module" -H "zoneId: [3]" -> module ids [4]
+$ curl -s "http://127.0.0.1:8299/api/v1/module?zone_id=3"        -> module ids [4]  (NEARS-2079 query fallback path)
+$ curl -s "http://127.0.0.1:8299/api/v1/module"  (no zone info)  -> module ids [1,2,3,5]  (falls to default zone)
+
+Per-zone rendered-in-UI counts documented live in
+docs/apps/userapp/userapp-navigation-guide.md (NEARS-2079/2082 QA, 2026-08-16):
+Main Service Zone (zone 1) = 4 rendered (5 API modules minus 1 parcel-filtered),
+Abu Dhabi (zone 2) = 3 rendered (4 API modules minus 1 parcel), Single Store QA
+Zone (zone 3) = 1 rendered. These EXACTLY match today's live API counts above
+(5/4/1 raw -> 4/3/1 rendered post-parcel-filter), confirming the zone-resolution
+mechanism this ticket did not touch is still intact post-fix.
+
+zone_id=3 module 4's zones[] shape (allow-list applied correctly):
+  [{"id": 3, "name": "Single Store QA Zone", "display_name": "Single Store QA Zone", "status": 1}]

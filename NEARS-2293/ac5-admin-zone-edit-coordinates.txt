@@ -1,0 +1,17 @@
+NEARS-2293 AC5 — Admin zone-map edit view (admin/business-settings/zone/edit/1)
+against the PATCHED worktree server, authenticated as admin@admin.com.
+
+Playwright DOM read of the polygon-editor textarea (#coordinates):
+  length: 171
+  sample: (23.836440598428, 90.358427127568),(23.82199403251, 90.335939487188),
+          (23.803619446033, 90.34709747669),(23.804561795775, 90.38760956165),
+          (23.821836995782, 90.398252567022)
+  page title: "Update Zone"
+
+Confirms Zone::$hidden = ['store_wise_topic','customer_wise_topic',
+'deliveryman_wise_topic'] (this ticket's fix) does NOT affect this admin
+consumer: zone/edit.blade.php reads `$zone->coordinates[0]` via direct
+PROPERTY ACCESS, not toArray()/toJson() serialization, so $hidden (which only
+filters serialization) never touches it. The rendered polygon data matches
+`SELECT ST_AsText(coordinates) FROM zones WHERE id=1` exactly.
+Screenshot: ac5-admin-zone-edit.png
