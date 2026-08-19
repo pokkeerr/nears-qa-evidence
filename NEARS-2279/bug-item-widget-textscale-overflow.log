@@ -1,0 +1,37 @@
+NEARS-2279 QA (2026-08-19, emulator-5556) — UNRELATED pre-existing regression, found
+incidentally while confirming AC3 (pinned header) at textScale 1.3x. NOT caused by
+this ticket's diff (home_screen.dart / all_store_filter_widget.dart only).
+
+adb logcat line (app AppLogger, FlutterError.onError -> AppLogger.frameworkError):
+08-19 20:42:05.318  3899  3899 I flutter : [FAIL] framework_error library=rendering library type=FlutterError msg="A RenderFlex overflowed by 4.8 pixels on the bottom."
+
+Live render-tree confirmation (ext.flutter.debugDumpRenderTree, isolate main,
+textScaler confirmed live at 1.2999999523162842x i.e. genuine device 1.3x, not a
+widget-test-only clamp):
+
+  └─child: RenderFlex#11e20 relayoutBoundary=up3 OVERFLOWING
+    │ creator: Column ← Padding ← Stack ← Expanded ← Column ← Padding ←
+    │   Listener ← RawGestureDetector ← GestureDetector ← Semantics ← ...
+    │ constraints: BoxConstraints(0.0<=w<=135.0, 0.0<=h<=89.2)
+    │ size: Size(135.0, 89.2)
+    │ direction: vertical
+    │ mainAxisSize: min
+    ├─child 1: RenderFlex (Row, Flexible) constraints h=0.0 size (135.0, 0.0)
+    │ └─RenderParagraph maxLines:2, textScaler 1.3x, font PublicSans 15/600,
+    │     text "Orange Juice 1L" (product name)
+
+Source: UserApp/lib/common/widgets/item_widget.dart lines 256-287 — the
+`Expanded(flex: 4, child: Stack(... Padding(... Column(... Flexible(Row(Text(
+maxLines: 2 ...))))))))` detail area below a product-card image. This is the
+shared grid item-card widget (used by "Trending Nearby" and other item rails
+app-wide), not touched by NEARS-2279. At textScale 1.3x the 2-line product name +
+rating row + price row exceeds the card's flex-allocated height by 4.8px.
+
+This is the ONLY "OVERFLOWING"-tagged RenderFlex in the whole dumped tree (grep
+-c "OVERFLOWING" = 1), confirming it is the sole source of the single logged
+[FAIL] line, and that the NEARS-2279 pinned header (SliverPersistentHeader,
+AllStoreFilterWidget) is NOT implicated (separately confirmed clean — see
+ac3 evidence below).
+
+Filed as regression_bugs (pre-existing, unrelated) per QA routing rules —
+does not affect this ticket's PASS/FAIL verdict.

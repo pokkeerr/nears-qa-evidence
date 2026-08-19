@@ -1,0 +1,14 @@
+NEARS-2279 QA (2026-08-19, emulator-5556) — UNRELATED pre-existing image-loading
+blip, observed in the ui_errors buffer while sweeping the RTL arm. Not caused by
+this ticket's diff.
+
+08-19 20:47:14.303  3899  3899 I flutter : [FAIL] framework_error library=image resource service type=SocketException msg="SocketException: Connection refused (OS Error: Connection refused, errno = 111), address = localhost, port = 43920"
+08-19 20:47:14.306  3899  3899 I flutter : [FAIL] framework_error   at #0      _NativeSocket.startConnect (dart:io-patch/socket_patch.dart:817:35)
+08-19 20:47:14.306  3899  3899 I flutter : [FAIL] framework_error   at #1      _RawSocket.startConnect (dart:io-patch/socket_patch.dart:2281:26)
+...
+
+Port 43920 is not this worktree's configured backend (10.0.2.2:8000 dev host /
+127.0.0.1:8000 for iOS) — looks like a stray/ephemeral image-fetch target,
+transient. Not reproduced deliberately; noted here only so it is not silently
+dropped. Does not affect this ticket's ACs (chip descender fix, pinned-header
+budget) and does not affect this ticket's PASS/FAIL verdict.

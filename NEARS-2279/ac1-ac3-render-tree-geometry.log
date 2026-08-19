@@ -1,0 +1,47 @@
+NEARS-2279 QA (2026-08-19, emulator-5556, UserApp debug build, isolate main
+2721439081924239) — live ext.flutter.debugDumpRenderTree geometry, proving
+AC1 (chip descender, default 1.0x scale) and AC3 (pinned header budget,
+1.0x and 1.3x) rather than eyeballing a screenshot.
+
+=== AC1 — "Newly joined" chip, textScale 1.0x ===
+RenderPadding (the chip box, SizedBox height:40 from the fix):
+  constraints: BoxConstraints(0.0<=w<=Infinity, h=40.0)
+  size: Size(108.4, 40.0)
+RenderPositionedBox (Align, centerStart) offset(13.0, 8.0) size(82.4, 24.0)
+RenderFlex (Row) offset(0.0, 3.0) size(82.4, 18.0)
+RenderParagraph "Newly joined": size(82.4, 18.0), fontSize 13.0, height 1.4x,
+  maxLines: 1, overflow: ellipsis — natural (unclamped) height 18.0 fits fully
+  inside the 24.0 available (Align) and 40.0 total row height, with 11dp
+  margin above and below the text. Zero clipping. Same geometry independently
+  confirmed for the "Popular" chip (RenderParagraph#a4703, size 49.1x18.0).
+
+=== AC1 — same chip at textScale 1.3x (device-confirmed, not widget-test-only) ===
+RenderParagraph "Newly joined": textScaler: linear (1.2999999523162842x),
+  size(106.5, 23.0) — still fits inside the fixed 40dp row (Align+Row offsets
+  8.5dp top / 8.5dp bottom margin). Chip box itself SizedBox(height:40) is
+  fixed and does not overflow with the fix in place.
+
+=== AC3 — SliverPersistentHeader pinned filter header, textScale 1.0x and 1.3x ===
+_RenderSliverPinnedPersistentHeaderForWidgets (creator chain: SliverPersistentHeader
+  -[GlobalKey#182d1] wrapping AllStoreFilterWidget, home_screen.dart's pinned
+  "Stores · N stores near you" + chips header):
+  geometry: SliverGeometry(scrollExtent: 96.0, paintExtent: 96.0, maxPaintExtent: 96.0)
+  maxExtent: 96.0
+  -> confirms kHomeFilterHeaderHeight=96 is live in the running build (both scales).
+
+Inner Column (mobile branch of AllStoreFilterWidget.build, constraint from the
+96dp box minus top padding=10 -> 0<=h<=86):
+  At 1.3x: constraints BoxConstraints(w=433.0, 0.0<=h<=86.0), size Size(433.0, 86.0)
+  child 1 (title Row "Stores"/"6 stores near you"): offset(0,0) size(433.0, 31.0)
+  child 2 (SizedBox spacer): offset(216.5, 31.0) size(0.0, 10.0)
+  child 3 (filter() SizedBox height:40): offset(0.0, 41.0) size(433.0, 40.0)
+  -> total content height 41+40 = 81.0dp, comfortably inside the 86.0dp budget
+     (5dp headroom remaining) at the WORST accessibility scale (1.3x, the app's
+     hard textScaler clamp per UserApp/lib/main.dart). NO overflow.
+
+Whole-tree overflow scan: `grep -c "OVERFLOWING" render_tree_130.txt` = 1, and
+that single hit is RenderFlex#11e20 (item_widget.dart product card, see
+bug-item-widget-textscale-overflow.log) — NOT anything in the
+AllStoreFilterWidget / SliverPersistentHeader subtree. AC3's target is clean.
+
+ui_errors at textScale 1.0 (before font_scale change): 0 matches, exit 0.
