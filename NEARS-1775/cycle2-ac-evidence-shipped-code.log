@@ -1,0 +1,73 @@
+NEARS-1775 — cycle 2 (delta re-QA) live evidence, emulator-5554,
+com.izzes.nears (UserApp), Flutter 3.41.9, worktree feat/NEARS-1775-freshness-probe
+@ 2ae8b227 base tip, local backend http://10.0.2.2:8000 (confirmed up).
+`flutter run` attached/foreground (nohup+disown to a log file worked fine in
+cycle 1 without detaching DDS; reconfirmed here). ALL calls below use the
+AS-SHIPPED code (uinav.sh, post-fix — grep -aiF "VM service"), no QA-side
+patch this time.
+
+=== Fix landed as described in the FIX-CYCLE PACKET ===
+$ git diff feat/userapp-reskin2 -- scripts/app-nav/uinav.sh | grep "VM service"
+  vmurl="$(adb -s "$s" logcat -d 2>/dev/null | grep -aiF "VM service" | grep -aoE 'http://[^[:space:]]+/' | tail -1)"
+  echo "ui_freshness_probe: $s NOT ASSERTED: no 'VM service' line in the log buffer for pid $pid ($pkg) ..."
+Matches the real on-device wording captured in cycle 1
+("The Dart VM service is listening on http://...").
+
+=== AC1: one JSON record, pid independently cross-checked (as-shipped) ===
+$ adb -s emulator-5554 shell pidof com.izzes.nears
+21813
+$ ui_freshness_probe -s emulator-5554
+{"timestamp": "2026-08-20T21:35:53Z", "pid": 21813, "build_symbols": "isolates/4030375875898047"}
+$ adb -s emulator-5554 shell pidof com.izzes.nears
+21813
+-> MATCH.
+
+=== AC2 (same process): two calls, unbroken process (as-shipped) ===
+$ ui_freshness_probe -s emulator-5554
+{"timestamp": "2026-08-20T21:35:53Z", "pid": 21813, "build_symbols": "isolates/4030375875898047"}
+$ ui_freshness_probe -s emulator-5554
+{"timestamp": "2026-08-20T21:35:53Z", "pid": 21813, "build_symbols": "isolates/4030375875898047"}
+-> pid AND build_symbols identical across both calls.
+adb forward --list diffed before/after both calls: 0 lines of diff (no leak).
+
+=== AC2 (reinstall): new pid, visibly different record (as-shipped) ===
+$ ui_freshness_probe -s emulator-5554   # PRE
+{"timestamp": "2026-08-20T21:36:05Z", "pid": 21813, "build_symbols": "isolates/4030375875898047"}
+$ adb -s emulator-5554 uninstall com.izzes.nears && adb -s emulator-5554 install -r <apk> && adb -s emulator-5554 shell am start -n com.izzes.nears/.MainActivity
+$ adb -s emulator-5554 shell pidof com.izzes.nears
+22141
+$ ui_freshness_probe -s emulator-5554   # POST
+{"timestamp": "2026-08-20T21:36:16Z", "pid": 22141, "build_symbols": "isolates/6214878193023719"}
+$ adb -s emulator-5554 shell pidof com.izzes.nears
+22141
+-> NEW pid (21813 -> 22141), NEW build_symbols (isolates/4030375875898047 ->
+   isolates/6214878193023719), both records visibly different, cross-check
+   matches pidof on the post-reinstall run.
+
+=== Refusal path: app not running (reconfirmed unchanged, as-shipped) ===
+$ adb -s emulator-5554 shell am force-stop com.izzes.nears
+$ ui_freshness_probe -s emulator-5554
+ui_freshness_probe: emulator-5554 NOT ASSERTED: could not resolve the foreground Nears package (ui_pkg rc=0) - nothing to pid-bind to
+rc=2, stdout empty.
+adb forward --list before/after: 0 lines of diff (no leaked forward).
+
+=== Automated backstop (worktree, re-run cycle 2) ===
+$ bash scripts/app-nav/uinav.test.sh
+-- result: PASS -- validity: 232 assertion(s) across 37 case(s); 0 skipped; 0 failed
+$ bash scripts/app-nav/uifind_dump.test.sh
+-- result: PASS -- validity: 70 assertion(s) across 16 case(s); 0 skipped; 0 failed
+$ python3 scripts/app-nav/test_uifind.py
+Ran 49 tests in 0.002s -- OK
+
+Fixture wording re-verified rewritten to the real on-device string:
+$ grep -n "VM service is listening" scripts/app-nav/uinav.test.sh
+626:  printf '...The Dart VM service is listening on http://127.0.0.1:39457/authtok123/\n' > "$FX/logcat.txt"
+867/913/969: same corrected wording at cases 20/21/27.
+
+NOTE on the two device-side permission dialogs encountered mid-run
+(GrantPermissionsActivity appearing after each `am start`, both on the
+foreground app and the fresh reinstall): this is normal fresh-launch/
+fresh-install behavior on this emulator (a location/runtime permission
+prompt), not a probe defect — dismissed with a single BACK keypress each
+time before probing, and does not affect the reinstall's pid/isolate
+identity, which is set at process launch regardless of the dialog.
