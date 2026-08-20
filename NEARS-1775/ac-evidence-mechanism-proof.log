@@ -1,0 +1,65 @@
+NEARS-1775 — live QA evidence, emulator-5554, com.izzes.nears (UserApp),
+Flutter 3.41.9, backend http://10.0.2.2:8000 (local, confirmed up).
+
+All calls below use a scratch copy of scripts/app-nav/uinav.sh with ONLY the
+line-671 grep pattern changed to case-insensitive (`grep -aiF` instead of
+`grep -aF`) to work around the task_bug (see bug-vm-service-grep-case-mismatch.log)
+and prove the rest of the mechanism (pid-bind / forward / getVM / cross-check /
+JSON emit / teardown) is sound. This is QA-only, not a repo edit.
+
+=== AC1: one JSON record, pid independently cross-checked ===
+$ ui_freshness_probe -s emulator-5554
+{"timestamp": "2026-08-20T21:26:56Z", "pid": 20936, "build_symbols": "isolates/4761369954348891"}
+$ adb -s emulator-5554 shell pidof com.izzes.nears
+20936
+-> MATCH.
+
+=== AC2 (same process): two calls, unbroken process ===
+$ ui_freshness_probe -s emulator-5554
+{"timestamp": "2026-08-20T21:27:04Z", "pid": 20936, "build_symbols": "isolates/4761369954348891"}
+$ ui_freshness_probe -s emulator-5554
+{"timestamp": "2026-08-20T21:27:04Z", "pid": 20936, "build_symbols": "isolates/4761369954348891"}
+-> pid AND build_symbols identical across both calls.
+
+adb forward --list diffed before/after both calls: 0 lines of diff (no leaked
+forward entries from either call — teardown confirmed).
+
+=== AC2 (reinstall): new pid, visibly different record ===
+$ adb -s emulator-5554 uninstall com.izzes.nears && adb -s emulator-5554 install -r <apk> && adb -s emulator-5554 shell am start -n com.izzes.nears/.MainActivity
+$ adb -s emulator-5554 shell pidof com.izzes.nears
+21351
+$ ui_freshness_probe -s emulator-5554
+{"timestamp": "2026-08-20T21:27:54Z", "pid": 21351, "build_symbols": "isolates/2697748146908883"}
+$ adb -s emulator-5554 shell pidof com.izzes.nears
+21351
+-> NEW pid (20936 -> 21351), NEW build_symbols (isolates/4761369954348891 ->
+   isolates/2697748146908883), both records visibly different, cross-check
+   still matches pidof on the post-reinstall run.
+
+=== Refusal path: app not running ===
+$ adb -s emulator-5554 shell am force-stop com.izzes.nears
+$ ui_freshness_probe -s emulator-5554   # AS-SHIPPED code, no patch needed for this path
+ui_freshness_probe: emulator-5554 NOT ASSERTED: could not resolve the foreground Nears package (ui_pkg rc=0) - nothing to pid-bind to
+RC=2
+stdout: (empty)
+adb -s emulator-5554 forward --list before/after: 0 lines of diff (no leaked forward).
+-> loud refusal, non-zero exit, no stdout, no leaked adb forward. PASS on refusal-path shape.
+
+=== Automated backstop (worktree /Users/Apple/Projects/nears-NEARS-1775-freshness-probe) ===
+$ bash scripts/app-nav/uinav.test.sh
+-- result: PASS
+-- validity: 232 assertion(s) across 37 case(s); 0 skipped; 0 failed
+
+$ bash scripts/app-nav/uifind_dump.test.sh
+-- result: PASS
+-- validity: 70 assertion(s) across 16 case(s); 0 skipped; 0 failed
+
+$ python3 scripts/app-nav/test_uifind.py
+Ran 49 tests in 0.002s
+OK
+
+NOTE: the 232/37 uinav.test.sh green is exactly what is misleading here — its
+own fixture for ui_freshness_probe (cases 15, 20-27) is pinned to the same
+wrong VM-service wording as the shipped code, so it validates internal wiring
+correctly but never catches the real-device mismatch. See the task_bug log
+for detail.

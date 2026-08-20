@@ -1,0 +1,62 @@
+NEARS-1775 task_bug: ui_freshness_probe NEVER succeeds against a real running
+debug app — the VM-service log-line grep pattern does not match what Flutter
+actually writes to `adb logcat`.
+
+scripts/app-nav/uinav.sh:671 (as shipped):
+  vmurl="$(adb -s "$s" logcat -d 2>/dev/null | grep -aF "Dart VM Service" | grep -aoE 'http://[^[:space:]]+/' | tail -1)"
+
+grep -aF "Dart VM Service" is a CASE-SENSITIVE fixed-string match for capital
+"Service". The real on-device logcat line (Flutter 3.41.9, UserApp,
+com.izzes.nears, emulator-5554) is:
+
+  08-21 01:25:39.392 20936 21012 I flutter : The Dart VM service is listening on http://127.0.0.1:42231/qULwQdsBl-g=/
+
+— lowercase "service", and a different surrounding phrase ("is listening on"
+vs the "available at:" wording assumed in the function's own comment/error
+text at uinav.sh:645/673). The test fixtures in uinav.test.sh encode the SAME
+wrong wording ("A Dart VM Service on sdk is available at: ...") — that string
+never appears on a real device, only in the fixture, so the automated suite
+is green while the shipped function is 100% non-functional against a live
+device.
+
+Independent verification, live device emulator-5554, com.izzes.nears
+(package resolves and pid resolves cleanly both times — the bug is isolated
+to the VM-service line grep):
+
+$ adb -s emulator-5554 logcat -d | grep -acF "VM Service"   # capital S, what the code greps for
+0
+$ adb -s emulator-5554 logcat -d | grep -acF "VM service"   # lowercase s, what Flutter actually emits
+6
+
+As-shipped repro (pid 21567, fresh app, freshly reinstalled, definitely
+running and definitely a debug build with an active VM service — confirmed by
+the same line existing in logcat under the lowercase-s spelling):
+
+$ source scripts/app-nav/uinav.sh
+$ adb -s emulator-5554 shell pidof com.izzes.nears
+21567
+$ ui_freshness_probe -s emulator-5554; echo "RC=$?"
+ui_freshness_probe: emulator-5554 NOT ASSERTED: no 'Dart VM Service … available at:' line in the log buffer for pid 21567 (com.izzes.nears) - not a debug build, buffer rotated, or the VM service was never announced
+RC=2
+
+This blocks AC1 and AC2 outright: the probe can never emit its one JSON
+record against a real running debug app, on the exact host/emulator/Flutter
+combination this repo's own pool uses.
+
+Proof the REST of the mechanism (pid-bind, adb forward, curl->getVM, pid
+cross-check, JSON emit, forward teardown hygiene) is otherwise sound: a
+scratch copy of uinav.sh with ONLY line 671's grep changed from
+`grep -aF "Dart VM Service"` to `grep -aiF "Dart VM Service"` (case-insensitive,
+no other change) succeeds end-to-end against the SAME live process:
+
+$ source /tmp/.../uinav-patched.sh   # -aiF fix only, no other change
+$ ui_freshness_probe -s emulator-5554
+{"timestamp": "2026-08-20T21:26:56Z", "pid": 20936, "build_symbols": "isolates/4761369954348891"}
+$ adb -s emulator-5554 shell pidof com.izzes.nears
+20936
+
+Suggested fix: change `grep -aF "Dart VM Service"` to a case-insensitive match
+(`grep -aiF`) or match the actual on-device wording, and correct the fixture
+in uinav.test.sh (currently pinned to the wrong string, which is how this
+shipped green) plus the doc/error-string wording ("... available at:" ->
+"... is listening on" or a wording-agnostic match).
