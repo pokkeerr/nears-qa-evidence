@@ -1,0 +1,30 @@
+NEARS-2153 task_bug: documented QA account does not match the seeded user_id.
+
+Seeder docblock (Admin/database/seeders/LoyaltyHistoryPaginationSeeder.php, lines 29-31):
+  "QA account: robert.taylor@demo.com / user_id=6 / password: 123456789"
+
+users_test_data.md (line 61):
+  "**`robert.taylor@demo.com`** (user id 6, zone 1): NEARS-2153 seeded 25
+  `loyalty_point_transactions` rows (total 29) ..."
+
+Live DB (read-only SELECT):
+  mysql> SELECT id, f_name, l_name, email FROM users WHERE email='robert.taylor@demo.com';
+  id=5, f_name=Robert, l_name=Taylor, email=robert.taylor@demo.com
+
+  mysql> SELECT id, f_name, l_name, email FROM users WHERE id=6;
+  id=6, f_name=Customer, l_name=Nears, email=customer@nears.com
+
+Confirmed via JWT: logging in as robert.taylor@demo.com (POST /api/v1/auth/login,
+login_type=manual) decodes to JWT "sub": "5" -- NOT 6. Logging in as customer@nears.com
+decodes to "sub": "6" -- the account that actually holds the 29 seeded rows.
+
+Impact: anyone following the seeder's own docblock or users_test_data.md and logging into
+UserApp as robert.taylor@demo.com to manually verify the pagination arm will see robert.taylor's
+own (unseeded, <=4-row) history, not the 29-row seeded data -- because robert.taylor@demo.com is
+user_id=5, and the seeder targets USER_ID=6 (which is actually customer@nears.com). The numeric
+ACs (this ticket's AC1-AC3, all keyed off user_id=6) are unaffected and pass; the QA-account
+*identity* documented for manual/device verification is wrong.
+
+breaks_ac: false (all 3 ACs in this ticket are literally scoped to user_id=6 and were
+demonstrated correctly against that id). Filed because it will misdirect the next person who
+follows the documented "login as robert.taylor@demo.com" path.

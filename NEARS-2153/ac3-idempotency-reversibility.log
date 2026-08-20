@@ -1,0 +1,18 @@
+Sequence executed against local dev DB (Admin$ php artisan db:seed --class=LoyaltyHistoryPaginationSeeder --force):
+
+1. Baseline before this QA run: 29 rows (seeder already applied once by engineer).
+2. Re-run #1 (--force, APP_ENV=production requires it): count stayed 29. Dupe check
+   (GROUP BY reference HAVING c>1) returned zero rows -> no duplicates.
+3. Rollback via tinker: (new \Database\Seeders\LoyaltyHistoryPaginationSeeder())->down();
+   -> count dropped 29 -> 4. Remaining 4 rows verified as the ORIGINAL pre-seed rows
+   (ids 2,3,4,5; references '163','161','166','164' -- no 'nears2153-' prefix).
+   (Tinker printed a benign "Call to a member function info() on null" AFTER the delete
+   executed -- $this->command is unset when the Seeder class is instantiated directly
+   outside artisan's seed runner; the DB mutation itself completed correctly, confirmed
+   by the count query run right after.)
+4. Re-seed: count restored 4 -> 29.
+5. Third consecutive run (--force): count stayed 29, dupe check clean.
+
+Other-user isolation, checked at every step above:
+  user_id=3: 3 rows, unchanged for the whole sequence (only pre-existing rows table-wide;
+  no other user_id besides 3 and 6 has any loyalty_point_transactions rows in this DB).
