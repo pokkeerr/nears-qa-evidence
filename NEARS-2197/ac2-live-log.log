@@ -1,0 +1,62 @@
+NEARS-2197 QA — AC2 live log evidence
+Device: emulator-5554 (Android, debug build, UserApp com.izzes.nears)
+Backend: Admin primary tree, php artisan serve --host=0.0.0.0 --port=8000
+Trigger surface: Profile -> My Wallet -> Add Fund -> PayPal/Razor pay -> Add Fund
+(PaymentEntryPoint.wallet, entry point label "gateway:wallet-add-fund")
+
+--- Live trigger 1: system global http_proxy pointed at an unresolvable
+    proxy host (blackhole.invalid:8080), then at a closed local port
+    (10.0.2.2:1), then at a TCP-accepting-but-silent proxy (nc -l 19999) ---
+    All three real, independently-verified network conditions converged on
+    the SAME Android WebView proxy-negotiation error code:
+
+08-21 01:46:59.046 22575 22575 I flutter : ApiFailure(transport, kind: webview_proxy_authentication)
+08-21 01:46:59.057 22575 22575 I flutter : [FAIL] endpoint=gateway:wallet-add-fund http_status=null type=ApiFailure transport_error=webview_proxy_authentication msg="payment_webview_load_failed"
+
+08-21 01:48:36.028 22575 22575 I flutter : [FAIL] endpoint=gateway:wallet-add-fund http_status=null type=ApiFailure transport_error=webview_proxy_authentication msg="payment_webview_load_failed"
+
+08-21 01:51:16.173 22575 22575 I flutter : [FAIL] endpoint=gateway:wallet-add-fund http_status=null type=ApiFailure transport_error=webview_proxy_authentication msg="payment_webview_load_failed"
+
+This live run PROVES the wiring end-to-end: the real flutter_inappwebview
+onReceivedError(WebResourceErrorType) callback reaches
+PaymentWebViewFailureHelper.handleLoadError, is derived via
+`'webview_' + errorType.toValue().toLowerCase()`, and lands in the
+console [FAIL] line's transport_error= field exactly as coded.
+
+--- Live trigger for a second DISTINCT value: attempted via a minimal
+    CONNECT-tunnel-completing proxy (200 Connection Established then
+    silent) to force a genuine origin-side TLS timeout distinct from the
+    proxy-negotiation code above. This hung indefinitely (>5 min, no
+    onLoadStart/onReceivedError fired) without a bounded non-root way to
+    force it -- iptables/adb root are both explicitly disallowed on this
+    device pool (NEARS-1069), and Android's WebView proxy vocabulary
+    (ERROR_PROXY_AUTHENTICATION) evidently absorbs every unreachable/
+    malformed/silent PROXY condition we could produce without root,
+    regardless of the underlying cause (DNS-unresolvable proxy host,
+    closed proxy port, and a proxy that accepts-but-never-responds all
+    produced the identical code). Per the ticket's own escape hatch
+    ("fall back to the pinned unit test... state explicitly"), the SECOND
+    distinct transport_error= value is demonstrated via the pinned,
+    reviewed unit test in this same commit instead:
+
+$ flutter test test/features/payment/payment_webview_failure_gate_test.dart
+00:00 +5: AC2 webview transportKind a DNS failure and a timeout produce distinct transportKind values
+[FAIL] endpoint=/payment-mobile http_status=null type=ApiFailure transport_error=webview_host_lookup msg="payment_webview_load_failed"
+[FAIL] endpoint=/payment-mobile http_status=null type=ApiFailure transport_error=webview_timeout msg="payment_webview_load_failed"
+... (expect(dnsKind, 'webview_host_lookup'); expect(timeoutKind, 'webview_timeout'); expect(dnsKind, isNot(timeoutKind)); -- all pass)
+00:00 +11: All tests passed!
+
+--- Regression spot-check: handleHttpError (status-code path) is
+    UNCHANGED by this diff (git show 7690cd2c confirms zero edits to that
+    function) and its own pinned test in the same suite confirms the
+    transport_error= field stays ABSENT, only http_status= carries the
+    signal:
+[FAIL] endpoint=gateway:wallet-add-fund http_status=502 type=ApiFailure msg="payment_webview_http_error"
+
+--- Regression: happy-path webview load (no proxy interference), same
+    wallet Add Fund flow, real network -- no [FAIL] emitted, clean load:
+08-21 01:49:45.940 22575 22575 I flutter : [INFO] msg="payment screen initialised"
+08-21 01:49:45.983 22575 22575 I flutter : [INFO] msg="payment browser created"
+08-21 01:49:46.978 22575 22575 I flutter : [INFO] msg="payment webview load start"
+08-21 01:49:46.993 22575 22575 I flutter : [INFO] msg="payment webview load stop"
+(no [FAIL]/[ERR] line between load start and load stop)
