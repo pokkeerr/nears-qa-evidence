@@ -1,0 +1,71 @@
+NEARS-1783 — AC2 live evidence (device emulator-5554)
+
+=== AC2: current/correct pid's genuine traffic still counts ===
+Triggered a REAL app-side failure: disabled network (svc wifi disable / svc data disable),
+tapped "Notification" in the running app (pid 19225) -> UI surfaced "Something went wrong /
+Please check your connection and try again / Retry".
+
+Re-enabled network, then ran ui_errors (same pid, 19225, still foreground):
+
+08-21 00:31:25.706 19225 19225 I flutter : [FAIL] endpoint=/api/v1/customer/notifications http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=32ff4ae8-8dea-46f1-9323-5f7024959d28
+08-21 00:31:25.709 19225 19225 I flutter : [FAIL] endpoint=/api/v1/customer/notifications http_status=1 type=ApiFailure msg="notifications fetch failed"
+ui_errors: emulator-5554 scanned 85 flutter-tag lines for pid 19225 (com.izzes.nears) of 268 pid-scoped buffer lines; 2 match(es). ...
+exit=0
+
+-> genuine own-pid [FAIL] traffic counted correctly (2 matches, exit 0). Also confirms logging-
+   contract compliance in passing: endpoint is path-only (no query/body), correlation_id present,
+   PII-safe ApiFailure sentinel used (not a raw exception string).
+
+=== Regression spot-checks (NEARS-1627 existing behaviors) ===
+
+1. threadtime format matching: all lines above are in `MM-DD HH:MM:SS.mmm PID TID LEVEL TAG:` shape
+   and matched correctly by the `[EWIDVF][[:space:]]flutter[[:space:]]*:` half of the tag regex.
+   No format regression.
+
+2. [FAIL]/[ERR]/exception selector: the 2 matches above are exactly the `\[(FAIL|ERR)\]` branch of
+   the selector, matched correctly. No regression.
+
+3. Serial handling — positional arg (no ANDROID_SERIAL env set):
+   $ unset ANDROID_SERIAL; ui_errors emulator-5554
+   -> same 2-match, exit-0 result as above (identical output, positional serial resolved correctly).
+
+   Serial handling — ambiguous device (no serial, 4 devices attached: emulator-5554/5556/5562/5564):
+   ui_errors: <no serial pinned> NOT ASSERTED: could not resolve exactly one device (no device attached, or >1 attached with no -s/$ANDROID_SERIAL) - pid-binding needs one device
+   exit=2
+   -> folded into the existing 0/2 vocabulary, NOT a new exit 3 (uifind's ambiguity code). Matches
+      the documented design: ui_errors' own AMBIGUOUS-device case is refolded from _uinav_serial's
+      exit 3 into ui_errors' own exit 2, per the source comment ("ui_errors' exit vocabulary has
+      always been 0/2 only").
+
+4. exit-2 "nothing asserted" path (zero flutter-tag lines under a resolved pid): NOT independently
+   live-triggered — attempted via an immediate post-relaunch race (scan within ~1s of `am start`)
+   but the Flutter engine already emits 50 flutter-tag lines within that window on this device, so
+   the live race could not be won. This path (case 19e) IS covered and green in the automated
+   backstop (186/186 assertions, 27 cases) via a hermetic fake-pidof harness. Noting the live gap
+   honestly rather than claiming a demonstration that didn't happen.
+
+=== Additional test points ===
+
+A. pid-resolution-fail path (app force-stopped, nothing foreground): see ac1 log — exit 2, reason
+   "could not resolve the foreground Nears package (ui_pkg rc=0) - nothing to pid-bind to". No
+   fallback to unscoped scan. CONFIRMED live.
+
+B. ambiguous-device path: CONFIRMED live above (#3), folded into exit 2, not a new exit 3.
+
+C. multi-pid/pidof-ambiguous case: NOT live-triggered. `com.izzes.nears` is a single-process app
+   (confirmed via `adb shell ps -A | grep izzes.nears` -> exactly one row, and no
+   `android:process` attributes in AndroidManifest.xml creating a second same-package process).
+   Forcing 2 live instances would need a second Android user profile (pm create-user + per-user
+   install/launch) — a heavy, device-state-mutating step out of proportion for this QA pass. Left
+   as fixture-only, same as the engineer's own note; covered live-value-checked in the automated
+   suite (case 19c).
+
+D. ui_capture unchanged calling contract:
+   - Normal path (pid resolvable, 0 matches): printed `errors: none` correctly.
+   - Exit-2 path (app force-stopped mid-capture): printed
+     `errors: NOT ASSERTED (ui_errors could not scan the log buffer - see stderr)` correctly,
+     with `ui_errors: emulator-5554 NOT ASSERTED: could not resolve the foreground Nears package
+     (ui_pkg rc=0) - nothing to pid-bind to` on stderr. No regression in the calling contract.
+
+E. Automated backstop: `bash scripts/app-nav/uinav.test.sh` -> PASS, 186 assertion(s) across 27
+   case(s); 0 skipped; 0 failed. Matches engineer's reported 186/186, 27 cases.

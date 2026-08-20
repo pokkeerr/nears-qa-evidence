@@ -1,0 +1,43 @@
+NEARS-1783 — AC1 live evidence (device emulator-5554, worktree scripts/app-nav/uinav.sh md5 fdf92951d2ae92e37b20f405c6d46c1d)
+
+=== AC1a: foreign-pid injection via `adb shell log -p e -t flutter` ===
+$ adb -s emulator-5554 shell log -p e -t flutter "NEARS-1783-QA-FOREIGN-PID-INJECTION [ERR] should be excluded"
+
+Raw uncleared buffer (proves the injected line IS present, under a distinct pid 19186 != app pid 18855):
+08-21 00:29:12.350 19186 19186 E flutter : NEARS-1783-QA-FOREIGN-PID-INJECTION [ERR] should be excluded
+
+New (worktree) pid-bound ui_errors immediately after injection:
+ui_errors: emulator-5554 scanned 52 flutter-tag lines for pid 18855 (com.izzes.nears) of 259 pid-scoped buffer lines; 0 match(es). ...
+exit=0
+
+-> foreign pid's injected [ERR] line did NOT flip the match count (still 0, same as pre-injection baseline). CONFIRMED excluded.
+
+Contrast — OLD-style unscoped scan (same tag/sel regex as pre-1783 ui_errors, run directly against the whole buffer with no --pid):
+matches count: 3
+08-21 00:29:12.350 19186 19186 E flutter : NEARS-1783-QA-FOREIGN-PID-INJECTION [ERR] should be excluded
+
+-> the injected foreign-pid line WOULD have counted under the old unscoped scan. Proves the fix actually closes the gap (not just "still passes because nothing changed").
+
+=== AC1b: force-stop + relaunch mid-session (pid change), confirm OLD pid's buffered lines excluded post-relaunch ===
+OLD pid (before stop): 18855
+$ adb -s emulator-5554 shell am force-stop com.izzes.nears
+pidof after force-stop: <empty>
+
+ui_errors immediately after force-stop (additional test point: pid-resolution-fail path):
+ui_errors: emulator-5554 NOT ASSERTED: could not resolve the foreground Nears package (ui_pkg rc=0) - nothing to pid-bind to
+exit=2
+-> named reason, no silent fallback to unscoped scan.
+
+$ adb -s emulator-5554 shell am start -n com.izzes.nears/com.izzes.nears.MainActivity
+NEW pid after relaunch: 19225 (confirmed != OLD pid 18855)
+mCurrentFocus=Window{200ec1c u0 com.izzes.nears/com.izzes.nears.MainActivity}
+
+ui_errors post-relaunch:
+ui_errors: emulator-5554 scanned 58 flutter-tag lines for pid 19225 (com.izzes.nears) of 234 pid-scoped buffer lines; 0 match(es). ...
+exit=0
+
+Sanity — OLD pid 18855's flutter-tag lines are STILL sitting unrotated in the uncleared buffer:
+$ adb -s emulator-5554 logcat -d -v threadtime --pid=18855 | grep -cE '[EWIDVF][[:space:]]flutter[[:space:]]*:'
+52
+
+-> post-relaunch scan (58 lines, pid 19225) provably could not and did not include the 52 old-pid lines still present in the buffer — the scan is bound to the NEW pid only. CONFIRMED.

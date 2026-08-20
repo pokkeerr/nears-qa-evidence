@@ -1,0 +1,17 @@
+NEARS-1783 — AC3 live evidence (device emulator-5554)
+
+Verbatim exit-0 stderr line (baseline call, app pid 18855, before any injection):
+
+ui_errors: emulator-5554 scanned 52 flutter-tag lines for pid 18855 (com.izzes.nears) of 259 pid-scoped buffer lines; 0 match(es). Guarantee: only lines logged under the current foreground process (pid 18855) are considered - a different app/process cannot flip this. Residual gap: a pid number can be reused by the OS across process restarts inside one uncleared logcat buffer window, so a dead process's line under a now-reused pid could still match (not closed by this ticket).
+
+Checks against AC3's requirements:
+- States the actual pid-scoped guarantee now backing exit 0:
+  "only lines logged under the current foreground process (pid 18855) are considered - a
+  different app/process cannot flip this." PRESENT.
+- Names the residual gap (pid reuse across restarts within one uncleared buffer):
+  "a pid number can be reused by the OS across process restarts inside one uncleared logcat
+  buffer window, so a dead process's line under a now-reused pid could still match (not closed
+  by this ticket)." PRESENT.
+- Old blanket "not proof of recency" wording:
+  `grep -F "not proof of recency" scripts/app-nav/uinav.sh` -> no match anywhere in the worktree
+  file. CONFIRMED GONE from both the runtime line and the header comment.
