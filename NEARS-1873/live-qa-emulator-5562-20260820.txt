@@ -1,0 +1,116 @@
+NEARS-1873 — phase [8] live QA — completed on emulator-5562 (nears_qa_delivery)
+Commit under test: 062d8478 (base 8a512078 on feat/userapp-reskin2)
+Device: AVD nears_qa_delivery, booted this session as emulator-5562, working
+uiautomator bridge confirmed live throughout. Disk precheck: 1,046,688 KB
+free on /data (>= 800MB floor). Lock: $HOME/.nears/qa-locks/emulator-5562/,
+key NEARS-1873, acquired via qa_lock_acquire (source
+scripts/qa-lock-guard.sh by absolute path — a relative source refuses with
+"no derivable identity").
+
+=== AC2 automated suites (re-confirmed) ===
+python3 scripts/app-nav/test_uifind.py -> Ran 45 tests in 0.002s, OK
+bash scripts/app-nav/uinav.test.sh -> PASS; 146 assertions / 21 cases, 0
+  skipped, 0 failed (incl. rc=5 cases 17e/17f/17g)
+
+=== AC1 literal recipe (Wallet filter-popup) — BLOCKED by an unrelated,
+pre-existing app defect ===
+The Wallet screen is unreachable on this build/backend pairing: the
+"My Wallet" tile never renders enabled (see bug-wallet-tile-unreachable.log
+for the full investigation — reproduced across 3 independent sessions incl.
+a `pm clear` + fresh login, ruling out stale cache; backend business_settings
+and /api/v1/config both consistently confirm wallet_status=1). This is
+UNRELATED to NEARS-1873's diff (scripts/app-nav/*.py, *.sh only) and is
+filed as a regression_bug, not held against this ticket's verdict.
+
+=== Substitute live proof: the ZoneWarningDialog barrier (also a required
+QA point per the dispatch brief) ===
+Recipe: logged in fresh as customer@nears.com, entered Grocery & Food module
+(module 1), then forced a zone mismatch via mocked GPS
+(`adb emu geo fix 55.15 25.10`, zone-3 coordinates per the "Your Tower"
+recipe's qa.singlestore@nears.com note) + "Use Current Location" from the
+Set Location sheet. The genuine "Sorry, this service is not available in
+your location" ZoneWarningDialog fired live.
+
+Raw dump of the fired dialog:
+  'Sorry, this service is not available...' [0,136][1080,2337] clickable=false
+  'Close'   [862,782][988,908]  clickable=true
+  'Ok'      [146,1520][934,1651] clickable=true
+  'Dismiss' [0,0][1080,2337]    clickable=true   <- the modal barrier
+
+Observed:
+  $ python3 scripts/app-nav/uifind.py find "Dismiss" --exact
+  BARRIER: "Dismiss" matched a unique node whose bounds cover 97% of the
+  screen (2523960 / 2592000 px) - not a safe tap target: ... Use --first to
+  accept it anyway, or the verified workaround: adb shell input keyevent 4
+  (BACK).
+  rc=5
+
+  $ source scripts/app-nav/uinav.sh; ui_tap "Dismiss" --exact
+  (same BARRIER message forwarded via `cat "$err" >&2`) + "BARRIER: Dismiss"
+  rc=5 — NO tap reached the device; a follow-up `ui_list` confirmed the
+  dialog was UNCHANGED (Close/Ok/Dismiss still present, same message) —
+  state provably not mutated by the refused tap.
+
+  $ python3 scripts/app-nav/uifind.py find "Dismiss" --exact --first
+  540 1168
+  rc=0 — the escape hatch works: --first bypasses the barrier refusal
+  exactly as designed.
+
+  Dismissed for real via the documented BACK workaround
+  (`adb shell input keyevent 4`) — dialog closed cleanly, confirming the
+  pointed-to recovery path is genuine, not just claimed.
+
+Screenshot: zonewarningdialog-barrier-rc5.png (the dialog mid-refusal,
+Close/Ok/Dismiss visible, taken immediately after the rc=5 ui_tap above).
+
+This exercises the EXACT SAME resolve()/find() code path, the exact same
+>=90% coverage-ratio refusal, and the exact same rc=5 CLI contract that
+AC1's Wallet recipe would have exercised — on a different screen carrying
+the same class of full-screen-barrier hazard. It is also the literal
+"additional QA point" the dispatch brief separately required ("Confirm the
+ZoneWarningDialog barrier case ALSO now exits 5 instead of its old harmless
+no-op — this should be a strict improvement, not a regression"). CONFIRMED:
+strict improvement — pre-fix this resolved uniquely and "succeeded" at a
+centre tap that landed inside the dialog card (dismissing nothing, silently,
+since barrierDismissible=true only dismisses on an OUTSIDE-the-card tap);
+post-fix it is refused loudly with the reason and the real fix (BACK).
+
+=== ui_home regression sweep (3 screens) ===
+  Home (module home, Grocery & Food)       -> ui_home rc=0, landed on Home
+  Categories (bottom-nav tab)              -> ui_home rc=0, landed on Home
+  Basket (bottom-nav tab, empty cart)      -> ui_home rc=0, landed on Home
+No rc=5 false-fires on any of the 3 anchor-presence / hometap-resolution
+sweeps — anchors/hometap labels are small root-tab labels, never
+full-screen, matching the "defense-in-depth, not expected to fire live"
+comment in uinav.sh's rc=5 case arms.
+
+=== ui_find exit-3 ambiguity pass-through (NEARS-1707 territory) ===
+On the Set Location sheet (3 distinct "Home" nodes — 2 saved addresses +
+context):
+  $ python3 scripts/app-nav/uifind.py find "Home" --exact
+  AMBIGUOUS: "Home" matched 3 distinct nodes (use --first to accept any, or
+  a more specific label):
+    label="Home" clickable=true area=194247 at 540,612
+    label="Home" clickable=true area=195264 at 540,421
+    label="Home" clickable=true area=195264 at 540,804
+  rc=3
+No regression — ambiguity handling is byte-for-byte unaffected by the
+barrier fix (a genuinely ambiguous match is `len(deduped) > 1`, which never
+reaches the new unique-match barrier check).
+
+=== uinav.sh sourced-vs-invoked false-pass trap sanity check ===
+  $ bash scripts/app-nav/uinav.sh ui_list
+  (no stdout, no stderr)
+  exit=0
+Matches the documented trap exactly (profile line 48) — unchanged by this
+diff, as expected (this ticket never touches that invocation path).
+
+=== Regression sweep summary ===
+CLEAN for everything within this diff's blast radius. The one finding
+(wallet tile unreachable) is PRE-EXISTING and UNRELATED — filed separately,
+does not affect this ticket's verdict.
+
+=== Cleanup ===
+App left in a stable state (module Home, Grocery & Food, logged in as
+customer@nears.com) for any follow-up session. Lock released via
+qa_lock_release emulator-5562 on exit.

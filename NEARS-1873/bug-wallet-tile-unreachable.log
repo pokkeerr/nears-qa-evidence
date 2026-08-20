@@ -1,0 +1,58 @@
+NEARS-1873 QA — regression_bug (pre-existing, UNRELATED to this diff)
+"My Wallet" menu tile / wallet stat tile never renders as enabled, despite
+business_settings.wallet_status = 1 and the live /api/v1/config response
+consistently returning customer_wallet_status: 1.
+
+Impact on THIS QA run: blocked the LITERAL AC1 repro (the exact NEARS-1802
+"Profile -> My Wallet -> Filter -> Dismiss menu" recipe) — the Wallet screen
+is unreachable via the UI on emulator-5562. Substituted the ZoneWarningDialog
+barrier recipe (also an explicitly required QA point) as live proof of the
+identical uifind.py/uinav.sh barrier-refusal mechanism — see
+zonewarningdialog-barrier-rc5.png in this same evidence dir.
+
+Reproduced 3x independently, ruling out stale-cache / wrong-build causes:
+  1. Pre-existing app session on emulator-5562 (residue from an earlier,
+     unrelated QA session) — MenuScreen "Profile" tab shows Loyalty
+     Points/Orders/Wallet Balance stat tiles, all non-interactive
+     (clickable=false in the uiautomator dump); no "My Wallet" tile in the
+     scrollable menu list at all.
+  2. Fresh `flutter run -d emulator-5562` from THIS worktree (commit
+     062d8478), confirmed by matching `dumpsys package` lastUpdateTime to
+     the just-built APK's mtime (2026-08-20 22:22:28 both sides) — force-
+     stop + `am start` (state-preserving relaunch per
+     docs/apps/userapp/userapp-navigation-guide.md's NEARS-1324 recovery
+     note) — same result.
+  3. `pm clear com.izzes.nears` (full local-data wipe) + fresh cold boot +
+     fresh login as customer@nears.com (a different, brand-new client-side
+     session, no possible stale local/SharedPreferences/drift-db cache) —
+     same result: Wallet Balance / My Wallet stays inert.
+
+Backend-side confirmed correct and consistent:
+  mysql: SELECT `key`,`value` FROM business_settings WHERE `key` IN
+    ('customer_wallet_status','loyalty_point_status','wallet_status');
+    -> wallet_status=1, loyalty_point_status=1 (no customer_wallet_status
+       row — the API layer maps wallet_status -> customer_wallet_status,
+       confirmed in Admin/app/Http/Controllers/Api/V1/ConfigController.php:368)
+  curl http://127.0.0.1:8000/api/v1/config [no zoneId header, zoneId:[1],
+    zoneId:[400]] -> customer_wallet_status: 1 (int) in all three cases.
+  No per-customer override column exists on `users` (only wallet_balance).
+
+App-side: no AppLogger [FAIL]/[ERR] "config parse failed" line in
+`adb logcat -s flutter:V` across any of the 3 reproductions — config JSON
+parsing is NOT throwing, so ConfigModel.customerWalletStatus is apparently
+being set to something other than 1 despite the network response.
+`UserApp/lib/features/menu/controllers/menu_controller.dart:79` — `bool get
+walletEnabled => Get.find<SplashController>().configModel!.customerWalletStatus
+== 1;` — reads false at every observation point.
+
+Not investigated further (out of scope for NEARS-1873, budget-bounded):
+whether this is a config-model reactivity gap (Builder/GetBuilder not
+rebuilding on a delayed local->client config resolution), a genuine parse
+mismatch not caught by the try/catch at splash_controller.dart:230-245, or
+something else. Flagging for the PO to route to the owning engineer —
+functionally this hides the Wallet feature (and, per the `showWalletCard`
+OR condition, would ALSO hide it if loyalty_point_status were ever the sole
+enabler) from every customer on this build/backend pairing.
+
+Evidence: this file + zonewarningdialog-barrier-rc5.png (substitute live
+barrier proof) in the same evidence dir.
