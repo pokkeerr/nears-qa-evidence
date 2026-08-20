@@ -1,0 +1,17 @@
+NEARS-2259 QA — idempotency re-run
+cd Admin && NEARS_SEED_ALLOW_DB=multi_food_db php artisan db:seed --class=Nears2259ActiveRefundCourierOrderSeeder --force
+
+Output:
+   INFO  Seeding database.
+NEARS-2259 courier fixtures ready: {"processing":91124,"refund_requested":91125,"refund_request_canceled":91126,"returned":91127}
+
+Post-reseed verification (same order IDs, no duplicates):
+  SELECT COUNT(*) FROM orders WHERE order_note LIKE 'NEARS-2259 courier fixture%';  -> 4
+  SELECT order_id, COUNT(*) FROM order_details WHERE order_id IN (91124,91125,91126,91127) GROUP BY order_id;
+      91124 -> 1
+      91125 -> 1
+      91126 -> 1
+      91127 -> 1
+  SELECT COUNT(*) FROM orders;  -> 71 (unchanged before/after re-seed)
+
+-> PASS: idempotent, no duplicate orders or order_details rows on second run.

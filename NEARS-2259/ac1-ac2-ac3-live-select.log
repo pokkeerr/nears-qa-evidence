@@ -1,0 +1,41 @@
+NEARS-2259 QA — independent live SELECT verification (multi_food_db)
+Worktree: /Users/Apple/Projects/nears-NEARS-2259-active-refund-courier-seed
+Branch: feat/NEARS-2259-active-refund-courier-seed
+Date: 2026-08-21
+
+=== AC1: SELECT order_status, COUNT(*) FROM orders WHERE order_status IN
+    ('refund_requested','refund_request_canceled','returned') GROUP BY order_status ===
+order_status              cnt
+refund_requested          1
+refund_request_canceled   1
+returned                  1
+-> PASS: >=1 row for each of the 3 statuses.
+
+=== AC2: at least one 'processing' order has non-null delivery_man_id ===
+id      order_status   delivery_man_id
+91124   processing     2
+-> PASS.
+
+=== AC3: each of the 3 refund/returned orders has non-null delivery_man_id ===
+id      order_status               delivery_man_id   order_note
+91125   refund_requested           3                 NEARS-2259 courier fixture — refund_requested
+91126   refund_request_canceled    2                 NEARS-2259 courier fixture — refund_request_canceled
+91127   returned                   3                 NEARS-2259 courier fixture — returned
+-> PASS.
+
+=== order_details cross-check (item_id/price/qty match self-report) ===
+order_id  item_id  price   quantity
+91124     17       12.99   1
+91125     19       10.99   1
+91126     17       12.99   1
+91127     19       10.99   1
+
+=== Concurrent unrelated-session noise (NEARS-2292, confirmed out of scope) ===
+id      order_status   delivery_man_id   order_note
+91128   confirmed      NULL              NEARS-2292 vendor fixture — parcel (store 1, store-attached, non-digital)
+91129   confirmed      NULL              NEARS-2292 vendor fixture — prescription (store 7, no cart)
+91130   delivered      NULL              NEARS-2292 vendor fixture — pos (store 1)
+
+All 4 engineer-claimed order IDs (91124-91127) independently reproduced by content
+(status + delivery_man_id + order_note + order_details) via a fresh SELECT, not cited
+from the [6] self-report.

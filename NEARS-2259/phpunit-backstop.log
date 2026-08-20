@@ -1,0 +1,32 @@
+NEARS-2259 QA — automated backstop
+cd Admin && vendor/bin/phpunit --configuration phpunit.xml --filter Nears2259ActiveRefundCourierOrderSeederTest
+
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_2259_active_refund_courier_s
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.5.6
+...                                                                 3 / 3 (100%)
+Time: 00:00.410, Memory: 72.50 MB
+OK (3 tests, 33 assertions)
+
+-> matches engineer [6] self-report (3/3, 33 assertions), independently reproduced.
+-> runs against a private per-worktree test DB (NEARS-1199), not live multi_food_db.
+
+---
+
+Pre-existing unrelated failure check (regression_bugs candidate, flagged by security
+reviewer at [6] and independently confirmed here):
+
+cd Admin && vendor/bin/phpunit --configuration phpunit.xml --filter test_contains_scope_binds_its_argument
+
+1) Tests\Feature\Security\ZoneContainsSqlInjectionTest::test_contains_scope_binds_its_argument
+BadMethodCallException: Call to undefined method Illuminate\Database\Eloquent\Builder::contains()
+.../Admin/tests/Feature/Security/ZoneContainsSqlInjectionTest.php:17
+ERRORS!
+Tests: 1, Assertions: 0, Errors: 1.
+
+Confirmed unrelated to NEARS-2259: `git status --short` on this worktree shows only
+docs/data-qa/dev-seed-qa-fixtures.md (edit) + the 2 new seeder/test files as uncommitted
+changes — Admin/app/Models/Zone.php and
+Admin/tests/Feature/Security/ZoneContainsSqlInjectionTest.php are NOT touched by this
+ticket's diff. Pre-existing, inherited from branch history (commit 4e7a0b4f,
+"fix(security): bind parameter in Zone::scopeContains raw SQL [SEC-A]").
