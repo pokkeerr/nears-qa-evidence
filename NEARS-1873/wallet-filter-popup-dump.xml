@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<!--
+NEARS-1873 — real uiautomator capture of the Wallet screen's filter
+PopupMenuButton, live during the [6] build phase (not hand-written; a
+fixture invented from doc prose is exactly the failure class this ticket
+exists to kill — solution doc §1, NEARS-1707 §6 step 9 precedent).
+
+Device:    emulator-5554 (sdk_gphone16k_arm64, Android 17 / API level per
+           `getprop ro.build.version.release`), UserApp com.izzes.nears
+           versionName=3.8.0
+Timestamp: 2026-08-20T17:41:51Z (UTC)
+Screen:    Wallet screen, filter popup OPEN (Profile tab -> scroll down x2
+           -> "My Wallet" -> "Filter") — the exact NEARS-1802 QA recipe at
+           docs/apps/userapp/userapp-navigation-guide.md
+           §"Recipe — the Wallet filter popup, and the `Dismiss menu` tap
+           that silently SELECTS"
+Command:   source scripts/app-nav/uinav.sh
+           ui_home
+           ui_tap "Profile" (exact flag)
+           ui_scroll_down; ui_scroll_down
+           ui_tap "My Wallet" (exact flag)
+           ui_tap "Filter" (exact flag)
+           ANDROID_SERIAL=emulator-5554 python3 scripts/app-nav/uifind.py dump
+
+Post-capture: adb shell input keyevent 4 (BACK) — dismissed the popup via
+the verified workaround, WITHOUT tapping "Dismiss menu" (which the
+navigation guide documents as silently selecting "Order Transactions" on
+this build) and WITHOUT mutating the wallet filter state.
+
+Measured shape (used by TestFullScreenBarrier in test_uifind.py):
+  root/screen bounds:        [0,0][1344,2992]  -> area 4,021,248
+  "Dismiss menu" node bounds: [0,0][1344,2920]  -> area 3,924,480
+  coverage ratio:             3,924,480 / 4,021,248 = 97.6%  (>= 90% -> barrier)
+  "Order Transactions" bounds: [396,1392][1236,1536] -> centre (816, 1464)
+    (the row the PRE-FIX resolver would have handed back for "Dismiss menu",
+    because it is the only OTHER unique-labelled node and pre-fix `resolve()`
+    had no barrier check at all — see TestFullScreenBarrier's falsification
+    case, which reconstructs the pre-fix decision inline rather than
+    re-deriving live coordinates from this file.)
+-->
+<hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="com.izzes.nears" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1344,2992]" drawing-order="0" hint=""><node index="0" text="" resource-id="" class="android.widget.LinearLayout" package="com.izzes.nears" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1344,2992]" drawing-order="1" hint=""><node index="0" text="" resource-id="android:id/content" class="android.widget.FrameLayout" package="com.izzes.nears" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1344,2992]" drawing-order="2" hint=""><node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="com.izzes.nears" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1344,2992]" drawing-order="1" hint=""><node index="0" text="" resource-id="" class="android.view.View" package="com.izzes.nears" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1344,2992]" drawing-order="0" hint=""><node index="0" text="" resource-id="" class="android.view.View" package="com.izzes.nears" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1344,2992]" drawing-order="0" hint=""><node index="0" text="" resource-id="" class="android.view.View" package="com.izzes.nears" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1344,2920]" drawing-order="0" hint=""><node index="0" text="" resource-id="" class="android.view.View" package="com.izzes.nears" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[396,1224][1236,2136]" drawing-order="0" hint=""><node index="0" text="" resource-id="" class="android.view.View" package="com.izzes.nears" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[396,1224][1236,2136]" drawing-order="0" hint=""><node index="0" text="" resource-id="" class="android.widget.Button" package="com.izzes.nears" content-desc="All Transactions" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[396,1248][1236,1392]" drawing-order="0" hint="" /><node index="1" text="" resource-id="" class="android.widget.Button" package="com.izzes.nears" content-desc="Order Transactions" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[396,1392][1236,1536]" drawing-order="0" hint="" /><node index="2" text="" resource-id="" class="android.widget.Button" package="com.izzes.nears" content-desc="Converted from Loyalty Point" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[396,1536][1236,1680]" drawing-order="0" hint="" /><node index="3" text="" resource-id="" class="android.widget.Button" package="com.izzes.nears" content-desc="Added via Payment Method" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[396,1680][1236,1824]" drawing-order="0" hint="" /><node index="4" text="" resource-id="" class="android.widget.Button" package="com.izzes.nears" content-desc="Earned by Referral" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[396,1824][1236,1968]" drawing-order="0" hint="" /><node index="5" text="" resource-id="" class="android.widget.Button" package="com.izzes.nears" content-desc="Cash Back Transactions" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[396,1968][1236,2112]" drawing-order="0" hint="" /></node></node></node><node index="1" text="" resource-id="" class="android.view.View" package="com.izzes.nears" content-desc="Dismiss menu" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1344,2920]" drawing-order="0" hint="" /></node></node></node></node></node></node></hierarchy>
