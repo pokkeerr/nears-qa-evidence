@@ -1,0 +1,109 @@
+NEARS-2153 — delta re-QA, fix-cycle 1
+Commit under test: 8a512078357b50fd6b78be7a94011d77cb5b93d5
+Prior PASS commit: 54b66db86801711f1edd5b835398a06e3a187d7
+DB: local mysql 127.0.0.1 / multi_food_db (dev, not live)
+Device: none — device-free DB/seeder ticket, no device lock protocol applies (NEARS-2066/2108)
+
+=== 1. Baseline (pre-test) ===
+$ mysql -u root multi_food_db -e "SELECT user_id, COUNT(*) FROM loyalty_point_transactions GROUP BY user_id ORDER BY user_id;"
+user_id	COUNT(*)
+3	3
+6	29
+
+=== 2. Guard refusal — no env var (security fix) ===
+$ unset NEARS_SEED_ALLOW_DB && php artisan db:seed --class=LoyaltyHistoryPaginationSeeder --force
+RuntimeException
+LoyaltyHistoryPaginationSeeder REFUSED: connected database is "multi_food_db" but NEARS_SEED_ALLOW_DB=NULL. ...
+=> REFUSED as expected. No rows changed (user_id=3 stayed 3, user_id=6 stayed 29).
+
+=== 3. Guard refusal — wrong value ===
+$ NEARS_SEED_ALLOW_DB=wrong_db_name php artisan db:seed --class=LoyaltyHistoryPaginationSeeder --force
+RuntimeException
+LoyaltyHistoryPaginationSeeder REFUSED: connected database is "multi_food_db" but NEARS_SEED_ALLOW_DB='wrong_db_name'. ...
+=> REFUSED. Confirms guard checks exact match, not just "any value set".
+
+=== 4. Idempotent re-run — correct env var (AC1 + AC3) ===
+$ NEARS_SEED_ALLOW_DB=multi_food_db php artisan db:seed --class=LoyaltyHistoryPaginationSeeder --force
+INFO  Seeding database.
+NEARS-2153 loyalty history pagination test data ready (user_id=6): 29 total rows
+
+$ mysql -u root multi_food_db -e "SELECT COUNT(*) total FROM loyalty_point_transactions WHERE user_id=6;
+                                   SELECT COUNT(*) seeded FROM loyalty_point_transactions WHERE user_id=6 AND reference LIKE 'nears2153-%';
+                                   SELECT reference, COUNT(*) c FROM loyalty_point_transactions WHERE user_id=6 GROUP BY reference HAVING c>1;"
+total: 29
+seeded: 25
+dupes: (empty — none)
+=> AC1 (>=25 rows for user_id=6) HOLDS. Idempotent: no duplicate refs, count unchanged.
+
+=== 5. AC2 spot-check (row shape unchanged, cheap re-check) ===
+page1 (LIMIT 10 OFFSET 0): 10 rows
+page3 (LIMIT 10 OFFSET 20): 9 rows
+overlap(page1, page3 by id): 0
+=> Pagination arm still reachable / disjoint. No change needed (data shape unchanged by this cycle's fix).
+
+=== 6. down()/rollback — guard applies here too ===
+$ unset NEARS_SEED_ALLOW_DB && php artisan tinker --execute="(new Database\Seeders\LoyaltyHistoryPaginationSeeder())->down();"
+RuntimeException  LoyaltyHistoryPaginationSeeder REFUSED: connected database is "multi_food_db" but NEARS_SEED_ALLOW_DB=NULL. ...
+=> down() also refuses without env var.
+
+$ NEARS_SEED_ALLOW_DB=multi_food_db php artisan tinker --execute="(new Database\Seeders\LoyaltyHistoryPaginationSeeder())->down();"
+(no output — confirms the nullsafe $this->command?->info() fix: previously this direct
+tinker invocation, where $this->command is null, would have fatally errored calling
+->info() on null. No error now.)
+
+$ mysql -u root multi_food_db -e "SELECT COUNT(*) FROM loyalty_point_transactions WHERE user_id=6;             -- 4 (pre-existing rows only)
+                                   SELECT COUNT(*) FROM loyalty_point_transactions WHERE user_id=6 AND reference LIKE 'nears2153-%';  -- 0
+                                   SELECT COUNT(*) FROM loyalty_point_transactions WHERE user_id=3;"            -- 3 (untouched)
+user6_remaining: 4
+user6_seeded_remaining: 0
+user3_untouched: 3
+=> down() removes exactly the seeded rows, leaves the 4 pre-existing user_id=6 rows and
+   user_id=3's rows (control) untouched.
+
+=== 7. Re-seed to restore fixture + balance-reconciliation invariant ===
+$ NEARS_SEED_ALLOW_DB=multi_food_db php artisan db:seed --class=LoyaltyHistoryPaginationSeeder --force
+NEARS-2153 loyalty history pagination test data ready (user_id=6): 29 total rows
+
+$ mysql -u root multi_food_db -e "SELECT loyalty_point FROM users WHERE id=6;"
+loyalty_point: 0.000
+
+$ mysql -u root multi_food_db -e "SELECT reference, credit, balance FROM loyalty_point_transactions
+   WHERE user_id=6 AND reference LIKE 'nears2153-%' ORDER BY created_at ASC LIMIT 1;"
+first row: nears2153-order_place-0, credit 25.000, balance 25.000
+
+$ mysql -u root multi_food_db -e "SELECT reference, credit, balance FROM loyalty_point_transactions
+   WHERE user_id=6 AND reference LIKE 'nears2153-%' ORDER BY created_at DESC LIMIT 1;"
+last row: nears2153-order_place-24, credit 21.000, balance 742.000
+
+Invariant per code (run(), lines 93/102): $runningBalance starts at users.loyalty_point
+and advances by every row's credit each loop iteration regardless of the idempotency
+skip. Sum of all 25 seeded credits = 742.000.
+  users.loyalty_point (0.000) + sum(seeded credits, 742.000) = 742.000
+  == last transaction row's cumulative balance (742.000)      MATCH
+First row also checks out: 0.000 + 25.000 = 25.000 == first row balance (25.000). MATCH
+=> Balance reconciliation invariant HOLDS.
+
+$ mysql -u root multi_food_db -e "SELECT COUNT(*) total, COUNT(DISTINCT reference) distinct_refs
+   FROM loyalty_point_transactions WHERE user_id=6;"
+total: 29  distinct_refs: 29   -- no dupes after restore
+$ mysql -u root multi_food_db -e "SELECT COUNT(*) FROM loyalty_point_transactions WHERE user_id=3;"
+3   -- control still untouched
+
+=== 8. Doc-label fix (task_bug from prior cycle) ===
+$ git diff 54b66db8 8a512078 -- users_test_data.md
+-- robert.taylor@demo.com (user id 6, zone 1)
+++ customer@nears.com (user id 6, zone 1)
+$ grep -n -A6 "NEARS-2153" users_test_data.md
+  - **`customer@nears.com`** (user id 6, zone 1): NEARS-2153 seeded 25 ...
+$ mysql -u root multi_food_db -e "SELECT id, email FROM users WHERE id IN (5,6);"
+5  robert.taylor@demo.com
+6  customer@nears.com
+=> Doc now correctly labels user_id=6 as customer@nears.com. robert.taylor@demo.com
+   confirmed to be user_id=5, a different account. Seeder docblock (lines 33-39) and
+   inline comment (line 39) also updated to customer@nears.com.
+=> Prior-cycle task_bug (doc mislabel, robert.taylor@demo.com attributed to user_id=6) — RESOLVED, confirmed fixed.
+
+=== Final state (left as found) ===
+user_id=3: 3 rows (untouched throughout)
+user_id=6: 29 rows total, 25 with nears2153- prefix, no duplicates
+users.loyalty_point for id=6: 0.000 (unchanged — seeder does not write the users table)
