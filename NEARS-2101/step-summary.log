@@ -1,0 +1,51 @@
+NEARS-2101 QA evidence (device-free, PHPUnit-only, no live UI surface)
+
+[AC1 diff-scope guard]
+$ git show --stat d2ad5c68
+ Admin/tests/Feature/TestDbScriptGuardTest.php | 134 ++++++++++++++++++++++++++
+ 1 file changed, 134 insertions(+)
+(git diff feat/userapp-reskin2..d2ad5c68 showed 2 extra files — confirmed these are
+unrelated commits that landed on feat/userapp-reskin2 AFTER this branch diverged
+(NEARS-1858, NEARS-2010), not part of this ticket's diff. git show --stat on the
+commit itself is the correct scoping tool and confirms exactly 1 file.)
+
+$ git show d2ad5c68 -- scripts/    -> empty (no script changes in the commit)
+
+Line-range re-confirmation of scripts/phpunit-isolated.sh --drop-stale branch:
+  lines 36-50  is_in_use()
+  lines 52-69  --drop-stale branch
+(matches the ticket's cited ~52-69 exactly)
+setup_test_db.sh --drop-stale branch and scripts/lib/test_db.sh::is_in_use() read
+and confirmed unchanged/present as described.
+
+[AC2 test run — targeted]
+$ vendor/bin/phpunit --configuration phpunit.xml --filter testDropStaleSkipsACloneWithALiveConnectionThenDropsItOnceReleased
+OK (1 test, 9 assertions)
+
+[Mutation proof — falsifiability]
+Mutated scripts/phpunit-isolated.sh line 61: `if is_in_use "$db"; then` -> `if false && is_in_use "$db"; then`
+(worktree-only, never committed)
+Re-ran the same targeted test -> FAILED:
+  "expected --drop-stale to report the in-use clone as skipped
+   Failed asserting that 'Dropped multi_food_db_test_..._5969.' contains 'Skipped'."
+-> proves the test is a real detector, not a vacuous pass: it correctly caught the
+   broken guard and would have dropped a database with a live connection open.
+
+Reverted: git checkout -- scripts/phpunit-isolated.sh (confirmed clean via git diff --stat)
+Re-ran targeted test on real code -> OK (1 test, 9 assertions) again.
+
+[Regression/no-flake sweep — TestDbScriptGuardTest + TestDbFreshnessGuardTest, x2]
+Run 1: OK (7 tests, 33 assertions)
+$ mysql -u root -e "SHOW DATABASES LIKE 'multi_food_db_test_scriptguard%';"  -> empty
+Run 2: OK (7 tests, 33 assertions)
+$ mysql -u root -e "SHOW DATABASES LIKE 'multi_food_db_test_scriptguard%';"  -> empty
+No leaked scriptguard databases after either run.
+
+[Full Admin phpunit suite — regression sweep]
+Tests: 1425, Assertions: 13274, Errors: 1, Deprecations: 1, Skipped: 1.
+The single error:
+  Tests\Feature\Security\ZoneContainsSqlInjectionTest::test_contains_scope_binds_its_argument
+  BadMethodCallException: Call to undefined method Illuminate\Database\Eloquent\Builder::contains()
+Matches the KNOWN pre-existing failure named in the QA scope (confirmed pre-existing
+and unrelated to this ticket's single-file, test-only diff). No other unexpected
+failures. Full log: full-suite-run.log (this directory).
