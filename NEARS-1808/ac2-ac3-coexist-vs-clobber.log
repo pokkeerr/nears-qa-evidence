@@ -1,0 +1,32 @@
+NEARS-1808 AC2/AC3 — live evidence, emulator-5562, 2026-08-21
+
+=== AC2: two distinct-suffix UserApp APKs installed on the SAME device ===
+$ adb install -r app-suffixed-wta.apk   -> Success
+$ adb install -r app-suffixed-wtb.apk   -> Success
+$ adb shell pm list packages | grep izzes.nears
+package:com.izzes.nears
+package:com.izzes.nears.wta
+package:com.izzes.nears.wtb
+RESULT: both com.izzes.nears.wta and com.izzes.nears.wtb (plus the pre-existing unsuffixed
+com.izzes.nears from an unrelated foreign session) coexist simultaneously — 3 distinct
+package entries, none replaced the other. AC2 CONFIRMED.
+
+=== AC3: pre-fix contrast — reinstalling the SAME unsuffixed id twice ===
+(device freed of the foreign com.izzes.nears + wtb first, to stay above the 800MB disk floor
+mid-session; re-confirmed after)
+
+$ adb install -r app-unsuffixed.apk   (simulating "worktree A" run)   -> Success
+$ adb shell pm list packages | grep 'izzes.nears$'
+package:com.izzes.nears
+
+$ adb install -r app-unsuffixed.apk   (simulating "worktree B" run, SAME id)   -> Success
+  (no warning, no differing signal from install #1 — Android's package manager treats this as
+   a plain update-in-place)
+$ adb shell pm list packages | grep izzes.nears
+package:com.izzes.nears
+package:com.izzes.nears.wta      <- unaffected, proves suffixed builds do NOT collide
+RESULT: two consecutive unsuffixed installs collapse to exactly ONE com.izzes.nears entry —
+the second silently replaced the first, both installs reporting identical "Success" with no
+distinguishing signal. This is the pre-fix clobber (NEARS-1652 incident shape) reproduced live.
+Meanwhile the suffixed com.izzes.nears.wta installed earlier was completely unaffected by
+either unsuffixed install — the contrast the ticket's AC3 asks for. AC3 CONFIRMED.

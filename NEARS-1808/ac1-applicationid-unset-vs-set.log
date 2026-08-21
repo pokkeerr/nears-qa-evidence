@@ -1,0 +1,18 @@
+NEARS-1808 AC1 — live evidence, emulator-5562, device+build 2026-08-21
+
+=== Build 1: NEARS_PKG_SUFFIX UNSET (default) ===
+$ unset NEARS_PKG_SUFFIX && flutter build apk --debug
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
+
+$ aapt dump badging app-debug.apk | grep '^package:'
+package: name='com.izzes.nears' versionCode='3' versionName='3.8.0' ...
+
+=== Build 2: NEARS_PKG_SUFFIX=wta ===
+$ export NEARS_PKG_SUFFIX=wta && flutter build apk --debug
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
+
+$ aapt dump badging app-debug.apk | grep '^package:'
+package: name='com.izzes.nears.wta' versionCode='3' versionName='3.8.0' ...
+
+RESULT: unset -> unchanged com.izzes.nears; NEARS_PKG_SUFFIX=wta -> com.izzes.nears.wta. Matches
+the ticket's expected behavior exactly (build.gradle.kts debug buildType applicationIdSuffix).

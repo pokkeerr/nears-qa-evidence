@@ -1,0 +1,41 @@
+NEARS-1808 AC4 — static suites + live nav resolution, 2026-08-21
+
+=== Static: bash scripts/app-nav/uinav.test.sh ===
+-- result: PASS
+-- validity: 262 assertion(s) across 41 case(s); 0 skipped; 0 failed
+(matches engineer's reported 41 cases/262 assertions exactly — no drift)
+
+=== Static: bash scripts/qa-run.test.sh ===
+-- result: PASS
+-- validity: 76 assertion(s) made across 19 case(s); 0 skipped; 0 failed
+(matches engineer's reported 19 cases/76 assertions exactly — no drift)
+
+=== Live: scripts/qa-run.sh UserApp emulator-5562 (real launch, not the unit test) ===
+worktree_slug of this worktree -> nears_nears_1808_android_pkg_suffix
+qa-run.sh auto-derived NEARS_PKG_SUFFIX and installed/launched:
+  com.izzes.nears.nears_nears_1808_android_pkg_suffix
+$ adb shell pm list packages | grep izzes.nears
+package:com.izzes.nears.wta
+package:com.izzes.nears.nears_nears_1808_android_pkg_suffix
+
+Navigated through first-run flow (notification permission -> language(English) -> onboarding
+Skip -> location permission "While using the app" -> adb emu geo fix to zone 1 centroid
+(90.366, 23.818) since the emulator's default geo sits outside zone 1's polygon, a known
+documented gotcha -> guest module hub -> entered "Grocery & Food" module) to reach a screen
+carrying the UserApp tab-bar anchors.
+
+$ source scripts/app-nav/uinav.sh; ANDROID_SERIAL=emulator-5562 ui_pkg
+com.izzes.nears.nears_nears_1808_android_pkg_suffix
+
+$ ANDROID_SERIAL=emulator-5562 ui_home
+ui_home: emulator-5562 app=com.izzes.nears.nears_nears_1808_android_pkg_suffix anchors=[Categories|Profile|Basket] home=Home
+rc=0
+
+RESULT: uinav.sh's prefix-match package->label lookup correctly resolved the LIVE suffixed
+running app to the UserApp anchor set (Categories|Profile|Basket) and ui_home landed on the
+Home tab (rc=0) — not the unknown-package fallback (which would print anchors=[] and never
+attempt a real tap). AC4 CONFIRMED both statically and live.
+
+=== Logs-first check ===
+grep -c '\[FAIL\]\|\[ERR\]' on the qa-run.sh-launched flutter run log across this entire
+session: 0. No unexpected errors during build/install/launch/navigation.
