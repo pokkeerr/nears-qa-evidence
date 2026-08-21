@@ -1,0 +1,15 @@
+NEARS-2019 phase [8] QA — GET /api/v1/config (backend on primary tree, port 8000), 2026-08-22
+
+Request: curl -s -i http://127.0.0.1:8000/api/v1/config -H "zoneId: [1]"
+Response header: X-Request-Id: 491b011e-c7c8-485c-b395-48782c52da35
+Response body (excerpt): "digit_after_decimal_point":2
+
+DB check: mysql -u root multi_food_db -e "SELECT * FROM business_settings WHERE id=95;"
+  id=95, key=digit_after_decimal_point, value=2
+
+Confirms ConfigController.php's published digit_after_decimal_point is NOT stale/serving 0 —
+cache was correctly flushed by the remediation seeder.
+
+AC2 (API/config half): met. AC2's order_amount<->laravel.log correlation half could NOT be
+demonstrated — blocked, see envelope (all 3 Android QA-pool devices held by other live
+sessions for the full bounded wait window).
