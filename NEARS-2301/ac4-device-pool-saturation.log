@@ -1,0 +1,33 @@
+NEARS-2301 AC4 — device pool saturation, BLOCKED live-device demonstration.
+
+Checked all 6 currently-attached, non-locked-but-live pool candidates plus the 1
+explicitly-locked device (7 total surfaces: 5 Android emulators + 2 iOS simulators).
+Bounded queue-wait per profile (~60s polls, capped ~10 min) — repeated scans at
+t=0, t=~2min, t=~10min, t=~12min all returned the SAME occupying PIDs (no turnover):
+
+  emulator-5554  -> foreign flutter/adb drivers pid 65167/65367 (verdict=occupied)
+  emulator-5556  -> foreign flutter/adb drivers pid 44087/44263 (verdict=occupied)
+  emulator-5562  -> foreign flutter/adb drivers pid 66802/66902 (verdict=occupied)
+  emulator-5564  -> foreign flutter/adb drivers pid 74466/74668 (verdict=occupied)
+  emulator-5570  -> explicit lock, key=NEARS-2364, pid=5228 (anchor, live)
+  emulator-5558  -> explicit lock, key=NEARS-2130, pid=10132 (anchor, live) — not
+                     currently in `adb devices` output, but the lock owner's claude
+                     process is alive, so NOT reclaimable as stale.
+  53F3807C-...   -> foreign flutter driver pid 51654 (iPhone 17 Pro, verdict=occupied)
+  9470A7B8-...   -> foreign flutter driver pid 59473 (iPhone 17 Pro Max, verdict=occupied)
+
+qa-lock-guard.sh's occupancy probe (NEARS-1805) refused every acquisition — none of
+these carry a lock file, but each has a live foreign flutter/adb driver attached, so
+none are free or reclaimable. No macOS desktop target scaffolded for VendorApp
+(no VendorApp/macos/ dir) — cannot stand one up without a repo-code change, which QA
+must not make. Flutter-web is a product-descoped surface (2026-07-11 owner decision,
+mobile-apps-only) — not used as a substitute for a mobile live-device demonstration.
+
+Result: AC4 could not be demonstrated on a live device within the bounded wait.
+Backed instead by the automated widget-test backstop (automated-vendorapp-flutter-test.log,
+2/2 green, both the null-email no-crash case AND the populated-email regression case,
+using the app's real widget tree via flutter_test) plus static confirmation that the
+_addDeliveryMan() validation order (email required + format check) runs before any
+network dispatch, for both add and update flows (add_delivery_man_screen.dart:431-462).
+This is supplementary evidence, not a substitute for a live device pass — AC4 is
+recorded `met: unverifiable` (device-saturation reason), not PASS.
