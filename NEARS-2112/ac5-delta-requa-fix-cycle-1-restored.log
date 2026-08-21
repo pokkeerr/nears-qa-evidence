@@ -1,0 +1,71 @@
+NEARS-2112 — delta re-QA, fix-cycle 1 (commit 9688a607 on top of ae6165c6)
+Scope: AC5 only (cycle 1's sole FAIL). AC1-4/6/7 previously PASSED and are not re-demonstrated here except
+a light happy-path sanity sweep + the final full-suite confirmation.
+
+Repro method (exact reuse of cycle-1's AC5 repro): temporarily inserted
+`throw new RuntimeException('NEARS-2112 QA forced exception: interrupt between down() and first up()');`
+immediately after the two assertFalse(Schema::hasTable(...)) checks in
+test_migration_is_reversible_and_re_appliable(), before the first $this->migration()->up() call —
+i.e. forcing the exception into the exact window the fix targets (both tables dropped, first up() not
+yet run). File reverted afterward; `git diff` on the test file is empty (byte-identical to committed
+9688a607 state) — confirmed via `git status --porcelain` + `git diff` both empty.
+
+Non-zero baseline: seeded 2 rows into `cuisines` + 2 rows into `cuisine_store`
+(multi_food_db_test_nears_nears_2112_cuisine_migration_snaps, the private per-worktree test DB per
+NEARS-1199) directly via SQL before running the mutated test, since the migration's own up() in
+setUp() does not seed data and this test class only inserts NEARS1582%-prefixed rows that tearDown
+purges. Confirmed via SELECT COUNT(*) = 2 / 2 before running.
+
+Run 1 — forced-exception repro:
+$ vendor/bin/phpunit --configuration phpunit.xml --filter test_migration_is_reversible_and_re_appliable tests/Feature/CuisineTaxonomySchemaTest.php
+
+  E                                                                   1 / 1 (100%)
+  1) Tests\Feature\CuisineTaxonomySchemaTest::test_migration_is_reversible_and_re_appliable
+  RuntimeException: NEARS-2112 QA forced exception: interrupt between down() and first up()
+  .../CuisineTaxonomySchemaTest.php:184
+  Tests: 1, Assertions: 2, Errors: 1.
+
+AC5 check 1 (original exception surfaces cleanly, not masked by a secondary QueryException) — PASS.
+The reported exception is exactly the forced RuntimeException, at the throw site (line 184); no
+"restore INSERT hit missing table" QueryException wraps or replaces it. This is the defect cycle 1
+reproduced (in the old body, this same forced-exception setup produced a QueryException masking the
+original — see ac5-exception-path-partial-gap.log from cycle 1).
+
+Post-run DB state (queried directly, since tearDown ran even though the test errored):
+  SELECT id, name FROM cuisines WHERE name LIKE 'NEARS2112QA%';
+    1 | NEARS2112QA Baseline A
+    2 | NEARS2112QA Baseline B
+  SELECT cuisine_id, store_id FROM cuisine_store WHERE cuisine_id IN (1,2);
+    1 | 1
+    2 | 1
+  COUNT(cuisines) = 2, COUNT(cuisine_store) = 2
+
+AC5 check 2 (snapshot IS restored despite the failure, row counts back to the non-zero baseline) — PASS.
+Both baseline rows (ids + names + pivot links) are present after the errored test's tearDown ran —
+restoreCuisineTaxonomySnapshot() detected the dropped tables via Schema::hasTable() and called the
+migration's own up() before re-inserting the captured snapshot rows.
+
+Cleanup: deleted the 4 QA-seeded rows from the private test DB; confirmed COUNT = 0/0 afterward.
+
+Mutation revert: restored the test file to its committed state; `git status --porcelain` and
+`git diff` on tests/Feature/CuisineTaxonomySchemaTest.php both empty — byte-identical to 9688a607.
+
+Run 2 — happy-path sanity (full class, non-zero baseline, no forced exception):
+  seeded 1 extra cuisine + 1 cuisine_store row (non-NEARS1582-prefixed, so tearDown's per-test
+  cleanup does not touch it) before running the full class.
+$ vendor/bin/phpunit --configuration phpunit.xml tests/Feature/CuisineTaxonomySchemaTest.php
+  ........                                                            8 / 8 (100%)
+  OK (8 tests, 32 assertions)
+Post-run: the extra baseline row (NEARS2112QA Sanity) still present (COUNT=1), confirming the
+snapshot/restore round-trips correctly on the ordinary (non-exception) path too. Cleaned up after.
+
+Run 3 — full Admin suite (final full-suite confirmation before merge):
+$ vendor/bin/phpunit --configuration phpunit.xml
+  Time: 05:58.352, Memory: 403.50 MB
+  Tests: 1425, Assertions: 13274, Errors: 1, Deprecations: 1, Skipped: 1.
+  1) Tests\Feature\Security\ZoneContainsSqlInjectionTest::test_contains_scope_binds_its_argument
+     BadMethodCallException: Call to undefined method Illuminate\Database\Eloquent\Builder::contains()
+Same single pre-existing failure already tracked as NEARS-2242 (confirmed against tasks/runs/NEARS-2112.json
+cycle-1 record: identical test, identical 1425 tests / 13274 assertions, 1 error). No new failures.
+
+Verdict: PASS. AC5 re-verified and confirmed fixed; no regressions on the happy path or the full suite.

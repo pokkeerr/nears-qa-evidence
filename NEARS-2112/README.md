@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2112
 
-**PASS-with-finding: snapshot/restore prevents the original data-loss defect (AC1/AC2/AC4 all PASS); AC5 reveals a real, narrower restore gap in the down()-to-up() exception window**
+**Delta re-QA fix-cycle 1: AC5 PASS — snapshot restore confirmed on down()->up() interrupt window; full suite clean (1425/13274, only pre-existing NEARS-2242)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -9,6 +9,7 @@
 - [`ac2-full-suite-non-zero-baseline.log`](ac2-full-suite-non-zero-baseline.log)
 - [`ac3-divergence-comment.log`](ac3-divergence-comment.log)
 - [`ac4-mutation-proof-old-body-reproduces-defect.log`](ac4-mutation-proof-old-body-reproduces-defect.log)
+- [`ac5-delta-requa-fix-cycle-1-restored.log`](ac5-delta-requa-fix-cycle-1-restored.log)
 - [`ac5-exception-path-partial-gap.log`](ac5-exception-path-partial-gap.log)
 - [`ac6-full-suite-backstop-tail.log`](ac6-full-suite-backstop-tail.log)
 - [`bug-finally-restore-throws-if-exception-fires-between-down-and-up.log`](bug-finally-restore-throws-if-exception-fires-between-down-and-up.log)
