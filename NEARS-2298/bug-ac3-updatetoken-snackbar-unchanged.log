@@ -1,0 +1,33 @@
+NEARS-2298 QA — AC3 finding: cm-firebase-token snackbar is IDENTICAL pre-fix (302) and post-fix (401)
+Repro: customer@nears.com (user_id 6) logs in on-device; the exact minted oauth_access_tokens
+row is then revoked (revoked=1) on an ISOLATED DB copy (multi_food_db_qa2298, NOT the shared
+dev DB); app is cold-booted (am force-stop + am start) with the stale token still in local
+secure storage.
+
+=== POST-FIX (401, HEAD 3dfac576) — emulator-5564, pid 23013 ===
+08-21 23:39:01.455 [NET] endpoint=/api/v1/customer/cm-firebase-token http_status=401
+08-21 23:39:01.652 [FAIL] endpoint=/api/v1/customer/cm-firebase-token http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=f883295e-9fe6-484d-8b96-35d814fb74e3
+08-21 23:39:01.678 #1      showCustomSnackBar (package:sixam_mart/common/widgets/custom_snackbar.dart:30:17)
+08-21 23:39:01.685 [ERR] msg="error snackbar shown"
+
+=== PRE-FIX (302, parent commit 47c7346e, Admin/bootstrap/app.php reverted for this run only,
+    restored to HEAD immediately after) — same device, pid 23927, fresh stale-token repro ===
+08-21 23:43:29.122 [NET] endpoint=/api/v1/customer/cm-firebase-token http_status=302
+08-21 23:43:29.173 [FAIL] endpoint=/api/v1/customer/cm-firebase-token http_status=302 type=ApiFailure msg="unhandled api response" correlation_id=964e0c72-b056-48f9-bfc2-a8215ba6c57e
+08-21 23:43:29.180 #1      showCustomSnackBar (package:sixam_mart/common/widgets/custom_snackbar.dart:30:17)
+08-21 23:43:29.182 [ERR] msg="error snackbar shown"
+
+Root cause (read, not just observed): UserApp/lib/features/auth/controllers/auth_controller.dart
+lines 297-305 — `_forLoggedInUserRouteProcess()` (splash_route_helper.dart:81) fires
+`Get.find<AuthController>().updateToken()` UNAWAITED on every logged-in cold boot. That method's
+own success check is `response.statusCode == 200` (auth_service.dart:92-97) — true for neither a
+302 redirect nor a 401 JSON, so BOTH produce `success=false` and both trigger the SAME
+`showCustomSnackBar('sorry_something_went_wrong'.tr)` at auth_controller.dart:303. This path is
+entirely independent of the NEARS-2298 exception-handler change (Admin/bootstrap/app.php) — the
+snackbar fires identically whether the backend answers 302 or 401.
+
+Conclusion: AC3 ("no error snackbar ... on the first screen") is NOT satisfied by the shipped
+fix on the real stale-token repro. The defect is pre-existing (present at parent commit
+47c7346e too, unrelated to this diff) — filed as a task_bug because it is the ticket's own
+explicit AC3 deliverable and remains open, though the actual code that needs to change lives in
+UserApp's AuthController/updateToken, outside this diff's Admin/bootstrap/app.php scope.

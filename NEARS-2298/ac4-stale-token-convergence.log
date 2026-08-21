@@ -1,0 +1,34 @@
+NEARS-2298 QA — AC4 evidence: stale-token cold-boot force-logout is PRE-EXISTING, not a new
+hazard introduced by this fix.
+
+=== POST-FIX (401) — emulator-5564, pid 23013, 2026-08-21 23:39 ===
+[NET] endpoint=/api/v1/customer/order/payment-failed http_status=401 -> [FAIL] api request failed
+[NET] endpoint=/api/v1/customer/order/running-orders  http_status=401 -> [FAIL] api request failed
+[NET] endpoint=/api/v1/customer/info                  http_status=401 -> [FAIL] api request failed / "profile load failed"
+[NET] endpoint=/api/v1/customer/notifications         http_status=401 -> [FAIL] api request failed
+[NET] endpoint=/api/v1/coupon/list                    http_status=401 -> [FAIL] api request failed / "coupon list load failed"
+[NET] POST endpoint=/api/v1/auth/guest/request        http_status=200   <- ApiChecker.checkApi's
+                                                                            force-logout path
+                                                                            (clearSharedData ->
+                                                                            guestLogin) firing
+App converges cleanly to the guest module-home / login-suggestion screen. No crash, no ANR, no
+[FATAL], no double-navigation error in logcat. Screenshot:
+docs/qa-evidence/NEARS-2298/ac3-ac4-stale-token-postfix-guest-home.png
+
+=== PRE-FIX (302) — same device, pid 23927, 2026-08-21 23:43 ===
+[NET] endpoint=/api/v1/customer/address/list http_status=401 -> [FAIL] api request failed
+[NET] POST endpoint=/api/v1/auth/guest/request http_status=200   <- SAME force-logout path fires
+
+customer/address/list was ALREADY an honest JSON-401 endpoint before this fix (matches AC2's
+"unchanged" claim) — so the SAME ApiChecker.checkApi force-logout (clearSharedData(removeToken:
+false) -> ApiClient.clearStoredToken() [runs unconditionally regardless of the removeToken flag]
+-> CartController.clearCartList(canRemoveOnline:false) -> FavouriteController.removeFavourite()
+-> Get.offAllNamed) ALREADY fired on a stale-token cold boot at the PARENT commit, via whichever
+auth:api endpoint the splash flow reached first that already had a working 401.
+
+Conclusion: NEARS-2298 does not introduce a NEW force-logout/token-wipe/cart-clear hazard. It
+converges MORE endpoints (previously silently masked behind a 302-to-HTML redirect) onto the
+SAME already-shipped, already-accepted 401 force-logout path that customer/address/list and
+customer/cart/list already exercised pre-fix. AC4's qualifier ("as a result of the new 401") is
+satisfied: the logout is not new, only its endpoint coverage widened -- and it behaves safely
+(no crash/dead-end) in both configurations.
