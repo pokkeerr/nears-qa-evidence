@@ -1,0 +1,18 @@
+# NEARS-1773 AC3 — Forgot Password screen, live device correlation join
+# Device: emulator-5570, UserApp debug build, backend: primary tree Admin/ (port 8000)
+# Trigger: unregistered phone +971501234756 submitted on /forgot-password -> backend 404 "user_not_found!"
+
+## App runtime log (flutter run stdout, pid 10159)
+I/flutter (10159): [FAIL] endpoint=/api/v1/auth/forgot-password http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=c77add9a-3e99-4d87-9769-8b34725712c7
+I/flutter (10159): The following exception was thrown forget-password request failed:
+I/flutter (10159): [FAIL] endpoint=/api/v1/auth/forgot-password http_status=404 type=ApiFailure msg="forget-password request failed" correlation_id=c77add9a-3e99-4d87-9769-8b34725712c7
+
+## Backend log (Admin/storage/logs/laravel.log), grep -F on the same correlation_id
+[2026-08-21 07:07:46] production.WARNING: [WARN] OTel export circuit breaker open -> half_open (signal=metrics) {"trace_id":"2dc36ffcaf15b378cd9e5519204e8840","correlation_id":"c77add9a-3e99-4d87-9769-8b34725712c7", ...}
+[2026-08-21 07:07:46] production.ERROR: [FAIL] OpenTelemetry export failed ... {"trace_id":"2dc36ffcaf15b378cd9e5519204e8840","correlation_id":"c77add9a-3e99-4d87-9769-8b34725712c7", ...}
+(6 lines total matched — all carry the SAME correlation_id emitted by the app's [FAIL] lines, proving the X-Request-Id sent by the client on this request was echoed/logged server-side under this request's logging context.)
+
+## Regression: happy-path forgetPassword (same session, phone +971565811199, registered)
+I/flutter (10159): [NET] POST endpoint=/api/v1/auth/forgot-password
+I/flutter (10159): [NET] endpoint=/api/v1/auth/forgot-password http_status=200
+(No [FAIL] line — confirms correlationId/statusCode stay unpopulated on the success ResponseModel(true,...) branch, matching the code read.)
