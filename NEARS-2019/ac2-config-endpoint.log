@@ -13,3 +13,30 @@ cache was correctly flushed by the remediation seeder.
 AC2 (API/config half): met. AC2's order_amount<->laravel.log correlation half could NOT be
 demonstrated — blocked, see envelope (all 3 Android QA-pool devices held by other live
 sessions for the full bounded wait window).
+
+--- UPDATE (delta continuation, 2026-08-22): order_amount API<->DB correlation, order #91131 ---
+
+The place-order POST's own 200 response body is never logged by AppLogger (logging-contract
+PII-safe rule: response bodies are never logged), so the correlation below uses the customer
+order/running-orders GET (same order, immediately after placement) as the live API surface
+instead -- same order row, same account, same session.
+
+Request: GET /api/v1/customer/order/running-orders?limit=10&offset=1
+  Authorization: Bearer <customer@nears.com token, obtained live via /api/v1/auth/login>
+Response header: X-Request-Id: 6237ef93-6668-4acd-b567-2f09e9d85246
+Response body (order id=91131): order_amount: 28.41
+
+DB (read-only, same moment): SELECT id, order_amount FROM orders ORDER BY id DESC LIMIT 1;
+  -> id=91131, order_amount=28.41   -- EXACT MATCH.
+
+BE-log grep for the X-Request-Id (Admin/storage/logs/laravel.log, primary tree): no match (rc=1)
+-- expected: SetRequestId middleware only writes to the log context, nothing calls Log:: on this
+success path, so a clean 200 leaves no log line to correlate against (documented pre-existing
+behavior, not a NEARS-2019 defect: "BE-log grep cannot confirm success"). The earlier FAILED
+attempt (403, wrong schedule) DID log with correlation_id=071101bc-cd06-4699-9db9-1390c22bb14b on
+the Flutter side per the AppLogger contract, but the backend 403 was a plain validation response
+with no Log:: call either -- also expected (400/403 validation responses are not failure-log
+paths).
+
+AC2 (order_amount API<->DB correlation half): met.
+AC2 (config-publish half, original entry above): met.

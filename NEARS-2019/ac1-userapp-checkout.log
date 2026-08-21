@@ -1,0 +1,63 @@
+NEARS-2019 phase [8] QA (delta continuation) — AC1 live UserApp checkout, 2026-08-22
+Device: emulator-5554 (Android, worktree nears-NEARS-2019-money-rounding, backend on primary
+tree Admin/ port 8000, UserApp built+installed fresh via `flutter run -d emulator-5554 --debug`)
+Account: customer@nears.com (Customer Nears, +971565811199)
+
+Flow driven (label-based, uinav.sh, app locale was Arabic — labels below are the live Arabic
+strings, translated inline):
+ 1. Home (module-selection) -> tapped "Grocery & Food"
+ 2. Store list -> tapped "Nears Mart" (store_id=1) -- store showed "closed now / opens 08:00"
+    (device local time was ~03:52 AM, store hours 08:00-23:00 daily per store_schedule table)
+ 3. Tapped item "Rice 5kg" (item_id=97, base price AED 15.03, 10% flash-sale discount ->
+    AED 13.52 displayed) -> tapped "Schedule Order" (store closed at request time, schedule_order
+    enabled on module+store) -> item added to cart, quantity bumped to 2 (increase-qty control)
+    to clear the store's AED 20.00 minimum-order gate (2 x 13.52 = 27.04 displayed as 27.05)
+ 4. Cart -> "Proceed to Checkout" -> gated: "Please login to continue" (guest_checkout_status=0,
+    confirmed via /api/v1/config earlier) -> logged in customer@nears.com / 123456789
+ 5. Checkout screen: reviewed order summary -- Subtotal 30.06, Delivery (+)1.35 [NOTE: this
+    row's Arabic label was ambiguous between tax/delivery; the DB confirms it landed in
+    total_tax_amount], Discount -3.00, Total AED 28.41 (all non-integral, 2-decimal). Payment
+    method: Cash on Delivery (default).
+ 6. Preferred Time was defaulted to "Immediate" -- tapped it, opened the schedule sheet, selected
+    a "09:00 AM - 10:00 AM" slot (within the store's 08:00-23:00 hours) via "Schedule" confirm.
+ 7. Tapped "Place Order" (label key `place_order`, Arabic mistranslation "Nizam mode").
+
+FIRST ATTEMPT (immediate/ASAP schedule) FAILED, correctly logged (no silent failure):
+  I/flutter: [INFO] msg="checkout: place-order button clicked"
+  I/flutter: [NET] endpoint=/api/v1/customer/order/place http_status=403
+  I/flutter: [FAIL] endpoint=/api/v1/customer/order/place http_status=403 type=ApiFailure
+             msg="unhandled api response" correlation_id=071101bc-cd06-4699-9db9-1390c22bb14b
+  UI showed: "Store is closed at order time" / "Order failed" -- expected/correct backend
+  validation (store genuinely closed at request time under Immediate mode), NOT a NEARS-2019
+  regression. AppLogger paired [FAIL] line present -> no silent-failure finding.
+
+SECOND ATTEMPT (09:00-10:00 AM schedule) SUCCEEDED:
+  I/flutter: [INFO] msg="checkout: place-order button clicked"
+  I/flutter: 📊 analytics: begin_checkout {value: 28.41}
+  I/flutter: 📊 analytics: add_payment_info {payment_type: cash_on_delivery, value: 28.41}
+  I/flutter: [NET] endpoint=/api/v1/customer/order/place http_status=200
+  I/flutter: 📊 analytics: purchase {transaction_id: 91131, value: 28.41}
+  I/flutter: [INFO] msg="checkout: order placed successfully orderID=91131"
+
+Order confirmation screen (My Orders -> Ongoing tab), live a11y dump:
+  "Nears Mart" / "22 Aug 2026, 03:52 AM  •  #91131" / "Order status, Pending" / "1 item" /
+  "AED 28.41"
+Order-detail/tracking screen for #91131:
+  "Pending, order #91131" / order date "22 Aug 2026, 03:52 AM" / scheduled "22 Aug 2026, 10:01 AM"
+  / Cash on Delivery / status stepper (Order Placed / Confirmed / Preparing / On the way /
+  Delivered)
+
+DB check (read-only), same moment:
+  mysql> SELECT id, order_amount FROM orders ORDER BY id DESC LIMIT 1;
+  id=91131, order_amount=28.41
+  mysql> SELECT id, order_id, item_id, price FROM order_details WHERE order_id=91131;
+  id=89, order_id=91131, item_id=97, price=15.03
+
+Math check: order_details.price (base, per unit) 15.03 x quantity 2 = 30.06 (subtotal) +
+total_tax_amount 1.35 - item-level flash discount 3.00 (2 x 1.50/unit, discount_on_item=1.5 in
+order/details response) = 28.41 = orders.order_amount. All figures 2-decimal, non-integral,
+NOT rounded to whole dirhams (pre-fix this would have persisted as order_amount=28 (or 29),
+order_details.price=15).
+
+AC1: met -- non-integral order persisted, confirmed via BOTH the order confirmation screen and
+a read-only DB check, math ties out exactly.
