@@ -1,0 +1,100 @@
+QA evidence — NEARS-2124 — AC1: unrelated file (qa-scratch-file) staged in the worktree's own index during this run
+Command: git add qa-scratch-file && bash scripts/newtask-guards/workflow-json-drift.test.sh
+Result: exit 0, PASS 87/87 case(s) executed, 0 skipped, 0 FAIL -- 1f-1j all 'ok'
+Cleanup after: git reset -- qa-scratch-file && rm -f qa-scratch-file (confirmed clean, see git-status-after.txt)
+---
+§1 check 1's three empty-scope entrances
+  ok   1a --range HEAD..HEAD: exit 4, not 0
+  ok   1b --range HEAD..HEAD: check 1 says SKIP
+  ok   1c --range HEAD..HEAD: never a PASS over zero changed files
+  ok   1d --range HEAD..HEAD: the run verdict is not 'clean' when the drift check asserted nothing
+  ok   1e --range HEAD..HEAD: publishes a validity count of 0 CHANGED FILES
+  ok   1f --staged on an empty index: exit 4, not 0
+  ok   1g --staged on an empty index: check 1 says SKIP
+  ok   1h --staged on an empty index: never a PASS
+  ok   1i bare invocation on an empty index: exit 4, not 0
+  ok   1j bare invocation: check 1 says SKIP
+  ok   1k AC3 mutation (removal direction): pre-NEARS-1804 unconditional-PASS shape exits 0 on the same clean index where 1f expects 4
+  ok   1l AC3 mutation: prints the old unconditional PASS over zero changed files, verbatim
+  ok   1l-n AC3 mutation: never prints SKIP — proves 1f-1j actually discriminate against this regression
+  ok   1m AC5 --staged with an unrelated file staged in $ROOT_DIR (concurrent-session shape): fixture unaffected, still exit 4
+  ok   1n AC5 --staged with $ROOT_DIR contaminated: fixture unaffected, still SKIP
+  ok   1o AC5 bare invocation with $ROOT_DIR contaminated: fixture unaffected, still exit 4
+  ok   1p AC5 bare invocation with $ROOT_DIR contaminated: fixture unaffected, still SKIP
+§2 THE POSITIVE CONTROL — a real change-set still reaches a real verdict
+  ok   2a POSITIVE CONTROL: a real non-empty range with no drift exits 0
+  ok   2b and check 1 reports a real PASS
+  ok   2c and the validity count is NOT zero
+  ok   2d and the run verdict is clean
+§3+§4 AC5 — checks 2/3/4 untouched, in BOTH directions
+  ok   3a check 2 still runs, verbatim, on an empty change-set
+  ok   3b check 3 still runs, verbatim, on an empty change-set
+  ok   3c check 4 still runs, verbatim, on an empty change-set
+  ok   4a POSITIVE CONTROL: a real drift still FAILs with exit 1
+  ok   4b and names the drift
+  ok   4c and publishes the count on the FAIL path
+  ok   4d POSITIVE CONTROL: agent + workflow.json moving together exits 0
+  ok   4e and check 1 reports the move-together PASS
+  ok   4f a desynced golden still FAILs check 4 (AC5, direction b)
+  ok   4g and a real finding outranks nothing-asserted: exit 1, not 4
+§5 usage errors stay 2
+  ok   5a unknown mode exits 2
+  ok   5b --range with no argument exits 2
+  ok   5c unresolvable range exits 2 (2 usage or 4 nothing-asserted) — never 0
+§6 the legacy escape, BOTH branches
+  ok   6a escape FIRES on a nothing-asserted run: 4 -> 0
+  ok   6b and the verdict WORD still reads SKIP
+  ok   6c escape REFUSES to downgrade a run holding a real finding (the desynced golden)
+§7 the library's own absence exits 4
+  ok   7a guard-scope.sh absent -> exit 4, never a green
+  ok   7b and names the missing library
+  ok   8h1 -h now reaches the Exit: table, through its new LAST line
+  ok   8h1-e and stops there, without spilling the section below it
+§8 NEARS-2009 — check 5 reads the change-set, not the working tree
+  ok   8a AC1 golden staged alone: the index pair is diverged and check 5 FAILs
+  ok   8a-rc and the run exits 1, not the pre-fix 0
+  ok   8b golden re-synced on disk but unstaged: check 5 FAILs
+  ok   8b-rc and the run exits 1
+  ok   8b-c4 while check 4 still PASSes VERBATIM — the disk pair really does agree; the two checks answer different questions
+  ok   8k a check-5 finding never wears check 4's words (a prefix-colliding label would satisfy §4f's pin)
+  ok   8j foreign cwd: identical verdict ($ROOT comes from BASH_SOURCE, and git -C resolves :<path> repo-relative)
+  ok   8j-rc foreign cwd: exit 1
+  ok   8c AC2 both diverged + both staged: check 4 still FAILs (no regression)
+  ok   8c-c5 and check 5 FAILs on the same change-set
+  ok   8c-rc exit 1
+  ok   8d POSITIVE CONTROL: a consistent staged pair PASSes check 5
+  ok   8d-rc exit 0
+  ok   8e POSITIVE CONTROL: check 5 still asserts on an EMPTY index
+  ok   8e-rc and check 1's nothing-asserted 4 is unaffected by check 5's pass
+  ok   8f --range: a commit recording a diverged pair FAILs (measured pre-fix: exit 0)
+  ok   8f-rc exit 1
+  ok   8f-c4 and check 4 is unchanged in range mode — it reads the worktree, which is genuinely in lockstep
+  ok   8h A...B resolves its endpoint to B, exactly as A..B does
+  ok   8h-rc exit 1
+  ok   8y 'A..' resolves its endpoint to HEAD
+  ok   8y-rc exit 1
+  ok   8w no-'..' range: check 5 names the working tree as its source
+  ok   8w-v and reaches a real verdict there rather than skipping
+  ok   8n POSITIVE: a range REPAIRING a diverged pair (A diverged, B consistent) PASSes — endpoint-only, never also at A
+  ok   8n-rc exit 0 — the guard never blocks its own remedy
+  ok   8g POSITIVE CONTROL: a consistent-at-both-ends range PASSes
+  ok   8g-rc exit 0
+  ok   8i asymmetric index: FAILs and names the missing side
+  ok   8i-n and publishes how many blobs it actually read
+  ok   8i-rc exit 1
+  ok   8x neither half readable: SKIP, never a silent pass
+  ok   8x-n and the read count says zero out loud
+  ok   8x-rc F3: check 5 asserting nothing makes the RUN exit 4, even though check 1 asserted
+  ok   8x-v F3: and the run is never called clean on it
+  ok   8p endpoint predates both files: check 5 SKIPs
+  ok   8p-rc F3: exit 4 — nothing asserted, NOT a finding (the pair simply does not exist yet)
+  ok   8p-v F3: and the run refuses to report clean
+  ok   8p2 both checks silent: the verdict names BOTH rather than crediting either
+  ok   8p2-rc exit 4
+  ok   8o hostile endpoint (leading '-') is refused as a usage error
+  ok   8o-m and the refusal says why, so it is not read as a broken ref
+  ok   8o-w and NO file is created at any path derived from the argument (prefix globbed, not guessed)
+  ok   8o-p and no PASS is printed over reads that never happened
+  ok   8q-b the '--' form returns rc=0 with 0 bytes while the plain read returns 57 — two empty reads would cmp EQUAL and PASS
+  ok   8q the guard never reads a blob through a '--' separator
+PASS  workflow-json-drift.test: 87/87 case(s) executed (0 skipped; SKIP is never PASS) — scope pinned, checks 1-4 unchanged.
