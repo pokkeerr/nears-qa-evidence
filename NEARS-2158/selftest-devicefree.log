@@ -1,0 +1,105 @@
+== kill_coldstart.test.sh (NEARS-2158) ==
+-- subject: /Users/Apple/Projects/nears-NEARS-2158-coldstart-notif-recipe/scripts/app-nav/kill_coldstart.sh
+-- DEVICE-FREE: a green run here is NOT AC1/AC2 evidence — see docs/data-qa/verification-checks.md for the real-pool run.
+-- case 1: USAGE — no args
+  ok   1: missing <package> is a usage error (exit 2, mirrors uinav.sh's NOT ASSERTED) (exit 2)
+  ok   1: usage text is printed (stdout, same convention as qa_stall_backend.sh's usage())
+-- case 1b: USAGE — -h/--help
+  ok   1b: -h exits 0 (exit 0)
+  ok   1b: --help prints usage on stdout
+-- case 1c: USAGE — unknown flag refused
+  ok   1c: an unrecognised flag is a usage error (exit 2)
+  ok   1c: usage text is printed on stdout
+  ok   1c: the specific reason is on stderr, separate from the usage block
+-- case 1d: USAGE — non-numeric --timeout refused
+  ok   1d: a non-numeric --timeout is refused before any device is touched (exit 2)
+  ok   1d (EFFECT): no adb call was made — validated before touching a device
+-- case 1e: USAGE — a second positional argument is refused, not silently dropped
+  ok   1e: two package-shaped args is a usage error (exit 2)
+-- case 2: AMBIGUOUS device set — refused before any recipe step runs
+  ok   2: exit 3 = AMBIGUOUS, same vocabulary as uinav.sh (exit 3)
+  ok   2: the refusal names itself
+  ok   2: the four-field stdout contract is honoured even on a refusal
+  ok   2: ...including result=still_alive
+  ok   2 (EFFECT): no recipe step reached the device
+-- case 3: NOT ASSERTED — zero devices attached
+  ok   3: exit 2, not 3 — nothing to choose between is a different fact from too much to choose between (exit 2)
+  ok   3: reason stated
+-- case 4: NOT ASSERTED — a pinned serial that is not attached
+  ok   4: a bogus -s is refused before adb is asked to act on it (exit 2)
+  ok   4: the bogus serial is quoted back
+-- case 5: TASKID RESOLUTION — mHiddenTasks names a STALE task for the SAME pkg; the LIVE task must still win
+  ok   5: resolves and kills cleanly (exit 0)
+  ok   5 (THE POINT): taskId 51 (the live 'Recent #0' task) was removed
+  ok   5 (THE DEFECT, PINNED ABSENT): NOT the stale mHiddenTasks id 47
+  ok   5 (THE DEFECT, PINNED ABSENT): NOT the stale mHiddenTasks id 41 either
+-- case 5b: DEFECT PIN — the NAIVE bare-first-match approach, run against the SAME fixture, picks the WRONG (stale) id
+  ok   5b: the naive one-liner resolves to a STALE mHiddenTasks id (41, not the live 51) — case 5 is the assertion that kill_coldstart.sh does not repeat this
+-- case 5c: TASKID FALLBACK — our pkg is Recent #1 (not #0); the fallback still finds it and still skips mHiddenTasks
+  ok   5c: resolves via the fallback path (not Recent #0) and still kills cleanly (exit 0)
+  ok   5c: the fallback found the live task (51), not the OTHER app's #0 (60) or the stale hidden one (47)
+-- case 5d: NO TASKID, BUT NOT STUCK — the package has no task in recents at all; the ladder skips the per-task tiers and falls through to the package-level ones (am kill / pm disable-user), which need no taskId
+  ok   5d: an unresolvable taskId is NOT a hard failure — the package-level tiers don't need one (exit 0)
+  ok   5d: the gap is still narrated
+  ok   5d: ...and the fallback is explicit about what it's doing instead
+  ok   5d (EFFECT): tier 1 never ran — there was no taskId to give it
+  ok   5d (EFFECT): tier 2 never ran either
+  ok   5d (EFFECT): tier 3 (package-level, no taskId needed) DID run
+  ok   5d: and it succeeded
+-- case 6: KILLED on tier 1 — task remove alone was enough, nothing else escalated
+  ok   6: clean kill exits 0 (exit 0)
+  ok   6: the pre-kill pid is reported
+  ok   6: post-kill pidof is empty
+  ok   6: result names the exact tier that worked
+  ok   6 (THE OTHER POINT): the stopped-state flag was never tripped
+  ok   6 (EFFECT): tier 2 never ran
+  ok   6 (EFFECT): tier 3 never ran
+  ok   6 (EFFECT): tier 4 never ran
+-- case 6b: KILLED on tier 2 — tier 1 (task remove) reports success but the pid survives; am stack remove is next
+  ok   6b: exits 0 — tier 2 confirmed dead (exit 0)
+  ok   6b: result names tier 2 specifically
+  ok   6b (EFFECT): 'am stack remove' actually reached adb
+  ok   6b (EFFECT): tier 3 never ran — no need once tier 2 confirmed dead
+-- case 6c: KILLED on tier 3 — LIVE-MEASURED SHAPE (NEARS-2158): task remove is not a valid 'am' subcommand on the fleet's SDK 37 image, stack remove removes the task but the geolocator-bound process survives; am kill is what finally reaps it
+  ok   6c: exits 0 — tier 3 confirmed dead (exit 0)
+  ok   6c: result names tier 3
+  ok   6c (EFFECT): the escalation command actually reached adb
+  ok   6c: narrated on stderr
+  ok   6c (EFFECT): tier 4 never ran
+-- case 6d: KILLED on tier 4 — LIVE-MEASURED SHAPE (NEARS-2158, THE COMMON CASE for this app): tiers 1-3 all fail against a PERSISTENT_SERVICE_ADJ process (UserApp self-binds its own geolocator/location services); pm disable-user is the tier that actually reaches it, then pm enable restores it WITHOUT relaunching
+  ok   6d: exits 0 — tier 4 confirmed dead (exit 0)
+  ok   6d: result names tier 4 explicitly — never just 'killed', so a reader knows FCM reachability needs the pm-enable step too
+  ok   6d (EFFECT): the unconditional kill actually reached adb
+  ok   6d (EFFECT): pm_disable.log recorded the target package
+  ok   6d (HYGIENE): pm enable was called to restore reachability — never left disabled on a successful kill
+  ok   6d (THE WHOLE POINT): even the heaviest tier never touches the stopped-state flag
+-- case 7: STILL ALIVE after EVERY tier — non-zero exit, never a false 'killed', and pm enable STILL runs (hygiene even on total failure)
+  ok   7 (THE POINT): a pid that survives ALL FOUR tiers is exit 1, never reported as success (exit 1)
+  ok   7: result says so explicitly
+  ok   7: the surviving pid is reported, not swallowed
+  ok   7: narrated on stderr
+  ok   7 (HYGIENE, THE OTHER POINT): pm enable was still called even though the kill itself failed — a shared pool device must never be left with this package disabled
+-- case 8: pre_pid=none — the app was already not running before the recipe starts (idempotent, not an error)
+  ok   8: an already-dead app is not a failure (exit 0)
+  ok   8: pre_pid correctly reports none
+  ok   8: the no-op is narrated, not silent
+-- case 9: STOPPED-FLAG WARNING — dumpsys reports stopped=true even though THIS script never force-stopped anything
+  ok   9: the kill itself still succeeded (this is a warning, not a failure of the kill) (exit 0)
+  ok   9: the machine-readable field surfaces it
+  ok   9 (THE POINT): a loud warning, not a silently 'clean' report — a caller trusting result=killed alone would miss that FCM is still blocked
+-- case 10: F1 REGRESSION — the transport drops (no rc= marker) on the FIRST poll read of tier 1, while the app is really still alive; before the fix this empty read was indistinguishable from a genuine death and would have reported a false 'killed_task_remove'/exit 0
+  ok   10: exit 2 — NOT ASSERTED, never exit 0/1 on a read that never reached the device (exit 2)
+  ok   10 (THE POINT): a distinct third outcome, not folded into 'killed' or 'still_alive'
+  ok   10 (THE DEFECT THIS CLOSES): never a false 'killed' on an unreachable read
+  ok   10: nor a false 'still alive' — 'unreachable' is not 'confirmed alive' either
+  ok   10: the four-field contract names the sentinel, not a raw pid or 'none'
+  ok   10: narrated with the same vocabulary as every other refusal in this script
+  ok   10: the specific mechanism is named, not just 'something went wrong'
+  ok   10 (EFFECT): the ladder ABORTS on indeterminate — it does not escalate past the tier where the transport dropped
+  ok   10 (EFFECT): tier 3 never ran either
+  ok   10 (EFFECT): nor tier 4 — an unreachable device must not be guessed past
+-- case 10b: F1 CONTROL — the OLD bare 3-arg 'adb shell pidof <pkg>' shape (no rc= marker requested), run against the SAME dropped-transport fixture line, comes back completely empty: proof this fixture line really is indistinguishable from a genuine 'no pid found' under the pre-fix read, which is the exact false positive F1 closes
+  ok   10b: the naive/pre-fix shape reads this fixture line as empty stdout — the same shape a genuine 'process is dead' answer takes, confirming the control is a real trap and not vacuous
+
+== 21 cases, 78 assertions, 0 failed ==
+PASS

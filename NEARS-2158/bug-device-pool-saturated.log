@@ -1,0 +1,66 @@
+NEARS-2158 [8] QA — device-pool saturation blocking live AC1/AC2 verification
+Captured: 2026-08-21, session anchor as run in worktree
+/Users/Apple/Projects/nears-NEARS-2158-coldstart-notif-recipe
+
+Dispatch prompt stated free devices: emulator-5556, emulator-5562, emulator-5564,
+emulator-5570 (emulator-5554 held live by NEARS-2076 pid 5228; emulator-5558 held
+live by NEARS-2130 pid 10132). Re-checked per protocol before acquiring, as instructed.
+
+Actual state at re-check (source scripts/qa-lock-guard.sh; qa_lock_check <serial>):
+
+  emulator-5554  exit=3 OCCUPIED (no lock file) — foreign live drivers:
+                 pid 73894 `flutter run -d emulator-5554 --debug --dart-define=API_HOST=10.0.2.2:8000`
+                 (ppid 1, started Fri Aug 21 07:50:24 2026, elapsed ~36m+ and counting)
+                 pid 74009 `adb -s emulator-5554 shell -x logcat -v time -T ...` (child of 73894)
+                 device proc: com.izzes.nears present. NEARS-2076's lock file
+                 (owner.json, pid 5228) named in the dispatch prompt is NO LONGER
+                 present in $HOME/.nears/qa-locks/ — that session evidently released,
+                 but a DIFFERENT bare `flutter run` (bypassing the lock guard per its
+                 documented residual bypass) is now driving the same serial unlocked.
+
+  emulator-5556  exit=3 OCCUPIED (no lock file) — foreign live drivers:
+                 pid 16482 `flutter run -d emulator-5556 --debug` (started 06:39:30,
+                 elapsed ~1h47m+), pid 16821 adb logcat child.
+
+  emulator-5558  exit=5 PHANTOM HOLD — locked by NEARS-2130, pid 10132 (confirmed
+                 alive), but the serial is NOT in the currently-attached `adb devices`
+                 enumeration (probe: devices_enumerated=5, emulator-5558 absent).
+                 Matches the dispatch prompt's warning almost exactly (key/pid match),
+                 except the device has since gone off the attached list entirely.
+
+  emulator-5562  exit=3 OCCUPIED (no lock file) — foreign live driver pid 10502
+                 `flutter run -d emulator-5562 --debug` (started 04:17:28, elapsed
+                 ~4h+).
+
+  emulator-5564  exit=3 OCCUPIED (no lock file) — foreign live driver pid 50509
+                 `flutter run -d emulator-5564 --debug` (started 00:15:27, elapsed
+                 ~8h+).
+
+  emulator-5570  exit=3 OCCUPIED (no lock file) — foreign live drivers pid 43935
+                 `flutter run -d emulator-5570 --debug` (started 07:35:38, elapsed
+                 ~51m+), pid 44514 adb logcat child.
+
+All 5 attached devices in the Android pool are unavailable: 4 are being actively
+driven by foreign lockless `flutter run` processes (the documented residual bypass
+of scripts/qa-lock-guard.sh — none of these registered a lock, but ps confirms they
+are genuinely live, not stale: real elapsed times, real adb logcat children with
+recent -T timestamps, real com.izzes.nears device processes), and the 5th
+(emulator-5558) is a phantom-held lock (live owning session, device not attached) per
+the guard's own dedicated diagnosis.
+
+Followed the bounded queue-wait protocol: polled qa_lock_check across all 6 serials
+every 30s for the full 10-minute cap (20 iterations). No device freed at any point in
+the window. Never called qa_lock_acquire / never mkdir'd a lock directory — nothing to
+release on exit.
+
+This blocks live demonstration of BOTH ACs (AC1's 3-consecutive-attempt kill/FCM/push
+verification and AC2's cold-start-tap discriminator), which require a locked Android
+device running com.izzes.nears. Code review + the device-free self-test
+(kill_coldstart.test.sh, 21 cases/78 assertions, PASS — see selftest-devicefree.log in
+this same directory) were completed and are clean, but per the test file's own header
+and docs/data-qa/verification-checks.md's NEARS-2158 section, neither substitutes for
+live-pool evidence.
+
+Recommendation: re-dispatch [8] once any Android pool device frees (or is reclaimed
+per the qa-lock-guard's stale-pid protocol, which none of these qualify for — every
+process above is confirmed alive by `ps`, not a dead/stale pid).
