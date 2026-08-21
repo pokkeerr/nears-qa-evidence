@@ -1,0 +1,32 @@
+NEARS-1933 QA — live repro, 2026-08-21, emulator-5570
+
+$ bash scripts/qa-tools/qa_stall_backend.sh start --port 8091
+[qa_stall_backend] started pid=17652 port=8091 log=/tmp/qa_stall_backend_8091.log
+port=8091 pid=17652
+
+$ bash scripts/qa-tools/qa_stall_backend.sh status
+port 8091: pid=17652 running (ps state=S)
+$ echo exit=$?
+exit=1                      <-- BUG: instance listed successfully, should be exit 0
+
+$ bash scripts/qa-tools/qa_stall_backend.sh stop --port 8091
+[qa_stall_backend] stopped and confirmed gone: pid=17652 port=8091
+
+$ bash scripts/qa-tools/qa_stall_backend.sh status
+no qa_stall_backend instances recorded
+$ echo exit=$?
+exit=0                      <-- correct (no-instance case)
+
+Root cause (read in scripts/qa-tools/qa_stall_backend.sh cmd_status(), no-arg branch):
+  [[ "$any" -eq 0 ]] && echo "no qa_stall_backend instances recorded"
+This is the LAST statement in the function. When any=1 (an instance WAS found
+and printed), the `[[ ]]` test is false, so the `&&` short-circuits and the
+compound statement's exit status is 1 (the test's own falsy result) -- even
+though the function did exactly what it was supposed to do. set -euo pipefail
+does not trip here because it's the final statement of the script's dispatch
+case, so the FALSE exit code becomes the script's own exit code.
+
+Confirmed as previously flagged by the engineer during fix cycle 2 (self-check
+note in the FIX-CYCLE PACKET). Does not affect AC1 or AC2 and does not block
+this ticket's PASS -- flagged per the engineer's request for routing to a
+follow-up/regression ticket.
