@@ -1,0 +1,45 @@
+NEARS-2338 QA-lite (m4) — falsification transcript
+====================================================
+Fix under test: UserApp/lib/features/business/widgets/payment_cart_widget.dart
+  PositionedDirectional _CheckDot guard: added `&& !ResponsiveHelper.isDesktop(context)`
+
+Step 1 — baseline (fix applied, as landed):
+  $ flutter test test/features/business/payment_cart_widget_checkdot_test.dart
+  T1 — desktop width (>=1300dp) + selected renders exactly one _CheckDot   PASS
+  T2 — mobile width (<1300dp) + selected renders exactly one _CheckDot     PASS
+  T3 — an unselected payment card renders zero _CheckDots, at either width PASS
+  3/3 passed.
+
+Step 2 — mutate OUT the fix (revert the added guard back to
+  `if (ResponsiveHelper.isMobile(context) && selected)`), re-run same command:
+  T1 — desktop width (>=1300dp) ... FAILED (found 2 _CheckDot widgets, expected 1)
+  T2 — PASS
+  T3 — PASS
+  Confirms the guard is load-bearing: removing it reproduces the original
+  double-check-mark defect at >=1300dp, exactly as described in the ticket.
+
+Step 3 — restore the fix, re-run:
+  3/3 passed. `git diff` against the worktree matched the original intended
+  patch byte-for-byte (verified via `git diff --stat` + full diff read).
+
+Environment blocker (unrelated to this fix):
+  SubscriptionPaymentScreen (sole consumer of PaymentCartWidget, at
+  subscription_payment_screen.dart:171) is unreachable via live UI navigation
+  in the shared dev environment. Confirmed via read-only SELECT against the
+  shared multi_food_db:
+    business_settings.subscription_business_model = 0
+    business_settings.commission_business_model   = 1
+  store_registration_controller.dart:388 only routes to
+  getSubscriptionPaymentRoute(...) when the backend returns a non-null
+  package_id, which only happens under the subscription model. This matches
+  the pre-existing documented state in
+  docs/apps/userapp/userapp-screen-inventory.md §7 ("dormant under the
+  commission model (current seed has commission_business_model=1)").
+  Flipping this shared config was avoided — several concurrent QA/build
+  sessions are running against the same backend/DB during this run.
+
+Device: emulator-5562 (attached, disk 914MB free at acquire, lock key
+NEARS-2338). App booted clean from the worktree against the real local
+backend (10.0.2.2:8000); no new [ERR]/[FAIL] runtime log lines attributable
+to this change (only pre-existing unrelated Facebook SDK config noise).
+`flutter analyze` clean on both the widget and its screen.
