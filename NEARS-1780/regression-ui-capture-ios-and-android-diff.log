@@ -1,0 +1,23 @@
+1) ui_capture_ios() unaffected by this diff:
+   - grep confirms ui_capture_ios's body has NO call to ui_errors_ios
+     (screenshot + `python3 ios_find.py list` only).
+   - Live run: launched com.izzes.nears, called
+     ui_capture_ios "regression-check-screen" -> screenshot written
+     (122795 bytes), label-list attempted (errored only on missing
+     IOS_VM_WS, an unrelated/pre-existing VM-attach requirement, not
+     touched by this diff).
+
+2) git diff --stat feat/userapp-reskin2...HEAD -- scripts/app-nav/uinav.sh
+   -> zero output (no changes to the Android driver). Confirmed.
+
+3) bash -n scripts/app-nav/uinav_ios.sh -> clean, no syntax errors.
+
+FINDING (pre-existing, unrelated to this diff -- flagged as regression_bugs,
+does not affect this ticket's verdict):
+   ui_capture_ios()'s own comment says "labels + screenshot + error scan,
+   mirroring ui_capture on Android" (uinav_ios.sh:209) but the function body
+   never calls ui_errors_ios or scans for errors at all -- comment/impl
+   mismatch, not introduced by this ticket (ui_capture_ios is untouched by
+   the NEARS-1780 diff). A caller trusting the docstring could believe an
+   error scan happened when it did not -- same false-green risk class this
+   ticket just fixed for ui_errors_ios itself, but in a sibling function.

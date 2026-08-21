@@ -1,0 +1,15 @@
+Fixture (3 real-shaped lines, leading YYYY-MM-DD timestamp each):
+  1. [WARN] msg="EventBus not found, path=/api/v1/config"        (routine, unquoted "not found")
+  2. flutter: [ERROR] "AuthController" not found. ...             (genuine GetX crash, quoted `" not found`)
+  3. normal lifecycle line
+
+Ran the exact selector + total/matches pipeline ui_errors_ios uses internally:
+  sel='FlutterError|EXCEPTION CAUGHT|is not a subtype|" not found|overflowed by|Get\.(put|lazyPut)|Unhandled|\[(FAIL|ERR)\]|Another exception was thrown'
+total=3
+matches (1 of 3):
+  ...flutter: [ERROR] "AuthController" not found. You need to call "Get.put(AuthController())" or "Get.lazyPut(()=>AuthController())"
+match count=1
+
+Result: only the genuine crash line matched; the routine [WARN] "not found"
+line was correctly excluded (tightened `" not found` literal, not bare
+`not found`).
