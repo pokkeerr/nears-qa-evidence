@@ -1,0 +1,37 @@
+AC2 — FULL Admin phpunit suite, non-zero baseline on the shared per-worktree twin
+Private test DB: multi_food_db_test_nears_nears_2112_cuisine_migration_snaps
+
+NOTE: first attempt seeded baseline rows linked to store_id 1 and 2, which
+COLLIDED with an unrelated fixture's own precondition (StoreDetailsCuisinePayloadTest
+asserts its "grocery" store has ZERO cuisine_store rows before it runs) and produced
+10 false failures — this was QA's own seeding contamination, not a defect in the
+fix. Re-seeded with store_id 900000001/900000002 (non-existent, no FK enforced by
+the migration) to avoid any fixture collision, and re-ran clean.
+
+Baseline seeded (throwaway):
+  cuisines: 'QABaseline2 Alpha' (id 41), 'QABaseline2 Beta' (id 42)
+  cuisine_store: (41,900000001) (41,900000002) (42,900000001)
+
+BEFORE FULL SUITE:
+  cuisines        = 2
+  cuisine_store   = 3
+
+$ DB_DATABASE=multi_food_db_test_nears_nears_2112_cuisine_migration_snaps vendor/bin/phpunit --configuration phpunit.xml
+
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+[... 1425 tests ...]
+There was 1 error:
+1) Tests\Feature\Security\ZoneContainsSqlInjectionTest::test_contains_scope_binds_its_argument
+BadMethodCallException: Call to undefined method Illuminate\Database\Eloquent\Builder::contains()
+  .../tests/Feature/Security/ZoneContainsSqlInjectionTest.php:17
+ERRORS!
+Tests: 1425, Assertions: 13274, Errors: 1, Deprecations: 1, Skipped: 1.
+
+AFTER FULL SUITE:
+  cuisines        = 2  (id 41 'QABaseline2 Alpha', id 42 'QABaseline2 Beta' — unchanged content)
+  cuisine_store   = 3  ((41,900000001) (41,900000002) (42,900000001) — unchanged content)
+
+RESULT: PASS — row counts AND content unchanged before vs after a full 1425-test
+run. The only failure is the pre-existing, already-tracked NEARS-2242
+(ZoneContainsSqlInjectionTest) — confirmed unrelated (Builder::contains() macro
+missing, nothing to do with cuisine taxonomy). No new failures introduced.

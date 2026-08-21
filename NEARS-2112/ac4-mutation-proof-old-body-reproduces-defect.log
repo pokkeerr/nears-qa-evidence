@@ -1,0 +1,53 @@
+AC4 — Falsifiability: revert the fix in the worktree ONLY, re-run against a
+non-zero baseline, confirm the OLD (pre-fix) behavior genuinely reproduces the
+data-loss defect. Never committed.
+
+Mutation applied to tests/Feature/CuisineTaxonomySchemaTest.php
+(test_migration_is_reversible_and_re_appliable), reverting to the byte-identical
+pre-fix body — removed captureCuisineTaxonomySnapshot() call and the
+try { ... } finally { restoreCuisineTaxonomySnapshot(); } wrapper, leaving the
+bare down()/assert/up()/assert/up()/assert sequence:
+
+    public function test_migration_is_reversible_and_re_appliable(): void
+    {
+        $this->migration()->down();
+        $this->assertFalse(Schema::hasTable('cuisines'), 'down() left cuisines behind');
+        $this->assertFalse(Schema::hasTable('cuisine_store'), 'down() left cuisine_store behind');
+
+        $this->migration()->up();
+        $this->assertTrue(Schema::hasTable('cuisines'));
+        $this->assertTrue(Schema::hasTable('cuisine_store'));
+
+        // Re-running up() over existing tables must not throw.
+        $this->migration()->up();
+        $this->assertTrue(Schema::hasTable('cuisine_store'));
+    }
+
+Baseline seeded (throwaway, non-colliding): 'QABaseline3 Alpha'/'QABaseline3 Beta'
+cuisines, 3 cuisine_store rows.
+
+BEFORE:
+  cuisines        = 2
+  cuisine_store   = 3
+
+$ vendor/bin/phpunit --configuration phpunit.xml --filter test_migration_is_reversible_and_re_appliable tests/Feature/CuisineTaxonomySchemaTest.php
+
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+.                                                                   1 / 1 (100%)
+Time: 00:00.351, Memory: 48.50 MB
+OK (1 test, 5 assertions)     <-- test itself still reports green (this IS the
+                                   original silent-data-loss defect: 0 failures
+                                   while data is destroyed)
+
+AFTER:
+  cuisines        = 0
+  cuisine_store   = 0
+
+RESULT: the old body genuinely reproduces the original defect — real,
+permanent data loss (2->0, 3->0) while phpunit reports OK. This proves the
+non-zero baseline setup is real and that the shipped fix (snapshot/finally) is
+the thing preventing the loss, not some other factor.
+
+Fix restored immediately after via `git checkout -- tests/Feature/CuisineTaxonomySchemaTest.php`;
+git diff confirmed zero afterward. Re-seeded baseline (QABaseline3, 2/3) and
+re-ran the real fix: OK (1 test, 5 assertions), counts unchanged 2/3 -> 2/3.

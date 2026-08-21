@@ -1,0 +1,76 @@
+AC5 — confirm the finally block restores on an exception path too.
+Tested TWO exception windows; result differs between them — this is the
+task_bug finding (bug-ac5-finally-restore-gap.log has the standalone repro).
+
+────────────────────────────────────────────────────────────────────────────
+CASE B — assertion broken AFTER first up() (tables exist, freshly recreated
+empty) — this is the "safe"/expected exception-path scenario:
+
+Mutation: line 177
+  - $this->assertTrue(Schema::hasTable('cuisines'));
+  + $this->assertFalse(Schema::hasTable('cuisines'), 'QA-MUTATION: forced failure right after first up()');
+
+Baseline: 'QABaseline4 Alpha'/'QABaseline4 Beta' cuisines (2), cuisine_store (3),
+store_id 900000005/900000006 (non-colliding).
+
+BEFORE: cuisines=2, cuisine_store=3
+
+$ vendor/bin/phpunit --configuration phpunit.xml --filter test_migration_is_reversible_and_re_appliable tests/Feature/CuisineTaxonomySchemaTest.php
+F                                                                   1 / 1 (100%)
+1) Tests\Feature\CuisineTaxonomySchemaTest::test_migration_is_reversible_and_re_appliable
+QA-MUTATION: forced failure right after first up()
+Failed asserting that true is false.
+FAILURES!
+Tests: 1, Assertions: 3, Failures: 1.
+
+AFTER (despite the test FAILING): cuisines=2 (rows intact: 'QABaseline4 Alpha',
+'QABaseline4 Beta'), cuisine_store=3 (rows intact) — finally DID restore
+correctly. This half of AC5 is a clean PASS.
+
+────────────────────────────────────────────────────────────────────────────
+CASE A — assertion broken IMMEDIATELY AFTER down() (tables just dropped, NOT
+yet recreated by up()) — the narrower and arguably more realistic exception
+window, since this is exactly the moment real data has just been destroyed and
+restoration is most needed:
+
+Mutation: line 173
+  - $this->assertFalse(Schema::hasTable('cuisines'), 'down() left cuisines behind');
+  + $this->assertTrue(Schema::hasTable('cuisines'), 'QA-MUTATION: forced failure right after down()');
+
+Baseline: 'QABaseline3 Alpha'/'QABaseline3 Beta' cuisines (2), cuisine_store (3).
+
+BEFORE: cuisines=2, cuisine_store=3
+
+$ vendor/bin/phpunit --configuration phpunit.xml --filter test_migration_is_reversible_and_re_appliable tests/Feature/CuisineTaxonomySchemaTest.php
+
+1) Tests\Feature\CuisineTaxonomySchemaTest::test_migration_is_reversible_and_re_appliable
+Illuminate\Database\QueryException: SQLSTATE[42S02]: Base table or view not found:
+1146 Table 'multi_food_db_test_....cuisines' doesn't exist (Connection: mysql,
+... SQL: insert into `cuisines` ...)
+  tests/Feature/CuisineTaxonomySchemaTest.php:69   <- inside restoreCuisineTaxonomySnapshot()
+  tests/Feature/CuisineTaxonomySchemaTest.php:184  <- the finally{} call site
+Caused by
+QA-MUTATION: forced failure right after down()
+Failed asserting that false is true.
+  tests/Feature/CuisineTaxonomySchemaTest.php:173  <- the ORIGINAL assertion failure
+
+There was 1 risky test: "did not remove its own error/exception handlers"
+Tests: 1, Errors: 1, Risky: 1.
+
+AFTER:
+$ mysql -u root multi_food_db_test_... -e "SELECT COUNT(*) FROM cuisines"
+ERROR 1146 (42S02): Table '...cuisines' doesn't exist
+(same for cuisine_store)
+
+RESULT: in this window, restoreCuisineTaxonomySnapshot() itself throws
+(down() already dropped both tables, up() never ran because the assertion
+failed first) — the insert targets a table that does not exist. The
+QueryException from inside finally SUPERSEDES the original assertion failure
+(PHP finally-block-throws-wins semantics), AND the snapshot is never inserted —
+the 2 cuisines / 3 cuisine_store baseline rows are PERMANENTLY LOST, tables
+gone entirely. This is a genuine, reproducible gap in the shipped fix's
+guarantee for this specific exception window. Filed as task_bug
+(breaks_ac: true against AC5).
+
+Both mutations reverted via `git checkout -- tests/Feature/CuisineTaxonomySchemaTest.php`
+immediately after each; git diff confirmed zero after each revert.

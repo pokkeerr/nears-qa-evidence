@@ -1,0 +1,25 @@
+AC1 — test_migration_is_reversible_and_re_appliable in ISOLATION, non-zero baseline
+Private test DB (per NEARS-1199 worktree-scoped twin): multi_food_db_test_nears_nears_2112_cuisine_migration_snaps
+
+Baseline seeded manually (throwaway rows, not NEARS1582%-pattern so the test's own
+purge in tearDown() does not touch them):
+  cuisines: 'QABaseline Alpha' (id 4), 'QABaseline Beta' (id 5)
+  cuisine_store: (4,1) (4,2) (5,1)
+
+BEFORE:
+  cuisines        = 2
+  cuisine_store   = 3
+
+$ vendor/bin/phpunit --configuration phpunit.xml --filter test_migration_is_reversible_and_re_appliable tests/Feature/CuisineTaxonomySchemaTest.php
+
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+.                                                                   1 / 1 (100%)
+Time: 00:00.325, Memory: 48.50 MB
+OK (1 test, 5 assertions)
+
+AFTER:
+  cuisines        = 2  (rows: id=4 'QABaseline Alpha', id=5 'QABaseline Beta' — same names/content)
+  cuisine_store   = 3  (rows: (4,1) (4,2) (5,1) — identical relationships)
+
+RESULT: PASS — row counts AND row content unchanged before vs after, on a genuine
+non-zero baseline.
