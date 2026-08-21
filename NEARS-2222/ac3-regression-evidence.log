@@ -1,0 +1,53 @@
+NEARS-2222 — AC3 + regression sweep evidence
+
+=== AC3a: controller methods unchanged ===
+$ grep -n "function " Admin/app/Http/Controllers/Api/V1/Vendor/SubscriptionController.php
+95:    public function package_view(Request $request)
+103:    public function business_plan(Request $request)
+186:    public function transaction(Request $request)
+235:    public function cancelSubscription(Request $request)
+307:    public function checkProductLimits(Request $request)
+(plus 2 private helpers: authorizeStore, permissionDenied — unrelated to the 5 public API methods listed in the AC)
+
+=== AC3b: no orphan route survives ===
+$ grep -n "subscription/payment/api\|package-renew" Admin/routes/api/v1/api.php
+(no output — exit code 1, confirmed empty)
+
+=== Regression: route:list sibling group (Store Subscription) ===
+$ php artisan route:list --path=vendor
+  POST      api/v1/vendor/business_plan       Api\V1\Vendor\SubscriptionController@business_plan
+  POST      api/v1/vendor/cancel-subscription Api\V1\Vendor\SubscriptionController@cancelSubscription
+  GET|HEAD  api/v1/vendor/check-product-limits Api\V1\Vendor\SubscriptionController@checkProductLimits
+  GET|HEAD  api/v1/vendor/package-view         Api\V1\Vendor\SubscriptionController@package_view
+(no subscription/payment/api or package-renew entries)
+
+=== Regression: business_plan throttle middleware intact ===
+$ php artisan route:list --path=vendor/business_plan -v | grep -i throttle
+  Illuminate\Routing\Middleware\ThrottleRequests:v1-total
+  Illuminate\Routing\Middleware\ThrottleRequests:v1-blanket
+  Illuminate\Routing\Middleware\ThrottleRequests:business-plan-pending
+
+=== Regression: sibling routes live-curl (resolve, not 404/500) ===
+GET  /api/v1/vendor/package-view          -> 200
+POST /api/v1/vendor/business_plan         -> 403 (auth/permission gate — resolves, not routing error)
+POST /api/v1/vendor/cancel-subscription   -> 403 (same)
+GET  /api/v1/vendor/check-product-limits  -> 403 (same)
+laravel.log line count before/after: 1992 / 1992 (no fatal entries)
+
+=== Automated backstop ===
+$ vendor/bin/phpunit --filter Subscription --configuration phpunit.xml
+OK (18 tests, 46 assertions)
+
+=== Pre-existing unrelated failure check ===
+$ vendor/bin/phpunit --filter test_contains_scope_binds_its_argument --configuration phpunit.xml
+FAIL: Tests\Feature\Security\ZoneContainsSqlInjectionTest::test_contains_scope_binds_its_argument
+BadMethodCallException: Call to undefined method Illuminate\Database\Eloquent\Builder::contains()
+  at Admin/tests/Feature/Security/ZoneContainsSqlInjectionTest.php:17
+
+Confirmed unrelated code-path-wise: `git diff feat/userapp-reskin2 --stat` for this branch shows
+ONLY Admin/routes/api/v1/api.php (product code) + tasks/.atlassian-sync.json (ledger) changed.
+The failing test targets Admin/app/Models/Zone.php's missing scopeContains() — a model with zero
+overlap with the route-table file this ticket touches. `grep -n "scopeContains\|function contains"
+Admin/app/Models/Zone.php` returns nothing in this worktree — the method genuinely doesn't exist,
+pre-dating this diff (git blame points to 4e7a0b4f, well before this branch's single commit).
+Pre-existing, unrelated — NOT caused by NEARS-2222.
