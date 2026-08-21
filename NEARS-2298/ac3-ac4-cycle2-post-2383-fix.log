@@ -1,0 +1,76 @@
+NEARS-2298 QA cycle 2 (fix NEARS-2383 applied, HEAD 9109f05f) — re-demonstrate AC3 + AC4
+regression check + happy-path sweep.
+
+Device: emulator-5570 (own lock, key NEARS-2298). Backend: isolated dedicated
+`php artisan serve --host=127.0.0.1 --port=8298`, DB copy `multi_food_db_qa2298c`
+(dumped from the shared dev DB, --set-gtid-purged=OFF). UserApp launched with
+`--dart-define=API_HOST=10.0.2.2:8298` so it never touches the shared dev backend.
+Repro condition: real login as customer@nears.com (user_id 6) on-device, then the
+minted oauth_access_tokens row(s) revoked directly in the isolated DB copy, then a
+cold boot (am force-stop + am start) with the now-stale token still in local
+secure storage — the same real repro cycle-1 used, NOT a true zero-token guest
+(which never calls cm-firebase-token at all).
+
+=== AC3 — stale-token cold boot, POST-2383-fix ===
+08-22 00:27:54.876 [NET] POST endpoint=/api/v1/customer/cm-firebase-token
+08-22 00:27:55.359 [NET] endpoint=/api/v1/customer/cart/list http_status=401
+08-22 00:27:55.423 [FAIL] endpoint=/api/v1/customer/cart/list http_status=401 type=ApiFailure msg="api request failed" correlation_id=84871a8e-5ab1-4a1c-8218-664200a472be
+08-22 00:27:55.496 [NET] endpoint=/api/v1/customer/cm-firebase-token http_status=401
+08-22 00:27:55.498 [FAIL] endpoint=/api/v1/customer/cm-firebase-token http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=4e874a2b-a382-497e-846c-35a0c62d324c
+
+Full-boot grep for showCustomSnackBar / [ERR] / "error snackbar" across the whole
+cold-boot logcat window: ZERO matches (rc=1, no lines). Compare cycle-1 evidence
+(bug-ac3-updatetoken-snackbar-unchanged.log), which showed
+`showCustomSnackBar` + `[ERR] msg="error snackbar shown"` immediately following
+the identical [FAIL] line at the identical call site — that pairing is now GONE.
+The [FAIL] line remains (server-side logging preserved, not silenced), only the
+user-facing snackbar was removed, matching the NEARS-2383 diff exactly
+(auth_controller.dart updateToken() now just `await authServiceInterface.updateToken();`).
+
+App converges to the guest location-prompt screen ("Find Stores and Items Near
+You" / "Log in/ Sign up" / "Set Location") with no error banner, no "unhandled
+api response" text anywhere on screen. Screenshot:
+docs/qa-evidence/NEARS-2298/ac3-cycle2-no-snackbar-guest-converge.png
+(A benign "Module is not available" dialog appeared first, tied to this
+emulator's out-of-zone default GPS location per location_controller.dart's
+sorry_this_module_is_not_available_in_your_location zone check — unrelated to
+the token/401 flow, present regardless of NEARS-2298/2383; dismissed via Ok.)
+
+AC3 met: no error snackbar, no unhandled-api-response state on the first screen.
+
+=== AC4 — force-logout convergence, SAME boot, independent code path ===
+Same logcat window, same cold boot:
+08-22 00:27:55.359 [NET] endpoint=/api/v1/customer/cart/list http_status=401
+  -> ApiChecker.checkApi (api_checker.dart:30) <- CartRepository._getCartDataOnline
+08-22 00:27:56.831 [NET] POST endpoint=/api/v1/auth/guest/request
+08-22 00:27:57.358 [NET] endpoint=/api/v1/auth/guest/request http_status=200
+  <- ApiChecker.checkApi's force-logout path (clearSharedData -> guestLogin) firing
+
+Two DISTINCT stack traces confirmed in the raw log: cart/list's 401 unwinds
+through ApiChecker.checkApi (api_client.dart:1133 -> api_checker.dart:30), while
+cm-firebase-token's 401 unwinds through AuthController.updateToken directly
+(api_client.dart:1154, never touching ApiChecker.checkApi at all) — these are
+provably separate call paths, confirming the NEARS-2383 snackbar removal on
+updateToken() cannot have suppressed or interfered with ApiChecker's force-logout
+firing on cart/list's 401. Force-logout still converges cleanly (no crash, no
+ANR, no dead-end) to the guest module-home / login-suggestion state.
+
+AC4 met: force-logout/cart-wipe convergence unaffected by the NEARS-2383 fix.
+
+=== Regression sweep — happy path (valid stored token, cold boot) ===
+Re-logged in (fresh non-revoked token), cold-booted again:
+08-22 00:29:43.657 [NET] POST endpoint=/api/v1/customer/cm-firebase-token
+08-22 00:29:44.055 [NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200
+08-22 00:29:46.558 [NET] POST endpoint=/api/v1/customer/cm-firebase-token
+08-22 00:29:47.682 [NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200
+All other calls (cart/list, address/list, order/running-orders,
+order/payment-failed, customer/info, notifications, coupon/list, module,
+stores/get-stores/all, banners) = 200. Zero [FAIL]/[ERR]/showCustomSnackBar lines
+in the full boot window (grep rc=1). App lands cleanly on the logged-in module
+home (order-confirmed banner from seeded data visible, normal experience).
+
+=== Automated backstop ===
+flutter test test/features/auth/auth_controller_test.dart -> 42/42 passed,
+including the two rewritten `updateToken (NEARS-2383)` widget tests (now
+assert `find.byType(NSnackBar) == findsNothing` instead of the vacuous
+"completes" proxy from the first patch of this cycle).
