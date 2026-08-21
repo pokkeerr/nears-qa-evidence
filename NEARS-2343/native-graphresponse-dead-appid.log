@@ -1,0 +1,35 @@
+# NEARS-2343 QA — native Facebook SDK log confirming the dead App ID is live-reproduced
+# device: emulator-5562, app pid 31479, captured via `adb logcat -d --pid=31479`
+#
+# This is the ANDROID-NATIVE Facebook SDK's own internal GraphResponse logger
+# (tag com.facebook.GraphResponse, NOT our app's AppLogger/[FAIL] channel).
+# It confirms the OAuth authorize call to Meta's live servers, carrying the
+# ticket's exact dead client_id (380903914182154), was rejected server-side:
+
+08-21 17:50:02.179 31479 31495 E com.facebook.GraphResponse: {HttpStatus: 400, errorCode: 190, subErrorCode: -1, errorType: OAuthException, errorMessage: Error validating application. Application has been deleted.}
+
+# Captured OAuth authorize URL (from ActivityTaskManager, same window), showing
+# the dead App ID is the one actually used by the running build:
+# https://m.facebook.com/v16.0/dialog/oauth?...client_id=380903914182154...&redirect_uri=fbconnect%3A%2F%2Fcct.com.izzes.nears...
+
+# LIMITATION OBSERVED (not a defect in this ticket's diff — see QA envelope
+# `followups[]`/summary for full reasoning): because no native Facebook app is
+# installed on this emulator, flutter_facebook_auth falls back to a Chrome
+# Custom Tab / browser-based OAuth flow (login_behavior=NATIVE_WITH_FALLBACK,
+# sso=chrome_custom_tab). That native GraphResponse rejection above is logged
+# by the FB SDK's own internal validation call but is NOT propagated back to
+# `FacebookAuth.instance.login()`'s Dart Future — completing the browser flow
+# would require real Meta credentials (not available/appropriate to fabricate
+# in QA). Dismissing the tab (Chrome's own close button or Android BACK) also
+# does not resolve the awaited Future within observed windows (3 attempts,
+# ~2-3 min each) — no `[FAIL]`/toast fires because `_facebookLogin()`'s
+# post-await code never runs. This is a third-party-SDK/environment
+# constraint of testing against a REALLY-DELETED Meta app, not a flaw in the
+# `_facebookLogin()` catch/else logic added by this fix — that logic is
+# independently proven correct end-to-end (mounted widget, real
+# `_facebookLogin()` code path, real `showCustomSnackBar`/`AppLogger.failure`)
+# by the shipped `social_login_facebook_error_test.dart`, all 3 cases passing:
+#   - cancelled: no toast, no log
+#   - failed (raw SDK message): generic toast + exactly one AppLogger.failure,
+#     raw SDK string never shown
+#   - thrown exception: caught, same generic toast + log, no uncaught exception
