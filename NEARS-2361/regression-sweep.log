@@ -1,0 +1,22 @@
+QA NEARS-2361 — regression / blast-radius sweep
+
+1) flutter test test/features/loyalty/loyalty_transaction_double_log_test.dart
+   +4: All tests passed! (4/4 — transport throw, HTTP 500, success control, PII-safety canary)
+
+2) grep -rn "_getLoyaltyTransactionList\|LoyaltyRepository(" UserApp/lib/ --include="*.dart"
+   lib/features/loyalty/domain/repositories/loyalty_repository.dart:11:  LoyaltyRepository({required this.apiClient});
+   lib/features/loyalty/domain/repositories/loyalty_repository.dart:27:    return await _getLoyaltyTransactionList(offset);
+   lib/features/loyalty/domain/repositories/loyalty_repository.dart:30:  Future<TransactionModel?> _getLoyaltyTransactionList(int? offset) async {
+   lib/helper/get_di.dart:294:  Get.lazyPut<LoyaltyRepositoryInterface>(() => LoyaltyRepository(apiClient: Get.find()));
+   -> confirms no other call site; only the DI registration + the private method itself.
+
+3) git diff 82559da0..d684ff0c --stat
+    .../loyalty/domain/repositories/loyalty_repository.dart | 16 +++++++++-------
+    1 file changed, 9 insertions(+), 7 deletions(-)
+   -> exactly one file changed, matches expectation.
+
+4) flutter test (full UserApp suite)
+   01:51 +4205 ~2: 2 skipped tests.
+   01:51 +4205 ~2: All other tests passed!
+   -> 4205 passed, 0 failed, 2 pre-existing skips (interest_page_helper_test.dart null-guard
+      cases, unrelated to loyalty), no [E] failures anywhere in the run.

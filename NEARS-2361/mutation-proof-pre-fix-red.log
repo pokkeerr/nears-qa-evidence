@@ -1,0 +1,22 @@
+QA NEARS-2361 — mutation proof: same test file run against PRE-FIX loyalty_repository.dart
+(git show 82559da0:UserApp/lib/features/loyalty/domain/repositories/loyalty_repository.dart,
+ temp-checked-out in the worktree, run, then `git checkout --` restored — no revert committed)
+
+00:00 +0 -1: AC1 — a 201 fires exactly ONE [FAIL], carrying status 201 [E]
+  Expected: an object with length of <1>
+    Actual: []
+     Which: has length of <0>
+
+00:00 +0 -2: AC1/AC3 — a 204 on the loyalty transactions endpoint fires exactly ONE [FAIL], carrying status 204 and the real path [E]
+  Expected: an object with length of <1>
+    Actual: []
+     Which: has length of <0>
+
+00:00 +1 -2: AC1 — a 399 fires exactly ONE [FAIL], carrying status 399   (still green, unaffected)
+00:00 +2 -2: AC2 positive control — a 500 still fires exactly ONE [FAIL], status 500   (still green, unaffected)
+00:00 +3 -2: negative control — a 200 records nothing and parses   (still green, unaffected)
+00:00 +3 -2: Some tests failed.
+
+Matches ticket's PRE-FIX repro verbatim ("Expected: an object with length of <1> / Actual: []").
+Confirms the fix — not an unrelated change — is what makes the 201/204 cases pass, and that the
+399/500/200 cases are untouched by the mutation (discrimination scoped correctly).
