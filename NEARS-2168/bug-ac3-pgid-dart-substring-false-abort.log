@@ -1,0 +1,66 @@
+NEARS-2168 QA — task_bug evidence: kill-time pgid check false-aborts on siblings' own paths
+
+Repro (live, 2026-08-22):
+Two real `flutter test` runs launched concurrently in different worktrees
+(nears-NEARS-2338-payment-cart-checkdot = still running, nears-NEARS-2347-cover-caption-ar =
+target). Target worktree's flutter_tools launcher (pid 39857) SIGKILLed while it had 5 live
+flutter_tester workers (41305,41471,41472,41514,41596), all sharing pgid 39852, all
+genuinely orphaned (ppid 1, no live flutter_tools/dart-test ancestor, cwd confirmed under
+the target worktree) -- exactly the scenario flutter-tester-reap.sh is meant to reap.
+
+Real (non-dry-run) invocation:
+  bash scripts/newtask-guards/flutter-tester-reap.sh --worktree /Users/Apple/Projects/nears-NEARS-2347-cover-caption-ar
+
+Output:
+  CANDIDATE pid 41305 -- flutter_tester, no live flutter_tools/dart test ancestor (ppid=1 stat=SN)
+    ABORT pid 41305 -- a live dart/dartaotruntime process shares its process group (39852)
+  CANDIDATE pid 41471 -- flutter_tester, no live flutter_tools/dart test ancestor (ppid=1 stat=SN)
+    ABORT pid 41471 -- a live dart/dartaotruntime process shares its process group (39852)
+  CANDIDATE pid 41472 -- flutter_tester, no live flutter_tools/dart test ancestor (ppid=1 stat=SN)
+    ABORT pid 41472 -- a live dart/dartaotruntime process shares its process group (39852)
+  CANDIDATE pid 41514 -- flutter_tester, no live flutter_tools/dart test ancestor (ppid=1 stat=SN)
+    ABORT pid 41514 -- a live dart/dartaotruntime process shares its process group (39852)
+  CANDIDATE pid 41596 -- flutter_tester, no live flutter_tools/dart test ancestor (ppid=1 stat=SN)
+    ABORT pid 41596 -- a live dart/dartaotruntime process shares its process group (39852)
+  == examined:5 killed:0 skipped:0 aborted:5 ==
+
+Root cause (flutter-tester-reap.sh:230-234, _ftr_reverify_and_kill):
+  pgid="$(ps -o pgid= -p "$pid" ...)"
+  ps -axeo pid=,pgid=,args= | awk -v g="$pgid" -v me="$pid" '$1!=me && $2==g' | grep -qiE 'dart|dartaotruntime'
+
+This is a raw substring grep over the full `args=` text of every OTHER process sharing the
+pgid, not a check of any process's binary/name. Every flutter_tester's own command line
+contains the literal substring "dart" from its own file paths
+(--packages=.../.dart_tool/package_config.json and .../listener.dart.dill) -- confirmed live:
+
+  $ ps -axeo pid=,pgid=,args= | awk -v g=39852 -v me=41305 '$1!=me && $2==g' | grep -oiE 'dart[a-z]*'
+  dart
+  dart
+  dart
+  dart
+  dart
+  dart
+  dart
+  dart
+  dart
+  dart
+  dart
+  dart
+
+So ANY time a `flutter test` run leaves 2+ flutter_tester workers orphaned together in one
+process group -- the normal/expected shape for a parallel test run, and exactly the shape
+the script's OWN header/corroboration comments cite as the motivating real-world case
+("measured live: 7, NEARS-2057-module-reload") -- the kill-time gate false-aborts every one
+of them on sight of its own siblings' paths, never an actual live dart/dartaotruntime
+process. Confirmed (read-only, untouched) that NEARS-2057-module-reload's 7 pre-existing
+orphans share pgid 83127 -- the identical shape -- so they would hit this same false-abort
+if ever targeted.
+
+Impact: AC3 explicitly requires "(a) the completed run's flutter_tester is killed" under a
+real non-dry-run scoped invocation. Demonstrated live: killed:0, aborted:5. The reaper's
+kill-time safety net, as implemented, cannot reap the realistic multi-worker-orphan case at
+all -- it only succeeds when a SOLE flutter_tester is left alone in its own pgid.
+
+Scope isolation (the other half of AC3) worked correctly: WT-B's live launcher/workers
+(pid 32716 + children) were never examined by the WT-A-scoped run (examined:5, all WT-A
+pids) -- confirming --worktree scoping itself is sound; only the kill-time gate is broken.
