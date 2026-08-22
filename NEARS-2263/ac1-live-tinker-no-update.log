@@ -1,0 +1,27 @@
+AC1 — live independent verification (dev multi_food_db, read-only), not just the pinning test.
+Command: php artisan tinker (worktree nears-NEARS-2263-refcode-write-on-read/Admin)
+
+$updates = [];
+\DB::listen(function ($q) use (&$updates) {
+    if (str_starts_with(trim(strtolower($q->sql)), 'update') && str_contains($q->sql, 'delivery_men')) {
+        $updates[] = $q->sql;
+    }
+});
+$dm = \App\Models\DeliveryMan::find(1);
+$code = $dm->ref_code;
+$arr = $dm->toArray();
+echo "ref_code_accessed=".$code."\n";
+echo "ref_code_serialized=".$arr['ref_code']."\n";
+echo "update_count=".count($updates)."\n";
+
+Output:
+ref_code_accessed=7LFJMR2Q0U
+ref_code_serialized=7LFJMR2Q0U
+update_count=0
+
+Conclusion: reading + serializing a DeliveryMan (id=1, non-empty ref_code) against the real
+dev DB fired zero UPDATE queries on delivery_men. AC1 demonstrated live, independent of the
+pinning test's own DB::listen assertion (Admin/tests/Feature/DeliveryManRefCodeWriteOnReadTest.php
+::test_reading_a_delivery_man_with_a_ref_code_performs_no_db_write, also independently re-read
+and confirmed to assert the right thing — genuine DB::listen UPDATE capture, not a substring/mock
+trap).

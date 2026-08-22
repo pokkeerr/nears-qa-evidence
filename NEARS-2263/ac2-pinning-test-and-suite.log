@@ -1,0 +1,32 @@
+AC2 — verified via the automated pinning test (private per-worktree isolated test DB
+multi_food_db_test_nears_nears_2263_refcode_write_on_read, never the real dev DB), per QA
+instructions' preference for the automated path over a manual tinker mutation when it proves
+the same thing.
+
+Command:
+cd Admin && vendor/bin/phpunit --configuration phpunit.xml --filter DeliveryManRefCodeWriteOnReadTest
+
+Output:
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_2263_refcode_write_on_read
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+....                                                                4 / 4 (100%)
+Time: 00:00.328, Memory: 80.50 MB
+OK (4 tests, 10 assertions)
+
+The 4 tests (independently re-read by QA, not just trusted):
+1. test_new_delivery_man_gets_a_ref_code_at_creation_without_any_subsequent_read (AC2) —
+   creates a DeliveryMan via ->save() with NO explicit ref_code override, asserts
+   $dm->ref_code is non-empty immediately (no subsequent read/access triggers generation),
+   AND independently re-queries via DB::table('delivery_men') to confirm it was actually
+   persisted at creation time, not just held in memory.
+2. test_explicit_pre_save_ref_code_is_left_untouched_by_the_creating_hook — regression guard
+   for the 3 existing pre-save call sites' pattern.
+3. test_reading_a_delivery_man_with_a_ref_code_performs_no_db_write (AC1) — genuine
+   DB::listen() UPDATE capture around DeliveryMan::findOrFail + ->ref_code + ->toArray().
+4. test_reading_a_delivery_man_with_an_empty_ref_code_does_not_write_from_the_accessor —
+   green-but-blind trap guard: confirms the accessor is a PURE passthrough (asserts empty,
+   not non-empty) so a "read still writes for empty case" regression can't hide behind a
+   coincidentally-passing assertion shape.
+
+All 4 assertions genuinely exercise what they claim (independently confirmed by reading the
+test file source, not just trusting the green run).

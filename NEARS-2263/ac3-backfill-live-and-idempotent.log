@@ -1,0 +1,32 @@
+AC3 — live re-verification against the real dev DB (multi_food_db), read-only except the
+already-approved, already-run, additive backfill seeder re-run (idempotency check).
+
+Step 1 — re-query id=3 directly (mysql client, SELECT only):
+$ mysql -u root multi_food_db -e "SELECT id, f_name, l_name, ref_code FROM delivery_men ORDER BY id;"
+id  f_name    l_name      ref_code
+1   Ali       Hassan      7LFJMR2Q0U
+2   David     Miller      Q1OAQAUB9L
+3   Carlos    Rodriguez   MLJI0LDTQM   <-- confirmed non-empty (was NULL per seeder docblock)
+4   D         D           BQLMGMQJ1Y
+5   Test1     Dil         G8LRGSTNC7
+6   tt        te          YJXWWWDS36
+14  QA        WaveOne     OQTDPS5UGK
+15  Nears2254 QaCourier   X5AWGK5JE2
+
+All 8 rows in the dev DB have a non-empty ref_code. id=3 = MLJI0LDTQM.
+
+Step 2 — re-run the seeder to confirm idempotent no-op:
+$ cd Admin && NEARS_SEED_ALLOW_DB=multi_food_db php artisan db:seed \
+    --class=Nears2263DeliveryManRefCodeBackfillSeeder --force
+
+INFO  Seeding database.
+NEARS-2263: no delivery_men rows with an empty ref_code — nothing to backfill.
+
+Step 3 — re-query id=3 after the no-op re-run (confirm unchanged, no accidental write):
+$ mysql -u root multi_food_db -e "SELECT id, ref_code FROM delivery_men WHERE id=3;"
+id  ref_code
+3   MLJI0LDTQM
+
+Conclusion: AC3 demonstrated live — the backfill is in place, and a second run of the seeder
+against the same DB is a confirmed true no-op (message text + DB state both prove it, not just
+the exit code).

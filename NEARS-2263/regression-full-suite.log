@@ -1,0 +1,26 @@
+Full PHPUnit run (Unit+Feature) for drift beyond the engineer's own report.
+
+Command: cd Admin && vendor/bin/phpunit --configuration phpunit.xml --testsuite Unit,Feature
+
+Summary:
+Tests: 1457, Assertions: 13380, Errors: 1, Failures: 1, Deprecations: 1, Skipped: 1.
+Time: 05:38.798, Memory: 407.50 MB
+
+The 2 non-green results — both confirmed PRE-EXISTING and UNRELATED to this diff:
+1. Tests\Feature\Security\ZoneContainsSqlInjectionTest::test_contains_scope_binds_its_argument
+   — BadMethodCallException: Call to undefined method Illuminate\Database\Eloquent\Builder::contains()
+   (pre-existing error, unrelated to DeliveryMan/ref_code).
+2. Tests\Feature\ConfigContractTest::test_decimal_precision_is_two_not_whole_dirhams
+   — the known NEARS-2019 money-rounding defect (test's own message explicitly says
+   "EXPECTED RED — the money defect, not a broken build"), unrelated to this diff.
+
+No NEW failures/errors beyond these two. Matches the engineer's self-reported run exactly.
+Also includes the 4 new DeliveryManRefCodeWriteOnReadTest tests (all green, counted in the 1457).
+
+Regression sweep on the 3 pre-save ref_code call sites (grep-confirmed unmodified by the new
+creating() hook — all still set ref_code explicitly before ->save()):
+- Admin/app/Services/DeliveryManService.php:52       'ref_code' => Helpers::generate_referer_code('deliveryman'),
+- Admin/app/Http/Controllers/DeliveryManController.php:131   $dm->ref_code = Helpers::generate_referer_code('deliveryman');
+- Admin/app/Http/Controllers/Api/V1/Auth/DeliveryManLoginController.php:147  $dm->ref_code = Helpers::generate_referer_code('deliveryman');
+Confirmed via: Admin/tests/Feature/DeliveryManRefCodeWriteOnReadTest.php::
+  test_explicit_pre_save_ref_code_is_left_untouched_by_the_creating_hook (PASS).
