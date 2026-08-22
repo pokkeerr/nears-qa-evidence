@@ -1,0 +1,35 @@
+NEARS-2127 QA — live device regression sweep BLOCKED: device pool exhausted.
+
+Attempted to acquire a device from the pool per .claude/workflow-profile.md
+(Android pool: emulator-5554, emulator-5556, emulator-5558; plus emulator-5564
+present on this host today). All 4 attached devices probed OCCUPIED by foreign
+live sessions (qa_lock_check verdict=occupied, no lock file present but live
+host drivers + device-side app processes detected — NEARS-1805 "absence of a
+lock is not absence of a user").
+
+Initial probe (2026-08-22 ~15:2x local):
+  emulator-5554  host drivers pids 47197 47312  device proc com.izzes.nears:19585
+  emulator-5556  host drivers pids 99533 99663  device proc com.izzes.nears:4070
+  emulator-5558  host driver  pid  97315        device procs com.izzes.nears:10004, com.izzes.nearsvendor:3130
+  emulator-5564  host drivers pids 45263 45325  device proc com.izzes.nears:9217
+
+Bounded queue-wait per .claude/agents/nears-qa.md ("Bounded queue-wait: all
+your platform's devices locked -> poll ~60s up to 10 min, then return
+verdict: BLOCKED{queue: who holds what}"): polled all 4 devices every 60s for
+10 minutes (10 polls). Final re-check after the wait shows IDENTICAL pids
+still driving all 4 devices -> genuinely live, stable sibling sessions, not
+stale residue. Did NOT override (QA_LOCK_PROBE_OVERRIDE) without certainty
+per guard's own caution.
+
+Re-check after 10-minute wait (still occupied, same pids):
+  emulator-5554  pids 47197 47312  device proc com.izzes.nears:19585
+  emulator-5556  pids 99533 99663  device proc com.izzes.nears:4070
+  emulator-5558  pid  97315        device procs com.izzes.nears:10004, com.izzes.nearsvendor:3130
+  emulator-5564  pids 45263 45325  device proc com.izzes.nears:9217
+
+Result: the live-device regression sweep of the two call sites
+(grocery_home_screen.dart:177, pharmacy_urgent_fallback_view.dart:116) could
+NOT be performed this pass. This does not affect AC1-AC4, which were
+independently verified without a device (dart run repro script + flutter
+test suite + source read of the code comment) -- see the sibling evidence
+files in this directory.

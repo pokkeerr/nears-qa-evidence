@@ -1,0 +1,26 @@
+  /// NEARS-1575 — the translated day half of an "opens @day at @time" line.
+  ///
+  /// Paired with [dateToTimeOnly]: a bare "HH:MM" cannot distinguish a store
+  /// opening tonight from one opening on Thursday, so any next-opening copy
+  /// must carry both. [today] is injectable so the boundary is deterministic
+  /// under test.
+  /// NEARS-2127 — anchor both sides at UTC before diffing. UTC has no DST
+  /// transitions, so `.inDays` is exact; a local-midnight anchor collapses to
+  /// a 23h span on a spring-forward calendar day and `.inDays` truncates the
+  /// 1-day gap to 0, mislabeling tomorrow as today. This one line cannot be
+  /// pinned as a DST assertion inside `flutter test`: `TZ` is process-level
+  /// and the test runner cannot vary it per case, so such an assertion would
+  /// flip red/green by CI host. The DST repro lives only in the standalone
+  /// `dart run` script at `scripts/nears_2127_dst_repro.dart`
+  /// (`TZ=America/New_York dart run scripts/nears_2127_dst_repro.dart`); the
+  /// tests here pin the calendar-comparison logic with fixed injected dates
+  /// that do not depend on host TZ.
+  static String relativeDayLabel(DateTime when, {DateTime? today}) {
+    final DateTime now = today ?? DateTime.now();
+    final int days = DateTime.utc(when.year, when.month, when.day)
+        .difference(DateTime.utc(now.year, now.month, now.day))
+        .inDays;
+    if (days <= 0) return 'today'.tr;
+    if (days == 1) return 'tomorrow'.tr;
+    return _weekdayKeys[when.weekday - 1].tr;
+  }
