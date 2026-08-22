@@ -1,0 +1,107 @@
+NEARS-2149 QA mutation-proof — LoyaltyRepository.pointToWallet non-Map-200 guard
+Worktree: /Users/Apple/Projects/nears-NEARS-2149-pointtowallet-unguarded-body
+Build commit: fa814221
+Test file: UserApp/test/features/loyalty/loyalty_point_to_wallet_non_json_200_test.dart
+
+This ticket's QA shape is device-free (see ticket body): the Convert-to-wallet
+CTA is config-gated on exchangeRate > 0 and the shared dev DB has
+loyalty_point_exchange_rate = 0; QA is read-only on the DB. Verification is at
+the ApiClient -> LoyaltyRepository seam via the engineer's unit test, with an
+independent mutation-proof (temp-revert -> RED -> restore -> GREEN).
+
+== STEP 1: independent run of the new test file against fa814221 (GREEN, as committed) ==
+$ flutter test test/features/loyalty/loyalty_point_to_wallet_non_json_200_test.dart --reporter expanded
+00:00 +0: AC1 non-Map 200: pointToWallet does not throw uncaught, returns a failed ResponseModel
+[NET] POST endpoint=/api/v1/customer/loyalty-point/point-transfer
+[NET] endpoint=/api/v1/customer/loyalty-point/point-transfer http_status=200
+[FAIL] endpoint=/api/v1/customer/loyalty-point/point-transfer http_status=200 type=ApiFailure msg="point-to-wallet: non-map 200 body (String)"
+00:00 +1: AC2 non-Map 200: exactly ONE emission, the repository guard's
+...
+00:00 +2: AC2 non-Map 200: the emission is PII-safe — sentinel, path-only endpoint, no body text
+...
+00:00 +3: AC3 control: a JSON 200 with a Map body still succeeds and logs nothing
+...
+00:00 +4: control: a real non-200 keeps its existing failure behavior unaffected by the new non-Map-200 branch
+[FAIL] endpoint=/api/v1/customer/loyalty-point/point-transfer http_status=400 type=ApiFailure msg="api request failed"
+00:00 +5: All tests passed!
+
+== STEP 2: mutation — reverted loyalty_repository.dart to pre-fix
+   (feat/userapp-reskin2@bef14857) blob, re-ran the same test file ==
+$ git show feat/userapp-reskin2:UserApp/lib/features/loyalty/domain/repositories/loyalty_repository.dart \
+    > lib/features/loyalty/domain/repositories/loyalty_repository.dart
+$ flutter test test/features/loyalty/loyalty_point_to_wallet_non_json_200_test.dart --reporter expanded
+
+RESULT: RED — 3 of 5 tests fail with the ticket's exact uncaught error:
+
+00:00 +0 -1: AC1 non-Map 200: pointToWallet does not throw uncaught, returns a failed ResponseModel [E]
+  type 'String' is not a subtype of type 'int' of 'index'
+  package:sixam_mart/features/loyalty/domain/repositories/loyalty_repository.dart 18:56  LoyaltyRepository.pointToWallet
+
+00:00 +0 -2: AC2 non-Map 200: exactly ONE emission, the repository guard's [E]
+  type 'String' is not a subtype of type 'int' of 'index'
+  package:sixam_mart/features/loyalty/domain/repositories/loyalty_repository.dart 18:56  LoyaltyRepository.pointToWallet
+
+00:00 +0 -3: AC2 non-Map 200: the emission is PII-safe — sentinel, path-only endpoint, no body text [E]
+  type 'String' is not a subtype of type 'int' of 'index'
+  package:sixam_mart/features/loyalty/domain/repositories/loyalty_repository.dart 18:56  LoyaltyRepository.pointToWallet
+
+00:00 +1 -3: AC3 control: a JSON 200 with a Map body still succeeds and logs nothing   (PASS, unaffected)
+00:00 +2 -3: control: a real non-200 ... (PASS, unaffected)
+00:00 +2 -3: Some tests failed.
+
+This confirms: (a) the mutation reproduces the ticket's exact uncaught
+TypeError ("type 'String' is not a subtype of type 'int' of 'index'") at the
+unguarded response.body['message'] line, (b) the fault is isolated precisely
+to the non-Map-200 branch — the pre-existing Map-body-success control and the
+non-200 control both stayed green under the mutation, proving the test suite
+discriminates the fix rather than failing broadly.
+
+== STEP 3: restore ==
+$ cp <backup> lib/features/loyalty/domain/repositories/loyalty_repository.dart
+$ git status --short   -> clean (file byte-identical to fa814221 HEAD)
+$ flutter test test/features/loyalty/loyalty_point_to_wallet_non_json_200_test.dart --reporter compact
+00:01 +5: All tests passed!   (GREEN restored)
+
+== STEP 4: diff-scope guard ==
+$ git diff --stat feat/userapp-reskin2...HEAD -- .
+ UserApp/lib/features/loyalty/domain/repositories/loyalty_repository.dart    |  15 +-
+ UserApp/test/features/loyalty/loyalty_point_to_wallet_non_json_200_test.dart | 160 +++++++++++++++++
+ 2 files changed, 174 insertions(+), 1 deletion(-)
+Exactly 2 files — matches ticket's stated scope.
+
+== STEP 5: PII-safety grep of the new AppLogger.failure call ==
+Call site (loyalty_repository.dart:23-30) passes only:
+  ApiFailure(statusCode), StackTrace.current,
+  'point-to-wallet: non-map 200 body (${response.body.runtimeType})',
+  endpoint: AppConstants.loyaltyPointTransferUri,
+  status: statusCode,
+  correlationId: ApiClient.requestIdFromResponse(response.headers)
+No response.body, no statusText, no token. AppLogger.failure's own signature
+(lib/helper/app_logger.dart:58-65) accepts only e/st/reason/endpoint/status/
+correlationId — it exposes no parameter that could carry a raw body. The
+new test's PII canary assertion ('SENTINEL2149' / '<html>' / 'example.test'
+must never appear in the recorded error/reason/custom-keys payload) also
+passed under STEP 1's GREEN run.
+
+== STEP 6: non-200 else branch — read, not just tested ==
+Diff shows the else branch (real non-200, e.g. 400/500) is byte-for-byte
+unchanged: `responseModel = ResponseModel(false, response.statusText);`
+still fires exactly as before, reached only when statusCode != 200. The new
+branch is inserted as an `else if (statusCode == 200)` strictly between the
+existing `if (statusCode == 200 && body is Map)` and the existing
+`else`, so it can never intercept a genuine non-200. The suite's "control: a
+real non-200..." test (STEP 1) independently confirms this: exactly one
+ApiFailure(status: 400) recorded, matching ApiChecker's own pre-existing
+[FAIL] choke-point, not a second/duplicate emission from the new branch.
+
+== STEP 7: full UserApp regression suite ==
+$ flutter test --reporter compact
+...
+01:48 +4259 ~2: 2 skipped tests.
+01:48 +4259 ~2: All other tests passed!
+4259 passed, 0 failed, 2 skipped — matches the engineer's reported count
+exactly (4259 passed / 0 failed / 2 pre-existing unrelated skips). No drift.
+
+No screenshots: contract-impact = no, no UI surface touched (pure
+repository/domain-layer logic). UI/RTL/dark-mode verification arms are N/A
+for this ticket and are stated here explicitly rather than silently skipped.
