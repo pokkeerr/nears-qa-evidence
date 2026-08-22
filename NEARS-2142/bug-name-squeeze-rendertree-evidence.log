@@ -1,0 +1,55 @@
+NEARS-2142 QA — live Dart VM Service debugDumpRenderTree evidence
+Device: emulator-5556, view size 960x2992 physical, DPR 3.0
+
+=== item_that_you_love_view.dart (Mango card), LTR, 320dp width, 1.3x text scale ===
+RenderParagraph (product name "Mango"):
+  creator: RichText <- Text <- Flexible <- Row <- Flexible <- Column <- Padding <- Stack <- Expanded <- Column
+  constraints: BoxConstraints(0.0<=w<=135.0, 0.0<=h<=8.2)
+  size: Size(64.2, 8.2)
+Outer detail Column (mainAxisSize.min):
+  constraints: BoxConstraints(0.0<=w<=135.0, 0.0<=h<=89.2)
+  size: Size(135.0, 89.2)   <- name Row got 8.2 of the 89.2 budget; unit/rating/price consumed 81.0
+
+=== item_that_you_love_view.dart (Mango card), RTL (ar_SA), 320dp width, 1.3x text scale ===
+RenderParagraph (product name "Mango"):
+  constraints: BoxConstraints(0.0<=w<=135.0, 0.0<=h<=4.2)   <- WORSE than LTR
+
+=== store_screen.dart grid (145x273 cell), LTR, 320dp width, 1.3x text scale ===
+RenderParagraph ("Potatoes"):
+  creator: RichText <- Text <- Flexible <- Row <- Flexible <- Column <- ...
+  constraints: BoxConstraints(0.0<=w<=125.0, 0.0<=h<=12.2)
+  size: Size(83.3, 12.2)
+RenderParagraph ("QA OOS Fixture — Sparkling Water 500ml"):
+  constraints: BoxConstraints(0.0<=w<=125.0, 0.0<=h<=8.2)
+  size: Size(125.0, 8.2)
+
+=== Baseline: same Column at 100% text scale / standard (448dp) width, LTR ===
+RenderParagraph ("Mango"), item_that_you_love_view.dart:
+  constraints: BoxConstraints(0.0<=w<=135.0, 0.0<=h<=12.2)
+  size: Size(49.7, 12.2)
+  (font: PublicSans SemiBold 15sp, height:1.5x -> natural single-line height ~22.5dp;
+   12.2dp is tighter than natural but did not visibly break legibility for this short word
+   in the captured screenshot — this path is UNCHANGED by the NEARS-2142 diff, scaledUp
+   evaluates false at 100% scale so every reclaimed value is identical to pre-fix.)
+
+=== ui_errors / logcat check ===
+At 320dp/1.3x on item_that_you_love_view.dart and store_screen.dart: ZERO
+"RenderFlex overflowed on the bottom" lines from item_widget.dart's detail Column.
+(One unrelated overflow WAS observed from a 3rd-party package,
+animated_flip_counter-0.3.4/lib/animated_flip_counter.dart:210, "overflowed by
+21/36 pixels on the RIGHT" — different widget, different axis, pre-existing,
+unrelated to this fix; logged separately as a regression-candidate.)
+
+CONCLUSION: the literal AC1 sub-clause ("zero RenderFlex overflowed on the
+bottom logcat line") is satisfied, but the second sub-clause ("matched against
+the DLS/Stitch frame") is NOT: the product name is squeezed into an ~4-12dp
+box (well under half a natural text line) and renders as illegible dash-like
+fragments / letter-top-only clipping, on 2 of the 3 named consumers, LTR and
+RTL, confirmed both by direct screenshot crop and by live render-tree
+introspection. Root cause: the fix's fixed 13dp reclaim (8dp spacer + 2dp +
+3dp paddings) is far smaller than the actual vertical growth of the Column's
+non-flexible siblings at 1.3x scale (e.g. the unit-type text alone grows from
+~12dp to ~25dp natural height), so the Flexible name Row is starved of space.
+Flutter's Flex algorithm satisfies this silently (Flexible + fit:loose) rather
+than throwing a RenderFlex overflow assertion, which is why the log stays
+clean even though the visual result fails the design match.
