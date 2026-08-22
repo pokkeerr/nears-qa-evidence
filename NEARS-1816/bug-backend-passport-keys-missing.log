@@ -1,0 +1,35 @@
+== Environment fault: Admin/storage/oauth-{private,public}.key MISSING on the PRIMARY backend (port 8000) ==
+Observed 2026-08-22 during NEARS-1816 QA (first pass). NOT caused by this ticket
+(seeder Nears1816OrderTrackingFixtureSeeder.php has zero unlink/delete/exec/passport/oauth references).
+
+$ ls -la Admin/storage/oauth-*.key
+ls: no matches found
+
+$ ls -la Admin/storage/
+drwxr-xr-x@ 8 Apple staff 256 Aug 22 15:46 .        <- storage/ dir mtime = exactly when errors started
+(no oauth-private.key / oauth-public.key present)
+
+Serving process confirmed as the PRIMARY tree:
+$ lsof -a -p 28927 -d cwd -Fn
+/Users/Apple/Projects/nears/Admin
+
+App-side (UserApp emulator-5556, ANDROID_SERIAL, pid 4070) via ui_errors:
+[FAIL] endpoint=/api/v1/auth/login http_status=500 type=ApiFailure msg="unhandled api response" correlation_id=31e75090-fd68-49f4-a943-a69ce1342110
+[FAIL] endpoint=/api/v1/customer/info http_status=500 type=ApiFailure msg="api request failed" correlation_id=840e2f4f-6d67-42b8-969e-5143fdeedc9d
+[FAIL] endpoint=/api/v1/customer/order/track http_status=500 type=ApiFailure msg="unhandled api response" correlation_id=df4186a3-6c4e-46f6-90cf-cb0aa4492935
+(+ 9 more FAIL lines, same shape, across buy-it-again / notifications / coupon/list / cm-firebase-token / cart/list / order/payment-failed / address/list / wish-list / cashback/list / suggested-items)
+
+Backend-side (Admin/storage/logs/laravel.log), correlation-joined, first occurrence 15:46:31:
+[2026-08-22 15:46:31] production.ERROR: [FAIL] Invalid key supplied {"trace_id":"8065c92707648b861f593d16ba54959b","correlation_id":"f7f8fd7b-6919-4173-b686-58590a030f6b","type":"LogicException","endpoint":"/api/v1/customer/order/buy-it-again"}
+[2026-08-22 15:49:57] production.ERROR: [FAIL] Invalid key supplied {"trace_id":"d7dc0d58ad7548c7f6a97628a6b4f364","correlation_id":"31e75090-fd68-49f4-a943-a69ce1342110","type":"LogicException","endpoint":"/api/v1/auth/login"}
+(35 "Invalid key supplied" LogicException lines total in the window, one per request, EVERY authenticated
+AND unauthenticated (/api/v1/auth/login) endpoint hit — consistent with Passport's signing keypair
+being absent so JWT sign/verify throws LogicException("Invalid key supplied") for every token operation.)
+
+Impact: blocks ALL customer auth + all authenticated endpoints on the shared PRIMARY dev backend
+(port 8000) for every session pointed at it, not just this ticket's QA. Ports 8011/8012 (other
+worktrees' own Admin/storage) are unaffected -- confirmed isolated to the primary tree.
+
+QA did NOT attempt to fix (regenerate storage/oauth-*.key via `php artisan passport:keys`) --
+out of QA's write scope (never product code/config, and it is a shared backend other concurrent
+sessions may also depend on). Flagging for immediate engineer/infra attention.
