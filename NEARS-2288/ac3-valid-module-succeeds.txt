@@ -1,0 +1,17 @@
+NEARS-2288 — AC3 live demonstration
+Server: php artisan serve --host=127.0.0.1 --port=8013, worktree NEARS-2288, branch task/NEARS-2288
+DB: multi_food_db (live dev DB)
+
+Request:
+  POST http://127.0.0.1:8013/api/v1/auth/vendor/register
+  zone_id=2 (Abu Dhabi Zone, multi-module: modules 1,2,3,5 per module_zone), module_id=2
+  (Food & Restaurant — genuinely linked to zone 2)
+  latitude=24.45, longitude=54.37 (inside zone 2's polygon)
+  + required fields (f_name, l_name, email, phone, password, delivery_time fields, translations, logo)
+
+Response:
+  HTTP 200
+  {"store_id":91109,"registration_nonce":"...","type":"commission","message":"Application placed successfully"}
+
+Conclusion: AC3 holds live — a genuinely zone-served module in a multi-module zone still
+completes registration successfully; the guard does not overreach onto the valid path.

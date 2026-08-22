@@ -1,0 +1,45 @@
+NEARS-2288 — regression sweep, all four review-driven fixes independently confirmed LIVE
+Server: php artisan serve --host=127.0.0.1 --port=8013, worktree NEARS-2288, branch task/NEARS-2288
+DB: multi_food_db (live dev DB)
+
+1) zone_id=0 -> rejected, never reaches store creation
+   POST /api/v1/auth/vendor/register  zone_id=0, module_id=1, valid other fields
+   -> HTTP 403  {"errors":[{"code":"zone_id","message":"The selected zone id is invalid."}]}
+
+2) module_id as an array (module_id[]=1&module_id[]=2) -> rejected, not a 500/crash
+   POST /api/v1/auth/vendor/register  zone_id=2, module_id[]=1, module_id[]=2, valid other fields
+   -> HTTP 403  {"errors":[{"code":"module_id","message":"The module id must be an integer."}]}
+   (No 500, no Module::find()->zones crash — confirms the is_numeric() guard.)
+
+3) all_zone_service=1 bypass actually works, not just the guard shape
+   Fixture: module id=7 created live via Eloquent (App\Models\Module::forceFill+save,
+   the same mechanism the phpunit test and the admin "Add Module" panel use) with
+   all_zone_service=1 and confirmed 0 module_zone pivot rows (fresh->zones()->count()==0).
+   POST /api/v1/auth/vendor/register  zone_id=2, module_id=7 (zero pivot rows for zone 2),
+   valid other fields
+   -> HTTP 200  {"store_id":91110,"registration_nonce":"...","type":"commission",
+      "message":"Application placed successfully"}
+   Confirms the all_zone_service bypass fires on the live path even with zero pivot rows,
+   not merely in the unit test's transaction.
+
+4) Pre-existing zone-polygon mismatch check still independently 403s
+   POST /api/v1/auth/vendor/register  zone_id=2, module_id=1 (genuinely served by zone 2,
+   isolates the case to the polygon check), latitude=0.0, longitude=0.0 (outside zone 2)
+   -> HTTP 403  {"errors":[{"code":"latitude","message":"Coordinates out of zone"}]}
+
+Logs-first check (NEARS-566, [api]-tagged AC):
+  Admin/storage/logs/laravel.log grepped scoped to the register/module live-call window
+  (2026-08-22 14:04:xx-14:05:xx, production env). No [FAIL]/[ERR] tied to register/module
+  business logic. The only ERROR-level lines in that window are repeated
+  "[FAIL] OpenTelemetry export failed ... Could not connect to server ... localhost:5080"
+  entries — a pre-existing local-environment condition (no OTel/OpenObserve collector
+  running on this host) that fires on every request regardless of endpoint or this diff;
+  filed as a regression_bugs note, not a FAIL of this run. The one WARN line seen
+  ("[WARN] module zone resolved from zone_id query param", zone_ids:[364]) is the
+  pre-existing NEARS-2079 by-design log line for the AC1 GET calls, not a defect.
+
+Automated backstop:
+  cd Admin && vendor/bin/phpunit --filter VendorRegisterModuleZoneGuardTest --testdox
+  -> OK (7 tests, 16 assertions), all named cases pass.
+  cd Admin && vendor/bin/phpunit --filter "RegistrationNonceTest|VendorRegisterModuleZoneGuardTest" --testdox
+  -> OK (18 tests, 43 assertions) — broader register-touching suite, no interference.

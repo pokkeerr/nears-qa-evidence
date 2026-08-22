@@ -1,0 +1,15 @@
+NEARS-2288 — AC1 (regression control, no code in this build touches it)
+Server: php artisan serve --host=127.0.0.1 --port=8013, worktree NEARS-2288, branch task/NEARS-2288
+DB: multi_food_db (live dev DB), zone 364 = "Baqala Zone 01" (named in the ticket's own evidence log),
+module_zone pivot rows for zone_id=364: 1 (module_id=1 only, confirmed via read-only query).
+
+Request:
+  GET http://127.0.0.1:8013/api/v1/module?zone_id=364
+
+Result:
+  HTTP 200
+  Top-level module array length: 1
+  Module ids returned: [1]  (Grocery & Food)
+
+Conclusion: only the single module linked to zone 364 is returned — AC1 holds live,
+consistent with NEARS-2079+NEARS-2057 (no code in this build path).

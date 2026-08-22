@@ -1,0 +1,18 @@
+NEARS-2288 — AC2 live demonstration
+Server: php artisan serve --host=127.0.0.1 --port=8013, worktree NEARS-2288, branch task/NEARS-2288
+DB: multi_food_db (live dev DB)
+
+Request:
+  POST http://127.0.0.1:8013/api/v1/auth/vendor/register
+  zone_id=2 (Abu Dhabi Zone), module_id=4 (QA Single-Store Grocery — linked only to zone 3,
+  confirmed via module_zone read-only query: no row for module_id=4 + zone_id=2)
+  latitude=24.45, longitude=54.37 (inside zone 2's polygon — isolates this case to the
+  module-zone guard, not the polygon check)
+  + required fields (f_name, l_name, email, phone, password, delivery_time fields, translations, logo)
+
+Response:
+  HTTP 403
+  {"errors":[{"code":"module_id","message":"Selected module is not available in this zone."}]}
+
+Conclusion: AC2 holds live — a module not served by the resolved zone is rejected with
+errors[0].code == 'module_id', exactly as specified.
