@@ -1,0 +1,54 @@
+NEARS-2141 QA finding — collapsed running-order card status text renders with
+zero visible width at 320dp/1.3x (English locale).
+
+Setup: emulator-5558, wm size 960x2992 (=320dp @ 480 density), font_scale 1.3,
+customer@nears.com, order #158 status=confirmed (isFirstOrder=true, centered
+header Row per running_order_view_widget.dart ~108-120).
+
+Pixel scan of docs/qa-evidence/NEARS-2141/bug-collapsed-320dp-1.3x-status-text-invisible.png
+(960x2992), the header-Row text band y=2725-2765 (screen coords):
+  dark-pixel x-range found: 236-601  (== "Your Order is" bold label only)
+  no dark pixels found anywhere from x=602 to x=960 in that band
+  => the status Text ("Confirmed") painted ZERO visible glyph pixels, even
+     though its Semantics label ("Your Order is \nConfirmed\nOrder #158")
+     is still present in the merged a11y node (confirmed via uiautomator dump,
+     content-desc unchanged) — i.e. the widget "shows" the status only to a
+     screen reader, not visually.
+
+Contrast: the SAME screen's non-first rows (isFirstOrder=false, left-aligned
+Row, revealed by swiping the sheet open — see
+ac1-expanded-13row-320dp-1.3x-zero-overflow.png) correctly show a truncated
+ellipsis ("Your Order is Pe…", "Your Order is C…") at the identical width/scale
+— they do NOT go to zero width. Only the collapsed/first/centered row does.
+
+Root cause (read from running_order_view_widget.dart, not just inferred):
+  Row(mainAxisAlignment: isFirstOrder ? center : start, children: [
+    Text('${'your_order_is'.tr} ', style: robotoBold...),   // NOT flexible
+    Flexible(fit: FlexFit.loose, child: Text(status.tr, ...maxLines:1,
+        overflow: TextOverflow.ellipsis)),
+  ])
+  The Row is constrained by the Expanded Column's width (screen width minus
+  the 60dp icon, its padding, and the trailing "+N More" circle container).
+  At 1.3x/320dp the FIXED "Your Order is" label alone consumes ~all of that
+  remaining width, leaving ~0px for its Flexible sibling. Flutter's flex
+  layout has no minimum for a loose Flexible, so it is given exactly the
+  leftover space — here, none — and RenderParagraph paints nothing at 0
+  width. No RenderFlex assertion fires (nothing overflowed the parent), so
+  AC1's literal "zero overflow" bar is met while the status is silently
+  dropped from the screen.
+
+Automated-suite gap confirmed by reading
+UserApp/test/features/dashboard/running_order_status_overflow_test.dart:
+  - 'collapsed ... has zero overflow at 320dp/1.3x' only asserts
+    tester.takeException() is null — it never checks the status
+    RenderParagraph's width/visibility.
+  - The didExceedMaxLines assertion (which WOULD have caught a truncation/
+    invisibility regression) is only run at width=375/scale=1.0 (the
+    "standard" case), never at width=320/scale=1.3 (the "collapsed" case).
+  So the suite is structurally blind to this exact defect; it is not a
+  flake, and green tests do not contradict this finding.
+
+Not reproduced in Arabic (RTL): "مؤكد"/"قيد الانتظار" are short enough
+to fit at the same width/scale — see ac-rtl-320dp-1.3x-collapsed.png and
+ac-rtl-320dp-1.3x-expanded.png (RTL mirroring itself is correct: icon/CTA
+sides swap, arrow points to the correct trailing edge, zero overflow).
