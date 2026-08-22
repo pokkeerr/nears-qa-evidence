@@ -1,0 +1,45 @@
+NEARS-2168 QA re-QA cycle 1 — AC3 re-verification against fix commit e9d03ea4 (NEARS-2386)
+
+Same repro shape as the original FAIL (bug-ac3-pgid-dart-substring-false-abort.log):
+two real concurrent `flutter test` runs, one worktree left running as a control
+(nears-NEARS-2338-payment-cart-checkdot, full suite, launcher pid 90345), one worktree's
+launcher SIGKILLed mid-run to produce genuine ppid=1 orphans sharing one pgid
+(nears-NEARS-2347-cover-caption-ar, test/features/, launcher pid 90389).
+
+Pre-kill children of launcher 90389: 90699,90701,90711,90715,90764 (5 workers).
+SIGKILL 90389 -> 90711/90715/90764 exited on their own in the same window; 90699 and 90701
+survived as genuine orphans:
+
+  $ ps -axeo pid,pgid,ppid,stat,args | awk '$1==90699 || $1==90701 {print $1,$2,$3,$4}'
+  90699 90387 1 SN
+  90701 90387 1 SN
+
+Both ppid=1, no live flutter_tools/dart-test ancestor, sharing pgid 90387 -- the exact
+multi-sibling-pgid shape that previously false-aborted.
+
+Real (non-dry-run) scoped invocation:
+  $ bash scripts/newtask-guards/flutter-tester-reap.sh --worktree /Users/Apple/Projects/nears-NEARS-2347-cover-caption-ar
+  == flutter-tester-reap (worktree scope: .../nears-NEARS-2347-cover-caption-ar, corroborate: on) ==
+    CANDIDATE pid 90699 -- flutter_tester, no live flutter_tools/dart test ancestor (ppid=1 stat=SN)
+      KILLED pid 90699 (SIGTERM, explicit pid -- never pkill/pattern-match)
+    CANDIDATE pid 90701 -- flutter_tester, no live flutter_tools/dart test ancestor (ppid=1 stat=SN)
+      KILLED pid 90701 (SIGTERM, explicit pid -- never pkill/pattern-match)
+  == examined:2 killed:2 skipped:0 aborted:0 ==
+
+Post-kill confirmation: `ps -p 90699` / `ps -p 90701` both return nothing (gone).
+
+Isolation control confirmed intact: WT-B's launcher (pid 90345, full suite still running)
+untouched throughout -- `ps -p 90345` still alive, state RN, after the scoped kill.
+
+Result: AC3 now PASSES. killed:2 aborted:0 -- the pgid-liveness check no longer false-aborts
+on siblings' own path-substring "dart" occurrences; the fix (_ftr_pgid_has_live_dart_sibling,
+exact basename match) resolves NEARS-2386.
+
+Non-regression re-checks against commit e9d03ea4:
+- AC1: pid 55705 (live flutter run -d emulator-5556, merged branch) still alive, still absent
+  from host-wide --dry-run candidate list (grep -c match = 0).
+- AC2: scripts/stop_apps.sh still has 0 occurrences of "flutter_tester" (unchanged).
+- AC4: `git diff 39823a4b..HEAD -- scripts/newtask-guards/run-observed.sh` still empty.
+
+Automated backstop: `bash scripts/newtask-guards/flutter-tester-reap.test.sh` -> PASS,
+asserts:14 (up from 11; new F8a/F8b cases cover the fixed pgid check).
