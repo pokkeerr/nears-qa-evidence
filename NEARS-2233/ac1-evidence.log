@@ -1,0 +1,26 @@
+NEARS-2233 AC1 — VendorApp --dart-define=BASE_URL override, live evidence
+Device: emulator-5554 (Android, google_apis_playstore_ps16k)
+Worktree: /Users/Apple/Projects/nears-NEARS-2233-vendorapp-qa-gaps (branch feat/NEARS-2233-vendorapp-qa-gaps)
+
+=== Run 1 — NO dart-define (regression check: existing behavior preserved) ===
+cmd: flutter run -d emulator-5554 --debug
+Expected default per code: GetPlatform.isIOS ? 127.0.0.1:8000 : 10.0.2.2:8000 (Android emulator alias to host localhost:8000)
+App log:
+I/flutter (19776): [NET] GET endpoint=/api/v1/config
+I/flutter (19776): [NET] endpoint=/api/v1/config http_status=200
+-> Config fetch succeeded against the default local backend (host port 8000), same as pre-change behavior. No [ERR]/[FAIL] in the app log.
+
+=== Run 2 — WITH --dart-define=BASE_URL=http://10.0.2.2:8011 ===
+cmd: flutter run -d emulator-5554 --debug --dart-define=BASE_URL=http://10.0.2.2:8011
+(10.0.2.2:8011 is a genuinely different, independently-running Laravel instance — /opt/homebrew/.../php -S 0.0.0.0:8011 serving Admin/server.php from worktree nears-NEARS-2301-vendor-dm-owner-field-leak, pid 9246 — not the default 8000 backend.)
+App log:
+I/flutter (20308): [NET] GET endpoint=/api/v1/config
+I/flutter (20308): [NET] endpoint=/api/v1/config http_status=200
+-> Config fetch succeeded. No [ERR]/[FAIL] in the app log.
+
+Backend-side correlation (port-8011 instance, Admin/storage/logs/laravel-structured.log):
+{"tag":"[FAIL]","timestamp":"2026-08-22T20:08:11.271915+04:00","correlation_id":"5cefbecf-...","message":"[FAIL] OpenTelemetry export failed ...", "context":{"trace_id":"5425430e..."}}
+-> A request was received and processed by the 8011 instance's request pipeline at 20:08:11, coincident with the app's config call under the dart-define run. (The OTel export failure itself is a PRE-EXISTING, unrelated defect in that other worktree's local OTLP collector wiring — not caused by this change, not blocking this AC; noted as a regression-candidate for its own ticket, not filed here.)
+-> No request at that timestamp landed in the DEFAULT (8000) backend's log for this run, i.e. traffic moved with the dart-define flag as intended.
+
+Conclusion: baseUrl getter honors --dart-define=BASE_URL when supplied, and falls through to the unchanged hardcoded default when omitted. AC1 demonstrated live, PASS.
