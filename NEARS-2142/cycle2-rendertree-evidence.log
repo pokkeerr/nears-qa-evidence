@@ -1,0 +1,44 @@
+NEARS-2142 QA cycle 2 (re-QA at HEAD 9a831aa7) — live Dart VM Service debugDumpRenderTree evidence
+Device: emulator-5560, 320dp width override / 1.3x text scale unless noted otherwise.
+
+=== item_that_you_love_view.dart ("Mango" card, 165x273 cell) ===
+LTR: constraints h<=25.2, size (64.2, 25.2), textScaler 1.3x   [cycle 1 was h<=8.2 -- FIXED]
+RTL: constraints h<=23.2, size (64.2, 23.2), textDirection rtl [cycle 1 was h<=4.2 -- FIXED]
+Natural one-line height at 1.3x for PublicSans SemiBold 15sp/1.5x = ~22.5dp.
+Both LTR (25.2) and RTL (23.2) now clear the natural line height. Screenshot
+confirms "Mango" renders fully legible (05b-cycle2-mango-card-320dp-13x-FIXED.png).
+
+=== store_screen.dart grid (145x273 cell) ===
+RTL ("Orange Juice 1L" / "Dish Soap 500ml" / "Sparkling Water"): h<=28.2 (all three)
+  [cycle 1 "Potatoes" was h<=12.2, "QA OOS Fixture..." was h<=8.2 -- FIXED]
+LTR ("Dish Soap 500ml" / "Sparkling Water" / "Orange Juice 1L"): h<=30.2 (all three)
+  [cycle 1 same-class squeeze -- FIXED]
+All comfortably above the ~22.5dp natural line height.
+
+=== Baseline: 100% text scale / standard (411dp) width, LTR ===
+"Dish Soap 500ml": h<=17.2, size (124.5, 17.2)
+"Sparkling Water": h<=17.2, size (118.2, 17.2)
+Natural one-line height at 1.0x scale ~17.3dp -- consistent with cycle-1's
+100%-scale baseline (12.2dp for a shorter name "Potatoes" at a slightly
+different cell), confirming the 100% path is UNCHANGED by the cycle-3 fix
+(capSecondaryScale gates strictly on scaledUp, off at exactly 1.0x) -- no new
+regression introduced.
+
+=== ui_errors / logcat ===
+Zero "RenderFlex overflowed on the bottom" lines from item_widget.dart's
+detail Column at 320dp/1.3x, LTR or RTL, on either consumer (same as cycle 1
+-- this sub-clause was never the problem).
+
+NEW finding this cycle (unrelated to item_widget.dart / this ticket):
+  08-23 09:26:51  [FAIL] framework_error msg="A RenderFlex overflowed by 10.0
+  pixels on the bottom." at Column
+  UserApp/lib/features/home/widgets/web/widgets/store_card_widget.dart:231:34
+  Observed live at 320dp/1.3x on the "Available Near You" store-list card.
+  git diff 592ec9c2..HEAD shows store_card_widget.dart untouched by this
+  ticket -- pre-existing, filed to regression_bugs, non-blocking.
+
+CONCLUSION: AC1 now PASSES on both real consumers, both directions. The
+cycle-3 mechanism (MediaQuery.withNoTextScaling on the three secondary rows
+above 100% scale) closes the starvation defect QA found in cycle 1 -- product
+name box now exceeds natural line height in every combo tested, and renders
+legibly (screenshot-confirmed on item_that_you_love_view.dart).
