@@ -1,0 +1,103 @@
+NEARS-2321 QA — device-free verification log (full lane, fix cycle 1)
+Reviewed SHA: 62bded8333e0a9d5f1f1f949962d799e3bd54bf5
+Worktree: /Users/Apple/Projects/nears-NEARS-2321-overlay-sweep
+
+=== AC1 — census cross-check (static) ===
+Diff files match the 6 CONVERT sites exactly (file + line + before/after token):
+  order_tracking_screen.dart:482  Positioned(right:15) -> Positioned.directional(end:15)
+  pick_map_screen.dart:306        Positioned(right:paddingSizeSmall) -> Positioned.directional(end:...)
+  pick_map_screen.dart:458        Positioned(right:paddingSizeLarge) -> Positioned.directional(end:...)
+  add_address_screen.dart:245     Positioned(right:0) -> PositionedDirectional(end:0) + margin pair
+  add_address_screen.dart:263     Positioned(right:0) -> PositionedDirectional(end:0) + margin pair
+  map_preview_card.dart:59        Positioned(left:paddingSizeDefault) -> PositionedDirectional(start:...)
+
+Independent re-grep of UserApp/lib + DeliveryApp/lib for map/location-tagged files
+(GoogleMap( hits + *map*/*location* filenames) found no additional Positioned(right:/left:
+site the solution doc's census missed. Checked specifically:
+  - delivery_eta_banner_widget.dart (GoogleMap present) -> only Positioned.fill, no right/left. OK.
+  - access_location_screen.dart, location_search_dialog_widget.dart, serach_location_widget.dart,
+    animated_map_icon_{extended,minimized}.dart -> no Positioned(right:/left: at all. OK.
+  - select_location_view_widget.dart -> has Positioned(left:20,right:20) and
+    Positioned(bottom:10,right:10,left:10) but both are SYMMETRIC same-value pairs, and the file
+    is explicitly out-of-scope per the ticket (NEARS-2075/2319) — matches EXCLUDE rationale, and
+    confirmed ZERO diff lines touching this file (scope guard, see below).
+  - map_screen.dart:85 Positioned(left:paddingSizeLarge,right:paddingSizeLarge) -> symmetric, EXCLUDE
+    confirmed correct. Nested Align(alignment: Alignment.centerRight) at ~89 is a real RTL bug but
+    outside the ticket's declared Positioned/EdgeInsets grep scope -> followups (regression-candidate).
+  - DeliveryApp/order_location_screen.dart:74-75 -> symmetric left/right same value -> EXCLUDE, confirmed.
+  - DeliveryApp/location_access_dialog.dart:105-106 -> asymmetric top:10,right:10 close-X, but file is
+    a permission dialog, not a map Stack -> EXCLUDE per doc's own-stated scope sentence, confirmed;
+    followups candidate as the doc itself flags.
+
+Census verdict: accurate against the actual diff and against an independent re-sweep. No missed
+CONVERT site found.
+
+=== AC3 — paired right:/left: -> end:/start: token count ===
+git show 62bded83 -- <4 files> enumerated by hand:
+  1. add_address_screen.dart  right:0 -> end:0        (Positioned #1)
+  2. add_address_screen.dart  margin right: -> end:    (paired margin #1)
+  3. add_address_screen.dart  right:0 -> end:0         (Positioned #2)
+  4. add_address_screen.dart  margin right: -> end:    (paired margin #2)
+  5. map_preview_card.dart    left: -> start:
+  6. pick_map_screen.dart     right: -> end: (site 1)
+  7. pick_map_screen.dart     right: -> end: (site 2)
+  8. order_tracking_screen.dart right:15 -> end:15
+Total = 8, matches AC3's stated "8 total right:/left: -> end:/start: token pairs (6 Positioned + 2
+margins)" exactly.
+
+=== Scope guard (independent, not trusting prior agents) ===
+$ git diff --stat cc0d1213 HEAD -- DeliveryApp        -> 0 lines, zero DeliveryApp changes.
+$ git diff cc0d1213 HEAD -- UserApp/lib/features/auth/widgets/select_location_view_widget.dart
+                                                       -> 0 lines, file untouched.
+
+=== flutter analyze (4 touched source files) ===
+$ flutter analyze lib/features/address/screens/add_address_screen.dart \
+    lib/features/address/widgets/map_preview_card.dart \
+    lib/features/location/screens/pick_map_screen.dart \
+    lib/features/order/screens/order_tracking_screen.dart
+Analyzing 4 items...
+No issues found! (ran in 2.5s)
+
+=== flutter test — the 4 new/extended RTL test files ===
+$ flutter test test/features/address/add_address_screen_desktop_rtl_test.dart \
+    test/features/address/map_preview_card_rtl_test.dart \
+    test/features/location/pick_map_screen_rtl_test.dart \
+    test/features/order/order_tracking_screen_test.dart
+00:00 +15: All tests passed!
+(15/15 — matches engineer's claim; covers all 6 CONVERT sites, each with an LTR test asserting the
+physical/flush baseline offset and an RTL test asserting the mirrored offset at the SAME non-zero
+standoff, not a same-value-both-sides false green.)
+
+=== Independent mutation re-check (QA's own, distinct site from the conductor's) ===
+Conductor already mutation-tested pick_map_screen.dart's mobile-branch site. QA independently
+mutated a DIFFERENT site (map_preview_card.dart, the one Positioned-only "Explore on map" pill)
+to prove the RTL test actually discriminates there too, not just at the site already proven:
+
+  1. Reverted PositionedDirectional(bottom:.., start:..) back to Positioned(bottom:.., left:..)
+  2. Reran map_preview_card_rtl_test.dart:
+       LTR case:  PASS (unaffected — left: renders identically under LTR either way)
+       RTL case:  FAIL — Expected: <15.0>  Actual: <548.5>
+     (548.5 is the widget pinned to the physical left again under RTL, i.e. NOT mirrored —
+      exactly the un-mirrored defect this ticket exists to catch.)
+  3. Restored PositionedDirectional/start: — `git diff` on the file returned 0 lines (clean revert).
+  4. Reran map_preview_card_rtl_test.dart: 2/2 PASS.
+
+This is a second, independent discriminating mutation (on a Positioned-only site, complementing the
+conductor's paired-margin site), corroborating the widget-test suite is not vacuously green.
+
+=== Regression sweep (light re-confirm, full suite already run clean by engineer: 4345/4345) ===
+$ flutter test test/features/address test/features/location test/features/order
+00:07 +389: All tests passed!
+(The two "[FAIL] endpoint=.../order/track ... msg=..." lines mid-run are expected AppLogger.failure
+output from pre-existing tests that intentionally exercise a phone-less-counterparty failure path
+(NEARS-1813/2262) — not test failures; the run ends "All tests passed!".)
+
+=== AC2 — live device attempt ===
+Device pool: single serial in `adb devices -l` (emulator-5560). `qa_lock_check emulator-5560` was
+BLOCKED (held live, key=NEARS-2142, pid=5228 alive) at first check and remained blocked through a
+~2-minute bounded re-poll (3 checks, 30s apart). No other serial available. Did not force, did not
+wait indefinitely per instruction. AC2 evidence rests on the device-free widget-test suite above
+(15/15, LTR+RTL pairs per site, dp-value assertions not just side assertions) plus this session's
+own independent discriminating mutation — treated as sufficient per this ticket's device-free-first
+guidance. Live LTR/RTL screenshot pair for add_address_screen.dart's desktop branch NOT captured
+this run (device unavailable for the whole bounded poll window).
