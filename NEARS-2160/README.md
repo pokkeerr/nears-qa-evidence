@@ -19,6 +19,7 @@
 
 ### Other artifacts
 - [`ac1-wire-request-log.txt`](ac1-wire-request-log.txt)
+- [`bug-otel-export-noise.log`](bug-otel-export-noise.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-2160/` · public-repo scrub policy (no live secrets; verified clean).*
