@@ -1,0 +1,16 @@
+AC3 — config-alone confirmation + functional rollover
+
+/etc/logrotate.d/nears-app-logs absent (ls exit 1, confirmed on QA host).
+
+config('logging.channels.single.handler') = App\Logging\SizeCappedFileHandler
+config('logging.channels.structured.handler') = App\Logging\SizeCappedFileHandler
+config('logging.channels.single.handler_with.maxBytes') = 104857600 (100MB, DEFAULT_MAX_BYTES)
+
+Functional rollover (live tinker, REAL config('logging.channels.single.handler_with.path'/'maxBytes')
+temporarily repointed to a scratch temp path with maxBytes=500, 200 writes forced past the cap):
+
+LIVE_FILE_SIZE=196            (a) live file stays under the 500-byte cap after rollover
+LIVE_FILE_PATH_EXISTS=yes     (b) live filename unchanged — no date suffix
+BACKUP_EXISTS=yes             (c) .1 backup sibling exists
+BACKUP_SIZE=588                   and holds pre-rollover content (non-empty)
+SIBLINGS=/var/folders/.../nears2294_ac3_live.log.1   (only sibling is the fixed .1, never a date-suffixed name)

@@ -1,0 +1,7 @@
+Regression — GET /api/v1/module response is unaffected by log-gate state
+
+Two back-to-back same-IP requests inside the same 15s window (2nd is log-gated, skipped):
+Request 1: HTTP/1.1 200 OK
+Request 2: HTTP/1.1 200 OK
+Bodies: diff r1-body.json r2-body.json -> identical
+Log count moved by exactly +1 across the two requests (only the first logged; second silently gated), response unaffected either way.

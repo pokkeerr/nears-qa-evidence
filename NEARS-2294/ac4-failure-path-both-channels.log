@@ -1,0 +1,13 @@
+AC4 — real request hitting an existing [FAIL] failure branch (StoreController::get_details, store_not_found)
+
+Request: GET /api/v1/stores/details/999999999
+Response: 404, X-Request-Id: 0a688c9e-6251-421d-95f0-28650c3e6653
+Body: {"errors":[{"code":"store_not_found","message":"Store not found"}]}
+
+laravel.log (+1 line, count 10 -> 11):
+[2026-08-22 22:14:08] production.ERROR: [FAIL] store details not found {"trace_id":"0e83f6857ad85dc56096bdfab27da855","correlation_id":"0a688c9e-6251-421d-95f0-28650c3e6653","endpoint":"/api/v1/stores/details/{id}","status":404,"code":"store_not_found"}
+
+laravel-structured.log (+1 line, count 10 -> 11):
+{"tag":"[FAIL]","timestamp":"2026-08-22T22:14:08.223422+04:00","correlation_id":"0a688c9e-6251-421d-95f0-28650c3e6653","level":"error","message":"[FAIL] store details not found","context":{"trace_id":"0e83f6857ad85dc56096bdfab27da855","endpoint":"/api/v1/stores/details/{id}","status":404,"code":"store_not_found"}}
+
+Both channels reached, correlation_id == X-Request-Id in both, shape/content unchanged from the pre-existing pattern (10 prior occurrences in each file, same fields).

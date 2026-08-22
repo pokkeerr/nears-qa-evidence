@@ -1,0 +1,9 @@
+AC1 — live burst test against GET /api/v1/module?zone_id=1 (worktree: nears-NEARS-2294-log-rotation-cap, server 127.0.0.1:8021)
+
+pre-burst count (grep -c -F 'module zone resolved from zone_id query param' Admin/storage/logs/laravel.log): 45
+sent 625 requests in 60.061476000s (single IP 127.0.0.1, sequential curl loop)
+post-burst count: 47
+delta: +2 lines
+
+Bound check: LOG_GATE_WINDOW_SECONDS=15 -> worst case ceil(elapsed_seconds/15) = ceil(60.06/15) = 5
+Observed +2 <= worst-case bound of 5. Reproduces engineer's own claim (651 req/62s -> +3 lines) independently.
