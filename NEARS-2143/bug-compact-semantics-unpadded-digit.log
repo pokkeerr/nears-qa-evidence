@@ -1,0 +1,36 @@
+NEARS-2143 QA finding — compact-mode Semantics label uses unpadded digit, diverging from the visible pill text.
+
+Code (UserApp/lib/features/flash_sale/widgets/timer_widget.dart, compact branch):
+  return Semantics(
+    label: '$timeCount $timeUnit',   // <-- raw int interpolation: "0", not "00"
+    excludeSemantics: true,
+    child: pill,   // pill's own Text shows '0${timeCount}' i.e. "00" when timeCount<=9
+  );
+
+Live device evidence (iPhone 17e simulator, iOS 26.5, UserApp debug build,
+locale=ar, compact shimmer state, 1.3x text scale) — raw VM-Service semantics
+dump node for the "days" cell:
+
+  SemanticsNode label: "0 أيام"      <- spoken (via ext.flutter.debugDumpSemanticsTreeInTraversalOrder)
+  visible pill text: "00"            <- rendered Text inside the same Semantics node (per ui_tree_ios / ios_find.py, and confirmed in
+                                          docs/qa-evidence/NEARS-2143/shimmer-ar-compact.png / shimmer-ar-compact-1.3x.png)
+
+Same divergence reproduced for bn ("0 দিন" spoken vs "00" visible) and for every
+other unit cell (hours/mins/sec) in both locales — timeCount is always passed as
+`00` (int literal 0) in the shimmer, so every compact cell's spoken digit is "0"
+while the visible digit pill is "00".
+
+Pre-existing full (non-compact) form does NOT have this defect: the digit pill's
+own Text ("00") and the separate unit-label Text ("Days") each auto-generate
+their own Semantics node from their own rendered string, so before this ticket
+screen readers already heard the correctly zero-padded "00" then "Days" as two
+nodes. The compact branch is 100% new code (this ticket) and introduces the
+mismatch by hand-authoring the label from the raw int instead of the same
+zero-padded string the pill itself renders.
+
+Severity: low / cosmetic-only for assistive tech (says "0 hours" instead of
+"00 hours" — semantically equivalent, digit-format nit only). Does not affect
+either AC (AC1 is visual legibility, AC2 is RenderFlex overflow) — breaks_ac: false.
+
+Suggested fix: reuse the same zero-padded string the pill already computes,
+e.g. `label: '${timeCount > 9 ? timeCount.toString() : '0$timeCount'} $timeUnit'`.
