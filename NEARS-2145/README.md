@@ -1,20 +1,30 @@
 # QA Evidence — NEARS-2145
 
-**FAIL (delta re-QA, cycle 2/attempt 2, NEARS-2439): desktop connectivityFailed still renders phone full-screen shell, not ConnectivityRetryDialogCard — reproduced 2x fresh cold-start on emulator-5564**
+**delta re-QA cycle 6 FAIL - desktop connectivityFailed still full-screen despite isDesktop=true correctly captured (first-tap + retry both reproduced)**
 
-**2 screenshot(s).** Click any thumbnail for full resolution.
+**7 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="bug-desktop-connectivityfailed-still-fullscreen-cycle2-repro1.png"><img src="bug-desktop-connectivityfailed-still-fullscreen-cycle2-repro1.png" width="240"></a><br><sub>bug desktop connectivityfailed still fullscreen cycle2 repro1</sub></td>
-<td align="center" width="33%"><a href="bug-desktop-connectivityfailed-still-fullscreen-cycle2-repro2.png"><img src="bug-desktop-connectivityfailed-still-fullscreen-cycle2-repro2.png" width="240"></a><br><sub>bug desktop connectivityfailed still fullscreen cycle2 repro2</sub></td>
+<td align="center" width="33%"><a href="ac-desktop-connectivity-card.png"><img src="ac-desktop-connectivity-card.png" width="240"></a><br><sub>ac desktop connectivity card</sub></td>
+<td align="center" width="33%"><a href="ac1-phone-connectivity-failed.png"><img src="ac1-phone-connectivity-failed.png" width="240"></a><br><sub>ac1 phone connectivity failed</sub></td>
+<td align="center" width="33%"><a href="ac1-phone-rtl-connectivity-failed.png"><img src="ac1-phone-rtl-connectivity-failed.png" width="240"></a><br><sub>ac1 phone rtl connectivity failed</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="ac2-outofzone-pickmap.png"><img src="ac2-outofzone-pickmap.png" width="240"></a><br><sub>ac2 outofzone pickmap</sub></td>
+<td align="center" width="33%"><a href="ac2-outofzone-snackbar-attempt1.png"><img src="ac2-outofzone-snackbar-attempt1.png" width="240"></a><br><sub>ac2 outofzone snackbar attempt1</sub></td>
+<td align="center" width="33%"><a href="bug-desktop-connectivityfailed-fullscreen-not-card.png"><img src="bug-desktop-connectivityfailed-fullscreen-not-card.png" width="240"></a><br><sub>bug desktop connectivityfailed fullscreen not card</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="bug-desktop-connectivityfailed-still-fullscreen-cycle6-fail1.png"><img src="bug-desktop-connectivityfailed-still-fullscreen-cycle6-fail1.png" width="240"></a><br><sub>bug desktop connectivityfailed still fullscreen cycle6 fail1</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
-- [`bug-desktop-connectivityfailed-still-fullscreen-cycle2-repro1-dump.xml`](bug-desktop-connectivityfailed-still-fullscreen-cycle2-repro1-dump.xml)
-- [`bug-desktop-connectivityfailed-still-fullscreen-cycle2-repro2-dump.xml`](bug-desktop-connectivityfailed-still-fullscreen-cycle2-repro2-dump.xml)
-- [`bug-desktop-connectivityfailed-still-fullscreen-cycle2-repro2.log`](bug-desktop-connectivityfailed-still-fullscreen-cycle2-repro2.log)
+- [`bug-desktop-connectivityfailed-firsttap-repro1-dump.xml`](bug-desktop-connectivityfailed-firsttap-repro1-dump.xml)
+- [`bug-desktop-connectivityfailed-firsttap-repro2-dump.xml`](bug-desktop-connectivityfailed-firsttap-repro2-dump.xml)
+- [`control-desktop-outofzone-pickmap-bounded-dump.xml`](control-desktop-outofzone-pickmap-bounded-dump.xml)
+- [`regression-phone-width-connectivityfailed-clean-dump.xml`](regression-phone-width-connectivityfailed-clean-dump.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-2145/` · public-repo scrub policy (no live secrets; verified clean).*
