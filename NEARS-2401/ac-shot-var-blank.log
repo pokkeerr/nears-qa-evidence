@@ -1,0 +1,33 @@
+QA-lite (micro lane, [m4]) — NEARS-2401
+Worktree: /Users/Apple/Projects/nears-NEARS-2401-ios-shot-var-blank (branch fix/NEARS-2401-ios-shot-var-blank)
+Simulator: iPhone 17 Pro (53F3807C-3BF6-46ED-8487-DEC957036BAA) (Booted)
+Command: source scripts/app-nav/uinav_ios.sh; ui_capture_ios "qa_lite_2401_check"
+
+--- stdout ---
+#### qa_lite_2401_check (iOS)
+_shot: /tmp/cap_ios_qa_lite_2401_check.png_
+labels:
+errors: NOT ASSERTED (ui_errors_ios could not scan the log - see stderr)
+---
+
+Confirmation:
+- _shot: line prints the real path "/tmp/cap_ios_qa_lite_2401_check.png_" (trailing
+  underscore is the intentional markdown-italics-close literal, matching the
+  uinav.sh:513 Android convention) — NOT blank ("_shot: _"). AC met.
+- File-existence cross-check: ls -la /tmp/cap_ios_qa_lite_2401_check.png ->
+  -rw-r--r-- 1 Apple wheel 154183 Aug 23 15:10 /tmp/cap_ios_qa_lite_2401_check.png
+  confirms the printed path is the real screenshot, not a stale/placeholder value.
+- "labels:" header line still printed normally (function structure intact around
+  the fixed line).
+- The python3 ios_find.py list traceback (ConnectionRefusedError, ws socket) that
+  follows is UNRELATED to this fix: no app (Runner) is launched/attached in this
+  simulator instance, so there is no WebDriverAgent/inspector websocket to connect
+  to. This code path (python3 "$IOSFIND" list) is a separate statement that never
+  touches the `shot` variable — confirmed by reading uinav_ios.sh:210-225. Expected
+  given this is a device-free-adjacent tooling verification (no app booted), not a
+  full-app QA run.
+- "errors:" line prints its documented NOT-ASSERTED fallback normally (per the
+  in-file comment on ui_errors_ios's rc==2 branch) — no crash, no dropped line.
+
+Verdict: PASS — the single AC (non-blank _shot: line with the real path) is
+demonstrated live.
