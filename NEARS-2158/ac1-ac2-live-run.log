@@ -1,0 +1,78 @@
+NEARS-2158 QA [8] live device evidence — emulator-5568, Android SDK 37, com.izzes.nears
+Session: 2026-08-23, worktree feat/NEARS-2158-coldstart-notif-recipe
+
+=== AC1: 3 CONSECUTIVE kill_coldstart.sh runs, PID-based verification, stopped_flag never trips ===
+
+RUN 1/3
+  pre  : adb pidof com.izzes.nears -> 5986
+  cmd  : scripts/app-nav/kill_coldstart.sh com.izzes.nears -s emulator-5568
+  out  : pre_pid=5986 post_pid=none stopped_flag=false result=killed_pm_disable  (exit 0)
+  independent cross-check: adb pidof -> empty (rc=1); dumpsys package stopped=false enabled=1
+
+RUN 2/3
+  pre  : adb pidof com.izzes.nears -> 7113
+  out  : pre_pid=7113 post_pid=none stopped_flag=false result=killed_pm_disable  (exit 0)
+  independent cross-check: adb pidof -> empty (rc=1); dumpsys package stopped=false enabled=1
+
+RUN 3/3
+  pre  : adb pidof com.izzes.nears -> 7979
+  out  : pre_pid=7979 post_pid=none stopped_flag=false result=killed_pm_disable  (exit 0)
+  independent cross-check: adb pidof -> empty (rc=1); dumpsys package stopped=false enabled=1
+
+All 3 runs: escalation ladder narrated tier-1 (task remove) and tier-2/3 (stack
+remove / am kill) attempted and failed as documented (geolocator-pinned
+PERSISTENT_SERVICE_ADJ process), tier-4 (pm disable-user) confirmed the kill
+every time; pm enable ran immediately after each and package remained
+enabled=1 with stopped=false throughout — matches the doc's own "the common
+case for this app is tier 4" finding.
+
+=== AC2: real push notification wakes the killed app; NEW pid; tap foregrounds it ===
+
+Push sent via the SAME production code path (Admin/app/CentralLogics/Helpers +
+NotificationTrait FCM v1 HTTP API), topic=all_zone_customer (the topic
+UserApp's AuthController subscribes to on login), through the local dev
+backend's real configured Firebase service-account credentials.
+
+  FCM send after RUN 1 kill: HTTP 200, {"name":"projects/nears-1d39b/messages/3512313578491359230"}
+
+  adb pidof polling after send:
+    check 1 (~3s later): pidof=7113   <- NEW pid, pre-kill pid was 5986
+
+  logcat (pid 7113):
+    FLTFireMsgService: FlutterFirebaseMessagingBackgroundService started!
+    flutter : [INFO] msg="FCM background message type=general"
+    (com.facebook.GraphResponse lines are the pre-existing, unrelated Facebook
+     SDK config warning — see regression_bugs)
+
+  dumpsys notification: a real NotificationRecord for pkg=com.izzes.nears with
+  our exact title/body ("NEARS-2158 QA cold-start push run1" /
+  "kill_coldstart.sh AC2 live probe run1") was posted to the shade.
+
+  Tap (via uiautomator, resolving the clickable expandableNotificationRow
+  ancestor of the notification's text nodes — the text nodes themselves are
+  not clickable):
+    before: mCurrentFocus=Window{... NotificationShade}
+    after:  mCurrentFocus=Window{... com.izzes.nears/com.izzes.nears.MainActivity}
+    app foregrounded into its in-app Notification screen (order/wallet
+    history) — a genuine tap-through, not a coincidental resume.
+
+Discriminator satisfied per the AC's own "either alone is sufficient" wording:
+PID changed (5986 -> 7113, both independently read via adb pidof outside the
+kill script) AND the FCM background-message log line + notification record
+prove the wake was caused by the push, not a manual relaunch.
+
+=== Pre-existing environment gap found & worked around (not a NEARS-2158 defect) ===
+
+This worktree's UserApp/android/app/google-services.json is gitignored (like
+Admin/.env and product images) and was ABSENT on fresh checkout — native
+Firebase init failed ("E FA: Missing google_app_id. Firebase Analytics
+disabled.") and a push sent before the fix produced HTTP 200 from Google but
+never reached the device (no pid change after 30s poll). Copied the file from
+the primary tree (/Users/Apple/Projects/nears/UserApp/android/app/google-services.json,
+same project_id=nears-1d39b, same package=com.izzes.nears), rebuilt, and
+re-logged-in — after which FCM registration/topic-subscribe completed cleanly
+and the push reached the device on the first send. Flagged as a followup
+(worktree-bootstrap gap), not a task_bug on this ticket.
+
+=== Automated backstop ===
+bash scripts/app-nav/kill_coldstart.test.sh -> 21 cases, 78 assertions, 0 failed, PASS

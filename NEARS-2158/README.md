@@ -1,10 +1,17 @@
 # QA Evidence — NEARS-2158
 
-**BLOCKED — device pool saturated, code review + device-free self-test clean, live AC1/AC2 unverifiable this session**
+**PASS — kill_coldstart.sh AC1 (3/3 consecutive clean kills, stopped_flag=false, PID-verified) + AC2 (real FCM push cold-started killed app, new pid, tap foregrounded) live-confirmed on emulator-5568**
 
-**0 screenshot(s).** Click any thumbnail for full resolution.
+**1 screenshot(s).** Click any thumbnail for full resolution.
+
+<table>
+<tr>
+<td align="center" width="33%"><a href="ac2-cold-start-notification-screen.png"><img src="ac2-cold-start-notification-screen.png" width="240"></a><br><sub>ac2 cold start notification screen</sub></td>
+</tr>
+</table>
 
 ### Other artifacts
+- [`ac1-ac2-live-run.log`](ac1-ac2-live-run.log)
 - [`bug-device-pool-saturated.log`](bug-device-pool-saturated.log)
 - [`selftest-devicefree.log`](selftest-devicefree.log)
 
