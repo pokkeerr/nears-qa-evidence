@@ -1,0 +1,28 @@
+Context: emulator-5554, pid 3667, before the fixture webp files were copied onto the
+primary Admin/ tree's storage (Storage::disk('public')->exists() was false for all 3
+2026-08-20-nears1956fixture-{1,2,3}.webp files, so Helpers::get_full_url() fell back to
+the IDENTICAL 'conversation' placeholder URL for all 3 attachments of message 91).
+image_file_view_widget.dart keys each grid tile's Hero as
+`Hero(tag: widget.currentMessage.fileFullUrl![index], ...)` — with all 3 URLs collapsed
+to the same placeholder string, all 3 Hero tags collided.
+
+08-23 03:48:28.975 I/flutter ( 3667): [FAIL] framework_error library=scheduler library type=FlutterError msg="There are multiple heroes that share the same tag within a subtree."
+08-23 03:48:28.977 I/flutter ( 3667): [FAIL] framework_error   at #0      Hero._allHeroesFor.inviteHero.<anonymous closure> (package:flutter/src/widgets/heroes.dart:277:11)
+08-23 03:48:28.977 I/flutter ( 3667): [FAIL] framework_error   at #1      Hero._allHeroesFor.inviteHero (package:flutter/src/widgets/heroes.dart:293:8)
+08-23 03:48:28.977 I/flutter ( 3667): [FAIL] framework_error   at #2      Hero._allHeroesFor.visitor (package:flutter/src/widgets/heroes.dart:311:11)
+08-23 03:48:28.977 I/flutter ( 3667): [FAIL] framework_error   at #3      MultiChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7223:16)
+08-23 03:48:28.977 I/flutter ( 3667): [FAIL] framework_error   at #4      Hero._allHeroesFor.visitor (package:flutter/src/widgets/heroes.dart:326:15)
+08-23 03:48:28.977 I/flutter ( 3667): [FAIL] framework_error   at #5      SingleChildRenderObjectElement.visitChildren (package:flutter/src/widgets/framework.dart:7101:14)
+08-23 03:48:28.977 I/flutter ( 3667): [FAIL] framework_error   at #6      Hero._allHeroesFor.visitor (package:flutter/src/widgets/heroes.dart:326:15)
+08-23 03:48:28.977 I/flutter ( 3667): [FAIL] framework_error   at #7      ComponentElement.visitChildren (package:flutter/src/widgets/framework.dart:5871:14)
+
+After the 3 real fixture webp files were copied onto the primary tree's
+Admin/storage/app/public/conversation/ (making the 3 URLs distinct), a COLD app restart
++ single clean tap on any of message 91's 3 tiles reproduced ZERO Hero/framework errors
+across 5 repeated open/close cycles (checked via `adb logcat -d --pid=<pid> | grep -i
+FAIL/Exception/Error`, pid-scoped). So this specific collision is gated on the
+missing-file/shared-placeholder condition, not on multi-attachment rendering itself; it
+is a real latent fragility in the URL-keyed Hero tag (any 2+ attachments that resolve to
+the same URL, e.g. duplicate uploads or a storage outage, will hit it), but it is not
+reliably reachable via the ticket's normal happy-path demonstration once the fixture's
+image files are actually servable.
