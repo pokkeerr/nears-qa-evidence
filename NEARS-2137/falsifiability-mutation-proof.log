@@ -1,0 +1,24 @@
+NEARS-2137 QA — falsifiability/mutation proof
+Procedure: temporarily reverted the committed gate
+  `if (response.statusCode != null) { ApiChecker.checkApi(response); }`
+back to the unconditional `ApiChecker.checkApi(response);` (pre-fix shape),
+ran the committed test file unmodified, then restored the fix (git diff
+verified clean after restore). Confirms the test suite is genuinely
+discriminating, not vacuous.
+
+RESULT (pre-fix / mutated code): 3 passed, 2 failed
+
+--- AC1 (302) pre-fix ---
+Expected: an object with length of <1>
+  Actual: [ApiFailure:ApiFailure(status: 302), ApiFailure:ApiFailure(status: null)]
+   Which: has length of <2>
+--- AC2 (500) pre-fix ---
+Expected: an object with length of <1>
+  Actual: [ApiFailure:ApiFailure(status: 500), ApiFailure:ApiFailure(status: null)]
+   Which: has length of <2>
+--- AC3 (retry-latch tests) pre-fix: PASSED unaffected (attempts=1, resets to 0 on 200)
+--- negative control (200) pre-fix: PASSED unaffected
+
+RESTORE VERIFIED: `git diff` against committed HEAD (95a77b39) showed zero
+delta after restoring the gate — confirms the mutation was reverted exactly.
+Post-restore re-run: 5/5 passed (see ac-suite-pass.log).

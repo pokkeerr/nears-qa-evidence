@@ -1,0 +1,31 @@
+NEARS-2137 QA — regression-candidate confirmation (NOT this ticket's scope)
+fetchStoreTax (checkout_controller.dart ~:1145-1165) double-emits [FAIL]
+independently of the getOrderTax fix in this ticket. Confirmed live via a
+throwaway test using the identical real-client harness pattern
+(_FixedStatusClient + _SpyRecorder implements CrashRecorder), built, run,
+and deleted (not committed) during this QA pass.
+
+RESULT:
+302 -> 2 recordError entries:
+  [FAIL] endpoint=/api/v1/customer/order/get-Tax http_status=302 type=ApiFailure msg="unhandled api response"
+  [FAIL] endpoint=/api/v1/customer/order/get-Tax http_status=302 type=ApiFailure msg="checkout: group per-store tax non-200"
+500 -> 2 recordError entries:
+  [FAIL] endpoint=/api/v1/customer/order/get-Tax http_status=500 type=ApiFailure msg="unhandled api response"
+  [FAIL] endpoint=/api/v1/customer/order/get-Tax http_status=500 type=ApiFailure msg="checkout: group per-store tax non-200"
+
+MECHANISM (matches comment 15160 Finding 2): fetchStoreTax calls
+checkoutServiceInterface.getOrderTax(taxBody, handleError: false) but the
+checkout_service/checkout_repository getOrderTax signature never exposes/
+threads a `logError` param to ApiClient.postData, so postData's own
+`logError` default (true) still fires api_client.dart's generic
+"unhandled api response" AppLogger.failure INSIDE handleResponse — a
+SEPARATE emitter from fetchStoreTax's own explicit
+AppLogger.failure('checkout: group per-store tax non-200', ...) call
+immediately after. Two independent emitters, one event — same double-emit
+FAMILY as this ticket but a DIFFERENT call site/mechanism (getOrderTax's
+own is a single emitter, checkApi, invoked twice).
+
+Confirmed as a genuine, live, reproducible regression candidate. Explicitly
+OUT of NEARS-2137's scope per the description and comment 15370. Routed via
+the standard QA-confirms -> PO-files-linked-Bug chain (regression_bugs[]),
+not fixed here.
