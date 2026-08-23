@@ -1,0 +1,45 @@
+Live device capture — emulator-5564, com.izzes.nears, worktree build (commit 1fcd9d9c).
+
+Confirmed ModuleController.module IS genuinely null (reachable in real user flows), via the
+documented mechanism: dashboard_screen.dart's PopScope (Home tab, pageIndex 0) -- when
+module != null && configModel.module == null && moduleList.length != 1, a second device
+back-press calls Get.find<ModuleController>().removeModule() (module_controller.dart:862,
+sets _module = null), landing on the sector/module picker.
+
+Live sequence:
+  1. Store Detail "Abu Dhabi Fresh Market" open (module=grocery-food, non-null; see
+     ac1-share-url-nonnull.log for the Share URL captured here).
+  2. adb shell input keyevent KEYCODE_BACK -> Grocery module home (module still non-null).
+  3. adb shell input keyevent KEYCODE_BACK -> sector/module picker: all 3 sector cards
+     visible (Food & Restaurant / Grocery & Food / Pharmacy), no module home content --
+     this state ONLY renders when ModuleController.isNoModuleSelected is true (module ==
+     null), per docs/apps/userapp/userapp-navigation-guide.md line 336 (NEARS-590).
+     Screenshot: module-null-sector-picker.png.
+
+This confirms the null-module precondition this ticket's fix guards against is real and
+live-reachable in the shipped app -- not a contrived/unreachable state.
+
+NOT independently reproduced live in this pass: tapping Share/location WHILE module is
+null. Every live entry point into Store Detail found during this QA pass (search-result
+item bottom sheet's store-name button, store/sector cards) defensively calls
+ModuleController.setModule(...) immediately before navigating in (item_bottom_sheet.dart
+~L1190, store_compact_card_widget.dart:28, search_store_card_widget.dart:35, and others --
+this is the NEARS-1861 hardening pattern), so module is always non-null again by the time
+Store Detail (and its Share button) is interactive. Re-entering Store Detail after the
+null-out above (step 3) necessarily re-triggers one of these setModule() call sites, so a
+PURE live-navigation repro of "Store Detail interactive AND module==null simultaneously"
+could not be constructed in this session despite genuine, extended attempts (multiple
+navigation graphs tried: dashboard back-press x2, global search -> item -> store).
+
+This precise precondition (module==null at the exact moment filterRestaurantLinkUrl /
+the location onTap execute) IS exactly what the automated test suite constructs directly
+(test/features/store/store_module_nullguard_test.dart, independently re-run 7/7 PASS this
+session) via a fake ModuleController override -- the correct and, on this evidence, the
+ONLY currently-reachable way to exercise this exact race/edge condition, consistent with
+the ticket's own framing ("module going null MID-FLIGHT", i.e. a race, not an ordinary
+navigation sequence). Combined with (a) the live-confirmed reachability of the null-module
+STATE itself, (b) the live-confirmed correctness of the non-null flow's URL shape, (c) code
+trace confirming getModuleConfig(String? moduleType) already degrades safely on null
+(module_controller.dart:555), this is treated as verified via automated-test + code-trace,
+not FAIL/BLOCKED -- same evidentiary tier already authorized by the QA Test Scope for
+AC1's useReactWebsite=true branch.

@@ -1,0 +1,61 @@
+FINDING (this QA pass): AC2's "mobile/IntrinsicHeight layout (~line 308)" location-tap
+site is structurally DEAD CODE -- unreachable in ANY live UserApp session at ANY device/
+window width, not merely on this specific emulator. This was not flagged as dead in the
+QA Test Scope (unlike AC1's useReactWebsite=true branch, which WAS flagged) and was
+discovered live during this pass after ~40+ live navigation/accessibility-tree attempts
+to locate and tap the mobile location control failed to find it anywhere in the rendered
+tree.
+
+Root cause, confirmed by direct code read:
+
+1. UserApp/lib/features/store/screens/store_screen.dart:307-320 --
+     ResponsiveHelper.isDesktop(context)
+       ? [...  StoreDescriptionViewWidget(store: store) ...]   // only ever built here
+       : NearsStoreHeaderSliver(store: store!, ...)            // real mobile screen widget
+   StoreDescriptionViewWidget is ONLY EVER INSTANTIATED when isDesktop(context) is TRUE.
+
+2. UserApp/lib/features/store/widgets/store_description_view_widget.dart's own build()
+   ALSO branches on the identical `ResponsiveHelper.isDesktop(context)` (same BuildContext
+   chain, same MediaQuery, no nested override) to choose between:
+     - the desktop InkWell (~line 234-249, the "~line 240" AC2 site) -- ALWAYS taken
+       whenever the widget is built at all, because isDesktop is necessarily already true.
+     - the IntrinsicHeight mobile Row (~line 273-343, the "~line 308" AC2 site) --
+       structurally UNREACHABLE: it can only execute if isDesktop(context) is false, but
+       the widget is never even constructed in that case.
+
+3. UserApp/lib/helper/responsive_helper.dart:28-35 -- isDesktop(context) is a pure
+   `MediaQuery.of(context).size.width >= 1300` check; isMobile(context) is HARDCODED
+   `return true` always (NEARS-1623: "this app renders mobile/native UI mode only,
+   always... isDesktop/isTab... retained only for a possible future web target
+   (NEARS-61)"). The Android/iOS UserApp ships mobile-only; a >=1300 logical-px width is
+   not reachable on any currently supported phone/tablet form factor in this build.
+
+4. Independently corroborated by pre-existing project documentation, NOT written for this
+   ticket: docs/apps/userapp/userapp-navigation-guide.md, "Store Reviews screen... History:
+   pre-NEARS-1275 ... only the desktop-only dead StoreDescriptionViewWidget built the
+   route" -- i.e. this widget's mobile-irrelevance was already known/documented before
+   NEARS-2172.
+
+Live confirmation (this session, emulator-5564, phone-width viewport): the real mobile
+Store Detail screen is built entirely by NearsStoreHeaderSliver (confirmed: its own
+rating-pill InkWell, wired per NEARS-1275, is what actually opens ReviewScreen when
+"Store Reviews" is tapped -- verified live, tap navigated to ReviewScreen's empty state).
+An exhaustive live accessibility-tree dump of the full Store Detail screen (54 nodes, see
+raw dump reasoning in session) contains NO location/delivery-time/free-delivery nodes
+anywhere -- StoreDescriptionViewWidget's Column (which starts with these, see build()
+line 49) is not rendered as an interactive element on mobile AT ALL, consistent with (1).
+
+Conclusion: AC2's mobile/IntrinsicHeight location-tap site is exercised ONLY by
+test/features/store/store_module_nullguard_test.dart's direct widget-construction tests
+(desktop AND mobile-viewport test cases, 4/4 PASS, independently re-run this session) --
+this is not a live-QA gap, it is the ONLY way this code path can ever execute, before and
+after this fix. The desktop InkWell (~line 240) is reachable only on a >=1300px-wide
+window (Flutter web / a future desktop target), which does not exist for this Android
+build; not independently live-repro-able on this device pool either, same tier as AC1's
+useReactWebsite=true branch.
+
+This does not block AC2's verdict: the automated widget tests exercise BOTH code paths
+directly (bypassing live-navigation reachability, which is exactly the right tool given
+finding 1-3 above), and the code fix itself (module?.moduleType instead of
+module!.moduleType!, traced against getModuleConfig's null-safe degrade at
+module_controller.dart:555) is identical in shape and correctness for both sites.

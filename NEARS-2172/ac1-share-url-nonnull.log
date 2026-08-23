@@ -1,0 +1,10 @@
+Live device capture — emulator-5564, com.izzes.nears, worktree build (commit 1fcd9d9c, fix/NEARS-2172-store-module-nullguard).
+
+Action: Store Detail screen for "Abu Dhabi Fresh Market" (store id 8, module=grocery-food, ModuleController.module NON-NULL — set via item_bottom_sheet's setModule() on entry). Tapped the app-bar "Share" button (StoreController.shareStore() -> filteringUrl() -> StoreService.filterRestaurantLinkUrl()).
+
+Observed: Android system share sheet opened (topResumedActivity=com.android.intentresolver/.ChooserActivityLauncher), share text dump via uiautomator:
+
+  Sharing link
+  https://6ammart-web.6amtech.com/store/abu-dhabi-fresh-market?id=8&page=store&module=grocery-food
+
+This is the useReactWebsite=false branch (the live path). module=grocery-food segment IS present, id=8&page=store shape unchanged from pre-fix expected format. AC3 (non-null regression, byte-identical shape) — CONFIRMED live, no crash, no [ERR]/[FAIL] in logcat (AndroidRuntime:E / flutter:E / *:F all empty across the whole session).
