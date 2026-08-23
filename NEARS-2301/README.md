@@ -1,8 +1,16 @@
 # QA Evidence — NEARS-2301
 
-**BLOCKED: AC1-3 PASS (live, clean logs); AC4 blocked on full device-pool saturation (Android+iOS), automated widget-test backstop green**
+**delta re-QA AC4: BLOCKED (env limitation) — see comment**
 
-**0 screenshot(s).** Click any thumbnail for full resolution.
+**3 screenshot(s).** Click any thumbnail for full resolution.
+
+<table>
+<tr>
+<td align="center" width="33%"><a href="ac4-dm-list-renders.png"><img src="ac4-dm-list-renders.png" width="240"></a><br><sub>ac4 dm list renders</sub></td>
+<td align="center" width="33%"><a href="ac4-edit-screen-populated-unpatched-backend.png"><img src="ac4-edit-screen-populated-unpatched-backend.png" width="240"></a><br><sub>ac4 edit screen populated unpatched backend</sub></td>
+<td align="center" width="33%"><a href="ac4-empty-email-snackbar.png"><img src="ac4-empty-email-snackbar.png" width="240"></a><br><sub>ac4 empty email snackbar</sub></td>
+</tr>
+</table>
 
 ### Other artifacts
 - [`ac1-list-response.json`](ac1-list-response.json)
