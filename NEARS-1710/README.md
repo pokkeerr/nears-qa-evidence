@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1710
 
-**PASS — DeliveryApp policy/HTML viewer 4-state gate verified live on emulator-5560 (Android, light mode)**
+**PASS — delta re-QA (cycle 5): Retry in-flight state + route-scoped guard verified live on emulator-5572, HEAD 2780cabd**
 
-**9 screenshot(s).** Click any thumbnail for full resolution.
+**14 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -20,10 +20,20 @@
 <td align="center" width="33%"><a href="ac7-ac9-terms-empty-arabic-rtl.png"><img src="ac7-ac9-terms-empty-arabic-rtl.png" width="240"></a><br><sub>ac7 ac9 terms empty arabic rtl</sub></td>
 <td align="center" width="33%"><a href="ac9-terms-skeleton-arabic-rtl.png"><img src="ac9-terms-skeleton-arabic-rtl.png" width="240"></a><br><sub>ac9 terms skeleton arabic rtl</sub></td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="delta-01-cold-entry-skeleton.png"><img src="delta-01-cold-entry-skeleton.png" width="240"></a><br><sub>delta 01 cold entry skeleton</sub></td>
+<td align="center" width="33%"><a href="delta-02-cold-entry-content.png"><img src="delta-02-cold-entry-content.png" width="240"></a><br><sub>delta 02 cold entry content</sub></td>
+<td align="center" width="33%"><a href="delta-03-terms-error-retry.png"><img src="delta-03-terms-error-retry.png" width="240"></a><br><sub>delta 03 terms error retry</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-04-retry-skeleton-error-cleared.png"><img src="delta-04-retry-skeleton-error-cleared.png" width="240"></a><br><sub>delta 04 retry skeleton error cleared</sub></td>
+<td align="center" width="33%"><a href="delta-05-privacy-survives-late-terms-response.png"><img src="delta-05-privacy-survives-late-terms-response.png" width="240"></a><br><sub>delta 05 privacy survives late terms response</sub></td>
+</tr>
 </table>
 
 ### Other artifacts
 - [`bug-retry-no-inflight-state.log`](bug-retry-no-inflight-state.log)
+- [`delta-route-scoping-proof.log`](delta-route-scoping-proof.log)
 - [`progress.md`](progress.md)
 
 ---

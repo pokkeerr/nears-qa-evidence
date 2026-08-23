@@ -1,0 +1,41 @@
+NEARS-1710 delta re-QA (cycle 5) — route-scoping proof, DeliveryApp on emulator-5572
+HEAD 2780cabd. App-side AppLogger [NET] lines (debug console), QA proxy in front of
+the local Laravel dev server serves the two HTML endpoints under test control.
+
+--- Case A: Terms fetch in flight (20s), user navigates to Privacy ---
+proxy served:  /api/v1/terms-and-conditions   (t0)
+proxy served:  /api/v1/privacy-policy         (t0+3s)   <- Privacy fetch WAS issued (not dropped)
+app: [NET] GET endpoint=/api/v1/terms-and-conditions
+app: [NET] GET endpoint=/api/v1/privacy-policy
+app: [NET] endpoint=/api/v1/privacy-policy http_status=200
+app: [NET] endpoint=/api/v1/terms-and-conditions http_status=200   <- LATE Terms response ARRIVED
+screen after the late Terms 200 landed:
+  label="Privacy Policy"            (app-bar title)
+  label="NEARSQA-PRIVACY-MARKER"    (body still Privacy — late Terms payload discarded)
+
+--- Case B: reverse order, Privacy fetch in flight (20s), user navigates to Terms ---
+proxy served:  /api/v1/privacy-policy         (t0)
+proxy served:  /api/v1/terms-and-conditions   (t0+3s)
+app: [NET] GET endpoint=/api/v1/privacy-policy
+app: [NET] GET endpoint=/api/v1/terms-and-conditions
+app: [NET] endpoint=/api/v1/terms-and-conditions http_status=200
+app: [NET] endpoint=/api/v1/privacy-policy http_status=200         <- LATE Privacy response ARRIVED
+screen after the late Privacy 200 landed:
+  label="Terms & Condition"
+  label="NEARSQA-TERMS-MARKER"      (body still Terms — late Privacy payload discarded)
+
+Positive control: in BOTH cases the superseded route's response is logged as ARRIVING
+(http_status=200) in the app. The screen was therefore proven to DISCARD a delivered
+payload, not merely to never receive one.
+
+--- Re-entrancy guard, non-vacuous exercise ---
+Same route re-entered twice while a 15s fetch was in flight (two full screen entries,
+two getHtmlText calls): proxy logged exactly 1 request; content still landed.
+3 rapid taps on Retry (~150ms apart, 8s response delay): proxy logged exactly 1 request.
+
+--- Full-session failure sweep ---
+3 x [FAIL] endpoint=/api/v1/terms-and-conditions http_status=500 type=ApiFailure
+          msg="unhandled api response"
+  -> all three are the deliberately forced 500s used to reach the error state; each is
+     paired with the visible error card (no silent failure path).
+0 unhandled exceptions, 0 EXCEPTION CAUGHT, 0 RenderFlex overflows.

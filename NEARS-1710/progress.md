@@ -80,3 +80,23 @@ identical route/widget.
   This is the app-wide DeliveryApp shimmer convention — `OrderShimmerWidget` (the widget this
   skeleton documents itself as mirroring) uses the same token on lines 23/27/34/41. Not caused
   by this ticket; the bars are visible, just low-contrast.
+
+---
+
+## Delta re-QA (cycle 5) — task-bug fix verification, HEAD 2780cabd
+Device emulator-5572 (AVD nears_qa_delivery, booted for this run; pool 5554/5560/5564/5568 all held).
+Scope: the Retry in-flight-state task-bug + the route-scoping fix from review cycle 2 ONLY.
+The full 10-point AC table from the cycle-4 PASS was NOT re-run (controller-only change).
+
+| # | Delta check | Result | Evidence |
+|---|---|---|---|
+| D1 | Retry drops the stale error immediately; skeleton paints; content lands | PASS | delta-03/delta-04; mid-flight sample t+2.0s vs 8s response |
+| D2 | Double/triple-tap Retry fires exactly ONE request | PASS | proxy request log: 1 line for 3 taps |
+| D2b | Same route re-entered twice while fetch in flight -> ONE request | PASS | non-vacuous exercise of the re-entrancy guard |
+| D3a | Terms in flight -> navigate to Privacy: Privacy fetches, shows PRIVACY, late Terms 200 discarded | PASS | delta-05, delta-route-scoping-proof.log |
+| D3b | Reverse (Privacy in flight -> Terms): shows TERMS, late Privacy 200 discarded | PASS | delta-route-scoping-proof.log Case B |
+| D4 | Cold entry skeleton -> content; empty state still distinct (no Retry) | PASS | delta-01/delta-02; "This page isn't available yet." |
+| D5 | flutter test (targeted 18, full suite 271) | PASS | 18/18 and 271/271 visible |
+
+Logs: 3 x [FAIL] http_status=500, all deliberately forced to reach the error state, each
+paired with the visible error card. 0 unhandled exceptions / overflows.
