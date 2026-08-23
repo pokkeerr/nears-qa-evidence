@@ -1,0 +1,19 @@
+==================================================================
+[qa-lock] PHANTOM HOLD — emulator-5568 is held by a LIVE session, but the device is NOT ATTACHED
+          serial     : emulator-5568
+          holder key : NEARS-2077-FOREIGN
+          holder pid : 46385 (alive)
+          lock file  : /Users/Apple/.nears/qa-locks/emulator-5568/owner.json
+          probe      : devices_enumerated=5 signals_answered=1 verdict=absent
+          why        : the holder process is alive, but emulator-5568 is not in the enumerated
+                       pool. A session cannot finish with a device it no longer has, so
+                       waiting for a release here is waiting for something that cannot
+                       happen. That is why this is not the ordinary 'held by another
+                       LIVE QA session' refusal.
+          -> This release REFUSED to force-clear the lock: the holder is alive and may
+             be mid-reboot or mid-reattach of this very serial, and deleting the lock
+             file could race a genuine reattach. Nothing removed.
+          -> Boot or reattach emulator-5568 (a normal release then succeeds), or clear the lock
+             file named above by hand -- that is an operator decision this guard never
+             makes for itself.
+==================================================================
