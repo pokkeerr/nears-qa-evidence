@@ -1,22 +1,30 @@
 # QA Evidence — NEARS-1710
 
-**NEEDS_DECISION — iOS tap mechanism inert on this host session; build/backend/boot confirmed healthy, live interactive QA blocked**
+**PASS — DeliveryApp policy/HTML viewer 4-state gate verified live on emulator-5560 (Android, light mode)**
 
-**4 screenshot(s).** Click any thumbnail for full resolution.
+**9 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="tap-noop-after-forgotpw.png"><img src="tap-noop-after-forgotpw.png" width="240"></a><br><sub>tap noop after forgotpw</sub></td>
-<td align="center" width="33%"><a href="tap-noop-after-phonefield.png"><img src="tap-noop-after-phonefield.png" width="240"></a><br><sub>tap noop after phonefield</sub></td>
-<td align="center" width="33%"><a href="tap-noop-before-forgotpw.png"><img src="tap-noop-before-forgotpw.png" width="240"></a><br><sub>tap noop before forgotpw</sub></td>
+<td align="center" width="33%"><a href="ac1-privacy-empty-state.png"><img src="ac1-privacy-empty-state.png" width="240"></a><br><sub>ac1 privacy empty state</sub></td>
+<td align="center" width="33%"><a href="ac1-terms-content-state.png"><img src="ac1-terms-content-state.png" width="240"></a><br><sub>ac1 terms content state</sub></td>
+<td align="center" width="33%"><a href="ac1-terms-empty-state.png"><img src="ac1-terms-empty-state.png" width="240"></a><br><sub>ac1 terms empty state</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="tap-noop-before-phonefield.png"><img src="tap-noop-before-phonefield.png" width="240"></a><br><sub>tap noop before phonefield</sub></td>
+<td align="center" width="33%"><a href="ac1-terms-error-retry-state.png"><img src="ac1-terms-error-retry-state.png" width="240"></a><br><sub>ac1 terms error retry state</sub></td>
+<td align="center" width="33%"><a href="ac1-terms-skeleton-loading.png"><img src="ac1-terms-skeleton-loading.png" width="240"></a><br><sub>ac1 terms skeleton loading</sub></td>
+<td align="center" width="33%"><a href="ac2-terms-http500-error-retry.png"><img src="ac2-terms-http500-error-retry.png" width="240"></a><br><sub>ac2 terms http500 error retry</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="ac4-switch-no-stale-flash.png"><img src="ac4-switch-no-stale-flash.png" width="240"></a><br><sub>ac4 switch no stale flash</sub></td>
+<td align="center" width="33%"><a href="ac7-ac9-terms-empty-arabic-rtl.png"><img src="ac7-ac9-terms-empty-arabic-rtl.png" width="240"></a><br><sub>ac7 ac9 terms empty arabic rtl</sub></td>
+<td align="center" width="33%"><a href="ac9-terms-skeleton-arabic-rtl.png"><img src="ac9-terms-skeleton-arabic-rtl.png" width="240"></a><br><sub>ac9 terms skeleton arabic rtl</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
-- [`ios-tap-blocker.log`](ios-tap-blocker.log)
+- [`bug-retry-no-inflight-state.log`](bug-retry-no-inflight-state.log)
+- [`progress.md`](progress.md)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1710/` · public-repo scrub policy (no live secrets; verified clean).*

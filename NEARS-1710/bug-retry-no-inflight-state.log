@@ -1,0 +1,31 @@
+NEARS-1710 QA finding — Retry paints no in-flight state and does not guard double-taps
+Device emulator-5560 | DeliveryApp @ 0f5958d0 | light mode | en
+
+WHAT WAS DONE
+1. Policy endpoint forced to HTTP 500 -> Terms shows OrderErrorRetryWidget (correct).
+2. Endpoint switched to a 6s-delayed 200-with-content.
+3. "Retry" tapped ONCE. UI sampled during the in-flight window:
+
+   t+~1s  a11y: ["Couldn't connect to the server. Please try again.", "Retry", "Terms & Condition"]
+   t+~4s  a11y: ["Couldn't connect to the server. Please try again.", "Retry", "Terms & Condition"]
+   t+~9s  a11y: ["Nears Delivery Terms", "TERMS-CONTENT-MARKER alpha", "Second terms paragraph.", ...]
+
+   -> For the whole 6s fetch the screen holds the stale error + an enabled Retry button.
+      The _HtmlSkeleton loading state is never painted on the retry path (it IS painted on
+      first entry). HtmlController.getHtmlText() clears _htmlText/_hasError but only calls
+      update() AFTER the await, so the cleared (loading) state never reaches the UI.
+
+4. "Retry" double-tapped in quick succession, same 6s-delayed endpoint:
+
+   I/flutter (16665): [NET] GET endpoint=/api/v1/terms-and-conditions
+   I/flutter (16665): [NET] GET endpoint=/api/v1/terms-and-conditions
+   I/flutter (16665): [NET] endpoint=/api/v1/terms-and-conditions http_status=200
+   I/flutter (16665): [NET] endpoint=/api/v1/terms-and-conditions http_status=200
+
+   -> Two concurrent in-flight requests; no isLoading/in-flight guard in the controller.
+      Outcome was benign (both 200, correct content rendered, no error/exception), but the
+      button gives no feedback so a user is invited to keep tapping.
+
+IMPACT: low. Does NOT break an AC — QA scope 3 ("retry genuinely re-fetches and clears
+error on success") is satisfied and was demonstrated. This is a missing loading affordance
+on the newly-added retry surface, not the permanent-spinner defect (which is fixed).
