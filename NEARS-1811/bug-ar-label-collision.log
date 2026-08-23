@@ -1,0 +1,30 @@
+NEARS-1811 QA finding: Arabic content-desc collision on OrderDetailsScreen (order #91132, ar locale)
+
+Command:
+python3 scripts/app-nav/uifind.py find "تتبع الطلب" --exact  (on Admin/UserApp order_details_screen, ar locale, order #91132, pending)
+
+Output (verbatim):
+uifind: emulator-5554 dumped 17382 bytes from /sdcard/uinav-fe4e8cf267484ad8b8572fdd615693f0.xml; parsed 44 node(s), 27 labelled
+AMBIGUOUS: "تتبع الطلب" matched 2 distinct nodes (use --first to accept any, or a more specific label):
+  label="تتبع الطلب"  clickable=true  area=21609  at 115,1830
+  label="تتبع الطلب"  clickable=false  area=81672  at 540,319
+rc=3
+
+Root cause: two DIFFERENT translation keys resolve to the IDENTICAL Arabic string.
+  UserApp/assets/language/ar.json:151  "track_order": "تتبع الطلب"      <- the FAB tooltip added by this ticket (order_details_screen.dart:254)
+  UserApp/assets/language/ar.json:335  "order_tracking": "تتبع الطلب"   <- the pre-existing "Order Tracking" section heading (order_status_hero_widget.dart:51)
+English values are distinct ("Track Order" vs "Order Tracking") so this collision is Arabic-only.
+  UserApp/assets/language/en.json:176  "track_order": "Track Order"
+  UserApp/assets/language/en.json:359  "order_tracking": "Order Tracking"
+
+Effect: before this fix the FAB had NO a11y label at all, so no collision existed (the heading was the
+only "تتبع الطلب" node). This fix newly attaches an accessible label to the FAB using the SAME visible
+string the pre-existing heading already carries in ar -- so an Arabic screen-reader/automation user
+now hears/matches "تتبع الطلب" for BOTH the non-interactive heading (clickable=false) and the actual
+track-order FAB (clickable=true), and cannot disambiguate by label alone. This directly breaks the QA
+Test Scope requirement: "ui_find on ... localized ar ... strings on OrderDetailsScreen -> rc=0 unique"
+-- Arabic returns rc=3 AMBIGUOUS, not rc=0 unique.
+
+bn/es checked via translation-file static read: both keys resolve to DISTINCT strings in bn.json and
+es.json (bn: "ট্র্যাক অর্ডার " vs "অর্ডার ট্র্যাকিং"; es: "Seguimiento del pedido" vs "Seguimiento de pedidos")
+-- no collision in those locales.
