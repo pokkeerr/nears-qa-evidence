@@ -1,0 +1,50 @@
+NEARS-1710 iOS QA attempt (cycle 3) — tap-mechanism blocker diagnostic log
+
+Device: iPhone 17e simulator, UDID 6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D, iOS 26.5, booted by conductor.
+App: DeliveryApp built + launched successfully via `flutter run -d 6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D --debug`
+      (required copying gitignored DeliveryApp/ios/GoogleService-Info.plist from the primary tree first —
+       build failed with "Command Ld failed .. Build input file cannot be found" without it).
+Backend: confirmed reachable — `flutter: [NET] endpoint=/api/v1/config http_status=200` in run log.
+App boots correctly to the Login screen; semantics tree reads correctly via scripts/app-nav/ios_find.py
+(ui_list_ios / tree / viewport all functional, zero TCC errors on those read-only calls).
+
+BLOCKER: scripts/app-nav/uinav_ios.sh's ui_tap_ios (the only interaction primitive for iOS in the
+sanctioned toolkit) produces NO effect on the device. Diagnostic sequence:
+
+1. First attempt: `tell application "System Events" to tell process "Simulator" to click at {x,y}`
+   returned execution error -25204 (Simulator window not frontmost / not queryable).
+2. After `tell application "Simulator" to activate` + re-check, window becomes queryable
+   (`count windows` -> 1, window name "iPhone 17e – iOS 26.5"), and the click call itself
+   returns a resolved AX element description with no error (e.g.
+   "button 1 of group 2 of group 2 ... of window iPhone 17e ... of application process Simulator").
+3. Cross-checked the window-origin math ui_tap_ios uses against System Events' own reported window
+   position/size right after activation — they agree exactly (origin 1341,170 derived both ways),
+   so the coordinate resolution itself is correct.
+4. Cross-checked target node bounds via `ios_find.py tree` for both "Join as a Delivery man" and
+   "Forgot Password?" — both are small, unambiguous, un-merged semantics nodes (not the
+   uifind-absorbed-label trap); the tapped point is the true geometric centre of each node.
+5. Despite (2)-(4) all checking out, NO navigation occurred after tapping either link
+   (semantics tree re-read afterward is byte-identical to the pre-tap Login screen).
+6. Decisive test: `xcrun simctl io <udid> screenshot` (the same primitive scripts/app-nav/uinav_ios.sh's
+   ui_shot_ios uses — a genuine live device-framebuffer capture, not a cached/stale window grab,
+   confirmed correct-device targeting: explicit-UDID vs `booted` selector resolve to the identical
+   display screenID) taken immediately before and after tapping "Forgot Password?" AND separately
+   before/after tapping the "Phone Number *" text field (which should at minimum raise the on-screen
+   keyboard) are BYTE-IDENTICAL (sha1) in both cases:
+     tap-noop-before-forgotpw.png == tap-noop-after-forgotpw.png
+     tap-noop-before-phonefield.png == tap-noop-after-phonefield.png
+7. `log show --predicate 'subsystem == "com.apple.TCC"' --last 5m` shows ZERO accessibility-denial
+   entries around the click calls — this is not a TCC permission denial, the click event is not
+   reaching/registering as a touch on the simulated device at all.
+8. No alternative tap mechanism is available on this host within the sanctioned toolkit or common
+   fallbacks: no `idb`/`fbsimctl` binary, no `cliclick`, no PyObjC `Quartz`/`AppKit` bindings importable
+   from any python3 on PATH (venv, /usr/bin, /opt/homebrew).
+
+Conclusion: DeliveryApp itself boots and runs correctly on this iOS simulator and reaches the real
+local backend — this is NOT a build/config/backend defect. The blocker is that the sanctioned iOS
+driving toolkit's only interaction primitive (ui_tap_ios / System Events synthetic click) is inert
+in this specific agent-session/host/Simulator pairing, for reasons that survive every check the
+documented TAP NOTE fallback anticipates (TCC permission, window-origin math, label-absorption).
+Nearly every AC in the QA Test Scope requires multi-screen tap-driven navigation (login or
+registration -> profile -> Terms/Privacy, retry-button taps, Terms<->Privacy switching), so this
+blocks live demonstration of essentially the whole scope, not just one AC.
