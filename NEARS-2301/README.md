@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2301
 
-**delta re-QA AC4: env-blocked E2E, partial live evidence + widget-test corroboration — see comment**
+**delta re-QA AC4 final: BLOCKED + 2 regression_bugs evidence**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -21,6 +21,7 @@
 - [`automated-backend-phpunit.log`](automated-backend-phpunit.log)
 - [`automated-vendorapp-flutter-test.log`](automated-vendorapp-flutter-test.log)
 - [`idor-preview-foreign-dm-404.json`](idor-preview-foreign-dm-404.json)
+- [`regression-dm-icon-buttons-no-label-dump.xml`](regression-dm-icon-buttons-no-label-dump.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-2301/` · public-repo scrub policy (no live secrets; verified clean).*
