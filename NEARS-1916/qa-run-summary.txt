@@ -1,0 +1,65 @@
+NEARS-1916 — QA evidence (headless test-infra ticket, no UI/device surface)
+Worktree: /Users/Apple/Projects/nears-NEARS-1916-cart-timer-teardown-race
+Branch: fix/NEARS-1916-cart-timer-teardown-race
+Pinned SDK: /Users/Apple/Tools/flutter (Flutter 3.41.9 / Dart 3.11.5) — verified via `flutter --version`
+
+=== AC1: file-scoped run, 3x consecutive ===
+Command: ~/Tools/flutter/bin/flutter test test/features/cart/cart_optimistic_add_test.dart
+Run 1: 00:00 +31: All tests passed!
+Run 2: 00:00 +31: All tests passed!
+Run 3: 00:00 +31: All tests passed!
+All 3 runs: identical 31/31 passed, including both TB2 tests:
+  +22: TB2 — ... source: _buildOptimisticRow stores an Item whose addOns/variations/choiceOptions/foodVariations are non-null (empty) lists
+  +23: TB2 — ... consumer: PricingService prices and renders the optimistic line without throwing (setupAddonsText / setupVariationText / calculateAddonPrice)
+No order-dependent flakiness observed across 3 runs.
+
+=== AC1 (strong interpretation): FULL SUITE run, 3x consecutive ===
+Command: ~/Tools/flutter/bin/flutter test   (whole UserApp/test/ tree)
+Run 1: 01:57 +4355 ~2: All tests passed!
+Run 2: 02:20 +4355 ~2: All tests passed!
+Run 3: 02:06 +4355 ~2: All tests passed!
+Identical count (4355 tests, 2 skipped) and identical "All tests passed!" all 3 runs.
+The two [FAIL] lines seen in the tail of each run (ResolverUnexpectedFailure /
+"splash-nav: resolved-tier nav work failed") are expected AppLogger.failure()
+assertions INSIDE test/helper/destination_resolver_test.dart (pre-existing,
+unrelated to this ticket) — they are the test's own pinned failure-path log, not
+a suite failure; each run still ends "All tests passed!".
+cart_optimistic_add_test.dart lines appeared 7x per full-suite run, all clean.
+
+=== AC2: interleaved with 2 other cart/item test files, 2x ===
+Command: ~/Tools/flutter/bin/flutter test \
+  test/features/cart/cart_optimistic_add_test.dart \
+  test/features/cart/cart_controller_test.dart \
+  test/features/item/item_controller_pin_test.dart
+Run 1: +62: All tests passed!
+Run 2: +62: All tests passed!
+Identical 62/62 passed both runs, TB2 group clean in both.
+
+=== AC3: root-cause comment at fix sites (read directly from tree) ===
+File: UserApp/test/features/cart/cart_optimistic_add_test.dart
+- tearDown (line 218): "// NEARS-1916: dispose the debounce Timer before Get.reset —
+  `controller` in this file is constructed directly (not via Get.put), so
+  Get.reset alone never calls onClose and a pending real-clock Timer can leak
+  past the test."
+- TB2 test 1 body (line 1318-1319): "// NEARS-1916: optimisticAddToCart schedules
+  a real _syncDebounce Timer; run in fakeAsync so it can't leak into real time and
+  hit a later test."
+- TB2 test 2 body (line 1347): "// NEARS-1916: same real-Timer leak as the sibling
+  test above."
+All 3 sites present and read directly (git diff HEAD~1 --stat shows the file
+changed 63+/40- lines, consistent with the tearDown hardening + fakeAsync wrap).
+
+=== Regression sweep: other ~29 tests in cart_optimistic_add_test.dart ===
+Covered by every file-scoped and full-suite run above — all 31 tests in the file
+(TB2's 2 plus the other 29: AC1/AC2, SNAP-BACK, DEBOUNCE, AC9, CRITICAL-2 x2,
+AC7, AC4 x2, AC3, MEDIUM-6, AC4-narrow, basket step, CRITICAL-1, HIGH-4, NEW-H1,
+NEW-H1 toast-gating group x3, HIGH-5, HIGH-3/MED-6, MED-6, TB1 group x2, BUG1,
+BUG1-FIX, BUG2 group x3) passed cleanly and identically in every run.
+
+=== Automated backstop ===
+`flutter test` (full suite) IS the automated backstop for this ticket — run 3x,
+see above. No separate phpunit run needed (Flutter-only change).
+
+Verdict: PASS. Zero flakiness observed across 3 isolated-file runs, 3 full-suite
+runs, and 2 interleaved runs (10 total suite executions). No screenshots — this
+is a test-infra/CI finding, not a UI defect, per ticket instructions.
