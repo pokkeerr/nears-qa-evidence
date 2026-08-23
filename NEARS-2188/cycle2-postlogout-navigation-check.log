@@ -1,0 +1,74 @@
+NEARS-2188 delta re-QA cycle 2 — the ONE decisive check
+(commit 1df32230, task-bug NEARS-2444 fix)
+Device: emulator-5554, account: michael.brown@demo.com
+Sequence: Home (module-selection) -> account icon -> ProfileScreen (pushed
+route) -> Logout tile -> "are_you_sure_to_logout" dialog -> Yes.
+
+--- ui_list immediately after "Yes" (transient) ---
+uifind: parsed 9 node(s), 0 labelled
+(raw dump shows a single small View at bounds=[618,1406][726,1514], centered
+on the 1344x2992 screen — a CircularProgressIndicator, not a broken/empty tree)
+
+--- ui_list ~2s later, and stable across 15 x 2s polls (30s) ---
+ACCOUNT SETTINGS
+Back
+Coupons / Coupons NEW
+Dark Mode
+Guest User
+Help & Support
+Login
+Login to view all the features NEW
+Profile
+REWARDS & OFFERS
+SUPPORT
+Talk to Nears! / Talk to Nears! NEW
+Version 3.8 - Built for Speed
+
+Positive control confirming the instrument was live at this dump: "Login"
+tile + "Guest User" header (both present, both auth-gated to render ONLY
+when isLoggedIn == false) alongside the STILL-present "Back" affordance.
+Negative (asserted absent): "My Address" and "Logout" tiles — both present
+one dump earlier under the same account, both gone here. AC4 (guest tiles
+auth-gated) reconfirmed by the same transcript.
+
+Mechanism identified by reading the diff: ProfileScreen's body is wrapped in
+GetBuilder<ProfileController> (profile_screen.dart:50). MenuController.logout()
+calls Get.find<ProfileController>().clearUserInfo(), which update()s that
+controller and forces ProfileScreen to rebuild IN PLACE (no navigation event
+needed). Since `isLoggedIn` is recomputed from AuthHelper.isLoggedIn() at the
+top of build(), the SAME pushed route re-renders itself as the guest variant
+automatically. Get.back() in the dialog's onYesPressed pops the DIALOG
+overlay route (pushed by Get.dialog()), not the ProfileScreen page route
+underneath it — so the reviewer's feared "Get.back() strands the user on an
+authenticated-shaped screen" does not occur: the screen the user is left on
+is the correctly-recomposed guest one.
+
+Tapped "Back" next: landed cleanly on Home showing "Select Your Location"
+(no stale address/personalized data — confirms Home is genuinely guest-shaped
+too, not left in a stale authenticated state).
+
+--- logcat -s flutter:V --pid=16024, spanning the logout tap ---
+08-23 22:14:07.883 ... [NET] GET endpoint=/api/v1/customer/address/list
+08-23 22:14:08.001 ... [NET] endpoint=/api/v1/customer/address/list http_status=200
+08-23 22:14:34.351 ... [NET] POST endpoint=/api/v1/customer/cm-firebase-token
+08-23 22:14:34.492 ... [INFO] msg="FCM registration id obtained"
+08-23 22:14:34.492 ... [NET] POST endpoint=/api/v1/auth/guest/request
+08-23 22:14:34.540 ... [NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200
+08-23 22:14:34.629 ... [NET] endpoint=/api/v1/auth/guest/request http_status=200
+(no [FAIL]/[ERR] anywhere in this window; guest/request 200 = fresh guest
+session token minted cleanly, consistent with the coherent guest re-render)
+
+--- ui_errors (pid-scoped) immediately after ---
+0 match(es) for [FAIL]/[ERR]/exception in the app's own process.
+
+Verdict for this check: PASS. The post-logout state is genuinely
+signed-out and coherent (Guest User / Login prompt on the pushed
+ProfileScreen, then a clean guest Home on Back) — not stranded, not an
+infinite spinner, not stale authenticated UI. It reaches the doc's required
+OUTCOME by a different, GetBuilder-reactivity-based MECHANISM than the
+Get.offAllNamed the solution doc anticipated, not by that mechanism itself.
+No breaks_ac; no task_bug filed for this item. Noted as a low-severity
+follow-up only: the UX leaves the user ON the guest Profile screen rather
+than returning them to Home/landing, which is a minor navigation-polish
+question (does a just-logged-out user expect to land back on the page they
+were on, guest-shaped, vs. bounced to Home?) — not a defect, not blocking.
