@@ -1,0 +1,72 @@
+NEARS-2425 QA evidence — uinav.sh ui_tap flags array fix
+Worktree: /Users/Apple/Projects/nears-NEARS-2425-uinav-flags-zsh
+Branch: fix/NEARS-2425-uinav-flags-zsh @ 0f66cc41
+Device: emulator-5554 (Pixel_10_Pro_2, live-booted UserApp, com.izzes.nears)
+
+=== AC1: source scripts/app-nav/uinav.sh directly in ZSH (not bash -c), call ui_find with --exact against a 2+ match label ===
+$ zsh -c 'source scripts/app-nav/uinav.sh && ui_find "Order status, Delivered" --exact'
+uifind: emulator-5554 dumped 11787 bytes ...; parsed 32 node(s), 21 labelled
+AMBIGUOUS: "Order status, Delivered" matched 3 distinct nodes (use --first to accept any, or a more specific label):
+  label="Order status, Delivered"  clickable=true  area=574056  at 672,2685
+  label="Order status, Delivered"  clickable=true  area=793152  at 672,1479
+  label="Order status, Delivered"  clickable=true  area=793152  at 672,2127
+exit=3
+-> No usage-line fallback. Correct AMBIGUOUS (exit 3).
+
+=== AC1 continued: ui_tap under zsh direct-source with --first, vs bash -c baseline for the SAME target ===
+$ bash -c 'source scripts/app-nav/uinav.sh && ui_tap "Order status, Delivered" --first'
+tap 'Order status, Delivered' @ 672 2685
+exit=0
+
+$ zsh -c 'source scripts/app-nav/uinav.sh && ui_tap "Order status, Delivered" --first'   # after navigating back to the identical screen state
+tap 'Order status, Delivered' @ 672 2685
+exit=0
+
+-> IDENTICAL coordinates, IDENTICAL exit code between zsh-direct-source and bash -c. Fix confirmed live.
+
+=== Differential proof the mechanism is real (mechanism check, not touching the fixed file) ===
+Reproduced the PRE-FIX unquoted-string pattern inline under zsh:
+$ zsh -c '
+UIFIND="scripts/app-nav/uifind.py"; flags=""
+for a in --exact; do case "$a" in --*) flags="$flags $a";; esac; done
+ANDROID_SERIAL=emulator-5554 python3 "$UIFIND" find "Order status, Delivered" $flags
+'
+usage: uifind.py find "<label>" [--exact] [--first]
+exit=2
+-> Confirms: the OLD string+unquoted-expansion pattern DOES mangle under zsh (usage-line
+   fallback, exit 2 instead of AMBIGUOUS exit 3). The fixed array-based code (flags=(),
+   "${flags[@]}") above does not exhibit this — proving the fix actually addresses the
+   defect, not a vacuous pass.
+
+=== AC2: fix does not regress bash -c workaround or plain bash sourcing ===
+$ bash -c 'source scripts/app-nav/uinav.sh && ui_find "Order status, Delivered" --exact'
+AMBIGUOUS: ... matched 3 distinct nodes ...
+exit=3   (matches zsh result above)
+
+$ bash << 'INNER'
+source scripts/app-nav/uinav.sh
+ANDROID_SERIAL=emulator-5554 ui_find "Order status, Delivered" --exact
+INNER
+AMBIGUOUS: ... matched 3 distinct nodes ...
+exit=3   (plain bash sourcing, not wrapped in bash -c — matches)
+
+=== Regression sweep: plain ui_find / ui_tap calls with NO flags (empty flags=() array) ===
+$ zsh -c 'source scripts/app-nav/uinav.sh && ui_find "My Orders"'
+176 249
+exit=0
+$ bash -c 'source scripts/app-nav/uinav.sh && ui_find "My Orders"'
+176 249
+exit=0
+-> Identical unique-hit coordinates and exit code between shells; empty-array path unaffected.
+
+$ zsh -c 'source scripts/app-nav/uinav.sh && ui_tap "My Orders"'
+tap 'My Orders' @ 176 249
+exit=0
+-> plain ui_tap, no flags, zsh direct source: works correctly.
+
+=== Automated backstop ===
+$ bash scripts/app-nav/uinav.test.sh
+-- result: PASS
+-- validity: 266 assertion(s) across 41 case(s); 0 skipped; 0 failed
+(includes new case 29e, zsh-gated like case 15, asserting uifind.py receives FOUR separate
+argv tokens under zsh rather than a mangled 3-element list with a merged flag pair)
