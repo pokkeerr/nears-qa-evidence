@@ -1,0 +1,109 @@
+NEARS-2426 — Live QA evidence (iOS Simulator UDID device-occupancy probe)
+Worktree: /Users/Apple/Projects/nears-NEARS-2426-ios-qa-lock-probe
+HEAD: 961012a6
+Host xcrun: /usr/bin/xcrun (version 72.)
+Simulators used:
+  53F3807C-3BF6-46ED-8487-DEC957036BAA  iPhone 17 Pro      (Booted, idle — AC1 booted-but-idle case)
+  9470A7B8-E3ED-4B74-A81E-8254C96A704B  iPhone 17 Pro Max  (Shutdown — AC1 not-booted case)
+  6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D  iPhone 17e         (Booted, live FOREIGN flutter run PID 6018
+                                                             + bare exec'd `simctl spawn <udid> ...` PID 6440,
+                                                             from a different worktree/session — AC2)
+No pre-existing lock files existed for any of the three UDIDs before this run (confirmed via
+`ls $HOME/.nears/qa-locks/<udid>` returning "No such file or directory").
+
+=== AC1a: qa_lock_check on BOOTED-IDLE UDID (53F3807C...) ===
+[qa-lock] 53F3807C-3BF6-46ED-8487-DEC957036BAA: probe — devices_enumerated=2 signals_answered=1 indeterminate=0 drivers=0(foreign) self_driven=0 excluded=0 mentions=4 app_procs=0 verdict=free
+rc=0
+
+=== AC1b: qa_lock_check on NOT-BOOTED UDID (9470A7B8...) ===
+[qa-lock] 9470A7B8-E3ED-4B74-A81E-8254C96A704B: probe — devices_enumerated=2 signals_answered=1 indeterminate=0 drivers=0(foreign) self_driven=0 excluded=0 mentions=2 app_procs=0 verdict=free
+rc=0
+
+=== AC1a: qa_lock_acquire on BOOTED-IDLE UDID (absolute source path, so lane derives) ===
+[qa-lock] 53F3807C-3BF6-46ED-8487-DEC957036BAA: probe — verdict=free
+[qa-lock] 53F3807C-3BF6-46ED-8487-DEC957036BAA: acquired — owner pid 46898 (session anchor, kind=anchor), key 'NEARS-2426-QA'.
+rc=0
+owner.json: {"pid": 46898, "pid_kind": "anchor", "anchor_started": "Thu Aug 20 21:02:45 2026", "key": "NEARS-2426-QA", "lane": "NEARS-2426", "started": "2026-08-23T14:02:10Z"}
+released rc=0 (verdict=self-lane)
+
+=== AC1b: qa_lock_acquire on NOT-BOOTED UDID ===
+[qa-lock] 9470A7B8-E3ED-4B74-A81E-8254C96A704B: probe — verdict=free
+[qa-lock] 9470A7B8-E3ED-4B74-A81E-8254C96A704B: acquired — owner pid 46898 (session anchor, kind=anchor), key 'NEARS-2426-QA'.
+rc=0
+released rc=0 (verdict=self-lane)
+
+=== AC2: qa_lock_check on LIVE FOREIGN-DRIVEN UDID (6D3CEFF6..., no lock file) ===
+[qa-lock] 6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D: probe — devices_enumerated=2 signals_answered=1 indeterminate=0 drivers=2(foreign) self_driven=0 excluded=0 mentions=4 app_procs=0 verdict=occupied
+==================================================================
+[qa-lock] OCCUPIED — 6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D carries NO lock, but a foreign lane is driving it
+          serial       : 6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D
+          probe        : devices_enumerated=2 signals_answered=1 indeterminate=0
+          host drivers : 2 (pids 6018 6440 — not this session)
+                         6018  .../flutter/bin/cache/dart-sdk/bin/dartvm ... flutter_tools.snapshot run -d 6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D --debug
+                         6440  /Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/Resources/bin/simctl spawn 6D3CEFF6-D3A8-4697-89...
+          device procs : <none>
+          -> NOT granting 6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D. Ask the owning session to release, or pick another device.
+==================================================================
+rc=3   (parity with Android rc=3 OCCUPIED — confirmed)
+
+qa_lock_acquire on the same UDID: same OCCUPIED banner, rc=3, owner.json NOT written
+  (`ls $HOME/.nears/qa-locks/6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D` → No such file or directory)
+
+BOTH driving shapes present and BOTH detected:
+  - pid 6018: `flutter run -d <udid>` (flag-shaped, -d match)               → driver
+  - pid 6440: bare exec'd `simctl spawn <udid> log stream ...` (positional) → driver
+    (xcrun execve()s into simctl, so `ps` shows argv[0]=".../bin/simctl", never "xcrun" —
+    this is exactly the code-review fix-cycle path, `961012a6`.)
+
+Isolated function-level confirmation of the bare-simctl path (real live argv[6440],
+not a fixture):
+  argv[6440] = /Library/Developer/.../bin/simctl spawn 6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D log stream --style json ...
+  _qa_lock_id_kind 6D3CEFF6-... -> ios
+  _qa_lock_ios_argv_pins_udid "<argv>" 6D3CEFF6-... -> YES (0)
+  _qa_lock_ios_argv_is_tool  "<argv>"               -> YES (0)   <- bare exec'd simctl correctly recognized as a tool
+
+=== Regression sanity: a genuinely absent UDID still returns rc=5 (not silently "free") ===
+qa_lock_check 00000000-0000-0000-0000-000000000000
+[qa-lock] ...: probe — devices_enumerated=2 signals_answered=1 ... verdict=absent
+[qa-lock] ...: NOT ATTACHED — the pool was enumerated (2 device(s)) and 00000000-... is not among them. ...
+rc=5
+(Confirms the fix is precise: attached-but-idle/booted UDIDs now correctly resolve free/occupied,
+while a UDID that truly is not in `simctl list devices` still correctly reports rc=5 — this is the
+distinction NEARS-1710 needed and that the pre-fix code could not make.)
+
+=== AC3: exact NEARS-1710 repro — qa_lock_acquire <live iOS UDID> WITHOUT --no-probe ===
+Same call as AC1a's acquire above (53F3807C..., booted+attached, WITHOUT --no-probe):
+  rc=0, verdict=free — NOT the pre-fix false rc=5 "NOT ATTACHED".
+This is the exact repro NEARS-1710 filed (`qa_lock_acquire <live iOS UDID>` needing --no-probe
+to succeed at all); it now succeeds without the flag.
+
+=== AC4: regression — guard self-test suite ===
+$ bash scripts/qa-lock-guard.test.sh   (run in worktree /Users/Apple/Projects/nears-NEARS-2426-ios-qa-lock-probe)
+...
+  ok   Z6: every NEARS-2426 iOS-probe case id executed and asserted
+assertions executed: 384
+assertion count matches the pin (384)
+PASS: qa-lock-guard.test.sh
+
+=== AC4: Android probe live sanity check (read-only qa_lock_check, no acquire — pool devices
+     belong to other live sessions, so only the reader was exercised) ===
+kind(emulator-5560) = android
+[qa-lock] emulator-5560: probe — devices_enumerated=4 signals_answered=3 indeterminate=0 drivers=0(foreign) self_driven=0 excluded=0 mentions=3 app_procs=1 verdict=residue
+[qa-lock] emulator-5560: WARNING — a leftover app process is running with NO lane driving it ... Granting anyway ...
+rc=0
+
+kind(emulator-5554, live foreign flutter run) = android
+[qa-lock] emulator-5554: probe — devices_enumerated=4 signals_answered=3 indeterminate=0 drivers=2(foreign) self_driven=0 excluded=0 mentions=3 app_procs=1 verdict=occupied
+==================================================================
+[qa-lock] OCCUPIED — emulator-5554 carries NO lock, but a foreign lane is driving it
+          host drivers : 2 (pids 56608 56753 — not this session)
+==================================================================
+rc=3
+Android dispatch (`_qa_lock_id_kind` -> "android"), residue-vs-occupied classification, and
+foreign-driver pid detection all behave exactly as before the iOS branch was added — confirmed
+live against two real pool devices in real states (one residue, one actively driven).
+
+=== Cleanup ===
+All locks this run acquired (53F3807C..., 9470A7B8...) were released before this run ended.
+`ls $HOME/.nears/qa-locks/` after the run shows only the pre-existing, untouched `emulator-5566`
+entry (owned by an unrelated live session) — no orphaned lock left behind by this QA pass.
