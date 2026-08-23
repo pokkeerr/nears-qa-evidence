@@ -1,0 +1,31 @@
+Pre-existing (unrelated to NEARS-2134's icon-token swap) classification gap observed live on emulator-5572, UserApp worktree nears-NEARS-2134-icons-symbols-followup, 2026-08-23.
+
+Store-details out-of-zone 403 gets a dedicated classified [FAIL] message:
+  [FAIL] endpoint=/api/v1/stores/details/ http_status=403 type=ApiFailure msg="store: details out of zone" correlation_id=3fd835f1-df2d-4e28-9729-d2f8dd8aa16b
+
+But item-details out-of-zone 403 (same NEARS-1024 guard, sibling endpoint) falls through
+to the generic unclassified-failure branch instead of an analogous "item: details out of
+zone" classification:
+  [NET] GET endpoint=/api/v1/items/details/3
+  [NET] endpoint=/api/v1/items/details/3 http_status=403
+  ----------------FIREBASE CRASHLYTICS----------------
+  The following exception was thrown unhandled api response:
+  ApiFailure(status: 403)
+  #0      ApiClient.handleResponse (package:sixam_mart/api/api_client.dart:1154:22)
+  #1      ApiClient._send (package:sixam_mart/api/api_client.dart:783:14)
+  #2      ItemRepository._getItemDetails (package:sixam_mart/features/item/domain/repositories/item_repository.dart:46:25)
+  #3      ItemRepository.get (package:sixam_mart/features/item/domain/repositories/item_repository.dart:38:14)
+  #4      ItemService.getItemDetails (package:sixam_mart/features/item/domain/services/item_service.dart:49:12)
+  #5      ItemController.getItemDetails (package:sixam_mart/features/item/controllers/item_controller.dart:1078:9)
+  #6      _ItemBottomSheetState._loadDetails.<anonymous closure> (package:sixam_mart/common/widgets/item_bottom_sheet.dart:86:15)
+  ----------------------------------------------------
+  [FAIL] endpoint=/api/v1/items/details/3 http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=b8619ca7-74aa-43fa-b816-f773b3b50765
+
+Impact: NOT silent (a paired [FAIL] line IS emitted, so this does not meet the
+silent-failure-path bar and does not block NEARS-2134's PASS) -- the UI correctly renders
+the classified `outOfZone` NEmptyState regardless. But the log line itself is
+less useful for triage than its store-details sibling (NEARS-1081/1085's
+caller-handled-status pattern), and the Crashlytics non-fatal is generic
+("unhandled api response") rather than descriptive. Pre-existing gap, not introduced
+by NEARS-2134's icon-token swap (item_bottom_sheet.dart's classification logic /
+ItemController.outOfZone flag was not touched by this ticket).
