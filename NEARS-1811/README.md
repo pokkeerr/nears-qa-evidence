@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-1811
 
-**QA NEARS-1811: FAIL — AC1/AC2 PASS in en, but ar locale label-collision breaks the same AC's uniqueness requirement**
+**Delta re-QA PASS (fix-cycle 1, retry) — AC1 ar FAB tooltip disambiguated (تتبع طلبك), unique + navigable; AC2 still passing; regression-clean**
 
-**4 screenshot(s).** Click any thumbnail for full resolution.
+**6 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -11,6 +11,8 @@
 <td align="center" width="33%"><a href="AC1-AC2-en-order-tracking-after.png"><img src="AC1-AC2-en-order-tracking-after.png" width="240"></a><br><sub>AC1 AC2 en order tracking after</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ac1-ar-fab-unique-order-details.png"><img src="ac1-ar-fab-unique-order-details.png" width="240"></a><br><sub>ac1 ar fab unique order details</sub></td>
+<td align="center" width="33%"><a href="ac1-en-fab-unique.png"><img src="ac1-en-fab-unique.png" width="240"></a><br><sub>ac1 en fab unique</sub></td>
 <td align="center" width="33%"><a href="bug-ar-label-collision.png"><img src="bug-ar-label-collision.png" width="240"></a><br><sub>bug ar label collision</sub></td>
 </tr>
 </table>
