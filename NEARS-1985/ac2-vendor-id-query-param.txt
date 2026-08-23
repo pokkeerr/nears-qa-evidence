@@ -1,0 +1,20 @@
+NEARS-1985 AC2 — GET /api/v1/customer/message/details?vendor_id=999999999 (nonexistent vendor)
+Backend: local `php artisan serve` on worktree nears-NEARS-1985-vendor-stores-nullguard, port 8020
+Auth: customer@nears.com (user_id 6)
+
+Request:
+curl -w "\nHTTP_CODE:%{http_code}\n" \
+  "http://127.0.0.1:8020/api/v1/customer/message/details?vendor_id=999999999" \
+  -H "Authorization: Bearer <token>" -H "zoneId: [1]"
+
+Response:
+{"total_size":0,"limit":10,"offset":1,"status":false,"messages":[],"conversation":null}
+HTTP_CODE:200
+
+Backend log (Admin/storage/logs/laravel.log), correlation-joined to X-Request-Id response header:
+Response header: X-Request-Id: b5cf2373-0b0e-4fd5-a2cb-9a96be3f25bd (first run) / 8ba36410-7fb4-4696-b43f-24f724774756 (repeat run, vendor_id=888888888)
+
+[2026-08-23 05:06:40] production.ERROR: [FAIL] conversation messages: vendor unresolved for vendor_id lookup {"correlation_id":"b5cf2373-0b0e-4fd5-a2cb-9a96be3f25bd","endpoint":"customer/message/details","vendor_id":"999999999"}
+[2026-08-23 05:06:51] production.ERROR: [FAIL] conversation messages: vendor unresolved for vendor_id lookup {"correlation_id":"8ba36410-7fb4-4696-b43f-24f724774756","endpoint":"customer/message/details","vendor_id":"888888888"}
+
+No payload/token/PII in the log line — endpoint + vendor_id only. correlation_id == X-Request-Id header, confirming the FE/BE correlation join.

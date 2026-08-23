@@ -1,0 +1,40 @@
+NEARS-1985 AC1 (orphaned vendor_id via conversation_id, sender + receiver branches)
+
+No naturally-orphaned user_infos.vendor_id row exists in local seed data (multi_food_db):
+  SELECT ui.id, ui.vendor_id FROM user_infos ui LEFT JOIN vendors v ON v.id = ui.vendor_id
+  WHERE ui.vendor_id IS NOT NULL AND v.id IS NULL;
+  -> 0 rows
+
+Per ticket instruction, this AC is corroborated via the engineer's own PHPUnit
+regression suite (read-only DB, no fixture write), re-run live by QA in this
+worktree:
+
+$ cd Admin && vendor/bin/phpunit --configuration phpunit.xml \
+    --filter "Nears1180LoadmoreFixturesTest|ConversationParticipantIdorTest|ConversationMessagesIdorTest|Nears1985ConversationVendorStoresNullGuardTest"
+
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_1985_vendor_stores_nullguard
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+..............S.                                                  16 / 16 (100%)
+Time: 00:01.573, Memory: 94.50 MB
+OK, but some tests were skipped!
+Tests: 16, Assertions: 50, Skipped: 1.
+
+Covers (within Nears1985ConversationVendorStoresNullGuardTest, 5 tests / 4 pass + 1 documented skip):
+  - test_orphaned_vendor_id_does_not_500 (receiver-side branch, ~446-460): PASS
+  - test_orphaned_vendor_id_does_not_500_sender_side (sender-side branch, ~430-444): PASS
+  - test_bad_vendor_id_query_param_does_not_500 (?vendor_id= branch, ~389-412): PASS
+    (also independently re-demonstrated live by QA against the running backend — see
+    ac2-vendor-id-query-param.txt)
+  - test_vendor_with_no_stores_does_not_500: SKIPPED — documented, out-of-scope
+    UserInfo::getImageFullUrlAttribute() (UserInfo.php:27) defect, filed as
+    NEARS-2417, NOT part of this ticket's diff. Confirmed present in the tree at
+    QA time (read below).
+  - test_guarded_path_logs_fail_with_correlation_id: PASS
+
+Cross-check of the NEARS-2417 gap (read-only, code inspection):
+  Admin/app/Models/UserInfo.php:27
+    elseif ($this->vendor_id){
+        return $this->vendor?->stores[0]->logo_full_url;   // still unguarded, confirmed present
+    }
+  This is a separate accessor, outside ConversationController.php and outside this
+  ticket's declared file scope — correctly left unfixed here, matches ticket note.

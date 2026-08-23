@@ -1,0 +1,31 @@
+NEARS-1985 AC4/AC5 — regression: resolvable vendor still works; untouched sites unchanged
+
+AC4: GET /api/v1/customer/message/details?conversation_id=46
+  Seeded conversation: customer@nears.com (user_infos.id=3) <-> vendor_id=1 ("Demo
+  Store"/"Nears Mart", 4 stores). Live request against local backend (worktree
+  nears-NEARS-1985-vendor-stores-nullguard, port 8020):
+
+  HTTP 200
+  {"total_size":20,...,"status":true,"messages":[...10 items...],
+   "conversation":{"id":46,...,"receiver":{"vendor_id":1,...,"vendor":{"stores":[
+     {"id":1,"name":"Nears Mart",...},{"id":8,...},{"id":59,...},{"id":4116,...}
+   ]}}}}
+
+  status:true confirms the Order::where(...)->count() path executed normally
+  (order_status count > 0) via the unchanged `else if($vd && $vd->stores->isNotEmpty())`
+  arm — same body as pre-fix code, only the guard condition wrapping it changed.
+  Full conversation/messages payload returned intact, byte-shape unchanged from the
+  pre-fix response shape (same fields, same nesting).
+
+AC5: untouched sites spot-check
+  - Lines ~205-231 (messages_store(), a DIFFERENT method) — the ":211/:219" sites
+    named in the ticket — read live in the tree, confirmed UNCHANGED (still the
+    original unguarded `$vd->stores[0]->id` shape; not part of this ticket's diff,
+    not touched):
+      211:  $order = Order::where(...)->where('store_id', $vd->stores[0]->id)->...
+      219:  $order = Order::where(...)->where('store_id', $vd->stores[0]->id)->...
+  - Delivery-man branches inside messages() (~461-466): confirmed unchanged, no
+    guard added/needed (DeliveryMan::find() derefs $user2->id, not a stores array).
+  - Rental branch ($vd?->store?->module_type=='rental'): no seeded store has
+    module_type='rental' in local multi_food_db (module_type values present:
+    grocery, food, pharmacy, parcel) — per ticket instruction, N/A, not fabricated.
