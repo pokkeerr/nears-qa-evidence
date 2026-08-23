@@ -1,0 +1,58 @@
+NEARS-2301 delta re-QA [8] — AC4 — environment blocker evidence
+=================================================================
+
+Claim: VendorApp's Android baseUrl cannot be pointed at the worktree-scoped
+QA backend (127.0.0.1:8011, code with the NEARS-2301 fix) without editing
+product code, and `adb reverse` does not redirect it.
+
+1. Source confirmed hardcoded, no override:
+   VendorApp/lib/util/app_constants.dart:14
+     static String get baseUrl => GetPlatform.isIOS ? 'http://127.0.0.1:8000' : 'http://10.0.2.2:8000';
+   No --dart-define/String.fromEnvironment usage anywhere in VendorApp/lib.
+   VendorApp/lib/helper/get_di.dart:179
+     Get.lazyPut(() => ApiClient(appBaseUrl: AppConstants.baseUrl, sharedPreferences: Get.find()));
+
+2. `adb -s emulator-5556 reverse tcp:8000 tcp:8011` was set BEFORE launching
+   VendorApp (flutter run -d emulator-5556 from this worktree, pid 42570).
+
+3. Empirical proof the reverse rule had no effect on 10.0.2.2 traffic:
+   - Worktree backend request log (port 8011, this worktree's own
+     `php artisan serve`, pid 9205) — last line before app launch was
+     2026-08-23 15:06:05; it recorded ZERO new lines through app boot,
+     login, and full DM list->preview->edit->validate flow (checked
+     repeatedly through 15:27:31).
+   - Primary-tree backend log (port 8000, pid 28927, run from
+     /Users/Apple/Projects/nears/Admin — NOT this worktree, does NOT carry
+     the NEARS-2301 backend fix — grep confirmed `OWNER_VISIBLE_ATTRIBUTES`
+     absent from that tree's DeliveryMan.php) grew continuously throughout,
+     including bursts exactly aligned with every VendorApp action taken in
+     this session (e.g. 15:09:4x-15:10:15 at app boot).
+   - Admin/storage/logs/laravel.log for the PRIMARY tree grew from
+     78542085 -> 78549057 bytes with entries timestamped 15:15:34, seconds
+     before the check at 15:15:52 — proving the shared port-8000 backend is
+     under live, active, concurrent use by another session RIGHT NOW, so it
+     could not safely be paused/commandeered to test this fix either.
+
+Conclusion: no code-free, DB-safe path exists in this environment to route
+VendorApp's live network traffic to the worktree's patched backend. The
+null-safety code fix itself (add_delivery_man_screen.dart:57) was verified:
+(a) statically — reads _deliveryMan!.email ?? '' exactly as the ticket
+    describes;
+(b) via the engineer's own widget test
+    VendorApp/test/features/deliveryman/add_delivery_man_screen_null_email_test.dart
+    test (a) "null email (post-backend-fix payload shape) does not throw,
+    field renders empty" — PASSED;
+(c) partially live: edit screen opens without crash against a REAL DM
+    record (store 35 / DM id 6, populated-email case — the pre-fix shape),
+    the empty-email client-side validation snackbar
+    ("Enter delivery man email address") fires live with ZERO network call
+    dispatched (confirmed against both backend logs, no new line at the
+    action's timestamp) — so no shared-DB mutation occurred.
+
+Recommended follow-up: add a `--dart-define`/env-based baseUrl override to
+VendorApp/UserApp/DeliveryApp's app_constants.dart so a worktree-isolated
+backend (the documented "own php artisan serve --port=<n> + DB copy"
+pattern) can actually be reached by a live Android/iOS build in future QA
+passes that need both a private DB AND a real device. Without it, any
+future ticket combining a backend contract change with a live-device
+frontend regression check will hit this exact same blocker.

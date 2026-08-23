@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2301
 
-**delta re-QA AC4: BLOCKED (env limitation) — see comment**
+**delta re-QA AC4: env-blocked E2E, partial live evidence + widget-test corroboration — see comment**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -16,6 +16,7 @@
 - [`ac1-list-response.json`](ac1-list-response.json)
 - [`ac2-preview-response.json`](ac2-preview-response.json)
 - [`ac3-search-response.json`](ac3-search-response.json)
+- [`ac4-baseurl-routing-blocker.log`](ac4-baseurl-routing-blocker.log)
 - [`ac4-device-pool-saturation.log`](ac4-device-pool-saturation.log)
 - [`automated-backend-phpunit.log`](automated-backend-phpunit.log)
 - [`automated-vendorapp-flutter-test.log`](automated-vendorapp-flutter-test.log)
