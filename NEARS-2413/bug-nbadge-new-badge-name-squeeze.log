@@ -1,0 +1,59 @@
+NEARS-2413 QA (iOS, iPhone 17e simulator) — regression_bugs finding, NOT this ticket's defect.
+Live render-tree excerpt (ext.flutter.debugDumpRenderTree) — category_screen.dart grid, category_id=6.
+
+Item "Birds Eye Frozen Meall" (unrated -> "NEW" badge branch):
+  RenderParagraph (product-name Flexible)
+    constraints: BoxConstraints(0.0<=w<=116.0, 0.0<=h<=12.2)
+    size: Size(116.0, 12.2)
+    text: "Birds Eye Frozen Meall" (PublicSans SemiBold 15.0, weight 600)
+
+Live-measured natural height for the SAME text/style (via VM-Service evaluate,
+TextPainter constructed identically to the shipped widget test's own
+naturalOneLineHeight() helper):
+  natural 1-line height @ width 116 = 18.0
+  natural 2-line height @ width 116 = 36.0 (this name genuinely wraps to 2 lines)
+  observed live box height           = 12.2   <-- BELOW even 1 natural line
+
+Root cause (isolated via sibling-offset diffing in the same dump):
+  Sibling "unit" row height is identical (21.0) in both cases.
+  Sibling rating-Row height (rated items):        18.0
+  Sibling NBadge "NEW"-pill height (unrated items): 23.0   <-- 5.0pt taller
+  Column mainAxisSize:min gives the name Flexible whatever height remains after
+  fixed siblings inside the SAME Expanded(flex:4) budget (mainAxisExtent 273/298,
+  unchanged by this analysis regardless of screen). The NBadge's extra 5.0pt is
+  taken directly out of the name's budget: 17.2 (rated) - 5.0 = 12.2 (unrated).
+  This exactly matches the observed delta (17.2 vs 12.2).
+
+Cross-check confirming this is PRE-EXISTING / NOT introduced by this ticket's diff:
+  Same live app, same session, navigated to store_screen.dart's own grid
+  (store_id=2, "Fresh Mart Grocery", byte-identical mainAxisExtent:273/298 +
+  crossAxisCount:2/3 to category_screen.dart's post-fix values, confirmed via
+  git diff/read of store_catalog_states.dart:82-83 / store_screen.dart:2001-2015).
+  IDENTICAL squeeze reproduced on REAL unrated seed items there too:
+    "QA OOS Fixture — Sparkling Water 500ml" -> box height 12.2
+    "Barilla Orzo Pasta"                     -> box height 12.2
+  vs rated/short items on the same grid:
+    "Potatoes" / "Carrots" / "Lemon Soda 1.5L" / "Navel Oranges" / "Salted Pretzels"
+    -> box height 17.2 (all short enough that even the un-squeezed budget is
+       sufficient, single line, no visible truncation)
+
+Repro items observed squeezed (category_screen.dart, live, category_id=6):
+  "Birds Eye Frozen Meall"  (22 chars) -> 12.2 (natural 1-line=18.0, 2-line=36.0)
+  "Great Value Vegetable"   (truncated in capture, item name continues)
+  "Marie Frozen Meal"                  -> 12.2
+  "Brown Bread"                        -> 12.2
+
+Root cause lives entirely in item_widget.dart's NBadge ("New" pill) sizing —
+a file this ticket explicitly keeps read-only/out-of-scope (per the ticket's
+own already-blessed precedent for the sibling rating-Row horizontal-overflow
+finding). Present identically, byte-for-byte, on the already-shipped
+store_screen.dart grid using the SAME shared ItemWidget + SAME mainAxisExtent
+values -> this ticket's fix correctly mirrors its sibling; it inherits, but
+does not introduce, this residual squeeze.
+
+Recommended fix-forward (not this ticket): either shrink NBadge's own
+padding/decoration to <= the rating-Row's height (18.0), or bump the shared
+mainAxisExtent value (273/298, both screens) enough to absorb the 5.0pt
+delta with margin for 2-line names. Either requires touching item_widget.dart
+and/or the shared geometry constant used by BOTH screens - out of scope for a
+single-file, sibling-parity ticket.
