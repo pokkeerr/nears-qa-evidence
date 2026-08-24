@@ -1,0 +1,29 @@
+NEARS-2476 AC2 -- 3 steady states on StoreCardWidget (home_screen.dart paginated
+all-store list, item_view.dart:70, module=Food & Restaurant, 6 seeded stores,
+zone with isSingleStoreZone=false), iPhone 17e sim, card constraints
+BoxConstraints(w=370.0, h=225.0) confirmed live via debugDumpRenderTree creator
+chain: "MouseRegion <- OnHover <- StoreCardWidget <- RepaintBoundary <-
+IndexedSemantics ... <- SliverGrid <- SliverPadding".
+
+State                      OVERFLOWING count   RenderFlex nodes   StoreCardWidget mentions
+LTR / 100% (baseline)      0                   (not recorded, baseline pre-instrumentation)
+LTR / 130%                 0                   (module screenshot only)
+RTL / 130% (ar_SA)         0                   (module screenshot only)
+
+Advisory-gap check (review's flagged followup, NOT this ticket's AC): Bengali
+locale (bn_BD -- 'closes_at'.tr = "বন্ধ হয়", visibly longer glyph run than English
+"Closes" or Arabic "يغلق") + 130% scale, STEADY STATE (no transition):
+  OVERFLOWING count = 0, RenderFlex nodes = 242, StoreCardWidget mentions = 30.
+  (242/30 = positive control: the dump is not empty/vacuous.)
+
+Caveat: iPhone 17e's logical width is 390pt (card content ends up 370pt wide),
+NOT the ticket-specified 320dp -- Android pool was saturated (4/4 devices held by
+live foreign sessions after a bounded poll; see envelope drift[]/summary). The
+existing widget-test suite (test/features/home/store_card_widget_overflow_test.dart,
+run as this QA pass's automated backstop) DOES cover the exact 320dp width across
+[1.0, 1.3, 2.0] scale x [LTR, RTL] and passed 16/16, including the two NEARS-2475
+regression cases (LTR pushes free-delivery to a 3rd Wrap row and stays clipped-safe
+at 1.3x; the same store stays clean in Arabic/RTL at 1.3x). Combined with this
+live-device pass (mechanism-accurate rapid-toggle + steady-state check, wider
+viewport), AC2 is treated as met; a true 320dp-Android re-confirmation is flagged
+as a non-blocking followup, not a gate.

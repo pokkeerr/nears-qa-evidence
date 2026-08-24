@@ -1,0 +1,27 @@
+NEARS-2476 -- non-blocking observation, NOT a product defect.
+
+During the rapid lang_first/scale_first toggle reps (6x), the app log recorded an
+uncaught FlutterError several times:
+
+  flutter: The following exception was thrown uncaught async error (FlutterError):
+  flutter: [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (FlutterError)"
+  flutter: The following exception was thrown uncaught async error (FlutterError):
+  This RootWidget widget cannot be marked as needing to build because the framework
+  is already in the process of building widgets. A widget can be marked as needing
+  to be built during the build phase only if one of its ancestors is currently
+  building. This exception is allowed because the framework builds parent widgets
+  before children, which means a dirty descendant will always be built. Otherwise,
+  the framework might not visit this widget during this build phase.
+
+This is the EXACT artifact already documented in
+docs/apps/userapp/userapp-navigation-guide.md (NEARS-2413 gotcha, "Caution when
+doing this: calling Get.updateLocale/setLanguage via a raw evaluate mid-build ...
+can hit GetNavigation.forceAppUpdate()'s performReassemble() from an unsafe build
+phase, producing a benign-but-noisy setState() called during build uncaught [FAIL]
+... this is a raw-eval-injection timing artifact, not a reachable-by-users defect;
+a real language-picker tap never fires from inside another widget's build()."
+
+It is a side effect of MY test harness firing two VM-service `evaluate` calls
+back-to-back with zero settle time -- a real user cannot physically double-tap two
+different Settings screens fast enough to hit this from actual UI, and no
+RenderFlex/layout overflow accompanies it. Not filed as task_bugs/regression_bugs.

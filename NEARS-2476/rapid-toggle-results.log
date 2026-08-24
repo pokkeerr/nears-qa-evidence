@@ -1,0 +1,32 @@
+NEARS-2476 AC1 — rapid RTL<->LTR + text-scale 1.3x<->1.0x toggle, iPhone 17e simulator
+(UDID 6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D, iOS 26.5), StoreCardWidget card width
+370pt (device logical width 390pt; NOT the ticket's 320dp -- Android pool was
+saturated by 4 foreign live sessions after a bounded poll, see envelope drift[]).
+
+Mechanism: Get.updateLocale(...) via Dart VM-service `evaluate` (ar_SA <-> en_US)
+back-to-back with `xcrun simctl ui <udid> content_size extra-extra-extra-large|medium`
+(drives the app's live clamped textScaler to exactly 1.3 / 1.0 -- confirmed via
+MediaQuery.textScalerOf(Get.context!).scale(1.0) == 1.3), issued with NO settle time
+between calls (raw back-to-back eval, matching "toggled in immediate succession, no
+idle screen" from the ticket).
+
+order=lang_first rep=1 toggle_wall_s=0.428 overflow_immediate=0 overflow_settled=0
+order=lang_first rep=2 toggle_wall_s=0.421 overflow_immediate=0 overflow_settled=0
+order=lang_first rep=3 toggle_wall_s=0.313 overflow_immediate=0 overflow_settled=0
+order=scale_first rep=1 toggle_wall_s=0.259 overflow_immediate=0 overflow_settled=0
+order=scale_first rep=2 toggle_wall_s=0.241 overflow_immediate=0 overflow_settled=0
+order=scale_first rep=3 toggle_wall_s=0.227 overflow_immediate=0 overflow_settled=0
+
+overflow_immediate/overflow_settled = count of the literal "OVERFLOWING" suffix
+RenderFlex appends (rendering/flex.dart) in `ext.flutter.debugDumpRenderTree`,
+read immediately after the toggle sequence and again 1.5s later. Positive-control
+(oracle-is-alive check, NEARS-1875 QA technique): the SAME dump carried 242
+RenderFlex nodes and 30 StoreCardWidget mentions at the time of the 0-count reads
+-- the 0 is a real "scanned and found none", not a vacuous empty dump.
+
+Full-session app log (`/tmp/nears2476_ios_run.log`, ~510 lines across the whole QA
+session incl. all 6 reps + 3 steady states + the Bengali advisory check):
+  grep -ic "overflow" -> 0 matches, whole file.
+
+One benign, already-documented artifact WAS observed during the rapid-eval
+sequences (NOT a RenderFlex overflow, not filed as a bug -- see below).
