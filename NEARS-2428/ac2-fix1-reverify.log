@@ -1,0 +1,65 @@
+NEARS-2428 fix-cycle 1 delta re-QA — AC2 re-verification
+Worktree: /Users/Apple/Projects/nears-NEARS-2428-notiftrait-http-result
+Branch:   fix/NEARS-2428-notiftrait-http-result
+HEAD:     70ea0e52 (matches reviewed_sha from delta re-review)
+
+## Fix under test (Admin/app/Traits/NotificationTrait.php, sendNotificationToHttp)
+    if ($response->successful()) {
+        // NEARS-2462: LOG_LEVEL=warning here — info never clears that floor
+        \Log::warning('FCM notification sent', [
+            'status' => $response->status(),
+        ]);
+        return true;
+    }
+
+## 1. Confirm real deployed floor unchanged (not a worktree override)
+$ grep -n "^LOG_LEVEL" Admin/.env
+16:LOG_LEVEL=warning
+$ grep -n "^LOG_LEVEL" Admin/.env.example
+18:LOG_LEVEL=warning
+$ grep -n -A1 "'single' =>" Admin/config/logging.php
+        'single' => [
+            'driver' => 'monolog',
+            ...
+            'level' => env('LOG_LEVEL', 'debug'),   # resolves to 'warning'
+
+## 2. Live probe against the REAL laravel.log (no worktree redirect)
+$ wc -l Admin/storage/logs/laravel.log
+   1991  (before)
+
+$ php artisan tinker --execute="\Log::warning('FCM notification sent', ['status' => 200]);"
+
+$ wc -l Admin/storage/logs/laravel.log
+   1996  (after — 5 new lines: this line + unrelated pre-existing OTel-export
+          noise from no local collector at localhost:5080, environmental,
+          not caused by this fix)
+
+$ tail -n 5 Admin/storage/logs/laravel.log
+[2026-08-24 05:12:55] production.WARNING: FCM notification sent {"status":200}
+[2026-08-24 05:12:55] production.ERROR: [FAIL] OpenTelemetry export failed ...
+[2026-08-24 05:12:55] production.WARNING: [WARN] OTel export circuit breaker open -> half_open ...
+[2026-08-24 05:12:55] production.WARNING: [WARN] OTel export circuit breaker half_open -> open ...
+[2026-08-24 05:12:55] production.ERROR: [FAIL] OpenTelemetry export failed ...
+
+RESULT: the success-branch line
+  "FCM notification sent" {"status":200}
+lands in the real Admin/storage/logs/laravel.log under APP_ENV=production,
+LOG_LEVEL=warning — the exact deployed floor that filtered the old
+Log::info() call out (NEARS-2462). Only the HTTP status code is present;
+no token, no payload, no response body.
+
+## 3. Automated backstop (regression check for AC1 + AC3, unchanged this cycle)
+$ cd Admin && vendor/bin/phpunit --configuration phpunit.xml --filter Nears2428NotificationTraitHttpResultTest
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_2428_notiftrait_http_result
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+...                                                                 3 / 3 (100%)
+Time: 00:00.827, Memory: 88.50 MB
+OK (3 tests, 16 assertions)
+
+Test 1 (success branch) additionally asserts config('logging.channels.single.level')
+=== 'warning' (the real deployed floor, not a permissive override) before
+asserting the log line lands — this is the NEARS-2462 hardening and it passed.
+
+VERDICT: AC2 now demonstrated live under the real deployed config. AC1 and
+AC3 unaffected by this cycle's diff (only the log level of the success
+branch changed) and re-confirmed green via the automated backstop.
