@@ -1,0 +1,17 @@
+Scenario: A (michael.brown@demo.com) logs in with "Remember me?" OFF.
+
+run-as pref read post-login:
+  6ammart_user_number key ABSENT (correctly cleared/never written by
+  clearUserNumberAndPassword(), auth_controller.dart _processSuccessSetup
+  isActiveRememberMe branch).
+
+Session functioned normally: landed in Profile as Michael Brown, no crash, no
+[ERR]/[FAIL] in logcat (only unrelated OS-level AconfigStorageReadException/
+NullBinder noise).
+
+Cold-boot re-check: `adb shell am force-stop` + relaunch -> app lands on
+"What are you shopping for?" module picker (no auto-restore, since no scoped
+identity key can be constructed without a remembered number) -- no crash, no
+[ERR]/[FAIL]/FATAL/AndroidRuntime crash line for the app process. Matches the
+documented, expected limitation (AC2): "Logged-in sessions with no remembered
+number ... have no persisted cache -- this is expected."

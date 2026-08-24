@@ -1,0 +1,28 @@
+Scenario: B (sophie.davis@demo.com) selects Pharmacy (id 3), logs out -> guest
+session re-mints (NEARS-570). Fresh guest (id 749) checked before any selection,
+then guest taps "Continue as Guest" (re-mints again to guest id 750 on this app's
+first real guest-cart touch) and lands on a store.
+
+run-as pref read right after B's Pharmacy selection + logout (guest id 749, no
+selection made yet):
+  flutter.cacheModuleId::u:sophie.davis@demo.com = {"id":3,"module_name":"Pharmacy",...}
+  flutter.cacheModuleId::u:michael.brown@demo.com = {"id":1,"module_name":"Grocery & Food",...}
+  (no cacheModuleId::g:749 key -- guest inherited NOTHING)
+
+After guest 750 lands on a pharmacy store (auto single-module-select feature,
+unrelated to this ticket) and its own selection is persisted:
+  flutter.cacheModuleId::g:750 = {"id":3,"module_name":"Pharmacy",...}
+  (same VALUE as sophie's own key by coincidence -- but a DIFFERENT KEY, no shared
+  storage; sophie's u: key and the guest's g: key never collided)
+
+CONFIRMS: a fresh guest never inherits a departed guest's or a prior logged-in
+user's cached sector.
+
+Minor unrelated finding logged separately (see
+bug-clearshareddata-header-rebuild-order.log): during the ~1s window of the
+NEARS-570 guest re-mint itself, 2 requests (the un-awaited cm-firebase-token
+invalidation POST + the guestLogin() call) carry the departing user's STALE
+moduleId header, because AuthRepository.clearSharedData()'s own updateHeader()
+rebuild (line ~367, clearing the header) runs AFTER guestLogin() (line ~357),
+not before. auth_repository.dart's clearSharedData() is untouched by this
+ticket's diff -- pre-existing, out of scope, filed as regression_bugs.

@@ -1,0 +1,26 @@
+Scenario: A (michael.brown@demo.com) logs in remember-me ON, selects Grocery & Food
+(id 1), logs out. B (sophie.davis@demo.com) then logs in remember-me ON, WITHOUT
+picking a module first.
+
+on-disk pref (run-as read) immediately after A's selection + logout:
+  flutter.cacheModuleId::u:michael.brown@demo.com = {"id":1,"module_name":"Grocery & Food",...}
+
+Wire capture immediately after B's login (200 at 03:45:33):
+  2026-08-25T03:45:33 POST /api/v1/auth/login moduleId=<absent>
+  2026-08-25T03:45:34 POST /api/v1/customer/cm-firebase-token moduleId=<absent>
+  2026-08-25T03:45:34 POST /api/v1/auth/token/refresh moduleId=<absent>
+  2026-08-25T03:45:36 GET /api/v1/customer/info moduleId=<absent>
+  2026-08-25T03:45:41-47 -- config/get-zone-id, config, update-zone, running-orders,
+    payment-failed, stores/get-stores/all, module, banners, coupon/list,
+    customer/address/list, customer/notifications -- ALL moduleId=<absent>
+
+updateHeader()'s identity-scoped fallback correctly resolved NO cache for B (she
+has none yet) -- A's module id 1 does NOT bleed through the main header-rebuild
+path. CONFIRMS AC1's core anti-bleed guarantee for that path.
+
+EXCEPTION FOUND (see task_bugs / bug-cachemodule-cross-user-cartlist-leak.log):
+  2026-08-25T03:45:36 GET /api/v1/customer/cart/list moduleId=1   <- A's module LEAKED
+  2026-08-25T03:45:44 GET /api/v1/customer/cart/list moduleId=1   <- again
+This ONE endpoint bypasses updateHeader()'s fresh identity-scoped read and reads
+ModuleController._cacheModule directly (an in-memory field only refreshed by
+setModule() calls, never by login/logout) -- see cart_repository.dart:143-146,156.

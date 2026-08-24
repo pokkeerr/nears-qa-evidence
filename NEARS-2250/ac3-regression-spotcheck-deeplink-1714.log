@@ -1,0 +1,30 @@
+Spot-check per fix-cycle packet: shared plumbing (splash_repository.dart,
+api_client.dart) changed underneath sites 2-4 (already PASS in prior cycle) --
+re-verify at least one live.
+
+route_helper.dart:1714 deeplink (module slug not found, fromDeeplink=true):
+  am start ... -d "https://6ammart-web.6amtech.com/?module=bogusslugxyz2"
+  (targeted at com.izzes.nears/.MainActivity directly -- a bare VIEW intent on
+  this emulator was intercepted by Chrome instead of the app; -n forced it in)
+
+Pre-check identity restored (michael.brown@demo.com, remember-me ON, userNumber
+present) so the scoped key exists to clear:
+  Before: flutter.cacheModuleId::u:michael.brown@demo.com = {"id":1,...}
+
+logcat:
+  route: initial route module=bogusslugxyz2
+  route: checkModuleId configNull=false hasAddress=true fromDeeplink=true
+  route: module fetch status=true
+  route: module match found=false for slug=bogusslugxyz2
+  route: initial route module=null
+  [ERR] msg="error snackbar shown"   <- expected, paired AppLogger line for the
+                                          user-facing "module not found" toast
+
+After:
+  flutter.cacheModuleId::u:michael.brown@demo.com key ABSENT -- cleared correctly.
+
+CONFIRMS AC3's mechanism still works correctly under the identity-scoped
+plumbing. (First attempt at this check used A's session mid-"remember-me-off"
+test window, where A had no userNumber and thus no key to clear -- that was a
+test-setup artifact, not a defect; re-run after restoring A's remembered
+identity confirmed the clear lands correctly.)
