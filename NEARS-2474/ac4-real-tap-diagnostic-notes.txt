@@ -1,0 +1,63 @@
+Real-tap diagnostic for AC4 re-verification (peer rt-2474 request), 2026-08-24.
+
+Symptom: `osascript -e 'tell application "System Events" to click at {x,y}'`
+returns exit 0, no error, and resolves a valid AX element ("group 1 of window
+...") at every attempted coordinate -- but NO app state ever changes:
+  - tap "Grocery & Food" card (sector home)      -> no navigation
+  - tap "Add To Cart" (item detail sheet)         -> qty stayed (0)
+  - tap "Increase quantity" (item detail stepper) -> qty stayed (0)
+  - tap "Close" (item detail sheet dismiss X)     -> sheet stayed open
+
+Diagnosis performed:
+1. Ruled out the known Card-nested-rect bug as the sole cause: re-verified it
+   IS present on the sector-home module cards (identical [0,0,175,192] rects
+   for all 3 cards) but is NOT present on the item-detail sheet's controls
+   (Close/Increase/Decrease all report distinct, sane bounds) -- yet taps on
+   the item-detail sheet ALSO failed to register, so nested-rect alone does
+   not explain the full symptom set.
+2. Found "Show Device Bezels" was ON in the Simulator Window menu; turned it
+   off. No change.
+3. Measured the window was NOT at Point-Accurate (1:1) zoom: AX-reported
+   window size (500x1084) vs the live logical viewport (402x874) gave a
+   ~1.24x scale mismatch that uinav_ios.sh's origin math (which assumes
+   scale=1 when computing the side margin) does not correctly compensate
+   for -- a real, reproducible gap in the tooling's geometry math for a
+   non-1:1 window. Clicking the "Point Accurate" Window-menu item did not
+   visibly resize the window (menu item may not apply to this "External
+   Display" style Simulator window).
+4. Force-resized the window via System Events `set size` directly, then
+   re-measured the CONTENT group's own position/size directly
+   (`group 1 of window ...` -> position {116,65} size {402,894}) --
+   width matches the logical viewport exactly (402==402), confirming a
+   correct 1:1 scale and a precise, ground-truth origin. Overrode
+   IOS_WIN_X=116 IOS_WIN_Y=65 IOS_WIN_SCALE=1 and retried the "Close" tap
+   with this geometry verified directly from the OS's own accessibility
+   tree (not the tool's derived formula) -- STILL no effect.
+5. Isolated Automation-tier vs Accessibility-tier TCC: a `click menu bar
+   item` (AX-action-based click, addressed by element reference, needs only
+   "Automation" permission to control the target app) against Finder's Apple
+   menu worked correctly (opened the menu). A coordinate-based `click at
+   {x,y}` (needs the separate, stronger macOS "Accessibility" TCC grant to
+   control the mouse/keyboard at the OS level) is the ONLY mechanism
+   available for the Simulator's content (a single opaque rendered
+   `group 1`, not real AX-addressable controls) -- and that is exactly the
+   category of click that is silently no-op-ing.
+6. Traced the process ancestry of the calling shell:
+   zsh(this call) -> claude -> zsh -> Code Helper.app -> Visual Studio
+   Code.app (pid 621). The controlling terminal is VS Code's integrated
+   terminal; `osascript`'s coordinate-click capability requires Accessibility
+   TCC be granted (System Settings -> Privacy & Security -> Accessibility)
+   to whichever process macOS attributes the request to (osascript itself,
+   or VS Code as the responsible/parent app) -- this is the exact
+   one-time host prerequisite the nav guide documents ("Without it the
+   click no-ops"), and it has evidently not been granted for this
+   session's process tree.
+
+Conclusion: this is a genuine, host-level macOS permission gap, not a
+coordinate-math or screen-specific bug (the underlying tooling gap #3 above
+is real and worth fixing, but is NOT sufficient to explain the failure by
+itself, since even a manually ground-truth-verified correct coordinate still
+failed). It requires a human with the machine's password to open System
+Settings -> Privacy & Security -> Accessibility and grant control to the
+requesting process (osascript and/or VS Code) -- not something achievable
+from inside this sandboxed shell.
