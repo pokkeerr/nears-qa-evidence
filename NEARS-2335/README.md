@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-2335
 
-**PASS -- item-name label live on Just for You rail, matches ItemCampaignScreen; 2 findings filed (1 task_bug: RTL not mirrored due to pre-existing LTR wrapper; 1 regression_bug: item_bottom_sheet null-check crash, pre-existing)**
+**Delta re-QA cycle 2 PASS: RTL label mirroring fix confirmed live, carousel renders correctly under RTL, no LTR regression**
 
-**11 screenshot(s).** Click any thumbnail for full resolution.
+**17 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -21,8 +21,18 @@
 <td align="center" width="33%"><a href="bug-rtl-label-not-mirrored.png"><img src="bug-rtl-label-not-mirrored.png" width="240"></a><br><sub>bug rtl label not mirrored</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ltr-recheck-no-regression.png"><img src="ltr-recheck-no-regression.png" width="240"></a><br><sub>ltr recheck no regression</sub></td>
 <td align="center" width="33%"><a href="regr-carousel-after.png"><img src="regr-carousel-after.png" width="240"></a><br><sub>regr carousel after</sub></td>
 <td align="center" width="33%"><a href="regr-carousel-before.png"><img src="regr-carousel-before.png" width="240"></a><br><sub>regr carousel before</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="rtl-recheck-arabic-justforyou.png"><img src="rtl-recheck-arabic-justforyou.png" width="240"></a><br><sub>rtl recheck arabic justforyou</sub></td>
+<td align="center" width="33%"><a href="rtl-recheck-carousel-final.png"><img src="rtl-recheck-carousel-final.png" width="240"></a><br><sub>rtl recheck carousel final</sub></td>
+<td align="center" width="33%"><a href="rtl-recheck-justforyou-card.png"><img src="rtl-recheck-justforyou-card.png" width="240"></a><br><sub>rtl recheck justforyou card</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="rtl-recheck-justforyou-rail.png"><img src="rtl-recheck-justforyou-rail.png" width="240"></a><br><sub>rtl recheck justforyou rail</sub></td>
+<td align="center" width="33%"><a href="rtl-recheck-ltr-baseline.png"><img src="rtl-recheck-ltr-baseline.png" width="240"></a><br><sub>rtl recheck ltr baseline</sub></td>
 </tr>
 </table>
 
