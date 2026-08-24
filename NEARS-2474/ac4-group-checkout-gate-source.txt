@@ -1,0 +1,13 @@
+    update();
+    try {
+      // NEARS-2474 fix-cycle 4: same gate as the single-store path (see the
+      // comment in placeOrderFromCheckout's try block) — inside the try, after
+      // `_isLoading = true` above, so a second tap can't sail through the entry
+      // guard at the top of this function while the gate is still awaiting.
+      if (Get.isRegistered<CartController>() &&
+          !await Get.find<CartController>().resolvePendingAbandonedCleanups()) {
+        showCustomSnackBar('cart_still_syncing_please_try_again'.tr);
+        return;
+      }
+      AddressModel? finalAddress = isGuestLogIn ? guestAddress : address;
+      if (isGuestLogIn && orderType != 'take_away') {
