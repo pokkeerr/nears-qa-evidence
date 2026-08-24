@@ -1,0 +1,77 @@
+NEARS-2448 fix-cycle 1 delta QA — task-bug NEARS-2488 re-verification
+========================================================================
+Build under test: HEAD 9d9e4487 (was d7dd27ce6 when the bug was found).
+Fix: UserApp/lib/features/item/domain/repositories/campaign_repository.dart
+get() now guards `response.statusCode == 200 && response.body is Map` before
+calling BasicCampaignModel.fromJson(response.body).
+
+Devices: emulator-5554 (AVD NEARS_2414_QA) died mid-session (qemu process
+vanished entirely between two adb calls, not just an adb-server hiccup —
+confirmed via `ps aux`, `adb devices -l` no longer listed it at all). This
+happened on an otherwise-healthy, freshly-booted, zero-contention device — not
+caused by any QA action (no `adb root`, no kill). Lock released, moved to
+emulator-5556 (build cache from the prior worktree build made the re-build
+fast: ~5s assembleDebug vs. the original ~296s cold build) and completed the
+delta scope there.
+
+1) AC1 invalid-campaign-id sub-case (NEARS-2488's own repro): FIXED, confirmed
+   live and REPRODUCIBLE (tested twice, once on each device before/after the
+   emulator-5554 crash — same result both times):
+   - `[NET] GET/endpoint=.../basic-campaign-details http_status=200` (the
+     malformed 200+[] response) -> NErrorRetry renders full-pane ("Back" /
+     "Something went wrong" / "Please try again" / "Retry") -- NO uncaught
+     TypeError this time (ui_errors scanned clean, 0 matches; pre-fix this was
+     `[FAIL] ... type=UncaughtAsyncError msg="uncaught async error
+     (_TypeError)"` plus the screen stuck permanently blank with only "Back").
+   Screenshot: cycle1-ac1-invalid-id-FIXED-renders-NErrorRetry.png
+
+2) NEW FINDING this cycle (not present pre-fix, introduced by the fix itself):
+   SILENT FAILURE PATH. The malformed-200-array-body case now resolves to
+   `null` with ZERO AppLogger.failure()/[FAIL] log anywhere -- confirmed via a
+   full raw logcat capture across the whole request/response window (only
+   [INFO] route-tracing + [NET] GET/response lines present, nothing else).
+   Full raw capture: cycle1-bug-silent-failure-no-FAIL-log.log
+   This violates the project's OWN mandatory logging contract ("every generic
+   error toast/error state needs a paired AppLogger.failure(...) -- a silent
+   toast is a violation", CLAUDE.md) and this QA process's own hard gate (a
+   nears_error_retry state with no matching [FAIL] line = task_bug,
+   silent_failure_path: true, breaks_ac: true, never PASS). Ironically the
+   PRE-fix code was noisier here (the uncaught TypeError at least produced a
+   [FAIL] line via the global handler) -- the fix traded a crash for a
+   perfectly-silent failure, when the correct fix needed BOTH: no throw AND a
+   paired AppLogger.failure() call at the point the malformed shape is
+   detected.
+
+3) Retry re-calls + recovers (delta scope item 2): confirmed both halves —
+   (a) tapping Retry from the invalid-id error state DOES re-fire the network
+   call (new [NET] GET/response pair, distinct timestamp from the first
+   attempt) and correctly re-renders NErrorRetry again (not stuck) — the fix's
+   guard applies on every retry attempt, not just the first; (b) "recovers on
+   a subsequent VALID response" was not independently re-derivable for id=
+   99999 specifically (retrying the same screen always re-fetches the SAME
+   id, which will never resolve without a DB write, out of QA's read-only
+   scope) -- relying on the already-proven transport-failure-then-recovery
+   retry flow (same onRetry wiring, untouched by this fix, re-confirmed
+   working again this cycle in spot-check #1 below) as the evidence this
+   generalizes.
+
+4) Spot-checks (delta scope item 3), both clean, no regression:
+   - Transport failure (wifi+data disabled) -> NErrorRetry renders with a
+     correctly-paired [FAIL] log (`type=ApiFailure transport_error=socket`) ->
+     tapped Retry (network restored) -> recovers to the full loaded state
+     (header + Nears Mart store card). Screenshots:
+     cycle1-spotcheck-transport-failure-still-works.png (error state)
+   - Empty-store (campaign 2, genuine 0-store fixture) -> "No store available"
+     (NoDataScreen), not NErrorRetry, clean logs. Screenshot:
+     cycle1-spotcheck-empty-store-still-works.png
+
+Automated backstop (re-ran, clean):
+  flutter test --reporter expanded
+    test/features/item/campaign_repository_non_map_body_test.dart -> 2/2 PASS
+    test/features/store/campaign_screen_error_retry_test.dart -> 4/4 PASS
+
+VERDICT: FAIL (not PASS) -- the invalid-campaign-id sub-case itself is fixed
+(no more crash/stuck-blank screen), but the fix introduced a silent-failure
+path that this project's own logging-contract hard gate does not allow to
+pass. This blocks Done until a paired AppLogger.failure(...) call is added at
+the non-Map-body detection point in CampaignRepository.get().
