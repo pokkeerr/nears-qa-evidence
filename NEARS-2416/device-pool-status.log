@@ -1,0 +1,21 @@
+NEARS-2416 QA-lite device availability check — 2026-08-24
+
+Android pool (adb devices -l): emulator-5554, 5556, 5560, 5564, 5572
+All 5 occupied by foreign live host drivers (adb logcat pids, elapsed 03:10:56 - 15:32:53)
+at time of check, confirmed via ps + qa_lock_acquire probe verdict=occupied on 5556/5564.
+Disk floor check on remainder (5554/5560/5572): 598936/657520/481172 KB free, all below the
+819200 KB (800MB) new-acquisition floor -- correctly skipped per protocol even had they been free.
+Polled ~4 min total (60s + 3min follow-up round), zero devices freed.
+
+iOS pool (xcrun simctl list devices booted): iPhone 17 Pro (53F3807C-...), iPhone 17e (6D3CEFF6-...)
+Lock acquired cleanly on iPhone 17 Pro (verdict=free). `flutter run -d 53F3807C...` failed at
+`pod install`: "CocoaPods's specs repository is too out-of-date to satisfy dependencies."
+Ran `pod repo update` (completed, trunk CDN refreshed) and retried -- identical failure.
+Pre-existing host/toolchain issue, unrelated to the NEARS-2416 diff (image_file_view_widget.dart
+touches no iOS/Podfile config). Lock released both attempts.
+
+Net: zero live device time available on this host at QA time (both platforms). Falling back to
+the engineer's widget test (re-run live by QA, not trusted from the engineer's claim -- see
+automated-test-hero-tag.log) as the evidence base for AC1/AC2, per this ticket's QA-lite
+fallback clause. Flagged as a followup for re-verification once a device frees or the iOS
+CocoaPods issue is fixed.
