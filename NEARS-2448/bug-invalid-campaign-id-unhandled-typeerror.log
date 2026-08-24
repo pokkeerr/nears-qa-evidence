@@ -1,0 +1,71 @@
+NEARS-2448 — code-traced finding (device QA BLOCKED this pass, NOT live-confirmed on a running app instance)
+================================================================================================
+
+Repro trigger (from this ticket's own QA Test Scope): "navigate to a campaign whose id
+doesn't resolve".
+
+1) Live backend proof (real dev server, http://127.0.0.1:8000, read-only GET):
+
+$ curl -s -D - "http://127.0.0.1:8000/api/v1/campaigns/basic-campaign-details?basic_campaign_id=99999" \
+    -H "zoneId: [1]" -H "moduleId: 1" -H "Accept: application/json"
+
+HTTP/1.1 200 OK
+...
+Content-Type: application/json
+...
+[]
+
+  -> An invalid/non-resolving campaign id returns HTTP 200 with body `[]` (a JSON ARRAY),
+     not a Map/object and not a non-200 status. Root cause (Admin/app/Http/Controllers/Api/V1/
+     CampaignController.php basic_campaign_details()): Campaign::...->first() returns null for
+     a non-matching id; Helpers::basic_campaign_data_formatting(null,...) and the subsequent
+     $campaign['stores'] = ... assignment auto-vivify a bare array under PHP 8 null-safety
+     warnings (no thrown Exception), so the outer try/catch's `return response()->json([],200)`
+     path (or an equivalent empty-array shape) is what reaches the wire — confirmed by the
+     actual byte-for-byte response above, not just static reading of the PHP.
+
+2) Flutter-side consequence — CampaignRepository.get() (UserApp/lib/features/item/domain/
+   repositories/campaign_repository.dart):
+
+     Response response = await apiClient.getData('${AppConstants.basicCampaignDetailsUri}$id');
+     if (response.statusCode == 200) {
+       basicCampaign = BasicCampaignModel.fromJson(response.body);   // response.body is a List here
+     }
+
+   BasicCampaignModel.fromJson() is typed `Map<String, dynamic> json` — passing the decoded
+   `[]` List throws at runtime. Reproduced in isolation (same Dart SDK the app runs on,
+   ~/Tools/flutter/bin/cache/dart-sdk/bin/dart, jsonDecode('[]') fed into a Map-typed
+   fromJson-shaped function):
+
+$ dart run repro.dart
+   decoded type: List<dynamic>
+   THREW: type 'List<dynamic>' is not a subtype of type 'Map<String, dynamic>'
+
+3) Propagation — CampaignController.getBasicCampaignDetails() (UserApp/lib/features/item/
+   controllers/campaign_controller.dart):
+
+     Future<void> getBasicCampaignDetails(int? campaignID) async {
+       _basicCampaign = null;
+       _hasError = false;
+       BasicCampaignModel? basicCampaign = await campaignServiceInterface.getCampaignDetails(...);  // THROWS here
+       if (basicCampaign != null) { _basicCampaign = basicCampaign; }
+       else { _hasError = true; }   // never reached
+       update();                    // never reached
+     }
+
+   The throw happens on the `await` line, before the if/else and before update(). Since
+   CampaignScreen.initState() calls this without awaiting or a .catchError (`Get.find<
+   CampaignController>().getBasicCampaignDetails(widget.campaign.id);`), the exception becomes
+   an unhandled Future error (no FlutterError.onError coverage — that hook is build/layout/paint
+   only). Net effect: `_hasError` stays false and `_basicCampaign` stays null forever — the
+   EXACT "permanently-absent header + shimmering store list" state AC1 says this ticket fixes,
+   for this one specific (and QA-Test-Scope-documented) trigger method.
+
+STATUS: This is a code-traced + isolated-Dart-repro finding, produced while the emulator pool
+(7/7 Android devices) and the one available iOS simulator (Podfile.lock/FirebaseAnalytics
+version mismatch, pre-existing/unrelated to this ticket's 2-file diff) were both unavailable
+for a live on-device run this pass (see BLOCKED verdict). NOT observed live inside the running
+app/GetX controller. Needs live on-device confirmation next QA pass before being treated as
+certain -- filed now, with this caveat explicit, because withholding a near-certain defect that
+maps directly onto the ticket's own documented repro path would be a worse failure than filing
+it with an honest confidence caveat.

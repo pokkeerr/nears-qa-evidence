@@ -1,0 +1,46 @@
+NEARS-2448 QA — BLOCKED: no live device surface available this pass
+=====================================================================
+
+Android pool (7/7 devices) — bounded wait exhausted (two consecutive ~10-minute polls,
+scripts/qa-lock-guard.sh qa_lock_check on every serial from `adb devices -l`):
+
+  emulator-5554  OCCUPIED (foreign, no lock file -- bare `flutter run`, host drivers pid 60702/61299)
+  emulator-5556  OCCUPIED (foreign, bare `flutter run`, pid 20261/21110)
+  emulator-5558  BLOCKED  (same-session lane, holder key NEARS-2449)
+  emulator-5560  OCCUPIED (foreign, bare `flutter run`, pid 13508/13675)
+  emulator-5562  BLOCKED  (live QA session, holder key NEARS-2283, pid 10132)
+  emulator-5564  OCCUPIED (foreign, bare `flutter run`, pid 39421/39526)
+  emulator-5572  OCCUPIED (foreign, bare `flutter run`, pid 81918/82612)
+
+No spare AVD to boot fresh: `emulator -list-avds` lists 7 AVDs, all 7 already correspond 1:1
+to the 7 running serials above (Pixel_10_Pro/_2/_3, NEARS_2411_QA, NEARS_2414_QA,
+nears_qa_wave56, nears_qa_delivery).
+
+iOS pool — 2 simulators booted (`xcrun simctl list devices booted`):
+  53F3807C-3BF6-46ED-8487-DEC957036BAA (iPhone 17 Pro) -- FREE, lock acquired (key NEARS-2448)
+  6D3CEFF6-D3A8-4697-89E0-27F45F1AD48D (iPhone 17e)     -- OCCUPIED (foreign, pid 75524/75641)
+
+`flutter run -d 53F3807C... --debug` attempted 3x (fresh, after `pod repo update`, after a
+2nd `pod repo update` confirmed exit 0) -- all 3 fail identically at `pod install`:
+
+  [!] CocoaPods could not find compatible versions for pod "FirebaseAnalytics":
+    In snapshot (Podfile.lock):
+      FirebaseAnalytics (= 12.12.0)
+    In Podfile:
+      firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`) was resolved to
+      12.4.2, which depends on
+        FirebaseAnalytics (= 12.14.0)
+
+Root cause: UserApp/ios/Podfile.lock is pinned to FirebaseAnalytics 12.12.0 but the resolved
+firebase_analytics plugin version (12.4.2, from pubspec.lock) now requires FirebaseAnalytics
+12.14.0 -- a worktree-level Podfile.lock/pubspec.lock staleness, NOT caused by this ticket's
+diff (confirmed: `git show --stat d7dd27ce` touches only campaign_controller.dart,
+campaign_screen.dart, and the new test file). `pod repo update` does not fix this -- the spec
+repo already HAS 12.14.0 (confirmed in the CocoaPods CDN trace); the fix is a Podfile.lock
+regen/`pod update Firebase*`, a config-file change outside QA's write scope.
+
+Device lock released cleanly (qa_lock_release 53F3807C...) since it could not be used.
+
+Both platforms unavailable this pass -> verdict BLOCKED. Automated backstop (flutter test,
+4/4 targeted widget tests) ran clean and is reported for context but does not substitute for
+live demonstration per the hard rule.
