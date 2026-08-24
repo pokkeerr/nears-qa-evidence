@@ -1,0 +1,48 @@
+# NEARS-2452 delta re-QA (fix-cycle 1) — AC1/AC2 log evidence
+# Isolated failure via rewriting proxy (only /api/v1/campaigns/item forced to fail,
+# all other endpoints pass through to the real backend unmodified) -- chosen after
+# confirming `adb shell svc wifi/data disable` does NOT reliably cut the emulator's
+# app-level HTTP reachability to 10.0.2.2:8000 on this AVD (an already-open
+# connection / virtual NAT path kept succeeding), and separately triggers a
+# global app-wide Get.offAll(NoInternetScreen) redirect via
+# LocationController.checkInternet() on some flows -- neither is a clean signal
+# for isolating just the campaign fetch.
+
+## AC1 — forced failure, fresh cold boot (disk cache truly absent, proxy failing this endpoint only)
+08-24 20:45:50.392  7312  7312 I flutter : [FAIL] endpoint=/api/v1/campaigns/item http_status=null type=ApiFailure transport_error=client msg="api request threw" correlation_id=50ac0f62-c0a3-46a3-b3cf-49c6cf30d4ba
+# -> Food home "Just for You" section rendered header + "See All" action (NSectionHeader,
+#    actionText='see_all'.tr) with NO carousel beneath it -- the new NEARS-2452 branch.
+#    Confirmed via a11y bounds: [45,521]-[368,605] header, next sibling "New on Nears"
+#    at y=755 (150px gap = no carousel; healthy/populated state gap is ~795px).
+#    Screenshot: ac1-justforyou-failure-seeall.png
+
+## Tap "See All" -> ItemCampaignScreen
+08-24 20:46:28.502  7312  7312 I flutter : [FAIL] endpoint=/api/v1/campaigns/item http_status=null type=ApiFailure transport_error=client msg="api request threw" correlation_id=8f3e1413-533c-4bc1-865d-30f14d7310bb
+# -> a11y dump showed NErrorRetry: "Something went wrong" / "Please try again" / "Retry"
+#    (not shimmer). ui_errors: only these 2 lines total in the whole session up to
+#    this point (clean otherwise).
+
+## AC2 — cleared the proxy's fail flag (connectivity "restored"), tapped Retry
+# -> a11y dump showed populated ItemsView: "Tasty Food Favorites" campaign,
+#    "Burger Palace" item, 10.0% OFF -- NOT stuck on NErrorRetry.
+# -> ui_errors: no NEW [FAIL] line after the retry (still only the 2 prior ones).
+
+## Regression -- happy path / composition intact post-recovery
+# -> Just for You header at y=293, "New on Nears" at y=1172: gap=795px, matching the
+#    original healthy populated-carousel gap exactly. Flash Sale / Most Popular Items /
+#    New on Nears rails all rendered normally alongside it.
+
+## RTL/AR pass (Get.updateLocale('ar','SA') live, same failure state re-staged)
+# -> "فقط لأجلك" (Just for You) header at [1051,966]-[1299,1059] (RIGHT side)
+#    "رؤية الكل" (See All) action at [45,941]-[220,1085] (LEFT side)
+#    Correctly mirrored vs LTR (title left / action right in LTR).
+#    Gap to "جديد على Nears" (New on Nears) = 141px, consistent with no-carousel.
+08-24 20:48:51.906  7312  7312 I flutter : [FAIL] endpoint=/api/v1/campaigns/item http_status=null type=ApiFailure transport_error=client msg="api request threw" correlation_id=4deefdf1-75d6-4fb2-b5b9-d153528593ed
+# -> (this 3rd [FAIL] is from re-staging the failure state for the RTL check itself)
+
+## Automated backstop
+# flutter test test/features/home/just_for_you_view_error_entry_test.dart -> 3/3 pass
+#   - shows the header + See All action (not the shimmer) when the fetch has failed
+#   - tapping See All on a failed fetch navigates to the item-campaign route
+#   - AC3 regression: a plain loading state (no failure yet) still shimmers, no See All
+# flutter test test/features/item/item_campaign_screen_error_retry_test.dart test/features/home/ -> 370 passed, 2 skipped, 0 failed
