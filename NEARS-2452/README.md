@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2452
 
-**FAIL - AC1/AC2 NErrorRetry branch unreachable via only wired live UI entry (JustForYouView hides See All on null-state); AC3 regression clean; code correct in isolation (widget test 3/3 pass)**
+**FAIL - AC1/AC2 NErrorRetry branch correct but unreachable via only wired live UI entry (JustForYouView hides See All on null-state); [FAIL] log confirms silent-failure gate satisfied; AC3 regression clean; widget test 3/3 pass**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -12,6 +12,7 @@
 </table>
 
 ### Other artifacts
+- [`bug-justforyou-entry-hidden-on-campaign-fetch-failure.log`](bug-justforyou-entry-hidden-on-campaign-fetch-failure.log)
 - [`bug-justforyou-entry-hidden-on-campaign-fetch-failure.xml`](bug-justforyou-entry-hidden-on-campaign-fetch-failure.xml)
 - [`progress.md`](progress.md)
 
