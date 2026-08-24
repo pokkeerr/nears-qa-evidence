@@ -1,0 +1,13 @@
+Admin/storage/logs/laravel.log excerpt, scoped grep -F "delivery man unresolved":
+
+[2026-08-24 05:13:20] production.ERROR: [FAIL] conversation messages: delivery man unresolved (receiver) {"trace_id":"b9290667b208eac25d4752f8e665998e","correlation_id":"21faa1fd-a7ae-4390-ba5b-b18cd095b83a","endpoint":"customer/message/details","conversation_id":49,"deliveryman_id":1000013}
+[2026-08-24 05:13:20] production.ERROR: [FAIL] conversation messages: delivery man unresolved (sender) {"trace_id":"e913055077359e383550c29602ec9749","correlation_id":"7a2c27ad-4696-4c38-a1cd-34c65c0dadb7","endpoint":"customer/message/details","conversation_id":50,"deliveryman_id":1000013}
+
+Fields present: trace_id, correlation_id, endpoint, conversation_id, deliveryman_id — ids only,
+no user/vendor/delivery-man PII (name/email/phone). Confirmed via:
+  grep -F "delivery man unresolved" storage/logs/laravel.log | grep -Ei "email|phone|f_name|l_name|@"
+-> zero matches.
+
+Negative control: happy-path conversation (id=51, resolvable deliveryman_id=1, real DeliveryMan
+"Ali Hassan") produced a clean 200 with delivery_man payload populated and emitted NO [FAIL] line
+for conversation_id 51 in this same window — the guard only fires on the actually-unresolvable path.

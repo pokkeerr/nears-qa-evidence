@@ -1,0 +1,37 @@
+Regression — happy path (resolvable deliveryman_id) unaffected:
+GET /api/v1/customer/message/details?conversation_id=51 (receiver->deliveryman_id=1, real
+DeliveryMan row "Ali Hassan", order_count=27) -> HTTP 200, full delivery_man payload rendered,
+no [FAIL] emitted for conversation_id 51. Expected open-order count independently computed via
+tinker: Order::where('delivery_man_id',1)->whereIn('order_status',[...])->count() == 0, matches
+observed status:false (order==0).
+
+Automated backstop (private per-worktree DB multi_food_db_test_nears_nears_2418_dm_find_guard):
+
+$ vendor/bin/phpunit --configuration phpunit.xml --filter Nears2418ConversationDeliveryManFindNullGuardTest
+OK (3 tests, 6 assertions)
+
+$ vendor/bin/phpunit --configuration phpunit.xml --filter "Nears1985|Nears2418"
+OK (8 tests, 19 assertions)
+  - Nears1985ConversationVendorStoresNullGuardTest: 5 tests, vendor-branch guard (byte-identical
+    precedent this ticket mirrors) still passes.
+  - Nears2418ConversationDeliveryManFindNullGuardTest: 3 tests, this ticket's own coverage.
+
+$ vendor/bin/phpunit --configuration phpunit.xml tests/Feature/Security/ConversationParticipantIdorTest.php tests/Feature/Security/Nears2402ConversationContactStripTest.php tests/Feature/Security/ConversationMessagesIdorTest.php
+OK (8 tests, 190 assertions)
+  - Wider ConversationController/messages() blast radius (IDOR guards, contact-strip trait
+    HidesConversationContact touched by an unrelated ticket already merged into this worktree's
+    history) all green — this fix did not disturb them.
+
+Static diff-confirm (AC1/AC4): the ticket's own commit (5cc4e5a0, parent 5cc4e5a0~1) touches
+ONLY the two delivery_man branches (~469-494) in ConversationController::messages() plus its own
+test file. `git diff 5cc4e5a0~1 5cc4e5a0 -- Admin/app/Http/Controllers/Api/V1/ConversationController.php`
+shows a 24-line delta scoped exactly to those two if/else guards mirroring the NEARS-1985 idiom
+(`if($dm){ ... } else { $order=0; Log::error('[FAIL] ...', [ids only]); }`). Vendor branches,
+HidesConversationContact calls, and the rest of messages()/the file are untouched by this commit
+(byte-identical — they came from prior already-merged tickets in this worktree's ancestry, not
+from this ticket).
+
+Sibling ticket NEARS-2417 (worktree nears-NEARS-2417-userinfo-stores-guard, HEAD 91ccab7c): its
+own scoped commit touches Admin/app/Models/UserInfo.php + its own test file, NOT
+ConversationController.php. Zero file overlap with NEARS-2418's scoped change. Neither branch has
+landed on main yet (main sits far behind both, at c62d8731).

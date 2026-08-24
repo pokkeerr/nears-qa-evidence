@@ -1,0 +1,11 @@
+GET http://127.0.0.1:8419/api/v1/customer/message/details?conversation_id=50
+(live backend, private per-worktree test DB multi_food_db_test_nears_nears_2418_dm_find_guard,
+conversation.sender_type=delivery_man, sender->deliveryman_id=1000013 which points at no
+DeliveryMan row)
+
+HTTP_CODE=200
+
+{"total_size":0,"limit":10,"offset":1,"status":false,"messages":[],"conversation":{"id":50,"sender_id":119,"sender_type":"delivery_man","receiver_id":117,"receiver_type":"user","last_message_id":null,"last_message_time":"2026-08-24 05:13:11","sender":{"id":119,"f_name":"Rider","l_name":"Send","deliveryman_id":1000013,"delivery_man":null},"last_message":null}}
+
+Pre-fix this branch dereferenced DeliveryMan::find(1000013)->id unguarded and would 500.
+Post-fix: clean 200, status:false (order computed as 0 on the guarded/unresolvable path).
