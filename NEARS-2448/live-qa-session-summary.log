@@ -1,0 +1,123 @@
+NEARS-2448 — live QA session summary (device emulator-5558, AVD NEARS_2411_QA)
+================================================================================
+
+Device: reclaimed a fresh/residue-only Android emulator (emulator-5558) after
+the full 7-device pool was saturated by other live sessions for a bounded
+~10min wait; disk precheck passed (3.4GB free). Booted UserApp fresh
+(`flutter run -d emulator-5558 --debug`, ~296s assembleDebug under heavy
+shared-host contention from ~6 concurrent worktree builds), then survived one
+mid-session drop (`am force-stop` during a zone switch) via
+`scripts/qa-reconnect.sh UserApp emulator-5558` (state-preserving flutter
+attach, no reinstall, login/cart intact).
+
+Navigation constraint found + worked around: CampaignScreen is NOT reachable
+via any currently-seeded module's Home screen — `MiddleSectionBannerView`
+(the campaign carousel) is mounted ONLY in `ShopHomeScreen`
+(`isShop` == module_type `ecommerce`), and no ecommerce/"Shop" module is
+seeded in this fork (Grocery/Food/Pharmacy/Parcel only, confirmed via
+`GroceryHomeScreen`/`FoodHomeScreen` source — neither includes
+`MiddleSectionBannerView`). OS-level deep linking is also disabled
+(`flutter_deeplinking_enabled=false` in AndroidManifest.xml). Reached the
+screen instead via a direct Dart VM Service `evaluate` call
+(`Get.toNamed("/basic-campaign?module=1&data=<base64 BasicCampaignModel>")`,
+the exact route+payload shape `RouteHelper.getBasicCampaignRoute()` builds) —
+a read-only runtime debug action, no product code touched. Flagging the
+unreachable-via-UI finding as a followup (drift from the QA Test Scope's
+suggested "tap a campaign banner" path), not a task_bug (out of this
+ticket's 2-file scope).
+
+Zone: switched from the default zone 2 (Abu Dhabi) to zone 1 (Dhaka demo
+zone) via `adb emu geo fix` to store 1's exact coordinates + "Use my current
+location" on the map picker, to get a real ACTIVE store (id 1, "Nears Mart")
+for full-fidelity success-state evidence (campaign 1 has a 2nd store, id 21
+in zone 2, but it is status=0/inactive so zone 2 alone would only ever show
+the empty-store branch).
+
+Seed data used (verified via read-only DB SELECT, Admin/multi_food_db):
+  campaign 1 "QA Single-Store Campaign A" — 1 active participating store
+    (Nears Mart, zone 1) -> success/non-empty state.
+  campaign 2 "QA Single-Store Campaign B" — 0 participating stores (no
+    campaign_store row at all) -> genuine empty-state fixture, any zone.
+
+Per-AC live results (all on emulator-5558, package com.izzes.nears pid 6148):
+
+AC1 [ui] failed fetch -> full-pane NErrorRetry:
+  - Transport failure (wifi+data disabled via `adb shell svc wifi/data
+    disable`, i.e. airplane-mode-equivalent): `[FAIL] endpoint=/api/v1/
+    campaigns/basic-campaign-details http_status=null type=ApiFailure
+    transport_error=socket msg="api request threw" correlation_id=...` ->
+    UI renders "Something went wrong" / "Please try again" / "Retry" full
+    pane. PASS. Screenshot: ac1-transport-failure-NErrorRetry.png
+  - Invalid/non-resolving campaign id (id=99999): CONFIRMS the finding
+    flagged in the prior BLOCKED pass as a live TypeError, not just a static
+    trace (see bug-invalid-campaign-id-CONFIRMED-LIVE.log/.png below) — the
+    screen does NOT render NErrorRetry for this trigger, it stays
+    permanently blank (only "Back" in the a11y tree). This is a genuine
+    AC1 gap for this specific documented repro method.
+
+AC2 [behav] Retry re-calls + recovers:
+  - From the transport-failure error state, tapped "Retry" (network
+    re-enabled first) -> `[NET] endpoint=/api/v1/campaigns/
+    basic-campaign-details http_status=200` -> screen recovers to the full
+    loaded state (header card "QA Single-Store Campaign A" + "Nears Mart"
+    store card). PASS. Screenshot: ac2-retry-recovers-to-loaded-state.png
+  - Busy-latch / no-double-fire: NOT independently re-derived via rapid taps
+    this pass (network round-trip timing on a shared/contended host makes a
+    deterministic double-tap race hard to stage via discrete adb taps) —
+    relying on (a) static confirmation that CampaignScreen's onRetry returns
+    Future<void> (satisfies NErrorRetry's busy-latch precondition,
+    packages/nears_dls/lib/components/nerrorretry/n_error_retry.dart
+    _handleRetry()), and (b) that latch is a already-tested, reused DLS
+    primitive (packages/nears_dls/test/components/n_error_retry_test.dart),
+    not new code from this ticket. Single-tap recovery IS live-confirmed
+    above.
+
+AC3 [behav] loading state unchanged, no premature error flash:
+  - Could not capture the live transient loading frame externally — the
+    local dev backend resolves basic-campaign-details in well under the
+    round-trip time of a second adb/VM-service call (observed ~550-760ms
+    fetch, and two separate follow-up dumps both already showed the
+    resolved state). This is a tooling/timing constraint, not a defect.
+  - Verified instead via the CODE-LEVEL guarantee (deterministic, not
+    probabilistic): CampaignController.getBasicCampaignDetails() sets
+    `_hasError = false` SYNCHRONOUSLY, before the first `await` — so
+    `hasError` can never read `true` during the in-flight window by
+    construction, for either the initial mount OR a retry. During that
+    window `basicCampaign` is also null, so CampaignScreen takes the
+    non-error branch and ItemsView(stores: null) renders exactly the
+    pre-existing shimmer (unchanged). Corroborated by the passing automated
+    widget-test suite (4/4, see automated backstop).
+
+AC4 [behav] empty-store success state unchanged, no error pane:
+  - campaign 2 (0 stores, any zone) -> header card "QA Single-Store
+    Campaign B" + "Stores" section + "No store available" (NoDataScreen,
+    NEmptyState WITHOUT a retry action) — NOT NErrorRetry. hasError stays
+    false since basicCampaign resolved non-null. PASS. Screenshot:
+    ac4-empty-state-not-error.png
+
+Regression sweep (bounded, UserApp-only, 2 logic files):
+  - Store-list navigation: tapped "Nears Mart" from the loaded campaign
+    screen -> navigated cleanly to the store's item grid (Mango/Cola/Rice
+    visible), no errors. Clean.
+  - RTL/Arabic: `Get.updateLocale(Locale('ar','SA'))` (live VM-service call,
+    same technique the nav guide documents for forcing locale) + re-trigger
+    the transport-failure error state -> renders "أعد المحاولة" (Retry) /
+    "حدث خطأ ما" (Something went wrong) / "يرجى المحاولة مرة أخرى" (Please
+    try again) / "رجوع" (Back), correctly using the existing translated
+    keys, no truncation/overflow observed. Screenshot:
+    regression-rtl-arabic-NErrorRetry.png
+  - Schedule pills / cover image: campaigns 1 and 2 both seed start_time/
+    end_time/start_date/end_date = NULL, so the schedule-pill branch
+    (`basicCampaign!.startTime != null`) never renders for EITHER fixture —
+    not exercisable with current seed data (not a defect; noted as a data
+    gap, same shape as the pre-existing NEARS-1095 storeless-module trap).
+    Cover image (SliverAppBar `flexibleSpace.background: NImage(...)`) is
+    structurally outside the `hasError` conditional in campaign_screen.dart
+    (sibling to the branching Column, not nested inside it) — confirmed by
+    direct source read; no crash/red-screen observed on any of the 3 states
+    exercised (success/error/empty) which would be the observable symptom
+    of that composition breaking.
+
+Automated backstop: `flutter test test/features/store/
+campaign_screen_error_retry_test.dart` — 4/4 passed (re-ran clean, no code
+changes since the BLOCKED pass).
