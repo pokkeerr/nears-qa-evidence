@@ -1,0 +1,45 @@
+NEARS-2428 QA regression note (pre-existing, unrelated to this ticket's diff)
+— sibling Admin/app/CentralLogics/helpers.php::sendNotificationToHttp() logs
+raw request payload / response body, violating the logging-contract
+allow-list rule. Untouched by this ticket (diff is confined to
+Admin/app/Traits/NotificationTrait.php); filed as regression_bugs, does not
+affect this ticket's PASS/FAIL.
+
+Admin/app/CentralLogics/helpers.php (excerpt, line numbers from worktree HEAD):
+1455-1458:
+    if (!data_get($key, 'project_id')) {
+        \Log::warning('FCM config missing - no project_id', ['data' => $data]);
+        return false;
+    }
+1461-1464:
+    $token = self::getAccessToken($key);
+    if (!$token) {
+        \Log::error('FCM access token is null/empty', ['data' => $data]);
+        return false;
+    }
+1484-1489 (failure branch):
+    } else {
+        \Log::error('FCM API Error', [
+            'status' => $response->status(),
+            'body' => $response->body(),
+            'order_id' => $data['message']['data']['order_id'] ?? 'unknown',
+        ]);
+
+$data here is the full outbound FCM message payload, which for a
+device-targeted send (sendPushNotificationToDevice) includes
+$data['message']['token'] — the raw FCM device token — plus the full
+notification title/body. $response->body() on the failure branch is the raw
+FCM error response body. Both are logged verbatim to laravel.log, contrary
+to docs/platform/logging-contract.md's "never log response bodies, request
+payloads, tokens" rule.
+
+Additionally, the success line at this same file (Log::info('FCM Send
+Success', ...)) is subject to the identical LOG_LEVEL=warning filtering
+documented in bug-success-log-level-filtered.log — it also silently never
+reaches laravel.log under the project's standard config.
+
+Not filed as a task_bug against NEARS-2428: this code path was not touched
+by the diff under QA (git diff dd9a2a2c -- Admin/app/Traits/NotificationTrait.php
+only). Recommend a follow-up ticket to align helpers.php's
+sendNotificationToHttp() with the same PII-safe pattern this ticket applied
+to NotificationTrait.php's copy.

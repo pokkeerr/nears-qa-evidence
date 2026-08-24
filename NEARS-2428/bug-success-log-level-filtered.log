@@ -1,0 +1,62 @@
+NEARS-2428 QA finding — success branch Log::info() line is below the deployed
+LOG_LEVEL threshold and never reaches laravel.log in the project's standard
+config, breaking AC2 ("On successful send, laravel.log gains a new log line
+recording the send").
+
+## Fix under test (Admin/app/Traits/NotificationTrait.php, diff vs dd9a2a2c)
+    if ($response->successful()) {
+        \Log::info('FCM notification sent', [
+            'status' => $response->status(),
+        ]);
+        return true;
+    }
+    // ...
+    \Log::error('FCM notification send failed', [...]);
+
+## Project-standard config (both are LOG_LEVEL=warning — not a worktree quirk)
+$ grep -n "LOG_LEVEL" Admin/.env.example
+18:LOG_LEVEL=warning
+$ grep -n "LOG_LEVEL" /Users/Apple/Projects/nears/Admin/.env   # primary tree, same value
+16:LOG_LEVEL=warning
+
+## config/logging.php — 'single' channel (backs laravel.log via SizeCappedFileHandler)
+        'single' => [
+            'driver' => 'monolog',
+            'handler' => \App\Logging\SizeCappedFileHandler::class,
+            'handler_with' => [
+                'path' => storage_path('logs/laravel.log'),
+                'maxBytes' => \App\Logging\SizeCappedFileHandler::DEFAULT_MAX_BYTES,
+            ],
+            'level' => env('LOG_LEVEL', 'debug'),
+        ],
+=> channel minimum level = env('LOG_LEVEL') = 'warning'. Monolog's severity
+order is DEBUG < INFO < NOTICE < WARNING < ERROR — an INFO-level record is
+BELOW 'warning' and Monolog drops it before it ever reaches the handler.
+ERROR-level records (the failure/exception branches) are ABOVE 'warning' and
+are written normally — this is exactly why AC3's failure line appears live
+below but AC2's success line would not, under the same deployed config.
+
+## Live probe (php artisan tinker, worktree Admin/, run 2026-08-24 04:55:54)
+Command:
+    \Log::info('NEARS-2428 QA probe: FCM notification sent', ['status' => 200]);
+    \Log::error('NEARS-2428 QA probe: FCM notification send failed', ['status' => 404, 'reason' => 'Not Found']);
+
+Result — grep of storage/logs/laravel.log immediately after:
+    $ grep -F "NEARS-2428 QA probe" storage/logs/laravel.log
+    [2026-08-24 04:55:54] production.ERROR: NEARS-2428 QA probe: FCM notification send failed {"status":404,"reason":"Not Found"}
+
+The paired \Log::info(...) probe line (identical severity/shape to the fix's
+success-branch call) does NOT appear anywhere in the file — it was silently
+dropped by the 'warning' floor. Only the \Log::error(...) probe line landed.
+
+## Conclusion
+Under the project's own default/standard .env (LOG_LEVEL=warning, matching
+both .env.example and the primary tree's live .env), a successful FCM send
+through the newly-fixed sendNotificationToHttp() will return true (AC1 holds)
+but will NOT produce any new line in laravel.log (AC2 does not hold) — the
+exact silent-logging symptom this ticket exists to fix survives on the
+success path specifically, because \Log::info() is the wrong severity for
+this deployment's log floor. \Log::error()/\Log::warning() would both clear
+the floor; \Log::info() does not.
+
+filed as: task_bug (breaks_ac: true, AC2) against Admin/app/Traits/NotificationTrait.php

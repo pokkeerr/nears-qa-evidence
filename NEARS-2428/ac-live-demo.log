@@ -1,0 +1,66 @@
+NEARS-2428 — live AC demonstration log (worktree
+/Users/Apple/Projects/nears-NEARS-2428-notiftrait-http-result/Admin, 2026-08-24)
+
+## Automated backstop (engineer's PHPUnit feature test, re-run by QA)
+$ cd Admin && vendor/bin/phpunit --filter Nears2428NotificationTraitHttpResultTest
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_2428_notiftrait_http_result
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+...                                                                 3 / 3 (100%)
+Time: 00:02.244, Memory: 88.50 MB
+OK (3 tests, 15 assertions)
+=> covers AC1 (2xx -> true + success log line, no body/token), AC3 non-2xx
+   branch and AC3 transport-exception branch, all via Http::fake — this is
+   the ONLY channel that demonstrates the true 2xx success path (AC1/AC2),
+   since no real device holds a currently-valid FCM registration token in
+   this environment; that half is backstop-only, stated plainly.
+
+## Live (real network, no Http::fake) demonstration of the failure branch, AC3
+Real seeded FCM service-account config (business_settings.push_notification_service_file_content,
+project_id nears-1d39b) used to mint a genuine RSA-signed JWT, exchanged for a
+real Google OAuth access token, then a real POST to
+https://fcm.googleapis.com/v1/projects/nears-1d39b/messages:send with a
+deliberately invalid device token.
+
+Command (bounded via scripts/newtask-guards/run-observed.sh --timeout 20):
+    class Harness { use App\Traits\NotificationTrait; }
+    $data = ['message' => ['token' => 'INVALID-QA-PROBE-TOKEN-NEARS-2428', 'data' => ['title' => 'qa probe']]];
+    $result = Harness::sendNotificationToHttp($data);
+    echo 'RESULT=' . var_export($result, true) . PHP_EOL;
+
+Output:
+    RESULT=false
+
+storage/logs/laravel.log, matching line (grep -n "FCM notification send failed"):
+    [2026-08-24 04:56:27] production.ERROR: FCM notification send failed {"status":400,"reason":"Bad Request"}
+
+PII check (line-scoped grep, both exit 1 = not found):
+    $ grep -F "INVALID-QA-PROBE-TOKEN" storage/logs/laravel.log   -> not found
+    $ grep -F "qa probe" storage/logs/laravel.log                 -> not found
+
+=> AC3 fully LIVE-demonstrated end-to-end against real Google/FCM
+   infrastructure: real JWT auth, real non-2xx FCM response (400), method
+   returns false, laravel.log gains a distinct "FCM notification send
+   failed" line carrying only {status, reason} — no token, no payload body.
+   Distinct from the success line text ("FCM notification sent" never
+   appears for this call). Positive control for both AC3 assertions
+   satisfied live, not just via Http::fake.
+
+## Regression sweep — call sites of sendPushNotificationToTopic /
+   sendPushNotificationToDevice (return value handling unchanged by this diff)
+Admin/app/Http/Controllers/Admin/Notification/NotificationController.php:56-64,81-91
+  -> wrapped in try/catch(Exception), return value never inspected before or
+     after this fix (method never throws for HTTP failures, only returns
+     false) - no behavior change.
+Admin/app/Http/Controllers/Admin/DeliveryMan/DeliveryManController.php:211
+  -> fire-and-forget call, return value not captured at all - no behavior
+     change.
+
+## Sibling file drift note (regression_bugs, pre-existing, NOT this diff)
+Admin/app/CentralLogics/helpers.php::sendNotificationToHttp (already-fixed
+prior ticket, untouched by NEARS-2428) logs the full raw $data array
+(including message.token) on its 'config missing' / 'access token null'
+paths, and $response->body() on its failure path - both violate the
+logging-contract "never log request payload/token/response body" rule.
+Also uses Log::info() for its own success line, so it is affected by the
+same LOG_LEVEL=warning filtering documented above. Flagged separately as
+regression_bugs - not introduced by, and not in scope of, this ticket's diff.
