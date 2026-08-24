@@ -1,0 +1,74 @@
+NEARS-2448 fix-cycle 2 delta re-QA — BLOCKED (device pool, not a code failure)
+================================================================================
+Build under test: HEAD f03425ae (was 9d9e4487 when the silent-failure gap was
+found). Diff reviewed against the packet's description and matches exactly:
+CampaignRepository.get() now has an `else if (response.statusCode == 200)`
+branch emitting AppLogger.failure(ApiFailure(response.statusCode), ...,
+'basic campaign details: 200 response with non-Map body (malformed shape)',
+endpoint: AppConstants.basicCampaignDetailsUri.split('?').first, status: ...,
+correlationId: ApiClient.requestIdFromResponse(response.headers)).
+
+STATIC + AUTOMATED confirmation (strong, but NOT a substitute for live device
+demonstration per the hard QA rule "never PASS on green tests alone" —
+recorded here as supporting evidence, not as the verdict):
+  flutter test --reporter expanded test/features/item/
+    campaign_repository_non_map_body_test.dart -> 4/4 PASS (T1-T4).
+  T3 machine-asserts (not eyeballed) exactly what the delta scope asked to
+  confirm on-device: a [FAIL] line that
+    - starts with "[FAIL]"
+    - contains endpoint=/api/v1/campaigns/basic-campaign-details (PATH ONLY,
+      asserted via .split('?').first -- no query string)
+    - contains http_status=200
+    - contains correlation_id=<the mocked x-request-id>
+    - does NOT contain "[]" (the raw malformed body -- PII-safety)
+    - does NOT contain "?" anywhere (no leaked query string)
+  T4 anti-vacuity: the ordinary non-200 path still emits ZERO log lines,
+  proving this new log is scoped to the 200+malformed-body case only, not a
+  blanket log-everything regression.
+  The test run's own captured console output shows the real line verbatim:
+    [FAIL] endpoint=/api/v1/campaigns/basic-campaign-details http_status=200
+    type=ApiFailure msg="basic campaign details: 200 response with non-Map
+    body (malformed shape)"
+  campaign_screen_error_retry_test.dart -> 4/4 PASS (unchanged, no UI-side
+  regression from this purely-additive logging change, as expected).
+
+DEVICE STATE (why this pass is BLOCKED, not FAIL, not PASS):
+  Android pool (7 serials) checked repeatedly across a full bounded ~10-minute
+  wait (scripts/qa-lock-guard.sh qa_lock_check + a background poll loop
+  cross-checking BOTH lock-freedom AND the >=800MB disk floor together):
+    emulator-5554  OCCUPIED (foreign live flutter run + adb logcat, disk fine)
+    emulator-5556  BLOCKED (another lane/session's live lock)
+    emulator-5558  BLOCKED (another lane/session's live lock)
+    emulator-5560  OCCUPIED (foreign live driver) OR free-but-lowdisk
+                   (477556KB, below the 819200KB floor) depending on the poll
+                   -- never both free AND above the floor in the same check.
+    emulator-5562  BLOCKED (another lane/session's live lock)
+    emulator-5564  BLOCKED (another lane/session's live lock)
+    emulator-5572  consistently the only genuinely FREE serial (zero lock,
+                   zero host driver) but consistently LOW DISK: 423-424MB
+                   available, well below the 819200KB (800MB) floor
+                   (NEARS-1607's own measured failure point was 533MB/142MB
+                   install -- 424MB is worse than that).
+  Per the hard rule: "Below the floor -> fail fast, do not mkdir the lock, do
+  not fall through to flutter run... try the next pool device (or return
+  BLOCKED{queue: ...} if the whole platform pool is low-disk/locked)." Every
+  device was EITHER locked/occupied by a live foreign session OR failed the
+  disk floor for the ENTIRE bounded wait -- correctly reported as BLOCKED, not
+  overridden.
+  No spare AVD to boot fresh (`emulator -list-avds` maps 1:1 onto the 7
+  already-running serials, same as prior passes).
+  iOS fallback checked too: only 1 simulator booted (53F3807C..., occupied by
+  a foreign flutter run); the worktree's ios/Podfile.lock/FirebaseAnalytics
+  version mismatch (last touched 2026-06-07, unrelated to this ticket) still
+  blocks any iOS build regardless of which simulator -- confirmed still
+  present, not worth booting a spare iOS sim for.
+
+No device lock was ever acquired this cycle (never wrote an owner.json for
+this key) -- nothing to release.
+
+VERDICT: BLOCKED (device-pool + disk exhaustion), NOT a code-quality FAIL.
+The fix itself is well-evidenced correct via the automated backstop above;
+this pass simply could not get live-device confirmation this attempt. This
+should not count as a 2nd "failed" cycle against the escalation cap in the
+same sense as an actual code defect -- it is an infrastructure blocker, not a
+finding against the diff.

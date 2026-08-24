@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2448
 
-**fix-cycle 1 delta re-QA - FAIL: invalid-id crash fixed but fix introduced a silent-failure path (no paired FAIL log), violates logging contract hard gate**
+**fix-cycle 2 delta re-QA - BLOCKED (device pool + disk exhaustion, not a code failure); automated backstop 4/4 PASS incl. exact [FAIL] line assertions**
 
 **9 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -28,6 +28,7 @@
 - [`bug-invalid-campaign-id-unhandled-typeerror.log`](bug-invalid-campaign-id-unhandled-typeerror.log)
 - [`cycle1-bug-silent-failure-no-FAIL-log.log`](cycle1-bug-silent-failure-no-FAIL-log.log)
 - [`cycle1-delta-qa-summary.log`](cycle1-delta-qa-summary.log)
+- [`cycle2-blocked-device-pool.log`](cycle2-blocked-device-pool.log)
 - [`live-qa-session-summary.log`](live-qa-session-summary.log)
 
 ---
