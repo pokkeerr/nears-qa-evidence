@@ -1,0 +1,55 @@
+Bug: Profile screen (legacy, top app-bar route, profile_screen.dart) silently resets its
+SingleChildScrollView scroll offset to 0 (top) roughly 3-5s after the user scrolls down,
+with ZERO user interaction and ZERO log line (no [FAIL]/[ERR]/[NET]) marking the reset.
+
+Device: emulator-5558, 1344x1600 (wm size override) and 1344x2100 (2nd, independent
+override height — reproduced at both, ruling out an override-geometry artifact),
+logged-in as customer@nears.com, worktree NEARS-2484-profile-scroll-overflow, 2026-08-25.
+
+Repro:
+  1. Log in, open Profile via the top app-bar Profile icon.
+  2. Shrink viewport enough that Logout/Version footer sit below the fold
+     (adb shell wm size 1344x1600, or 1344x2100 — reproduced at both).
+  3. ui_scroll_down (x2) until Logout + "Version 3.8 - Built for Speed" are visible
+     (bottom of content reached).
+  4. Do NOTHING for ~3-5s (no touch, no adb command besides a passive dump/screencap).
+  5. Re-inspect: scroll offset is back at 0 — Wallet/Orders/Notification/Dark Mode are
+     visible again, Logout/Version are gone. No adb logcat line (system or `flutter:I`)
+     appears in the window between steps 3 and 5 — the reset is completely silent.
+
+Timing measurement (12 samples, 2.5s apart due to dump overhead):
+  t=2.6s  logout_visible=1   (still at bottom, just scrolled)
+  t=5.2s  logout_visible=0   (already reset)
+  t=7.7s .. t=30.8s  logout_visible=0   (stays reset, confirmed non-transient)
+
+Evidence pair (same investigation, T+0 vs T+5s idle, zero interaction between captures):
+  bug-profile-scroll-position-reset-t0-scrolled.png / .xml
+    -> content-desc="Logout", content-desc="Version 3.8 - Built for Speed" present
+  bug-profile-scroll-position-reset-t5-idle.png / .xml
+    -> neither Logout nor Version present; content-desc="...Wallet" (top-of-list tile)
+       present instead -> scroll position is provably back at 0.
+
+Root-cause hypothesis (NOT confirmed within this QA pass' budget — flagging for the
+engineer, not asserting as proven): `_ProfileScreenState.build()` sets
+`key: UniqueKey()` on the Scaffold (profile_screen.dart:49, PRE-EXISTING, NOT touched
+by the NEARS-2484 diff). Any `GetBuilder<ProfileController>` rebuild recreates the
+entire Scaffold subtree fresh under a brand-new key, which would discard the nested
+SingleChildScrollView's ScrollController/ScrollPosition state and reset its offset to 0.
+What is calling `ProfileController.update()` on an interval while sitting idle on this
+screen was NOT isolated live (no `getUserInfo()`/`[NET]` call logged in the reset
+window, so it is not the obvious `getUserInfo()` path) — needs engineer-side
+instrumentation (the QA toolset here has no Dart-eval/observatory access to attribute
+the exact call site).
+
+Why this is being filed against NEARS-2484 rather than as a pre-existing regression:
+pre-fix, the account_settings Column had no scroll capability at all (RenderFlex
+overflow instead) — so there was no scroll offset to lose, and this defect was
+dormant/unreachable. NEARS-2484 is exactly what makes scrolling — and therefore this
+loss of scroll position — live and user-facing. A user scrolled to Logout (or any
+lower tile: My Address, Talk to Nears!, Help & Support, Coupons, Version) has roughly
+3-5s to complete a tap before being silently returned to the top, which materially
+undermines AC3's "reachable via scroll" guarantee for the logged-in, tall-content case
+this ticket exists to fix.
+
+Not reproduced: guest state (content is short enough that it never needs scrolling at
+any viewport tested, so the reset is unobservable there — cannot confirm or rule out).
