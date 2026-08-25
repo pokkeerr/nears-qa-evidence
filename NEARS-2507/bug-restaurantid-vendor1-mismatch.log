@@ -1,0 +1,40 @@
+NEARS-2507 QA — regression_bugs finding (pre-existing, NOT part of this ticket's fix)
+Static confirmation, per spawn-prompt's "cheap observation, no dedicated repro" instruction.
+
+FILE: UserApp/lib/helper/notification_helper.dart, _handleMessageNotification (~line 326-333, post-fix):
+
+    final senderType = data['sender_type'];
+    return NotificationBodyModel(
+      notificationType: NotificationType.message,
+      deliverymanId: senderType == 'delivery_man' ? 0 : null,
+      adminId: senderType == 'admin' ? 0 : null,
+      restaurantId: senderType == 'vendor1' ? 0 : null,   // <-- BUG: compares against literal 'vendor1'
+      conversationId: conversationId,
+    );
+
+BACKEND — every real sender_type value the API ever sets for a vendor-authored chat message
+is the literal string 'vendor' (never 'vendor1'):
+
+  $ grep -n "sender_type" Admin/app -r | grep -i vendor
+  Admin/app/Http/Controllers/Api/V1/Vendor/ConversationController.php:127:  $conversation->sender_type = 'vendor';
+  Admin/app/Http/Controllers/Api/V1/Vendor/ConversationController.php:158:  'sender_type'=> 'vendor'
+  Admin/app/Http/Controllers/Vendor/ConversationController.php:172:  $conversation->sender_type = 'vendor';
+  Admin/app/Http/Controllers/Vendor/ConversationController.php:203:  'sender_type'=> 'vendor'
+  (plus every ConversationController.php read-side check: sender_type == 'vendor')
+
+CROSS-CHECK — the sibling live-chat path (foreground FirebaseMessaging.onMessage listener,
+same file, ~line 126) gets this right using the enum, not a hardcoded literal:
+
+    restaurantId: message.data['sender_type'] == UserType.vendor.name ? 0 : null,
+
+  UserType.vendor.name == 'vendor' (UserApp/lib/features/chat/enums/user_type_enum.dart):
+    enum UserType { user, customer, admin, delivery_man, vendor }
+
+CONCLUSION: _handleMessageNotification's `senderType == 'vendor1'` branch can never match a
+real vendor sender_type ('vendor'), so a cold-launch or onMessageOpenedApp tap on a
+vendor-originated chat notification always resolves NotificationBodyModel.restaurantId to
+null instead of 0 — the chat route opens with the wrong/missing restaurant context. The
+delivery_man/admin branches are correct (their literals match the backend's real values).
+This is pre-existing code, untouched by NEARS-2507's diff (git diff confirms 2507 only added
+the null-safety guards + throw, never touched this line's comparison literal) — filed as a
+regression_bug, does not affect NEARS-2507's PASS verdict.
