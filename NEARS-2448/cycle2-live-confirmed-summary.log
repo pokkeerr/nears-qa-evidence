@@ -1,0 +1,53 @@
+NEARS-2448 fix-cycle 2 delta re-QA — LIVE CONFIRMATION (after a prior BLOCKED
+attempt on the same fix)
+================================================================================
+Build under test: HEAD f03425ae (unchanged from the prior BLOCKED attempt).
+Device: emulator-5564, acquired via a fresh qa_lock_acquire after the
+originally-suggested device (emulator-5558) raced to a same-session sibling
+lane (NEARS-2451) between the peer's check and mine -- correctly declined to
+override, re-polled the pool from scratch, found emulator-5564 free with
+3.1GB disk (well above the 800MB floor), acquired it cleanly.
+
+Zone/module: entered Grocery & Food (zone 2, Abu Dhabi, logged in as
+"Michael"), waited for Home's initial fetch storm to settle (avoids the
+queued-request timing trap from fix-cycle 1) before firing the test
+navigation.
+
+REPRO: Get.toNamed("/basic-campaign?module=1&data=<base64 id=99999>") via a
+live Dart VM Service eval (read-only debug action, no code touched -- same
+technique used throughout this ticket's QA since CampaignScreen has no
+reachable UI path with current seed data and OS deep-linking is disabled).
+
+RESULT -- full logcat capture across the window:
+  [FAIL] endpoint=/api/v1/campaigns/basic-campaign-details http_status=200
+  type=ApiFailure msg="basic campaign details: 200 response with non-Map body
+  (malformed shape)" correlation_id=6948991b-9976-403d-a27a-1e4a256e9f72
+
+Checked against every condition the delta scope asked to confirm:
+  - [FAIL] line present: YES
+  - endpoint is PATH ONLY (no `?basic_campaign_id=...` query string): YES --
+    exactly "/api/v1/campaigns/basic-campaign-details", confirming the
+    fix-cycle-3 .split('?').first change works correctly live, not just in
+    the unit test.
+  - http_status=200: YES
+  - type=ApiFailure: YES
+  - reason message present: YES ("basic campaign details: 200 response with
+    non-Map body (malformed shape)")
+  - correlation_id present: YES
+  - NO response body / raw array bytes ("[]") anywhere in the line: YES (the
+    line carries only the PII-safe sentinel + message, never response.body)
+  Full raw capture: cycle2-FAIL-log-CONFIRMED-LIVE.log
+
+UI regression check: NErrorRetry still renders correctly for this case --
+"Back" / "Something went wrong" / "Please try again" / "Retry" all present,
+no crash, no stuck-blank screen. Screenshot:
+cycle2-ac1-invalid-id-FAIL-log-CONFIRMED-LIVE.png
+
+Device lock released cleanly after use.
+
+VERDICT: PASS. Both delta-scope items confirmed live: the [FAIL] log fires
+correctly with every required field and no PII/body leak, and NErrorRetry
+still renders with no regression from the purely-additive logging change.
+Combined with fix-cycle-1's already-confirmed crash fix and the untouched
+AC2/AC3/AC4 + regression sweep from the original full pass, this closes out
+NEARS-2488 and clears the last gate on NEARS-2448.
