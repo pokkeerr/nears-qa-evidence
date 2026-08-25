@@ -1,0 +1,65 @@
+NEARS-2494 QA — side finding, NOT one of AC1-3 (distinct window from the flagged
+_syncItem ~1118-1133 race). Reproduced with an intentionally long (~79s) backend
+stall via SIGSTOP, exceeding ApiClient's 40s client-side timeout.
+
+Sequence (dedicated QA backend, port 8040, DB multi_food_db_qa2494, user_id=6, item_id=27):
+1. Backend SIGSTOPped. Tap Add To Cart (gen1) -> ADD dispatches, blocked at server.
+2. Decrement to 0 before response (item unpersisted) -> tombstones gen1, local row removed.
+3. Immediately re-add (gen2) -> local row recreated, second ADD debounced-but-queued
+   behind gen1 in _inFlightAdd (reschedule branch — never dispatches while gen1 is
+   still outstanding).
+4. ~40s later, the app's OWN ApiClient client-side timeout fires for gen1 (server
+   never responded because still SIGSTOPped) -> gen1 hits the onlineCartList==null
+   branch in _syncItem, which unconditionally calls
+   _clearAbandonedIfMatches(itemId, myGeneration) even though the request may still
+   be sitting in the OS socket queue and land server-side later. No cleanup DELETE
+   is ever scheduled for gen1 in this branch (only the success/non-current-generation
+   branch schedules one).
+5. Once _inFlightAdd clears (gen1's finally), gen2's rescheduled debounce fires and
+   dispatches for real -> also blocked (backend still SIGSTOPped).
+6. SIGCONT at ~79s total stall. Both requests, having been sitting in the kernel
+   accept queue the whole time, are then processed by the PHP dev server in order:
+     - gen1's "abandoned" ADD lands anyway -> Admin/CentralLogics cart-add logic
+       finds no existing row for (user 6, item 27) yet -> creates cart row, qty=1.
+     - gen2's ADD lands immediately after -> finds the row gen1 JUST created for the
+       same (user, item, module) -> increments it instead of creating a duplicate ->
+       final server-side quantity = 2.
+
+Observed flutter run log (this repro, ~16:05:15-16:06:35):
+  [NET] POST endpoint=/api/v1/customer/cart/add                     (gen1 dispatch)
+  [FAIL] endpoint=/api/v1/customer/cart/add http_status=null type=ApiFailure
+         transport_error=timeout msg="api request threw"
+         correlation_id=3c742a68-bfad-4e53-9944-02e14c38c4b3        (gen1 client timeout, ~40s)
+  [NET] POST endpoint=/api/v1/customer/cart/add                     (gen2 dispatch, rescheduled)
+  [NET] endpoint=/api/v1/customer/cart/add http_status=200          (gen2 success)
+
+DB before (during stall, no row yet for item 27):
+  (empty)
+DB after CONT (single row, unexpectedly qty=2, not the re-added qty=1):
+  id=529 user_id=6 item_id=27 quantity=2 created_at=2026-08-25 16:06:34 updated_at=2026-08-25 16:06:35
+
+App-side (local, authoritative UI) quantity for item 27 at this point: 1
+  (ui_list dump captured "1" next to Salmon Nigiri (5pc) card, "Remove" stepper shown)
+
+Effect: local cart shows qty=1 (what the user actually intended after the re-add),
+server silently holds qty=2 (the orphaned gen1 add's row, incremented by gen2's own
+add) — a silent quantity divergence/over-charge risk with no error surfaced to the
+user and no log flagging the divergence. Confirmed by removing the row via the app's
+own Remove action afterward (real DELETE, not raw DML) and re-querying — 0 rows,
+consistent with a single row having existed.
+
+Root cause (hypothesis, not confirmed against source beyond what's visible here):
+_syncItem's onlineCartList==null branch (fix-cycle-1 F1 failure-branch) clears the
+generation's tombstone unconditionally on ANY add failure, including a CLIENT-SIDE
+timeout where the request's actual server-side fate is unknown — there is no
+"maybe-landed" cleanup scheduled for that case, unlike the success-but-stale branch
+(~1118-1133) which does schedule one. A sufficiently slow/degraded real network
+(>40s round trip on the ADD call) could reach this window in production without any
+artificial stall.
+
+Scope note: this required an abnormally long real-world stall (79s, exceeding the
+40s client timeout) to hit deterministically — NOT the ~3-5s widened window the
+ticket's repro technique describes for AC1/AC2, and distinct from the specific
+non-current-generation SUCCESS-branch race the ticket self-flagged
+(~cart_controller.dart:1118-1133). Filed as a regression_bugs candidate, not a
+task_bug against AC1-3, and does NOT block this ticket's PASS.
