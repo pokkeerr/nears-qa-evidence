@@ -1,0 +1,40 @@
+Pre-existing backend defect found during NEARS-2451 regression sweep (unrelated
+to this ticket's Flutter-only diff; filed as regression_bug, not a task_bug).
+
+GET /api/v1/items/most-reviewed ignores the `search` query param entirely --
+total_size is identical across every search term, while the sibling
+GET /api/v1/items/popular endpoint correctly filters on the same param.
+
+Live curl evidence (zone 1, Food module, via QA fault-proxy pass-through on
+port 26933 -> real backend 127.0.0.1:8000):
+
+  most-reviewed search='':       total_size=30
+  most-reviewed search='ch':     total_size=30   (expected < 30, unchanged)
+  most-reviewed search='qwxzj':  total_size=30   (expected 0, nonsense term)
+  most-reviewed search='Burger': total_size=30   (expected < 30, unchanged)
+
+  popular search='':       total_size=85
+  popular search='ch':     total_size=22   (correctly filtered)
+  popular search='qwxzj':  total_size=0    (correctly filtered)
+
+Root cause (read, not modified):
+  Admin/app/Http/Controllers/Api/V1/ItemController.php
+    get_popular_products() line 528:
+      ProductLogic::popular_products($zone_id, ..., $rating_count, $request['search']);
+        -- passes $request['search'] through.
+    get_most_reviewed_products() lines 533-552:
+      never reads $request->query('search') at all, and calls
+      ProductLogic::most_reviewed_products($zone_id, ..., $rating_count) with NO
+      search argument -- the param is silently dropped server-side.
+    Contrast: get_discounted_products() (line 554+, deleted axis per NEARS-2181
+    but still present as dead code) DOES pass search:$request['search']??null,
+    so the omission on most_reviewed is specific to that one handler, not a
+    systemic pattern.
+
+Impact on THIS ticket: none on the ACs demonstrated (the first-page-failure /
+NErrorRetry / retry mechanism is fetch-agnostic to whether the backend response
+data reflects the search term -- a 500 status still triggers the correct client
+behaviour regardless). Confirmed zero overlap with files changed by NEARS-2451
+(UserApp/lib/features/item/controllers/item_controller.dart,
+UserApp/lib/features/item/screens/item_view_all_screen.dart) -- this is a
+backend-only (Admin/) defect the Flutter diff cannot have introduced.
