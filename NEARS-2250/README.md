@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2250
 
-**PASS (delta, fix-cycle 3) — NEARS-2490 cart/list cross-user moduleId leak CONFIRMED FIXED live**
+**FIX-CYCLE 4 (NEARS-2500): PASS -- userNumber priming fix confirmed live, zero cross-account moduleId bleed bidirectionally**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -12,6 +12,8 @@
 </table>
 
 ### Other artifacts
+- [`ac-delta4-fix2500-confirmed-no-priming-leak.log`](ac-delta4-fix2500-confirmed-no-priming-leak.log)
+- [`ac-delta4-fix2500-wire-capture-full.log`](ac-delta4-fix2500-wire-capture-full.log)
 - [`ac1-ac2-post-logout-header-still-leaks.log`](ac1-ac2-post-logout-header-still-leaks.log)
 - [`ac1-delta3-fix2490-confirmed-no-bleed.log`](ac1-delta3-fix2490-confirmed-no-bleed.log)
 - [`ac1-logout-preserves-scoped-pref.log`](ac1-logout-preserves-scoped-pref.log)

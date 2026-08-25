@@ -1,0 +1,118 @@
+NEARS-2250 delta re-QA, fix-cycle 4 (NEARS-2500 fix verification)
+Device: emulator-5560. Wire capture via ad-hoc QA reverse proxy
+(scripts/qa-tools-style stdlib proxy, port 8090 -> 127.0.0.1:8000), app
+launched with --dart-define=API_HOST=10.0.2.2:8090. Full raw log:
+ac-delta4-fix2500-wire-capture-full.log
+
+Repro (per spawn instructions): account A (customer@nears.com) selects
+module 2 (Food & Restaurant), logs out. Account B (qa.singlestore@nears.com)
+logs in fresh on the SAME device -- watch B's FIRST cart/list call /
+token-refresh header. Repeated cross-direction (B->A) and with both
+remember-me states on B.
+
+Timeline (auth/login + cart/list + first post-login header only):
+1. 05:39:17 POST /api/v1/auth/login -> 200                    [A login, remember-me ON]
+   05:39:22 GET  /api/v1/config/get-zone-id -> moduleId=2      [A picks Food&Restaurant]
+   A logs out (05:39:57 guest/request -- clean logout)
+
+2. 05:40:34 POST /api/v1/auth/login -> 200                    [B login, remember-me
+                                                                 ended up OFF -- see
+                                                                 OBSERVATION below]
+   05:40:37 GET  /api/v1/customer/cart/list -> 403 moduleId=null   <-- AC1: NOT A's
+                                                                        stale "2"
+   B picks Pharmacy (module 3) -> own bucket
+   cacheModuleId::u:qa.singlestore@nears.com created with id=3.
+   A's own bucket cacheModuleId::u:customer@nears.com untouched (still id=2).
+   B logs out. On-device SharedPreferences dump immediately after: NO
+   flutter.6ammart_user_number key present at all (never landed with B's
+   number, matching AC2 item-2's "priming is transient, controller's own
+   clear still runs" expectation for the remember-me-OFF path).
+
+3. Controlled remember-me-ON repeat for B (screenshot-verified checkbox
+   checked before submit -- see ui_shot captures during the live session):
+   05:43:53 POST /api/v1/auth/login -> 200                    [B login, remember-me
+                                                                 explicitly ON,
+                                                                 verified via
+                                                                 screenshot]
+   05:43:56 GET  /api/v1/customer/cart/list -> 403 moduleId=null   <-- AC1 again:
+                                                                        NOT A's stale "2"
+   Post-login SharedPreferences dump: flutter.6ammart_user_number =
+   "qa.singlestore@nears.com" (B's own identity, correctly persisted --
+   never A's stale "customer@nears.com").
+   B picks Pharmacy again -> cacheModuleId::u:qa.singlestore@nears.com
+   (id=3) recreated correctly scoped to B.
+
+4. Cross-direction (A relogin on top of B), remember-me left ON
+   (unchanged, screenshot-verified before submit):
+   05:44:58 POST /api/v1/auth/login -> 200                    [A relogin]
+   05:44:59 POST /api/v1/auth/token/refresh -> 200 moduleId=2      <-- AC1 cross-
+                                                                        direction:
+                                                                        A's OWN
+                                                                        bucket,
+                                                                        resolved on
+                                                                        the very
+                                                                        FIRST
+                                                                        post-login
+                                                                        header --
+                                                                        NOT B's
+                                                                        stale "3"
+   05:45:01 GET  /api/v1/customer/cart/list -> 200 moduleId=2      <-- same, cart/list
+                                                                        confirms
+
+VERDICT (AC1 / NEARS-2500 core claim): across 3 login/logout account-switch
+cycles (A[remember-ON]->B[remember-OFF, accidental]->B[remember-ON,
+screenshot-verified]->A[remember-ON]), the very first cart/list and/or
+token-refresh header after every login resolved either the CURRENT
+account's own bucket/state or none -- ZERO instances of a previous
+account's stale moduleId leaking into a new account's session. This is
+the exact exploit path NEARS-2500 fixes (userNumber not yet primed at the
+moment saveUserToken's updateHeader resolves the identity-scoped module
+cache during the login call itself).
+
+BONUS finding closing prior delta-3 followup: unlike the pre-2500 fix-cycle-3
+evidence (ac1-delta3-fix2490-confirmed-no-bleed.log, "OBSERVATION" section),
+where A's relogin showed 1-2 calls with moduleId=null/zoneId=<absent>
+before settling to her own cached value seconds later, THIS cycle's A
+relogin (step 4 above) resolved moduleId=2 immediately on the very FIRST
+post-login header (token/refresh at 05:44:59, one second after the 200
+login response) -- no null window observed. Consistent with the
+userNumber-priming fix also closing that previously-flagged timing gap,
+though NOT re-verified with a dedicated multi-repeat test (this was a
+single observed instance, not a statistically repeated check) -- noted,
+not claimed as a separate formally-verified AC.
+
+Item 2 (non-remember-me interaction check): confirmed via step 2 above
+(unplanned but valid: B's remember-me toggle carried over as ON from A's
+earlier session and my one tap turned it OFF for B's first login) --
+userNumber ended up completely ABSENT from on-device SharedPreferences
+after B's remember-me-OFF login, never left holding B's number and never
+showing A's stale value either. Matches the fix's documented design: the
+priming write is transient (overwritten by the controller's own
+clearUserNumberAndPassword() a moment later when remember-me is off).
+
+OBSERVATION (non-blocking, followups[]): AuthController._isActiveRememberMe
+is a plain boolean flag toggled only by the checkbox tap (line ~294) --
+never reset on logout, never re-initialized per login screen mount. It
+persists across account switches on the same device session, so a second
+account inherits whatever remember-me state the first account left the
+toggle in. This is a UX quirk (checkbox visually reflects it correctly,
+screenshots confirm no visual desync), not a security leak and not part
+of NEARS-2500's scope -- flagged as a regression-candidate followup, not
+a task_bug.
+
+Automated backstop: flutter test test/features/auth/login_identity_priming_test.dart
+-- PASS (exit 0, 7s), covers both login()->saveUserToken and
+otpLogin()->saveUserToken threading (mocked-repo group) plus a real
+AuthRepository + real ApiClient integration group proving the resolved
+module-cache bucket. OTP login was NOT separately driven live in this
+cycle (no debug OTP bypass available post-NEARS-373 removal) -- coverage
+for otpLogin() rests on this automated group (same call shape as login(),
+per the fix's own commit message) rather than a live UI repro; flagged
+plainly, not silently assumed.
+
+App-side logs: 5x paired [FAIL] lines observed during the full session,
+all correctly paired with an expected error state (one 401 from a
+QA-caused mistyped password attempt, four 403s from cart/list calls made
+before any module was yet selected on a fresh account) -- zero unpaired/
+silent failures, zero FATAL EXCEPTION / unhandled exception lines across
+the full flutter run log.
