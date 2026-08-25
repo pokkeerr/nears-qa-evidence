@@ -1,0 +1,38 @@
+NEARS-2492 QA-lite [m4] — backend worktree Admin/, server on port 8031 (verified cwd = this worktree).
+Device: emulator-5566 (AC3 blocked — see below).
+
+=== AC1: search=qwxzj (zero-match term) ===
+{"total_size":0,"limit":"25","offset":"1","products":[],"categories":[]}
+
+=== AC2: search=Burger (unfiltered baseline total_size=30) ===
+{
+    "total_size": 3,
+    "limit": "25",
+    "offset": "1",
+    "products": [
+        {
+            "id": 16,
+            "name": "Classic Cheeseburger",
+            "slug": "classic-cheeseburger",
+            "image_full_url": "http://127.0.0.1:8031/public/assets/admin/img/160x160/img2.jpg",
+            "price": 8.99,
+            "veg": 0,
+            "unit_type": null,
+            "recommended": 1,
+            "organic": 0,
+            "is_halal": 0,
+            "stock": 10,
+            "maximum_cart_quantity": 0,
+            "discount": 0,
+            "discount_type": "percent",
+... (products list truncated for evidence file; total_size and names captured in QA comment)
+
+=== AC4: sibling GET /items/popular?search=Burger spot-check ===
+total_size 14
+names ['Classic Cheeseburger', 'Double Bacon Burger', 'Double Bacon Burger', 'Veggie Burger', 'Chicken Burger', 'Cheeseburger', 'Chicken Burger', 'Veggie Burger', 'Double Bacon Burger', 'Double Bacon Burger', 'Classic Beef Burger', 'Double Bacon Burger', 'Spicy Jalapeno Burger', 'Spicy Jalapeno Burger']
+
+=== BE log scoped grep (laravel.log, most-reviewed) — clean, no [FAIL]/[ERR] lines ===
+(no matching lines in Admin/storage/logs/laravel.log — clean)
+
+=== automated backstop ===
+vendor/bin/phpunit --filter MostReviewedSearchForwardTest => OK (2 tests, 11 assertions)
