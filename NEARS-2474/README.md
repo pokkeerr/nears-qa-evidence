@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2474
 
-**Android real-device tap-driven re-verification: AC1-3 fully tap-driven, AC4 wiring confirmed via real tap + prior evaluate-driven gate proof**
+**Android real-device tap-driven evidence: AC1-3 fully tap-driven; AC4 wiring confirmed via real tap**
 
 **6 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -18,7 +18,11 @@
 </table>
 
 ### Other artifacts
+- [`ac1-android-red-netlog.txt`](ac1-android-red-netlog.txt)
 - [`ac1-red-baseline-net-log.txt`](ac1-red-baseline-net-log.txt)
+- [`ac2-android-green-netlog.txt`](ac2-android-green-netlog.txt)
+- [`ac3b-android-genuine-failure.log`](ac3b-android-genuine-failure.log)
+- [`ac4-android-realtap-wiring-proof.log`](ac4-android-realtap-wiring-proof.log)
 - [`ac4-group-checkout-gate-log.txt`](ac4-group-checkout-gate-log.txt)
 - [`ac4-group-checkout-gate-source.txt`](ac4-group-checkout-gate-source.txt)
 - [`ac4-real-tap-diagnostic-notes.txt`](ac4-real-tap-diagnostic-notes.txt)
