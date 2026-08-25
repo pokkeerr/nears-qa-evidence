@@ -1,0 +1,55 @@
+NEARS-2250 delta re-QA, fix-cycle 3 (NEARS-2490 fix verification)
+Device: emulator-5560. Wire capture via ad-hoc QA reverse proxy
+(scripts/qa-tools-style, port 8090 -> 127.0.0.1:8000), app launched with
+--dart-define=API_HOST=10.0.2.2:8090. Full raw log: delta3-fix2490-wire-capture-full.log
+
+Repro: account A (customer@nears.com) selects module 2 (Food & Restaurant),
+logs out, account B (qa.singlestore@nears.com) logs in fresh -- watch B's
+FIRST cart/list call header. Repeated the cycle A<->B multiple times.
+
+Timeline (auth/login + cart/list only):
+15  04:39:17 POST /api/v1/auth/login -> 200                          [A login]
+20  04:39:45 GET  /api/v1/customer/cart/list -> 200 moduleId=2       [A picks Food&Restaurant]
+22  04:39:46 GET  /api/v1/customer/cart/list -> 200 moduleId=2
+70  04:41:17 POST /api/v1/auth/login -> 200                          [B login, FRESH]
+74  04:41:25 GET  /api/v1/customer/cart/list -> 403 moduleId=null    <-- AC1: NOT A's stale "2"
+79  04:41:36 GET  /api/v1/customer/cart/list -> 403 moduleId=null    <-- still B's own (none), never 2
+100 04:42:13 GET  /api/v1/customer/cart/list -> 200 moduleId=3       [B picks Pharmacy -- B's own id, distinct from A's 2]
+103 04:42:16 GET  /api/v1/customer/cart/list -> 200 moduleId=3
+126 04:43:25 POST /api/v1/auth/login -> 200                          [A relogin]
+130 04:43:29 GET  /api/v1/customer/cart/list -> 403 moduleId=null    <-- AC1 cross-direction: NOT B's stale "3"
+136 04:43:38 GET  /api/v1/customer/cart/list -> 403 moduleId=null
+161 04:45:26 GET  /api/v1/customer/cart/list -> 200 moduleId=2       [A re-picks Food&Restaurant]
+165 04:45:29 GET  /api/v1/customer/cart/list -> 200 moduleId=2
+187/259/307  further A logout/relogin cycles (with "Remember me?" toggled
+             on the later ones) -- 192/196/263/268/311 all moduleId=null
+             immediately post-login, NEVER a stale foreign value; 213/216/
+             284/285/316 correctly settle back to A's own moduleId=2 once
+             zone+module state resolves (either via re-selection or, once
+             userNumber persists, via the identity-scoped cache).
+
+VERDICT (AC1): across 4 login/logout account-switch cycles (A->B->A->A->A),
+zero cross-user moduleId bleed observed on cart/list. Every "wrong" value
+observed was the CURRENT account's own null/absent state, never the
+previous account's stale id. This is the exact defect NEARS-2490 fixed
+(CartRepository._getCartDataOnline reading ModuleController._cacheModule,
+an in-memory field never refreshed across a login/logout identity switch)
+-- confirmed live, matching prior FAIL repro's methodology exactly.
+
+OBSERVATION (AC2, quick spot-check, non-blocking): on several of the A
+relogin cycles, the FIRST 1-2 cart/list calls post-login showed moduleId=
+null even though A's own identity-scoped cache (cacheModuleId::u:
+customer@nears.com) was confirmed present on-device (SharedPreferences
+dump, id=2) from an earlier session. zoneId was ALSO <absent> on those
+same early calls, and flutter.6ammart_user_number was observed to commit
+to the on-device SharedPreferences store a few seconds AFTER login
+returned 200, not synchronously with it -- consistent with an early-post-
+login timing window before zone+identity state settles, not a resolution-
+logic defect. This diff (cart_repository.dart) does not touch userNumber/
+remember-me persistence or login timing/ordering at all -- the same race
+would exist identically with the OLD code path (ModuleHelper.getCacheModule()
+is populated on an equally async schedule). Flagged as a regression-
+candidate followup, not a task_bug against this fix, and not a re-open of
+AC2 (which has independent same-day evidence, ac2-relogin-continuity-and-
+handoff-fix.log, showing the mechanism working end-to-end with a different
+account).
