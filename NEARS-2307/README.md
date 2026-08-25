@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2307
 
-**BLOCKED: Android pool saturated + iOS blocked by pre-existing sign-in crash / no TCC accessibility on host**
+**PASS - DM auth header-only body cleanup verified live (Android emulator-5560), 254/254 DeliveryApp tests**
 
 **1 screenshot(s).** Click any thumbnail for full resolution.
 
