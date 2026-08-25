@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-2512
 
-**PASS — clean 1-line+ellipsis for Blood Pressure Monitor / Hand Sanitizer 250ml at 100%, 130% scale, and RTL; no clipping/garbling; density tradeoff non-blocking**
+**QA attempt-2 PASS — AC1/AC2 live-verified, item-name overflow fix confirmed**
 
-**34 screenshot(s).** Click any thumbnail for full resolution.
+**43 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -58,6 +58,21 @@
 <tr>
 <td align="center" width="33%"><a href="30-back.png"><img src="30-back.png" width="240"></a><br><sub>back</sub></td>
 <td align="center" width="33%"><a href="31-categories-ar.png"><img src="31-categories-ar.png" width="240"></a><br><sub>categories ar</sub></td>
+<td align="center" width="33%"><a href="qa2-01-category-grid-handsanitizer.png"><img src="qa2-01-category-grid-handsanitizer.png" width="240"></a><br><sub>qa2 01 category grid handsanitizer</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="qa2-02-flashsale-bpm.png"><img src="qa2-02-flashsale-bpm.png" width="240"></a><br><sub>qa2 02 flashsale bpm</sub></td>
+<td align="center" width="33%"><a href="qa2-03-storescreen-grid.png"><img src="qa2-03-storescreen-grid.png" width="240"></a><br><sub>qa2 03 storescreen grid</sub></td>
+<td align="center" width="33%"><a href="qa2-04-storescreen-allproducts.png"><img src="qa2-04-storescreen-allproducts.png" width="240"></a><br><sub>qa2 04 storescreen allproducts</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="qa2-05-careplus-allproducts-bpm.png"><img src="qa2-05-careplus-allproducts-bpm.png" width="240"></a><br><sub>qa2 05 careplus allproducts bpm</sub></td>
+<td align="center" width="33%"><a href="qa2-06-13x-careplus-check.png"><img src="qa2-06-13x-careplus-check.png" width="240"></a><br><sub>qa2 06 13x careplus check</sub></td>
+<td align="center" width="33%"><a href="qa2-07-13x-category-grid-handsanitizer.png"><img src="qa2-07-13x-category-grid-handsanitizer.png" width="240"></a><br><sub>qa2 07 13x category grid handsanitizer</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="qa2-08-rtl-category-grid.png"><img src="qa2-08-rtl-category-grid.png" width="240"></a><br><sub>qa2 08 rtl category grid</sub></td>
+<td align="center" width="33%"><a href="qa2-09-newpill-check.png"><img src="qa2-09-newpill-check.png" width="240"></a><br><sub>qa2 09 newpill check</sub></td>
 <td align="center" width="33%"><a href="stitch-frame2.png"><img src="stitch-frame2.png" width="240"></a><br><sub>stitch frame2</sub></td>
 </tr>
 <tr>
