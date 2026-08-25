@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2305
 
-**Live device re-confirmation of TB-2305-2 fix (fd2732f3): zone-selection index correctly disarms restore-grace across mobile+desktop, multiple timings incl. 285ms; separate pre-existing self-correction/banner defect found+isolated (reproduces with zero restore involvement)**
+**Add control-repro log isolating the pre-existing self-correction freeze from the TB-2305-2 fix**
 
 **6 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -21,6 +21,7 @@
 - [`bug-mapcontroller-disposed-crash.log`](bug-mapcontroller-disposed-crash.log)
 - [`control-no-restore-plain-dropdown-pick-dump.xml`](control-no-restore-plain-dropdown-pick-dump.xml)
 - [`regression-candidate-getzoneid-race.log`](regression-candidate-getzoneid-race.log)
+- [`regression-selfcorrect-freeze-no-restore-control.log`](regression-selfcorrect-freeze-no-restore-control.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-2305/` · public-repo scrub policy (no live secrets; verified clean).*

@@ -1,0 +1,41 @@
+NEARS-2305 QA (2026-08-25, emulator-5554) — control repro proving the
+"stale address + spurious not-in-zone banner" symptom is a PRE-EXISTING,
+GENERAL defect UNRELATED to the _restoredTarget/TB-2305-2 mechanism.
+
+Repro (zero restore/picker involvement):
+1. Fresh Vendor Registration -> Location Info, no zone picked yet.
+2. Real tap on the embedded Google Map (sets _hasUserInteractedWithMap=true,
+   marker at the seeded default position, ~Dhaka-area coords) -> correctly
+   shows "Please place the marker inside the zones" (expected: default
+   position genuinely isn't in any zone).
+3. Real dropdown pick "Abu Dhabi Zone" (no picker visit, no restore, no
+   _restoredTarget ever set this session).
+
+Observed: zone selection correctly updates to "Abu Dhabi Zone" (the fresh
+pick), but the address/banner PERSISTS frozen on "Q9Q4+726, Dhaka,
+Bangladesh" / "Please place the marker inside the zones" indefinitely
+(re-checked after 5s+, never self-corrects). No [FAIL]/[ERR] logged for
+this specific freeze (unlike the separate crash below).
+
+This is IDENTICAL in shape to the symptom NEARS-2305/TB-2305-2 describes,
+but reproduces with NO restore-grace race possible (selectedZoneIndex was
+never frozen -- it always tracks the picked zone correctly; only the
+address/banner's self-correction via _setPolygon's delayed animateCamera
+-> onCameraIdle -> suppress-flag refresh chain never completes). A prior
+QA cycle on this same ticket already flagged an adjacent symptom as
+"regression-candidate-getzoneid-race.log" (see sibling file, 08-25 04:53).
+
+Separately, an aggressive (<300ms) pick-after-restore attempt hit an
+UNCAUGHT StateError from the SAME _setPolygon.animateCamera call site
+(see bug-mapcontroller-disposed-crash.log/.png):
+  "Bad state: GoogleMapController for map ID 2 was used after the
+  associated GoogleMap widget had already been disposed."
+  at select_location_view_widget.dart:762 (_setPolygon's Future.delayed
+  animateCamera call) -- unguarded by `mounted`/try-catch unlike sibling
+  call sites in the same file.
+
+Neither of these is touched by fd2732f3 (a clean 2-line
+`_restoredTarget = null;` insertion, verified via `git show`); both
+reproduce identically whether or not the fix is present, since the
+freeze/crash happens via a call path (_setPolygon) that fix does not
+modify. Filed as regression_bugs, not blocking NEARS-2305.
