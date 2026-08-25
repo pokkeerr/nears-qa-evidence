@@ -1,0 +1,62 @@
+NEARS-2380 QA — static/grep verification log
+
+=== AC1: grep -rn "businessPlanPaymentUri" UserApp/lib VendorApp/lib ===
+(no output — zero matches, grep exit code 1)
+
+=== AC2: grep -rn "subscriptionPayment" UserApp/lib/features/business ===
+UserApp/lib/features/business/domain/services/business_service.dart:70:        _subscriptionPayment(response.body['redirect_link'], digitalPaymentName, storeId);
+UserApp/lib/features/business/domain/services/business_service.dart:96:  Future<void> _subscriptionPayment(String redirectUrl, String? digitalPaymentName, int storeId) async {
+
+NOTE: these 2 hits are a SUBSTRING match against a pre-existing, unrelated PRIVATE
+method `_subscriptionPayment` (leading underscore) that navigates to the in-app
+payment screen via RouteHelper.getPaymentRoute(...) — a completely different
+mechanism from the deleted `BusinessRepoInterface.subscriptionPayment` method
+that POSTed to the now-dead businessPlanPaymentUri endpoint. Confirmed pre-existing:
+`git diff feat/userapp-reskin2...HEAD -- UserApp/lib/features/business/domain/services/business_service.dart`
+returns 0 lines (file untouched by this change; last touched by NEARS-2223,
+commit 13e8a79e). Word-boundary grep -rnw "subscriptionPayment" (excludes the
+underscore-prefixed collision) returns zero matches, confirming the intended
+symbol (interface + impl) is fully removed:
+  $ grep -rnw "subscriptionPayment" UserApp/lib/features/business/domain
+  (no output)
+
+=== AC2b: RouteHelper.subscriptionPayment untouched, both apps ===
+UserApp/lib/helper/route_helper.dart:172:  static const String subscriptionPayment = '/subscription-payment';
+UserApp/lib/helper/route_helper.dart:509:      '$subscriptionPayment?store-id=...'
+UserApp/lib/helper/route_helper.dart:1419:      name: subscriptionPayment,
+VendorApp/lib/helper/route_helper.dart:127:  static const String subscriptionPayment = '/subscription-payment';
+VendorApp/lib/helper/route_helper.dart:264:  static String getSubscriptionPaymentRoute(...) => ...
+VendorApp/lib/helper/route_helper.dart:426:    GetPage(name: subscriptionPayment, ...)
+Confirmed distinct, live, untouched symbol — not part of this deletion.
+
+=== AC3: flutter analyze ===
+UserApp: "No issues found! (ran in 7.1s)"
+VendorApp: 16 pre-existing issues, ALL in files untouched by this diff
+  (order/widgets, profile, review, store screens) — none reference
+  app_constants.dart or the subscription-payment symbols. Confirmed unrelated
+  by file-path correlation against `git diff --stat` (5 changed files list).
+
+=== AC3: flutter test ===
+UserApp full suite: +4658, ~2 skipped, 1 failed
+  Failure: test/features/home/store_card_widget_overflow_test.dart
+  "NEARS-2475: LTR status text (\"Closes HH:MM\") pushes free-delivery to a 3rd
+  Wrap row and clips it at 1.3x"
+  CONFIRMED PRE-EXISTING: same test run against primary tree at
+  feat/userapp-reskin2 HEAD 834eb15a (our branch base, before this diff)
+  fails IDENTICALLY (same assertion, same line 452). Unrelated file
+  (store card widget rendering), last touched by NEARS-2414/2475
+  fix-cycle 2 (commit 500d54a3) — zero relation to business/subscription code.
+  UserApp/test/features/business/ subdirectory: 23/23 pass (business_service_
+  failure_surface_test.dart, subscription_retry_route_test.dart,
+  subscription_cancel_copy_test.dart all green).
+VendorApp full suite: +169, all pass, zero failures.
+
+=== AC4: diff review — business_service.dart / route_helper.dart untouched ===
+$ git diff feat/userapp-reskin2...HEAD --name-only
+UserApp/lib/features/business/domain/repositories/business_repo.dart
+UserApp/lib/features/business/domain/repositories/business_repo_interface.dart
+UserApp/lib/util/app_constants.dart
+UserApp/test/features/business/business_service_failure_surface_test.dart
+VendorApp/lib/util/app_constants.dart
+Neither business_service.dart nor either app's route_helper.dart appears —
+confirmed zero lines changed in either.
