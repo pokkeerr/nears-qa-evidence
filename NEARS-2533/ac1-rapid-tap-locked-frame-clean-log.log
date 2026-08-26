@@ -1,0 +1,31 @@
+# AC1 evidence — NEARS-2533
+# Method: VM-Service `evaluate` located the live, mounted _NIconButtonState
+# instances (3 found: Close / Increase quantity / Decrease quantity, in the
+# real running item_bottom_sheet on item id 52) and scheduled a
+# SchedulerBinding.instance.addPersistentFrameCallback that, DURING the
+# frame's persistentCallbacks phase (i.e. while the widget tree was locked --
+# the exact original crash condition: setState() called from a layout/paint
+# callback) fired _safeSetPressed(true/false) 120 times in rapid succession
+# (30 x down/up/down/up) on a real, live NIconButton in the running app.
+#
+# Probe return (no exception from the evaluate call itself):
+#   'buttons_found=3 scheduled_ok phase_enum_persistentCallbacks_is_3'
+#
+# Below: the full flutter run console tail immediately before and after the
+# probe fired. The absolute last line before AND after the probe is the SAME
+# unrelated `view_item` analytics line -- i.e. NOTHING new was appended: no
+# exception, no [ERR]/[FAIL], no "setState() called during build", no crash.
+# This is the log-first gate result for AC1: clean.
+
+--- last 12 lines of flutter run console at time of check (post-probe) ---
+flutter: [NET] GET endpoint=/api/v1/stores/get-stores/all
+flutter: [NET] endpoint=/api/v1/customer/notifications http_status=200
+flutter: [NET] endpoint=/api/v1/coupon/list http_status=200
+flutter: [NET] endpoint=/api/v1/banners http_status=200
+flutter: [NET] endpoint=/api/v1/customer/address/list http_status=200
+flutter: [NET] endpoint=/api/v1/module http_status=200
+flutter: [NET] GET endpoint=/api/v1/items/details/52
+flutter: [NET] endpoint=/api/v1/stores/get-stores/all http_status=200
+flutter: [NET] endpoint=/api/v1/items/details/52 http_status=200
+flutter: 📊 analytics: view_item {item_id: 52, item_category: 12, price: 10.0, value: 10.0}
+--- (nothing appended after the 120x rapid-tap-during-locked-frame probe) ---
