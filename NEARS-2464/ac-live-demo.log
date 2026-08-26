@@ -1,0 +1,19 @@
+=== NEARS-2464 QA live probe transcript ===
+Worktree: /Users/Apple/Projects/nears-NEARS-2464-fcm-log-pii, branch fix/NEARS-2464-fcm-log-pii, HEAD 35c794c6
+Real deployed config: APP_ENV=production, LOG_LEVEL=warning, real seeded FCM service-account project_id=nears-1d39b
+
+--- AC1+AC2: real live send (real RSA-signed JWT -> real Google OAuth -> real POST to fcm.googleapis.com w/ invalid device token) ---
+RESULT=false (400 Bad Request from real FCM, as expected for an invalid probe token)
+[2026-08-26 07:13:08] testing.WARNING: FCM Sending notification {"correlation_id":"06f76104-25ce-4ca1-b81d-ca09d68beb78","message_type":"topic"} 
+[2026-08-26 07:13:08] production.WARNING: FCM Sending notification {"message_type":"token"} 
+[2026-08-26 07:13:08] production.ERROR: FCM API Error {"status":400,"reason":"Bad Request","order_id":"QA2464-1787713988"} 
+
+--- AC3 config-missing branch (project_id stripped via in-process Config override, no DB write) ---
+[2026-08-26 07:13:52] production.WARNING: FCM config missing - no project_id  
+
+--- AC3 token-null branch (real OAuth exchange attempted with a mismatched weak private key -> Google rejects -> getAccessToken() returns null) ---
+[2026-08-26 07:14:31] production.ERROR: Firebase Token Generation Failed {"status":400} 
+[2026-08-26 07:14:31] production.ERROR: FCM access token is null/empty  
+
+--- Deny-list checks across all 3 probe windows: no raw device token, no notification title/body, no OAuth token substring ---
+grep -F probe-device-tokens/titles/bodies across windows: 0 matches (confirmed above)
