@@ -1,0 +1,20 @@
+Regression finding (PRE-EXISTING, NOT part of NEARS-2514's diff): an uncaught
+async FlutterError fires when a zone/address change triggers
+ModuleController.getModules() -> _resetModuleListOnZoneChange() -> update()
+while CartScreen's element has already been deactivated (setState-after-dispose
+class of bug), reached via _CartScreenState.initCall (cart_screen.dart:79).
+
+Live capture (emulator-5566, ui_errors, pid 18702, flutter-tagged):
+08-26 23:53:41.145 I/flutter (18702): #7  ModuleController._resetModuleListOnZoneChange (package:sixam_mart/features/splash/controllers/module_controller.dart:623:5)
+08-26 23:53:41.145 I/flutter (18702): #8  ModuleController.getModules (package:sixam_mart/features/splash/controllers/module_controller.dart:631:5)
+08-26 23:53:41.145 I/flutter (18702): #9  _CartScreenState.initCall (package:sixam_mart/features/cart/screens/cart_screen.dart:79:42)
+08-26 23:53:41.172 18702 18702 I flutter : [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (FlutterError)"
+
+Repro: while on the Cart screen, change delivery address/zone (triggers
+removeModule() -> getModules() -> _resetModuleListOnZoneChange() -> update())
+in a window where CartScreen is mid-navigation/disposal.
+
+Unrelated to NEARS-2514's diff (cart_screen.dart and
+_resetModuleListOnZoneChange at module_controller.dart:623/631 are both
+untouched by 0ecf65d6/1915357f — the ticket's only module_controller.dart
+change is the new refreshCacheModuleForIdentity() method at line ~431-441).

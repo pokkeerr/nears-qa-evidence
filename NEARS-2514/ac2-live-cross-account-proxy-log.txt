@@ -1,0 +1,53 @@
+NEARS-2514 QA (re-QA, delta close-out) — AC2 live cross-account demonstration
+================================================================================
+Device: emulator-5566. UserApp launched with --dart-define=API_HOST=10.0.2.2:8090
+pointed at a local logging reverse-proxy (127.0.0.1:8090 -> 127.0.0.1:8000, the
+primary Admin/ dev backend) so every outbound request's `moduleId` header could
+be captured ground-truth, not inferred from UI alone.
+
+Sequence (all same process, no app restart — same-process account switch is
+exactly the NEARS-2250/2514 defect class):
+  1. Login as michael.brown@demo.com (A), Remember Me checked. Selected
+     "Grocery & Food" (module id 1). Disk-scoped pref confirmed:
+       cacheModuleId::u:michael.brown@demo.com -> {"id":1,...}
+  2. Logout A (auth_controller.dart:334 held NEARS-2250 site: setModule(null,
+     clearCachedModuleOnNull:false) — in-memory _cacheModule intentionally NOT
+     cleared here, by design).
+  3. Login as customer@nears.com (B), Remember Me checked. Selected
+     "Food & Restaurant" (module id 2). Disk-scoped pref confirmed:
+       cacheModuleId::u:customer@nears.com -> {"id":2,...}
+  4. Logout B. In-memory ModuleController._cacheModule is now B's module (2)
+     — this is the exact stale value a pre-fix login() would ride forward.
+  5. Login as A AGAIN (3rd login, same process). Proxy log immediately after:
+
+2026-08-26T23:51:33.186855	POST	/api/v1/auth/login	moduleId=None
+2026-08-26T23:51:35.947482	POST	/api/v1/auth/token/refresh	moduleId=1
+2026-08-26T23:51:36.826260	POST	/api/v1/customer/cm-firebase-token	moduleId=1
+2026-08-26T23:51:37.969102	GET	/api/v1/customer/cart/list	moduleId=1
+2026-08-26T23:51:37.969629	GET	/api/v1/customer/info	moduleId=1
+2026-08-26T23:51:37.969997	GET	/api/v1/customer/info	moduleId=1
+
+Every post-login request carries moduleId=1 (A's OWN module), never moduleId=2
+(B's leftover in-memory value) — confirming ModuleController.refreshCacheModuleForIdentity(),
+called from AuthController._getUserAndCartData() before these fetches, re-synced
+_cacheModule to A's own identity-scoped disk bucket
+(cacheModuleId::u:michael.brown@demo.com) rather than carrying B's stale value.
+
+UI corroboration: opening the Cart screen at this point rendered A's OWN
+grocery cart (Almond Milk 1L, Dish Soap 500ml — Daily Fresh Market / Fresh
+supermarket), not B's leftover food cart (Garlic Bread / Smash Burger / Soup
+of the Day — Mediterranean Bites, captured earlier in the same log at
+23:38:30-23:38:34, moduleId=2).
+
+AC2's registration-proceedToApp branch (commit 1915357f) was verified by code
+read (AuthController.registration() calls refreshCacheModuleForIdentity() on
+the exact isPhoneVerified&&isEmailVerified proceedToApp branch, synchronous-
+before ProfileController.getUserInfo()/LocationController.navigateToLocationScreen())
+plus the pinned regression test (auth_controller_test.dart, NEARS-2514 group,
+already GREEN per the prior BLOCKED pass's 117/117) — NOT via a fresh live
+registration: the sign-up screen's "إنشاء حساب" link resolved to a
+near-zero-height a11y node (bounds height 3px, [53,1249]-[321,1252]) that did
+not respond to a driven tap in 2 attempts on this device; flagged as a
+followup (unrelated to this ticket's diff), not chased further given the
+mechanism was already confirmed live for the higher-risk login/logout path
+above and via code+test for the registration branch.

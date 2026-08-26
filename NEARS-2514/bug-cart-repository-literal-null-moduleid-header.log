@@ -1,0 +1,29 @@
+Regression finding (PRE-EXISTING, NOT part of NEARS-2514's diff — introduced by
+NEARS-2490, cart_repository.dart:172): CartRepository._getCartDataOnline() sends
+the LITERAL STRING 'null' as the moduleId header when _resolveFreshCacheModuleId()
+returns null (no identity-scoped cached module — e.g. right after removeModule()
+clears everything on a zone/address change), instead of omitting the header:
+
+  AppConstants.moduleId: _resolveFreshCacheModuleId() ?? 'null',   // cart_repository.dart:172
+
+Backend ModuleCheckMiddleware.php does `Module::where('id', $value)->first()`
+when is_numeric($value), else `Module::where('slug', $value)->first()` — the
+literal string "null" matches neither an id nor a real slug, so the middleware
+403s the request as "module not found".
+
+Live capture (emulator-5566, proxy on 127.0.0.1:8090 -> Admin/ backend :8000),
+triggered by changing address while on the Cart screen (removeModule() fires):
+
+2026-08-26T23:53:43.158148	GET	/api/v1/customer/update-zone	moduleId=None
+2026-08-26T23:53:43.158859	GET	/api/v1/customer/cart/list	moduleId=null
+
+App-side log (ui_errors, pid 18702, flutter-tagged, scoped to this process):
+08-26 23:53:42.164 18702 18702 I flutter : [FAIL] endpoint=/api/v1/customer/cart/list http_status=403 type=ApiFailure msg="api request failed" correlation_id=6baaaae3-3569-4d4c-a374-2f6db805075b
+
+Impact: cart list silently 403s (surfaces as a generic error/empty cart) any
+time a logged-in user changes zone/address while their identity-scoped module
+cache is empty. Unrelated to NEARS-2514's Cluster A/B fix (this ticket never
+touches cart_repository.dart's _getCartDataOnline/_resolveFreshCacheModuleId,
+confirmed against the diff: 0ecf65d6/1915357f touch only auth_controller.dart,
+auth_service.dart, module_controller.dart (adds refreshCacheModuleForIdentity
+only), verification_controller.dart, verification_service.dart).
