@@ -1,0 +1,36 @@
+Pre-existing, unrelated to NEARS-2460 — captured during regression sweep of VendorApp
+"My Business Plan" -> "Transaction" tab (store 21, fastmarket@demo.com), emulator-5566,
+2026-08-26.
+
+Same class of defect as the previously-documented ItemModel.fromJson bug
+(docs/apps/vendorapp/vendorapp-screen-inventory.md, NEARS-540/NEARS-2261): backend
+returns `offset` as an int, but the Dart model field is declared `String?` and assigns
+it unconverted.
+
+File: VendorApp/lib/features/subscription/domain/models/subscription_transaction_model.dart:17
+  offset = json['offset'];   // json['offset'] is an int; field declared `String? offset`
+
+Runtime log (app console, flutter run on emulator-5566):
+
+I/flutter ( 3189): [NET] GET endpoint=/api/v1/vendor/subscription-transaction
+I/flutter ( 3189): [NET] endpoint=/api/v1/vendor/subscription-transaction http_status=200
+I/flutter ( 3189): ----------------FIREBASE CRASHLYTICS----------------
+I/flutter ( 3189): type 'int' is not a subtype of type 'String?'
+I/flutter ( 3189): #0      new SubscriptionTransactionModel.fromJson (package:sixam_mart_store/features/subscription/domain/models/subscription_transaction_model.dart:17:5)
+I/flutter ( 3189): #1      SubscriptionRepository.getSubscriptionTransactionList (package:sixam_mart_store/features/subscription/domain/repositories/subscription_repository.dart:22:67)
+I/flutter ( 3189): <asynchronous suspension>
+I/flutter ( 3189): #2      SubscriptionService.getSubscriptionTransactionList (package:sixam_mart_store/features/subscription/domain/services/subscription_service.dart:18:12)
+I/flutter ( 3189): <asynchronous suspension>
+I/flutter ( 3189): #3      SubscriptionController.getSubscriptionTransactionList (package:sixam_mart_store/features/subscription/controllers/subscription_controller.dart:262:68)
+I/flutter ( 3189): <asynchronous suspension>
+I/flutter ( 3189): ----------------------------------------------------
+
+Effect: the API call succeeds (http_status=200) but the transaction list silently
+fails to parse — the "Transaction" tab of My Business Plan never populates. Does NOT
+block NEARS-2460's AC1 (login / Menu reachability / no expiry gate) — encountered
+while regression-sweeping the My Business Plan screen reached as part of that AC.
+
+git blame: this model file is untouched by NEARS-2460's diff (only
+Admin/database/seeders/StorePanelIdorQaFixtureSeeder.php,
+Admin/config/system-addons.php, Admin/resources/lang/en/messages.php changed) —
+pre-existing defect, not introduced by this fix.
