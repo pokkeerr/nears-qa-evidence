@@ -1,0 +1,48 @@
+I/flutter (13555): [NET] POST endpoint=/api/v1/customer/cart/add
+I/flutter (13555): ----------------FIREBASE CRASHLYTICS----------------
+I/flutter (13555): The following exception was thrown api request threw:
+I/flutter (13555): ApiFailure(status: 0, kind: timeout)
+I/flutter (13555): #0      Future.timeout.<anonymous closure> (dart:async/future_impl.dart:1042:24)
+I/flutter (13555): <asynchronous suspension>
+I/flutter (13555): #1      ApiClient._send (package:sixam_mart/api/api_client.dart:737:24)
+I/flutter (13555): <asynchronous suspension>
+I/flutter (13555): #2      CartRepository._addToCartOnline (package:sixam_mart/features/cart/domain/repositories/cart_repository.dart:87:25)
+I/flutter (13555): <asynchronous suspension>
+I/flutter (13555): #3      CartRepository.add (package:sixam_mart/features/cart/domain/repositories/cart_repository.dart:80:12)
+I/flutter (13555): <asynchronous suspension>
+I/flutter (13555): #4      CartService.addToCartOnline (package:sixam_mart/features/cart/domain/services/cart_service.dart:22:12)
+I/flutter (13555): <asynchronous suspension>
+I/flutter (13555): #5      CartController._syncItem (package:sixam_mart/features/cart/controllers/cart_controller.dart:1138:38)
+I/flutter (13555): <asynchronous suspension>
+I/flutter (13555): ----------------------------------------------------
+I/flutter (13555): [FAIL] endpoint=/api/v1/customer/cart/add http_status=null type=ApiFailure transport_error=timeout msg="api request threw" correlation_id=18b7b736-df04-4da3-b5c8-df147de23d95
+I/flutter (13555): ----------------FIREBASE CRASHLYTICS----------------
+I/flutter (13555): The following exception was thrown app error:
+I/flutter (13555): Exception: app_error
+I/flutter (13555): #0      AppLogger.error (package:sixam_mart/helper/app_logger.dart:107:18)
+I/flutter (13555): #1      showCustomSnackBar (package:sixam_mart/common/widgets/custom_snackbar.dart:30:17)
+I/flutter (13555): #2      CartController._safeSnack (package:sixam_mart/features/cart/controllers/cart_controller.dart:983:7)
+I/flutter (13555): #3      CartController._notifyAddFailed (package:sixam_mart/features/cart/controllers/cart_controller.dart:1533:5)
+I/flutter (13555): #4      CartController._reconcileFailedSync (package:sixam_mart/features/cart/controllers/cart_controller.dart:1507:7)
+I/flutter (13555): #5      CartController._syncItem (package:sixam_mart/features/cart/controllers/cart_controller.dart:1188:11)
+I/flutter (13555): <asynchronous suspension>
+I/flutter (13555): ----------------------------------------------------
+I/flutter (13555): [ERR] msg="error snackbar shown"
+I/flutter (13555): [NET] GET endpoint=/api/v1/customer/cart/list
+I/flutter (13555): [NET] endpoint=/api/v1/customer/cart/list http_status=200
+I/flutter (13555): [NET] POST endpoint=/api/v1/customer/cart/update
+I/flutter (13555): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+I/flutter (13555): [INFO] msg="cart restored with 1 items"
+--- DB before/after ---
+
+Timeline (dedicated backend, php -S listener pid 9514, SIGSTOP/SIGCONT):
+  05:55:42  tap Add To Cart (item 590, Smash Burger, Mediterranean Bites Abu Dhabi) while pid 9514 SIGSTOPped
+  05:55:42  FE dispatches POST /api/v1/customer/cart/add (held server-side, connection frozen)
+  ~05:56:22 client's 40s ApiClient timeout fires -> ApiFailure(status:0, kind:timeout) -> [FAIL] http_status=null transport_error=timeout
+            -> _reconcileFailedSync reverts local row to qty 0, UI shows "Add To Cart" again, _unconfirmedAdd[590] set
+  05:57:50  SIGCONT pid 9514 -> stalled request finally processed server-side -> cart row id=531 item_id=590 qty=1 created (orphan: server has it, client does not)
+  05:57:5x  tap Add To Cart again (legitimate re-add) -> _syncItem sees cartId==null + _unconfirmedAdd contains 590
+            -> GET /api/v1/customer/cart/list (verify) -> finds existing row 531 -> adopts it -> local row still present (re-add) -> PATCH path
+            -> POST /api/v1/customer/cart/update (converge to target qty=1) -- NO second POST /api/v1/customer/cart/add
+  05:58:13  DB: single row id=531 item_id=590 quantity=1 (updated_at bumped, confirming UPDATE not a new INSERT)
+  UI Basket: Smash Burger qty=1 -- matches server converged qty (AC3)
