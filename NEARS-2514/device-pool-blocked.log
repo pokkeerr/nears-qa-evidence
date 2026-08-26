@@ -1,0 +1,57 @@
+NEARS-2514 QA — device pool saturation evidence (BLOCKED reason)
+==================================================================
+
+`adb devices -l` (start of QA session):
+emulator-5554  device  Pixel_10_Pro_2
+emulator-5556  device  nears_qa_wave56
+emulator-5558  device  NEARS_2414_QA
+emulator-5560  device  Pixel_10_Pro_3
+emulator-5562  device  NEARS_2411_QA
+emulator-5564  device  Pixel_10_Pro
+emulator-5566  device  nears_qa_delivery
+emulator-5568  device  NEARS_2424_QA
+
+`scripts/qa-lock-guard.sh` `qa_lock_survey` (no-arg, live adb enumeration):
+all 8 serials -> locked=no locked_by=- occupied_without_lock=yes status=occupied-without-lock
+effective_capacity=0 surveyed=8 pool=live-adb
+
+Cross-checked against `ps aux`: every one of the 8 serials has a genuine
+host-side `flutter run -d emulator-XXXX` (or `flutter test`) process attached
+to it from OTHER concurrent /new-task worktrees (NEARS-2501, NEARS-2515,
+NEARS-2522, NEARS-2399, NEARS-2424, NEARS-2484, plus two ad-hoc `flutter run`
+sessions with no serial-identifying worktree in the invocation). These are
+live, legitimate holds — not stale/dead locks — so none were reclaimable.
+
+`emulator -list-avds` returned exactly the 8 AVD names already mapped 1:1 to
+the 8 running serials above (confirmed via `adb -s <serial> emu avd name`) —
+no spare AVD existed to boot per the "spare AVDs untapped" playbook.
+
+Polled `qa_lock_survey` every ~65s from 23:01:33 to 23:11:28 (+04, 2026-08-26)
+— 10 consecutive polls, effective_capacity stayed 0 throughout. Per the
+bounded-queue-wait rule (~60s polls up to 10 min) this QA pass reports
+BLOCKED for every AC that requires a live UserApp instance (AC2, AC4, and
+the "live" component of AC1/AC3) rather than spin further.
+
+Non-device verification completed in the same pass (see QA-evidence Jira
+comment for the full table):
+- Static file:line enumeration of every cacheModule/getCacheModule/
+  saveUserToken read site cross-checked 1:1 against the ticket's candidate
+  list (genuine-risk sites + false-positives) — no undocumented site found,
+  no misclassification found.
+- Read-through of the ordering guarantee: saveUserToken (sets
+  ApiClient._cachedToken) is awaited inside AuthService._updateHeaderFunctionality
+  BEFORE AuthController._getUserAndCartData/VerificationController's handlers
+  call ModuleController.refreshCacheModuleForIdentity(), which itself calls
+  splashServiceInterface.getCacheModule() -> ModuleCacheIdentityHelper.
+  resolveCachedModuleRaw(..., isLoggedIn: ApiClient.cachedToken != null) — so
+  the refresh reads the NEW identity's bucket, not the departed one.
+- `flutter analyze` on all 5 touched lib files: No issues found.
+- `flutter test` on the 5 new/changed test files (auth_controller_test.dart,
+  auth_service_cluster_b_login_identity_test.dart,
+  module_controller_refresh_cache_module_identity_test.dart,
+  verification_controller_test.dart,
+  verification_service_login_identity_test.dart): 117 tests, all green,
+  including the pinned proceedToApp-branch regression test (the exact finding
+  that blocked security review's first pass) and the
+  "reproduces the leak / the fix resolves the new identity's bucket" pair in
+  module_controller_refresh_cache_module_identity_test.dart.
