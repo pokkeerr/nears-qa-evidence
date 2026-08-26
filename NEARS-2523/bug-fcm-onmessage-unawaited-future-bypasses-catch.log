@@ -1,0 +1,40 @@
+NEARS-2523 QA regression-candidate finding — pre-existing, NOT introduced by this ticket's diff.
+
+Location: UserApp/lib/helper/notification_helper.dart, FirebaseMessaging.onMessage.listen
+handler, line ~151 (pre-existing, unrelated to NEARS-2523's 3-line sentinel-arg diff — confirmed
+via `git diff feat/userapp-reskin2..992df8bf -- UserApp/lib/helper/notification_helper.dart`,
+which shows only the 3 catch-site arg swaps + 3 new sentinel classes, no control-flow changes).
+
+Repro: sent a real FCM v1 push (order_status type, malformed/absent order_id) to a live logged-in
+device while UserApp was in the FOREGROUND (via Admin's NotificationTrait::sendPushNotificationToDevice
+to the seeded customer's real cm_firebase_token).
+
+Observed:
+08-26 17:49:22.550 30835 30835 I flutter : [INFO] msg="FCM onMessage type=order_status"
+08-26 17:49:24.305 30835 30835 I flutter : [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (FormatException)"
+08-26 17:49:24.351 30835 30835 I flutter : FormatException: malformed/absent order_id in order_status notification payload
+
+Root cause: inside the onMessage listener's try block, `NotificationHelper.showNotification(message,
+flutterLocalNotificationsPlugin);` is called WITHOUT `await`. showNotification() is itself `async`
+and calls `convertNotification()` (which throws FormatException on a malformed order_id) — because
+the call site never awaits the returned Future, the synchronous try/catch wrapping it can never
+catch the exception; it instead surfaces as an unhandled Future error via the app's global/zone-level
+uncaught-error handler (`type=UncaughtAsyncError`), NOT via the intended `FcmOnMessageFailure`
+sentinel catch block that NEARS-2523 was verifying.
+
+Effect: the `FcmOnMessageFailure` catch/sentinel (added/touched by NEARS-2523) is effectively
+unreachable dead code for this order_status/general foreground path — any malformed foreground
+push falls through to the global handler instead.
+
+Not a NEARS-2523 regression: the missing `await` predates this ticket's diff; NEARS-2523 only
+changed what object is passed to AppLogger.failure inside 3 existing catch blocks. The global
+handler's own [FAIL] line is itself PII-safe (no raw payload/order_id value leaked either way),
+so this does not indicate a PII leak — it's a control-flow/dead-catch-block defect, filed as a
+regression-candidate for separate triage, not blocking this ticket's PASS.
+
+Cross-check: the SAME malformed-payload class was independently re-verified through the
+`onMessageOpenedApp` path (synchronous callback, not affected by the unawaited-Future bug),
+which correctly reached the intended `NotificationOpenRoutingFailure` sentinel catch and produced
+the expected PII-safe [FAIL] line — see ac-live-demo.log lines 8-11. That confirms NEARS-2523's
+actual AC (all 3 catch sites pass PII-safe sentinels) is correctly implemented; this finding is
+about one specific pre-existing call path never reaching one of those 3 catch blocks at all.
