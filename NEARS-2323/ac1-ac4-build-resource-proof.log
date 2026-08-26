@@ -1,0 +1,19 @@
+NEARS-2323 — AC1/AC4 host-side build+resource proof (Android, no device — pool BLOCKED, see envelope)
+
+[1] flutter build apk --debug => BUILD SUCCESSFUL, no duplicate string/google_api_key resource error:
+    (see build log tail — 'Built build/app/outputs/flutter-apk/app-debug.apk')
+
+[2] Resolved APK resources — exactly ONE definition each, no collision:
+    resource 0x7f0f0046 string/google_api_key
+      () "<REDACTED — google-services.json client API key, non-empty, resolved exactly once>"
+--
+    resource 0x7f0f004b string/nears_maps_api_key
+      () ""
+
+[3] Manifest com.google.android.geo.API_KEY meta-data resolves to the renamed resource (0x7f0f004b = nears_maps_api_key):
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)="com.google.android.geo.API_KEY" (Raw: "com.google.android.geo.API_KEY")
+            A: http://schemas.android.com/apk/res/android:value(0x01010024)=@0x7f0f004b
+          E: activity (line=93)
+
+[4] grep -rn google_api_key DeliveryApp/android/app/src => zero matches (AC4)
+    Only historical comments remain OUTSIDE src, in build.gradle.kts (explaining the rename, mentions old name in passing) — acceptable per AC4 wording.
