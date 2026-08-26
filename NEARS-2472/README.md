@@ -1,46 +1,54 @@
 # QA Evidence — NEARS-2472
 
-**PASS — AC1-AC4 demonstrated live on emulator-5554 (Pixel_10_Pro_2), 100% text scale confirmed; regression sweep clean (RTL, >100% scale, rated-item parity); automated backstop 6/6 new tests + widget suite green**
+**PASS - NBadge NSize.sm fix verified live (category+store grids, RTL, textscale, render-tree 18.0dp)**
 
-**19 screenshot(s).** Click any thumbnail for full resolution.
+**24 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
+<td align="center" width="33%"><a href="ac-rtl-category-grid-jadid-badge.png"><img src="ac-rtl-category-grid-jadid-badge.png" width="240"></a><br><sub>ac rtl category grid jadid badge</sub></td>
 <td align="center" width="33%"><a href="ac-rtl-store-screen-arabic.png"><img src="ac-rtl-store-screen-arabic.png" width="240"></a><br><sub>ac rtl store screen arabic</sub></td>
+<td align="center" width="33%"><a href="ac-textscale130-store-grid.png"><img src="ac-textscale130-store-grid.png" width="240"></a><br><sub>ac textscale130 store grid</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="ac1-category-100pct.png"><img src="ac1-category-100pct.png" width="240"></a><br><sub>ac1 category 100pct</sub></td>
 <td align="center" width="33%"><a href="ac1-category-screen-new-badge.png"><img src="ac1-category-screen-new-badge.png" width="240"></a><br><sub>ac1 category screen new badge</sub></td>
+<td align="center" width="33%"><a href="ac1-category-screen-unrated-new-badge.png"><img src="ac1-category-screen-unrated-new-badge.png" width="240"></a><br><sub>ac1 category screen unrated new badge</sub></td>
 </tr>
 <tr>
 <td align="center" width="33%"><a href="ac2-store-100pct.png"><img src="ac2-store-100pct.png" width="240"></a><br><sub>ac2 store 100pct</sub></td>
+<td align="center" width="33%"><a href="ac2-store-allproducts-grid-unrated.png"><img src="ac2-store-allproducts-grid-unrated.png" width="240"></a><br><sub>ac2 store allproducts grid unrated</sub></td>
 <td align="center" width="33%"><a href="ac2-store-allproducts-grid.png"><img src="ac2-store-allproducts-grid.png" width="240"></a><br><sub>ac2 store allproducts grid</sub></td>
-<td align="center" width="33%"><a href="ac2-store-grid-new-badge-2.png"><img src="ac2-store-grid-new-badge-2.png" width="240"></a><br><sub>ac2 store grid new badge 2</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ac2-store-grid-new-badge-2.png"><img src="ac2-store-grid-new-badge-2.png" width="240"></a><br><sub>ac2 store grid new badge 2</sub></td>
 <td align="center" width="33%"><a href="ac2-store-grid-new-badge.png"><img src="ac2-store-grid-new-badge.png" width="240"></a><br><sub>ac2 store grid new badge</sub></td>
+<td align="center" width="33%"><a href="ac2-store-screen-allproducts-unrated-new-badge.png"><img src="ac2-store-screen-allproducts-unrated-new-badge.png" width="240"></a><br><sub>ac2 store screen allproducts unrated new badge</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="ac2-store-screen-grid-2.png"><img src="ac2-store-screen-grid-2.png" width="240"></a><br><sub>ac2 store screen grid 2</sub></td>
 <td align="center" width="33%"><a href="ac2-store-screen-grid.png"><img src="ac2-store-screen-grid.png" width="240"></a><br><sub>ac2 store screen grid</sub></td>
+<td align="center" width="33%"><a href="ac2-store-screen-unrated-new-badge.png"><img src="ac2-store-screen-unrated-new-badge.png" width="240"></a><br><sub>ac2 store screen unrated new badge</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="ac2-store-screen-unrated-new-badge.png"><img src="ac2-store-screen-unrated-new-badge.png" width="240"></a><br><sub>ac2 store screen unrated new badge</sub></td>
 <td align="center" width="33%"><a href="category-screen-1.png"><img src="category-screen-1.png" width="240"></a><br><sub>category screen 1</sub></td>
 <td align="center" width="33%"><a href="profile-guest.png"><img src="profile-guest.png" width="240"></a><br><sub>profile guest</sub></td>
+<td align="center" width="33%"><a href="regression-rtl-store-new-badge.png"><img src="regression-rtl-store-new-badge.png" width="240"></a><br><sub>regression rtl store new badge</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="regression-rtl-store-new-badge.png"><img src="regression-rtl-store-new-badge.png" width="240"></a><br><sub>regression rtl store new badge</sub></td>
 <td align="center" width="33%"><a href="regression-rtl-store.png"><img src="regression-rtl-store.png" width="240"></a><br><sub>regression rtl store</sub></td>
 <td align="center" width="33%"><a href="regression-scaledup-130pct.png"><img src="regression-scaledup-130pct.png" width="240"></a><br><sub>regression scaledup 130pct</sub></td>
+<td align="center" width="33%"><a href="reorder-usuals-2.png"><img src="reorder-usuals-2.png" width="240"></a><br><sub>reorder usuals 2</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="reorder-usuals-2.png"><img src="reorder-usuals-2.png" width="240"></a><br><sub>reorder usuals 2</sub></td>
 <td align="center" width="33%"><a href="reorder-usuals-3.png"><img src="reorder-usuals-3.png" width="240"></a><br><sub>reorder usuals 3</sub></td>
 <td align="center" width="33%"><a href="reorder-usuals-check.png"><img src="reorder-usuals-check.png" width="240"></a><br><sub>reorder usuals check</sub></td>
-</tr>
-<tr>
 <td align="center" width="33%"><a href="reorder-usuals.png"><img src="reorder-usuals.png" width="240"></a><br><sub>reorder usuals</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
+- [`ac4-rendertree-nbadge-18dp.log`](ac4-rendertree-nbadge-18dp.log)
 - [`badge_dump.xml`](badge_dump.xml)
 
 ---
