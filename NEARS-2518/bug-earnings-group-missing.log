@@ -1,0 +1,38 @@
+Regression finding (unrelated to NEARS-2518 diff) — Earnings group absent from reskinned
+Profile/MenuScreen despite all 3 config gates evaluating TRUE live.
+
+Screen: UserApp Profile tab (menu_screen.dart, "NEARS-404 reskin -> profile_nears_1"),
+logged in as james.wilson@demo.com, emulator-5566, backend http://127.0.0.1:8000.
+
+1) DB seed confirms all three gating business_settings rows = 1:
+   toggle_dm_registration=1, toggle_store_registration=1, ref_earning_status=1
+
+2) Live /api/v1/config response confirms the same:
+   toggle_dm_registration=True, toggle_store_registration=True, ref_earning_status=1
+
+3) Live VM Service evaluate (menu_controller.dart library scope) on the SAME running
+   Profile screen confirms the getters MenuController reads also return true:
+   Get.find<MenuController>().storeRegEnabledRaw -> true
+   Get.find<MenuController>().dmRegEnabledRaw    -> true
+   Get.find<MenuController>().refEarningEnabled  -> true
+
+4) _buildEarningsGroup's guard is:
+     if (!(refEarningEnabled || dmReg || storeReg)) return const SizedBox();
+   refEarningEnabled alone being true means this condition can never be true, so the
+   early-return branch should never fire — yet:
+
+5) uiautomator dump of the live Profile screen contains ZERO occurrences of "earnings",
+   "open_vendor", "refer_and_earn", "vendor", or "join_as_a_delivery_man" (grep -oiE
+   "open_vendor|earnings|vendor|store" against the dumped XML returns nothing), and the
+   attached screenshot shows the page going straight from "REWARDS & OFFERS" (Coupons)
+   to "SUPPORT" (Talk to Nears / Help & Support) with no Earnings card in between.
+
+6) Forcing a rebuild via evaluate (Get.find<ProfileController>().update()) did not make
+   the group appear.
+
+Net effect: the front door to Vendor Registration / Delivery-partner registration /
+Refer & Earn from the customer Profile tab is unreachable on this build — QA had to
+route around it via a direct Get.toNamed('/store-registration') VM Service call to
+reach the NEARS-2518 fix's screen at all. Filed as a non-blocking regression_bug (does
+not affect NEARS-2518's own ACs, which were demonstrated via the direct-navigation
+workaround) — recommend a fast follow-up ticket.
