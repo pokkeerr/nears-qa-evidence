@@ -1,0 +1,55 @@
+NEARS-2536 AC2 — /api/v1/stores/details/{id} classification check (store 12, zone_id=2)
+
+=== OUT-OF-ZONE control (zoneId: [1], store 12 is zone 2) ===
+X-Request-Id: e827a174-5439-42bf-8893-be86d8ec8537
+HTTP/1.1 403 Forbidden
+{"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+
+=== IN-ZONE positive control (zoneId: [2], store 12's own zone) ===
+X-Request-Id: d3e5b4d7-6218-4b81-a28b-a8b42430360f
+HTTP/1.1 200 OK
+{"id":12,"name":"Fresh local", ...}
+
+=== laravel.log correlation check (BOTH ids) ===
+grep -F "e827a174-5439-42bf-8893-be86d8ec8537" Admin/storage/logs/laravel.log -> 0 hits
+grep -F "d3e5b4d7-6218-4b81-a28b-a8b42430360f" Admin/storage/logs/laravel.log -> 0 hits
+(timestamp-windowed cross-check 2026-08-26 20:36:2[6-9]/3[0-1] also shows zero non-OTel
+lines in that window)
+
+FINDING: Admin/app/Http/Controllers/Api/V1/StoreController.php@get_details never calls
+Log:: on either the 403 out_of_zone branch or the 200 success branch (confirmed by
+reading the method AND by this live positive+negative control, both zero-hit) — a
+pre-existing backend observability gap, NOT introduced by this diff (this ticket's
+diff touches only UserApp/lib/features/cart/screens/cart_screen.dart). Because BOTH
+the failing and the passing request produce zero log lines, the log instrument is
+"dead" for this endpoint, not selectively silent -- the positive control does not
+distinguish the two cases, so the literal log-grep method specified by AC2 is
+currently inconclusive on its own.
+
+Substance of AC2 (classification is the SAME pre-existing out_of_zone path already
+used by Checkout, not a new/different backend error path) is instead demonstrated by:
+  1. Single PHP route/controller method for this endpoint: routes/api/v1/api.php:350
+     `Route::get('stores/details/{id}', 'StoreController@get_details')` — both
+     Checkout (checkout_controller.dart:465 initCheckoutData) and Cart (this fix,
+     cart_screen.dart:113) call the identical Dart StoreController.getStoreDetails
+     -> storeServiceInterface.getStoreDetails -> this one endpoint. There is no
+     second/parallel store-details path.
+  2. Same classification helper: StoreController.php:186 checks
+     `Helpers::storeZoneAllowed($store, $request)` (Helpers.php:5353) -> the same
+     403 {"code":"out_of_zone"} shape captured above, unconditionally of caller.
+  3. Live curl reproduction (above) matches the exact shape previously captured for
+     the SAME zone-guard mechanism at docs/qa-evidence/NEARS-1113/ZONEGUARD-store12-zone1.txt.
+  4. FE-side: store_controller.dart:963-980 is the ONE classification branch reached
+     by both callers, emitting the paired AppLogger.warn + AppLogger.failure(status
+     403, code out_of_zone, correlationId=<echoed X-Request-Id>) regardless of
+     fromCart/checkout caller -- confirmed live via `flutter test` run (see
+     ac1-flutter-test-log.txt) and again live from the device (see ac1 evidence).
+
+=== RE-CONFIRMED WITH REAL MOBILE-CLIENT REQUESTS (not synthetic curl) ===
+Cart's own out-of-zone fetch (cart_screen.dart:113) correlation_id=be9aedfc-2a9c-4c90-ad45-8b410a94e86d
+Checkout's own out-of-zone fetch (checkout_controller.dart:470) correlation_id=ae54216b-8ea8-475c-abe2-0dffe7285ea7
+grep -F <either id> Admin/storage/logs/laravel.log -> 0 hits, BOTH (confirms the BE logging
+gap is real and endpoint-wide, not a curl-header artifact) -- but the FE-side [FAIL] lines for
+BOTH callers carry the SAME status=403, SAME endpoint=/api/v1/stores/details/, SAME classifier
+stack frame (store_controller.dart:972), proving Cart and Checkout hit the identical backend
+classification path live, on-device, with two independent real requests.

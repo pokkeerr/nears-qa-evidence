@@ -1,0 +1,58 @@
+NEARS-2536 AC1 — LIVE device demonstration (iPhone 17 Pro simulator, 53F3807C-3BF6-46ED-8487-DEC957036BAA)
+UserApp worktree fix/NEARS-2536-cart-oz-suppress @ 1973a3c3, backend: primary tree Admin/ (php -S :8000)
+Account: customer@nears.com (user_id=6), zone switched live to Abu Dhabi saved address (id=45,
+zoneIds=[400,2]) via Get.find<LocationController>().saveAddressAndNavigate(...) — the SAME
+production call address_bottom_sheet_widget.dart's saved-address tap makes. Cart at that point:
+cartList = [store 2 "Fresh Mart Grocery" (zone 1), store 1 "Nears Mart" (zone 1)] — both now
+out-of-zone under [400,2].
+
+Navigated to Cart via Get.toNamed(RouteHelper.getCartRoute()) (same route a real "Basket" tab tap
+resolves to). Captured flutter run stdout:
+
+  flutter: [INFO] msg="cart restored with 2 items"
+  flutter: [NET] GET endpoint=/api/v1/stores/details/2
+  flutter: [NET] endpoint=/api/v1/stores/details/2 http_status=403
+  flutter: [WARN] msg="store: details out of zone"
+  flutter: ----------------FIREBASE CRASHLYTICS----------------
+  flutter: The following exception was thrown store: details out of zone:
+  flutter: ApiFailure(status: 403)
+  flutter:
+  #0      StoreController.getStoreDetails (package:sixam_mart/features/store/controllers/store_controller.dart:972:24)
+  <asynchronous suspension>
+  #1      _CartScreenState.initCall (package:sixam_mart/features/cart/screens/cart_screen.dart:113:7)
+  <asynchronous suspension>
+  flutter: ----------------------------------------------------
+  flutter: [FAIL] endpoint=/api/v1/stores/details/ http_status=403 type=ApiFailure msg="store: details out of zone" correlation_id=be9aedfc-2a9c-4c90-ad45-8b410a94e86d
+  flutter: [NET] GET endpoint=/api/v1/items/suggested
+  ...
+  flutter: endpoint=/api/v1/items/suggested http_status=200   <- store 1 (non-primary, also OOZ) suggested-items call; SUCCEEDED 200 (backend get_cart_suggest_products has NO zone guard, unlike stores/details), so no raw error surfaces for the residual-gap store either, in this backend build.
+
+Stack trace confirms the classified 403 originates EXACTLY at the fix line
+(cart_screen.dart:113, the new `await Get.find<StoreController>().getStoreDetails(...,
+suppressOutOfZoneSnackBar: true)` call) -> store_controller.dart:972 (the out_of_zone
+classification branch that, per the diff read, skips `showCustomSnackBar` when
+suppressOutOfZoneSnackBar is true).
+
+NO raw/unhandled snackbar log line anywhere in the captured output (showCustomSnackBar is never
+invoked from this path — confirmed by code read of store_controller.dart:996 `else if
+(!suppressOutOfZoneSnackBar)` branch, which is skipped since suppressOutOfZoneSnackBar=true).
+
+Post-navigation ui_list_ios (Cart/"Basket" screen) labels — screen renders normally:
+  Basket, Fresh Mart Grocery, Nears Mart, Add More Items, Decrease/Increase quantity,
+  Discount, Items Total, Total, Proceed to Checkout, Substitution Preferences, Remove, ...
+  (both store sections + totals + checkout CTA all present, no error/empty state, no
+  crash-shaped label set)
+
+Error-scan (manual grep of the full captured session output for
+FlutterError/EXCEPTION CAUGHT/is not a subtype/overflowed by/Unhandled/[ERR]) —
+0 unexpected matches beyond the one expected, correctly-paired [FAIL] above.
+(macOS `log stream`-based ui_errors_ios returned "NOT ASSERTED: 0 lines" for its own
+6-8s live window — a genuine no-signal window on that particular channel, not treated
+as a clean pass; the flutter-stdout-based scan above is the evidence of record.)
+
+Screenshot channel: xcrun simctl io booted screenshot returned BYTE-IDENTICAL PNGs for
+this Cart capture and the later Checkout capture (regression-checkout-outofzone-panel) despite
+the two screens' ui_list_ios label sets being genuinely different (verified) -- treated as an
+unreliable/stale capture channel this session and NOT used as evidence. Evidence of record for
+this screen state is the ui_list_ios label list above (VM-Service semantics tree, live,
+confirmed to differ correctly between screens) plus the flutter-log stack trace.

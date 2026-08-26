@@ -1,0 +1,20 @@
+NEARS-2536 QA Test Scope item 1 — in-zone path unaffected, sequencing only
+
+Same session, address switched back to zone-1 "Demo Zone — Dhaka" (id=46) so both cart
+stores (2, 1) are back in-zone. Re-navigated to Cart (Get.toNamed(RouteHelper.getCartRoute())).
+
+  flutter: [INFO] msg="cart restored with 2 items"
+  flutter: [NET] GET endpoint=/api/v1/stores/details/2
+  flutter: [NET] endpoint=/api/v1/stores/details/2 http_status=200      <- in-zone, succeeds
+  flutter: [NET] GET endpoint=/api/v1/items/suggested                   <- suggestions for store 2
+  flutter: [NET] endpoint=/api/v1/items/suggested http_status=200
+  flutter: [NET] GET endpoint=/api/v1/items/suggested                   <- suggestions for store 1
+  flutter: [NET] endpoint=/api/v1/items/suggested http_status=200
+
+Confirms: getStoreDetails resolves FIRST (200), suggestions calls for BOTH cartGroupsByStore
+entries fire strictly AFTER it resolves (sequential, matches the diff: previously
+getStoreDetails was fire-and-forget/concurrent with the suggestions call; now it's awaited
+first). Both stores' suggestions still fire when in-zone (no exclusion applied) -- content
+unaffected, only sequencing changed, as the QA Test Scope predicted. No visible added latency
+beyond one extra network round-trip serialized before the rail loads (not perceptible as a
+UX regression in this run).

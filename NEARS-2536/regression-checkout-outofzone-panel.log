@@ -1,0 +1,27 @@
+NEARS-2536 QA Test Scope item 3 — Checkout's own out-of-zone panel regression check
+
+Same live session (customer@nears.com, address switched to out-of-zone id=45), navigated to
+Checkout via Get.toNamed(RouteHelper.getCheckoutRoute('cart')) (the same call Cart's own
+"Proceed to Checkout" button makes).
+
+  flutter: [NET] GET endpoint=/api/v1/stores/details/2
+  flutter: [NET] endpoint=/api/v1/stores/details/2 http_status=403
+  flutter: [WARN] msg="store: details out of zone"
+  #0 StoreController.getStoreDetails (store_controller.dart:972:24)
+  #1 CheckoutController.initCheckoutData (checkout_controller.dart:470:14)   <- UNCHANGED by this diff
+  flutter: [FAIL] endpoint=/api/v1/stores/details/ http_status=403 type=ApiFailure
+           msg="store: details out of zone" correlation_id=ae54216b-8ea8-475c-abe2-0dffe7285ea7
+
+ui_list_ios (Checkout screen) labels:
+  Change Location
+  Checkout
+  Edit Cart
+  This store doesn't deliver to your area
+
+Confirms Checkout's NEARS-1025 in-place panel (title + "Change Location" primary CTA +
+"Edit Cart" secondary CTA) renders correctly -- NOT the infinite shimmer, NOT a raw snackbar
+-- and is untouched by the NEARS-2536 diff (checkout_controller.dart:465-476 unchanged,
+confirmed by stack trace: initCheckoutData is still the caller, at the same line 470).
+Screenshot channel: same stale/duplicate-PNG issue as the Cart capture (see
+ac1-cart-outofzone-live.log) -- not used as evidence. ui_list_ios labels above are the
+evidence of record for this screen's rendered state.
