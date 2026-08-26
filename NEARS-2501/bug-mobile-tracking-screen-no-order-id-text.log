@@ -1,0 +1,26 @@
+AC1 specifies verification "via the screen's own displayed order-id text" on OrderTrackingScreen.
+Live check (iPhone 17 Pro sim, phone form factor) found NO order-id text anywhere in the
+OrderTrackingScreen accessibility/semantics tree (ui_list_ios after navigating to
+/track-order?id=170 showed only: Back, Delivered, Delivery Partner, Delivery on the way,
+Delivery partner has not been assigned yet, Need help?, Order Confirmed, Order Placed,
+Order Summary, Preparing Item, Use my current location -- no "#170"/order-id string).
+
+Code read confirms why: UserApp/lib/features/order/widgets/order_info_widget.dart:156-172
+renders the '#${order.id}' Text widget ONLY inside an `if (isDesktop) [...]` branch:
+
+    isDesktop
+        ? Text('general_info'.tr, style: NearsText.subtitle)
+        : NSectionHeader(title: 'order_summary'.tr),
+    ...
+    if (isDesktop) ...[
+      Row(... Text(parcel ? 'delivery_id'.tr : 'order_id'.tr, ...), Text('#${order.id}', ...)),
+      ...
+    ]
+
+On a phone (isDesktop == false, the form factor AC1's "device"/live-demo implies), that whole
+block is skipped, so the mobile OrderTrackingScreen never displays the order id as text at all.
+This is PRE-EXISTING (order_info_widget.dart is untouched by NEARS-2501's diff) and unrelated
+to this ticket's fix -- filed as a regression_bug, does not block this ticket's verdict on its
+own, but it means AC1's literal verification method is unavailable on mobile; the underlying
+no-misroute behavior was instead verified via OrderController.trackModel.id state + the real
+backend network round trip for the exact requested order id (see ac1-source-discriminator.log).

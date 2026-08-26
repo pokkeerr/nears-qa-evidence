@@ -1,0 +1,22 @@
+Live device (iPhone 17 Pro sim, UserApp debug build off fix/NEARS-2501-order-track-id-race,
+real dev backend on 127.0.0.1:8000, customer@nears.com logged in via real AuthController.login()).
+3 repeated attempts, each = a real-code-path row-tap (OrderController.trackOrder) fired
+concurrently with a real-code-path background poll (OrderController.timerTrackOrder) of a
+DIFFERENT already-open order, one attempt preceded by a refresh (getRunningOrders) call.
+
+attempt 1: tapped=158 concurrently-polled=162 -> trackModel=158 isSuccess=true match=YES
+  flutter: [INFO] msg="trackOrder called for orderID=162 source=timerPoll"
+  flutter: [INFO] msg="trackOrder called for orderID=158 source=rowTap"
+
+attempt 2: tapped=165 concurrently-polled=169 -> trackModel=165 isSuccess=true match=YES
+  flutter: [INFO] msg="trackOrder called for orderID=169 source=timerPoll"
+  flutter: [INFO] msg="trackOrder called for orderID=165 source=rowTap"
+
+attempt 3 (right after a getRunningOrders refresh call): tapped=170 concurrently-polled=158 -> trackModel=170 isSuccess=true match=YES
+  flutter: [INFO] msg="trackOrder called for orderID=158 source=timerPoll"
+  flutter: [INFO] msg="trackOrder called for orderID=170 source=rowTap"
+
+Result: across all 3 attempts, the tapped order's id always ended up as
+OrderController.trackModel.id (no misroute), and the source discriminator correctly
+attributed 'rowTap' to the tap call and 'timerPoll' to the concurrent poll of the OTHER
+order, even when interleaved back-to-back. Full raw log: /tmp/ios_run_2501b.log (session-local).

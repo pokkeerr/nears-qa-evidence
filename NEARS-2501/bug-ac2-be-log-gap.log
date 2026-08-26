@@ -1,0 +1,32 @@
+NEARS-2501 AC2 ("Admin/storage/logs/laravel.log, grepped for the X-Request-Id of the
+tracking request fired at tap time, confirms the backend received a track request for
+the SAME order id") is UNVERIFIABLE against the current backend build: OrderController::
+track_order() (Admin/app/Http/Controllers/Api/V1/OrderController.php:48-94) has ZERO
+Log::/report() calls on its success path -- nothing writes an order-id-bearing (or any)
+line to laravel.log for a successful track request, regardless of X-Request-Id.
+
+Live proof (2026-08-26, backend on 127.0.0.1:8000, primary tree's Admin/storage/logs/laravel.log):
+
+$ TOKEN=<real Bearer token from POST /api/v1/auth/login for customer@nears.com>
+$ RID=2ae39cf3-d09a-4118-90ec-bf27bcc4d4c7   # valid UUIDv4, passes SetRequestId's strict check
+$ curl -s -D /tmp/hdrs.txt -o /tmp/body.json \
+    "http://127.0.0.1:8000/api/v1/customer/order/track?order_id=158" \
+    -H "Authorization: Bearer $TOKEN" -H "X-Request-Id: $RID"
+
+Response: HTTP/1.1 200 OK, X-Request-Id echoed back correctly as 2ae39cf3-d09a-4118-90ec-bf27bcc4d4c7,
+body correctly contains order 158's data ({"id":158,...,"order_status":"confirmed",...}).
+
+$ grep -F "2ae39cf3-d09a-4118-90ec-bf27bcc4d4c7" Admin/storage/logs/laravel.log
+(zero matches -- grep rc=1)
+
+The X-Request-Id round-trip mechanism itself works (SetRequestId middleware, NEARS-564).
+What's missing is any Log:: call inside track_order()'s success path to correlate against --
+so AC2 as literally worded cannot be demonstrated with the current backend code, independent
+of this ticket's own (Flutter-side-only) diff. This pre-dates NEARS-2501's change (the fix
+never touches Admin/app/Http/Controllers/Api/V1/OrderController.php) but blocks AC2 as written
+for THIS ticket, since AC2 IS one of the two reproduction/verification steps this ticket's own
+solution doc calls for.
+
+Needs a decision: add a Log::info() (with the allow-listed endpoint+order_id, PII-safe) to
+track_order()'s success path, OR amend AC2 to a different, currently-satisfiable correlation
+method.
