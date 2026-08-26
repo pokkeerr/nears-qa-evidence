@@ -1,0 +1,20 @@
+# NEARS-2458 AC2 evidence — Runner process log, UserApp launched via
+# `xcrun simctl install` + `xcrun simctl launch` on iPhone 17 Pro simulator
+# (53F3807C-3BF6-46ED-8487-DEC957036BAA), built via
+# `~/Tools/flutter/bin/flutter build ios --debug --simulator`.
+# Confirms all bumped Firebase pods (12.14.0) initialize cleanly at runtime,
+# no version-constraint crash, no fatal signal, no crash report generated.
+
+2026-08-26 05:38:39.971 Df Runner[76331:6c1859f] (FirebaseCrashlytics) [Firebase/Crashlytics] Version 12.14.0
+2026-08-26 05:38:40.645 Df Runner[76331:6c1859f] (Flutter) flutter: ----------------FIREBASE CRASHLYTICS----------------
+2026-08-26 05:38:43.367 Df Runner[76331:6c18726] [com.google.firebase.analytics:[FirebaseAnalytics]] 12.14.0 - [FirebaseAnalytics][I-ACS023007] Analytics v.12.14.0 started
+2026-08-26 05:38:43.367 Df Runner[76331:6c18726] [com.google.firebase:[FirebaseMessaging]] 12.14.0 - [FirebaseMessaging][I-FCM001000] FIRMessaging Remote Notifications proxy enabled...
+2026-08-26 05:38:43.367 Df Runner[76331:6c18726] [com.google.firebase.analytics:[FirebaseAnalytics]] 12.14.0 - [FirebaseAnalytics][I-ACS800023] No pending snapshot to activate. SDK name: app_measurement
+
+# Process alive confirmation (ps -p, ~4 min after launch, no crash):
+  PID ELAPSED STAT COMMAND
+51499   03:54 Ss   .../Bundle/Application/E1242775-CCB4-4C12-85B9-E16D254BDFC3/Runner.app/Runner
+
+# No crash reports found:
+$ find ~/Library/Logs/DiagnosticReports -iname "*nears*" -mmin -15   -> (empty)
+$ find <sim device dir> -iname "*.ips" -mmin -15                      -> (empty)

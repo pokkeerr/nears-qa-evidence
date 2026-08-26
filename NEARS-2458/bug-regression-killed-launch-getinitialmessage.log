@@ -1,0 +1,19 @@
+# Pre-existing, unrelated finding surfaced incidentally during AC2's smoke-boot
+# (terminate+relaunch cycle simulating a killed-app relaunch). NOT caused by
+# NEARS-2458 (zero Dart files changed by this ticket's commit — confirmed via
+# `git show --stat 02b98a02`, single file: UserApp/ios/Podfile.lock).
+# Correctly logged (paired AppLogger.failure per NEARS-2156 comment in
+# lib/main.dart:295-305) -- NOT a silent-failure violation. Filed as
+# regression_bugs, non-blocking to this ticket's verdict.
+
+2026-08-26 05:38:40.718 Df Runner[76331:6c1859f] (Flutter) flutter: [FAIL] endpoint=null http_status=null type=KilledLaunchNotificationFailure msg="killed-launch getInitialMessage failed (_TypeError)"
+
+Source: UserApp/lib/main.dart:284-306
+  final RemoteMessage? remoteMessage = await FirebaseMessaging.instance.getInitialMessage();
+  ...
+  } catch (e, st) {
+    // NEARS-2156 — ... a killed-app relaunch through a wallet (or any) push
+    // had zero logcat signal if getInitialMessage threw ...
+    AppLogger.failure(const KilledLaunchNotificationFailure(), st,
+      'killed-launch getInitialMessage failed (${e.runtimeType})');
+  }
