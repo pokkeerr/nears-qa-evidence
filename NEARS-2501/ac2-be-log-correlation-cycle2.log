@@ -1,0 +1,43 @@
+NEARS-2501 AC2 delta re-QA (fix cycle 2) — PASS
+Sub-task fixed: NEARS-2547 (commit c9084ecb)
+Worktree: /Users/Apple/Projects/nears-NEARS-2501-order-track-id-race
+Backend: existing worktree server, PID 21992, http://127.0.0.1:8095 (cwd verified = this worktree's Admin/)
+Date: 2026-08-26
+
+Method: direct authenticated HTTP request + laravel.log grep (no device needed, matches original AC2 method).
+
+1) Login (customer@nears.com, user id 6):
+POST /api/v1/auth/login {login_type: manual, field_type: email} -> 200, token obtained.
+
+2) Track request with fresh X-Request-Id (UUIDv4):
+GET /api/v1/customer/order/track?order_id=91128
+Header: X-Request-Id: 49e85f9b-8f76-4f08-b682-2e0e645c8da6
+Authorization: Bearer <token>
+
+Response: HTTP_STATUS:200
+Response header echoed: X-Request-Id: 49e85f9b-8f76-4f08-b682-2e0e645c8da6
+Response body (truncated): {"id":91128,"order_group_id":null,"user_id":6,"order_amount":12.25,...,"order_status":"canceled",...,"store_id":1,...}
+-> order id in response body (91128) matches the requested order_id (91128). Correct order.
+
+3) grep -F '49e85f9b-8f76-4f08-b682-2e0e645c8da6' Admin/storage/logs/laravel.log:
+
+[2026-08-26 20:52:26] production.WARNING: [WARN] track_order {"trace_id":"614d0649dd40937e886b83c718387d60","correlation_id":"49e85f9b-8f76-4f08-b682-2e0e645c8da6","order_id":91128}
+
+-> MATCH. [WARN] track_order line present, order_id=91128 == the requested/tapped order id,
+   correlation_id == the X-Request-Id sent on the request. Log line clears the deployed
+   LOG_LEVEL=warning floor (it's Log::warning, not the dropped Log::info from cycle-1's fix).
+
+4) PII spot-check: the matched line carries only trace_id (OTel), correlation_id, order_id.
+   No user_id, no email/phone/address/payload. Confirms the fix's own claim
+   ("Strengthened the test to ... assertStringNotContainsString('"user_id"', $log)").
+
+AC2 [api]: laravel.log grepped by X-Request-Id confirms backend received a track request
+for the SAME order id as tapped -> PASS.
+
+Note (non-blocking, unrelated to this ticket): the same log window also shows recurring
+[WARN]/[ERR] OTel export circuit-breaker / "OpenTelemetry export failed ... Failed to
+connect to localhost:5080" lines (430 occurrences across the file, first one at 19:21:04,
+well before this test ran at 20:52:26) -- pre-existing local-dev condition (no OTel
+collector bound on :5080 in this worktree), not caused by the NEARS-2547 fix and not
+scoped to the /order/track endpoint. Not filed as a regression_bug (clearly environmental,
+not a code defect) -- noted for completeness only.
