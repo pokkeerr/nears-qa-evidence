@@ -1,0 +1,58 @@
+# NEARS-2556 QA-lite — live app log excerpt, emulator-5560, UserApp worktree
+# nears-NEARS-2556-cart-modid-header, fix commit 9251820d
+# Sequence: login (customer@nears.com) -> Grocery module -> Cart (3 items) ->
+# Home -> Change Location -> select "Abu Dhabi - United Arab Emirates" (different
+# zone, fires address/list + zone re-resolve + module refetch) -> Basket tab.
+# identity-scoped module cache pref (cacheModuleId::u:6) confirmed ABSENT from
+# shared_prefs at time of test (grep of FlutterSharedPreferences.xml — no
+# cacheModuleId::u: key present), i.e. _resolveFreshCacheModuleId() == null,
+# the exact AC1 precondition.
+
+I/flutter ( 9089): [NET] GET endpoint=/api/v1/customer/address/list
+I/flutter ( 9089): [NET] endpoint=/api/v1/customer/address/list http_status=200
+I/flutter ( 9089): [NET] GET endpoint=/api/v1/config/get-zone-id
+I/flutter ( 9089): [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+I/flutter ( 9089): [INFO] msg="location: inZone=true"
+I/flutter ( 9089): [NET] GET endpoint=/api/v1/module
+I/flutter ( 9089): [NET] GET endpoint=/api/v1/customer/cart/list
+I/flutter ( 9089): [NET] endpoint=/api/v1/customer/cart/list http_status=200
+I/flutter ( 9089): [NET] endpoint=/api/v1/module http_status=200
+
+# RESULT: GET /api/v1/customer/cart/list -> 200, immediately following the
+# zone/address change. No [FAIL] line for endpoint=/api/v1/customer/cart/list
+# anywhere in the session (grep -n "cart/list" over the full qa-run log: 3
+# occurrences total across the session, all 200, zero 403s).
+#
+# Backend laravel.log cross-check (Admin/storage/logs/laravel.log) for
+# 2026-08-27: zero [FAIL] entries mentioning cart/list or moduleId for this
+# session's time window (07:0x-07:2x) — only pre-existing unrelated OTel
+# collector connection-refused noise (localhost:5080 not running in this dev
+# env), unrelated to this ticket, not filed (environmental, not code).
+
+# --- Direct API positive-control / fix-boundary check (not from the app UI;
+# curl against the same local backend, same account, to isolate exactly what
+# each header shape produces) ---
+# WITHOUT moduleId header (the fix's omission in the true double-null case):
+#   GET /api/v1/customer/cart/list -> HTTP 400
+#   body: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+#   Source: Admin/app/Http/Controllers/Api/V1/CartController.php:85-90
+#   (NEARS-771 guard, PRE-EXISTING and INTENTIONAL: ModuleCheckMiddleware
+#   excepts api/v1/customer* when the header is fully ABSENT, so this
+#   controller-level "fail closed" 400 is deliberate, not a defect surfaced by
+#   this ticket.)
+# WITH moduleId: null (the literal string — pre-fix bug reproduction, the
+# known-bad baseline from NEARS-2514's correlation_id
+# 6baaaae3-3569-4d4c-a374-2f6db805075b signature):
+#   GET /api/v1/customer/cart/list -> HTTP 403
+#   Source: Admin/app/Http/Middleware/ModuleCheckMiddleware.php:40-49
+#   ($value='null' is not numeric -> Module::where('slug','null') -> not
+#   found -> 403 "not_found" — this IS the historic 403 signature this ticket
+#   fixes.)
+#
+# Conclusion: the fix converts the failure mode from a confusing/wrong 403
+# (literal 'null' looked up as a slug) to either (a) 200 with real data, the
+# path actually exercised end-to-end live above, or (b) in the narrower
+# fully-null edge case, a clear, PRE-EXISTING, intentional 400 validation
+# error — never the old silent 403. AC1's core assertion ("no
+# [FAIL] endpoint=/api/v1/customer/cart/list http_status=403 line for that
+# request") holds in every path exercised.
