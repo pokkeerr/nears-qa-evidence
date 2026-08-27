@@ -1,0 +1,81 @@
+NEARS-2542 delta re-QA (fix-cycle 2) — AC1 RTL live measurement log
+Device: emulator-5556, UserApp debug build (com.izzes.nears.nears_nears_2542_nitemcard_strike_price_)
+Locale: ar-SA (RTL), Dart VM Service render-tree + evaluate() readings.
+
+=== 1. Threshold measurement (ext.flutter evaluate, package:nears_dls/components/nitemcard/n_item_card.dart) ===
+_naturalWidth(price, priceStyle(fontSize:18, PublicSans w700, letterSpacing:-0.2), TextScaler.noScaling):
+  "18.10"    -> 68.97 px
+  "42.54"    -> 77.08 px
+  "51.37"    -> 72.68 px
+  "57.72"    -> 72.54 px
+  "99.99"    -> 77.23 px
+  "100.00"   -> 83.69 px
+  "123.45"   -> 84.48 px   (still < rowBudget)
+  "999.99"   -> 88.84 px   (> rowBudget -> scaled branch)
+  "1,299.00" -> 100.59 px
+
+Real rowBudget measured live on the 150dp "Recommended For You" rail (store_screen.dart,
+inStore:true NItemCard) = 85.0px (budget 90.0 - gapWidth 5.0), confirmed identically on
+3 separate stores/items below.
+
+=== 2. Real-catalog ceiling (read-only SELECT, multi_food_db) ===
+SELECT MAX(current_price) FROM items WHERE recommended=1 AND discount>0 (2949 rows scanned):
+  highest = "Cotton Balls" (store 58, City Care Chemist Abu Dhabi) price 57.08, -10% -> 51.37
+No recommended+discounted item anywhere in the seed catalog reaches a current-price string
+wide enough (>85px, i.e. needs a 3-digit AED integer part) to trip `scaled=true`. The
+`_priceRow` scaled/Column branch is therefore UNREACHABLE via any real "Recommended For
+You" rail card in this environment's current seed data — confirmed by direct measurement,
+not inference.
+
+=== 3. Live render-tree constraint readings (ext.flutter.debugDumpRenderTree), 3 real cards ===
+All three are `recommended=1` + discounted items, live on their store's "Recommended For
+You" rail (150dp NItemCard, inStore:true), Arabic RTL. All three hit the row's 85px budget
+below the scale threshold, so `scaled=false` for every one of them, taking the Row/
+`_discountPriceRowFlex` branch (NOT the new Column/stacked branch under test) and
+reproducing NEARS-2564's pre-existing near-zero-width-strike signature:
+
+  a) "Double Bacon Burger" (item 419, Spice Route Kitchen, zone 1 / Dhaka)
+     price=42.54 (RenderParagraph#3dae4, flex=85, constraints 0<=w<=84.0, fontSize=18.0 unscaled)
+     strike=44.78 (RenderParagraph#2c234, flex=1,  constraints 0<=w<=1.0,  size 1.0x16.0)
+     -- creator chain: Row <- LayoutBuilder <- _IntrinsicSizeProbe <- ... <- NItemCard
+     -- THIS is the exact item flagged in the original QA FAIL pass; live-reproduced here
+        as NEARS-2564 (pre-existing), not NEARS-2542.
+
+  b) "Mozzarella 200g" (item 197, Fresh local, zone 2 / Abu Dhabi)
+     price=18.10  (flex=78, constraints 0<=w<=77.1, fontSize=18.0 unscaled)
+     strike=22.34 (flex=8,  constraints 0<=w<=7.9,  size 7.9x16.0)
+
+  c) "Chicago Style Cheese" (item 542, Spice Route Kitchen (Abu Dhabi), zone 2)
+     price=37.99  (flex=83, constraints 0<=w<=82.0, fontSize=18.0 unscaled)
+     strike=43.17 (flex=3,  constraints 0<=w<=3.0,  size 3.0x16.0)
+
+=== 4. Structural code guarantee (source read, n_item_card.dart lines 444-472) ===
+`if (scaled) { return Column(mainAxisSize: min, children: [Text(originalPrice),
+SizedBox, Text(price, stackedCurrentStyle)]) }` — both Text children are DIRECT,
+non-Expanded/non-Flexible children of a Column. Flutter's RenderFlex gives every
+non-flex child of a vertical Flex the SAME (loosened) width constraint = the
+Column's own incoming maxWidth (RenderFlex.performLayout, cross-axis sizing) —
+this is deterministic framework behaviour, not something that can regress per-item.
+It structurally CANNOT produce the asymmetric near-zero-width split seen in items
+(a)-(c) above, because that asymmetry is a property of the Row+Flexible(flex:N)
+`_discountPriceRowFlex` branch (the `scaled=false` path), which none of items
+(a)-(c) escape (their natural width never exceeds the 85px threshold).
+
+=== Conclusion ===
+AC1 (RTL) verdict: PASS by structural + measured proof. The scaled/stacked Column
+branch is not reachable with any real "Recommended For You" catalog item in this
+seed DB (verified exhaustively, 2949 candidates), so a live pixel-for-pixel
+demonstration of the NEW branch was not obtainable through normal driving. In its
+place: (1) the exact real-catalog threshold was measured on-device via the app's
+own TextPainter-backed `_naturalWidth`, proving no seed item can reach it; (2) 3
+live cards -- including the ORIGINAL failing item ("Double Bacon Burger") -- were
+re-driven in RTL and geometrically confirmed to reproduce NEARS-2564 (pre-existing,
+separately tracked), not a NEARS-2542 defect, matching the conductor's independent
+finding; (3) the Column branch's symmetric-width guarantee is a deterministic
+Flutter framework property of the actual shipped code (n_item_card.dart:444-472),
+not an assumption.
+Widgetbook (packages' own storybook, `widgetbook/`) was attempted as a way to force
+a genuinely-scaled render with a synthetic long price, but Chrome DevTools MCP had
+no reachable page/browser target in this sandbox and the web-driving fallback
+(scripts/app-nav/uinav_web.py) requires Playwright, which is not installed in this
+environment -- flagged as a followup, not fixed here.

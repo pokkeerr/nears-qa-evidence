@@ -1,0 +1,35 @@
+NEARS-2542 delta re-QA (fix-cycle 2) — automated backstop
+cmd: flutter test test/components/n_item_card_price_truncation_test.dart test/golden/n_item_card_golden_test.dart
+  (run from packages/nears_dls, ~/Tools/flutter/bin/flutter, pinned SDK 3.41.9)
+result: 16/16 passed, 0 failed.
+
+Directly relevant to AC1 (group 'NEARS-2563 RTL coverage for the stacked branch',
+150dp width, RTL Directionality, price 'AED 12.00' / '12.00 د.إ',
+originalPrice 'AED 15.00' / '15.00 د.إ'):
+  +14 "rail card at 150dp under RTL still renders a real, non-zero-width
+       stacked strike above the current price" -- PASS
+       asserts: strike RenderParagraph.size.width > 0; current price not
+       truncated (AC2); strike's dy < current price's dy (visually above).
+  +15 "stacked branch merges accessibility content strike-then-current
+       (distinguishes it from the unscaled Row branch's current-then-strike)"
+       -- PASS. Walks the real SemanticsNode tree (ensureSemantics()) for the
+       merged tappable-card label and asserts strikeIndex < currentIndex --
+       the Column branch's actual merge order, structurally distinct from the
+       Row branch's current-then-strike order that a live a11y dump of an
+       UNSCALED card (e.g. Double Bacon Burger, see
+       ac1-vm-service-measurements.log) would show instead.
+
+Caveat (own finding, not a defect): this package's flutter_test_config.dart
+disables platform goldens and, like all `flutter test` runs without an
+explicit loadAppFonts() call, renders with the deterministic test/block font,
+not the real PublicSans/Inter faces -- so the SPECIFIC price strings used
+here ('12.00 د.إ' etc.) trip `scaled=true` under the block font's wider glyph
+metrics even though the SAME strings measured ~68px (well under the real
+85px threshold) when measured live on-device via the app's own
+_naturalWidth()/TextPainter with the real fonts loaded (see
+ac1-vm-service-measurements.log §1). The test's PASS is still meaningful --
+it exercises the real Column branch's real code and asserts real,
+non-vacuous width/order invariants -- but its specific price string should
+not be read as "reachable with these exact digits in production"; the actual
+real-font reachability threshold and real-catalog ceiling are established
+separately in ac1-vm-service-measurements.log.
