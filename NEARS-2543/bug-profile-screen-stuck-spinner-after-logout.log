@@ -1,0 +1,39 @@
+Regression (PRE-EXISTING, unrelated to NEARS-2543 diff): logging out FROM the
+Profile screen (the only screen with the Logout button) leaves the screen
+stuck on an infinite CircularProgressIndicator instead of returning to a
+usable guest Profile view. Reproduced twice, with two different accounts
+(customer@nears.com and qa.singlestore@nears.com), on emulator-5558.
+
+Root cause (read, not just grepped): UserApp/lib/features/profile/screens/profile_screen.dart
+line ~92-101 — `bool isLoggedIn = AuthHelper.isLoggedIn();` is computed once
+in the OUTER State.build() and closed over inside
+`GetBuilder<ProfileController>(builder: (profileController) => (isLoggedIn &&
+profileController.userInfoModel == null) ? CircularProgressIndicator() : ...)`.
+MenuController.logout() -> ProfileController.clearUserInfo() nulls
+userInfoModel and calls update(), which rebuilds ONLY the inner GetBuilder —
+not the outer State.build() — so the closure's `isLoggedIn` stays stale=true
+from before logout while userInfoModel is now null, and the ternary shows the
+spinner forever (nothing re-fetches userInfo because the user is actually
+logged out). Confirmed by: pressing system Back exits the stuck screen to
+Home in a correct clean guest state; re-entering Profile fresh renders the
+correct "Guest User / Login" view immediately (proves the underlying
+clearSharedData()/logout data-clear is correct — only the ALREADY-MOUNTED
+Profile screen's own build fails to react).
+
+Evidence — flutter run log (UserApp), around each repro, shows the
+NEARS-2543 fix behaving correctly: the invalidation POST and the guest
+re-mint both land clean (no 401, no [FAIL], no refresh triggered):
+
+[NET] POST endpoint=/api/v1/customer/cm-firebase-token
+[INFO] msg="FCM registration id obtained"
+[NET] POST endpoint=/api/v1/auth/guest/request
+[NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200
+[NET] endpoint=/api/v1/auth/guest/request http_status=200
+
+No [FAIL]/[ERR] lines correlate with either repro. This is a UI-navigation
+bug in profile_screen.dart / menu_controller.dart — neither file is touched
+by the NEARS-2543 diff (UserApp/lib/api/api_client.dart +
+UserApp/lib/features/auth/domain/repositories/auth_repository.dart only) —
+so it predates this fix and is filed as a regression_bug, not a task_bug.
+Screenshot: bug-profile-screen-stuck-spinner-after-logout.png (device
+emulator-5558, light mode).
