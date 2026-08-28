@@ -1,0 +1,16 @@
+AC4 evidence: Android POST_NOTIFICATIONS permission dialog appeared on cold
+start of the patched build (emulator-5558, fresh install), was tapped
+"Allow" via ui_tap, and dumpsys confirms the grant -- proving
+requestNotificationsPermission() is still invoked on Android launch
+(if (GetPlatform.isAndroid) branch fires correctly), unchanged from
+pre-fix Android behavior. App then continued normally to onboarding
+(language select -> intro screen), no [FAIL]/[ERR]/crash in the log.
+
+--- ui_list dump before tap ---
+Allow
+Allow Nears to send you notifications?
+Don't allow
+
+--- dumpsys after tap ---
+android.permission.POST_NOTIFICATIONS
+  android.permission.POST_NOTIFICATIONS: granted=true, flags=[ USER_SET|USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]

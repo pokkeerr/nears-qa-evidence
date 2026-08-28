@@ -1,0 +1,34 @@
+Pre-existing (unrelated to NEARS-2545 diff) uncaught FirebaseException on iOS cold start,
+both PATCHED and UNPATCHED builds. Root cause: FirebaseMessaging.instance.subscribeToTopic()
+calls in auth_repository.dart / location_service.dart (untouched by this ticket's diff) hit
+_APNSTokenCheck() before an APNS token is available on this simulator, throwing an
+uncaught async FirebaseException surfaced via the app's own Crashlytics-block + AppLogger
+UncaughtAsyncError catch-all (NOT a silent swallow -- already logged via [FAIL]).
+The Flutter DevTools debugger and profiler on iPhone 17 Pro is available at: http://127.0.0.1:50887/sc_AHPhpjEw=/devtools/?uri=ws://127.0.0.1:50887/sc_AHPhpjEw=/ws
+flutter: [INFO] msg="location: within 1km of selected address: false"
+flutter: [INFO] msg="splash: location prefetch completed"
+flutter: [INFO] msg="splash: deeplink resolved canRoute=true"
+flutter: [INFO] msg="splash: routing"
+flutter: [NET] GET endpoint=/api/v1/config/get-zone-id
+flutter: [NET] GET endpoint=/api/v1/module
+flutter: [NET] GET endpoint=/api/v1/config
+flutter: [NET] POST endpoint=/api/v1/customer/cm-firebase-token
+flutter: ----------------FIREBASE CRASHLYTICS----------------
+flutter: The following exception was thrown uncaught async error (FirebaseException):
+flutter: UncaughtAsyncError
+flutter: 
+#0      MethodChannelFirebaseMessaging._APNSTokenCheck (package:firebase_messaging_platform_interface/src/method_channel/method_channel_messaging.dart:138:9)
+<asynchronous suspension>
+#1      MethodChannelFirebaseMessaging.subscribeToTopic (package:firebase_messaging_platform_interface/src/method_channel/method_channel_messaging.dart:364:5)
+<asynchronous suspension>
+flutter: ----------------------------------------------------
+flutter: [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (FirebaseException)"
+flutter: ----------------FIREBASE CRASHLYTICS----------------
+flutter: The following exception was thrown uncaught async error (FirebaseException):
+flutter: [firebase_messaging/apns-token-not-set] APNS token has not been received on the device yet. Please ensure the APNS token is available before calling `getAPNSToken()`.
+flutter: 
+#0      MethodChannelFirebaseMessaging._APNSTokenCheck (package:firebase_messaging_platform_interface/src/method_channel/method_channel_messaging.dart:138:9)
+<asynchronous suspension>
+#1      MethodChannelFirebaseMessaging.subscribeToTopic (package:firebase_messaging_platform_interface/src/method_channel/method_channel_messaging.dart:364:5)
+<asynchronous suspension>
+flutter: ----------------------------------------------------
