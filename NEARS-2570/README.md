@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2570
 
-**PASS — cross-store search item rows on NItemCard(row), tap-through/sort/empty/error/disabled all demonstrated live**
+**verify**
 
 **7 screenshot(s).** Click any thumbnail for full resolution.
 
