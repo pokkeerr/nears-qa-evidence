@@ -1,0 +1,9 @@
+08-29 04:50:46.591 11267 11267 I flutter : [FAIL] endpoint=/api/v1/stores/details/ http_status=403 type=ApiFailure msg="store: details out of zone" correlation_id=f17c8076-1807-4191-8d1a-ae9454ecb26e
+
+Context: observed during regression sweep of NEARS-2554 (saveUserToken happens-before fix).
+Triggered while browsing the Grocery & Food module and adding "Dish Soap 500ml" to cart
+as logged-in user james.wilson@demo.com on emulator-5556. Did not visibly break the UI —
+store page rendered, add-to-cart succeeded, cart screen rendered correctly with the item.
+Likely a background store-details prefetch for a store outside the account's current zone.
+Unrelated to NEARS-2554's scope (auth_service.dart / verification_service.dart await ordering) —
+zone/store-details logic is untouched by this diff.
