@@ -1,0 +1,59 @@
+NEARS-2096 delta re-QA cycle 2 — AC2 live focus-state timeline
+Surface: widgetbook/ (flutter build web --release, served python3 -m http.server
+8934, headless Chromium via Playwright, /usr/bin/python3). Semantics enabled via
+enable_flutter_semantics(). Signal: document.activeElement (tag/aria-label/role),
+read live in-session with mcp devtools-equivalent Playwright script (see
+scratchpad qa_repro.py / qa_repro2.py, reproduced below verbatim from the actual
+run output).
+
+== Run 1 — collapse-to-idle-root, then self-heal (no Tab press) ==
+fresh mount:                              {tag: FLT-SEMANTICS, aria: 'I agree to the terms', role: checkbox}
+after click into Search field (238,20,..): {tag: FLT-SEMANTICS, aria: 'I agree to the terms', role: checkbox}  (unchanged; click missed the field's live hit-test region)
++1.5s (steal-back guard idle window):      {tag: FLT-SEMANTICS, aria: 'I agree to the terms', role: checkbox}
+immediately after clicking the search box's clear ("x") icon (own focusNode.unfocus() call -- the
+only unfocus() in the widgetbook package dependency tree outside this fixture's own code):
+                                            {tag: FLUTTER-VIEW, aria: null, role: null}   <-- primaryFocus context genuinely idle (no widget claims it)
++100ms:                                    {tag: FLT-SEMANTICS, aria: 'I agree to the terms', role: checkbox}  <-- RECLAIMED, no Tab press
++300ms / +600ms / +1200ms:                 unchanged, stable on the checkbox
+
+== Run 2 (same session, different starting focus) — guard check + repeat collapse ==
+fresh mount:                               checkbox focused
+click "Addons" tab (a REAL, different focusable widgetbook control, confirmed
+reachable via keyboard Tab traversal earlier this session):
+                                            {aria: 'Addons', role: tab}
++300ms / +800ms / +1500ms / +2500ms:       STAYS on Addons — the fixture does NOT
+                                            steal focus back from a legitimately
+                                            focused sibling control (guard:
+                                            primaryFocus?.context == null only)
+click search-box clear icon again (repeat collapse, this time starting from
+Addons instead of idle):
+  immediately:                             {aria: 'Addons', role: tab}  (race window, not yet processed)
+  +80ms:                                   {aria: 'I agree to the terms', role: checkbox}  <-- RECLAIMED again
+  +150ms / +300ms / +600ms:                stable on the checkbox
+
+== Interpretation ==
+Directly observes, live, the exact mechanism named in fix commit 1925636a3: a
+collapse to a contextless idle focus state self-heals onto the fixture's own
+checkbox within ~100ms, with ZERO Tab presses, from two different starting
+states — and a legitimately-focused sibling control (Addons tab) is never
+stolen from. This is the live counterpart of the pinned automated test
+(widgetbook/test/n_checkbox_stories_test.dart, "reclaims focus after the
+app-wide focus tree goes idle, without a Tab press").
+
+== Known methodology caveat (not a product defect) ==
+The visual mint InkWell.focusColor overlay (alpha .12) did NOT render as
+detectable pixels in this headless/semantics-driven test session, on EITHER
+the fresh-mount focus or the post-reclaim focus. Root cause (confirmed by
+reading the Flutter SDK source, ink_well.dart:1148 + focus_manager.dart's
+`handleSemanticsAction`): on web, ANY SemanticsAction.focus/tap (i.e. every
+click routed through the accessibility-tree proxy, which is how this test
+navigated/interacted) resets FocusManager.instance.highlightMode to `touch`,
+and InkWell only paints focusColor when highlightMode == `traditional`
+(keyboard). A real end user pressing a physical Tab key (no intervening
+semantics-proxy click) would see the ring normally. This is a pre-existing
+Flutter Web framework characteristic, orthogonal to this ticket's fix, and
+affects PIXEL-based verification methodology only — not the underlying
+focus-state correctness demonstrated above, and not the AC's own repro
+mechanism (which is about focus RETURNING, not about the touch/keyboard
+highlight heuristic). Flagged as a followup for future widgetbook visual QA
+tooling, not a task_bug or regression_bug against this fix.
