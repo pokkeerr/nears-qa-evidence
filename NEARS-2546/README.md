@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2546
 
-**PASS: !_debugLocked reproduced via real single-gesture back+Yes on Store Registration desktop-width branch**
+**PASS delta cycle 1: fix confirmed — 0/7 desktop-branch reentrancy (was 6/6 pre-fix), 3/3 mobile-branch clean, guard does not over-block legit dialog**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -14,6 +14,7 @@
 
 ### Other artifacts
 - [`bug-storereg-desktop-back-reentrancy.log`](bug-storereg-desktop-back-reentrancy.log)
+- [`fix-verification-delta-cycle1.md`](fix-verification-delta-cycle1.md)
 - [`repro-attempt-log.md`](repro-attempt-log.md)
 
 ---
