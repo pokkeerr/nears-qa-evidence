@@ -1,0 +1,19 @@
+# AC2 falsifiability check: n_active_order_banner_test.dart
+# temporarily mutated ONLY the assertion's expected string to the
+# digit-reversed value ('٥٤ دقيقة' instead of '٤٥ دقيقة') while leaving the
+# component's actual input etaLabel unchanged, to prove the find.text(...)
+# assertion is a real (non-vacuous) check. Reverted immediately after.
+
+$ flutter test test/components/n_active_order_banner_test.dart --plain-name "multi-digit" --reporter expanded
+(with assertion mutated to expect '٥٤ دقيقة')
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "٥٤ دقيقة": []>
+   Which: means none were found but one was expected
+00:00 +0 -1: NActiveOrderBanner — RTL a multi-digit Arabic-Indic ETA keeps LTR digit order [E]
+Test failed. See exception logs above.
+00:00 +0 -1: Some tests failed.
+
+# reverted (git diff clean), re-ran — GREEN:
+00:00 +0: NActiveOrderBanner — RTL a multi-digit Arabic-Indic ETA keeps LTR digit order
+00:00 +1: All tests passed!
