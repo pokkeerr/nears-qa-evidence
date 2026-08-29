@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2565
 
-**QA FAIL (corroborating) - AC1 non-discount price truncates in English/LTR, commit 7b10f1af8**
+**FAIL - independent 3rd-session corroboration: AC1 non-discount truncates on true 150dp Recommended-For-You rail (Lip Balm 56.69 AED); AC2 discount branch clean on this pass (Blood Pressure Monitor stacked correctly)**
 
 **25 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -49,6 +49,9 @@
 <td align="center" width="33%"><a href="regression-trending-nearby-rtl.png"><img src="regression-trending-nearby-rtl.png" width="240"></a><br><sub>regression trending nearby rtl</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`progress.md`](progress.md)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-2565/` · public-repo scrub policy (no live secrets; verified clean).*
