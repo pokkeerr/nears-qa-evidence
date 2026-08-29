@@ -1,0 +1,53 @@
+NEARS-1565 delta re-QA — cycle 2 — verifying NEARS-2610's fix
+HEAD f6ebfe8b23350021e388bc0f48a439a652cccd53 (delta on top of cycle-1 HEAD 4f879ab6a)
+
+1) Diff scope confirmed registry-only:
+   git show f6ebfe8b2 --stat
+     packages/nears_dls/catalog.yaml                                        | 1 +
+     packages/nears_dls/lib/components/nmodulerow/n_module_row.catalog.yaml | 2 +-
+   No widgetbook app-code file (n_module_row_stories.dart, main.directories.g.dart)
+   touched — confirms the packet's premise that AC1-3 app behaviour cannot have
+   regressed from this commit.
+
+2) Exact-string cross-check (sidecar / generated catalog / live @UseCase source):
+   - widgetbook/lib/components/n_module_row_stories.dart:248
+       @widgetbook.UseCase(name: 'Sliver host — floating & pinned', type: NModuleRow)
+   - packages/nears_dls/lib/components/nmodulerow/n_module_row.catalog.yaml:30
+       use_cases: [Playground, Gallery, "Unresolved — loading and failed",
+                   "Sliver host — floating & pinned"]
+   - packages/nears_dls/catalog.yaml (generated, NModuleRow.widgetbook block)
+       "Sliver host — floating & pinned": "?path=components/nmodulerow/nmodulerow/sliver-host-—-floating-&-pinned"
+   All three strings match character-for-character (em dash U+2014, ampersand,
+   spacing). Manually re-derived the generator's own slug fn (_slug: lowercase +
+   spaces->'-', tool/generate_catalog.dart:185-195) against the use-case name and
+   it produces exactly "sliver-host-—-floating-&-pinned" — matches the committed
+   deep-link. This is the same path cycle-1 already proved live/routable (see
+   bug-catalog-sidecar-missing-sliver-host-usecase.log lines 26-33: nav-tree tap +
+   corrected/percent-encoded deep-link landed on the exact "Modules — floating" /
+   "Modules — pinned" semantics).
+
+3) Regression check — generate_catalog_test.dart, NModuleRow scope only:
+   `flutter test test/tool/generate_catalog_test.dart` from packages/nears_dls:
+   +9 -2 (7 pass unaffected, 2 fail). Both failures are the PRE-EXISTING,
+   already-ticketed NEARS-2611 items:
+     - "byte-identical to a fresh render": diff is in NButton's props list
+       (gains labelFontWeight) — NOT in the NModuleRow block, which renders
+       identically on both sides of the diff in the test's own [E] excerpt.
+     - "carries the real per-component axes": extra map key 'NItemCard' in
+       Actual vs Expected — NModuleRow: ['tile'] is present and IDENTICAL in
+       both Expected and Actual maps.
+   No NModuleRow-specific test failure introduced by the NEARS-2610 fix.
+
+4) Live browser confirm attempted, not available this session:
+   Booted `flutter run -d web-server --web-port=8734` from widgetbook/ —
+   server came up clean ("lib/main.dart is being served at http://localhost:8734",
+   curl -> 200). Chrome DevTools MCP (navigate_page/take_snapshot/
+   list_network_requests) returned "No page found" for every call — no browser
+   instance available in this session (tooling gap, not a product defect).
+   Server torn down after the attempt. Given (1)-(3) above — zero app-code
+   delta since cycle-1's live PASS, and byte-exact match between the live
+   @UseCase source and the now-fixed registry — AC4 is verified by static/
+   build-level cross-check rather than a fresh click-through this cycle.
+
+Verdict: AC4 holds at new HEAD. NEARS-2610's fix lands correctly (exact string
+match, correct slug, no regression in the NModuleRow catalog-test coverage).

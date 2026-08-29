@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1565
 
-**PASS — NModuleRow sliver-host use case (Widgetbook), floating+pinned demonstrated live, no hardcoded height**
+**PASS — delta cycle 2: NEARS-2610 fix verified, catalog sidecar registers Sliver host use case correctly, no regression**
 
 **8 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -24,6 +24,7 @@
 ### Other artifacts
 - [`bug-catalog-sidecar-missing-sliver-host-usecase.log`](bug-catalog-sidecar-missing-sliver-host-usecase.log)
 - [`bug-regression-catalog-generator-drift.log`](bug-regression-catalog-generator-drift.log)
+- [`cycle2-delta-verify-2610-fix.log`](cycle2-delta-verify-2610-fix.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1565/` · public-repo scrub policy (no live secrets; verified clean).*
