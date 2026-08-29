@@ -1,0 +1,23 @@
+UserApp/lib/features/item/widgets/delivery_eta_pill_widget.dart defines
+`DeliveryEtaPillWidget` (an NBadge wrapper). grep across UserApp/lib for its
+class name found ZERO consumers:
+
+  $ grep -rln "DeliveryEtaPillWidget" UserApp/lib/
+  UserApp/lib/features/item/widgets/delivery_eta_pill_widget.dart   <- only the definition itself
+
+git log confirms the file predates NEARS-1538 (created in an earlier reskin
+wave, e.g. commit 3441f1736 "feat(ui): apply DLS to Product Detail [Wave 6]"
+/ 853cfcba5 "screens: per-feature modern redesign") — this dead-code state is
+PRE-EXISTING, not introduced by the NEARS-1538 diff, which only added a
+`semanticLabel:` line to the existing (already-dead) call site.
+
+Effect on this QA run: AC2's sample site #2 ("delivery_eta_pill_widget.dart —
+THE most important spot-check") could not be demonstrated LIVE on-device — the
+widget is never mounted on any reachable screen (confirmed by driving the real
+Item Detail sheet for multiple items; no "15 MIN DELIVERY" / ETA-delivery pill
+ever appears). Verified STATICALLY instead: the semanticLabel is correctly
+hand-authored and non-verbatim —
+  semanticLabel: etaText != null ? '$etaText delivery' : '15 minute delivery'
+— which is exactly the natural-case, non-shouty wording the ticket calls for,
+so the CODE CHANGE itself is correct; only its live reachability is in
+question, and that reachability gap predates this ticket.

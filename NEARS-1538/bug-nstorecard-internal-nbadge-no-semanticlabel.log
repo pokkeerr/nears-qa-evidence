@@ -1,0 +1,27 @@
+LIVE finding (emulator-5564, Home > Grocery module, "Abu Dhabi Fresh Market" /
+"Fast Market" store cards rendered via StoreCardWithDistance._buildRecommended
+-> NStoreCard):
+
+  content-desc="Abu Dhabi Fresh Market&#10;Al Wahda Mall, Abu Dhabi&#10;30-60&#10;3.45 KM FROM YOU&#10;CLOSED"
+
+The trailing "CLOSED" segment is ALL-CAPS in the accessibility content-desc —
+unlike every NBadge site the NEARS-1538 diff touched (which correctly expose
+a natural-case semanticLabel, e.g. "-30% Off" / "Live" / "In your building" /
+"New", confirmed in the same session on the same screens).
+
+Root cause: `packages/nears_dls/lib/components/nstorecard/n_store_card.dart`
+renders its own internal `NBadge(label: closedLabel!, ...)` (plus rating/eta/
+distance-chip NBadges) WITHOUT passing `semanticLabel` — grep confirms no
+`semanticLabel:` argument alongside any of the ~10 internal `NBadge(` call
+sites in that file (only `super.semanticLabel`, NStoreCard's OWN prop, which
+`store_card_with_distance.dart` never sets).
+
+Scope: the NEARS-1538 diff and its own architecture-guard test
+(test/architecture/nbadge_semantic_label_test.dart) both explicitly scan only
+`UserApp/lib/` — `packages/nears_dls/` is a separate package and was never in
+scope. This is PRE-EXISTING (n_store_card.dart is untouched by this diff), so
+it does not fail NEARS-1538's own ACs, but it is the SAME underlying a11y
+defect (letter-by-letter/shouty announcement of an uppercase-rendered NBadge
+tag) surfacing on live, reachable, high-traffic store cards (Home feed) that
+this ticket's premise exists to fix. Flagged as a regression-candidate
+followup, not a task_bug of this ticket.

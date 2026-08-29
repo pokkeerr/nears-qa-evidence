@@ -1,0 +1,18 @@
+08-29 16:54:26.581 14905 14905 I flutter : ----------------FIREBASE CRASHLYTICS----------------
+08-29 16:54:26.581 14905 14905 I flutter : The following exception was thrown uncaught async error (_AssertionError):
+08-29 16:54:26.581 14905 14905 I flutter : UncaughtAsyncError
+08-29 16:54:26.581 14905 14905 I flutter : #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:67:4)
+08-29 16:54:26.581 14905 14905 I flutter : #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:49:5)
+08-29 16:54:26.581 14905 14905 I flutter : #2      new LatLngBounds (package:google_maps_flutter_platform_interface/src/types/location.dart:76:14)
+08-29 16:54:26.581 14905 14905 I flutter : #3      MapScreenState._setMarker (package:sixam_mart/features/location/screens/map_screen.dart:276:18)
+08-29 16:54:26.581 14905 14905 I flutter : <asynchronous suspension>
+08-29 16:54:26.595 14905 14905 I flutter : [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (_AssertionError)"
+08-29 16:54:26.597 14905 14905 I flutter : 'package:google_maps_flutter_platform_interface/src/types/location.dart': Failed assertion: line 76 pos 14: 'southwest.latitude <= northeast.latitude': is not true.
+
+Repro: logged in as customer@nears.com (user_id 6), Profile > My Address > tap the
+"Abu Dhabi - United Arab Emirates" (tower "Marina Heights") saved address to open its
+map/edit view. MapScreenState._setMarker builds a LatLngBounds whose southwest.latitude
+exceeds northeast.latitude for this address's stored lat/lng, throwing an uncaught async
+assertion (caught + logged via the AppLogger [FAIL] contract, not a silent failure).
+map_screen.dart is untouched by the NEARS-1538 diff (semanticLabel-only NBadge change) —
+pre-existing, unrelated to this ticket.

@@ -1,0 +1,55 @@
+NEARS-1538 AC2 — live uiautomator dump content-desc excerpts (emulator-5564,
+build com.izzes.nears.nears_nears_1538_nbadge_semantic_label). content-desc is
+what TalkBack composes its utterance from (Flutter's semanticsLabel -> Android
+AccessibilityNodeInfo.contentDescription); confirmed via the same method as
+the nav guide's own §5.10 bottom-nav a11y recipe.
+
+1) your_tower_view.dart ("In your building" + ETA pill), Home > Grocery,
+   tower-linked address (customer@nears.com / Marina Heights, zone 2):
+   content-desc="Test Store&#10;In your building&#10;1-15 min"
+   -> natural case "In your building", NOT "I N Y O U R B U I L D I N G",
+      NOT verbatim any-shout form. Visible glyph confirmed still ALL-CAPS
+      "IN YOUR BUILDING" via home/tower-view-badges.png screenshot.
+
+2) item_widget.dart discount pill + Live/NEW badges, Home Flash Sale rail:
+   content-desc="...&#10;Flash Sale&#10;Limited Time Offer&#10;Live&#10;See All"
+   content-desc="-17% Off&#10;Dish Soap 500ml&#10;..."
+   content-desc="-30% Off&#10;Organic&#10;Navel Oranges&#10;..."
+   -> "Live" (not "L I V E", not shouty "LIVE"), "Off" (not "O F F", not
+      shouty "% OFF"), "Organic" natural case. Visible glyphs confirmed
+      still "LIMITED TIME OFFER" / "LIVE" / "ORGANIC" / "-17%" ALL-CAPS via
+      home-badges.png screenshot.
+
+3) store_card_with_distance.dart "NEW" badge + rating pill, Home store rail:
+   content-desc(store card)="...&#10;NEW"  (merged card semantics list
+   showed "NEW" x4 across visible store cards during the session)
+   -> matches semanticLabel: 'New'.tr = "New" (natural case), rendered
+      visibly as "NEW" (label: 'new'.tr = "NEW", uppercase() no-ops).
+
+4) cart_item_widget.dart unit-type pill, Basket screen (Carrots line item):
+   content-desc="Carrots&#10;kg&#10;1 kg&#10;(AED 1.66)&#10;(AED 1.80)&#10;1"
+   -> semanticLabel wired through (unitType "kg" passed as both label and
+      semanticLabel; visual render uppercases to "KG").
+
+5) coupon_section.dart "Coupon Applied" pill, Checkout (NEARS10 coupon applied
+   live against a real seeded cart, discount_type=percent):
+   content-desc="Coupon Applied"
+   -> semanticLabel: 'coupon_applied'.tr = "Coupon Applied" (natural case),
+      visible glyph renders "COUPON APPLIED" uppercase (unchanged).
+   (bottom_section.dart's free/free_delivery NBadge sites could not be
+   reached live — no $0-delivery-fee or free_delivery-type coupon exists in
+   the local seed data; NEARS10/WELCOME5 are both non-free-delivery. Verified
+   statically instead: semanticLabel: 'free_delivery'.tr / 'free'.tr, both
+   correctly wired, same pattern as every confirmed live site.)
+
+6) delivery_eta_pill_widget.dart — NOT LIVE-REACHABLE. See
+   bug-delivery-eta-pill-unreachable.log. Verified statically only.
+
+7) Arabic (RTL) locale spot-check, same Home screen, language switched
+   Settings > Language > عربى > تحديث:
+   content-desc="متجر الاختبار&#10;في مبناك&#10;1-15 min"          (tower badge)
+   content-desc="بيع فلاش&#10;عرض لفترة محدودة&#10;مباشر&#10;رؤية الكل"  (Live badge)
+   content-desc="-17% عن&#10;Dish Soap 500ml&#10;..."                (Off pill)
+   -> "في مبناك" ("in your building"), "مباشر" ("live"), "عن" (the NEW
+      additive translation key this ticket adds) all genuinely Arabic — zero
+      English-string leak in the announced label.
