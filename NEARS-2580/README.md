@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2580
 
-**FAIL — AC1 blocked by live Map.forEach crash on genuine-zero-methods; AC2/AC3/AC4/RTL demonstrated live and clean**
+**FAIL - AC1 blocked by live Map.forEach crash on genuine-zero-methods; AC2/AC3/AC4/RTL demonstrated live and clean; 1 pre-existing regression logged**
 
 **7 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -22,6 +22,7 @@
 
 ### Other artifacts
 - [`bug-empty-methods-map-forEach-crash.log`](bug-empty-methods-map-forEach-crash.log)
+- [`bug-payment-section-row-overflow.log`](bug-payment-section-row-overflow.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-2580/` · public-repo scrub policy (no live secrets; verified clean).*
