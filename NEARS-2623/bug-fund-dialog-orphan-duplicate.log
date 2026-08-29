@@ -1,0 +1,42 @@
+NEARS-2623 QA — regression-candidate found during regression sweep (pre-existing, unrelated to this diff)
+Device: emulator-5554 (Pixel 10 Pro AVD, sdk_gphone16k_arm64), UserApp worktree fix/NEARS-2623-payment-webview-exit-dialog-route
+Package: com.izzes.nears.nears_nears_2623_payment_webview_exit_di
+
+Repro (live, this session):
+1. Logged in as customer@nears.com. Profile -> Wallet -> Add Fund -> amount "50" -> select "Paypal, not selected" -> tap "Add Fund" (submit).
+2. Native InAppBrowserActivity opens (com.pichillilorenzo.flutter_inappwebview_android...) atop the Flutter PaymentScreen — confirmed via:
+     adb shell dumpsys activity activities | grep -i ResumedActivity
+   -> topResumedActivity=...InAppBrowserActivity...
+3. Pressed system back (adb shell input keyevent 4) to close the browser. dumpsys now shows MainActivity resumed (Flutter PaymentScreen, AppBar title "Payment").
+4. Tapped the AppBar's "Back" arrow (content-desc "Back") -> triggers PaymentScreenState._exitApp().
+   ui_list dump immediately after:
+     Cancel Add Fund
+     Dismiss
+     Do you want to cancel this add fund?
+   (FundPaymentDialogWidget, correct copy — matches this ticket's AND-logic parity check.)
+5. Tapped "Cancel Add Fund" ONCE. ui_list dump immediately after — UNCHANGED, same 3 nodes:
+     Cancel Add Fund
+     Dismiss
+     Do you want to cancel this add fund?
+   (No navigation occurred; dialog reads as still on-screen with identical content.)
+   userapp-run.log gained exactly 1 new line in this window (an unrelated Firebase Analytics
+   warning "E/FA: Missing google_app_id..."), no [NET] POST order/cancel line, no [ERR]/[FAIL].
+6. Tapped "Cancel Add Fund" a SECOND time (same coordinates via ui_tap "Cancel Add Fund").
+   ui_list dump immediately after landed on the PROFILE screen (2 navigation levels back from
+   Wallet, e.g. "ACCOUNT SETTINGS", "Wallet ⁦0.09 AED⁩", "Logout" etc. visible) — i.e. it skipped
+   past the Wallet screen entirely, which a single clean Get.back(); Get.back(); (dialog + payment
+   screen) should have landed on.
+
+Assessment: matches an already-documented, previously LOW-CONFIDENCE / unconfirmed note in
+docs/apps/userapp/userapp-navigation-guide.md ("Payment screen entry via Wallet Add Fund",
+NEARS-2190/2346 QA, 2026-08-19): "exiting via the NAppBar's *unguarded* app-bar back arrow
+followed by a tap of the dialog's own Cancel button occasionally left an orphaned duplicate
+dialog stuck on top of the Wallet screen one level down, needing a second Cancel/barrier tap to
+fully clear." This live repro reproduces that exact symptom shape (first tap absorbed/no-op,
+second tap needed, and the eventual landing screen is one level further back than expected),
+raising it from "low confidence, not reproduced" to reproduced-once this session.
+
+Scope: this dialog-orchestration logic lives in payment_screen.dart / payment_back_guard.dart —
+BOTH untouched by NEARS-2623's diff (which only edits payment_webview_screen.dart's _exitApp()
+condition). Non-blocking to NEARS-2623's verdict; filed as a regression-candidate per QA process
+(unrelated pre-existing issue), not a task_bug of this ticket.

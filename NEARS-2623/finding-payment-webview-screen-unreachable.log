@@ -1,0 +1,51 @@
+NEARS-2623 QA — structural finding: PaymentWebViewScreen (the file this ticket's fix targets)
+is unreachable via ANY live navigation path in this build, pre-existing/unrelated to this diff.
+
+Source (UserApp/lib/helper/route_helper.dart, 'payment' GetPage, unconditional at the single
+definition site — same regardless of entry point / deep link):
+    return getRoute(
+      AppConstants.payInWevView
+          ? PaymentWebViewScreen(...)
+          : PaymentScreen(...),
+    );
+
+UserApp/lib/util/app_constants.dart:
+    static const bool payInWevView = false;   // hardcoded compile-time const, no --dart-define
+                                               // override exists for this flag (unlike useHttps/
+                                               // prodHost/API_HOST on the same file). `git log -p`
+                                               // shows this literal has always been `false` back
+                                               // through the visible history (never toggled true).
+
+grep -rn "PaymentWebViewScreen(" UserApp/lib/ confirms the ONLY construction site besides the
+class itself is this one route_helper.dart ternary — no other call site, no platform/kIsWeb
+branch, no remote-config/feature-flag path.
+
+Live re-confirmation (this session, emulator-5554, worktree fix/NEARS-2623-...):
+Drove exactly the flow named in the ticket brief — Wallet -> Add Fund -> amount -> Paypal ->
+submit -> `adb shell dumpsys activity activities | grep ResumedActivity`:
+    topResumedActivity=...InAppBrowserActivity...   (native gateway browser)
+  after closing it (system back):
+    topResumedActivity=...MainActivity              (Flutter underneath)
+  ui_list on the underlying Flutter screen shows AppBar title "Payment" (payment_screen.dart's
+  NAppBar(title: 'payment'.tr, ...) — PaymentWebViewScreen's AppBar title is '' (empty), so the
+  visible "Payment" title is itself proof it's PaymentScreen, not PaymentWebViewScreen.
+
+This independently reproduces a pre-existing note already in
+docs/apps/userapp/userapp-navigation-guide.md ("Payment screen entry via Wallet Add Fund",
+NEARS-2190/2346 QA, verified live cycle 3, 2026-08-19 — BEFORE this ticket existed): "Submitting
+opens a separate Android InAppBrowserActivity..., not the Flutter PaymentScreen itself" /
+"a back-press hitting the *browser* Activity is consumed by it ... landing on the Flutter
+MainActivity/PaymentScreen underneath" — i.e. PaymentScreen, never PaymentWebViewScreen, has been
+the live screen for this flow since before NEARS-2623.
+
+Consequence for this QA pass: AC1/AC2/AC3 (all target PaymentWebViewScreen._exitApp() by name)
+cannot be demonstrated via live app navigation in this build — the fixed file is not on any
+reachable code path. The fix's correctness was instead verified by (a) direct source comparison
+against the already-correct, already-live sibling payment_screen.dart's identical AND-logic, and
+(b) the automated widget test suite (test/features/payment/payment_webview_exit_dialog_routing_test.dart,
+3/3 passing) which constructs PaymentWebViewScreen directly via GetMaterialApp(home: ...),
+bypassing routing entirely — the only way to reach this widget at all today.
+
+Not filed as a task_bug (this const/gating is untouched by NEARS-2623's diff, and "PaymentWebViewScreen
+is currently dead code" is a pre-existing condition, not a defect introduced by this ticket) — flagged
+in the QA envelope's drift[]/summary for conductor/PO visibility instead.
