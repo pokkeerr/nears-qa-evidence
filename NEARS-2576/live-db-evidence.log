@@ -1,0 +1,33 @@
+NEARS-2576 QA — live DB evidence (read-only SELECTs), emulator-5564, user_id=409 (qa.singlestore@nears.com, zone 3)
+
+Order 91141 — placed via real checkout, digital payment (paypal), zone 3 fixture store:
+  Initial state after Place Order + webview dead-end:
+    id=91141 order_status=failed payment_status=unpaid payment_method=digital_payment
+  After PaymentFailedDialog -> "Switch to Cash On Delivery":
+    id=91141 order_status=pending payment_status=unpaid payment_method=cash_on_delivery
+  (routes straight Home per PaymentFailedDialog's own handler — confirms this dialog's
+   switch-to-COD path is NOT the order_successful_screen entry point; see summary.)
+
+Order 91142 — second real checkout, digital payment (paypal), zone 3 fixture store:
+  After Place Order + webview dead-end:
+    id=91142 order_status=failed payment_status=unpaid payment_method=digital_payment
+  After PaymentFailedDialog -> "Cancel Order":
+    id=91142 order_status=canceled payment_status=unpaid payment_method=digital_payment
+            canceled=2026-08-29 18:12:09 canceled_by=customer
+  ^ This is the EXACT F2 precondition (a cancelled order that still carries its
+    original, unsettled digital payment_method) — proves the scenario the F2 fix
+    guards against is real/reachable in this backend, not hypothetical.
+
+Both webview attempts resolved to the SAME dead end:
+  GET {baseUrl}/payment-mobile?payment_token=...&order_id=<id>&payment_method=paypal
+  -> raw JSON {"response_code":"gateways_default_204","message":"information not found","content":null,"errors":[]}
+  Root cause: Admin/Modules/Gateways is a closed-source 6amtech add-on, physically
+  ABSENT from this repo/environment (documented standing constraint, CLAUDE.md
+  "nwidart modules" section) — so no digital-gateway round trip can ever complete,
+  and neither /payment-success nor /payment-fail/-cancel URLs are ever reached by
+  the webview's onLoadStart/onLoadStop, which is what order_service.dart's
+  paymentRedirect() pattern-matches on to route into order_successful_screen /
+  digital_payment_failed_screen (full-screen) in the first place.
+
+ui_errors (emulator-5564, pid 23299) — clean (0 matches) across the entire
+login -> checkout -> payment-webview -> COD-switch / Cancel-Order session.
