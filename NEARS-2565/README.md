@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-2565
 
-**FAIL — non-discounted price still ellipsis-truncates on the 150dp Recommended-For-You rail (LTR+RTL, discounted branch too) at commit 7b10f1af8**
+**QA FAIL (corroborating) - AC1 non-discount price truncates in English/LTR, commit 7b10f1af8**
 
-**19 screenshot(s).** Click any thumbnail for full resolution.
+**25 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -31,8 +31,18 @@
 <td align="center" width="33%"><a href="bug-discounted-rail-price-possible-truncation.png"><img src="bug-discounted-rail-price-possible-truncation.png" width="240"></a><br><sub>bug discounted rail price possible truncation</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="bug-lipbalm-english-aed-truncates-150dp-rail.png"><img src="bug-lipbalm-english-aed-truncates-150dp-rail.png" width="240"></a><br><sub>bug lipbalm english aed truncates 150dp rail</sub></td>
+<td align="center" width="33%"><a href="bug-lipbalm-still-truncates-on-true-150dp-recommended-rail.png"><img src="bug-lipbalm-still-truncates-on-true-150dp-recommended-rail.png" width="240"></a><br><sub>bug lipbalm still truncates on true 150dp recommended rail</sub></td>
+<td align="center" width="33%"><a href="bug-lipbalm-truncates-rail-confirm2.png"><img src="bug-lipbalm-truncates-rail-confirm2.png" width="240"></a><br><sub>bug lipbalm truncates rail confirm2</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="bug-nondiscount-price-still-truncates-150dp-rail.png"><img src="bug-nondiscount-price-still-truncates-150dp-rail.png" width="240"></a><br><sub>bug nondiscount price still truncates 150dp rail</sub></td>
 <td align="center" width="33%"><a href="bug-nondiscount-price-truncation-zoom.png"><img src="bug-nondiscount-price-truncation-zoom.png" width="240"></a><br><sub>bug nondiscount price truncation zoom</sub></td>
+<td align="center" width="33%"><a href="regression-check-openstore-discount-rail.png"><img src="regression-check-openstore-discount-rail.png" width="240"></a><br><sub>regression check openstore discount rail</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="regression-check2-fullyvisible-discount-card.png"><img src="regression-check2-fullyvisible-discount-card.png" width="240"></a><br><sub>regression check2 fullyvisible discount card</sub></td>
+<td align="center" width="33%"><a href="regression-english-discounted-coldflu-truncates.png"><img src="regression-english-discounted-coldflu-truncates.png" width="240"></a><br><sub>regression english discounted coldflu truncates</sub></td>
 <td align="center" width="33%"><a href="regression-recommended-rail-overview.png"><img src="regression-recommended-rail-overview.png" width="240"></a><br><sub>regression recommended rail overview</sub></td>
 </tr>
 <tr>
