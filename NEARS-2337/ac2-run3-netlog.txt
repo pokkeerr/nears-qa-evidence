@@ -1,0 +1,18 @@
+Manual AC2 repro run 3 of 3 (emulator-5564, pid 14203, package
+com.izzes.nears.nears_nears_2337_coldstart_scroll_freeze) — force-stop, cold
+launch, land on Grocery & Food module (36 stores near you, zone 2 overlap),
+40 rapid burst swipes (60ms duration each) started immediately on module
+entry to collide with the cold-start page-fetch race.
+
+08-29 16:41:25.211 I/flutter (14203): [NET] GET endpoint=/api/v1/stores/get-stores/all
+08-29 16:41:26.662 I/flutter (14203): [NET] endpoint=/api/v1/stores/get-stores/all http_status=200
+08-29 16:41:33.344 I/flutter (14203): [NET] GET endpoint=/api/v1/stores/get-stores/all
+08-29 16:41:33.466 I/flutter (14203): [NET] GET endpoint=/api/v1/stores/get-stores/all
+08-29 16:41:35.669 I/flutter (14203): [NET] endpoint=/api/v1/stores/get-stores/all http_status=200
+08-29 16:41:36.021 I/flutter (14203): [NET] endpoint=/api/v1/stores/get-stores/all http_status=200
+
+3 pages fetched (limit=12/page per home_screen.dart NEARS-1556 comment),
+36/36 = full exhaustion, matching the "36 stores near you" header. Page 2+3
+requests fired 122ms apart (16:41:33.344 / .466) -- the exact overlapping-
+fetch race this ticket targets -- both completed 200 with no freeze. ui_errors
+scanned pid 14203 (this package) with 0 matches immediately after.
