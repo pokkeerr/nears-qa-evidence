@@ -1,0 +1,37 @@
+NEARS-1565 task_bug — n_module_row.catalog.yaml sidecar not updated for the new use case
+
+File: packages/nears_dls/lib/components/nmodulerow/n_module_row.catalog.yaml
+Field: use_cases: [Playground, Gallery, "Unresolved — loading and failed"]
+  -> missing "Sliver host — floating & pinned" (added by this ticket in
+     widgetbook/lib/components/n_module_row_stories.dart, confirmed present
+     in widgetbook/lib/main.directories.g.dart lines 400-404).
+
+Consequence: the generated packages/nears_dls/catalog.yaml (root, "DO NOT
+EDIT", regenerated from sidecars via tool/generate_catalog.dart) still shows
+only 3 use_cases for NModuleRow — confirmed by re-running
+`flutter test test/tool/generate_catalog_test.dart` from packages/nears_dls:
+the "committed catalog.yaml is byte-identical to a fresh render" assertion's
+own Expected (freshly-rendered) block for NModuleRow is IDENTICAL to the
+committed Actual block — both stop at "Unresolved — loading and failed".
+i.e. even a from-scratch regen right now would NOT surface the new use case,
+because the gap is upstream in the sidecar, not a stale root file.
+
+Scope check: NEARS-1565's own commit (4f879ab6a) touches only
+  widgetbook/lib/components/n_module_row_stories.dart
+  widgetbook/lib/main.directories.g.dart
+  widgetbook/test/n_module_row_sliver_host_test.dart
+— it does NOT touch packages/nears_dls/catalog.yaml or the NModuleRow
+sidecar. So this omission is squarely this ticket's gap, not inherited.
+
+Functional impact: NONE — the use case IS live/routable in the actual
+Widgetbook app (confirmed via nav-tree tap producing an AMBIGUOUS match
+containing "Gallery Playground Sliver host — floatin[g]…", and via a
+corrected deep-link
+http://localhost:8734/#/?path=components/nmodulerow/nmodulerow/sliver-host-%E2%80%94-floating-%26-pinned
+landing on it with the exact "Modules — floating" / "Modules — pinned"
+semantics). This is a doc/catalog-registry completeness gap only — AC4 was
+independently demonstrated live and is NOT broken by this.
+
+Fix: add "Sliver host — floating & pinned" to n_module_row.catalog.yaml's
+use_cases: list, then `dart run tool/generate_catalog.dart` from
+packages/nears_dls/ to regenerate the committed root catalog.yaml.
