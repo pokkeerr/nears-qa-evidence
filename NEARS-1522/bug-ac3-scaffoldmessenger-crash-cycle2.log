@@ -1,0 +1,37 @@
+NEARS-1522 fix-cycle 2 QA — live repro of AC3 failure (Widgetbook, NActiveOrderBanner > Playground)
+Driver: Playwright (headless chromium) via scripts/app-nav/uinav_web.py helpers, against
+`flutter run -d chrome --web-port=8766` from worktree
+/Users/Apple/Projects/nears-NEARS-1522-dls-test-story-gaps/widgetbook (commit f204b5966).
+
+Repro: navigate to NActiveOrderBanner > Playground, tap the banner 5x in a row.
+Observed: "Tapped: 0" -> tap1 -> "Tapped: 1" -> tap2..tap5 -> stays "Tapped: 1" (does not
+increment past 1). Same symptom as cycle-1's original bug report, despite the
+_StatefulBanner/_StatefulBannerState fix landed this cycle.
+
+Root cause (captured via page.on("pageerror") during the exact same session):
+
+[pageerror] (fires on tap 1, right after the onTap handler's setState(() => _tapCount++) runs)
+Assertion failed: file:///Users/Apple/Tools/flutter/packages/flutter/lib/src/material/scaffold.dart:319:7
+_scaffolds.isNotEmpty
+"ScaffoldMessenger.showSnackBar was called, but there are currently no descendant Scaffolds to present to."
+
+[pageerror] x 16 more (fires on every tap from #2 onward)
+Unexpected null value.
+
+Mechanism: n_active_order_banner_stories.dart's Playground onTap calls
+`ScaffoldMessenger.of(context).showSnackBar(...)` right after `setState`. The Playground's
+use-case tree (_onPage -> ColoredBox/ListView -> _StatefulBanner) has NO Scaffold ancestor
+(confirmed: only n_bottom_sheet_stories.dart and n_module_switcher_stories.dart's use-cases
+wrap themselves in an explicit Scaffold; NActiveOrderBanner's Playground never did, in
+either the pre-fix or post-fix version of this file — `git diff HEAD~1 HEAD` shows the
+ScaffoldMessenger.showSnackBar line is UNCHANGED by this cycle's fix). The resulting
+uncaught assertion throws inside the gesture callback on tap 1, and every tap after that
+throws a further "Unexpected null value" and never re-registers with the widget's tap
+handler, so the counter never advances past 1.
+
+Confirms: the StatefulWidget fix (this cycle) DOES correctly persist _tapCount across a
+knob-triggered rebuild — verified separately: tap once ("Tapped: 1") -> toggle isDisabled
+on -> toggle isDisabled off -> counter still reads "Tapped: 1" (did not reset to 0, the
+cycle-1-adjacent regression the fix targeted). But that was never the actual blocker for
+AC3's "increments on repeated taps" requirement — this ScaffoldMessenger/no-Scaffold crash
+is, and it predates this cycle's fix untouched.
