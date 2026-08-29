@@ -1,12 +1,13 @@
 # QA Evidence — NEARS-2595
 
-**FAIL — badge Row RenderFlex overflow persists at 320dp (real countdown data), en+ar**
+**cycle2 PASS - 320dp overflow fix verified en+ar, real 134-day countdown**
 
-**1 screenshot(s).** Click any thumbnail for full resolution.
+**2 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="bug-badge-row-overflow-320dp.png"><img src="bug-badge-row-overflow-320dp.png" width="240"></a><br><sub>bug badge row overflow 320dp</sub></td>
+<td align="center" width="33%"><a href="cycle2-320dp-ar.png"><img src="cycle2-320dp-ar.png" width="240"></a><br><sub>cycle2 320dp ar</sub></td>
+<td align="center" width="33%"><a href="cycle2-320dp-en.png"><img src="cycle2-320dp-en.png" width="240"></a><br><sub>cycle2 320dp en</sub></td>
 </tr>
 </table>
 
