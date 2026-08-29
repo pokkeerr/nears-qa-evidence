@@ -1,0 +1,49 @@
+NEARS-1522 fix-in-run verification (cycle 4, delta re-QA)
+Fix: widgetbook/lib/components/n_active_order_banner_stories.dart
+  adds `key: _statefulBannerKey` (module-level GlobalKey<_StatefulBannerState>)
+  to the _StatefulBanner instantiation in buildNActiveOrderBannerPlayground.
+Commit: a27536aba9cd80679b1bff7f6d21381b208fecf9
+
+Driven live: widgetbook `flutter build web --release` served over
+python3 -m http.server 8971, Playwright (chromium headless) via
+scripts/app-nav/uinav_web.py's own goto()/enable_flutter_semantics()/resolve()
+helpers, deep-linked to
+  #/?path=components/nactiveorderbanner/nactiveorderbanner/playground
+
+=== Sequence 1: interleaved taps + knob toggles ===
+semantics mounted: True
+tree_queryable: True None
+baseline counter: 'Tapped: 0'
+after 1 tap: 'Tapped: 1'
+after isDisabled toggle: 'Tapped: 1'                 <- would have been 'Tapped: 0' pre-fix
+after isDisabled toggle back off: 'Tapped: 1'
+after 2nd tap: 'Tapped: 2'
+after isLoading toggle: 'Tapped: 2'                  <- would have been 'Tapped: 0' pre-fix
+after isLoading toggle back off: 'Tapped: 2'
+after 3rd tap: 'Tapped: 3'
+after isDisabled double-toggle: 'Tapped: 3'
+after 4th tap: 'Tapped: 4'
+after isLoading toggle (interleaved): 'Tapped: 4'
+after isLoading toggle back off + 5th tap: 'Tapped: 5'
+RESULT: PASS -- counter survived every knob toggle across the interleaved
+sequence, continuing from its prior value each time instead of resetting.
+
+=== Sequence 2: baseline sanity re-check (AC3 unchanged) ===
+5 consecutive taps, NO knob toggle in between:
+baseline: Tapped: 0
+after tap 1: Tapped: 1
+after tap 2: Tapped: 2
+after tap 3: Tapped: 3
+after tap 4: Tapped: 4
+after tap 5: Tapped: 5
+snackbar resolve: unique text 1   (Open order tracking SnackBar still fires)
+RESULT: PASS -- unchanged from the prior cycle's PASS.
+
+=== Automated backstop ===
+$ flutter analyze (widgetbook/)
+No issues found! (ran in 1.7s)
+
+$ flutter test test/n_active_order_banner_stories_test.dart
+00:00 +1: Playground: 5 live taps increment the in-canvas counter and show
+the SnackBar without the missing-Scaffold assertion QA hit in cycle 2
+All tests passed!

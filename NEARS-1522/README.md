@@ -1,29 +1,26 @@
 # QA Evidence — NEARS-1522
 
-**cycle3 delta re-QA: AC3 live-verified via Playwright-over-CDP against widgetbook Chrome (57793) - 5 consecutive taps increment counter cleanly, SnackBar shows, zero errors; AC1/AC2 reused/reconfirmed**
+**fix-in-run cycle 4: tap-counter survives knob toggle -- PASS**
 
-**8 screenshot(s).** Click any thumbnail for full resolution.
+**5 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="REGR_isloading_on.png"><img src="REGR_isloading_on.png" width="240"></a><br><sub>REGR isloading on</sub></td>
-<td align="center" width="33%"><a href="REGR_isvisible_off.png"><img src="REGR_isvisible_off.png" width="240"></a><br><sub>REGR isvisible off</sub></td>
-<td align="center" width="33%"><a href="REGR_tappable_off.png"><img src="REGR_tappable_off.png" width="240"></a><br><sub>REGR tappable off</sub></td>
+<td align="center" width="33%"><a href="ac2-gallery-rtl-digit-order.png"><img src="ac2-gallery-rtl-digit-order.png" width="240"></a><br><sub>ac2 gallery rtl digit order</sub></td>
+<td align="center" width="33%"><a href="ac3-playground-baseline-tapped-0.png"><img src="ac3-playground-baseline-tapped-0.png" width="240"></a><br><sub>ac3 playground baseline tapped 0</sub></td>
+<td align="center" width="33%"><a href="bug-ac3-playground-tap-counter-stuck-at-1.png"><img src="bug-ac3-playground-tap-counter-stuck-at-1.png" width="240"></a><br><sub>bug ac3 playground tap counter stuck at 1</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="ac3-c2-knob-toggle-preserves-count-not-increment.png"><img src="ac3-c2-knob-toggle-preserves-count-not-increment.png" width="240"></a><br><sub>ac3 c2 knob toggle preserves count not increment</sub></td>
-<td align="center" width="33%"><a href="ac3-cycle3-5taps-counter5-snackbar.png"><img src="ac3-cycle3-5taps-counter5-snackbar.png" width="240"></a><br><sub>ac3 cycle3 5taps counter5 snackbar</sub></td>
-<td align="center" width="33%"><a href="bug-ac3-playground-tap-counter-still-stuck-at-1-cycle2.png"><img src="bug-ac3-playground-tap-counter-still-stuck-at-1-cycle2.png" width="240"></a><br><sub>bug ac3 playground tap counter still stuck at 1 cycle2</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="bug-playground-counter-resets-on-knob-toggle.png"><img src="bug-playground-counter-resets-on-knob-toggle.png" width="240"></a><br><sub>bug playground counter resets on knob toggle</sub></td>
-<td align="center" width="33%"><a href="gallery-cycle3-regression-check.png"><img src="gallery-cycle3-regression-check.png" width="240"></a><br><sub>gallery cycle3 regression check</sub></td>
+<td align="center" width="33%"><a href="fixinrun-baseline-5taps-unchanged.png"><img src="fixinrun-baseline-5taps-unchanged.png" width="240"></a><br><sub>fixinrun baseline 5taps unchanged</sub></td>
+<td align="center" width="33%"><a href="fixinrun-tapcounter-survives-interleaved-knob-toggles.png"><img src="fixinrun-tapcounter-survives-interleaved-knob-toggles.png" width="240"></a><br><sub>fixinrun tapcounter survives interleaved knob toggles</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
-- [`bug-ac3-scaffoldmessenger-crash-cycle2.log`](bug-ac3-scaffoldmessenger-crash-cycle2.log)
-- [`bug-playground-counter-resets-on-knob-toggle.log`](bug-playground-counter-resets-on-knob-toggle.log)
+- [`ac1-mutation-check.log`](ac1-mutation-check.log)
+- [`ac2-falsifiability-mutation.log`](ac2-falsifiability-mutation.log)
+- [`fixinrun-verification.log`](fixinrun-verification.log)
+- [`full-suite-failures-preexisting.log`](full-suite-failures-preexisting.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1522/` · public-repo scrub policy (no live secrets; verified clean).*
