@@ -1,0 +1,28 @@
+{
+  "ticket": "NEARS-1579",
+  "device": "emulator-5564 (sdk_gphone16k_arm64, google_apis_playstore)",
+  "app_locale": "ar (in-app Get.updateLocale, confirmed live via textDirection: rtl throughout render tree)",
+  "os_locale": "en-US (persist.sys.locale) - app locale is independent of OS locale in this app",
+  "text_scale": "1.3 (adb settings put system font_scale 1.3; confirmed live in render tree: textScaler: linear(1.2999999523162842x))",
+  "resolved_arabic_fallback_font": "NotoNaskhArabicUI-Regular.ttf (family lang=\"und-Arab\" variant=\"compact\" in /system/etc/fonts.xml) - genuine, not tofu; confirmed by joined-ligature glyph rendering in screenshot and by the fonts.xml fallback declaration",
+  "app_fontBody_token": "Inter (NearsTokens.fontBody) - Latin-only, forces Android fallback resolution for Arabic script",
+  "data_dor_gap": "modules.module_name has NO 'ar' row in the translations table for ANY seeded module (verified: SELECT * FROM translations WHERE translationable_type LIKE '%Module%' -> only 1 'en' row exists). The live Home screen therefore CANNOT show a real Arabic module label with today's seed data alone. Worked around read-only: a local rewriting HTTP proxy (127.0.0.1:8010 -> 127.0.0.1:8000) substituted real Arabic strings for module_name in the /api/v1/module response only, per the documented QA proxy technique (userapp-navigation-guide.md \"simulate time passing\"/NEARS-2287 precedent) - the DB itself was never written.",
+  "measurements": {
+    "published_component_height_NModuleRow.heightFor_1.3x": 82.0,
+    "published_label_lineBox_Latin_X_probe_1.3x": 18.0,
+    "actual_painted_sliver_maxExtent_paintExtent": 193.8,
+    "actual_tile_slot_height_SliverList_crossAxisExtent": 66.0,
+    "actual_RenderParagraph_reported_size_active_tile_(constrained)": {"width": 65.8, "height": 18.0},
+    "true_unconstrained_natural_TextPainter_height_by_label": {
+      "بقالة وأغذية (Grocery & Food)": {"height": 21.0, "width": 65.77664184570312},
+      "طعام ومطاعم (Food & Restaurant)": {"height": 21.0, "width": 74.53068542480469},
+      "الصيدلية (Pharmacy)": {"height": 18.0, "width": 46.84881591796875}
+    },
+    "divergence_dp": 3.0,
+    "divergence_pct_of_label_budget": "16.7% (3.0/18.0)",
+    "bottom_padding_absorbing_overflow_dp": 8.0,
+    "clip_boundary": "outer RenderClipRect (StretchingOverscrollIndicator) at h=82.0, list content offset by 8.0dp top padding -> clip ceiling at local-y=74-82dp depending on reference point; measured overflow lands at local-y~69-77dp, i.e. still 5-8dp inside the clip boundary -> NOT visually clipped",
+    "method": "Dart VM Service (ws://127.0.0.1:55402) evaluate RPC in scope of package:nears_dls/components/nmodulerow/n_module_row.dart: NModuleRow.heightFor(...), NModuleRow._lineBox(...), and a raw unconstrained TextPainter probe using the real Arabic module_name strings + NearsText.labelSm + TextScaler.linear(1.3) — plus ext.flutter.debugDumpRenderTree cross-check of the live mounted RenderSliverPersistentHeader/RenderParagraph geometry."
+  },
+  "verdict": "UNDER-REPORTS for real (non-Latin-probe) Arabic module names on this device — but absorbed with NO visible loss by _RowTile's Flexible + the row's own 8dp bottom padding. Not a real clip. Screenshot shows fully-legible, unclipped Arabic labels."
+}
