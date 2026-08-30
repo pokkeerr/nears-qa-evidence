@@ -1,0 +1,36 @@
+Regression finding (pre-existing, NOT caused by NEARS-2642's diff):
+UserApp/lib/features/checkout/widgets/delivery_section.dart is NOT among the
+files changed by this ticket (see git diff <base>..HEAD -- UserApp/).
+
+Repro: Checkout screen -> Delivery Address card -> tap the "Edit address"
+affordance (Semantics label 'edit_address'.tr, InkWell wired to
+_openAddressSheet(context, isDesktop) -> NBottomSheet.show(context,
+child: AddressBottomSheet())).
+
+Observed: tapping the resolved bounds (confirmed via fresh uiautomator dump
+immediately before each tap, coordinates matched exactly) produces NO visible
+change and NO a11y-tree change (54 nodes before, 54 nodes after, identical
+content-desc set), and NO log line for the whole app pid across a full
+logcat capture spanning the tap. A control-check ("View more details" on the
+same screen, immediately below) DID expand/react normally to a tap in the
+same session, confirming taps generally register on this screen and the
+device pipeline is live.
+
+Separately, the icon rendered for this control is a circled "?" rather than
+a pencil: UserApp's NIcon('edit', ...) call site has no 'edit' key mapped in
+packages/nears_dls/lib/elements/icon/n_icon.dart's `_names` map, and
+`_resolve` falls back to `Symbols.help` (literal question-mark) for any
+unmapped name (see n_icon.dart, lines ~227 comment + ~351
+`return _names[name] ?? Symbols.help;`). Confirmed by grep, not just visual
+inference.
+
+Net effect: the in-checkout "change delivery address" control is both
+mislabeled visually (wrong icon) and functionally dead (tap is a no-op).
+This blocked the QA-recommended "switch address from within Checkout"
+repro path for AC1; AC1 was instead demonstrated via the documented,
+working Home-header "Deliver To" -> Set Location sheet mechanism
+(userapp-navigation-guide.md §5.4b), which exercises the same
+_ensureGroupStores / delivery-address-threading code path under test.
+
+Filed to regression_bugs (non-blocking for this ticket's verdict) — routes
+to the PO per the two-lane contract.

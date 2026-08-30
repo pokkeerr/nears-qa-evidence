@@ -1,0 +1,31 @@
+=== App log (flutter, pid 3678) — group/place request ===
+08-30 17:14:32.313  3678  3678 I flutter : [NET] POST endpoint=/api/v1/customer/order/group/validate
+08-30 17:14:33.309  3678  3678 I flutter : [NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+08-30 17:14:33.312  3678  3678 I flutter : [NET] POST endpoint=/api/v1/customer/order/group/place
+08-30 17:14:42.076  3678  3678 I flutter : [NET] endpoint=/api/v1/customer/order/group/place http_status=200
+08-30 17:14:47.634  3678  3678 I flutter : [NET] GET endpoint=/api/v1/customer/order/group/details
+08-30 17:14:47.775  3678  3678 I flutter : [NET] endpoint=/api/v1/customer/order/group/details http_status=200
+
+=== Backend log (Admin/storage/logs/laravel.log) — same time window, orders created per store group ===
+[2026-08-30 17:14:39] (FCM notify fired for order_id 91150 and 91151, same window as app 200)
+183274:[2026-08-30 17:14:40] production.WARNING: FCM Send Success {..."status":200,"order_id":"91150"}
+183285:[2026-08-30 17:14:44] production.WARNING: FCM Send Success {..."status":200,"order_id":"91151"}
+183298:[2026-08-30 17:14:52] production.WARNING: [WARN] track_order {...,"order_id":91150}
+183300:[2026-08-30 17:14:53] production.WARNING: [WARN] track_order {...,"order_id":91151}
+
+=== DB read-only cross-check (multi_food_db.orders) ===
+id     user_id  store_id  order_group_id                        order_status  zone_id
+91150  6        21        3d11468a-822a-4581-87cb-2bb0e5735042  pending       2   (Fast Market)
+91151  6        20        3d11468a-822a-4581-87cb-2bb0e5735042  pending       2   (Morning Mart)
+
+Both orders share order_group_id 3d11468a-822a-4581-87cb-2bb0e5735042 — one order created
+per store group in the basket, as required by AC2. HTTP 200 confirmed on
+/api/v1/customer/order/group/place. Full X-Request-Id correlation not available
+(NEARS-564 not yet shipped in this tree — client does not log correlationId on a
+2xx path, only on [FAIL]); this is endpoint+timestamp-scoped best-effort per the
+BE-log recipe in workflow-profile.md.
+
+=== Second run (regression: default/cached address, no in-checkout switch) ===
+id     user_id  store_id  order_group_id                        order_status  zone_id
+91154  6        21        b1a8e01e-ccad-483e-ae64-d37e25784de1  pending       2   (Fast Market)
+91155  6        20        b1a8e01e-ccad-483e-ae64-d37e25784de1  pending       2   (Morning Mart)
