@@ -1,0 +1,20 @@
+AC7 RTL/Arabic mirror — re-QA evidence (2026-08-30, emulator-5554, james.wilson@demo.com, 4 running orders)
+
+Bounds-based (not eyeballed) mirror confirmation, via uiautomator dump diff EN vs AR:
+  App-bar Back button:  EN [48,177][192,321]  (LEFT)  -> AR [1152,177][1296,321] (RIGHT)  MIRRORED correctly
+  Dashboard "+N More" running-order tap target: EN x~1210 (RIGHT) -> AR x~125 (LEFT)  MIRRORED correctly
+
+Hub screen content correctly localized (not just mirrored):
+  "Your Orders" -> "طلباتك"; "Back" -> "رجوع"; "Pending" -> "قيد الانتظار"; "Processing" -> "يعالج";
+  "Waiting for a courier" -> "في انتظار مندوب التوصيل"
+
+Map markers (google_maps_flutter) correctly do NOT mirror position (real geography, locale-independent) —
+cluster positions identical to the EN session's marker bounds (right/green Abu-Dhabi cluster, left/violet
+Dhaka cluster) — expected, correct behavior (maps aren't supposed to flip by text direction).
+
+Code review of packages/nears_dls/lib/components/norderstatuscard/n_order_status_card.dart confirms only
+RTL-safe layout primitives are used for the card internals: `Row` (auto-mirrors on Directionality),
+`NSectionHeader.store(leadingImage:, trailing:)` (leading/trailing convention), `AlignmentDirectional.centerEnd`
+for the ETA badge. No hardcoded `Alignment.centerLeft/Right` or `Positioned(left:)` found in the touched file.
+
+Conclusion: card stack and screen chrome mirror correctly under RTL. No defect found.

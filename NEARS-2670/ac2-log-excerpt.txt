@@ -1,0 +1,24 @@
+AC2 marker-color-to-orderID pixel correlation — re-QA evidence (2026-08-30, emulator-5554)
+
+Seed collision discovered: order #169's store (and #170, #165, #162, #91119's stores) coincidentally
+sit in the Abu Dhabi region, geographically overlapping (~700m) with DM4 "D D"'s real last_location
+(24.4538833, 54.3773433) used by order #91132 (handover). At the hub's natural fitBounds zoom, all
+these markers render at the same pixel, so the topmost z-order marker (a pending/violet order) was
+tap-resolved every time, obscuring #91132's green marker underneath.
+
+Cleared the occlusion by cancelling the 5 confounding orders via the app's own Cancel Order flow
+(169, 91119, 170, 165, 162 — all `pending`, self-cancel is allowed pre-confirmation; no raw DML).
+This is a read-only-DB-compliant, in-app-flow-only action, matching the prior QA attempt's precedent.
+
+Post-cleanup pixel sample (ac2-marker-color-correlation.png):
+  LEFT marker  (Abu Dhabi cluster) -> RGB(18,179,18)/(53,234,53)  = GREEN
+  RIGHT marker (Dhaka cluster)     -> RGB(99,18,179)/(144,53,234) = VIOLET
+
+Tap-confirmed identities (adb logcat, pid 10569):
+  LEFT  marker tap -> "order: trackOrder orderID=91132" (handover, DM "D D") -> GREEN matches
+                       _inFlightStatuses={'handover','picked_up'} -> hueGreen. CORRECT.
+  RIGHT marker tap (repeated across multiple fresh loads) -> resolved to orders #169/#170/#91145,
+                       all `pending` -> VIOLET matches hueViolet fallback. CORRECT.
+
+Conclusion: _hueFor()/_buildMarkers() color-to-status mapping is correct, and marker tap ->
+onMarkerTap(order.id) -> navigation correctly identifies the tapped order. No defect found.
