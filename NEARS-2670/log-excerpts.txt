@@ -1,0 +1,98 @@
+NEARS-2670 — Tracking Hub — live log evidence captured during QA (2026-08-30, emulator-5556)
+Device: emulator-5556, package com.izzes.nears.nears_nears_2670_tracking_hub
+
+=== AC4 — card tap routes to the tapped order's own tracking screen ===
+08-30 15:49:48.203  4895  4895 I flutter : 📊 analytics: tracking_hub_order_card_tapped {order_id: 91131}
+08-30 15:49:52.861  4895  4895 I flutter : [INFO] msg="order: trackOrder orderID=91131"
+08-30 15:49:52.862  4895  4895 I flutter : [INFO] msg="trackOrder called for orderID=91131 source=rowTap"
+08-30 15:49:52.862  4895  4895 I flutter : [NET] GET endpoint=/api/v1/customer/order/track
+08-30 15:49:53.087  4895  4895 I flutter : [NET] endpoint=/api/v1/customer/order/track http_status=200
+-> tapped the "Nears Mart" card (order #91131 in the visible list) -> routed to orderID=91131, no cross-order bleed.
+
+=== AC4 (marker) — marker tap routes to the marker's own order, and does NOT fire the card-tap analytics event ===
+08-30 15:52:28.661  6587  6587 I flutter : [INFO] msg="order: trackOrder orderID=91117"
+(no "📊 analytics: tracking_hub_order_card_tapped" line accompanies this marker tap — confirms AC8's "card tap only" requirement)
+
+=== AC8 — screen_view auto-fires on hub navigation (observer-based) ===
+08-30 15:51:54.724  6587  6637 V FA      : Logging screen view with name, class: /order-tracking-hub, MainActivity
+(native FA SDK itself reports "Missing google_app_id. Firebase Analytics disabled" dev-wide — pre-existing environment condition, not a NEARS-2670 defect; the app-level analytics_service print above is the reliable dev-mode verify signal used elsewhere in this environment)
+
+=== AC6 — error state shows NErrorRetry with a connectivity-specific message, paired [FAIL] log (not silent) ===
+(network disabled via `adb shell svc wifi disable` + `svc data disable`, confirmed down via on-device ping)
+08-30 15:53:51.407  7201  7201 I flutter : [FAIL] endpoint=/api/v1/customer/order/running-orders http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=6304f66b-7bfb-4bc2-bff4-b5878444a626
+08-30 15:53:51.439  7201  7201 I flutter : The following exception was thrown tracking-hub: running-orders fetch failed:
+08-30 15:53:51.440  7201  7201 I flutter : [FAIL] endpoint=/api/v1/customer/order/running-orders http_status=null type=ApiFailure msg="tracking-hub: running-orders fetch failed"
+UI showed: "Something went wrong" / "Connection to API server failed due to internet connection" / Retry button (NErrorRetry).
+
+=== AC6 — Retry re-fetches fresh data (not stale re-render) ===
+(network re-enabled, confirmed up via on-device ping)
+08-30 15:54:16.721  7201  7201 I flutter : [NET] GET endpoint=/api/v1/customer/order/running-orders
+08-30 15:54:17.432  7201  7201 I flutter : [NET] endpoint=/api/v1/customer/order/running-orders http_status=200
+Hub re-rendered the real order list (4 visible cards, scrollable to all 12) immediately after tapping Retry.
+
+=== AC3 — per-order ETA computed from that order's own delivery-man coordinates, not a shared value ===
+Live a11y dump (customer@nears.com, after admin-assigned delivery men + one order advanced to `handover`):
+  Order #91131 (Nears Mart)   status=HANDOVER  DM=David Miller  "Arriving in 1 min"
+  Order #91132 (The Grill House) status=HANDOVER (see note below) DM=D D  "Arriving in 999 min"
+  Order #91145 (HealthCare Pharmacy) status=PENDING  no DM  "Waiting for a courier" (no ETA pill, correct per resolveEtaMinutes(hasDeliveryMan:false)=0)
+Root cause of the differing ETAs (read from Admin/app/CentralLogics/Helpers.php deliverymen_data_formatting +
+UserApp/lib/features/order/screens/order_tracking_hub_screen.dart _etaLabelFor / TrackDetailsViewWidget.resolveEtaMinutes):
+  - David Miller (delivery_man_id=2) has ZERO rows in `delivery_histories` -> last_location is null -> lat/lng
+    serialize as null -> distance defaults to 0 -> resolveEtaMinutes(distance:0, hasDeliveryMan:true) clamps to
+    the floor, 1 min.
+  - "D D" (delivery_man_id=4) has one `delivery_histories` row at Abu Dhabi coordinates (24.4538833, 54.3773433)
+    while order #91132's delivery address is in the Dhaka (zone 1) seed data -> genuinely huge distance ->
+    resolveEtaMinutes clamps to the ceiling, 999 min.
+  This is a REAL per-order, per-delivery-man distance calculation (not a shared/first-order value) -- confirms AC3.
+
+=== AC2 note — map marker hue-tint (violet=pending/accepted/confirmed/processing, green=handover/picked_up) ===
+Code-confirmed exact match to spec: UserApp/lib/features/order/screens/order_tracking_hub_screen.dart
+  _TrackingHubMap._hueFor(): {'handover','picked_up'} -> BitmapDescriptor.hueGreen, else hueViolet.
+Live pixel-level color confirmation was ATTEMPTED (screenshot + uiautomator-dump-bounds pixel sampling) across
+several rounds but became INCONCLUSIVE: one clean synchronized dump+screenshot pair sampled BOTH visible marker
+clusters as violet-hued (~270 deg, RGB (144,53,234) and (99,18,179)) even after order #91132 was live-advanced to
+`handover` with a real, resolvable delivery-man location (Abu Dhabi coords, confirmed present in `delivery_histories`
+and confirmed reaching the app -- the card's own status badge showed "HANDOVER" and the ETA showed the
+distance-driven "999 min" for that same order). A follow-up tap-to-correlate ("which marker is which order")
+could not be completed cleanly: 3 consecutive attempts were interrupted by app crashes / unpredictable
+navigation caused by severe emulator/host resource exhaustion (see environment note below) before a clean
+marker-tap -> orderID log line could be captured for a HANDOVER-status order specifically.
+VERDICT ON THIS SUB-CHECK: NOT confidently confirmed either way. Code review strongly suggests it is correct;
+one live sample is ambiguous/inconclusive due to inability to pin marker-to-order correlation. Flagged as a
+required re-verification item, not asserted as a confirmed defect (see task_bugs / followups).
+
+=== Environment instability (host-level, not NEARS-2670-specific) ===
+- Booted a spare AVD (Pixel_10_Pro_3 -> emulator-5556) because both existing pool devices
+  (emulator-5554, emulator-5558) were legitimately locked by other live QA sessions (NEARS-2423, NEARS-1695).
+- Disk on emulator-5556 dropped from 1.27GB free at acquisition to ~660-680MB free (below the 800MB floor)
+  over the course of the session; one `qa_disk_reclaim --clean` pass only recovered ~12MB.
+- Repeated "app died, no saved state" / ActivityTaskManager force-removal entries in logcat, unrelated to any
+  action I took at that exact moment; `lowmemorykiller` was actively killing unrelated system processes
+  ("low watermark is breached").
+- Both OTHER pool emulators (emulator-5554, emulator-5558) disconnected from adb entirely partway through this
+  session (both vanished from `adb devices -l`) -- a host-wide resource-exhaustion event, not isolated to my
+  own device or session.
+- `uiautomator dump` itself was SIGKILL'd once (exit 137) under this pressure.
+This degraded the back half of the session (AC5's full "hub already open" demonstration and AC7/RTL were not
+reachable before I judged further live attempts unreliable) and is the proximate cause of the AC2 marker-color
+inconclusiveness above. Recommend re-QA of AC2 (marker color), AC5 (full live demo) and AC7 (RTL) once host
+capacity is available; this is an environment/capacity finding, not a code defect in NEARS-2670.
+
+=== AC1 negative case — exactly 1 running order does NOT show the "+N more" hub gate ===
+qa.singlestore@nears.com dropped from 2 -> 1 running orders (via a legitimate in-app Cancel Order action on
+order #91143 -- Ordered by mistake). On the next dashboard render the running-order card showed a plain arrow
+icon (single-order row) instead of a "+N more" affordance, and "Order #91141" opened the plain single-order flow
+-- confirms the `reversOrder.length < 2` gate in running_order_view_widget.dart holds for the negative case.
+
+=== Test data mutations made during this QA run (all via legitimate app/Admin-panel actions, never raw DML) ===
+- Cancelled order #91143 (qa.singlestore@nears.com) via the app's own Cancel Order flow, reason "Ordered by mistake".
+- Via Admin panel (admin@admin.com, curl session with dev-mode-readable custom captcha since recaptcha.status=0
+  and Admin/.env APP_MODE=dev):
+    - assigned delivery_man_id=2 (David Miller) to order #91131 (customer@nears.com) -> auto-set to `accepted`
+    - assigned delivery_man_id=4 (D D) to order #91132 (customer@nears.com) -> auto-set to `accepted`
+    - advanced order #91131 order_status to `handover`
+    - advanced order #91132 order_status to `handover`
+  Purpose: the seeded dataset had NO order, for ANY user with 2+ running orders, in a state with both an
+  assigned delivery man and a resolvable location -- required to live-test AC2's green marker tier and AC3's
+  per-order ETA differentiation at all. Flagging clearly per DB-safety transparency; not reverted (these are
+  normal forward order-lifecycle transitions, not destructive of test-account identity).
