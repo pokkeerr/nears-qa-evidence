@@ -1,0 +1,43 @@
+NEARS-1940 — AC3 (live device regression + combined-screen-load confirmation): BLOCKED, whole Android QA device pool exhausted
+Date: 2026-08-30
+
+Attempted live device acquisition for DeliveryApp per workflow-profile "Device pool" protocol.
+
+=== 1. Live pool survey (qa_lock_survey, no args = live adb enumeration) ===
+serial=emulator-5554 attached=yes locked=no occupied_without_lock=no status=residue   effective=yes
+serial=emulator-5556 attached=yes locked=no occupied_without_lock=no status=residue   effective=yes
+serial=emulator-5558 attached=yes locked=no occupied_without_lock=no status=residue   effective=yes
+serial=emulator-5560 attached=yes locked=no occupied_without_lock=yes status=occupied-without-lock effective=no
+serial=emulator-5562 attached=yes locked=no occupied_without_lock=no status=free      effective=yes
+serial=emulator-5564 attached=yes locked=no occupied_without_lock=no status=free      effective=yes
+serial=emulator-5566 attached=yes locked=no occupied_without_lock=no status=free      effective=yes
+serial=emulator-5568 attached=yes locked=no occupied_without_lock=no status=free      effective=yes
+effective_capacity=7 surveyed=8 pool=live-adb
+$HOME/.nears/qa-locks/ is EMPTY — no stale locks to reclaim.
+
+=== 2. Disk precheck (>=800MB / 819200KB free floor, NEARS-1607) — all 7 "effective" devices FAIL ===
+device          before        after-reclaim   %used
+emulator-5554   634572KB      619MB           90%
+emulator-5556   569040KB      555MB           91%
+emulator-5558   684060KB      668MB           89%
+emulator-5562   652540KB      637MB           90%
+emulator-5564   717300KB      700MB           88%
+emulator-5566   567956KB      554MB           91%
+emulator-5568   806588KB      788MB           87%
+Ran `qa_disk_reclaim <serial> --clean` once per device (the allowed one attempt each): pm trim-caches requested but "cache size=unknown (dumpsys unanswerable)"; all QA-owned /data/local/tmp entries found were under com.izzes.* paths and correctly SKIPPED (never-touch rule) — no product app data touched. Post-reclaim recheck: every device still below the 800MB floor (deltas 0-3MB).
+
+=== 3. The one device with headroom (emulator-5560, 2158892KB / ~64% used) is occupied by another live session ===
+qa_lock_survey flags it occupied_without_lock=yes (excluded from effective_capacity).
+Corroborating host-side evidence (per NEARS memory: device-hold-needs-host-process-not-pidof — ps naming the serial is the only valid proof):
+  $ ps aux | grep 5560
+  Apple  38514  ... /Users/Apple/Library/Android/sdk/platform-tools/adb -s emulator-5560 shell -x logcat -v time -T '08-30 06:35:36.705'
+A live adb logcat tail process is attached to this serial from outside this session — treated as a live occupant per the survey's own computation and per the shared-tree concurrency rules; not taken over.
+
+=== 4. Spare-AVD escalation checked (NEARS-2489 "boot a spare before queueing") ===
+$ emulator -list-avds
+NEARS_2411_QA, NEARS_2414_QA, NEARS_2424_QA, Pixel_10_Pro, Pixel_10_Pro_2, Pixel_10_Pro_3, nears_qa_delivery, nears_qa_wave56
+Mapped every currently-booted serial to its AVD name (adb -s <serial> emu avd name) — all 8 listed AVDs are already booted as the 8 running emulator- serials above. No spare AVD exists to boot fresh (which would have started with a clean/larger free-space image).
+
+=== Conclusion ===
+Every device in the Android pool is either below the 800MB disk floor (post one-reclaim-attempt-each, per protocol's "never loop it" rule) or genuinely held by another live session. No spare capacity exists. Per workflow-profile: "still below ... → report LOW DISK ... and try the next pool device (or return BLOCKED{queue: ...} if the whole platform pool is low-disk/locked)" — this is that state, for the entire pool, not a single device.
+AC3 (live regression + combined-screen-load) and the live component of AC1/AC2 (network interception on a real device) could NOT be demonstrated on-device this pass. AC1/AC2 are instead evidenced via the automated backstop + independent falsifiability re-check (see ac1-ac2-automated-falsifiability.log), as pre-authorized by the QA Test Scope note for this ticket. AC3's regression-of-existing-behavior claim is additionally supported statically (controller/screen code paths reviewed, see the same log) and by the still-passing "non-empty transaction list" test cases, but this is NOT a substitute for the live device confirmation the scope asked for — reported as BLOCKED, not PASS, on that AC.

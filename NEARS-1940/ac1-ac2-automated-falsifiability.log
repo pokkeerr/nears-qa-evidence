@@ -1,0 +1,55 @@
+NEARS-1940 — AC1/AC2 evidence: automated backstop + independent falsifiability re-verification
+Worktree: /Users/Apple/Projects/nears-NEARS-1940-wallet-txn-null-guard  branch fix/NEARS-1940-wallet-txn-null-guard
+SDK: ~/Tools/flutter (3.41.9, pinned)
+
+=== 1. Engineer's test, run as-is (POST-FIX tree, unmodified) ===
+$ flutter test test/my_account_repository_wallet_txn_null_guard_test.dart --reporter expanded
+00:00 +0: getList — wallet payment history a 200 body omitting `transactions` renders an empty list instead of throwing
+[NET] GET endpoint=/api/v1/delivery-man/wallet-payment-list
+[NET] endpoint=/api/v1/delivery-man/wallet-payment-list http_status=200
+00:00 +1: getList — wallet payment history a 200 body with `transactions: null` renders an empty list instead of throwing
+00:00 +2: getList — wallet payment history a non-empty transaction list still renders in full (regression)
+00:00 +3: getWalletProvidedEarningList — wallet earning history a 200 body omitting `transactions` renders an empty list instead of throwing
+00:00 +4: getWalletProvidedEarningList — wallet earning history a non-empty transaction list still renders in full (regression)
+00:00 +5: All tests passed!
+No [FAIL]/[ERR] AppLogger lines emitted — expected: this is a defensive `?? []` fallback, not a caught/swallowed failure path (per QA scope note, no AppLogger expectation applies here).
+
+=== 2. QA-independent falsifiability re-check (NEARS memory: falsifiable-proof-discipline) ===
+Temporarily reverted BOTH derefs in my_account_repository.dart back to the pre-fix `walletPaymentModel.transactions!` (sed, not committed), re-ran the same test file:
+
+00:00 +0 -1: getList ... omitting `transactions` ... [E]
+  Null check operator used on a null value
+  package:sixam_mart_delivery/features/my_account/domain/repositories/my_account_repository.dart 52:58  MyAccountRepository.getList
+00:00 +0 -2: getList ... `transactions: null` ... [E]
+  Null check operator used on a null value
+  .../my_account_repository.dart 52:58  MyAccountRepository.getList
+00:00 +1 -3: getWalletProvidedEarningList ... omitting `transactions` ... [E]
+  Null check operator used on a null value
+  .../my_account_repository.dart 65:72  MyAccountRepository.getWalletProvidedEarningList
+Some tests failed. (2/5 passed — the two non-empty "regression" cases still passed since they never hit the null branch)
+
+This independently reproduces the exact pre-fix crash symptom (`Null check operator used on a null value`) at the exact pre-fix line, on BOTH call sites (getList + getWalletProvidedEarningList), confirming the test is a real, falsifiable pin and not a vacuous green.
+
+=== 3. Restore fix, re-confirm green ===
+Restored the file from backup (cp), confirmed `git status` clean (identical to committed HEAD), re-ran: All tests passed! (5/5).
+
+=== 4. Full DeliveryApp automated suite (regression backstop, step 6) ===
+$ flutter test   (full suite)
+...
+00:10 +384: All tests passed!
+(384/384 — the interleaved `[FAIL]` lines visible mid-run belong to unrelated pre-existing tests, e.g. api_client_corrupt_token_guard_test.dart and order_alarm_service_test.dart, which deliberately pin PII-safe ApiFailure/PlatformException logging on THEIR OWN negative paths — not failures, confirmed by the final "All tests passed!" and per-file names.)
+
+=== 5. Static confirmation of scope note's controller call sites ===
+lib/features/my_account/screens/my_account_screen.dart:
+  45:    _accountController.getWalletPaymentList();
+  46:    _accountController.getWalletProvidedEarningList();
+  63:        _accountController.getWalletPaymentList(),
+  64:        _accountController.getWalletProvidedEarningList(),
+Confirms both wallet calls fire together on screen init, as scope described.
+
+lib/features/my_account/controllers/my_account_controller.dart getWalletPaymentList()/getWalletProvidedEarningList():
+  post-fix, the repository never returns null on a 200 (always [] or populated) — the controller's `if (transactions != null)` guard now always takes the assign-and-render branch on any 200, whether empty or populated. No behavior change to the non-empty path (AC3 static confirmation).
+
+=== 6. flutter analyze ===
+$ flutter analyze lib/features/my_account/domain/repositories/my_account_repository.dart
+No issues found! (ran in 2.4s)
