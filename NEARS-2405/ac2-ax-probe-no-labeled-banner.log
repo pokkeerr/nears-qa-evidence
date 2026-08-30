@@ -1,0 +1,18 @@
+AC2 attempt log — genuine tap-triggered cold-launch attempt (2026-08-30, iPhone 17 Pro sim 53F3807C, QA NEARS-2405)
+
+1. Confirmed app fully killed: `xcrun simctl terminate 53F3807C... com.sixamtech.6amMart` -> "found nothing to terminate"
+2. Delivered push via `xcrun simctl push 53F3807C... com.sixamtech.6amMart push-general.apns` (type=general, aps.alert set) -> "Notification sent to 'com.sixamtech.6amMart'"
+3. Per NEARS-2545's documented gotcha, simctl push's own success message proves transport only, not delivery -- cross-checked against the simulator's OWN system log (not the host log):
+   `xcrun simctl spawn 53F3807C... log show` shows SpringBoard actually processing + SAVING the notification:
+     "[com.sixamtech.6amMart] Saving notification 3BBC-D7E6: YES [ hasAlertContent: YES, shouldPresentAlert: YES settingsShouldSave: YES pipelineState: pending]"
+     "[com.apple.UserNotifications:Connections] [com.sixamtech.6amMart] Added notification request: [ hasError: 0 hasCompletionHandler: 1 ]"
+   -> real delivery confirmed, not a silent no-op.
+4. Attempted a label-driven tap per the AC2 instruction (house iOS tooling first): `ui_tap_ios`/`ios_find.py` are VM-Service/Semantics-tree driven against the FLUTTER APP'S OWN isolate -- with the app fully killed there is no VM Service to connect to, so this path is structurally inapplicable to a SYSTEM (SpringBoard) notification banner, not merely inconvenient.
+5. Fallback probe: macOS Accessibility (System Events) against the Simulator process/window --
+   - Window IS visible to Accessibility this session (unlike the NEARS-2517 "0 windows" failure mode) -- `count of windows` = 1.
+   - `UI elements of window 1` = 7 nodes, all WINDOW CHROME ONLY (AXToolbar, close/fullscreen/minimize AXButtons, 2 AXStaticText title fragments) -- no guest-OS content.
+   - Descended into the one AXGroup representing the device's rendered screen; `UI elements of` that group = 14 nodes, but EVERY one reports the generic role "AXGroup" / description "group" with no distinguishing label/text -- re-probed immediately after a fresh `simctl push` (to catch the banner's ~short visible window) and still got zero addressable/labeled element for the notification banner or its content.
+   -> The Simulator renders the guest device screen as an opaque Metal surface to the host Accessibility API; individual guest-OS (SpringBoard) elements are NOT exposed as distinct AX nodes at any depth reachable here. This is a structural host-tooling limitation, not a flakiness/timing issue.
+6. Per the hard "no hardcoded coordinates on any platform" rule, did NOT fall back to a guessed/hardcoded tap coordinate for the banner region to force a result.
+
+CONCLUSION: genuine attempt made with the house tooling (ios_find.py/uinav_ios.sh) first, then a macOS-Accessibility fallback probe; both are structurally unable to resolve/tap a SpringBoard-owned notification banner while the Flutter app is killed (no VM Service; no labeled AX node). This reproduces, on the same simulator one day later, the exact gap already recorded in docs/apps/userapp/userapp-navigation-guide.md under "NEARS-2545 QA, 2026-08-29": "No live 'app fully killed, launched by tapping a push' repro recipe exists yet for iOS." AC2's tap-triggered cold-launch could not be live-demonstrated in this environment -- reported as environment-blocked, not forced to PASS or FAIL.
