@@ -1,0 +1,8 @@
+Best-effort live repro of the NEARS-2082 structural-dump-failure class:
+concurrent `uiautomator dump` invocations against the same device collide
+("already registered", adb exit 137). Retry loop engages and retries
+visibly, loud-fail contract preserved after budget exhausted.
+
+$ ( python3 uifind.py list ) &  # x2, concurrent
+uifind: emulator-5556 NOT ASSERTED: dump failed: adb shell uiautomator dump exited 137 - no output - an empty result is NOT an empty screen
+x1 rc=4 x2 rc=0
