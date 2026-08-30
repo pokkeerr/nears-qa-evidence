@@ -1,0 +1,33 @@
+NEARS-2660 AC2 — get-Tax for a PRESCRIPTION cart (item 34 "Cold & Flu Relief", store 7
+"HealthCare Pharmacy", zone 1), demonstrated via the endpoint's own is_buy_now=1
+production request contract (real HTTP round-trip to the live backend under test),
+because the "Add to Cart" UI tap for item 34 is blocked right now by an UNRELATED,
+orthogonal store-hours gate (Helpers::isStoreOpenNow(): store 7's only schedule
+window is 07:00-23:59 Asia/Dubai [business_settings.timezone], real wall-clock at
+QA time was ~01:5x AM, schedule_order=0 so no advance-order exemption). Confirmed
+via source read that getCalculatedTax() has ZERO store-open check anywhere in its
+body — this call exercises the exact same fixed line
+(makeOrderDetails($carts, $request, $order, $store, true) at PlaceNewOrder.php:1805)
+that the vanilla (non-buy-now) cart path AC1 exercised live via real UI taps.
+
+3 attempts, all HTTP 200, tax computed correctly (7.19 * 0.05 = 0.35955), and a
+laravel.log line-count window check around each attempt confirmed NO new
+"[FAIL] get_calculated_tax" line for any of them.
+
+--- Attempt 1 ---
+rid=aa3b491d-da46-4b7a-91a4-87838a4f95c5
+Request: POST /api/v1/customer/order/get-Tax  (is_buy_now=1, store_id=7,
+  cart=[{item_id:34,item_type:"Item",quantity:1,price:"7.19"}])
+Response: HTTP 200
+  {"tax_amount":0.35955000000000004,"tax_status":"excluded","tax_included":0}
+Backend log window: clean (0 new [FAIL] get_calculated_tax lines)
+
+--- Attempt 2 ---
+rid=d373f0a7-17e7-4ef3-80e4-e30c6b52dafe
+Response: HTTP 200 {"tax_amount":0.35955000000000004,"tax_status":"excluded","tax_included":0}
+Backend log window: clean
+
+--- Attempt 3 ---
+rid=43332a03-3d18-4909-910e-ba6ccb8943d2
+Response: HTTP 200 {"tax_amount":0.35955000000000004,"tax_status":"excluded","tax_included":0}
+Backend log window: clean

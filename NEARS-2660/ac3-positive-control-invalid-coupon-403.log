@@ -1,0 +1,32 @@
+NEARS-2660 AC3 — positive control: deliberately-invalid coupon_code submitted on
+get-Tax, confirming the 403/logging channel is still live (not globally disabled
+by this ticket's change to skip the prescription gate on the tax-preview call).
+
+Request:
+  POST /api/v1/customer/order/get-Tax
+  Header: X-Request-Id: bd31353d-3dbd-4248-b0ea-5377f7b4a32f
+  Body (subset): store_id=7, coupon_code="NEARS2660BOGUSCODE", is_buy_now=0
+    (vanilla cart path — persisted pharmacy cart, items 32/33, non-Rx)
+
+Response: HTTP 403
+  {"errors":[{"code":"coupon","message":"Coupon expire"}]}
+
+Correlated backend log line (laravel.log):
+  [2026-08-31 02:00:51] production.ERROR: [FAIL] get_calculated_tax
+  {"trace_id":"81905a668050c36ce8bd2cb7f1f2136b",
+   "correlation_id":"bd31353d-3dbd-4248-b0ea-5377f7b4a32f",
+   "endpoint":"/api/v1/customer/order/get-Tax","http_status":403,"code":"coupon",
+   "request_id":"bd31353d-3dbd-4248-b0ea-5377f7b4a32f"}
+
+request_id in the log line == the X-Request-Id header sent on the request:
+bd31353d-3dbd-4248-b0ea-5377f7b4a32f — full end-to-end correlation proof, and
+proof the 403+[FAIL]-log channel fires correctly for a GENUINE gate hit (coupon),
+distinct from the 3 clean prescription-cart passes in ac2-rx-cart-get-tax-200.log
+and the 3 clean plain-cart passes demonstrated live via real UI taps for AC1.
+
+Also reproduced live via the real device UI (checkout screen's "Apply" on the
+promo-code field): that control-surface flow routes through the SEPARATE
+GET /api/v1/coupon/apply pre-validation endpoint (client-side coupon check before
+it is ever wired into a get-Tax recompute) — a different, unrelated endpoint with
+its own 404 "Invalid coupon code" contract, not a defect (verified by reading
+CouponController::apply — this is by design, not a NEARS-2660 concern).
