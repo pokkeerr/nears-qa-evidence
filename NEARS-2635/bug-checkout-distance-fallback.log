@@ -1,0 +1,11 @@
+08-30 20:18:56.490 18509 18509 I flutter : [ERR] msg="checkout: distance response shape invalid, using straight-line fallback" type=ApiFailure
+
+Context: observed during zone-3 (qa.singlestore@nears.com, Tower A / Single Store QA Zone)
+checkout regression-check flow (QA Test Scope item 5), NOT during any of AC1-AC3's
+demonstrated zone-1 flows. App gracefully degraded to a straight-line-distance fallback
+and the checkout screen rendered normally (no crash, no visible error state); the failure
+IS paired with an AppLogger.failure-style [ERR] line carrying a PII-safe ApiFailure
+sentinel per the logging contract, so this is not a silent-failure violation -- it is a
+pre-existing, unrelated distance/ETA-calculation defect surfaced incidentally while
+exercising checkout for the positive control. Not caused by NEARS-2635 (a zones.digital_payment
+data-only migration), not reproduced during any AC1-3 flow.
