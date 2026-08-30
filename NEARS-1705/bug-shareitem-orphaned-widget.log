@@ -1,0 +1,17 @@
+bug-shareitem-orphaned-widget: DetailsAppBarWidget / _shareItem() has NO live caller in lib/
+Pre-existing (introduced pre-NEARS-1705, confirmed via git log on the file — last touched by
+NEARS-1345 token-relocation commit, unrelated to this ticket's diff).
+====
+$ grep -rn "class DetailsAppBarWidget\|DetailsAppBarWidget(" UserApp/lib
+UserApp/lib/features/item/widgets/details_app_bar_widget.dart:18:class DetailsAppBarWidget extends StatefulWidget
+UserApp/lib/features/item/widgets/details_app_bar_widget.dart:26:  const DetailsAppBarWidget({super.key, this.item, this.shakeTrigger});
+UserApp/lib/features/item/widgets/details_app_bar_widget.dart:37:class DetailsAppBarWidgetState extends State<DetailsAppBarWidget>
+
+$ grep -rln DetailsAppBarWidget UserApp/lib UserApp/test
+UserApp/lib/features/item/widgets/details_app_bar_widget.dart
+
+Only the declaring file itself references the class name -- no screen/route constructs
+DetailsAppBarWidget(...), so the share icon (_shareItem(), line 100) can never be tapped
+live. Confirmed empirically: the modal ItemBottomSheet's own accessibility dump (item=Banana,
+id=1) lists Close/Favourite/Dismiss/Description but NO Share node -- see
+bug-modselect-flash.png sibling evidence dir contact sheets for the modal's actual chrome.
