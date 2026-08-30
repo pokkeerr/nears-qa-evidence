@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1940
 
-**BLOCKED — AC1/AC2 via automated+falsifiability evidence (pre-authorized), AC3 live-device confirmation blocked by whole-pool disk exhaustion**
+**retry_2 PASS - AC3 live-confirmed on emulator-5576**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
