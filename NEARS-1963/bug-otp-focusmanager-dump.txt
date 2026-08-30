@@ -1,0 +1,45 @@
+NEARS-1963 QA — live capture via Dart VM service `ext.flutter.debugDumpFocusTree`
+(WebSocket JSON-RPC, reusing scripts/app-nav/ios_find.py's WS/VM classes),
+taken immediately after `adb shell input tap 672 1717` on the OTP verification
+screen's PinCodeTextField-reported bounds centre.
+
+Tail of the dump (current/topmost route's ModalScope):
+
+  ├─Child 3: FocusScopeNode#fc01d(_ModalScopeState<dynamic> Focus Scope)
+  │ │ context: _FocusScopeWithExternalFocusNode
+  │ │ focusedChildren: FocusNode#beda9
+  │ │ traversalEdgeBehavior: TraversalEdgeBehavior.parentScope
+  │ │
+  │ ├─Child 1: FocusNode#06b2a
+  │ │   context: Focus
+  │ │
+  │ ├─Child 2: FocusNode#beda9
+  │ │   context: Focus
+  │ │
+  │ ├─Child 3: FocusNode#1a293
+  │ │   context: Focus
+  │ │
+  │ └─Child 4: FocusNode#d1576
+  │     context: Focus
+  │
+  └─Child 4: FocusScopeNode#8cf68(_ModalScopeState<dynamic> Focus Scope [PRIMARY FOCUS])
+    │ context: _FocusScopeWithExternalFocusNode
+    │ PRIMARY FOCUS
+    │
+    ├─Child 1: FocusNode#7322d
+    │   context: Focus
+    │
+    ├─Child 2: FocusNode#4480b
+    │   context: Focus
+    │
+    └─Child 3: FocusNode#4d0d8
+        context: Focus
+
+READING: PRIMARY FOCUS sits at the ROUTE SCOPE level (#8cf68 = the verification
+screen's ModalRoute scope), not on any leaf FocusNode. None of its 3 leaf
+children (one of which is _pinFocusNode) carries "[IN FOCUS PATH]" or
+"PRIMARY FOCUS" — i.e. Flutter's own FocusManager confirms focus never reached
+the PIN field after the tap. Repeated on a second fresh tap: identical result,
+same 3 leaves, none focused. This is authoritative (not an adb/uiautomator
+projection) confirmation of the tap-to-focus defect recorded in
+bug-otp-tap-no-focus.log.

@@ -1,0 +1,71 @@
+NEARS-1963 QA — OTP PinCodeTextField tap-to-focus defect
+Device: emulator-5560, package com.izzes.nears.nears_nears_1963_otp_a11y
+
+REPRO: verification screen reached via forget_pass_screen -> +971500000263 -> Request OTP.
+Live-reported PIN field bounds center tapped: adb shell input tap 672 1717
+(bounds [147,1603][1197,1831], confirmed via two-dump rule, hint="Verification Code")
+
+SIGNAL 1 — Android IME service state (before/after tap):
+  $ adb shell dumpsys input_method | grep mInputShown
+  mInputShown=false        <- stays false after the tap (keyboard never opens)
+
+SIGNAL 2 — accessibility tree after tap + `input text "123456"`:
+  EditText enabled=true focused=false text=''   <- digits never landed
+  Verify button enabled=false                    <- stays disabled (needs 6 digits)
+
+SIGNAL 3 — Flutter's OWN FocusManager (authoritative, non-adb-projected),
+  captured live via the Dart VM service (ext.flutter.debugDumpFocusTree),
+  immediately after the same tap:
+  FocusScopeNode#8cf68(_ModalScopeState<dynamic> Focus Scope [PRIMARY FOCUS])
+    (current route's scope) with 3 leaf FocusNode children —
+    NONE of the 3 ever shows [IN FOCUS PATH] / PRIMARY FOCUS after the tap.
+  i.e. focus never leaves the route scope and lands on any leaf node
+  (one of those 3 leaves is _pinFocusNode).
+
+REPRODUCTION MATRIX (all show the identical failure):
+  - TalkBack/touch-exploration ON  -> fails (mInputShown=false)
+  - TalkBack/touch-exploration OFF -> fails (mInputShown=false) -- rules out an
+    a11y-only regression; this breaks NORMAL tap-to-type too, not just TalkBack's
+    tap-to-focus handoff (the ticket's OPEN RISK, confirmed AND found broader
+    than flagged).
+  - Fresh cold-restarted app process -> fails identically (rules out session/
+    TalkBack-toggling state contamination from this QA session).
+
+POSITIVE CONTROL (proves the tooling/instrument is alive, same session, same
+build, identical methodology `adb shell input tap` + `adb shell input text`):
+  Forgot-password screen's ordinary Phone EditText (untouched by this diff):
+    tap -> mInputShown=true, focused=true, typed text lands correctly.
+  See control-phone-field-focuses-normally.xml.
+
+SCOPE: only file touched by this ticket's single commit is
+UserApp/lib/features/verification/screens/verification_screen.dart (confirmed:
+`git log --oneline main..HEAD -- <file>` = 1 commit). The diff's only
+behavioral additions on this screen are: passing an app-owned FocusNode/
+TextEditingController into PinCodeTextField (previously package-internal),
+autoDisposeControllers:false, and the outer Semantics(excludeSemantics:true,
+onTap:...) wrapper. One or more of these broke the package's internal
+GestureDetector -> _onFocus() -> _focusNode.requestFocus() wiring (pin_code_fields
+8.0.1, lib/src/pin_code_fields.dart lines ~844-852, ~954-966). Root-causing the
+exact mechanism is an engineering task; this file documents the live, repeated,
+control-validated PROOF that it is broken, not the fix.
+
+CASCADING IMPACT ON THIS TICKET'S OWN REGRESSION SWEEP (all blocked by the same
+root defect, since none can type a digit into the field):
+  - "Normal OTP entry: tap field, type 6 digits ... verify button enables" -> FAILS
+  - "Error-shake animation on wrong OTP submit" -> UNVERIFIABLE (Verify never enables)
+  - AC3 (RTL digit ENTRY order) -> UNVERIFIABLE live (no digit can ever be typed to
+    observe fill order); only the STATIC code-level Directionality(ltr) wrapper
+    (byte-identical, unchanged by this diff) and the unmirrored container bounds
+    in the Arabic-locale dump could be checked.
+
+NOT blocked / independently confirmed clean:
+  - Paste-detection dialog: not confirmed either way (clipboard was empty; also
+    routes through the same broken GestureDetector, so almost certainly blocked
+    too, but not proven with an empty clipboard).
+  - Resend-OTP timer/button (`Didn't receive the code?` -> countdown -> `Resent it`):
+    OBSERVED WORKING correctly across this session (57s -> ... -> Resent it,
+    re-armed cleanly on a fresh Request OTP).
+  - Navigate-in-and-immediately-back-out (the double-dispose bug class this
+    ticket's engineer fixed): NO CRASH, no "FocusNode used after being disposed"
+    or similar in logcat around the back-navigation moment -- this specific fix
+    IS clean.
