@@ -1,0 +1,50 @@
+NEARS-2615 — reachability finding: the AC1-3 scenario (DigitalPaymentFailedScreen,
+fromDialog:true, at ResponsiveHelper.isDesktop breakpoint) is UNREACHABLE from any
+live UserApp build (Android/iOS) on this branch. This is a pre-existing structural
+fact, not caused by this ticket, and not something QA or an engineer changed.
+
+1) No live call site ever constructs DigitalPaymentFailedScreen with fromDialog:true.
+   $ grep -rn "DigitalPaymentFailedScreen(" UserApp/lib/
+   lib/features/order/domain/services/order_service.dart:186:
+       Get.offNamed(RouteHelper.getDigitalPaymentFailedScreen(orderID, createAccount: createAccount));
+   lib/features/checkout/screens/digital_payment_failed_screen.dart:21:  const DigitalPaymentFailedScreen({   <- class def only
+   lib/features/checkout/screens/order_successful_screen.dart:380:
+       RouteHelper.getDigitalPaymentFailedScreen(orderId!, createAccount: widget.createAccount)
+   lib/helper/route_helper.dart:524:  static String getDigitalPaymentFailedScreen(   <- URL builder, no fromDialog param at all
+   lib/helper/route_helper.dart:1468:        return DigitalPaymentFailedScreen(       <- the GetPage; constructs with
+                                                       orderId: Get.parameters['orderId']!,
+                                                       createAccount: Get.parameters['create_account'] == 'true',
+                                                     ); // fromDialog omitted -> defaults to false (constructor default)
+
+   Both real call sites (order_service.dart:186, order_successful_screen.dart:380)
+   route through Get.offNamed/Get.toNamed -> the named GetPage -> always
+   fromDialog=false (the full-screen Scaffold branch, itself out of scope per
+   this ticket's own text: "no close button and is out of scope").
+
+   grep -rn "fromDialog: true" UserApp/lib/ | grep -i payment  => zero hits.
+
+2) Even setting that aside: ResponsiveHelper.isDesktop requires screen width
+   >= 1300 logical px (UserApp/lib/helper/responsive_helper.dart:28-30). Per
+   the code's own comment this is "kept for a possible future web target
+   (NEARS-61)" and per NEARS-1905's owner ruling isMobile() is hardcoded
+   `true` always ("mobile size only for now, not desktop" - see doc-comment
+   at responsive_helper.dart:6-10). UserApp has NO web/ directory (`ls
+   UserApp/web` -> No such file or directory) i.e. it is not built as a
+   Flutter Web target at all. There is no Android/iOS device or simulator in
+   the QA pool (or in principle) that reports a 1300px-wide MediaQuery, so
+   isDesktop can never evaluate true on any buildable target of this app.
+
+3) The screen's own widget test (UserApp/test/features/checkout/
+   digital_payment_failed_screen_test.dart, group "close promotion — fromDialog
+   NIconButton") has to hand-construct `Get.dialog(const
+   DigitalPaymentFailedScreen(orderId: '42', fromDialog: true))` itself,
+   exactly because no production code path does this. That test file is the
+   only place in the whole tree that sets fromDialog:true.
+
+Conclusion: AC1/AC2/AC3 describe a screen state that cannot be produced by
+driving the live app (no uiautomator bounds can be pulled off a screen that
+never renders). This is a DoR/repro-path gap in the ticket itself, not a
+regression and not a defect of this fix. Flagged as drift[] + a followups[]
+regression-candidate note (either wire a live desktop-dialog entry point per
+original design intent, or delete the fromDialog:true dead branch + its
+isDesktop check as unreachable code).

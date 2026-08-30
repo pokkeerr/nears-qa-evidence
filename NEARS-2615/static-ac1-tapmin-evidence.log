@@ -1,0 +1,44 @@
+NEARS-2615 — AC1 static evidence: NIconButton unconditional 44dp tap-min floor
+Source: packages/nears_dls/lib/elements/icon_button/n_icon_button.dart (lines 176-204)
+
+    // NEARS-2598: the tap area floors at NearsTokens.tapMin (44) even when
+    // diameter is smaller — the glyph/circle stay at their original diameter
+    // (visually unchanged), only the invisible hit padding grows.
+    final double tapSize = math.max(diameter, NearsTokens.tapMin);
+
+    Widget visual = SizedBox(
+      width: tapSize,
+      height: tapSize,
+      child: Center(
+        child: AnimatedScale(
+          ...
+          child: Container(
+            width: diameter,
+            height: diameter,
+            decoration: decoration,
+            ...
+
+Token: packages/nears_dls/lib/tokens/nears_tokens.dart:217
+    static const double tapMin = 44; // minimum hit target
+
+Consumer (this ticket's screen):
+UserApp/lib/features/checkout/screens/digital_payment_failed_screen.dart:65-72
+    child: NIconButton(
+      'close',
+      onTap: () => Get.back(),
+      diameter: 30,
+      background: NearsTokens.surfaceSunken,
+      foreground: NearsTokens.textMuted,
+      semanticLabel: 'close'.tr,
+    ),
+
+=> tapSize = math.max(30, 44) = 44 unconditionally, for every NIconButton
+   consumer including this one. The visible Container/glyph stays at the
+   original `diameter` (30) — only the invisible SizedBox hit padding grows
+   to 44x44 (satisfies AC3's "no visible size change" requirement by
+   construction, not by per-consumer configuration).
+
+This is the SAME code path already merged and Done under NEARS-2598 (adds
+the floor to NIconButton itself, no override available) and NEARS-2578
+(migrated this screen's close affordance from a raw Container+InkWell to
+NIconButton). No code on feat/userapp-reskin2 diverges from this.
