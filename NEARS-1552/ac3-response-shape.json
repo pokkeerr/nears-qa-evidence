@@ -1,0 +1,34 @@
+// NEARS-1552 AC3 — live GET /api/v1/module response (module id=4, zone 3)
+// captured against the worktree's booted server (127.0.0.1:8060) during QA,
+// shown against docs/api-shapes/module.json's documented shape. Confirms
+// stores_count / active_stores_count / open_now_stores_count / items_count /
+// single_store_id / zones (allow-list projection) are all present and
+// correctly typed, and that open_now_stores_count is additive (a new key,
+// nothing removed/renamed from the pre-NEARS-1552 shape).
+{
+  "id": 4,
+  "module_name": "QA Single-Store Grocery",
+  "status": "1",
+  "stores_count": 1,
+  "active_stores_count": 1,
+  "open_now_stores_count": 1,
+  "items_count": 6,
+  "single_store_id": 59,
+  "zones": [
+    {
+      "id": 3,
+      "name": "Single Store QA Zone",
+      "display_name": "Single Store QA Zone",
+      "status": 1
+    }
+  ]
+}
+
+// UserApp/lib/common/models/module_model.dart ModuleModel.fromJson (checked
+// live in the worktree tree, not re-guessed): plain per-key access —
+//   activeStoresCount = json['active_stores_count'];
+//   singleStoreId = json['single_store_id'];
+// — no whitelist/strict-decode, no throw on an unmirrored key. The new
+// `open_now_stores_count` key is simply not read by the current UserApp
+// model: additive-safe, zero parse risk. (Confirms the ticket's AC3 claim,
+// consistent with the contract-sync note already run at phase [7].)

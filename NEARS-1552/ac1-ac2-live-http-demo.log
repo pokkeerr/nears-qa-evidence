@@ -1,0 +1,75 @@
+NEARS-1552 — AC1 + AC2 live HTTP demonstration
+================================================
+Backend booted from worktree: /Users/Apple/Projects/nears-NEARS-1552-open-now-store-count-backend/Admin
+  php artisan serve --host=127.0.0.1 --port=8060
+DB: worktree-private disposable clone `multi_food_db_test_nears1552qa`
+  (cloned via `scripts/setup_test_db.sh --clone nears1552qa` from the existing
+  `multi_food_db_test` twin — the shared product DB `multi_food_db` was NEVER
+  written to; Admin/.env DB_DATABASE was pointed at the clone for the duration
+  of this QA session only, then restored to `multi_food_db` afterward).
+Server wall-clock at test time: Sun Aug 30 2026, ~20:43 +04 (day=0/Sunday
+  under Carbon's dayOfWeek, matches store_schedule.day convention).
+
+--- Case A: module 4 ("QA Single-Store Grocery"), zone 3 — exactly one
+    active store (id=59), used because it isolates single_store_id +
+    open_now_stores_count on the SAME store, proving AC2 (single_store_id is
+    schedule-independent) alongside AC1 in one before/after pair. ---
+
+BASELINE (store 59's store_schedule day=0 row: 00:00:00–23:59:00, i.e. open
+right now):
+  GET /api/v1/module   Header: zoneId: [3]
+  -> module id=4 "QA Single-Store Grocery":
+     stores_count: 1
+     active_stores_count: 1
+     open_now_stores_count: 1
+     single_store_id: 59
+
+MUTATION (clone DB only):
+  UPDATE store_schedule SET closing_time='03:00:00'
+    WHERE store_id=59 AND day=0;
+  -- store 59 is now schedule-closed as of ~20:43 (closing_time 03:00 < now).
+
+AFTER (same request, store 59 now schedule-closed for today):
+  GET /api/v1/module   Header: zoneId: [3]
+  -> module id=4 "QA Single-Store Grocery":
+     stores_count: 1
+     active_stores_count: 1        <- UNCHANGED (AC2: active/listable status untouched by schedule)
+     open_now_stores_count: 0      <- AC1: correctly reflects schedule-closed
+     single_store_id: 59           <- UNCHANGED (AC2: resolution stays keyed off active_stores_count only)
+
+Reverted (clone DB only): closing_time restored to 23:59:00; re-fetch showed
+open_now_stores_count back to 1, active_stores_count/single_store_id
+unchanged throughout — confirms the field tracks live schedule state, not a
+one-way/cached flag.
+
+--- Case B: module 1 ("Grocery & Food"), zone 2 (Abu Dhabi, 19 stores,
+    14 active) — multi-store module, exercises the aggregate COUNT path. ---
+
+BASELINE (store id=8 "Abu Dhabi Fresh Market", schedule day=0: 08:00–23:00,
+open now):
+  GET /api/v1/module   Header: zoneId: [2]
+  -> module id=1: active_stores_count=14, open_now_stores_count=14
+
+MUTATION (clone DB only): UPDATE store_schedule SET closing_time='12:00:00'
+  WHERE store_id=8 AND day=0;  (store 8 now schedule-closed at ~20:4x)
+
+AFTER:
+  GET /api/v1/module   Header: zoneId: [2]
+  -> module id=1: active_stores_count=14 (unchanged), open_now_stores_count=13
+     (exactly one fewer — the schedule-closed store, matching a raw SQL
+     cross-check: `SELECT COUNT(*) FROM stores s JOIN store_schedule ss ...
+     WHERE ss.day=DAYOFWEEK(NOW())-1 AND ss.opening_time<TIME(NOW())
+     AND ss.closing_time>TIME(NOW())` independently returned 13 ids)
+
+Reverted (clone DB only): closing_time restored to 23:00:00; re-fetch showed
+open_now_stores_count back to 14 == active_stores_count.
+
+--- Invariant sweep across ALL modules/zones (zoneId: [1,2,3]) ---
+6 modules returned. Every row: open_now_stores_count present, int, and
+<= active_stores_count (never exceeds it):
+  id=1 Grocery & Food:            active=20 open_now=20 single_store_id=None
+  id=2 Food & Restaurant:         active=11 open_now=11 single_store_id=None
+  id=3 Pharmacy:                  active=11 open_now=11 single_store_id=None
+  id=4 QA Single-Store Grocery:   active=1  open_now=1  single_store_id=59
+  id=5 Parcel Delivery:           active=0  open_now=0  single_store_id=None
+  id=6 NEARS-475 Suspended Grocery: active=0 open_now=0 single_store_id=None

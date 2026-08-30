@@ -1,0 +1,46 @@
+NEARS-1552 — automated backstop (phpunit)
+==========================================
+Worktree: /Users/Apple/Projects/nears-NEARS-1552-open-now-store-count-backend/Admin
+DB: multi_food_db_test_nears_nears_1552_open_now_store_count_ba (per-worktree
+disposable clone auto-provisioned by tests/bootstrap.php, DatabaseTransactions
+rollback per test — the shared multi_food_db was never touched by phpunit).
+
+$ vendor/bin/phpunit --configuration phpunit.xml --filter Module
+...............................................................  63 / 159 ( 39%)
+............................................................... 126 / 159 ( 79%)
+.................................                               159 / 159 (100%)
+Time: 00:16.858, Memory: 141.00 MB
+OK (159 tests, 831 assertions)
+
+$ vendor/bin/phpunit --configuration phpunit.xml \
+    tests/Feature/ModuleSingleStoreIdTest.php tests/Feature/ModuleZoneQueryParamTest.php
+.............................                                     29 / 29 (100%)
+Time: 00:03.351, Memory: 74.50 MB
+OK (29 tests, 155 assertions)
+
+ModuleSingleStoreIdTest.php includes the 5 NEW NEARS-1552 tests:
+  - test_open_now_stores_count_reflects_schedule_state
+  - test_open_now_stores_count_excludes_a_store_with_no_schedule_row
+  - test_open_now_stores_count_excludes_inactive_store_even_if_schedule_open
+  - test_single_store_id_unaffected_by_schedule_closed_state
+  - test_every_module_row_carries_open_now_stores_count_key
+...plus every pre-existing single_store_id / active_stores_count test in the
+same file (AC2 regression coverage), all green.
+
+BE log scoped grep — Admin/storage/logs/laravel.log, filtered to
+`/api/v1/module` (the [api]-tagged AC's endpoint), during both the phpunit
+run and the live curl session:
+  Only [WARN] "module zone resolved from zone_id query param" lines
+  (pre-existing NEARS-2079 log-gate behavior for the ?zone_id= fallback path
+  — expected, unrelated to this change). No [FAIL]/[ERR] lines scoped to
+  /api/v1/module.
+
+Unrelated pre-existing noise seen elsewhere in the same log file (NOT scoped
+to /api/v1/module, not caused by this endpoint or this diff — flagged as
+regression_bugs, non-blocking):
+  - Recurring [FAIL] "OpenTelemetry export failed" (cURL error 7, connect to
+    localhost:5080) — no local OTLP collector running in this dev
+    environment; fires from the app's global telemetry middleware on
+    essentially any request/command, not specific to ModuleController.
+  - [FAIL] "module-id drift check failed" — a separate guard command
+    (unrelated ticket/tooling), pre-existing in this worktree's log history.
