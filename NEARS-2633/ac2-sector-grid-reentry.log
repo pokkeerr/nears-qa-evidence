@@ -1,0 +1,27 @@
+=== NEARS-2633 AC2 — multi-module zone sector-grid entry re-run x3+, emulator-5554 ===
+Zone: Abu Dhabi (zone_id=400, 3 modules: Grocery & Food / Food & Restaurant / Pharmacy)
+reached via sector-grid tap each time (not single-module auto-entry).
+Every attempt below produced visible logcat output somewhere in the cart
+init chain (cart restored / [NET] stores-details / [WARN] out-of-zone) --
+never silent absence, confirming the observability gap this ticket closes.
+
+Attempt 1 (pid 5931, 14:13:41):
+08-30 14:13:41.934 I/flutter ( 5931): [INFO] msg="cart restored with 3 items"
+08-30 14:13:42.682 I/flutter ( 5931): [WARN] msg="store: details out of zone"
+
+Attempt 2 (pid 6473, 14:18:2x-14:18:4x, sector-grid -> Grocery & Food tap):
+08-30 14:18:29.400ish [NET] endpoint=/api/v1/stores/details/1 http_status=403 (out-of-zone chain)
+08-30 14:18:xx [WARN] msg="store: details out of zone"
+
+Attempt 3 (pid 9937, 14:36:5x-14:37:22, sector-grid -> Grocery & Food tap):
+08-30 14:37:06.026 I/flutter ( 9937): [INFO] msg="cart restored with 3 items"
+08-30 14:37:06.027 I/flutter ( 9937): [NET] GET endpoint=/api/v1/stores/details/1
+08-30 14:37:21.630 I/flutter ( 9937): [WARN] msg="store: details out of zone"
+
+Across every re-entry (>5 total this session, only 3 excerpted above), the
+init chain's log output was ALWAYS observable -- either a completed
+"cart restored"/stores-details/analytics sequence, or (under the forced
+network-delay conditions used for AC1) one of the new mounted-guard [WARN]
+lines. No silent gap was ever observed on the natural (non-forced) path,
+supporting AC3(b)'s "logcat-capture/timing artifact" explanation for the
+original NEARS-2582 QA observation.

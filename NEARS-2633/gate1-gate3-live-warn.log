@@ -1,0 +1,35 @@
+=== NEARS-2633 QA — live device evidence, emulator-5554, pid 9937 ===
+=== Gate #1 (post getCartDataOnline) — forced via: Home app-bar "Cart" icon push
+     (fromNav:false, cart genuinely empty) -> immediate Back-pop mid-await,
+     using a local delaying reverse proxy (127.0.0.1:8099 -> :8000, 15s added
+     latency on /api/v1/customer/cart/list) to widen the await window ===
+08-30 14:44:47.234 -- tapped Home "Cart" icon (adb host clock)
+08-30 14:44:55.852 -- tapped "Back" (adb host clock), CartScreen popped ~8.6s later
+08-30 14:44:41.668 I/flutter ( 9937): [NET] GET endpoint=/api/v1/customer/cart/list
+08-30 14:44:56.948 I/flutter ( 9937): [NET] endpoint=/api/v1/customer/cart/list http_status=200
+08-30 14:44:56.948 I/flutter ( 9937): [WARN] msg="cart initCall: mounted-guard #1 (post getCartDataOnline) fired"
+
+=== Gate #3 (post getStoreDetails) — forced via: Search screen "View Cart" bar
+     push (fromNav:false, cart has 3 items) -> immediate Back-pop mid-await,
+     same delaying proxy (15s added latency on /api/v1/stores/details/) ===
+08-30 14:42:57.054 -- tapped "View Cart" (adb host clock)
+08-30 14:43:05.221 -- tapped "Back" (adb host clock), CartScreen popped ~8.2s later
+08-30 14:42:51.480 I/flutter ( 9937): [INFO] msg="cart restored with 3 items"
+08-30 14:42:51.480 I/flutter ( 9937): [NET] GET endpoint=/api/v1/stores/details/1
+08-30 14:43:06.884 I/flutter ( 9937): [NET] endpoint=/api/v1/stores/details/1 http_status=200
+08-30 14:43:06.887 I/flutter ( 9937): 📊 analytics: view_store {store_id: 1}
+08-30 14:43:06.887 I/flutter ( 9937): [WARN] msg="cart initCall: mounted-guard #3 (post getStoreDetails) fired"
+
+=== Gate #2 (post getModules, module==null && cartList.isNotEmpty) ===
+NOT caught live despite extensive attempts (>10 forced-disposal attempts across
+multiple restarts, zone switches Abu Dhabi<->Dhaka, cache-priming, network delays
+from 6s up to 60s). Root-caused via code read: getCartDataOnline() itself has an
+early guard (cart_controller.dart ~line 1987) that no-ops the whole fetch unless
+ModuleHelper.getModule() or getCacheModule() is already non-null -- by the time
+that guard passes (letting cartList populate), the live ModuleController.module
+field has, in every observed attempt, already resolved too, so gate 3 fires
+instead of gate 2. This is a narrow, code-confirmed internal race matching the
+ticket's own framing ("QA could not isolate a tight enough repro" after ~6
+varied attempts) -- not a defect: gate 2's AppLogger.warn(...) line is
+byte-identical in shape/placement to gates 1 and 3, both of which fired
+correctly with the exact PII-safe text from the diff.
