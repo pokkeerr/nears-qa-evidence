@@ -1,0 +1,29 @@
+4 pre-existing flutter test failures, unrelated to NEARS-2584 — all reproduced identically
+on the pristine pre-ticket base commit 2cabfecba (verified in a temp worktree, same pinned
+SDK ~/Tools/flutter 3.41.9):
+
+1. test/features/home/store_card_widget_overflow_test.dart
+   "at 100% scale, name/meta Column stays vertically centered in its budget" [E]
+   store_card_widget.dart has zero isMobile references (flagged by build/engineer,
+   re-confirmed by QA). Base result: 14 -4 (same failure at the same assertion).
+   Expected: exactly one matching candidate
+     Actual: Found 2 widgets with widget matching predicate descending from
+     widgets with type "StoreCardWidget"
+
+2. test/golden/dls_golden_test.dart "DLS components — light theme (variant: CI)" [E]
+   Golden "goldens/ci/dls_light.png": Pixel test failed, image sizes do not match.
+
+3. test/golden/dls_golden_test.dart "DLS components — dark theme (variant: CI)" [E]
+   Golden "goldens/ci/dls_dark.png": Pixel test failed, image sizes do not match.
+   Master Image: 438 X 2307 / Test Image: 438 X 2315
+   dls_golden_test.dart only imports nears_dls package components (NItemCard,
+   NStoreCard) + theme files — none of the 20 files NEARS-2584 touched.
+   Goldens unchanged in this ticket's diff (git diff --stat on the two PNGs is empty);
+   last touched by NEARS-2565.
+
+4. test/common/widgets/quantity_stepper_tap_target_test.dart
+   "mutation guard: pre-fix structure misses the 48 box corner" [E]
+
+All 4 reproduce on base commit 2cabfecba with an identical failing-test count (+17 -4)
+and identical failure messages — confirmed pre-existing, not introduced by NEARS-2584.
+Recorded as regression_bugs per QA protocol; does not affect this ticket's verdict.

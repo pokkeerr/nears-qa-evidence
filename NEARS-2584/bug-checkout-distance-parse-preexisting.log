@@ -1,0 +1,15 @@
+Pre-existing regression (unrelated to NEARS-2584) — checkout_controller.dart distance parse
+Confirmed: checkout_controller.dart is NOT among the 20 files this ticket touched
+  (git diff --name-only 2cabfecba..b8c6966a5 excludes it).
+Last touched by NEARS-2529 / NEARS-2430 / NEARS-2137 (unrelated tickets).
+Gracefully handled — paired AppLogger.failure line + straight-line-distance fallback,
+NOT a silent-failure violation. Checkout still completed normally (address, total,
+payment method, place order all rendered/functioned).
+
+Reproduced live on emulator-5564, UserApp debug build, NEARS-2584 branch HEAD b8c6966a5,
+during Proceed to Checkout from a cart containing an Organic Shop (store id 9, zone 2) item:
+
+08-30 09:16:16.062 29674 29674 I flutter : type 'String' is not a subtype of type 'int' of 'index'
+08-30 09:16:16.073 29674 29674 I flutter : [ERR] msg="checkout: distance parse failed, using straight-line fallback" type=_TypeError
+
+Source: UserApp/lib/features/checkout/controllers/checkout_controller.dart
