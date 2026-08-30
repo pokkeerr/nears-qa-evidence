@@ -1,0 +1,22 @@
+flutter test (SDK 3.41.9, ~/Tools/flutter, worktree
+/Users/Apple/Projects/nears-NEARS-2645-logout-tap-debounce/UserApp):
+
+1) Targeted debounce specs:
+   flutter test test/features/menu/menu_screen_logout_debounce_test.dart \
+                test/features/profile/profile_screen_logout_debounce_test.dart
+   -> 6/6 passed, incl. the fix-cycle-1 regression pins:
+      - "_buildLogoutButton: 5x rapid tap on 'yes' fires logout() at most once"
+      - "_confirmHeroSignOut: 5x rapid tap on 'yes' fires logout() at most once"
+      - "_buildLogoutButton (ProfileScreen): logout() throw resets isProcessing
+         (spinner clears, retry possible) and logs only the PII-safe sentinel,
+         never the raw error"
+      (+ menu-side mirror of the same throw-reset assertion)
+   The logged [FAIL] lines in the run output are the tests' OWN expected
+   assertions on AppLogger.failure output (LogoutFailure sentinel, never the
+   raw StateError) — not suite failures.
+
+2) Broader backstop — everything under test/features/menu/ and
+   test/features/profile/:
+   flutter test test/features/menu/ test/features/profile/
+   -> 100/100 passed ("All tests passed!"). No collateral breakage in either
+      feature directory from the 3-site debounce + try/catch change.

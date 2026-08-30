@@ -1,0 +1,33 @@
+Site 2 — MenuScreen `_confirmHeroSignOut` (hero top-left sign-out icon, semanticLabel "Logout")
+Device: emulator-5560 (NEARS_2414_QA), UserApp debug build.
+Account: customer@nears.com (logged in). Confirmed via live a11y dump that the
+hero icon and the GENERAL list's Logout row carry the IDENTICAL label ("Logout"
+in English / "تسجيل الخروج" in Arabic — same `'logout'.tr` key) — disambiguated
+by resolving bounds AT SCROLL-TOP (hero icon, e.g. (66,225) LTR / (1278,225)
+mirrored RTL) vs AFTER scrolling to the GENERAL section (list row, e.g. (672,2602),
+covered separately under site 1).
+
+LTR run — `adb logcat -c`, then 5x rapid tap on live-resolved "Yes" (400,1739):
+
+08-30 16:43:23.142  3592  3592 I flutter : [NET] POST endpoint=/api/v1/customer/cm-firebase-token
+08-30 16:43:23.187  3592  3592 I flutter : [INFO] msg="FCM registration id obtained"
+08-30 16:43:23.187  3592  3592 I flutter : [NET] POST endpoint=/api/v1/auth/guest/request
+08-30 16:43:23.958  3592  3592 I flutter : [NET] endpoint=/api/v1/auth/guest/request http_status=200
+08-30 16:43:23.959  3592  3592 I flutter : [NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200
+
+RTL (Arabic) run — `adb logcat -c`, then 5x rapid tap on live-resolved "نعم" (944,1742):
+
+08-30 16:53:59.100  3592  3592 I flutter : [NET] POST endpoint=/api/v1/customer/cm-firebase-token
+08-30 16:53:59.163  3592  3592 I flutter : [NET] POST endpoint=/api/v1/auth/guest/request
+08-30 16:53:59.935  3592  3592 I flutter : [NET] endpoint=/api/v1/auth/guest/request http_status=200
+08-30 16:53:59.937  3592  3592 I flutter : [NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200
+
+Both runs: exactly ONE cm-firebase-token POST (200, pre-fix: up to 4). Post-tap
+state: full stack clear via `Get.offAllNamed(getSignInRoute(splash))` — confirmed
+by a SECOND Android BACK exiting the app entirely (no further route on the stack
+to pop to, i.e. this really is `offAllNamed`, not just a dialog pop), matching
+the code path exactly. `ui_errors` clean (0 matches) after both runs.
+
+RTL screenshot: rtl-dialog-hero-signout.png (confirm dialog mid-flight, Arabic,
+correct RTL text/icon mirroring — hero logout icon moved to the top-RIGHT,
+theme-toggle to the top-LEFT vs LTR).

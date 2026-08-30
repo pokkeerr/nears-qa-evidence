@@ -1,0 +1,24 @@
+Site 3 — ProfileScreen `_buildLogoutButton` (app-bar Profile icon on the
+module-select landing -> pushed ProfileScreen route -> Logout row)
+Device: emulator-5560 (NEARS_2414_QA), UserApp debug build.
+Account: customer@nears.com (logged in).
+
+Repro: opened confirm dialog, resolved "Yes" bounds live via uifind.py (400,1739),
+`adb logcat -c` immediately before, then fired 5x `adb shell input tap 400 1739`
+back-to-back (no re-dump between taps).
+
+Result — exactly ONE cm-firebase-token invalidation POST fired (pre-fix: up to 4):
+
+08-30 16:41:27.496  3592  3592 I flutter : [NET] POST endpoint=/api/v1/customer/cm-firebase-token
+08-30 16:41:27.546  3592  3592 I flutter : [NET] POST endpoint=/api/v1/auth/guest/request
+08-30 16:41:27.634  3592  3592 I flutter : [NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200
+08-30 16:41:27.726  3592  3592 I flutter : [NET] endpoint=/api/v1/auth/guest/request http_status=200
+
+Post-tap state: guest ProfileScreen re-rendered IN PLACE (GetBuilder<ProfileController>
+.update() from MenuController.logout()'s clearUserInfo() call) — "Guest User" /
+"Login" tile, My Address/Logout/Change Password/Wallet/Orders correctly absent
+(auth-gated). Matches documented NEARS-2188/2442/2444 in-place-rebuild behavior
+for this site (nav guide §3b). No crash, no double-navigation.
+
+`ui_errors emulator-5560` immediately after: scanned 5 flutter-tag lines for
+pid 3592 of 8 pid-scoped buffer lines; 0 match(es). exit=0 (clean).

@@ -1,0 +1,22 @@
+Site 1 — MenuScreen `_buildLogoutButton` (bottom-nav Profile tab -> GENERAL list -> Logout row)
+Device: emulator-5560 (NEARS_2414_QA), UserApp debug build, pkg com.izzes.nears.nears_nears_2645_logout_tap_debounce
+Account: customer@nears.com (logged in)
+
+Repro: opened confirm dialog, resolved "Yes" bounds live via uifind.py (400,1739),
+fired 5x `adb shell input tap 400 1739` back-to-back (no re-dump between taps —
+genuine rapid-tap burst) after clearing logcat.
+
+Result — exactly ONE cm-firebase-token invalidation POST fired (pre-fix: up to 4):
+
+08-30 16:48:18.941  3592  3592 I flutter : [NET] POST endpoint=/api/v1/customer/cm-firebase-token
+08-30 16:48:18.974  3592  3592 I flutter : [NET] POST endpoint=/api/v1/auth/guest/request
+08-30 16:48:19.464  3592  3592 I flutter : [NET] endpoint=/api/v1/auth/guest/request http_status=200
+08-30 16:48:19.465  3592  3592 I flutter : [NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200
+
+Post-tap state: screen re-rendered IN PLACE as guest-form MenuScreen (GENERAL
+group, "Guest User" / "Log in/ Sign up" CTA) — matches the code path
+(`await logout(); Get.back(); showCustomSnackBar('logout_successful'.tr, ...)`).
+No crash, no double-navigation.
+
+`ui_errors emulator-5560` immediately after: scanned 5 flutter-tag lines for
+pid 3592 of 8 pid-scoped buffer lines; 0 match(es). exit=0 (clean).
