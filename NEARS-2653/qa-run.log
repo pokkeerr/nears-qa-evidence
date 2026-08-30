@@ -1,0 +1,30 @@
+=== AC1: n_item_card_golden_test.dart --tags golden ===
+00:00 +0: loading n_item_card_golden_test.dart
+00:00 +0: NItemCard — light (variant: CI)
+00:00 +1: NItemCard — dark (variant: CI)
+00:00 +2: NItemCard — rtl (light) (variant: CI)
+00:00 +3: All tests passed!
+
+=== AC2a: which commit touched the 3 CI goldens (most recent = HEAD of each log) ===
+n_item_card_light.png -> 2cf8a940e fix(NEARS-2626): stacked-branch price margin + row-branch strike legibility floor (fix-cycle 2)
+n_item_card_dark.png  -> 2cf8a940e (same)
+n_item_card_rtl.png   -> 2cf8a940e (same)
+
+=== AC2b: git show --stat 2cf8a940e ===
+ .../lib/components/nitemcard/n_item_card.dart      | 108 ++++++++++++--
+ .../n_item_card_price_truncation_test.dart         | 163 +++++++++++++++++++++
+ .../components/n_item_card_strike_width_test.dart  |  75 ++++------
+ .../test/golden/goldens/ci/n_item_card_dark.png    | Bin 5874 -> 5838 bytes
+ .../test/golden/goldens/ci/n_item_card_light.png   | Bin 24956 -> 24892 bytes
+ .../test/golden/goldens/ci/n_item_card_rtl.png     | Bin 13794 -> 13762 bytes
+ 6 files changed, 288 insertions(+), 58 deletions(-)
+grep for qty/Stepper/stepper in the n_item_card.dart diff hunk headers: NO MATCHES (price-fit code only, no qty-stepper touch)
+n_qty_stepper.dart: not present in the changed-file list at all.
+
+=== AC2c: this branch's own diff vs base feat/userapp-reskin2 ===
+`git diff --stat feat/userapp-reskin2 -- .` -> EMPTY (zero product-source changes on this branch)
+`git merge-base --is-ancestor feat/userapp-reskin2 HEAD` -> rc 0 (base confirmed ancestor)
+
+=== Regression sweep: full nears_dls golden suite --tags golden ===
+00:11 +76: All tests passed!
+(includes n_qty_stepper_golden_test.dart: NQtyStepper — states (light) — PASS, confirming AC2's "n_qty_stepper.dart untouched" claim didn't silently break it either)
