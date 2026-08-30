@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2423
 
-**PASS - delta QA fix-cycle 1: AC1 and AC2 demonstrated live on device; group-checkout path exercised without crash**
+**PASS - delta QA fix-cycle 1: AC1 + AC2 demonstrated live on device; group-checkout path exercised (no crash); regression finding: dead resetGroupFees() latch (pre-existing, unrelated)**
 
 **1 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -13,6 +13,7 @@
 ### Other artifacts
 - [`ac1-clean-distance-parse.log`](ac1-clean-distance-parse.log)
 - [`ac2-fallback-logged.log`](ac2-fallback-logged.log)
+- [`bug-group-fee-latch-never-resets.log`](bug-group-fee-latch-never-resets.log)
 - [`curl-ac1-route-exists.json`](curl-ac1-route-exists.json)
 - [`curl-ac2-route-not-found.json`](curl-ac2-route-not-found.json)
 - [`curl-inzone-happy-path.json`](curl-inzone-happy-path.json)

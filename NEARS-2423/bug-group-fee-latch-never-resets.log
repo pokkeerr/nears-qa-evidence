@@ -1,0 +1,30 @@
+Finding: ensureGroupFeeSummary()'s once-per-session latch (_groupFeesRequested)
+is never reset. resetGroupFees() exists (checkout_controller.dart:1312-1316)
+specifically to clear it "when the basket/address changes" per its own comment,
+but is never called anywhere in the codebase (grep -rn "resetGroupFees()"
+UserApp/lib/ returns only the definition, zero call sites).
+
+Effect observed live (this QA session, emulator-5554, worktree backend
+127.0.0.1:8050): a multi-store checkout's per-store fee/distance summary
+(_perStoreDistanceKm via prepareGroupDeliveryData) is computed exactly ONCE,
+using whatever delivery address was active at that FIRST multi-store checkout
+visit in the app's process lifetime. Switching the delivery address afterwards
+(via the checkout's own "Edit address" bottom sheet, notify:true) updates the
+header/notice/ETA banor via the single-store getDistanceInKM path correctly,
+but the group per-store fee breakdown silently keeps showing the STALE
+first-computed values - it does not recompute for the new address.
+
+Reproduction:
+1. Multi-store cart (2+ stores), proceed to checkout with an in-zone address
+   -> group fee summary computes once (clean).
+2. Tap "Edit address" -> select a different (e.g. out-of-zone) saved address.
+3. Observe: isOutOfZone banner + ETA banner + Place Order-disabled all update
+   correctly (single-store code path), but the per-store fee breakdown does
+   NOT recompute against the new address.
+
+Scope note: NOT part of NEARS-2423's diff (ConfigController.php +
+checkout_controller.dart lines 725/1207 only). This is pre-existing NEARS-1291
+group-order-checkout code in the same file, discovered incidentally while
+exercising the group-checkout path for NEARS-2423's item #3 ask. Recommend a
+follow-up ticket to wire resetGroupFees() into the address-change call sites
+(delivery_section.dart / address_bottom_sheet.dart onTap handlers).
