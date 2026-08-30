@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-2626
 
-**FAIL — AC3/AC4 live device rendering: NEARS-2564 discounted-price row-branch truncation still reproduces live (en/LTR + ar/RTL); NEARS-2563 (DEFERRED) RTL stacked-branch bug also confirmed reproducing**
+**delta re-QA cycle 1: FAIL - Digital Thermometer EN current price still truncates; strike missing/squeezed on Thermometer+Aspirin under AR/RTL**
 
-**18 screenshot(s).** Click any thumbnail for full resolution.
+**28 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -22,17 +22,35 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="bug-en-vitaminc-truncation-zoom.png"><img src="bug-en-vitaminc-truncation-zoom.png" width="240"></a><br><sub>bug en vitaminc truncation zoom</sub></td>
-<td align="center" width="33%"><a href="scan-store43-top.png"><img src="scan-store43-top.png" width="240"></a><br><sub>scan store43 top</sub></td>
-<td align="center" width="33%"><a href="scan-store7-ar-bloodpressure.png"><img src="scan-store7-ar-bloodpressure.png" width="240"></a><br><sub>scan store7 ar bloodpressure</sub></td>
+<td align="center" width="33%"><a href="cycle1-ac3-en-aspirin-pass-zoom.png"><img src="cycle1-ac3-en-aspirin-pass-zoom.png" width="240"></a><br><sub>cycle1 ac3 en aspirin pass zoom</sub></td>
+<td align="center" width="33%"><a href="cycle1-ac3-en-bloodpressure-regression-pass.png"><img src="cycle1-ac3-en-bloodpressure-regression-pass.png" width="240"></a><br><sub>cycle1 ac3 en bloodpressure regression pass</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="cycle1-ac3-en-coldflu-pass.png"><img src="cycle1-ac3-en-coldflu-pass.png" width="240"></a><br><sub>cycle1 ac3 en coldflu pass</sub></td>
+<td align="center" width="33%"><a href="cycle1-ac3-en-vitaminc-pass.png"><img src="cycle1-ac3-en-vitaminc-pass.png" width="240"></a><br><sub>cycle1 ac3 en vitaminc pass</sub></td>
+<td align="center" width="33%"><a href="cycle1-ac4-ar-coldflu-pass.png"><img src="cycle1-ac4-ar-coldflu-pass.png" width="240"></a><br><sub>cycle1 ac4 ar coldflu pass</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cycle1-ac4-ar-thermo-aspirin-full-card.png"><img src="cycle1-ac4-ar-thermo-aspirin-full-card.png" width="240"></a><br><sub>cycle1 ac4 ar thermo aspirin full card</sub></td>
+<td align="center" width="33%"><a href="cycle1-ac4-ar-vitaminc-pass.png"><img src="cycle1-ac4-ar-vitaminc-pass.png" width="240"></a><br><sub>cycle1 ac4 ar vitaminc pass</sub></td>
+<td align="center" width="33%"><a href="cycle1-bug-ar-aspirin-strike-squeeze.png"><img src="cycle1-bug-ar-aspirin-strike-squeeze.png" width="240"></a><br><sub>cycle1 bug ar aspirin strike squeeze</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cycle1-bug-ar-thermometer-strike-missing.png"><img src="cycle1-bug-ar-thermometer-strike-missing.png" width="240"></a><br><sub>cycle1 bug ar thermometer strike missing</sub></td>
+<td align="center" width="33%"><a href="cycle1-bug-en-thermometer-truncation.png"><img src="cycle1-bug-en-thermometer-truncation.png" width="240"></a><br><sub>cycle1 bug en thermometer truncation</sub></td>
+<td align="center" width="33%"><a href="scan-store43-top.png"><img src="scan-store43-top.png" width="240"></a><br><sub>scan store43 top</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="scan-store7-ar-bloodpressure.png"><img src="scan-store7-ar-bloodpressure.png" width="240"></a><br><sub>scan store7 ar bloodpressure</sub></td>
 <td align="center" width="33%"><a href="scan-store7-ar-coldflu.png"><img src="scan-store7-ar-coldflu.png" width="240"></a><br><sub>scan store7 ar coldflu</sub></td>
 <td align="center" width="33%"><a href="scan-store7-ar-top.png"><img src="scan-store7-ar-top.png" width="240"></a><br><sub>scan store7 ar top</sub></td>
-<td align="center" width="33%"><a href="scan-store7-ar-vitaminc.png"><img src="scan-store7-ar-vitaminc.png" width="240"></a><br><sub>scan store7 ar vitaminc</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="scan-store7-ar-vitaminc.png"><img src="scan-store7-ar-vitaminc.png" width="240"></a><br><sub>scan store7 ar vitaminc</sub></td>
 <td align="center" width="33%"><a href="scan-store7-coldflu.png"><img src="scan-store7-coldflu.png" width="240"></a><br><sub>scan store7 coldflu</sub></td>
 <td align="center" width="33%"><a href="scan-store7-rail-scrolled.png"><img src="scan-store7-rail-scrolled.png" width="240"></a><br><sub>scan store7 rail scrolled</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="scan-store7-top.png"><img src="scan-store7-top.png" width="240"></a><br><sub>scan store7 top</sub></td>
 </tr>
 </table>
