@@ -1,0 +1,62 @@
+NEARS-2651 QA — TalkBack ON/OFF reproduction matrix (post-fix), same coordinate-tap
+methodology as NEARS-1963's original bug-otp-tap-no-focus.log.
+
+Device: emulator-5556, package com.izzes.nears.nears_nears_2651_otp_pin_tap_focus
+Live-reported PIN field bounds (two-dump rule, both conditions): [147,1603][1197,1831],
+center (672,1717) — byte-identical to the original evidence log's reported bounds.
+
+CONDITION 1 — TalkBack/touch-exploration OFF (accessibility_enabled=0):
+  adb shell input tap 672 1717
+  mInputShown: false -> true (PASS, was false->false pre-fix)
+  FocusManager (ext.flutter.debugDumpFocusTree): leaf FocusNode#adbaf now shows
+  [PRIMARY FOCUS] inside the route's ModalScope, IN FOCUS PATH (was: PRIMARY FOCUS
+  stuck at the ModalScope route level pre-fix, no leaf ever focused).
+  6-digit entry (`adb shell input text "123456"`) -> Verify button enabled=true.
+  See primary-gap-tap-focus.png, pre-tap-dump.xml, post-digits-dump.xml,
+  focustree-primary-demo.txt.
+
+CONDITION 2 — TalkBack/touch-exploration ON (enabled_accessibility_services=
+  com.google.android.marvin.talkback/…TalkBackService, accessibility_enabled=1,
+  touch_exploration_enabled=1 — auto-set by TalkBack):
+  adb shell input tap 672 1717 (SAME coordinate, SAME methodology as the original
+  evidence log's "TalkBack ON" row)
+  mInputShown: false -> true (PASS, was false->false pre-fix, see
+  talkback-on-pre-tap-dump.xml for the pre-tap bounds dump)
+  FocusManager: leaf FocusNode#33470 now shows [PRIMARY FOCUS], IN FOCUS PATH
+  (talkback-on-focustree.txt) — same signature as Condition 1.
+  6-digit entry -> Verify button enabled=true (confirmed via uiautomator dump).
+
+BOTH conditions in the original reproduction matrix now PASS post-fix, using the
+exact same coordinate-tap methodology the original bug log used for each row.
+
+OPEN CAVEAT (per ticket's flagged analytical question, HONEST REPORT, not glossed
+over): `adb shell input tap` on this device pool does NOT route through TalkBack's
+own touch-exploration/double-tap-to-activate gesture pipeline — independently
+confirmed live in this same session: a raw tap-then-tap (both a slow and a
+same-shell-invocation back-to-back pair) at a native Android permission dialog's
+button, with TalkBack fully bound, produced ZERO `SpeechControllerImpl: Speaking
+fragment` lines in `adb logcat` (the NEARS-2315-established live-utterance signal)
+and did NOT dismiss the dialog — i.e. touch exploration never even registered the
+synthetic tap as an explore gesture on this pool. This is a pre-existing, already-
+documented tooling limitation (docs/data-qa/verification-checks.md §"What does NOT
+work on this pool"), not something newly broken by this fix, and it applied
+EQUALLY to the ORIGINAL NEARS-1963 QA pass — neither run could drive a genuine
+TalkBack double-tap gesture via adb on this pool. So: what's confirmed here is
+that the SAME raw-coordinate-tap proxy the original matrix used (in both rows)
+now succeeds post-fix. What remains UNCONFIRMED by live gesture-drive (both then
+and now, a pool tooling ceiling, not a fix gap) is whether TalkBack's own
+distinct double-tap gesture — which Flutter's engine routes via
+SemanticsAction.tap rather than raw hit-testing — independently reaches the
+field. Structural evidence FOR this working: the pre-existing (NEARS-1963,
+UNCHANGED by this fix) `Semantics(onTap: () => _pinFocusNode.requestFocus())`
+wrapper's node carries `actions: tap` in the live semantics tree
+(talkback-on-semantics-actions.txt, "Verification Code" node) — meaning a real
+SemanticsAction.tap dispatch (what TalkBack's real double-tap gesture sends) DOES
+reach `_pinFocusNode.requestFocus()` via a code path this fix did not touch.
+This is code-structural confirmation, not a fresh live gesture-drive proof.
+RECOMMENDATION: physical-device or real-TalkBack-gesture follow-up to close this
+narrow residual gap — already flagged as a non-blocking followup by the ticket
+brief, not a gate on this ticket.
+
+CLEANUP: TalkBack disabled immediately after this matrix (enabled_accessibility_services
+deleted, accessibility_enabled=0) per the mandatory cleanup rule — verified below.
