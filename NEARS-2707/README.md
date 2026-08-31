@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2707
 
-**PASS -- migration verified applied (refund_active_status=1), refund entry point + submit demonstrated live (order 91132, HTTP 200, order_status=refund_requested), guest-IDOR blocked live (order 91130, HTTP 404, 5/5 automated tests pass)**
+**PASS -- add regression_bugs evidence (pre-existing FB SDK app-deleted error, unrelated to this ticket)**
 
 **1 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -13,6 +13,7 @@
 ### Other artifacts
 - [`ac1-db-verification.log`](ac1-db-verification.log)
 - [`ac4-guest-idor-api-check.log`](ac4-guest-idor-api-check.log)
+- [`bug-facebook-app-deleted.log`](bug-facebook-app-deleted.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-2707/` · public-repo scrub policy (no live secrets; verified clean).*

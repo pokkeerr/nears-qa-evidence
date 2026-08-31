@@ -1,0 +1,13 @@
+Unrelated pre-existing defect observed during NEARS-2707's regression sweep (app launch,
+before login, before any refund-related interaction). Facebook SDK's app-access-token
+check fails with an OAuth error indicating the backing Facebook Developer app was deleted:
+
+E/com.facebook.GraphResponse(23412): {HttpStatus: 400, errorCode: 190, subErrorCode: -1,
+errorType: OAuthException, errorMessage: Error validating application. Application has
+been deleted.}
+
+Recurred 4+ times across the session (repeated retries). Not related to this ticket's
+diff (Admin/app/Http/Controllers/Api/V1/OrderController.php refund_request + a business_settings
+migration) — this fires unconditionally on cold app start regardless of feature under test.
+Likely affects Facebook login/share if those are live features. Filed as regression_bugs,
+non-blocking for NEARS-2707.
