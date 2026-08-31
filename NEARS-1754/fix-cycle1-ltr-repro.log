@@ -1,0 +1,24 @@
+NEARS-1754 delta re-QA (fix-cycle 1) — LTR, emulator-5558, sha 775e0c5fd
+
+Fresh bounds (uiautomator dump immediately before each tap):
+  checkbox row: [60,1833][954,1965]  = 298x44dp @3x density
+  terms link:   [579,1833][954,1965] = 125x44dp @3x density  (was 266x22dp pre-fix)
+
+TEST 1 — tap terms link center (766,1899): NAVIGATED to Terms & Conditions
+  placeholder page (content-desc "This page isn't available yet" /
+  "We haven't published this content yet..."), checkbox NOT toggled. PASS.
+
+TEST 2 — tap checkbox glyph (95,1899), back on sign-up screen: checkbox
+  toggled false->true, still on sign-up screen (0 matches for terms
+  placeholder text), no navigation. Sign Up button flipped enabled=true. PASS.
+
+TEST 3 — tap (1150,1899), well past the row's right edge (954) i.e. in the
+  space the pre-fix ~1168dp-wide invisible Align used to occupy: checkbox
+  state unchanged (stayed checked=true), no navigation -- confirms no
+  oversized invisible hit zone remains. PASS.
+
+Visual: "I Agree with all the Terms & Conditions" renders on ONE line at
+this screen width (448dp), matching fix-cycle1-ltr-signup-oneline-verified.png.
+
+AC3 tap-target re-measurement: terms link now 125x44dp, checkbox row 298x44dp
+-- both independently clear the 44dp floor.

@@ -1,0 +1,22 @@
+NEARS-1754 delta re-QA (fix-cycle 1) — RTL (Arabic), emulator-5558, sha 775e0c5fd
+
+Fresh bounds (uiautomator dump immediately before each tap):
+  checkbox row: [678,1863][1284,1995] = 202x44dp @3x density
+  terms link:   [678,1863][926,1995]  = 82.6x44dp @3x density (was 170x24dp pre-fix)
+
+TEST 1 -- tap link center (802,1929): NAVIGATED to Terms & Conditions
+  placeholder page ("هذه الصفحة غير متوفرة بعد" / "لم ننشر هذا المحتوى بعد..."),
+  checkbox untouched. PASS.
+
+TEST 2 -- tap checkbox/agree-text area (1200,1929), back on sign-up screen:
+  checkbox toggled true->false, no navigation (0 matches for placeholder
+  text). PASS.
+
+TEST 3 -- tap (500,1929), blank space left of the row's own bounds (row
+  starts at x=678) -- checkbox state unchanged, no navigation. Confirms no
+  oversized invisible hit zone remains in RTL either. PASS.
+
+Visual: "وأنا أتفق مع كل الشروط والاحكام" renders on ONE line, correctly
+mirrored (checkbox on the right), matching
+fix-cycle1-rtl-signup-oneline-verified.png. Sign Up ("اشتراك") button
+visually in the disabled/muted state with checkbox unchecked.
