@@ -1,0 +1,10 @@
+=== AC2 client-side: fallback still fires exactly as before (paired AppLogger.failure logs, PII-safe ApiFailure sentinel) ===
+1039:I/flutter (19745): [ERR] msg="checkout: distance response shape invalid, using straight-line fallback" type=ApiFailure
+1140:I/flutter (19745): The following exception was thrown checkout: group per-store distance response shape invalid:
+1153:I/flutter (19745): [FAIL] endpoint=/api/v1/config/distance-api http_status=null type=ApiFailure msg="checkout: group per-store distance response shape invalid"
+
+=== Response-shape parity: curl-level check, both happy path and fallback path return HTTP 200 + object body (not array) ===
+-- happy path (real short WALK route) --
+{"status":[],"distanceMeters":128,"duration":"123s","condition":"ROUTE_EXISTS","localizedValues":{"distance":{"text":"0.1 km"},"duration":{"text":"2 mins"},"staticDuration":{"text":"2 mins"}}}
+-- fallback/degenerate path (ROUTE_EXISTS, no distanceMeters) --
+{"status":[],"duration":"0s","condition":"ROUTE_EXISTS","localizedValues":{"distance":{"text":"1 m"},"duration":{"text":"1 min"},"staticDuration":{"text":"1 min"}}}
