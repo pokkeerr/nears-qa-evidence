@@ -1,0 +1,74 @@
+NEARS-2628 — final QA pass, real keyboard-Tab walk on Widgetbook Flutter-web release build
+Build: flutter build web --release (SDK 3.41.9, this worktree HEAD 4078d3664), served via
+`python3 -m http.server 8177` over widgetbook/build/web, driven headless via Playwright
+(system /usr/bin/python3), semantics force-enabled via flt-semantics-placeholder click.
+
+=== AC1/AC2 — NButton gallery (elements/button/nbutton/gallery) ===
+Real sequential Tab, reading document.activeElement each press:
+  Tab 1: FLT-SEMANTICS role=button label="Go to Checkout" tabindex=0
+  Tab 2: FLT-SEMANTICS role=button label="Continue"       tabindex=0
+  Tab 3: FLT-SEMANTICS role=button label="Update Password" tabindex=0
+  Tab 4: FLT-SEMANTICS role=button label="Add to cart"     tabindex=0
+  Tab 5: FLT-SEMANTICS role=button label="Set from map"    tabindex=0
+  Tab 6: FLT-SEMANTICS role=button label="Reset"           tabindex=0
+Real DOM focus == activeElement each time (not a synthetic assertion) across primary/
+secondary/tertiary NButton variants shown in the gallery. Console: 0 errors (only benign
+headless-canvaskit GL perf warnings).
+
+=== AC2 — NPopupMenu trigger (components/npopupmenu/npopupmenu/trigger) ===
+  Tab 1: FLT-SEMANTICS role=button label="More options" tabindex=0   [screenshot: npopupmenu_finalqa_tab1_ring.png]
+  Enter -> menu opened: semantics tree now shows "Dismiss menu" (barrier) + "Delete account"
+           (menu item) -- real activation, not a no-op.               [screenshot: npopupmenu_finalqa_enter-opens-menu.png]
+  Fresh session, Tab x2: Tab1 lands "More options" (tabindex=0) same as above; Tab2 moves
+  focus OFF the trigger entirely onto BODY/flutter-view (tabindex=-1/null) -- NOT a duplicate
+  stop on the trigger's own un-ringed InkWell node. Confirms ux-3 fix live.
+
+=== AC2 — NModuleRow gallery (components/nmodulerow/nmodulerow/gallery) ===
+  Tab 1: "Grocery"                tabindex=0  (case-1 selectedId='grocery' -- the accepted,
+                                                separately-tracked NEARS-2719 gap; not re-flagged)
+  Tab 2: "Food"                   tabindex=0  (case-1, UNSELECTED)
+  Tab 3: "Pharmacy, new module"   tabindex=0  (case-1, UNSELECTED)
+  Tab 4: "Parcel"                 tabindex=0  (case-1, UNSELECTED)
+  Tab 5-8: same 4 labels, case-2 (7 modules, selectedId='hardware' -- none of these 4 selected)
+PIL pixel-diff vs. unfocused baseline (per-tab screenshot vs baseline, non-AA-noise threshold
+>30 luminance):
+  tab1 (selected, accepted gap): bbox=(16,6,232,69)   significant_diff_px=1997  <- ring DOES
+                                   render in this render context (gap is in a different,
+                                   already-diagnosed navy-backdrop call site, not here)
+  tab2 (Food, UNSELECTED):        bbox=(68,6,232,70)   significant_diff_px=1683  <- visible ring
+  tab3 (Pharmacy, UNSELECTED):    bbox=(120,6,232,70)  significant_diff_px=1408  <- visible ring
+  tab4 (Parcel, UNSELECTED):      bbox=(183,8,232,70)  significant_diff_px=895   <- visible ring
+  tab5-8: same pattern, larger bbox (second row), all significant                 [screenshot:
+                                   nmodulerow_finalqa_unselected-food-tile_realtab_ring.png]
+Confirms AC2's explicit ask: UNSELECTED NModuleRow tiles show a real, visible focus ring on
+real Tab-driven focus. The known/accepted active-tile ring gap (NEARS-2719) was NOT re-flagged.
+
+=== ux-3 fix — NModuleSwitcher single trigger (Trigger — New module available use-case) ===
+  Tab 1: FLT-SEMANTICS role=button label="Switch module" tabindex=0
+  Tab 2: BODY tabindex=null (focus left the trigger entirely -- not a duplicate stop)
+Same double-Tab-off shape confirmed on NModuleSwitcher as on NPopupMenu above.
+
+=== RTL spot-check (quick reconfirm) ===
+NModuleRow gallery under &locale={name:ar-SA}: 4 sequential real Tab stops, all tabindex=0,
+no console errors, no layout break observed.                          [screenshot:
+                                   nmodulerow_finalqa_rtl_spotcheck.png]
+Full pixel-level RTL correctness (mirroring, no overflow) was already established with photo
+evidence in cycle1/cycle2 (docs/qa-evidence/NEARS-2628/cycle2/modulerow_rtl_grocery_realtab_focused.png,
+nfilterchip_rtl_layout-ok.png, ntabbar_rtl_layout-ok.png) -- this pass is a reconfirm, not a
+re-audit, per the QA Test Scope.
+
+=== Code-review confirmation — mobile tap/press feedback untouched ===
+git diff feat/userapp-reskin2...HEAD -- packages/nears_dls/lib/elements/button/n_button.dart:
+GestureDetector(onTapDown/onTapUp/onTapCancel/onTap) and AnimatedScale press-feedback are
+byte-identical, purely wrapped by the new FocusableActionDetector + wrapFocusRing. Same shape
+confirmed across the other 8 touched files (n_element.dart, n_icon_button.dart,
+n_bottom_nav.dart, n_module_row.dart, n_module_switcher.dart, n_popup_menu.dart,
+n_load_more_error.dart, n_filter_chip.dart, n_tab_bar.dart) -- additive wrapping only, no
+existing GestureDetector/InkWell tap dispatch removed or altered.
+
+=== Automated backstop ===
+flutter test packages/nears_dls/test/keyboard_tab_focus_test.dart -> 13/13 PASS.
+flutter test (full packages/nears_dls suite) -> 1417 total, 1416 PASS, 1 FAIL
+  (test/tool/generate_catalog_test.dart "committed catalog.yaml carries the real per-component
+  axes from NEARS-1429 [E]" -- signature "has different length and has extra map key
+  'NItemCard'", matches the canonical pre-existing NEARS-2606 failure exactly -- not re-flagged).
