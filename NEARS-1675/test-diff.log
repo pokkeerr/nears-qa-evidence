@@ -1,0 +1,57 @@
+commit 49f79b841d762ffdfd0a1f995178d7655707476d
+Author: Ahmad Izzeddin <Apple@Ahmad-Izzeddin-2.local>
+Date:   Tue Sep 1 02:43:07 2026 +0400
+
+    wip(NEARS-1675): checkpoint after 6
+
+diff --git a/UserApp/test/features/interest/interest_screen_dls_test.dart b/UserApp/test/features/interest/interest_screen_dls_test.dart
+index 6cde0f4b3..3e78be71c 100644
+--- a/UserApp/test/features/interest/interest_screen_dls_test.dart
++++ b/UserApp/test/features/interest/interest_screen_dls_test.dart
+@@ -316,6 +316,46 @@ void main() {
+     });
+   });
+ 
++  // ===========================================================================
++  // NEARS-1675 — the Save & Continue CTA's onPressed is dropped while
++  // categoryController.isLoading is true (saveInterest in flight) and restored
++  // once it settles back to false.
++  // ===========================================================================
++  group('NEARS-1675 CTA disabled while saving', () {
++    testWidgets(
++      'onPressed is null mid-saveInterest, non-null before and after',
++      (tester) async {
++        stubLocal([_cat(1, 'Fruits'), _cat(2, 'Bakery')]);
++        stubClient([_cat(1, 'Fruits'), _cat(2, 'Bakery')]);
++        // Held open, like AC1's fetch completer: saveInterest awaits this, so
++        // isLoading stays true across the pump where we assert the disabled CTA.
++        // Resolved to `false` (not `true`) so the screen's isSuccess navigation
++        // (Get.back/offAllNamed) never fires against this pumped-standalone tree.
++        final Completer<bool> saveCompleter = Completer<bool>();
++        when(
++          () => service.saveUserInterests(any()),
++        ).thenAnswer((_) => saveCompleter.future);
++        putController();
++        await pumpScreen(tester);
++
++        NButton ctaButton() => tester.widget<NButton>(find.byType(NButton));
++
++        expect(find.byType(NButton), findsOneWidget);
++        expect(ctaButton().onPressed, isNotNull);
++
++        await tester.tap(find.byType(NButton));
++        await tester.pumpAndSettle();
++
++        expect(ctaButton().onPressed, isNull);
++
++        saveCompleter.complete(false);
++        await tester.pumpAndSettle();
++
++        expect(ctaButton().onPressed, isNotNull);
++      },
++    );
++  });
++
+   // ===========================================================================
+   // AC7 — the empty leaf still routes to the shared NoDataScreen.
+   // ===========================================================================
