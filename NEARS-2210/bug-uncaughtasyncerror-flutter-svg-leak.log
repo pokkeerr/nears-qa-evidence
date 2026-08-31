@@ -1,0 +1,33 @@
+NEARS-2210 QA — pre-existing regression finding (does NOT block this ticket's PASS)
+
+Observed on device emulator-5554, UserApp worktree nears-NEARS-2210-svg-errorbuilder,
+pkg com.izzes.nears.nears_nears_2210_svg_errorbuilder.
+
+When a broken/missing SVG asset is loaded via NAssetImage (any AssetBundle.load()
+rejection), the app-wide PlatformDispatcher.instance.onError handler
+(lib/main.dart handleUncaughtAsyncError, NEARS-1187) also fires, logging a
+SECOND, unrelated pair of generic [FAIL] lines with endpoint=null:
+
+08-31 22:52:04.863 16418 16418 I flutter : [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (FlutterError)"
+08-31 22:52:04.865 16418 16418 I flutter : Unable to load asset: "assets/image/language_bg_QATEMP_NEARS2210.svg".
+08-31 22:52:04.866 16418 16418 I flutter : [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (FlutterError)"
+08-31 22:52:04.866 16418 16418 I flutter : Unable to load asset: "assets/image/language_bg_QATEMP_NEARS2210.svg".
+
+CONTROL TEST (isolating cause): the same two UncaughtAsyncError [FAIL] lines
+reproduce IDENTICALLY with NEARS-2210's errorBuilder temporarily removed from
+n_asset_image.dart (pid 16986, same broken asset path, no "svg asset load
+failed" / ApiFailure line present since errorBuilder was disabled) — proving
+this leak is a pre-existing flutter_svg / vector_graphics AssetBundle.load()
+unawaited-Future-rejection quirk, orthogonal to and NOT introduced by this
+ticket's errorBuilder fix. The engineer's own test-file comment
+(packages/nears_dls/test/elements/n_asset_image_test.dart line ~228) already
+flags this as "a pre-existing package quirk, unrelated to this fix" at the
+widget-test level; this QA pass confirms the same leak is real and observable
+on-device in the full app too, not just in the isolated widget test harness.
+
+Impact: cosmetic log noise only — a spurious generic UncaughtAsyncError
+Crashlytics non-fatal per broken-SVG load, alongside (not instead of) the
+correct, PII-safe, deduped svg-asset-load-failed [FAIL] line this ticket
+adds. Does not affect AC1/AC2/AC3/dedupe, which all pin correctly on the
+`endpoint=<path> type=ApiFailure msg="svg asset load failed"` line.
+Filed as a non-blocking regression_bugs entry, not a task_bug of this ticket.

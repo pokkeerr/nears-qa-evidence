@@ -1,0 +1,21 @@
+NEARS-2210 QA — pre-existing regression finding (does NOT block this ticket's PASS)
+
+`cd packages/nears_dls && flutter test` (full suite, 1440 tests) has exactly
+1 pre-existing failure, unrelated to this ticket's 4 changed files:
+
+  test/tool/generate_catalog_test.dart:241 — catalog completeness assertion.
+  Expected map of {component: [missing prop keys]} does not match actual;
+  actual has 6 EXTRA keys not in expected (NBadge, NCornerRibbon, NDivider,
+  NIconButton, NSectionHeader, NText) and both differ on NItemCard/NErrorRetry/
+  NCountBadge entries. None of these component names are NAssetImage or
+  anything this ticket touched.
+
+CONTROL TEST: reverted UserApp/lib/helper/get_di.dart,
+n_asset_image.catalog.yaml, and n_asset_image.dart to their pre-ticket state
+(commit a74ec7b7a) and re-ran `flutter test test/tool/generate_catalog_test.dart`
+in isolation — same failure, same diff shape, reproduces identically without
+this ticket's changes present. Confirms this is catalog-registry drift from
+other in-flight/landed DLS component work (NItemCard, NErrorRetry, NBadge,
+etc.), not caused by NEARS-2210.
+
+Filed as regression_bugs, non-blocking.
