@@ -1,0 +1,31 @@
+NEARS-1975 — AC1 a11y tap-target measurement
+Device: emulator-5556, 480dpi (scale=3.0), 1344x2992 px, HEAD 6c6dbc849
+Source: adb shell uiautomator dump (via scripts/app-nav/uinav.sh ui_nodes)
+
+Site 1 — global_search_screen.dart recent-search chip ("milk"), idle state:
+  class=android.widget.Button clickable=true bounds=[48,720][259,864]  label="milk"
+  class=android.widget.Button clickable=true bounds=[115,720][259,864] label="Remove"
+  Remove node size: (259-115) x (864-720) = 144px x 144px = 48.0dp x 48.0dp  (>= 48dp floor -> PASS)
+  Prior baseline (pre-fix, same device class/density): Remove [211,1245][253,1287] = 42x42px = 14dp x 14dp
+
+Site 2 — cuisine_filter_row.dart (Food module, "Filter by cuisine" row), "Chinese" selected:
+  class=android.widget.Button clickable=true bounds=[495,1299][778,1443] label="Chinese"
+  class=android.widget.Button clickable=true bounds=[634,1299][778,1443] label="Clear Filter"
+  Remove node size: (778-634) x (1443-1299) = 144x144px = 48x48dp (>=48dp floor -> PASS)
+  Neighbour chips ("American" ends x=465, "Indian" starts x=808) -> no overlap with Remove hit-area [634,778].
+
+Site 3 — order_screen.dart module filter chip ("Pharmacy" selected):
+  class=android.widget.Button clickable=true bounds=[60,363][462,507]  label="Pharmacy"
+  class=android.widget.Button clickable=true bounds=[318,363][462,507] label="Remove"
+  Remove node size: (462-318) x (507-363) = 144x144px = 48x48dp (>=48dp floor -> PASS)
+  Neighbour chip "Filter by Date" starts x=498 -> no overlap.
+
+AC3 — live raw tap (NOT a semantics action) at (200,850): inside the "Remove" hit-area
+[115,720]-[259,864] for the "milk" chip, but clearly outside the visible glyph's painted
+region (pill visually rendered ~y741-834 per screenshot; glyph sits mid-pill near x~220,
+y~786). Tap fired onRemove: "milk" chip + "Recent searches" header both disappeared from
+the idle body immediately after, ui_errors scan = 0 matches.
+
+NEARS-2128 cross-check: in every dump above, the Remove/Clear Filter node is a SEPARATE
+labelled+clickable node from the chip's own label node (never merged) -> its own a11y
+focus boundary is intact post-fix.
