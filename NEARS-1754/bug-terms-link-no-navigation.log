@@ -1,0 +1,30 @@
+NEARS-1754 QA — terms-link tap does not navigate on a real device (widget test is a false positive)
+
+Screen: UserApp Sign Up (mobile branch), sign_up_widget.dart -> ConditionCheckBoxWidget(forDeliveryMan: true)
+Device: emulator-5554, density 480 (3.0x), English/LTR
+
+Repro (reproduced 3x with fresh uiautomator dumps each time):
+1. uiautomator dump reports "Terms & Conditions" link node:
+   content-desc="Terms & Conditions" checkable="false" clickable="true"
+   bounds="[156,1866][955,1932]"  (center = 555,1899; 266x22dp @3x density)
+2. adb shell input tap 555 1899   (exact center of the link's own reported bounds)
+3. Result: checkbox toggles ("I Agree..." node checked flips true<->false),
+   NO navigation occurs (screen content unchanged, no RouteHelper.termsAndCondition push).
+4. Repeated at left edge of the text (200,1899) and at (500,1945, still inside the
+   44dp checkbox row but below the link's 22dp-tall bounds) — same result every time:
+   checkbox toggles, never navigates.
+
+Expected (per ticket AC + code comment in condition_check_box_widget.dart claiming
+"GestureDetector WidgetSpan ... correctly wins the tap"):
+   tapping the terms link text navigates to Terms & Conditions WITHOUT toggling the checkbox.
+
+Contrast: the widget test
+  UserApp/test/features/auth/condition_check_box_widget_a11y_test.dart
+  "tapping the terms link navigates WITHOUT toggling the checkbox"
+PASSES using tester.tap(find.text('terms_conditions')) — this does not reproduce the
+real-device gesture-arena outcome. The live device shows the opposite of what the
+pinned test asserts, for the identical logical control.
+
+Secondary, related finding: the link's own effective tap target is only ~22dp tall
+(266x22dp @3x density) vs AC3's required >=44dp floor — but since it never navigates
+at all right now, the sizing gap is secondary to the total loss of function.
