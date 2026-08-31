@@ -1,0 +1,52 @@
+NEARS-2667 QA — regression_bugs finding (pre-existing, NOT introduced by this diff)
+Device: emulator-5556, UserApp worktree package com.izzes.nears.nears_nears_2667_itemlink_flash
+Repro: force-stop the app, then cold-start it directly via an item-details deep link intent:
+  adb shell am force-stop com.izzes.nears.nears_nears_2667_itemlink_flash
+  adb shell am start -n com.izzes.nears.nears_nears_2667_itemlink_flash/com.izzes.nears.MainActivity \
+    -a android.intent.action.VIEW -c android.intent.category.BROWSABLE \
+    -d "https://6ammart-web.6amtech.com/item-details/<slug>?id=<ANY_ID>&page=item&module=<ANY_MODULE>"
+
+Observed: 3/3 repros (item ids 47 [genuinely out-of-zone], 999999999 [nonexistent], and 145
+[genuinely in-zone/valid]) ALL return http_status=403 on cold start, regardless of the target
+item's real zone/existence status, and the UI renders the generic NearsErrorRetry
+("Something went wrong" / Retry / Dismiss) instead of the correct terminal state
+(ZoneWarningDialog / item-not-found / item details).
+
+Example log excerpt (item 145, a genuinely valid in-zone item that succeeds when the SAME
+deep link is fired while the app is already warm/running):
+  08-31 12:44:46.579 I flutter : [INFO] msg="deep link: navigating to item details route"
+  08-31 12:44:46.656 I flutter : [NET] GET endpoint=/api/v1/config
+  08-31 12:44:47.179 I flutter : [NET] GET endpoint=/api/v1/items/details/145   <- fires BEFORE config resolves
+  08-31 12:44:47.208 I flutter : [NET] endpoint=/api/v1/config http_status=200  <- config resolves AFTER
+  08-31 12:44:47.327 I flutter : [NET] endpoint=/api/v1/items/details/145 http_status=403
+  08-31 12:44:47.337 I flutter : [FAIL] endpoint=/api/v1/items/details/145 http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=b573b3ac-9c31-452f-8c1f-cd1c2663f77a
+
+Contrast — the SAME item id (145) fired while the app is already warm (not force-stopped) is
+100% clean and correct (see AC3 evidence): two clean 200s, item renders normally.
+
+Root-cause lead (not confirmed, offered for the fixing engineer): the cold-start item-details
+GetPage's postFrameCallback calls `LinkConverter.openItemDeepLink`, which awaits
+`CartController.forcefullySetModule(deepLinkModuleId)` before firing `getItemDetails`. On a cold
+start the item-details GET is observed dispatching BEFORE the app's own `/api/v1/config` fetch
+(dispatched moments earlier by `navigateFromLink`'s own `getConfigData` await) has resolved —
+i.e. the module-list / moduleId-header state `forcefullySetModule` depends on is not yet
+populated when it runs, so the outgoing item-details request's `moduleId` header is very likely
+missing/stale. `Admin/app/Http/Middleware/ModuleCheckMiddleware.php` 403s with `{errors:[{code:
+"moduleId", ...}]}` on a missing/unresolvable `moduleId` header — that shape is indistinguishable
+from a real `out_of_zone` 403 in `ui_errors`/logcat (PII rule hides response bodies), which is why
+it read at first glance like an out-of-zone-classification bug before this reproduction isolated
+it to cold start specifically.
+
+Scope note: `git diff feat/userapp-reskin2...HEAD -- UserApp/lib/helper/link_converter_helper.dart`
+confirms NEARS-2667's actual diff (both fix cycles) only touches the `.then()` collapse-deferral
+around the ALREADY-PRESENTED ZoneWarningDialog/bottom-sheet — it does not touch
+`forcefullySetModule`, the config-fetch await, or any header/module-timing code. This defect
+reproduces identically on cycle-0 and cycle-1 code paths and is very likely pre-existing (probably
+since NEARS-1024/1705), not introduced by this ticket's fix. Filed as regression_bugs per QA
+protocol; does not block this ticket's PASS since AC1-AC4 were all demonstrated live in the
+(also realistic) warm-app-already-running state, where this cold-start race does not occur.
+
+Severity: appears HIGH from a user-impact perspective if it really is cold-start-general
+(deep links from a push notification or a shared link with the app not running are a common,
+arguably majority, real-world trigger) — recommend the PO prioritize a dedicated ticket to
+confirm and fix.
