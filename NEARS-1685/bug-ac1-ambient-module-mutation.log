@@ -1,0 +1,66 @@
+NEARS-1685 QA — AC1 FAIL evidence
+Ambient module cache/header mutates on slug/deep-link store entry when the
+deep-linked module id exists in the AMBIENT zone's own module list.
+
+=== Scenario 1: deep-link into Pizza Heaven (store id=5, zone_id=1, module_id=2/food) ===
+Ambient BEFORE: address="C8CX+9X Abu Dhabi..." zone_id=2, flutter.moduleId={"id":1,"module_type":"grocery",...}
+adb shell am start -a android.intent.action.VIEW \
+  -d "https://6ammart-web.6amtech.com/store/pizza-heaven?id=5&page=store&module=2&from_deeplink=true" \
+  -n com.izzes.nears.<pkg>/com.izzes.nears.MainActivity
+
+logcat (flutter tag), relevant lines:
+  [INFO] msg="deep link store params storeID=5 moduleId=2 page=store"
+  [INFO] msg="route: waiting for module=2"
+  [INFO] msg="route: checkModuleId configNull=false hasAddress=true fromDeeplink=true"
+  [INFO] msg="route: fetching modules"
+  [NET] endpoint=/api/v1/module http_status=200
+  [INFO] msg="route: module fetch status=true"
+  [INFO] msg="route: module match found=true for slug=2"     <-- ambient zone's module list DOES contain module 2
+  [INFO] msg="home load started"                              <-- ModuleController.setModule(foundModule) branch taken
+                                                                    (route_helper.dart:1706, HomeController.loadData(true) fired)
+
+Ambient AFTER (adb run-as ... cat shared_prefs/FlutterSharedPreferences.xml):
+  flutter.6ammart_user_address: UNCHANGED (address text, lat 24.4209983, lng 54.35, zone_id=2, zone_ids=[2])
+  flutter.moduleId: CHANGED 1 (Grocery & Food) -> 2 (Food & Restaurant)   <-- AC1 VIOLATION
+
+=== Scenario 2: deep-link into a zone_id-null store (id=3166, Baqala al Jeel al jadid, module_id=1/grocery) ===
+Ambient BEFORE this step: flutter.moduleId={"id":2,"module_type":"food",...} (left over from scenario 1)
+adb shell am start ... -d ".../store/baqala-al-jeel-al-jadid-baqala-1?id=3166&page=store&module=1&from_deeplink=true" ...
+
+logcat:
+  [INFO] msg="route: module match found=true for slug=1"      <-- module 1 IS in ambient zone(2)'s module list
+  (setModule(foundModule) branch fires again, BEFORE the store's own zone_id is even fetched)
+  [NET] endpoint=/api/v1/stores/details/baqala-al-jeel-al-jadid-baqala-1 http_status=200
+  [WARN] msg="store: slug entry resolved a zone_id-null store"   <-- AC4's correct degraded-state branch (separate, PASSES)
+  ZoneWarningDialog shown correctly (AC4 unaffected)
+
+Ambient AFTER:
+  flutter.6ammart_user_address: UNCHANGED (same as scenario 1 — address/zoneIds correct, AC1's address half holds)
+  flutter.moduleId: CHANGED 2 (Food & Restaurant) -> 1 (Grocery & Food)  <-- AC1 VIOLATION again
+
+=== Control: same mechanism does NOT fire when the deep-linked module is absent from the ambient
+zone's module list (store id=59, NEARS-257 Fixture Store, zone_id=3, module_id=4 — module 4 is not
+one of ambient zone 2's modules {1,2,3,5}) ===
+  [INFO] msg="route: module match found=false for slug=4"
+  [INFO] msg="route: store deep-link module not in current zone, deferring to StoreScreen store-scoped resolution"
+  flutter.moduleId AFTER: unchanged (still {"id":1,...} from before this step) — CORRECT, no mutation.
+  moduleTypeFor() fallback fires: [WARN] msg="module list empty, resolved module from store payload (store_id=59)"
+  Store content (hero/filter/items) renders correctly using the store's own module. AC5 holds for this case.
+
+=== Root cause / location ===
+UserApp/lib/helper/route_helper.dart `checkModuleId()` (lines ~1685-1718, PRE-EXISTING, NOT
+touched by the NEARS-1685 diff except a comment rewrite in the sibling "not found" branch at
+~1719-1733): whenever a slug/deep-link's `module=` query param resolves to a module that IS
+present in the ambient zone's own module list, it unconditionally calls
+`Get.find<ModuleController>().setModule(foundModule)` + `apiClient.updateHeader(..., setHeader
+defaults true)` + `HomeController.loadData(true)` — a real, observable, PERSISTED ambient
+mutation (writes flutter.moduleId to shared prefs, changes ApiClient's default header module).
+This branch runs BEFORE StoreScreen/StoreController ever gets to apply the NEW request-scoped
+header mechanism this ticket introduced, and is gated only on `fromDeeplink` (true for every
+slug/share-link entry) — so it fires on EVERY deep-link into a store whose module happens to
+already be served in the user's ambient zone, which will be the common case, not a rare edge.
+
+This contradicts AC1's explicit requirement: "Entering a store via slug (share link / deep
+link) does NOT mutate ... the app's active zone/module headers ... unchanged in both cases"
+(both the in-zone and the out-of-zone-by-coordinates scenario were tested live and both mutate
+ambient module state).
