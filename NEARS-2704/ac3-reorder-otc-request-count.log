@@ -1,0 +1,23 @@
+NEARS-2704 AC3 evidence — order #91160 (3 items: 2 OTC id32/id33, 1 Rx id34)
+Tapped "Reorder OTC" -> exactly 2 cart/add requests fired (matches OTC line
+count, NOT 3), i.e. the Rx-flagged line (id34, Cold & Flu Relief) was
+correctly excluded from the reorder-OTC add-to-cart batch.
+
+08-31 06:29:54.535 31699 31699 I flutter : [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="api request failed" correlation_id=2db1d496-89f9-4243-9a2f-9884c0528a02
+08-31 06:29:55.539 31699 31699 I flutter : [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="api request failed" correlation_id=eb9c5154-6771-4bb2-85f3-ae214a8bcfdf
+08-31 06:29:55.541 31699 31699 I flutter : [ERR] msg="error snackbar shown"
+
+Both requests got HTTP 403 {"errors":[{"code":"store_closed","message":"Store is closed at order time"}]}
+-- store_id 7 (HealthCare Pharmacy) opens 07:00 UTC per store_schedule table;
+backend clock (Laravel app.timezone=UTC) read 02:3x UTC at test time. This is
+an orthogonal, pre-existing store-hours gate (every seeded pharmacy store
+opens 07:00/08:00 UTC) -- unrelated to this ticket's diff. Confirmed via
+`git show --stat` on this ticket's 3 commits: UserApp/lib/features/order/helper/reorder_helper.dart
+(owns the OTC-only filter) is NOT touched by NEARS-2704. Cart re-checked
+after the attempt: still empty ("Choose a module first") -- no Rx line or
+partial state leaked through.
+
+Direct curl repro of the same store-hours block:
+$ curl -s -X POST http://127.0.0.1:8091/api/v1/customer/cart/add ... item_id=32
+{"errors":[{"code":"store_closed","message":"Store is closed at order time"}]}
+http_status=403

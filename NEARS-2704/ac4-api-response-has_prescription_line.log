@@ -1,0 +1,18 @@
+NEARS-2704 AC4 evidence — curl against this worktree's own backend
+(php artisan serve --port=8091, worktree Admin/, code = this ticket's diff),
+authenticated as user 6 (customer@nears.com), zone 1.
+
+GET /api/v1/customer/order/list?offset=1&limit=999
+  order #91160 (HealthCare Pharmacy, mixed Rx+OTC) -> has_prescription_line=True
+  order #91147 (HealthCare Pharmacy, pure OTC)     -> has_prescription_line=False
+
+GET /api/v1/customer/order/running-orders?offset=1&limit=999
+  field "has_prescription_line" present on every returned order (7 running
+  orders for user 6, all non-pharmacy grocery -> has_prescription_line=False,
+  correctly defaulting false; also verified true/false split for
+  running-orders in Admin/tests/Feature/Nears2704HasPrescriptionLineTest.php,
+  which is green: OK (4 tests, 12 assertions).
+
+DB cross-check (read-only SELECT):
+  order_details for 91147: item 32 Paracetamol 500mg, is_prescription_required=0
+  order_details for 91160: item 32 Paracetamol 500mg (0), item 34 Cold & Flu Relief (1), item 33 Ibuprofen 400mg (0)
