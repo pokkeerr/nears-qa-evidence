@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1894
 
-**PASS — AC-1 measured 8.008s transport timeout (was ~40s), AC-2 confirmed 40.024s unaffected on notifications, AC-3/AC-4 clean**
+**PASS — evidence + regression log addendum**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -11,6 +11,9 @@
 <td align="center" width="33%"><a href="ac3-coupon-happy-path.png"><img src="ac3-coupon-happy-path.png" width="240"></a><br><sub>ac3 coupon happy path</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`bug-norderstatuscard-overflow.log`](bug-norderstatuscard-overflow.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1894/` · public-repo scrub policy (no live secrets; verified clean).*
