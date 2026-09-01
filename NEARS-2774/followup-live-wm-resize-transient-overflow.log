@@ -1,0 +1,46 @@
+NEARS-2774 QA — load-bearing on-device investigation, methodology note + non-blocking followup.
+
+The ticket explicitly asked QA to verify, live, whether AC1 (no RenderFlex overflow at 320dp
+AR) actually holds with REAL device font metrics, since the widget-test harness uses a
+fallback font. Summary of what was found:
+
+1. TRUE COLD BOOT at 320dp (wm size/density set BEFORE `am start`, app never resized while
+   running) — AR and EN, qty=1 and qty=12 (2-digit), default text scale and the 1.3x
+   accessibility clamp: cart_item_widget.dart's outer Row renders with ZERO overflow in every
+   case (confirmed via `ui_errors` clean + a pixel scan of each screenshot for the
+   overflow-stripe yellow, 0 matches in all cases). This is the literal AC1/AC2/AC3 repro
+   shape and it holds on-device, not just in the widget test.
+
+2. ONE TRANSIENT [ERR]/[FAIL] WAS OBSERVED, but only when `adb shell wm size`/`wm density`
+   was applied to an ALREADY-RUNNING app and the Basket screen was then opened without a
+   force-stop/relaunch in between (a live window-resize, not a cold boot at the target
+   geometry):
+
+   09-01 22:17:19.501 23886 23886 I flutter : [ERR] msg="cart_item_widget outer Row width budget exhausted: expandedBudget=-5.0569000244140625 maxWidth=200.0"
+   09-01 22:17:19.584 23886 23886 I flutter : [FAIL] framework_error library=rendering library type=FlutterError msg="A RenderFlex overflowed by 5.1 pixels on the right."
+   09-01 22:17:19.589 23886 23886 I flutter : [FAIL] framework_error   at Row Row:file:///Users/Apple/Projects/nears-NEARS-2774-cart-outer-row-overflow-rtl/UserApp/lib/features/cart/widgets/cart_item_widget.dart:222:28
+
+   Despite the framework logging a real overflow, the corresponding screenshot showed NO
+   visible yellow/black stripe (0 yellow pixels on a full-image scan) — a one-frame artifact
+   that self-corrected before paint settled. Re-entering the SAME screen immediately after
+   (same live session, no resize) reproduced ZERO errors; a genuine cold boot at the same
+   320dp geometry also reproduced zero errors. maxWidth=200.0 in the transient frame vs the
+   steady-state maxWidth=240.0 measured in every cold-boot capture confirms the transient
+   frame used a stale/mid-transition constraint from the live resize, not the settled layout
+   a real device at 320dp actually presents.
+
+3. The floor guard's [ERR]/[FAIL] pairing DOES correspond to a real, user-visible overflow
+   banner when the budget is genuinely (not transiently) exhausted — confirmed by forcing a
+   true 280dp width (narrower than any AC requires) with qty=12 @ 1.3x scale: the SAME log
+   shape reproduced consistently across multiple rebuilds (not a one-off), and the screenshot
+   showed a real yellow/black overflow banner over the item image. This validates the
+   log-severity semantics ([ERR] tracks a real risk, not just an internal accounting quirk),
+   it does not indicate any defect at the 320dp width this ticket's ACs actually require.
+
+CONCLUSION: AC1/AC2/AC3 hold cleanly on a true cold boot at the geometry the ACs specify.
+Item 2 above is flagged as a non-blocking `followups[]` note (test-methodology artifact from
+applying a live `wm size` override to an already-running app, not a product defect a real user
+at a fixed 320dp screen would ever hit) — worth a look if the floor-guard code is ever made
+more defensive against transient LayoutBuilder constraint values during an Android
+multi-window/free-form resize, but it is NOT part of this ticket's scope and does not block
+NEARS-2774's PASS verdict.
