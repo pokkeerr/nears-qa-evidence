@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-2753
 
-**FAIL: cart/remove-item still 400s Module id required in the cross-module-search-null-module repro**
+**FAIL — post-fix DELETE still 400s Module id required (never-written module cache path not covered)**
 
-**7 screenshot(s).** Click any thumbnail for full resolution.
+**6 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -11,12 +11,9 @@
 <td align="center" width="33%"><a href="bug-cart-remove-item-still-400.png"><img src="bug-cart-remove-item-still-400.png" width="240"></a><br><sub>bug cart remove item still 400</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="bug-raw-backend-toast-guest-session.png"><img src="bug-raw-backend-toast-guest-session.png" width="240"></a><br><sub>bug raw backend toast guest session</sub></td>
 <td align="center" width="33%"><a href="bug-search-results-quick-remove-still-qty1.png"><img src="bug-search-results-quick-remove-still-qty1.png" width="240"></a><br><sub>bug search results quick remove still qty1</sub></td>
 <td align="center" width="33%"><a href="regression-pass-in-cart-screen-remove-works.png"><img src="regression-pass-in-cart-screen-remove-works.png" width="240"></a><br><sub>regression pass in cart screen remove works</sub></td>
-<td align="center" width="33%"><a href="toast-immediate.png"><img src="toast-immediate.png" width="240"></a><br><sub>toast immediate</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="toast-immediate2.png"><img src="toast-immediate2.png" width="240"></a><br><sub>toast immediate2</sub></td>
 </tr>
 </table>
 
