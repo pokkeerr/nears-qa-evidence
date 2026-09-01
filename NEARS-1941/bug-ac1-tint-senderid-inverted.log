@@ -1,0 +1,56 @@
+NEARS-1941 AC1 FAIL — unread tint still never renders for the AC's own described scenario
+
+Root cause: DeliveryApp/lib/features/chat/screens/conversation_screen.dart:215
+  bool unSeen = conversation.lastMessage?.isSeen == 0 && conversation.unreadMessageCount! > 0 && conversation.lastMessage!.senderId != user?.id;
+
+`user` (lines 205-213) is ALWAYS assigned to the OTHER PARTY in the conversation (customer or
+vendor) — never the logged-in delivery man's own identity:
+  if (conversation.senderType == AppConstants.deliveryMan) {
+    user = conversation.receiver;   // I am sender -> user = other party (receiver)
+  } else {
+    user = conversation.sender;     // I am receiver -> user = other party (sender)
+  }
+
+Since a conversation only has 2 parties, `lastMessage.senderId != user?.id` (user = other party)
+is logically equivalent to "I (the delivery man) sent the last message" — the OPPOSITE of the
+AC1 condition ("last-message sender != current user", i.e. the OTHER party sent it = an incoming
+unread message). This is corroborated by the badge widget a few lines below (:283), which uses
+the correct sense for "incoming unread": `conversation.unreadMessageCount! > 0 &&
+conversation.lastMessage!.senderId == user?.id` (note ==, not !=) — that badge DID render "1"
+live in this same pass, proving the data (unreadMessageCount, senderId) all flowed correctly;
+only the tint's boolean sense on this one term is inverted.
+
+Live reproduction (this QA pass, 2026-09-01, emulator-5556):
+- Logged in as td@td.com / delivery_men.id=5 (phone +971565811111, password 123456789 — reset
+  this session, see users_test_data.md).
+- Navigated Profile -> Conversation -> Customer tab -> conversation "Customer Nears" (id=1).
+- DB (read-only) cross-check:
+    conversations: id=1 sender_id=3 receiver_id=1 sender_type=customer receiver_type=delivery_man
+    messages:      id=1 conversation_id=1 message='hi' is_seen=0 sender_id=3
+  (receiver_id=1 resolves via user_infos.id=1 -> deliveryman_id=5, i.e. td@td.com; sender_id=3 is
+  the customer.) This is exactly AC1's described state: is_seen=0, unread_count=1 (badge showed
+  "1"), last message sent by the customer (the other party), never opened by td@td.com before
+  this pass.
+- Network log: GET /api/v1/delivery-man/message/list -> http_status=200, clean, no [FAIL]/[ERR].
+- Screenshot (this pass): docs/qa-evidence/NEARS-1941/ac1-unseen-conversation-unread-tint.png —
+  row renders with NO background tint (flat white/cardColor), unread badge "1" IS shown.
+- Comparison screenshot (prior PASS pass, m4-retry1): ac2-read-conversation-normal-styling.png —
+  same card region, also flat white — pixel-sampled both (RGB grid, 5px step over the card
+  interior): AC1 unseen-row region == AC2 read-row region, no distinguishing tint pixel found.
+  This corroborates the code trace: the container decoration branch never executes the `unSeen`
+  arm for this data shape, before OR after NEARS-1941's isSeen fix, because the third
+  (senderId) term independently blocks it.
+
+Conclusion: NEARS-1941's shipped fix (isSeen == false -> == 0) is correct and necessary but not
+sufficient — flutter analyze's unrelated_type_equality_checks warning is gone (AC3 genuinely
+fixed), but the ticket's actual user-facing symptom ("unread highlight never shows") persists for
+the AC's own primary scenario, due to a second, pre-existing defect on the same line that the
+type-mismatch bug was previously masking (unSeen was unconditionally false either way, so this
+senderId inversion was never observable until now). This is a task_bug in the same statement the
+ticket exists to fix, not an unrelated pre-existing regression.
+
+Suggested fix direction (for engineer verification, not prescriptive): the senderId term needs to
+compare against the delivery man's OWN current-user id, not `user?.id` (which is the other
+party) — e.g. flip to `conversation.lastMessage!.senderId == user?.id` (matching the badge
+widget's already-correct sense at :283), or compare against the actual authenticated user id if
+one is available in this scope.
