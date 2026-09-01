@@ -1,0 +1,29 @@
+# NEARS-1906 regression evidence — CI YAML diff vs main
+
+## dls-ci.yml diff (main -> branch):
+diff --git a/.github/workflows/dls-ci.yml b/.github/workflows/dls-ci.yml
+index 28ed49344..55491faf6 100644
+--- a/.github/workflows/dls-ci.yml
++++ b/.github/workflows/dls-ci.yml
+@@ -52,10 +52,15 @@ jobs:
+       # across the Linux runner's font stack. Promote to a required gate (drop
+       # continue-on-error) once confirmed stable here, or regenerate on Linux via
+       # `flutter test --tags golden --update-goldens` in this job and commit.
+-      - name: Golden tests (nears_dls, informational)
+-        working-directory: packages/nears_dls
++      #
++      # NEARS-1906: runs from repo root (not working-directory: packages/nears_dls)
++      # because it discovers every golden harness across the repo, not just this
++      # package's own — a packages/nears_dls-only change is invisible to
++      # userapp-ci.yml's UserApp/** path filter, which is the gap that let a
++      # UserApp-side golden net sit dead for 16 days.
++      - name: Golden tests (cross-package coverage guard, informational)
+         continue-on-error: true
+-        run: flutter test --tags golden
++        run: scripts/dls-golden-guard.sh
+ 
+   widgetbook:
+     runs-on: ubuntu-latest
+
+## userapp-ci.yml diff (main -> branch, expect EMPTY = untouched):
+(diff above is empty = file untouched)
