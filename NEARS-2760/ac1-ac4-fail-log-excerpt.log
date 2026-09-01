@@ -1,0 +1,25 @@
+# Captured live, emulator-5556, pid 20578 (com.izzes.nears.nears_nears_2760_profile_infinite_spinne)
+# Backend port 8000 killed momentarily (device wifi/data left ON to avoid the
+# global connectivity_plus "No internet" block) -- module-selection landing ->
+# account-icon Profile push -> ProfileScreen.initState() -> getUserInfo() ->
+# real transport failure (ECONNREFUSED).
+09-01 17:22:12.987 20578 20578 I flutter : [NET] GET endpoint=/api/v1/customer/info
+09-01 17:22:13.005 20578 20578 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=fa92c421-d202-4fc6-960e-a2e0e1bbef80
+09-01 17:22:13.005 20578 20578 I flutter : The following exception was thrown profile load failed:
+09-01 17:22:13.008 20578 20578 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="profile load failed"
+
+# Notes:
+# - Both [FAIL] lines carry type=ApiFailure (the PII-safe sentinel) -- no raw
+#   exception text, no response body, no query string on the endpoint.
+# - The first line is api_client.dart's generic transport-layer log (fires for
+#   EVERY endpoint app-wide on a transport error -- confirmed identical shape
+#   for /api/v1/home/all, /api/v1/categories, /api/v1/module, etc. in the same
+#   capture window -- pre-existing infra pattern, not introduced by this diff).
+# - The second line is ProfileController.getUserInfo()'s own explicit
+#   AppLogger.failure(const ApiFailure(), ..., 'profile load failed',
+#   endpoint: AppConstants.customerInfoUri) call -- fires exactly ONCE per
+#   failed getUserInfo() invocation (verified: one "profile load failed" line
+#   per attempt, no duplicate).
+# - Retry (backend restored) produced a clean single 200, no [FAIL]:
+09-01 17:28:20.463 21327 21327 I flutter : [NET] GET endpoint=/api/v1/customer/info
+09-01 17:28:21.496 21327 21327 I flutter : [NET] endpoint=/api/v1/customer/info http_status=200
