@@ -1,0 +1,49 @@
+QA repro — NEARS-1570 — GET /api/v1/customer/order/payment-failed 500s for fixture order 91174
+
+Environment: worktree's OWN backend (Admin/, branch feat/NEARS-1570-seed-payment-failed-order-fixture,
+HEAD e63b94d14), booted fresh on port 8199 against the shared dev DB multi_food_db (read-only QA).
+Device: emulator-5562 (UserApp built from the same worktree, --dart-define=API_HOST=10.0.2.2:8199,
+package com.izzes.nears). Login: customer@nears.com / user_id=6. Cold-relaunch (force-stop + am start)
+so DashboardScreen.initState() runs the real cold-start path (_isLogin=true branch), which calls
+OrderController.getPaymentFailedDetails(null) -> GET /api/v1/customer/order/payment-failed (no order_id).
+
+--- FE log (app logcat, pid 6153) ---
+09-01 09:51:29.855  6153  6153 I flutter : [NET] GET endpoint=/api/v1/customer/order/payment-failed
+09-01 09:51:30.716  6153  6153 I flutter : [NET] endpoint=/api/v1/customer/order/payment-failed http_status=500
+09-01 09:51:30.736  6153  6153 I flutter : [FAIL] endpoint=/api/v1/customer/order/payment-failed http_status=500 type=ApiFailure msg="api request failed" correlation_id=0e1050b6-7bbf-483b-b5e9-e521da58be79
+
+--- BE log (Admin/storage/logs/laravel.log), correlated by the SAME correlation_id ---
+[2026-09-01 09:51:36] production.ERROR: [FAIL] Attempt to read property "contact_person_number" on null {"trace_id":"27da71393389613073c41699b7179bd6","correlation_id":"0e1050b6-7bbf-483b-b5e9-e521da58be79","type":"ErrorException","endpoint":"/api/v1/customer/order/payment-failed"}
+
+--- Root cause (read-only DB check) ---
+mysql> SELECT id, delivery_address IS NULL as addr_is_null, LEFT(delivery_address,200) FROM orders WHERE id IN (91174,91163);
+  91163 | 0 | {"contact_person_name":"Customer Nears","contact_person_number":"+971565811199",...}
+  91174 | 1 | NULL          <-- the NEARS-1570 fixture order
+
+CustomerController::orderPaymentFailed() (line 288, PRE-EXISTING code, not touched by this diff's
+->orderBy('id','desc') change) does:
+    'contact_person_number' => json_decode($unpaidOrder->delivery_address)->contact_person_number,
+unconditionally. json_decode(null) === null, so ->contact_person_number throws ErrorException on
+ANY order whose delivery_address is NULL/empty.
+
+--- Confirms the ORDER BY fix itself IS selecting the right row ---
+Direct-lookup smoke check (regression sweep, ?order_id= path, untouched by this diff):
+  GET .../payment-failed?order_id=91163  (valid delivery_address) -> 200, correct payload  [PASS]
+  GET .../payment-failed?order_id=91174  (NULL delivery_address)  -> 500, SAME ErrorException [confirms root cause]
+So order 91174 IS being reached/selected (ordering logic correct) but the seeder left
+delivery_address NULL on the fixture, which this pre-existing controller line cannot tolerate.
+
+--- Net effect on the two ACs ---
+AC1: FAILS — endpoint returns HTTP 500, not order_id=91174's payload.
+AC2: FAILS — OrderController.getPaymentFailedDetails(null) resolves the failed future to `null`
+(paymentModel == null), so dashboard_screen.dart's `if (paymentModel != null)` guard is never
+entered and PaymentIncompleteBottomSheet never mounts. No sheet, no crash, no toast — see
+docs/qa-evidence/NEARS-1570/bug-payment-failed-500-no-sheet.png (dashboard fully loaded,
+no bottom sheet present; unrelated "Order #158 Confirmed" banner is a different running order).
+
+--- What's clean here ---
+- FE failure path is NOT silent: paired [FAIL] log line present (no logging-contract violation).
+- BE failure IS logged with a correlated ID (no logging-contract violation).
+- The correlation join (FE correlation_id == BE correlation_id) works end-to-end.
+- The ORDER BY id DESC change (this ticket's actual code diff) is doing its job correctly —
+  the defect is the seeder's fixture data (missing delivery_address), not the reviewed code change.
