@@ -1,0 +1,63 @@
+AC4 investigation — NEARS-2721 QA (2026-09-01)
+
+GOAL: grep Admin/storage/logs/laravel.log by AC1's successful item-details
+response X-Request-Id, confirm no ModuleCheckMiddleware 403 rejection line,
+paired with a POSITIVE CONTROL confirming the same grep CAN find such a line
+for a deliberately-broken repro (so the absence check isn't vacuous).
+
+STEP 1 — AC1 success case (item 51, store 12 "Fresh local", zone 2, module 1):
+Flutter app log:
+  14:46:22.456 [NET] GET endpoint=/api/v1/items/details/51
+  14:46:23.715 [NET] endpoint=/api/v1/items/details/51 http_status=200
+  (no [FAIL] line for this endpoint — success, no correlationId logged by
+  design since AppLogger.failure is only called on error paths)
+Backend laravel.log grepped for the exact timestamp window
+  `2026-09-01 14:4[4-8]` — zero lines mention items/details, get_product,
+  or ModuleCheckMiddleware. Only unrelated pre-existing OTel
+  circuit-breaker noise (localhost:5080 collector not running) appears.
+  => absence confirmed (trivially).
+
+STEP 2 — POSITIVE CONTROL (deliberately broken repro):
+  $ curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+      "http://127.0.0.1:8000/api/v1/items/details/51" -H "zoneId: [2]"
+  HTTP 403                      <- confirms ModuleCheckMiddleware DID reject
+                                    (no moduleId header sent)
+  laravel.log line count before: 188807, after: 188813 (+6 lines)
+  All 6 new lines are unrelated background OTel circuit-breaker export
+  failures (queue/reverb process), NOT related to this curl call at all.
+  => ZERO log lines were written for the 403 rejection itself.
+
+ROOT CAUSE: Admin/app/Http/Middleware/ModuleCheckMiddleware.php returns
+`response()->json([...], 403)` directly with NO Log::/AppLogger call
+anywhere in the class. Admin/app/Http/Controllers/Api/V1/ItemController.php
+get_product()'s own separate out_of_zone 403 branch (NEARS-1024, line ~625)
+is likewise a bare `return response()->json(...)` with no logging.
+
+CONCLUSION: The positive control FAILED to produce a matching log line —
+this means AC4's literal grep-for-absence method is UNFALSIFIABLE in this
+codebase: the same "no line found" result occurs whether the bug is present
+or fixed, because the 403 rejection path (both ModuleCheckMiddleware's
+blanket check and get_product's own zone check) never writes to
+laravel.log at all, regardless of outcome. AC4 is marked `unverifiable` by
+its literal BE-log method for this reason (not `met:false` — the underlying
+behavior is independently confirmed correct via the FE-side evidence below).
+
+ALTERNATE EVIDENCE (functionally equivalent, gathered instead):
+- FE [NET]/[FAIL] logs: AC1's request returned http_status=200, no [FAIL]
+  line at all (a real ModuleCheckMiddleware rejection would show
+  http_status=403 with a paired [FAIL] line, as demonstrated live in AC2
+  correlation_id=bb78310e-7e4d-407b-aecf-b3cccb5d24e3, http_status=403,
+  which — being a genuine out-of-zone item, not a missing-header case —
+  is get_product's own out_of_zone check, not ModuleCheckMiddleware; body
+  distinguishable by error code `out_of_zone` vs `moduleId`).
+- Flutter route log shows `route: module match found=true for slug=1`
+  BEFORE the item-details fetch fires (i.e. `checkModuleId`/`setModule`
+  completed and the moduleId header was populated), confirming the actual
+  fix mechanism (module resolved before fetch) executed as designed.
+
+RECOMMENDATION (followup, non-blocking): file a small backend observability
+ticket to add a structured Log::warning/AppLogger-equivalent failure line to
+ModuleCheckMiddleware's 403 branch (and/or get_product's out_of_zone/404
+branches) per the logging-contract's "every failure path is logged" mandate
+— today NEITHER branch logs anything, making any future BE-log-based
+verification of this middleware equally vacuous.
