@@ -1,0 +1,14 @@
+[Regression-candidate, unrelated to NEARS-1876]
+Device: emulator-5554, app pid 6711, package com.izzes.nears.nears_nears_1876_nbutton_fullwidth_hug
+Repro: Profile > Open Vendor > complete Vendor Info + Owner Info tabs (business name/logo/cover/zone/module/
+estimated-delivery-time + owner first/last name/phone/email/password, all valid) > select "Commission Base"
+package > tap Submit.
+
+09-01 09:56:48.586  6711  6711 I flutter : [FAIL] endpoint=/api/v1/auth/vendor/register http_status=403 type=ApiFailure msg="api request failed" correlation_id=d3950551-e18b-41dd-878e-6aea48275a91
+
+Note: correctly logged per the AppLogger contract (paired [FAIL] line, PII-safe, correlation_id present) --
+NOT a silent-failure violation. No matching line found in Admin/storage/logs/laravel.log at this
+correlation_id (grepped, zero hits), so the 403's root cause (auth/permission/business-rule on the
+`customer@nears.com` account, e.g. already having a vendor application) was not established live.
+Logged as a regression-candidate for PO triage, not a NEARS-1876 defect -- this button-fullWidth ticket
+never touches the vendor-registration submit path.
