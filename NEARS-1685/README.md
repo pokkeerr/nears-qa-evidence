@@ -1,20 +1,18 @@
 # QA Evidence — NEARS-1685
 
-**QA FAIL — AC1 ambient module mutation on deep-link entry; AC2-5 pass**
+**PASS (fix-cycle 1 delta re-QA) - AC1 ambient-mutation fix confirmed live on emulator-5556, HEAD fd638b2bb**
 
-**3 screenshot(s).** Click any thumbnail for full resolution.
+**2 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="ac2-ac3-pizza-heaven-store.png"><img src="ac2-ac3-pizza-heaven-store.png" width="240"></a><br><sub>ac2 ac3 pizza heaven store</sub></td>
-<td align="center" width="33%"><a href="ac4-zone-warning-dialog.png"><img src="ac4-zone-warning-dialog.png" width="240"></a><br><sub>ac4 zone warning dialog</sub></td>
-<td align="center" width="33%"><a href="regression-normal-nav-morning-mart.png"><img src="regression-normal-nav-morning-mart.png" width="240"></a><br><sub>regression normal nav morning mart</sub></td>
+<td align="center" width="33%"><a href="ac1-fixcycle1-found-branch-store-screen.png"><img src="ac1-fixcycle1-found-branch-store-screen.png" width="240"></a><br><sub>ac1 fixcycle1 found branch store screen</sub></td>
+<td align="center" width="33%"><a href="ac4-fixcycle1-zonewarning-dialog.png"><img src="ac4-fixcycle1-zonewarning-dialog.png" width="240"></a><br><sub>ac4 fixcycle1 zonewarning dialog</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
-- [`bug-ac1-ambient-module-mutation.log`](bug-ac1-ambient-module-mutation.log)
-- [`regression-distance-api-shape-mismatch.log`](regression-distance-api-shape-mismatch.log)
+- [`ac1-fixcycle1-log-excerpt.log`](ac1-fixcycle1-log-excerpt.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1685/` · public-repo scrub policy (no live secrets; verified clean).*
