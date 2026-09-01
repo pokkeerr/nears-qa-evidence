@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2753
 
-**FAIL — post-fix DELETE still 400s Module id required (never-written module cache path not covered)**
+**Cycle 2 delta re-QA: FAIL -- remove-item DELETE now returns 200 (AC2 holds) but a NEW uncaught null-check crash in ItemController.setExistInCart is newly reachable via this ticket's own success path**
 
 **6 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -19,6 +19,7 @@
 
 ### Other artifacts
 - [`bug-cart-remove-item-still-400.log`](bug-cart-remove-item-still-400.log)
+- [`bug-cycle2-setexistincart-nullcheck-crash.log`](bug-cycle2-setexistincart-nullcheck-crash.log)
 - [`bug-raw-error-toast-dump.xml`](bug-raw-error-toast-dump.xml)
 - [`regression-clear-cart-400.log`](regression-clear-cart-400.log)
 

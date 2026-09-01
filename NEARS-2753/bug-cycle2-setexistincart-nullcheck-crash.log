@@ -1,0 +1,94 @@
+Delta re-QA cycle 2 (reviewed_sha 1a32adc97, worktree
+/Users/Apple/Projects/nears-NEARS-2753-cart-remove-item-400, device emulator-5564,
+package com.izzes.nears.nears_nears_2753_cart_remove_item_400).
+
+Repro (exact cycle-1 FAIL precondition re-demonstrated): logged in customer@nears.com
+(user_id=6), fresh app session, module NEVER entered/selected this session before the
+action below. Confirmed via `run-as ... cat FlutterSharedPreferences.xml` -- no
+`cacheModuleId*` key present at all (grep returned zero matches), matching cycle-1's
+own verification method exactly. Landed on GlobalSearchScreen (module-choose home ->
+"Search all categories"), searched "Cheeseburger", added item_id=553 (Cheeseburger @
+Noodle Bar, Abu Dhabi, zone_id=2) to cart via the search-results "Add To Cart" control
+(NEARS-684's item-level module fallback masks the null header on the ADD path, so this
+succeeds as expected/out of scope), then tapped the SAME card's "Remove"/decrease-
+quantity control (the search-results quick-remove stepper this ticket's AC1/AC2/AC3
+target).
+
+RESULT -- AC1/AC2/AC3 all hold as literally worded:
+
+  09-02 00:55:28.970 flutter: analytics: remove_from_cart {item_id: 553, price: 25.6615, quantity: 1, value: 25.6615}
+  09-02 00:55:28.971 flutter: [NET] DELETE endpoint=/api/v1/customer/cart/remove-item
+  09-02 00:55:29.837 flutter: [NET] endpoint=/api/v1/customer/cart/remove-item http_status=200   <- AC2: 200, not 400
+
+DB cross-check (read-only SELECT, immediately after):
+  SELECT * FROM carts WHERE user_id=6 AND item_id=553;  -> 0 rows (was 1 row before the tap)
+  => AC1: the item genuinely left the cart server-side.
+No raw backend error string appeared on screen (no toast at all fired) => AC3 holds.
+
+BUT -- logs-first gate finding, same action, immediately following the 200:
+
+  09-02 00:55:29.838 flutter: ----------------FIREBASE CRASHLYTICS----------------
+  09-02 00:55:29.838 flutter: The following exception was thrown uncaught async error (_TypeError):
+  09-02 00:55:29.838 flutter: UncaughtAsyncError
+  09-02 00:55:29.838 flutter: #0      ItemController.setExistInCart (package:sixam_mart/features/item/controllers/item_controller.dart:1064:42)
+  09-02 00:55:29.838 flutter: <asynchronous suspension>
+  09-02 00:55:29.838 flutter: [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (_TypeError)"
+  09-02 00:55:29.839 flutter: The following exception was thrown uncaught async error (_TypeError):
+  09-02 00:55:29.839 flutter: Null check operator used on a null value
+  09-02 00:55:29.839 flutter: #0      ItemController.setExistInCart (package:sixam_mart/features/item/controllers/item_controller.dart:1064:42)
+
+ROOT CAUSE: item_controller.dart:1051-1065 (`setExistInCart`):
+    if (ModuleHelper.getModuleConfig(
+      ModuleHelper.getModule() != null
+          ? ModuleHelper.getModule()!.moduleType
+          : ModuleHelper.getCacheModule()!.moduleType,   // <-- line 1064, crashes here
+    ).newVariation!) { ... }
+When BOTH `ModuleHelper.getModule()` and `ModuleHelper.getCacheModule()` are null (the
+EXACT precondition this ticket's own fix newly makes the remove-item DELETE succeed
+in), this null-check operator throws.
+
+CALL CHAIN that reaches it: the search-results quick-remove stepper calls
+`cartController.optimisticStep(item, false)` -> debounced `_syncItem` -> the
+decrement-to-zero branch (cart_controller.dart:1147-1163) -> on a successful
+`removeCartItemOnline` (line 1149, THIS ticket's cycle-2 fix -- `fallbackModuleId:
+item.moduleId` at line 1154 -- is exactly what makes this call now succeed instead of
+400ing) -> line 1158 unconditionally calls
+`Get.find<ItemController>().setExistInCart(item, null, notify: true)` on success ->
+crashes at item_controller.dart:1064.
+
+WHY THIS IS NEW/IN-SCOPE, NOT A PRE-EXISTING BUG: pre-fix (and even after cycle 1
+alone, per QA's cycle-1 FAIL), the remove-item DELETE always 400'd in this exact
+precondition, so `removeCartItemOnline` never returned `ok == true`, so line 1158 (and
+the crash inside it) was NEVER REACHED in this state. Cycles 2/3 of THIS ticket are
+what make the DELETE finally succeed here -- and in doing so, newly expose this
+downstream crash on every single search-results quick-remove performed with no module
+ever selected this session.
+
+FUNCTIONAL CONSEQUENCE (not just a log line): because the crash is thrown BEFORE
+`_cartIndex` is reassigned inside `setExistInCart`, the item's "exists in cart" tracking
+state never refreshes after this remove. The search-results card's own stale-qty
+display (a known, separately-filed, unrelated regression -- NEARS-2782, UI-desync via
+GetBuilder addListenerId scoping) is plausibly compounded/masked further by this, since
+`_cartIndex` staying stale means ANY subsequent read of "is this item in my cart" for
+item 553 in this session is now wrong, not just the visual badge.
+
+No visible toast/snackbar resulted from this crash -- `PlatformDispatcher.instance
+.onError` (`handleUncaughtAsyncError`, lib/main.dart:159) logs + records to Crashlytics
+and returns `true` ("handled, keep running"); it never shows UI. So this does NOT
+violate AC3's literal text ("no raw backend error string shown"), but it IS an
+unexpected [FAIL] logged during this AC's own action, which the QA logs-first gate
+treats as a FAIL for the AC regardless of how the screen renders.
+
+Regression spot-checks (delta scope item 3, module IS active for these -- so
+`ModuleHelper.getModule()` is non-null and this crash's null-check branch is never
+entered): in-cart screen's own "Decrease quantity" remove (item_id=133, Food &
+Restaurant module active) -> DELETE 200, DB confirms row gone, NO crash. Single-module
+quick-remove (Flash Sale "See All" grid, item_id=590, same module active) -> DELETE
+200, DB confirms row gone, NO crash. Both clean -- cycles 2/3 have not regressed the
+already-passing (module-active) remove paths; the crash is specific to the
+module-never-selected precondition this ticket's own fix newly reaches.
+
+Automated backstop: flutter test on the 3 targeted cart test files -- 66/66 passed
+(unchanged from engineer's own report), including the NEARS-2753 cycle-2 pin. None of
+these tests exercise `ItemController.setExistInCart`, so the suite does not currently
+pin against this gap.
