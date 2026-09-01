@@ -1,0 +1,15 @@
+NEARS-2753 delta re-QA cycle 3 -- regression spot-checks (item 4 of delta scope)
+
+1. Single-module quick-remove (Food & Restaurant module, in-module Search -> Pizza ->
+   "Chicago Style Cheese" @ Spice Route Kitchen):
+   [NET] POST endpoint=/api/v1/customer/cart/add -> 200 (add)
+   [NET] DELETE endpoint=/api/v1/customer/cart/remove-item -> 200 (quick-remove "-")
+   No [FAIL]/[ERR] lines. PASS.
+
+2. In-cart screen's own remove control (Double Bacon Burger row, Basket screen "Decrease
+   quantity" stepper):
+   [NET] DELETE endpoint=/api/v1/customer/cart/remove-item -> 200
+   No [FAIL]/[ERR] lines. Cart screen settled on "Your cart is empty" clean empty-state.
+   PASS.
+
+Both unaffected by cycles 2-5's fixes -- same choke point, still working.

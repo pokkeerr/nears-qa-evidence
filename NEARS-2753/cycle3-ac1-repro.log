@@ -1,0 +1,44 @@
+NEARS-2753 delta re-QA cycle 3 (commit 4e2229db5) — AC1 exact FAIL-state repro
+Device: emulator-5558, package com.izzes.nears.nears_nears_2753_cart_remove_item_400
+Account: customer@nears.com (user_id=6), zone 2 (Abu Dhabi), item_id=553 (Cheeseburger @ Noodle Bar)
+
+Precondition established live:
+- Fresh login -> module never selected (SharedPreferences: no flutter.moduleId, no cacheModuleId::u:* key).
+- Quick-added item_id=553 via GlobalSearchScreen's "+" quick-add card (module still null,
+  confirmed no [NET] module-related call fired).
+- Warmed ItemController._variationIndex (the field cycle-5's prepareVariationType fix guards)
+  by opening the item's detail sheet via a normal module-entry browse (Food & Restaurant ->
+  Noodle Bar store -> item row), then returned module to null via the documented hardware-BACK
+  "change module" action (ModuleController.removeModule(), dashboard_screen.dart:519) WITHOUT
+  restarting the app -- this clears ModuleController._module/_cacheModule back to null while
+  leaving the separate, persistent ItemController singleton's _variationIndex untouched (still
+  warmed). Re-confirmed via SharedPreferences: flutter.moduleId absent again post-back.
+- This reconstructs the exact combination cycle-5 fixed: _variationIndex non-null AND both
+  ModuleHelper.getModule()/getCacheModule() null at the moment setExistInCart/prepareVariationType
+  runs -- not the "safe early-return" branch cycle-4's own pin test accidentally used.
+
+Action: search-results quick-remove ("-" stepper) on the Noodle Bar Cheeseburger card in
+GlobalSearchScreen, decrementing 1 -> 0 (CartController._syncItem's decrement-to-zero branch).
+
+logcat (pid 7983, flutter tag only):
+09-02 01:28:51.678  7983  7983 I flutter : \xf0\x9f\x93\x8a analytics: remove_from_cart {item_id: 553, price: 25.6615, quantity: 1, value: 25.6615}
+09-02 01:28:51.679  7983  7983 I flutter : [NET] DELETE endpoint=/api/v1/customer/cart/remove-item
+09-02 01:28:52.216  7983  7983 I flutter : [NET] endpoint=/api/v1/customer/cart/remove-item http_status=200
+
+ui_errors (pid-scoped scan immediately after): 0 matches (scanned 3 flutter-tag lines of 4
+pid-scoped buffer lines for pid 7983) -- no [FAIL]/[ERR]/exception/overflow signature.
+
+DB cross-check (read-only): SELECT id,user_id,item_id,quantity FROM carts WHERE item_id=553
+AND user_id=6; -> 0 rows (row genuinely gone server-side; the single remaining item_id=553 row
+in the table belongs to an unrelated user_id=1274, not this session).
+
+No toast/snackbar observed in the post-tap accessibility dump (no "Module id required" / no
+"something_went_wrong" text present).
+
+Result: AC1 PASS -- item removed, no toast, no uncaught crash, even with _variationIndex
+warmed and module null -- the exact branch cycle-5 (item_service.dart:183) fixed.
+
+Automated backstop: flutter test test/features/item/item_controller_pin_test.dart
+test/features/cart/cart_repository_remove_item_module_identity_test.dart -> 24/24 passed,
+including "setExistInCart ... variationIndex non-null (post initData), both module getters
+null: resolves, no throw" -- the same scenario pinned mechanically.
