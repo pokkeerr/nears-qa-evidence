@@ -1,0 +1,61 @@
+Repro (post-fix, tip commit 97bceb4ac): UserApp GlobalSearchScreen (module-selection
+landing -> "Search all categories" -> query "Cheeseburger"), item_id=553 @ Noodle Bar
+(Abu Dhabi zone, zone_id=2 -- NOTE: ticket text says "zone1 Demo Zone Dhaka", but the
+DB shows Noodle Bar/item 553 is actually zone_id=2/Abu Dhabi; flagged as drift).
+Logged in customer@nears.com. Item added to cart via the card-level quick "+" button
+(CartCountView) WITHOUT ever entering any module -- ModuleController.module stays null
+AND the identity-scoped SharedPreferences cache key `cacheModuleId::u:<number>` was
+NEVER WRITTEN this session (verified via `run-as ... cat FlutterSharedPreferences.xml`
+-- no module-related key present at all, confirmed by grep). This is the exact
+repro state the ticket's own AC/QA-scope describes: "GLOBAL/cross-module search path
+... so that ModuleController.module is null when quick-remove is tapped".
+
+Tapping the same card's quick "Remove" control (qty stepper, qty=1) still 400s:
+
+09-01 23:54:18.197  4895  4895 I flutter : analytics: remove_from_cart {item_id: 553, price: 25.6615, quantity: 1, value: 25.6615}
+09-01 23:54:18.198  4895  4895 I flutter : [NET] DELETE endpoint=/api/v1/customer/cart/remove-item
+09-01 23:54:18.845  4895  4895 I flutter : [NET] endpoint=/api/v1/customer/cart/remove-item http_status=400
+09-01 23:54:18.847  4895  4895 I flutter : #3      CartRepository._removeCartItemOnline (package:sixam_mart/features/cart/domain/repositories/cart_repository.dart:139:25)
+09-01 23:54:18.847  4895  4895 I flutter : #5      CartService.removeCartItemOnline (package:sixam_mart/features/cart/domain/services/cart_service.dart:42:12)
+09-01 23:54:18.847  4895  4895 I flutter : #6      CartController.removeCartItemOnline (package:sixam_mart/features/cart/controllers/cart_controller.dart:2058:20)
+09-01 23:54:18.847  4895  4895 I flutter : #7      CartController.removeFromCart (package:sixam_mart/features/cart/controllers/cart_controller.dart:637:5)
+09-01 23:54:18.849  4895  4895 I flutter : [FAIL] endpoint=/api/v1/customer/cart/remove-item http_status=400 type=ApiFailure msg="api request failed" correlation_id=717824d7-2496-46ce-8d46-37847d0f8a70
+
+App DID emit a paired AppLogger.failure [FAIL] line (AC4 -- confirmed NOT regressed).
+
+ROOT CAUSE OF THE FIX GAP: cart_repository.dart's new `_resolveFreshCacheModuleId()`
+(the NEARS-2753 fix) only helps when the SharedPreferences module cache is STALE
+(present but from a prior identity/module) -- the exact NEARS-2490 scenario it mirrors.
+It does NOT help when the cache was NEVER WRITTEN in the first place, i.e. the user
+never entered ANY module this session before adding to cart purely via the global
+search quick-add button (which bypasses GlobalSearchController.ensureModuleContext
+entirely -- that guard only runs on the card-level tap / "See all", not on the
+CartCountView's own add/remove InkWells). In that state BOTH ModuleController.module
+AND the cached-module SharedPreferences key are null, so `header` still omits
+AppConstants.moduleId, and the DELETE 400s exactly as before the fix.
+
+AC3 -- the raw backend string IS still shown to the user. Caught via a tight
+uiautomator-dump poll (0.3s interval) immediately after the tap:
+  content-desc="Module id required"
+(archived: bug-raw-error-toast-dump.xml). This is `ApiChecker.checkApi`'s existing,
+UNCHANGED `showCustomSnackBar(response.statusText, ...)` call -- statusText is set
+from the backend's `{message: ...}` envelope in `ApiClient.handleResponse`, so any
+400 with this shape is toasted verbatim regardless of this fix.
+
+SEPARATE, PRE-EXISTING (NOT part of this diff) UI-desync note: `CartController
+.removeFromCart` synchronously does `_cartList.removeAt(index)` then a BARE
+`update()` (no ids). `CartCountView`'s `GetBuilder<CartController>` is registered
+with `id: CartController.cartBadgeId(item.id)` (verified against get-4.7.3 source:
+`GetBuilder(id: ...)` registers via `addListenerId` into `_updatersGroupIds`, which
+`refresh()`/bare `update()` never iterates -- only `_updaters`, the id-less list).
+So the search-results item card's own stepper NEVER visually reflects a remove
+(qty stays "1" onscreen) even though `_cartList` truly drops the row locally --
+regardless of whether the server DELETE succeeds. Confirmed live: after the FIRST
+"Remove" tap, `_cartList` no longer contains this row (later "Remove" taps produce
+NO new network calls at all -- `optimisticStep`'s `_localIndexOf` returns -1 and
+the decrement branch no-ops), yet the card visibly still shows qty "1" the whole
+time. This means AC1 ("item removed ... row gone") cannot be visually demonstrated
+on this screen at all -- a second, independent defect compounding the 400. Flagged
+as a regression-candidate (pre-existing, not touched by this diff) rather than a
+task_bug of this ticket, since `removeFromCart`'s bare `update()` line is unchanged
+by commit 97bceb4ac.

@@ -1,0 +1,22 @@
+Regression-candidate spot check (informational only, NOT part of NEARS-2753's AC --
+per the ticket's own instructions, flagged as a regression_bug for the PO, not fixed
+here). Repro: guest session, GlobalSearchScreen (module null, cart non-empty with
+item_id=553 Cheeseburger @ Noodle Bar/Food module added via the same cross-module
+quick-add path), then tapped a DIFFERENT-module item's CARD (Grocery "Apple Juice
+1L" @ Morning Mart) to trigger GlobalSearchController.ensureModuleContext's
+cross-module basket-reset guard -> "Start a new basket?" dialog -> Yes ->
+CartController.clearCartOnline() -- called BEFORE the module switch, i.e. while
+ModuleController.module is STILL the OLD (null) value, same root cause as this
+ticket's remove-item defect.
+
+09-02 00:07:35.280  4895  4895 I flutter : [NET] DELETE endpoint=/api/v1/customer/cart/remove
+09-02 00:07:35.857  4895  4895 I flutter : [NET] endpoint=/api/v1/customer/cart/remove http_status=400
+09-02 00:07:35.857  4895  4895 I flutter : #3      CartRepository._clearCartOnline (package:sixam_mart/features/cart/domain/repositories/cart_repository.dart:150:25)
+09-02 00:07:35.857  4895  4895 I flutter : #5      CartService.clearCartOnline (package:sixam_mart/features/cart/domain/services/cart_service.dart:47:12)
+09-02 00:07:35.857  4895  4895 I flutter : #6      CartController.clearCartOnline (package:sixam_mart/features/cart/controllers/cart_controller.dart:2068:20)
+09-02 00:07:35.858  4895  4895 I flutter : [FAIL] endpoint=/api/v1/customer/cart/remove http_status=400 type=ApiFailure msg="api request failed" correlation_id=3a501ecb-a8b3-4f5c-b577-ff636045e44d
+
+Confirms `_clearCartOnline` (cart_repository.dart line ~149-154) is UNCHANGED by
+commit 97bceb4ac and still sends a bare `apiClient.guestHeaders()` with no
+`_resolveFreshCacheModuleId()` fallback -- same shape defect, different call site.
+AppLogger.failure [FAIL] still paired (log-presence not violated here either).
