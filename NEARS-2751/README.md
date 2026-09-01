@@ -15,5 +15,9 @@
 </tr>
 </table>
 
+### Other artifacts
+- [`bug-address-list-timeout-fail-log.log`](bug-address-list-timeout-fail-log.log)
+- [`bug-profile-infinite-spinner-blocks-address-entry.log`](bug-profile-infinite-spinner-blocks-address-entry.log)
+
 ---
 *From `nears/docs/qa-evidence/NEARS-2751/` · public-repo scrub policy (no live secrets; verified clean).*

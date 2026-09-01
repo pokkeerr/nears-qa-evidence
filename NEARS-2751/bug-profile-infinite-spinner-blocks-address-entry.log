@@ -1,0 +1,44 @@
+Live capture (emulator-5560), same backend-outage window as
+bug-address-list-timeout-fail-log.log.
+
+REGRESSION FINDING (pre-existing, NOT introduced by this diff — profile_screen.dart
+is not one of the 4 files touched by NEARS-2751 and was not modified by this
+change). Filed as a regression_bug per QA process, non-blocking for this
+ticket.
+
+profile_screen.dart body:
+  return (isLoggedIn && profileController.userInfoModel == null)
+      ? const Center(child: CircularProgressIndicator())
+      : Stack(...)   // the static menu incl. "My Address" only renders here
+
+i.e. the ENTIRE Profile tab (including the static "My Address" menu entry)
+is gated behind a successful GET /api/v1/customer/info. When that endpoint
+is down, Profile never renders anything but a bare, unlabeled spinner — with
+no error/retry affordance (the exact "infinite spinner" class of bug NEARS-2751
+just fixed for address_screen.dart, but not yet applied to profile_screen.dart).
+
+Live log evidence (repeated retries, ~30s apart, never resolving to an error
+state or a degraded render):
+
+09-01 14:27:30.141 30734 30734 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure transport_error=timeout msg="api request threw" correlation_id=e09ce1ca-20b6-447f-8a69-ad6ce2cd12c0
+09-01 14:27:30.142 30734 30734 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="profile load failed"
+09-01 14:27:58.569 30734 30734 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure transport_error=timeout msg="api request threw" correlation_id=429c0cc3-3065-4579-8d73-18b65825f61a
+09-01 14:27:58.572 30734 30734 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="profile load failed"
+
+Live-observed effect: polled the Profile tab every 5s for 55s straight during
+the outage; labelled-node count stayed at 0 (bare spinner) for all but two
+5s windows, where a transient unstyled "Timed out. Please try again after few
+minutes" line appeared then reverted to the spinner. "My Address" never became
+reachable during the whole window.
+
+Practical consequence for THIS ticket's QA: Profile -> My Address is the ONLY
+documented/reachable navigation entry to address_screen.dart (confirmed via
+grep across lib/ for RouteHelper.address / AddressScreen( callers — none
+found outside route_helper.dart's own GetPage registration and
+profile_screen.dart's menu tap). A full backend outage therefore blocks
+reaching the AC4 target screen via normal UI navigation, which is why AC4's
+live evidence for NEARS-2751 is the real [FAIL] log capture on the address/list
+endpoint + a live-executed passing widget test, rather than a full on-screen
+screenshot of the NErrorRetry card. Suggest tracking profile_screen.dart's own
+infinite-spinner gap as a follow-up ticket (same NEARS-2013/NEARS-2751 pattern,
+different screen).

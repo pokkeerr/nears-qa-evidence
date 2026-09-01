@@ -1,0 +1,20 @@
+Live capture (emulator-5560, pid 30734, package com.izzes.nears.nears_nears_2751_address_mgmt)
+during a QA-forced backend outage (host-side SIGSTOP of the php -S dev-server
+listener, then resumed) — captured via `ui_errors` / logcat -s flutter tag.
+
+Supports AC4 (address_screen.dart getAddressList() failure -> NErrorRetry, not
+an infinite spinner): the exact target endpoint fails and is logged correctly
+via AppLogger/api_client's [FAIL] path (no silent-failure violation):
+
+09-01 14:28:06.370 30734 30734 I flutter : [FAIL] endpoint=/api/v1/customer/address/list http_status=null type=ApiFailure transport_error=timeout msg="api request threw" correlation_id=20076005-1026-4d2d-81d2-b9b1aab0572e
+09-01 14:28:38.628 30734 30734 I flutter : [FAIL] endpoint=/api/v1/customer/address/list http_status=null type=ApiFailure transport_error=timeout msg="api request threw" correlation_id=c0996fe9-ad8e-4188-80cc-4fb66bc0d605
+09-01 14:28:46.456 30734 30734 I flutter : [FAIL] endpoint=/api/v1/customer/address/list http_status=null type=ApiFailure transport_error=timeout msg="api request threw" correlation_id=e1eccefc-d36a-445c-8e3e-a84e35518437
+
+Cross-checked live against the widget-level assertion in
+test/features/address/address_screen_error_retry_test.dart (executed on this
+worktree, PASS): "failed fetch (null) shows NErrorRetry, not an infinite
+spinner" + "successful fetch never shows the error state".
+
+Full end-to-end VISUAL capture of the NErrorRetry card on address_screen.dart
+itself was blocked by an unrelated, pre-existing gap on profile_screen.dart
+(NOT touched by this diff) — see bug-profile-infinite-spinner-blocks-address-entry.log.
