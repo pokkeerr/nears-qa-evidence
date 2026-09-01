@@ -1,0 +1,37 @@
+=== NEARS-2754 QA-lite structural-blocker evidence ===
+
+--- 1. Flutter Web is not configured for this UserApp project ---
+$ flutter build web --release --dart-define=API_HOST=127.0.0.1:8000
+-> This project is not configured for the web.
+   To configure this project for the web, run flutter create . --platforms web
+(no web/ platform directory exists in the tree: 'ls web' -> No such file or directory)
+
+--- 2. ArrowIconButton's only 3 call sites are never instantiated anywhere reachable ---
+$ grep -rln "ArrowIconButton" lib/
+lib/features/home/widgets/web/web_populer_store_view_widget.dart
+lib/features/home/widgets/web/web_basic_medicine_nearby_view_widget.dart
+lib/features/home/widgets/web/web_new_on_view_widget.dart
+lib/features/home/widgets/web/widgets/arrow_icon_button.dart
+
+$ grep -rln "web/web_populer_store_view_widget|web/web_new_on_view_widget|web/web_basic_medicine" lib/  (who imports the wrapper files)
+lib/features/home/widgets/views/new_on_mart_view.dart
+lib/features/home/widgets/views/popular_store_view.dart
+lib/features/home/widgets/views/recommended_store_view.dart
+lib/features/home/widgets/views/product_with_categories_view.dart
+
+-> Every one of those 4 importers only reuses a *Shimmer* class from the same file
+   (e.g. WebNewOnShimmerView), never the Web*ViewWidget class that contains ArrowIconButton:
+127:            : const WebNewOnShimmerView();
+
+$ grep -rn "WebPopulerStoreViewWidget(|WebNewOnViewWidget(|WebBasicMedicineNearbyViewWidget(" lib/  (constructor CALLS, not defs)
+lib/features/home/widgets/web/web_basic_medicine_nearby_view_widget.dart:15:  const WebBasicMedicineNearbyViewWidget({super.key});
+lib/features/home/widgets/web/web_new_on_view_widget.dart:16:  const WebNewOnViewWidget({super.key, this.isFood = false});
+(only the const-constructor DEFINITIONS themselves match — zero call sites elsewhere)
+
+--- 3. No kIsWeb / responsive branch renders these widgets either ---
+$ grep -rln "kIsWeb" lib/features/home/
+(no matches)
+
+CONCLUSION: ArrowIconButton is unreachable dead code inherited from the original
+6amMart desktop-web layout on EVERY platform (not just web) in this worktree's build.
+There is no live 'web home page' to drive with uinav_web.sh to demonstrate AC1/AC2 as written.
