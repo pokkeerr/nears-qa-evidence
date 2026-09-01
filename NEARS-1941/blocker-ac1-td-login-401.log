@@ -1,0 +1,76 @@
+NEARS-1941 m4-retry2 — AC1 blocker evidence
+=============================================
+
+Goal: log in as td@td.com (delivery_men.id=5), open conversation id=1
+(is_seen:0, unread_message_count:1 — genuinely unread, owned via
+user_infos.id=1 -> deliveryman_id=5, confirmed live in DB), and observe the
+unread tint render on that conversation row per the fixed
+conversation_screen.dart:215 (`isSeen == 0`).
+
+1) Direct backend API call (bypasses UI entirely, rules out a driving/typing
+   issue) — phone/password exactly as documented (+971565811111 /
+   123456789, the standard seed password used successfully for every other
+   seeded delivery_man account in this session, incl. ali.hassan@demo.com):
+
+   $ curl -s -X POST http://127.0.0.1:8000/api/v1/auth/delivery-man/login \
+       -H "Content-Type: application/json" \
+       -d '{"phone":"+971565811111","password":"123456789"}'
+   {"errors":[{"code":"auth-001","message":"Incorrect credential  please try again"}]}
+
+2) Same failure reproduced through the live DeliveryApp UI (app-nav driven,
+   phone field verified correct via screenshot "565811111" before submit):
+
+   I/flutter (20016): [NET] POST endpoint=/api/v1/auth/delivery-man/login
+   I/flutter (20016): [NET] endpoint=/api/v1/auth/delivery-man/login http_status=401
+   I/flutter (20016): ----------------FIREBASE CRASHLYTICS----------------
+   I/flutter (20016): The following exception was thrown unhandled api response:
+   I/flutter (20016): ApiFailure(status: 401)
+   I/flutter (20016): #0      ApiClient.handleResponse (package:sixam_mart_delivery/api/api_client.dart:830:22)
+   I/flutter (20016): #1      ApiClient.postData (package:sixam_mart_delivery/api/api_client.dart:429:14)
+   I/flutter (20016): #2      AuthRepository.login (...)
+   I/flutter (20016): #3      AuthService.login (...)
+   I/flutter (20016): #4      AuthController.login (...)
+   I/flutter (20016): #5      _SignInScreenState._login.<anonymous closure> (...)
+   I/flutter (20016): [FAIL] endpoint=/api/v1/auth/delivery-man/login http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=7b453741-9890-4a15-b3d5-f66a3faafac9
+
+   (Note: this [FAIL] line is CORRECT logging-contract behavior — a real
+   auth failure, correctly logged via AppLogger, not a silent-failure
+   defect. It is cited here only as evidence the 401 is real, not a
+   UI-driving artifact.)
+
+3) Confirmed td@td.com is genuinely NOT documented anywhere in
+   users_test_data.md (repo root) — grep returns zero hits. The password
+   convention "123456789" documented there and working for every other
+   seeded delivery_man (ali.hassan@demo.com, confirmed working this
+   session) does not apply to this account. This is a data/documentation
+   gap, not a code defect in the ticket's fix.
+
+4) Confirmed via DB (read-only) that the data setup FOR the repro is
+   otherwise exactly correct and waiting:
+
+   conversations.id=1: sender_id=3 (customer, "Customer Nears"),
+   receiver_id=1 (user_infos.id) -> user_infos.deliveryman_id=5 (td@td.com),
+   unread_message_count=1, last_message_id=1 -> messages.id=1
+   is_seen=0, message="hi", created_at=2026-05-18.
+
+   (Earlier confusion ruled out: conversations.sender_id/receiver_id for
+   type='delivery_man' are user_infos.id, NOT delivery_men.id directly —
+   confirmed via SELECT id,deliveryman_id FROM user_infos WHERE id=1 -> 5.)
+
+5) Attempted a legitimate live-product workaround (no DB DML): tried to
+   send a NEW message via a delivery_man account I *can* log into
+   (ali.hassan@demo.com) to construct a fresh unseen-state substitute.
+   Blocked: the only existing conversation for that account (id=60) has
+   the backend's dm_messages/details response `"status": false`
+   (confirmed via direct API call), which the app's conversation-detail
+   screen (chat_screen.dart) uses to hide the message composer entirely
+   (`(messageModel.status! || messages.isEmpty)` gate) — this conversation
+   is closed for new messages (no active order tying it), so no substitute
+   repro is reachable this way without constructing a brand-new
+   order+chat flow, out of proportion for a micro/QA-lite ticket.
+
+Conclusion: AC1 is a genuine Data DoR gap (test-account credential),
+not a code defect and not an infra/device blocker. Recommend either (a)
+the correct password for td@td.com (delivery_men.id=5) is supplied/reset,
+or (b) the account is reseeded with the standard convention password, so
+AC1 can be live-confirmed on the next pass.
