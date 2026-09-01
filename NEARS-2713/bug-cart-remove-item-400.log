@@ -1,0 +1,25 @@
+Pre-existing regression candidate found during NEARS-2713 regression sweep
+(unrelated to the a11y container:true fix — CartController business logic,
+not NIconButton semantics).
+
+Repro: UserApp search-results screen, quick "Remove" quantity-stepper button
+on an item card (item_id=553, "Cheeseburger" @ Noodle Bar) -> DELETE
+/api/v1/customer/cart/remove-item -> HTTP 400 -> item is NOT removed from
+cart (qty stays at 1), on-screen toast reads "Module id required".
+
+Device: emulator-5556, UserApp worktree nears-NEARS-2713-nicon-button-container,
+zone1 (Demo Zone - Dhaka), customer@nears.com.
+
+09-01 12:30:21.481 18806 18806 I flutter : [NET] DELETE endpoint=/api/v1/customer/cart/remove-item
+09-01 12:30:22.104 18806 18806 I flutter : [NET] endpoint=/api/v1/customer/cart/remove-item http_status=400
+09-01 12:30:22.105 18806 18806 I flutter : ----------------FIREBASE CRASHLYTICS----------------
+09-01 12:30:22.105 18806 18806 I flutter : The following exception was thrown api request failed:
+09-01 12:30:22.105 18806 18806 I flutter : ApiFailure(status: 400)
+09-01 12:30:22.105 18806 18806 I flutter : #7      CartController.removeFromCart (package:sixam_mart/features/cart/controllers/cart_controller.dart:637:5)
+09-01 12:30:22.118 18806 18806 I flutter : [FAIL] endpoint=/api/v1/customer/cart/remove-item http_status=400 type=ApiFailure msg="api request failed" correlation_id=d8f9dffd-88cb-45f2-b6d8-804027e60c90
+
+Note: the app DID emit a paired AppLogger [FAIL] line for this failure — not a
+silent-failure violation. This is a backend/business-logic 400 on the
+remove-item endpoint (on-screen toast "Module id required"), pre-existing and
+orthogonal to NIconButton's Semantics(container:true) change. Filed as a
+regression_bugs candidate for PO triage, not blocking NEARS-2713's verdict.
