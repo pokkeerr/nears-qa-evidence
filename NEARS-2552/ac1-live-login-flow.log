@@ -1,0 +1,24 @@
+=== AC1/AC2 live evidence: real logged-in UserApp login flow (Android emulator-5562, worktree backend port 8552) ===
+device pid=4346, adb logcat --pid=4346, 2026-09-01 23:03:54-23:03:56
+
+09-01 23:03:54.305 I/flutter ( 4346): [NET] POST endpoint=/api/v1/auth/login
+09-01 23:03:55.025 I/flutter ( 4346): [NET] endpoint=/api/v1/auth/login http_status=200
+09-01 23:03:55.074 I/flutter ( 4346): ----------------FIREBASE CRASHLYTICS----------------
+09-01 23:03:55.075 I/flutter ( 4346): The following exception was thrown FCM registration id fetch failed:
+09-01 23:03:55.075 I/flutter ( 4346): [firebase_messaging/unknown] java.io.IOException: java.util.concurrent.ExecutionException: java.io.IOException: SERVICE_NOT_AVAILABLE
+09-01 23:03:55.075 I/flutter ( 4346): #4      AuthRepository.saveDeviceToken (package:sixam_mart/features/auth/domain/repositories/auth_repository.dart:275:22)
+09-01 23:03:55.075 I/flutter ( 4346): #5      AuthRepository.updateToken (package:sixam_mart/features/auth/domain/repositories/auth_repository.dart:253:23)
+09-01 23:03:55.080 I/flutter ( 4346): [FAIL] endpoint=null http_status=null type=FirebaseException msg="FCM registration id fetch failed"
+09-01 23:03:55.080 I/flutter ( 4346): [INFO] msg="FCM registration id obtained"
+09-01 23:03:55.081 I/flutter ( 4346): [NET] POST endpoint=/api/v1/customer/cm-firebase-token
+09-01 23:03:55.235 I/flutter ( 4346): [NET] endpoint=/api/v1/customer/cm-firebase-token http_status=200      <-- AC1: 200, not 403
+09-01 23:03:55.251 I/flutter ( 4346): [NET] GET endpoint=/api/v1/customer/info
+
+NOTE re the [FAIL] line above: this is the FCM SDK's own on-device getToken() call
+throwing SERVICE_NOT_AVAILABLE (a pre-existing Play-Services/network limitation of
+this sandboxed emulator, unrelated to NEARS-2552 -- confirmed independently, see
+env-connectivity-note.txt). It is a PROPERLY CAUGHT AppLogger.failure() line, NOT an
+UncaughtAsyncError -- grep for "UncaughtAsyncError" across this pid's full logcat
+returned zero matches (AC2 satisfied). This call site (saveDeviceToken/getToken) is
+upstream of and independent from the cm-firebase-token HTTP call, which itself
+succeeded cleanly with no [FAIL]/[ERR] of its own.

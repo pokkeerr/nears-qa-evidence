@@ -1,0 +1,19 @@
+=== Direct API evidence against worktree's own backend (port 8552, checkpoint_sha 1158a4392) ===
+
+1) Repro condition: cm-firebase-token PUT with STALE/invalid moduleId header (moduleId: 999999)
+   curl -X PUT .../api/v1/customer/cm-firebase-token -H "moduleId: 999999" ... => HTTP 200
+   {"message":"Updated successfully"}
+   X-Request-Id echoed: c9ccb6c6-78e6-4ea5-875f-05ad0cef93aa
+   grep of that request id in laravel.log: 0 matches (no [FAIL]/[ERR] -- clean)
+   DB confirms persistence: SELECT cm_firebase_token FROM users WHERE email='customer@nears.com'
+     => qa-nears2552-test-token-abc123 (the value sent in that PUT)
+
+2) Regression -- sibling module-check routes untouched, still correctly gate on moduleId:
+   PUT  .../customer/get-data      -H "moduleId: 999999" => HTTP 403 {"errors":[{"code":"moduleId","message":"Not found"}]}
+   GET  .../customer/notifications -H "moduleId: 999999" => HTTP 403 {"errors":[{"code":"moduleId","message":"Not found"}]}
+
+3) auth:api still applied to cm-firebase-token (fix only removed module-check, not auth):
+   PUT .../customer/cm-firebase-token (no Authorization header) => HTTP 401 {"message":"Unauthenticated."}
+
+Conclusion: the fix is scoped exactly as intended -- cm-firebase-token bypasses
+module-check only, auth:api and the rest of the module-check group are untouched.

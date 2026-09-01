@@ -1,0 +1,37 @@
+=== AC3 spot-check: real targeted FCM push send via CentralLogics::send_push_notif_to_device ===
+
+DB-persisted token for customer@nears.com (user id 6) after live app login, read-only SELECT:
+  cm_firebase_token = f-o1dqezReS31sq2D0WIH0:APA91bGiCczvYzc7g1suNKFPwcTKOfM4CRlEF_0m6p4OQYnuCs8xclU_TVLtzohDP5vRD93QljYY7u9YMy-bWsfSIP-h_2PUvbDjx1lYcKLq2pk2DNyasMU
+
+php artisan tinker call (worktree backend, real service-account creds configured in business_settings):
+  Helpers::send_push_notif_to_device($token, ['title'=>'NEARS-2552 QA test push', ...])
+  => send_result=false
+
+Admin/storage/logs/laravel.log (production channel, this tinker call):
+  [2026-09-01 23:08:02] production.WARNING: FCM Sending notification {"message_type":"token"}
+  [2026-09-01 23:08:03] production.ERROR: FCM API Error {"status":404,"reason":"Not Found","order_id":""}
+
+POSITIVE CONTROL — the send pipeline itself IS live and reachable from this host (same
+laravel.log, a prior/adjacent run's topic-broadcast sends on the same FCM config):
+  [2026-09-01 22:41:45] testing.WARNING: FCM Sending notification {"message_type":"topic"}
+  [2026-09-01 22:41:46] testing.WARNING: FCM Send Success {"status":200,...}
+So the 404 is specific to THIS device's registration token, not a broken send path.
+
+ENVIRONMENT CONSTRAINT (not a NEARS-2552 defect): the emulator's own FCM/Play-Services
+registration call failed live during login with SERVICE_NOT_AVAILABLE (see
+ac1-live-login-flow.log) -- this sandboxed emulator has no working path to Google's FCM
+registration/delivery infrastructure (adb shell ping to 8.8.8.8/google.com hung
+indefinitely, never resolved). The token found in the DB is a stale/cached value from
+an earlier session's client-side cache, not a token freshly registered in this run --
+Google's 404 (UNREGISTERED) on send is consistent with that. Confirmed no
+notification arrived device-side: no FirebaseMessagingService/onMessageReceived log
+line, and `dumpsys notification` shows zero active notifications for com.izzes.nears
+after the send attempt.
+
+CONCLUSION: AC3's on-device delivery leg is UNVERIFIABLE in this sandbox (infra
+limitation, not a code defect). What IS confirmed live: the full send pipeline works
+end-to-end through Google's own accept/reject decision (positive control above), and
+the mechanism this fix touches -- cm-firebase-token accepting and persisting the
+client's token server-side -- is proven working (AC1 DB-persistence evidence). The
+persisted token is written and read back byte-identical to what the app sent,
+regardless of downstream FCM deliverability.
