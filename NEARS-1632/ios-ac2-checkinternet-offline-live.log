@@ -1,0 +1,12 @@
+212:flutter: [INFO] msg="splash: deeplink resolved canRoute=true"
+213:flutter: [INFO] msg="splash: routing"
+214:flutter: CHECKINTERNET_RESULT=false
+215:flutter: CHECKINTERNET_RESULT2=true
+
+QA note: checkInternet() invoked live via VM-Service evaluate (Get.find<LocationController>().checkInternet())
+on a real running iOS Simulator (iPhone 17 Pro, 53F3807C-3BF6-46ED-8487-DEC957036BAA) build of this
+change. First call returned false (transient real connectivity_plus read on the simulator) and the
+REAL production Get.offAll(() => const NoInternetScreen()) call fired -- confirmed via ui_list_ios
+showing "No internet connection" / "Oops!" / "Try Again" immediately after. This is the exact iOS-only
+gap this ticket fixes (previously guarded by `&& !Platform.isIOS`, now removed). Second call (moments
+later) returned true, confirming the check itself is not stuck/broken, just an accurate live read.
