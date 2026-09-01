@@ -1,0 +1,13 @@
+Pre-existing, unrelated to NEARS-2730's diff (confirmed via git blame: verification_screen.dart:521 dates to commit 432fb55d61, 2026-06-10, last touched by NEARS-1746 on 2026-08-31 — NOT this ticket, which only touched verification_repository.dart).
+
+Repro (artificial, edge-case): on the verification screen, tap Verify with a wrong OTP, then immediately navigate Back (Android back key) before the verify_token response returns. When the response lands after the screen has been popped/disposed, VerificationScreenState._navigatePostVerify's `verifyTokenFailed` case calls `errorController.add(ErrorAnimationType.shake)` BEFORE the `if (!mounted) return;` guard (verification_screen.dart:521, guard is at line ~535) — so a disposed StreamController still receives .add(), throwing:
+
+09-01 09:40:10.111  5326  5326 I flutter : ----------------FIREBASE CRASHLYTICS----------------
+09-01 09:40:10.111  5326  5326 I flutter : The following exception was thrown uncaught async error (StateError):
+09-01 09:40:10.114  5326  5326 I flutter : Bad state: Cannot add event after closing
+09-01 09:40:10.114  5326  5326 I flutter : #0      _StreamController.add (dart:async/stream_controller.dart:617:24)
+09-01 09:40:10.114  5326  5326 I flutter : #1      VerificationScreenState._navigatePostVerify (package:sixam_mart/features/verification/screens/verification_screen.dart:521:25)
+09-01 09:40:10.114  5326  5326 I flutter : #2      VerificationScreenState._onPressedVerify (package:sixam_mart/features/verification/screens/verification_screen.dart:401:5)
+09-01 09:40:10.114  5326  5326 I flutter : [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (StateError)"
+
+Device: emulator-5556. App pid 5326 (com.izzes.nears.nears_nears_2730_verification_error_mess).
