@@ -1,0 +1,43 @@
+=== NEARS-2739 QA — AC4 Morning Mart (store id=20, zone 2) normal (non-slug) nav, no-repro control ===
+Address switched to a clean zone-2-only point (verified via get-zone-id: zone_id:[2] only,
+no overlap): lat=24.4667 lng=54.3667 -> "Use Current Location" -> app resolved zone_id=2 live
+(analytics sectors_shown {sectors_count:3, zone_id:2}).
+
+Navigated via normal UI: Grocery & Food module home -> scrolled to store rail -> tapped
+"Morning Mart" card (NOT a deep link / NOT a slug route).
+
+--- UserApp device log ---
+I/flutter ( 6865): [NET] GET endpoint=/api/v1/stores/details/20      <- numeric id, confirms non-slug path
+I/flutter ( 6865): [NET] endpoint=/api/v1/stores/details/20 http_status=200
+I/flutter ( 6865): [NET] GET endpoint=/api/v1/config/distance-api
+I/flutter ( 6865): 📊 analytics: view_store {store_id: 20}
+I/flutter ( 6865): [NET] endpoint=/api/v1/config/distance-api http_status=200
+  (no [WARN]/[ERR] follows)
+
+Store hero rendered "Morning Mart / 3-5 days / 5.9 km / Closes 23:59" -- distance badge
+renders correctly, no regression from the shared classifyDistanceResponse refactor.
+(Note: this store-card "X km" badge is a SEPARATE server-computed `store.distance` field,
+unrelated to the checkout_controller.dart getDistanceInKM/config/distance-api code path this
+ticket touches -- included here only as additional visual confirmation of a healthy store
+screen; the actual regression-relevant evidence is the clean distance-api round trip above.)
+
+--- Backend log ---
+No new distance_api WARN entry for this request either (same full-session grep as AC3).
+
+--- Automated backstop ---
+flutter test test/features/checkout/checkout_controller_test.dart: 40/40 pass
+  (incl. classifyDistanceResponse unit coverage for all 4 DistanceResponseKind branches,
+  shared by getDistanceInKM AND the group-checkout sibling _perStoreDistanceKm)
+vendor/bin/phpunit --filter ConfigControllerTest: 22/22 pass, 49 assertions
+flutter analyze lib/features/checkout/controllers/checkout_controller.dart: No issues found
+
+--- Unrelated observation (NOT a regression from this fix, filed as informational only) ---
+Proceeding to checkout for this cart was blocked ("This store doesn't deliver to your area")
+because the shared QA account (james.wilson@demo.com) carried a STALE cart item from store
+id=37 "Daily Fresh Market" (a different, out-of-zone store) left over from an earlier QA
+session sharing this test account. The multi-store cart's out-of-zone guard
+(store_controller.dart:1023, ApiFailure 403 "store: details out of zone") correctly rejected
+it -- this is the zone guard working as designed, not a distance-api regression. Live
+checkout-screen delivery-fee rendering for the Morning Mart items alone was not captured as
+a result; the distance-api round trip itself (the part this ticket touches) is independently
+confirmed clean above.

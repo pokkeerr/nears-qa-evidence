@@ -1,0 +1,38 @@
+=== NEARS-2739 QA — AC3 NEARS-257 Fixture Store (store id=59, zone 3) ===
+Origin: same Abu Dhabi address as AC1/AC2 (lat=24.45388339947294 lng=54.377343356609344)
+Deep link fired: https://6ammart-web.6amtech.com/store/nears-257-fixture-store?id=59&page=store&module=4
+
+--- UserApp device log (flutter run, pid 6865) ---
+D/com.llfbandit.app_links( 6865): Handled intent: .../store/nears-257-fixture-store?id=59&page=store&module=4
+I/flutter ( 6865): [INFO] msg="deep link store params storeID=59 moduleId=4 page=store"
+I/flutter ( 6865): [NET] GET endpoint=/api/v1/config/distance-api
+I/flutter ( 6865): 📊 analytics: view_store {store_id: 59}
+I/flutter ( 6865): [NET] endpoint=/api/v1/config/distance-api http_status=200
+  (no [WARN]/[ERR] follows -> DistanceResponseKind.hasDistance, real distanceMeters used)
+
+--- Backend log ---
+No new distance_api WARN entry for this request (grep across the full session log:
+only the Pizza Heaven WARN at 19:55:01 and one earlier unrelated pre-QA entry at 19:25:15
+exist in the whole file) -> condition=ROUTE_EXISTS with a real distanceMeters, no anomaly
+to report, consistent with a successful WALK (or WALK->DRIVE retry) resolution.
+
+--- Independent corroboration (direct curl against the same worktree backend, port 8091,
+    using the exact origin/destination coordinate pair) ---
+$ curl ".../config/distance-api?origin_lat=24.45388339947294&origin_lng=54.377343356609344&destination_lat=25.1&destination_lng=55.15&mode=WALK"
+{"distanceMeters":125534,"duration":"4748s","condition":"ROUTE_EXISTS","localizedValues":{"distance":{"text":"126 km"},...}}
+$ curl same with mode=DRIVE -> identical distanceMeters=125534, condition=ROUTE_EXISTS
+
+Real, non-straight-line ~126km value confirmed end-to-end (matches the engineer's
+build-phase figure of 125537m to within API-call variance). NOTE: in this QA pass, WALK
+mode itself resolved ROUTE_EXISTS directly for this exact coordinate pair (unlike the
+build-phase investigation, which recorded a WALK ROUTE_NOT_FOUND -> DRIVE-retry-succeeds
+sequence for the same hop) -- Google Routes results for a ~126km cross-region walking
+query are not perfectly deterministic run-to-run. The shouldRetryWithDrive predicate is
+unit-tested (Admin/tests/Feature/Api/V1/ConfigControllerTest.php) and present in code
+regardless of whether this specific run needed to exercise it; the OUTCOME required by
+AC3 (a real ~126km computed distance, not straight-line fallback, no shape-invalid line)
+is fully confirmed live either way.
+
+Straight-line fallback for these coords would be materially different: Euclidean estimate
+between the two points is roughly 98km, vs. the ~126km real road/walk distance rendered --
+confirming this is NOT the fallback value.

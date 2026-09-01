@@ -1,0 +1,27 @@
+=== NEARS-2739 QA — AC1/AC2 Pizza Heaven (store id=5, zone 1) root-cause re-verification ===
+Origin: customer_addresses id=52, james.wilson@demo.com, "F93G+HW5 Cargo Systems... Abu Dhabi"
+  lat=24.45388339947294 lng=54.377343356609344 (UAE, cross-zone from Pizza Heaven's Bangladesh coords)
+Deep link fired: https://6ammart-web.6amtech.com/store/pizza-heaven?id=5&page=store&module=2
+
+--- UserApp device log (flutter run, pid 6865) ---
+D/com.llfbandit.app_links( 6865): Handled intent: action: android.intent.action.VIEW / data: https://6ammart-web.6amtech.com/store/pizza-heaven?id=5&page=store&module=2
+I/flutter ( 6865): [INFO] msg="deep link store params storeID=5 moduleId=2 page=store"
+I/flutter ( 6865): [NET] GET endpoint=/api/v1/config/distance-api
+I/flutter ( 6865): 📊 analytics: view_store {store_id: 5}
+I/flutter ( 6865): [NET] endpoint=/api/v1/config/distance-api http_status=200
+I/flutter ( 6865): [WARN] msg="checkout: distance route unavailable (ROUTE_NOT_FOUND), using straight-line fallback"
+
+--- Backend log (this worktree's Admin/storage/logs/laravel.log, port 8091) ---
+[2026-09-01 19:55:01] production.WARNING: [WARN] distance_api: non-OK route matrix element {"trace_id":"ec7c3cc34c4983b851cc2c5f0d8e2f36","correlation_id":"425f6741-d504-4b34-841c-c9482b5a0381","endpoint":"/api/v1/config/distance-api","condition":"ROUTE_NOT_FOUND","status_code":null,"request_id":"425f6741-d504-4b34-841c-c9482b5a0381","reason":"non_ok_status"}
+
+Correlation: only ONE distance_api WARN in the log window immediately following the app's
+[NET] distance-api http_status=200 line — condition=ROUTE_NOT_FOUND, reason=non_ok_status.
+Confirms AC1's pinned root cause (Pizza Heaven genuinely unroutable, both WALK/DRIVE per
+build-phase engineer verification) still holds live post-fix.
+
+Confirms AC2's amended bar: NO "checkout: distance response shape invalid" [ERR] line
+anywhere in this session's log (grep across the full run log returned zero matches) — the
+old misleading message is gone, replaced by the accurate
+"checkout: distance route unavailable (ROUTE_NOT_FOUND), using straight-line fallback" [WARN].
+Straight-line fallback is correct/expected behavior here per the team-lead decision
+(recorded in tasks/runs/NEARS-2739.json decisions[]) — this is NOT a bug.
