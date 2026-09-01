@@ -1,0 +1,18 @@
+Pre-existing golden-image drift (unrelated to NEARS-2759), confirmed via isolation:
+
+HEAD (this ticket, 5b008d207):
+  Golden "goldens/ci/dls_light.png": Pixel test failed, 0.76%, 7753px diff detected.
+  Golden "goldens/ci/dls_dark.png":  Pixel test failed, 0.77%, 7814px diff detected.
+
+BASE (feat/userapp-reskin2 tip 92235131e, fresh worktree, .dart_tool+build cleared, fresh pub get):
+  Golden "goldens/ci/dls_light.png": Pixel test failed, 0.82%, 8329px diff detected.
+  Golden "goldens/ci/dls_dark.png":  Pixel test failed, 0.83%, 8390px diff detected.
+
+Isolation: `git worktree add --detach /tmp/nears-2759-base-check feat/userapp-reskin2`,
+`rm -rf .dart_tool build && flutter pub get` (pinned ~/Tools/flutter), then
+`flutter test test/golden/dls_golden_test.dart` — both light+dark themes fail identically
+on the base commit, before any of NEARS-2759's changes exist. Confirms this is a pre-existing
+environment/rendering drift (not a shader-cache class failure per dls-shader-cache-false-failures
+precedent — this is a genuine pixel-diff, not an ink_sparkle.frag exception), unrelated to the
+address_screen/add_address_screen/n_text.dart migration in this ticket. Filed as regression_bugs,
+does not block this ticket's PASS.

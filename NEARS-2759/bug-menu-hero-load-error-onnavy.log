@@ -1,0 +1,18 @@
+Pre-existing test failure (unrelated to NEARS-2759), reproduced in isolation:
+$ flutter test test/features/menu/menu_hero_load_error_test.dart
+
+00:00 +3: userInfoLoadFailed -> NEmptyState icon/title/subtitle read on-navy, not Theme.of(context)'s light-background colors
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: Color:<Color(alpha: 0.6588, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB)>
+  Actual: Color:<Color(alpha: 1.0000, red: 0.4157, green: 0.4157, blue: 0.4706, colorSpace: ColorSpace.sRGB)>
+Failed at: test/features/menu/menu_hero_load_error_test.dart line 197
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+Root-cause attribution: test file byte-identical between feat/userapp-reskin2 (base) and this
+ticket's HEAD (`git show feat/userapp-reskin2:...` diff -q = no output); `UserApp/lib/features/menu/`
+has zero diff between base and HEAD (`git diff feat/userapp-reskin2...HEAD --stat -- UserApp/lib/features/menu/`
+= empty). NEARS-2759's own diff only touches UserApp/lib/features/address/screens/{address_screen,add_address_screen}.dart
+and packages/nears_dls/lib/elements/text/n_text.dart (additive/nullable fields, inert when unused —
+pinned by packages/nears_dls/test/elements/n_text_test.dart). This failure predates NEARS-2759 and
+traces to NEARS-2750 (menu error-state on-navy color work, commit a6f106932) per git log on the touched files.
