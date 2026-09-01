@@ -1,0 +1,35 @@
+Repro: fullscreen "Set Your Store Location" picker -> tap "Location Search here" ->
+type "Abu Dhabi" -> tap suggestion "Abu Dhabi - United Arab Emirates" -> immediately
+(no delay) press system Back x2.
+
+09-01 22:38:56.073 22801 22801 I flutter : The following exception was thrown uncaught async error (StateError):
+09-01 22:38:56.093 22801 22801 I flutter : [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (StateError)"
+09-01 22:38:56.094 22801 22801 I flutter : The following exception was thrown uncaught async error (StateError):
+09-01 22:38:56.094 22801 22801 I flutter : Bad state: GoogleMapController for map ID 22 was used after the associated GoogleMap widget had already been disposed.
+09-01 22:38:56.094 22801 22801 I flutter : #0      GoogleMapController._checkWidgetMountedOrThrow (package:google_maps_flutter/src/controller.dart:441:7)
+09-01 22:38:56.094 22801 22801 I flutter : #1      GoogleMapController.animateCamera (package:google_maps_flutter/src/controller.dart:282:5)
+09-01 22:38:56.094 22801 22801 I flutter : #2      LocationController.setLocation (package:sixam_mart/features/location/controllers/location_controller.dart:1055:21)
+09-01 22:38:56.094 22801 22801 I flutter : <asynchronous suspension>
+
+Root cause: LocationSearchDialogWidget's own suggestion-tap handler
+(UserApp/lib/features/location/widgets/location_search_dialog_widget.dart:61) calls
+Get.find<LocationController>().setLocation(placeId, description, mapController) directly
+-- a completely separate call path from select_location_view_widget.dart's own guarded
+animateCamera at line 461. LocationController.setLocation() (location_controller.dart:1028)
+calls mapController.animateCamera(...) at line 1055 with NO mounted-check / try-catch.
+Pre-existing, untouched by the NEARS-2766 diff (different file/class). Not blocking THIS
+ticket's verdict, but the exact repro is on the flow this ticket's QA scope named
+("location-search-dialog pick" rapid-tap-then-back).
+
+Side effect beyond the log noise: because the throw happens mid-function (line 1055),
+`_loading = false; update();` (lines 1061-1062) and the AddressModel return (1063-1068)
+never execute on this path -- LocationController._loading can be left stuck `true`.
+
+Zone auto-detect itself (select_location_view_widget.dart's own _findZoneForLocation,
+which runs synchronously right after the pick) DID still complete correctly in this
+same repro -- confirmed live: after back-navigating out, the embedded Vendor Info card
+showed "Abu Dhabi Zone" selected and the address field populated with the picked
+location's reverse-geocoded address. So the QA-scope requirement "verify zone
+auto-detect/setLocation logic after a dialog pick still runs" is satisfied for the
+zone-detection behavior itself; only the incidental LocationController.setLocation
+animateCamera call is unguarded.
