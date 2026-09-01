@@ -1,0 +1,28 @@
+Regression-candidate confirmation (flagged by review, NEARS-2748-R1, orthogonal
+to NEARS-1614 — pre-existing mobile/desktop asymmetry, NOT introduced by this
+ticket's diff).
+
+Static: pick_map_screen.dart's MOBILE-render onMapCreated block (line ~405-418)
+only guards on `!widget.fromAddAddress` (this ticket removed the dead
+`widget.route != RouteHelper.onBoarding` clause from it). The DESKTOP-render
+block (line ~236-245) still guards `!widget.fromAddAddress && widget.route !=
+'splash'` — added by NEARS-2748-R1, never ported to the mobile block. This
+means on a mobile form factor, arriving at the pick-map/location-gate screen
+via the NEW first-run flow (route == 'splash') DOES trigger an auto
+getCurrentLocation() fetch that the desktop path skips.
+
+Live confirmation (emulator-5558, mobile form factor, first-run flow,
+permission denied): getCurrentLocation() fires immediately on
+onMapCreated even though route == 'splash', producing a paired,
+correctly-logged [FAIL] (not silent):
+
+09-02 00:28:09.068 27329 27329 I flutter : [FAIL] endpoint=null http_status=null type=GetPositionFailure msg="location: getPosition threw (PermissionDeniedException) — falling back to default position"
+09-02 00:31:08.801 28044 28044 I flutter : [FAIL] endpoint=null http_status=null type=GetPositionFailure msg="location: getPosition threw (PermissionDeniedException) — falling back to default position"
+
+Reproduced identically across BOTH the fresh first-run (pid 27329) and the
+relaunch (pid 28044) — the guard gap is deterministic, not flaky.
+
+This is real, reproducible behavior — NOT a NEARS-1614 regression (pre-existing
+mobile/desktop asymmetry, guard clause the ticket touched never excluded
+'splash' on mobile, only excluded the now-deleted onboarding route). Filed to
+regression_bugs per the QA contract; does not affect this ticket's verdict.
