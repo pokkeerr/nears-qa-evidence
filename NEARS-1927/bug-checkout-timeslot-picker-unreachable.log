@@ -1,0 +1,29 @@
+Surface: UserApp Checkout screen, "Preferred Time" (preference_time) schedule section
+(lib/features/checkout/widgets/time_slot_section.dart)
+
+Observed while attempting the AC6 negative-control live demo (schedule checkout) for NEARS-1927.
+Not caused by this ticket's diff (date_converter.dart / main.dart only touch date formatting,
+never checkout/time_slot_section.dart).
+
+Symptom: with a logged-in, non-guest session and a single-store cart from a
+schedule_order=1 store (verified via DB: Nears Mart, Fresh Mart Grocery both schedule_order=1),
+the checkout screen's "Preferred Time" section header ("Preferred Time" / "الوقت المفضل"
++ info tooltip icon) renders, but the NSettingsTile row directly beneath it that should show
+the current slot label (Instant/Now, "instant".tr) and open TimeSlotBottomSheet via onTap does
+NOT render any visible content -- uiautomator dump shows a ~36px gap between the header row
+(ends y=2551) and the next section (Order Total, starts y=2587), with no NSettingsTile node in
+between. Tapping across the full width of that gap (x=300..1080, y=2514) produced no dump
+change / no bottom sheet across 3+ attempts on emulator-5562 (1344x2954, Arabic locale).
+
+Effect: the time-slot picker (TimeSlotBottomSheet) could not be opened via normal navigation,
+so a live demonstration of a USER-PICKED schedule_at value on the wire could not be completed
+this run. AC6 is instead backed by: (a) static diff review confirming dateToDateAndTime/
+dateToDate/tinExpireDate call sites carry no locale arg and no _ltr() wrap (matches the AC's
+own stated verification method), (b) 23 passing unit tests explicitly pinning wire-method
+locale-invariance (test/helper/date_converter_ar_locale_test.dart, AC6 group), and (c) two
+live-placed orders (#91175, #91176) whose DB schedule_at values are clean Western-digit
+'yyyy-MM-dd HH:mm:ss' with no Arabic wrapping (both went through the null-schedule default
+path since the picker itself was unreachable, not the explicit-slot code path).
+
+Not confirmed whether this reproduces under English locale (not checked, to bound QA-run
+scope/cost) -- flagged for triage before assuming Arabic-specific.

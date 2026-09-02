@@ -1,0 +1,21 @@
+Automated backstop: `flutter test` (full UserApp suite), run from worktree
+/Users/Apple/Projects/nears-NEARS-1927-ar-date-locale/UserApp, this session.
+Result: 5589 tests, 3 failed. None touch date_converter.dart / main.dart (this ticket's only
+changed files) or the AC-pinning test/helper/date_converter_ar_locale_test.dart (23/23 pass).
+Pre-existing, unrelated to NEARS-1927 -- listed for triage, not gating this run.
+
+1) test/features/store/campaign_screen_reskin_test.dart
+   "mobile renders with no exception in RTL" [FAILED]
+   FlutterError: A RenderFlex overflowed by 23 pixels on the right.
+   (store campaign screen RTL layout overflow -- unrelated surface, no date formatting involved)
+
+2) test/golden/dls_golden_test.dart
+   "DLS components — light theme (variant: CI)" [FAILED]
+   Golden "goldens/ci/dls_light.png": Pixel test failed, 0.20%, 2060px diff detected.
+
+3) test/golden/dls_golden_test.dart
+   "DLS components — dark theme (variant: CI)" [FAILED]
+   Golden pixel diff (same family as #2).
+   Likely candidate: known host-GPU/shader-cache golden flakiness (see project memory
+   "dls-shader-cache-false-failures") rather than a real visual regression -- not independently
+   re-verified this run (out of scope for a date-locale ticket); flagged for owning team triage.

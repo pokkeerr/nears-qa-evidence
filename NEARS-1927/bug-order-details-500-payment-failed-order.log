@@ -1,0 +1,12 @@
+Surface: UserApp Order Details (customer@nears.com, order #91174, status=Payment Failed)
+Observed while QA-ing NEARS-1927 (Arabic locale date rendering) — unrelated to the date_converter.dart/main.dart diff under test.
+
+FE log (ui_errors, pid-scoped, flutter tag):
+09-02 08:46:47.163  3698  3698 I flutter : [FAIL] endpoint=/api/v1/customer/order/details http_status=500 type=ApiFailure msg="api request failed" correlation_id=cd1f7d35-15dc-456c-b200-a440720f5fde
+
+Repro: log in as customer@nears.com, Orders > All Orders > order #91174 (Payment Failed) > View details.
+Screen renders "Something went wrong" / رجوع.
+Other orders (e.g. #91164, pending) load details successfully — the 500 appears specific to
+the payment-failed order state, not a general order/details regression.
+Not caused by this ticket's diff (date_converter.dart / main.dart only) — properly logged via
+AppLogger (not a silent failure), so not gating this run.
