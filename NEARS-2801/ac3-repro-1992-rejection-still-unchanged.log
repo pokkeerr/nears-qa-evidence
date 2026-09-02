@@ -1,0 +1,37 @@
+AC3 -- repeat of NEARS-1992's exact rejection repro (wrong guest_token on manual_login),
+run against this ticket's worktree (feat/NEARS-2801-guest-cart-merge-observability), private
+DB clone multi_food_db_qa_2801, server on 127.0.0.1:8321.
+
+1) POST /api/v1/auth/guest/request
+   -> {"message":"Guest verified","guest_id":1382,"guest_token":"spOmyrILB5enOb5NBTf2ewuLs0MT9vlJgbCxQ5513PcymHFZ5TzU3vmCNTmfDkfr"}
+
+2) Seeded guest-owned cart row directly (id=712, user_id=1382, is_guest=1, item_id=1) --
+   equivalent fixture to what both existing regression tests
+   (GuestCartMergeEnumerationTest / GuestCartMergeRejectionMetricTest) use.
+
+3) POST /api/v1/auth/login (login_type=manual, field_type=email, customer@nears.com,
+   guest_id=1382, guest_token="wrong-token-deliberately-qa2801",
+   X-Request-Id=941c6617-1cd5-47c1-9ddf-4ba6f5710df0 [valid UUIDv4])
+   -> HTTP 200 (auth itself succeeds -- only the cart merge is gated), response header echoes
+      X-Request-Id: 941c6617-1cd5-47c1-9ddf-4ba6f5710df0
+
+4) DB after: SELECT id,user_id,is_guest,item_id FROM carts WHERE id=712;
+   -> 712 | 1382 | 1 | 1   (cart UNCHANGED -- correctly not merged, same outcome as NEARS-1992)
+
+5) grep -F "941c6617-1cd5-47c1-9ddf-4ba6f5710df0" Admin/storage/logs/laravel.log
+   -> [2026-09-02 10:18:12] qa2801.WARNING: [FAIL] guest.cart.merge.rejected
+      {"trace_id":"13baf93d12b4df74c00cb47f7b585ab5",
+       "correlation_id":"941c6617-1cd5-47c1-9ddf-4ba6f5710df0","reason":"token_mismatch",
+       "guest_id":"1382","request_id":"941c6617-1cd5-47c1-9ddf-4ba6f5710df0"}
+
+Compare to NEARS-1992's own captured line (docs/qa-evidence/NEARS-1992/ac1-negative-case.log):
+      [2026-09-02 06:16:44] production.WARNING: [FAIL] guest.cart.merge.rejected
+      {"trace_id":"...","correlation_id":"...","reason":"token_mismatch",
+       "guest_id":1349,"request_id":"..."}
+
+SAME message string, SAME context keys (reason, guest_id, request_id) in the SAME order,
+SAME reason value for a wrong-token repro. Byte-identical in shape/content. Reject outcome
+(cart untouched, auth succeeds, 401 never returned from this code path) unchanged.
+The ONLY addition vs pre-NEARS-2801 is the separate MetricEmitter::increment() call
+immediately after this same Log::warning line -- confirmed additive, not a replacement,
+by reading the diff (Admin/app/Http/Controllers/Api/V1/Auth/CustomerAuthController.php).

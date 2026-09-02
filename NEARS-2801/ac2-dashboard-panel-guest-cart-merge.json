@@ -1,0 +1,83 @@
+{
+  "id": "panel_guest_cart_merge_rejections",
+  "type": "line",
+  "title": "Guest cart merge rejections by reason",
+  "description": "NEARS-2801: guest.cart.merge.rejected counter (GuestTokenGuard), split by reason (invalid_guest_id / unknown_guest / legacy_null_token_strict / token_mismatch). Metrics stream naming follows the OTLP ingestion convention documented above the panels JSON in README.md \u2014 verify against the live stream once populated.",
+  "config": {
+    "show_legends": true,
+    "legends_position": "bottom",
+    "unit": "count",
+    "decimals": 0.0,
+    "base_map": {
+      "type": "osm"
+    },
+    "map_view": {
+      "zoom": 1.0,
+      "lat": 0.0,
+      "lng": 0.0
+    },
+    "map_symbol_style": {
+      "size": "by Value",
+      "size_by_value": {
+        "min": 1.0,
+        "max": 100.0
+      },
+      "size_fixed": 2.0
+    },
+    "drilldown": [],
+    "connect_nulls": false,
+    "no_value_replacement": "",
+    "wrap_table_cells": false
+  },
+  "queryType": "sql",
+  "queries": [
+    {
+      "query": "SELECT histogram(_timestamp) AS x_axis_1, reason, count(*) AS rejections FROM \"guest_cart_merge_rejected\" GROUP BY x_axis_1, reason ORDER BY x_axis_1 ASC",
+      "customQuery": true,
+      "fields": {
+        "stream": "guest_cart_merge_rejected",
+        "stream_type": "metrics",
+        "x": [
+          {
+            "label": "Timestamp",
+            "alias": "x_axis_1",
+            "column": "_timestamp",
+            "color": null,
+            "aggregationFunction": "histogram",
+            "sortBy": "ASC"
+          }
+        ],
+        "y": [
+          {
+            "label": "rejections",
+            "alias": "rejections",
+            "column": "reason",
+            "color": "#e74c3c",
+            "aggregationFunction": "count"
+          }
+        ],
+        "z": [
+          {
+            "label": "reason",
+            "alias": "reason",
+            "column": "reason",
+            "color": null
+          }
+        ],
+        "filter": []
+      },
+      "config": {
+        "promql_legend": "",
+        "layer_type": "scatter",
+        "weight_fixed": 1.0
+      }
+    }
+  ],
+  "layout": {
+    "x": 0,
+    "y": 36,
+    "w": 24,
+    "h": 9,
+    "i": 5
+  }
+}

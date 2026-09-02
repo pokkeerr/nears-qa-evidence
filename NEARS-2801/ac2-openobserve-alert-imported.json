@@ -1,0 +1,40 @@
+{
+    "list": [
+        {
+            "alert_id": "3IlCadMpzpj1PAqF0osmmOekpec",
+            "folder_id": "default",
+            "folder_name": "default",
+            "name": "nears_guest_cart_merge_rejection_rate",
+            "owner": "root@example.local",
+            "description": "NEARS-2801: guest.cart.merge.rejected counter, token_mismatch/unknown_guest rate over the last 5min. NOTE: stream_name/column names here follow the OTLP metrics ingestion convention documented in dashboards/README.md (metric-name dots -> underscores, flat attribute columns) \u2014 verify against the live 'guest_cart_merge_rejected' metrics stream in OpenObserve after the first real rejection and adjust if the ingested shape differs.",
+            "alert_type": "scheduled",
+            "condition": {
+                "type": "sql",
+                "conditions": null,
+                "sql": "SELECT count(*) AS rejections FROM \"guest_cart_merge_rejected\" WHERE reason IN ('token_mismatch', 'unknown_guest')",
+                "promql": null,
+                "promql_condition": null,
+                "aggregation": null,
+                "vrl_function": null,
+                "search_event_type": null,
+                "multi_time_range": null
+            },
+            "trigger_condition": {
+                "period": 5,
+                "operator": ">=",
+                "threshold": 10,
+                "frequency": 5,
+                "cron": "",
+                "frequency_type": "minutes",
+                "silence": 10,
+                "timezone": "UTC",
+                "tolerance_in_secs": null,
+                "align_time": true
+            },
+            "enabled": true,
+            "last_triggered_at": 0,
+            "last_satisfied_at": null,
+            "is_real_time": false
+        }
+    ]
+}
