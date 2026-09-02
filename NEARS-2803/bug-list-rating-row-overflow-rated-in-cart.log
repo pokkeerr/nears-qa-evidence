@@ -1,0 +1,15 @@
+NEARS-2803 fix-cycle 3 delta re-QA — rated-item list_rating_row overflow (pre-existing, not fixed by this cycle)
+Device: emulator-5556, wm size 2600x1400 / density 160, Grocery & Food module, zone 2 (Abu Dhabi), customer@nears.com
+Surface: "Reorder your usuals" narrow desktop rail (165dp cell), item "Orange Juice 1L" (avg_rating 3.5, rating_count 17)
+Repro: tapped "Add To Cart" on the rated item in the narrow rail, triggering the in-cart pill render.
+
+09-02 16:58:59.008 24666 24666 I flutter : [FAIL] framework_error library=rendering library type=FlutterError msg="A RenderFlex overflowed by 12 pixels on the right."
+09-02 16:58:59.010 24666 24666 I flutter : [FAIL] framework_error   at Row-[<'list_rating_row'>] Row:file:///Users/Apple/Projects/nears-NEARS-2803-item-list-row-desktop-overflow/UserApp/lib/common/widgets/item_widget.dart:1124:45
+09-02 16:59:00.140 24666 24666 I flutter : [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=d16c0eb2-fec0-4965-8469-d23d35663adf (unrelated cross-zone cart conflict, not part of this finding)
+09-02 16:59:00.142 24666 24666 I flutter : [ERR] msg="error snackbar shown"
+
+Corroborated by the engineer's own automated test suite (fix-cycle 2/3, item_widget_desktop_list_row_overflow_test.dart):
+  00:00 +17: NEARS-2822: desktop narrow rail, item already in cart — zero overflow rated item — list_rating_row still overflows (tracked, not this fix)
+This test is present and passing-as-a-documented-skip — i.e. the engineer already knows about and intentionally did not fix this in fix-cycle 2/3 (commit 33160299b message: "A separate, pre-existing list_rating_row overflow surfaces for RATED items at this same tight budget — tracked via a skipped regression pin (not fixed here; conflicts with NEARS-2387's avgRating-never-truncates guarantee) pending its own width-budget design.").
+
+Conclusion: REPRODUCED live, confirms the packet's suspicion. Recommend filing as its own follow-up ticket (regression_bugs / candidate new ticket) — not a fix-cycle-3 blocker since it is explicitly out of scope and pre-existing.
