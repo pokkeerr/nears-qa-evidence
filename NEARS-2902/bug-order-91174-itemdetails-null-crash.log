@@ -1,0 +1,37 @@
+Device: emulator-5556, pkg com.izzes.nears.nears_nears_2902_order_controller_addons, pid 4928
+Repro: login customer@nears.com -> Profile -> Orders -> All Orders -> #91174 (Burger Palace, Payment Failed)
+
+09-02 23:04:15.681  4928  4928 I flutter : [FAIL] endpoint=/api/v1/customer/order/details http_status=null type=ApiFailure msg="order-details: addOns null in computeOrderFinancials, rendered zero add-ons"
+09-02 23:04:15.686  4928  4928 I flutter : [FAIL] endpoint=/api/v1/customer/order/details http_status=null type=ApiFailure msg="order-details: addOns null in computeOrderFinancials, rendered zero add-ons"
+09-02 23:04:15.705  4928  4928 I flutter : [FAIL] framework_error library=widgets library type=_TypeError msg="Null check operator used on a null value"
+09-02 23:04:15.706  4928  4928 I flutter : [FAIL] framework_error   at #0      OrderInfoWidget.build (package:sixam_mart/features/order/widgets/order_info_widget.dart:104:45)
+09-02 23:04:15.706  4928  4928 I flutter : [FAIL] framework_error   at #1      StatelessElement.build (package:flutter/src/widgets/framework.dart:5889:49)
+09-02 23:04:15.706  4928  4928 I flutter : [FAIL] framework_error   at #2      ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5817:15)
+09-02 23:04:15.706  4928  4928 I flutter : [FAIL] framework_error   at #3      Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+09-02 23:04:15.706  4928  4928 I flutter : [FAIL] framework_error   at #4      ComponentElement._firstBuild (package:flutter/src/widgets/framework.dart:5799:5)
+09-02 23:04:15.706  4928  4928 I flutter : [FAIL] framework_error   at #5      ComponentElement.mount (package:flutter/src/widgets/framework.dart:5793:5)
+09-02 23:04:15.706  4928  4928 I flutter : [FAIL] framework_error   at #6      Element.inflateWidget (package:flutter/src/widgets/framework.dart:4587:20)
+09-02 23:04:15.706  4928  4928 I flutter : [FAIL] framework_error   at #7      MultiChildRenderObjectElement.inflateWidget (package:flutter/src/widgets/framework.dart:7264:36)
+
+Analysis:
+- Both order_details rows for order #91174 (ids 136, 137) have add_ons NULL AND item_details NULL in the DB
+  (`SELECT id,order_id,item_id,add_ons,item_details FROM order_details WHERE order_id=91174` -> both NULL/NULL).
+- The addOns-null degrade added by this ticket DOES fire correctly and only once per row (2x FAIL lines above,
+  ids 136/137, matches AC's dedupe-by-orderDetails.id requirement).
+- Immediately after, order_info_widget.dart:104 (`orderController.orderDetails![0].itemDetails!.moduleType`)
+  force-unwraps the SEPARATE, also-null `itemDetails` field -> full red error screen, screen never renders the
+  item-rows section. AC1 requires "no error/crash state" and is NOT met.
+- Because the crash fires in OrderInfoWidget BEFORE OrderItemWidget mounts, OrderItemWidget's own null-addOns
+  guard (order_item_widget.dart:62-68, the specific site named in the QA scope) is never reached live for order
+  #91174 -- unverifiable live, only unit-test-verified (mocked itemDetails, which does not match this order's
+  real null itemDetails).
+- Even if order_info_widget.dart:104 were guarded, order_item_widget.dart itself still force-unwraps
+  itemDetails! unguarded at multiple sites (lines 74,76,81,114,164,168,171 in this diff) -- e.g. line 114
+  `orderDetails.itemDetails!.name!` -- so order #91174 would continue to crash there next. Confirmed via
+  `grep -n "itemDetails!" UserApp/lib/features/order/widgets/order_item_widget.dart`.
+
+30s poll-flood dedupe check (separate, not a defect): logcat cleared, screen left open ~35s while crashing/
+rebuilding on this same null-itemDetails error every ~10s poll tick (4 rebuilds observed at 23:09:50/:10:00/
+:10:10/:10:20). Zero additional "addOns null in computeOrderFinancials" FAIL lines were emitted in that window
+-- the dedupe-by-orderDetails.id Set held across repeated rebuilds, confirming the computeOrderFinancials
+degrade only logs once per id even under continuous polling.
