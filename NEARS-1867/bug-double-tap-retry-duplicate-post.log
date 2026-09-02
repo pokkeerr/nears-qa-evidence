@@ -1,0 +1,57 @@
+NEARS-1867 QA — live repro, emulator-5560, account qa.nears1867.interest3@example.com,
+module 2 (Food & Restaurant), Arabic/RTL locale, fault-injection proxy forcing 403 on
+/api/v1/customer/update-interest (scripts/qa-tools/qa_fail_proxy.py, --run-key NEARS-1867).
+
+Repro command (two taps at the IDENTICAL "Try Again"/"حاول ثانية" button coordinate,
+back-to-back in one adb shell invocation, no sleep between):
+  adb -s emulator-5560 shell "input tap 540 2027; input tap 540 2027"
+
+Trial 1 (2026-09-02 10:41:13) -- DOUBLE POST, ~8ms apart:
+09-02 10:41:13.514 20502 20502 I flutter : [NET] POST endpoint=/api/v1/customer/update-interest
+09-02 10:41:13.522 20502 20502 I flutter : [NET] POST endpoint=/api/v1/customer/update-interest
+09-02 10:41:14.270 20502 20502 I flutter : [NET] endpoint=/api/v1/customer/update-interest http_status=403
+09-02 10:41:14.271 20502 20502 I flutter : [FAIL] endpoint=/api/v1/customer/update-interest http_status=403 type=ApiFailure msg="save interests failed"
+09-02 10:41:14.274 20502 20502 I flutter : [NET] endpoint=/api/v1/customer/update-interest http_status=403
+09-02 10:41:14.274 20502 20502 I flutter : [FAIL] endpoint=/api/v1/customer/update-interest http_status=403 type=ApiFailure msg="save interests failed"
+
+Cross-control variant (retry tap then immediate tap on the main CTA's last-known
+position -- also 2 different-looking taps landing on the same in-flight guard):
+09-02 10:40:25.165 20502 20502 I flutter : [NET] POST endpoint=/api/v1/customer/update-interest
+09-02 10:40:25.173 20502 20502 I flutter : [NET] POST endpoint=/api/v1/customer/update-interest
+09-02 10:40:25.718 20502 20502 I flutter : [NET] endpoint=/api/v1/customer/update-interest http_status=403
+09-02 10:40:25.719 20502 20502 I flutter : [FAIL] endpoint=/api/v1/customer/update-interest http_status=403 type=ApiFailure msg="save interests failed"
+09-02 10:40:25.720 20502 20502 I flutter : [NET] endpoint=/api/v1/customer/update-interest http_status=403
+09-02 10:40:25.721 20502 20502 I flutter : [FAIL] endpoint=/api/v1/customer/update-interest http_status=403 type=ApiFailure msg="save interests failed"
+
+Counter-trials (same exact repro command, same button, immediately after) --
+SINGLE POST both times, proving this is a genuine TIMING RACE, not deterministic:
+09-02 10:42:40.354 20502 20502 I flutter : [NET] POST endpoint=/api/v1/customer/update-interest
+09-02 10:42:40.747 20502 20502 I flutter : [NET] endpoint=/api/v1/customer/update-interest http_status=403
+09-02 10:42:40.750 20502 20502 I flutter : [FAIL] endpoint=/api/v1/customer/update-interest http_status=403 type=ApiFailure msg="save interests failed"
+(one further trial, same result: exactly 1 POST)
+
+Tally across 4 valid back-to-back double-tap trials on the identical Retry coordinate:
+2 produced a DUPLICATE POST, 2 produced a single POST (~50% reproduction rate).
+
+Root cause (source-read, packages/nears_dls/lib/props/n_element.dart +
+UserApp/lib/features/interest/screens/interest_screen.dart +
+UserApp/lib/features/category/controllers/category_controller.dart):
+NErrorPanel's `isDisabled: categoryController.isLoading` gate is applied via
+`wrapUniversal()` -> `IgnorePointer`, and `CategoryController.saveInterest()` sets
+`_isLoading = true; update();` SYNCHRONOUSLY before its first `await`. Both the
+`_saveInterestError = null` setState (interest_screen.dart's `_saveInterests`) and
+the GetX `update()` call mark the tree dirty, but Flutter only rebuilds+re-lays-out
+(so the IgnorePointer/removed-button actually takes effect for hit-testing) on the
+NEXT FRAME. Two raw touch-up events delivered by the OS within that one frame's
+window (observed ~8ms apart, well under one 16ms frame at 60Hz) can BOTH be
+dispatched to the pre-rebuild tree, so both reach `onRetry`/`onPressed` before the
+guard has visually/hit-test-wise taken effect -- a genuine frame-timing race, not
+something the widget-test suite's `tester.tap()` -> `tester.pump()` -> `tester.tap()`
+sequencing can ever exercise (pump() forces the intervening rebuild the real device
+does not guarantee before the second raw input arrives).
+
+Impact: wasted duplicate backend call on every affected retry (not currently data-
+corrupting for the plain double-tap-same-button case, since both taps carry the same
+selection snapshot -- but the QA Test Scope's own cross-check scenario, "change
+selection between the failure and retry", means a sufficiently-fast double-tap
+straddling a selection edit is not provably safe from this same race).
