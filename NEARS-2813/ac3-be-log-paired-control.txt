@@ -1,0 +1,35 @@
+NEARS-2813 AC3 — BE log-absence paired control, live (emulator-5562, backend :8000, DB multi_food_db)
+
+LEG 1 — stale guest_id (1433, purged by the fix) + wrong/absent token, simulating
+what a PRE-fix (unpurged guest_id) client would keep resending after the
+corruption event:
+
+  curl -D - "http://127.0.0.1:8000/api/v1/customer/order/list?limit=10&offset=1&guest_id=1433" \
+    -H "X-Guest-Token: bogus-corrupted-value"
+  -> HTTP/1.1 401 Unauthorized, X-Request-Id: 00ad4eb2-f110-428a-a53e-792966787826
+
+  grep -F "00ad4eb2-f110-428a-a53e-792966787826" Admin/storage/logs/laravel.log:
+  [2026-09-02 17:58:29] production.WARNING: [FAIL] guest.token.rejected
+  {"trace_id":"e8a7cc26bdf380ec401536f4550cf133",
+   "correlation_id":"00ad4eb2-f110-428a-a53e-792966787826",
+   "reason":"token_mismatch","guest_id":"1433",
+   "request_id":"00ad4eb2-f110-428a-a53e-792966787826"}
+
+  Channel proven live: [FAIL] guest.token.rejected / token_mismatch fires and is
+  correlated end-to-end by request_id.
+
+LEG 2 — POST-fix: the fresh guest pair minted by guestLogin() after the
+corruption-purge remint (guest_id 1434, token read from `guests` table,
+read-only SELECT):
+
+  curl -D - "http://127.0.0.1:8000/api/v1/customer/order/list?limit=10&offset=1&guest_id=1434" \
+    -H "X-Guest-Token: u9bLZFEj6yavqpctTelrpub39GUYiSbDvTQQ5PEvE7WnXqMmOwR7M3rUvB54x94M"
+  -> HTTP/1.1 200 OK, X-Request-Id: 382da943-80d4-431e-b073-7d0cf77adb54
+  body: {"total_size":0,"limit":10,"offset":"1","orders":[]}
+
+  grep -F "382da943-80d4-431e-b073-7d0cf77adb54" Admin/storage/logs/laravel.log
+  -> NO MATCH (exit 1) — no guest.token.rejected line for the fresh pair's call.
+
+Conclusion: paired control satisfied — the log line fires for the stale-credential
+tuple the corruption-purge fix removes, and is absent for the freshly re-minted
+tuple the fix produces.
