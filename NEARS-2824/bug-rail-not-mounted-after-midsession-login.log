@@ -1,0 +1,16 @@
+=== Backend general_log proof: buy_it_again_products resolved correctly for user 6 (customer@nears.com), zone [1] ===
+Query 1 (mid-session login trigger, single fire, clean repro):
+2026-09-02T15:00:53.186302Z	275887 Execute	select `order_details`.`item_id` from `order_details` inner join `orders` on `orders`.`id` = `order_details`.`order_id` where `orders`.`user_id` = 6 and `orders`.`is_guest` = 0 and `orders`.`order_status` = 'delivered' and `order_details`.`item_campaign_id` is null and `order_details`.`item_id` is not null group by `order_details`.`item_id` order by MAX(COALESCE(orders.delivered, orders.created_at)) DESC
+
+Eligibility filter query — proves zone_id in (1), module_id = 1, item ids (97,145,332,99,96,95,52,58) candidate pool:
+2026-09-02T15:00:53.189678Z	275887 Prepare	select count(*) as aggregate from `items` where `status` = ? and `is_approved` = ? and exists (select * from `stores` where `items`.`store_id` = `stores`.`id` and `status` = ? and (`store_business_model` = ? or exists (select * from `store_subscriptions` inner join (select MAX(`store_subscriptions`.`id`) as `id_aggregate`, `store_subscriptions`.`store_id` from `store_subscriptions` group by `store_subscriptions`.`store_id`) as `latestOfMany` on `latestOfMany`.`id_aggregate` = `store_subscriptions`.`id` and `latestOfMany`.`store_id` = `store_subscriptions`.`store_id` where `stores`.`id` = `store_subscriptions`.`store_id` and (`max_order` = ? or `max_order` > ?) and `status` = ?))) and `id` in (?, ?, ?, ?, ?, ?, ?, ?) and exists (select * from `modules` where `items`.`module_id` = `modules`.`id` and exists (select * from `zones` inner join `module_zone` on `zones`.`id` = `module_zone`.`zone_id` where `modules`.`id` = `module_zone`.`module_id` and `zones`.`id` in (?))) and exists (select * from `stores` where `items`.`store_id` = `stores`.`id` and `module_id` = ? and exists (select * from `zones` where `stores`.`zone_id` = `zones`.`id` and exists (select * from `modules` inner join `module_zone` on `modules`.`id` = `module_zone`.`module_id` where `zones`.`id` = `module_zone`.`zone_id` and `modules`.`id` = ?)) and `zone_id` in (?))
+
+Query 2 (after a subsequent pull-to-refresh on the SAME still-broken session):
+2026-09-02T15:04:58.766087Z	276038 Execute	select `order_details`.`item_id` from `order_details` inner join `orders` on `orders`.`id` = `order_details`.`order_id` where `orders`.`user_id` = 6 and `orders`.`is_guest` = 0 and `orders`.`order_status` = 'delivered' and `order_details`.`item_campaign_id` is null and `order_details`.`item_id` is not null group by `order_details`.`item_id` order by MAX(COALESCE(orders.delivered, orders.created_at)) DESC
+
+=== FE network log: buy-it-again returned http_status=200 for this exact request ===
+(see docs/qa-evidence/NEARS-2824/fe-network-excerpt.log)
+
+=== On-device accessibility dump (qa-2824-nofix-mount.xml) — captured immediately after this exact login, on the SAME already-mounted Home screen ===
+Positive controls present (proves the dump was live + user WAS logged in): content-desc="Good evening, Customer", content-desc="Flash Sale...", content-desc="Active Orders"
+Negative: grep -io 'reorder|usuals' on the dump returns ZERO matches — the rail's title text never appears anywhere in the tree.
