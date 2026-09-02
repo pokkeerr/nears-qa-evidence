@@ -1,0 +1,21 @@
+NEARS-2814 delta re-QA (HEAD cda844675) — rapid double-tap "Try Again" repro, 6 trials
+Device: emulator-5560. Fault proxy: qa_fail_proxy.py --run-key NEARS-1867 (port 26109), rule slug=update-interest status=403.
+Command per trial: adb shell "input tap 540 2027; input tap 540 2027" (same coordinate, back-to-back, no delay).
+Counter: proxy stderr log "*** INJECTED 403 for /api/v1/customer/update-interest" occurrences (1 per real POST reaching the backend).
+
+trial1: before=1 after=2 delta=1
+trial2: before=2 after=3 delta=1
+trial3: before=3 after=4 delta=1
+trial4: before=4 after=5 delta=1
+trial5: before=5 after=6 delta=1
+trial6: before=6 after=7 delta=1
+
+Result: 6/6 trials fired EXACTLY 1 POST (prior to the NEARS-2814 fix, 2/4 trials fired 2 POSTs, ~50% repro rate).
+Cross-check: app-side `adb logcat` [FAIL] endpoint=/api/v1/customer/update-interest count == 7 (1 initial Save & Continue + 6 collapsed retries) -- matches proxy-side count exactly, confirming no duplicate AppLogger.failure line either.
+
+Post-repro spot-check (AC1-3, guard-in-place normal path):
+- Cleared fault proxy rule.
+- Single tap "Try Again" (same selection, Dairy & Eggs) -> recovered, navigated to module Home ("Good morning, QANears1867Two").
+- DB verify: users.id=422 (qa.nears1867.interest2@example.com) module_ids=[1] interest=[6] -- exactly the one selected category, no corruption/duplication from the 6 double-tap trials beforehand.
+- flutter analyze lib/features/interest/: No issues found.
+- flutter test (interest_save_failure_test.dart + interest_screen_dls_test.dart + category_repository_error_flags_test.dart): 22/22 passed, incl. the new "same-frame double-touch guard (NEARS-2814)" synchronous-invocation test.
