@@ -1,0 +1,58 @@
+NEARS-2363 AC2 live QA notes (emulator-5556, 2026-09-02)
+==========================================================
+
+Backend business_settings temporarily set: social_login[facebook].status=1,
+social_login_status=1, facebook_login_status=1 (all reverted to original 0
+after this QA run — verified via /api/v1/config before/after).
+
+--- Call site 1: login_suggestion_bottomsheet.dart (Profile tab guest nudge) ---
+ui_list dump on first Profile-tab visit as guest:
+  Close
+  Facebook
+  Log in or sign up to enjoy a personalized experience
+  Login/Sign Up
+  Scrim
+  You're almost there!
+  or Continue with
+`ui_tap "Facebook" --exact` -> tap 'Facebook' @ 540 2163
+Foreground window 4s later: com.android.chrome/...CustomTabActivity (real
+navigation into the FacebookAuth SDK's browser-fallback OAuth flow — proves
+the tap reached FacebookAuth.instance.login()). No crash on return
+(mCurrentFocus back to com.izzes.nears.../MainActivity after back-out).
+
+--- Call site 2: social_login_widget.dart (Sign-In screen) ---
+Full node dump after scrolling the sign-in form (see
+signin-screen-facebook-button.png):
+  (948, ImageView, [63,948][1017,1098], content-desc="Continue with Facebook")
+`ui_tap "Continue with Facebook" --exact` -> tap @ 540 1023
+Foreground window 4s later: com.android.chrome/...CustomTabActivity (same
+browser-fallback OAuth flow reached from the 2nd call site).
+Chrome page resolved to "Log into Facebook | Facebook" (m.facebook.com) —
+real outbound reachability to Meta, consistent with the invalid/placeholder
+Nears facebook_app_id (380903914182154, strings.xml) that backs both the
+native SDK's cold-start GraphResponse noise (see
+coldstart-graphresponse-known-accepted.log) and this OAuth attempt.
+
+--- Environmental constraint (same as NEARS-2343's own QA finding) ---
+Neither call site's Future resolves to LoginStatus.failed in this browser-
+fallback path without completing a REAL Facebook login (no Facebook app
+installed on the emulator, no real FB test credentials available to this
+QA pass) — backing out of the custom tab resolves as LoginStatus.cancelled,
+which is correctly silent per the ticket's own code comment (NEARS-2343:
+"a user backing out (cancelled) isn't an error"). No [FAIL]/[ERR] AppLogger
+line fired for the cancel path (correct — cancel is not an error branch).
+No AndroidRuntime:E crash at any point; app returned cleanly to the
+Sign-In screen both times.
+
+Backstop for the NON-cancelled failure branch (the actual graceful-failure
+toast + AppLogger.failure pairing AC2 is about) — automated widget test,
+mounting the REAL _facebookLogin() code path at both call sites:
+  flutter test test/features/auth/social_login_facebook_error_test.dart
+  -> 3/3 passed:
+     - "cancelled is not an error — no toast, no log"
+     - "failed shows a specific generic toast (never the raw SDK string) and
+        is paired with AppLogger.failure"
+     - "a thrown SDK exception is caught, logged, and shown — not a
+        silent/uncaught failure"
+  Full auth folder regression: flutter test test/features/auth/ -> 429/429
+  passed (all green).
