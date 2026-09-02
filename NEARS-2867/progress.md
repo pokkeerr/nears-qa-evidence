@@ -1,0 +1,16 @@
+# NEARS-2867 QA progress (checkpoint)
+- build: worktree HEAD cc25454704800d967c2e2780ba88752b006e01f6 verified; primary tree e1531c5e5 (brief said 7a35ee78c — drift), switch-row files still byte-identical to base 0a16f5b77 (git diff empty)
+- AC2 static: `/usr/bin/grep -rn "CupertinoSwitch\|_SettingsSwitch\| Switch(" UserApp/lib` rc=1 zero hits — PASS (static half)
+- AC3: dls-catalog-check.sh rc=0 "OK: catalog.yaml is up to date (61 entries)"; catalog.yaml:1678 name: NSwitch; n_switch.catalog.yaml exists — PASS
+- AC4: flutter test n_switch_test + generate_catalog_test → "+48: All tests passed!"; UseCase greps lines 25,60; main.directories.g.dart lines 123,124,1399,1404 — PASS
+- device: 5558 LOW DISK 492MB (reclaim yielded 0); 5556/5562 live locks; 5568 occupied w/o lock; booted spare AVD Pixel_10_Pro
+- device: emulator-5554 (Pixel_10_Pro, booted by this run), lock acquired via qa_lock_acquire; app pkg com.izzes.nears.nears_nears_2867_nswitch_promotion pid 3659; before-APK built from primary tree e1531c5e5 (`flutter build apk --debug`) installed as com.izzes.nears
+- AC1(c) AFTER settings light: ac1c-settings-after-light.png + a11y xml; probe Dark Mode OFF: #EBE7E7 track / #D9D6D6 thumb / #767684 outline, bbox 156x96; Notification ON: #00FF99 track / #000080 thumb, bbox 156x96
+- AC2 live Dark Mode: glyph tap (1190,579) → checked false→true (theme toggled via tile onTap); row-label tap (300,579) → back to false. ui_errors: still only the 3 onboarding location-timeout [FAIL] lines (pre-AC, unrelated)
+- AC2 live Notification: glyph tap (1190,1146) → "Are you sure? You want to disable notification" Yes/No sheet, checked stays true; row tap → same sheet; No dismisses; never toggled directly. Shot ac2-notification-glyph-tap-sheet.png
+- RTL: Arabic → toggle mirrored to row LEFT ([96..304] probe: #00FF99/#000080/#767684 identical counts to LTR right side); shot regression-settings-rtl-arabic.png; reverted to English
+- AC1(a) AFTER cart (guest cart, Fresh Mart Grocery / Red Apple): Switch node [1077,506][1254,638] = 132px = 44dp @480dpi (hit ≥44 OK); OFF track #8080BF (navy@50% on white), ON #000080; glyph 153x94px = 51x31dp Cupertino; shots ac1a-cart-cutlery-after-off.png / -on.png + a11y xml. Each tap flips checked (false→true→false) = updateCutlery path
+- regression: cart add (Red Apple) + remove (Decrease quantity → "Your cart is empty") OK; Proceed to Checkout reachable; Language tile works (ar↔en); ui_errors: only the 3 onboarding location-timeout [FAIL] lines, nothing else
+- before-APK: com.izzes.nears from primary tree e1531c5e5 installed
+- BEFORE settings (com.izzes.nears, lastUpdateTime 19:34:18 = primary-tree build 19:30): Dark Mode OFF + Notification ON rows probe counts IDENTICAL to after; full settings-body ImageChops diff bbox=None (pixel-identical), shots ac1c-settings-before-light.png (guest) + ac1c-settings-before-light-loggedin.png
+- BEFORE cart guest (Red Apple/Fresh Mart): Switch node 177x132 same; OFF #8080BF, ON #000080 same; taps flip same; shots ac1a-cart-cutlery-before-off/on.png (+a11y xml); 3-4px scroll offset only
