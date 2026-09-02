@@ -1,0 +1,22 @@
+AC2 spot-check (primary tree, independent of worktree):
+$ grep -c "guest.cart.merge.rejected" Admin/storage/logs/laravel.log
+28
+$ grep "guest.cart.merge.rejected" Admin/storage/logs/laravel.log | grep -c "production\."
+4
+$ grep "guest.cart.merge.rejected" Admin/storage/logs/laravel.log | grep -c "testing\."
+24
+-> matches doc's claim exactly: 28 total, 24 testing / 4 production.
+
+AC3 spot-check (worktree):
+$ git diff 320cd8738..HEAD -- Admin/app/Services/GuestTokenGuard.php
+(empty output, exit 0) -- guard file untouched.
+
+AC5 regression-surface spot-check (worktree):
+$ git diff --stat 320cd8738..HEAD
+ .../NEARS-1992-guest-cart-merge-diagnosis.md       | 215 +++++++++++++++++++++
+ 1 file changed, 215 insertions(+)
+-> only the one solution-doc file touched; no regression surface to sweep.
+
+Automated backstop:
+$ cd Admin && vendor/bin/phpunit --filter GuestCartMergeEnumerationTest
+OK (8 tests, 40 assertions)

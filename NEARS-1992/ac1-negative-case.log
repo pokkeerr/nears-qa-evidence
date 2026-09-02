@@ -1,0 +1,28 @@
+AC1 negative case (deliberately wrong guest_token) — fresh live capture, worktree Admin backend
+on 127.0.0.1:8057. Re-run with a STRICT UUID v4 X-Request-Id after discovering the app's
+SetRequestId middleware (NEARS-564 log-injection guard) silently re-mints a fresh UUID for any
+client-supplied header value that is not itself a valid UUID v4 -- a plain qa-slug string does
+NOT survive to the log line. This is documented, correct behavior (log-injection hardening), not
+a defect -- noted here for QA-repro completeness, not as a bug.
+
+1) POST /api/v1/auth/guest/request
+   -> {"message":"Guest verified","guest_id":1349,"guest_token":"7nXofAnOZbScZaMvdxWeBsV3j5K1wsjFcWYeqKXWyElbZGTu7huCmFDGlgLz04gJ"}
+
+2) POST /api/v1/customer/cart/add (X-Guest-Token: <above>, zoneId: [1], item_id=39)
+   -> cart row id=696 created, user_id=1349, is_guest=true
+
+3) POST /api/v1/auth/login (login_type=manual, field_type=email, qa.singlestore@nears.com,
+   guest_id=1349, guest_token="wrong-token-deliberately-qa1992-v2",
+   X-Request-Id=abf3cbfd-58ba-4130-8d64-03964a78351c [valid UUIDv4])
+   -> 200 (auth itself succeeds -- only the cart merge is gated), response header echoes
+      X-Request-Id: abf3cbfd-58ba-4130-8d64-03964a78351c
+
+4) DB after: SELECT id,user_id,is_guest,item_id FROM carts WHERE id=696;
+   -> 696 | 1349 | 1 | 39   (cart UNCHANGED -- correctly not merged)
+
+5) grep -F "abf3cbfd-58ba-4130-8d64-03964a78351c" Admin/storage/logs/laravel.log
+   -> [2026-09-02 06:16:44] production.WARNING: [FAIL] guest.cart.merge.rejected
+      {"trace_id":"54d136c00cab8b600a240fcb34c1d0d3",
+       "correlation_id":"abf3cbfd-58ba-4130-8d64-03964a78351c","reason":"token_mismatch",
+       "guest_id":1349,"request_id":"abf3cbfd-58ba-4130-8d64-03964a78351c"}
+   -> my own fresh X-Request-Id joins directly to the rejection log line, reason=token_mismatch.

@@ -1,0 +1,17 @@
+AC1 positive case (correct guest_token) — fresh live capture, worktree Admin backend on 127.0.0.1:8057
+
+1) POST /api/v1/auth/guest/request
+   -> {"message":"Guest verified","guest_id":1347,"guest_token":"QnR4tsDQDw3rOqlxq68wou8sw4Zt6SJUBXQhBa1e2iZiRLbB0w5CxopVkx1nrDfD"}
+
+2) POST /api/v1/customer/cart/add (X-Guest-Token: <above>, zoneId: [1], item_id=39/store 2/zone 1)
+   -> cart row id=694 created, user_id=1347, is_guest=true
+
+3) POST /api/v1/auth/login (login_type=manual, field_type=email, qa.singlestore@nears.com,
+   guest_id=1347, guest_token=<correct>, X-Request-Id=qa1992-pos-1788315338-4678)
+   -> 200, JWT sub=409
+
+4) DB after: SELECT id,user_id,is_guest,item_id FROM carts WHERE id=694;
+   -> 694 | 409 | 0 | 39   (merge succeeded: user_id flipped guest->real user, is_guest 1->0)
+
+5) grep -F "qa1992-pos-1788315338-4678" Admin/storage/logs/laravel.log
+   -> no match (no guest.cart.merge.rejected line) — merge succeeded silently-clean as designed.
