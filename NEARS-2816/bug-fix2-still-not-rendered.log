@@ -1,0 +1,122 @@
+NEARS-2816 delta re-QA (fix-cycle 2, commit 221a66920), emulator-5568.
+
+=== 1. TB1 re-verify: STILL BROKEN, now confirmed via direct screenshot ===
+Fix-cycle 2 wraps both DashboardScreen call sites (initState + didPopNext) in
+WidgetsBinding.instance.addPostFrameCallback. Live-verified this deploys correctly:
+flag transitions true->absent immediately after the postFrameCallback-driven consume, in
+every trial run this cycle (guest_id=1423 profile-tab path, 1425/1427/1429 menu-tab-CTA path).
+No crash, no [FAIL]/[ERR].
+
+BUT: the banner STILL never becomes visible. This time confirmed with BOTH methods:
+  (a) 15x 0.6s-spaced uiautomator dumps immediately after the trigger (~9s window,
+      covering the postFrameCallback + up-to-2.4s retry budget + 2s display window):
+      zero hits for "restore your saved cart items" (see bug-fix2-still-not-rendered-dump.xml,
+      positive-control real content-desc nodes for Banana/Red Apples/Orange Juice present
+      in the same dump, proving the instrument was live).
+  (b) A direct raster screenshot burst (6 frames) captured immediately after the trigger,
+      one frame (burst_3, ~1-1.5s post-trigger, well inside the display window) VISUALLY
+      inspected: clean Home render, NO banner/toast/snackbar visible anywhere on screen.
+      See bug-fix2-still-not-rendered-screenshot.png.
+
+=== 2. Exception-message accuracy check (code-reviewer's ask) ===
+Did NOT revert the fix and reproduce live (per the requester's own opt-out clause -- too
+invasive/costly for a re-QA pass with the core symptom needing priority). Instead,
+independently verified via the PINNED Flutter SDK source itself (~/Tools/flutter, the SAME
+SDK this project's tooling is pinned to):
+  grep -n "visitChildElements() called during build" \
+    ~/Tools/flutter/packages/flutter/lib/src/widgets/framework.dart
+  -> framework.dart:3925, inside Element.visitChildElements(), gated by
+     `assert(() { if (owner == null || !owner!._debugStateLocked) return true; throw ...
+     ErrorSummary('visitChildElements() called during build.') ...}())`.
+CONFIRMED: the exact exception message string is real and present verbatim in the pinned
+SDK, gated on `_debugStateLocked` (true precisely during the framework's build/layout
+pass -- i.e. exactly the condition of a synchronous call from initState/didPopNext). This
+independently corroborates the CLASS and MECHANISM of the engineer's claim (a real,
+plausible Flutter framework assertion, not fabricated) without live-reproducing the actual
+throw. NOT independently confirmed: that this specific exception is what ACTUALLY fired
+live during NEARS-2816's original diagnosis (would require reverting the fix and capturing
+logcat, not done this cycle).
+
+=== 3. TB2 entry-point reconciliation ===
+(a) CONFIRMED: my original TB2 verification (comment 17250, fix-cycle 1) used the
+    PROFILE-TAB path only -- top app-bar account icon -> profile_screen.dart (a PUSHED
+    route) -> its own "Login" tile -> Sign In -> Get.back() pops ONE level back to
+    profile_screen.dart, requiring an explicit second "Back" tap to reach Dashboard.
+    Verified again this cycle (guest_id=1423): identical shape.
+(b) CONFIRMED structurally distinct: menu_screen.dart's OWN guest hero card ("Guest User" /
+    "Log in/ Sign up", MenuProfileHeaderCard.onSignIn -> _handleGuestCta) is a genuinely
+    SEPARATE UI entry point, reached via the BOTTOM-NAV Profile tab while logged out --
+    never exercised in fix-cycle 0 or fix-cycle 1's QA passes (both used the top-app-bar
+    Profile icon exclusively). This is a real, previously-untested path.
+(c) LIVE-TESTED, 2 independent trials (guest_id=1427, guest_id=1429), REFUTES the
+    engineer's specific claim ("3 separate live reproductions, zero log entries" for
+    didPopNext on this path). In BOTH trials: backend confirmed guest.cart.merge.rejected
+    at the login timestamp: cart_merge_banner_pending WAS armed, and by the very first poll
+    (0.5s after the Sign In tap) it was ALREADY absent -- consumed, with ZERO additional
+    navigation (no extra "Back" tap needed at all, unlike the Profile-tab path). This is
+    architecturally consistent with standard Flutter RouteObserver semantics: MenuScreen is
+    a PageView TAB within Dashboard's OWN route (not a separate pushed route), so
+    Sign-In (pushed once, directly on top of Dashboard's route) pops with a SINGLE
+    Get.back() straight back to Dashboard's route becoming current again -- which is
+    exactly the RouteObserver-level event didPopNext exists to catch, regardless of which
+    tab was visible. My direct measurement (the flag's own state transition, backend-
+    timestamp-correlated) contradicts the "zero log entries" finding. Possible
+    explanations for the discrepancy (not confirmed): the engineer's own temporary DIAG
+    log (not present in the shipped code I tested) may have had a placement/timing bug
+    distinct from the actual functional wiring; or their reproduction never actually armed
+    the flag in the first place (e.g. a stale/already-matched guest token that returned
+    cart_merged=true or null, making "zero log entries" trivially true because there was
+    nothing to consume, not because didPopNext failed to fire). RECOMMENDATION: before
+    routing this to a separate follow-up ticket as a confirmed gap, the team should
+    reconcile using the SAME ground-truth method used here (the persisted flag's own
+    true->absent transition, backend-log-correlated) rather than trusting a debug log that
+    isn't even in the current diff.
+
+=== 4. TB3 (modal-collision-defer-then-show) ===
+NOT independently re-tested this cycle. Moot for the same reason as fix-cycle 1: the core
+AC1 defect (banner never becomes visible under ANY condition, confirmed above with a
+completely clean scenario, zero competing modals) means a modal-collision variant cannot
+add new signal -- it would trivially also show nothing, for the same root cause. Needs its
+own live re-verification once TB1's actual rendering defect is fixed.
+
+=== 5. AC5/AC6/UX-positioning/retry-give-up-edge-case ===
+All remain unverifiable live for the same reason (nothing to pixel-check/position-check/
+collision-check when the banner never appears). The give-up path
+(attemptsLeft <= 0 -> return without consuming) reviewed in source only: unchanged from
+fix-cycle 1, simple early return, no live crash risk apparent.
+
+=== 6. Automated backstop (independently re-run and re-counted) ===
+~/Tools/flutter/bin/flutter analyze -> clean (4 pre-existing info-level lints, unchanged).
+~/Tools/flutter/bin/flutter test test/features/auth/ test/features/home/ test/features/verification/
+  -> 988/988 passed (grep -rc "testWidgets(\|test(" across the 3 scoped dirs independently
+  corroborates ~938 source-level test() call sites, consistent with 988 actual cases run --
+  NOT 1370 as the engineer self-reported. The fix-cycle 2 diff to cart_merge_banner_test.dart
+  added ONLY a documentation comment, zero new testWidgets() cases, matching the unchanged
+  988 count from fix-cycle 1. 1370 does not match this scope; flagging the discrepancy,
+  unresolved (did not chase what scope/command would produce 1370).
+
+=== Grounded hypothesis for the next fix cycle (source-code-reasoned, NOT live-instrumented) ===
+Read lib/features/dashboard/screens/dashboard_screen.dart and
+lib/features/home/screens/home_screen.dart directly. Confirmed via source:
+  - DashboardScreen's OWN Scaffold (dashboard_screen.dart ~line 628) owns
+    `bottomNavigationBar: NBottomNav(...)` (the REAL visible bottom-nav chrome) and
+    `body: PageView.builder(...)` containing `_screens[index]` (one of which is HomeScreen).
+  - HomeScreen ITSELF independently builds its OWN, separate, nested Scaffold
+    (home_screen.dart ~line 238, `backgroundColor: Colors.transparent`) INSIDE that
+    PageView page.
+  - NSnackBar.show(Get.context!, ...) calls `ScaffoldMessenger.of(context)` -- a STANDARD
+    Flutter UPWARD/ancestor InheritedWidget lookup from the given context. `Get.context`
+    is the ROOT Navigator's own element (navigatorKey: Get.key) -- ABOVE/OUTSIDE both of
+    the nested Scaffolds above (they are DESCENDANTS of Get.context, not ancestors).
+    hasVisibleScaffold()'s own doc comment already states this exact fact for a DIFFERENT
+    reason ("the ancestor lookup Scaffold.maybeOf(Get.context!) is null on every screen,
+    healthy or not" -- which is why it does a DOWNWARD walk instead). The SAME structural
+    fact very plausibly means ScaffoldMessenger.of(Get.context!) resolves to whatever
+    (if anything) sits ABOVE the Navigator at the MaterialApp level -- not either of the
+    two real, visible, per-screen Scaffolds -- which would explain a SnackBar being
+    "shown" (called, no crash) yet never painting into either Scaffold's actual visible
+    real estate. NOT live-confirmed (would need Flutter DevTools widget-inspector access
+    to trace which ScaffoldMessengerState instance actually receives the showSnackBar call
+    and whether any Scaffold is registered "current" with it) -- flagging as the most
+    concrete, source-grounded lead for the next diagnosis pass, given 3 consecutive fix
+    cycles targeting WHEN/WHERE the call fires have not changed the live symptom at all.
