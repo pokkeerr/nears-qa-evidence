@@ -1,0 +1,31 @@
+NEARS-1712 AC1 — six policy endpoints hit live against http://127.0.0.1:8000 (multi_food_db)
+Backend: PID 38967, cwd /Users/Apple/Projects/nears/Admin, `php artisan serve --host=0.0.0.0 --port=8000` (already running, shared dev backend).
+
+=== terms-and-conditions ===
+"<h3>Terms and Conditions<\/h3>\n<p>Welcome to Nears. By creating an account or placing an order through our app, you agree to the following terms.<\/...
+
+=== about-us ===
+"<h3>About Nears<\/h3>\n<p>Nears connects your neighborhood — stores inside and below your residential tower — with fast, reliable delivery to your door. We partner with local shops so you c...
+
+=== privacy-policy ===
+"<h3>Privacy Policy<\/h3>\n<p>Nears collects the information needed to fulfil your orders: your name, delivery address, phone number, and order history. We use this information to process orders, coor...
+
+=== refund-policy ===
+"<h3>Refund Policy<\/h3>\n<p>If an item arrives damaged, missing, or incorrect, contact support within 24 hours of delivery with your order number and details. Approved refunds are issued to your orig...
+
+=== shipping-policy ===
+"<h3>Shipping \/ Delivery Policy<\/h3>\n<p>Nears delivers from stores located in or near your residential zone. Estimated delivery time is shown at checkout and typically reflects the store's preparat...
+
+=== cancelation ===
+"<h3>Cancellation Policy<\/h3>\n<p>You may cancel an order free of charge before the store accepts it. Once a store has started preparing your order, cancellation may no longer be possible, or may be ...
+
+DB sanity query (`SELECT id, key, type, value IS NULL AS is_null, LENGTH(value) AS len FROM data_settings WHERE key IN (...) ORDER BY key, id;`):
+id   key                    type                is_null  len
+161  about_us               admin_landing_page  0        473
+164  cancellation_policy    admin_landing_page  0        423
+162  privacy_policy         admin_landing_page  0        525
+33   refund_policy          admin_landing_page  0        510
+163  shipping_policy        admin_landing_page  0        469
+160  terms_and_conditions   admin_landing_page  0        703
+
+Exactly one row per key, all type=admin_landing_page, all non-null/non-empty. Confirms AC1.

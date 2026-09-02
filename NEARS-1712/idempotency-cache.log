@@ -1,0 +1,16 @@
+NEARS-1712 — independent re-run of seeder (3rd run overall; engineer already ran it twice with 0/0) + cache-clear staleness check.
+
+$ php artisan db:seed --class=Nears1712PolicyContentSeeder --force
+   INFO  Seeding database.
+NEARS-1712 policy content seeded — inserted: 0, filled-null: 0. Run: php artisan cache:clear
+
+-> Confirms idempotency independently: 0 inserted, 0 filled-null on a fresh QA-run re-run.
+
+$ php artisan cache:clear
+   INFO  Application cache cleared successfully.
+
+$ curl -s "http://127.0.0.1:8000/api/v1/terms-and-conditions" | head -c 150
+"<h3>Terms and Conditions<\/h3>\n<p>Welcome to Nears. By creating an account or placing an order through our app, you agree to the following terms.<\/
+
+-> Content persists identically after cache:clear -- confirms cache was cleared post-seed
+   and the response is sourced from the DB row, not a stale cache entry.
