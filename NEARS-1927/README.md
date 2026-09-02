@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-1927
 
-**PASS — Arabic date locale (month names, Western digits, Arabic comma separator) verified live on emulator-5562**
+**Delta re-QA cycle 1 PASS — NEARS-2811 RTL overflow fix verified**
 
 **9 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -26,6 +26,7 @@
 - [`bug-checkout-timeslot-picker-unreachable.log`](bug-checkout-timeslot-picker-unreachable.log)
 - [`bug-order-details-500-payment-failed-order.log`](bug-order-details-500-payment-failed-order.log)
 - [`bug-preexisting-suite-failures.log`](bug-preexisting-suite-failures.log)
+- [`delta-cycle1-nears-2811-verification.log`](delta-cycle1-nears-2811-verification.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-1927/` · public-repo scrub policy (no live secrets; verified clean).*

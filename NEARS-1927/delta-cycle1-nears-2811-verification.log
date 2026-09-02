@@ -1,0 +1,37 @@
+Delta re-QA — fix-cycle 1, NEARS-2811 (RTL RenderFlex overflow in campaign_screen.dart's
+_CampaignPill, caused by longer Arabic CLDR month names from NEARS-1927's own date-locale
+threading). Fix sha 2c1c9782f: _CampaignPill's Text wrapped in Flexible + maxLines:1 +
+TextOverflow.ellipsis. Diff reviewed — minimal, scoped to campaign_screen.dart only, no
+change to date_converter.dart.
+
+1) Targeted widget-test re-run (test/features/store/campaign_screen_reskin_test.dart):
+   8/8 PASS, including:
+   - "mobile renders with no exception in RTL" (was FAILING pre-fix with
+     "A RenderFlex overflowed by 23 pixels on the right", now green)
+   - "NEARS-2811 — mobile schedule pill survives a long Arabic CLDR month name (سبتمبر)
+     with no RenderFlex overflow" (new test added with the fix) — real GetMaterialApp +
+     Locale('ar') + RTL Directionality + CampaignScreen render; structurally asserts every
+     Text containing سبتمبر has overflow=TextOverflow.ellipsis and maxLines=1.
+
+2) Full `flutter test` (UserApp) re-run: 5591 tests, 2 failed (was 5589/3 in the prior QA
+   pass). Delta = exactly the campaign_screen_reskin_test.dart RTL test flipping from FAIL to
+   PASS; the remaining 2 failures are the same pre-declared DLS golden pixel diffs
+   (light/dark, ~0.20%) — per the conductor's fix-cycle packet, these are known/declined
+   shader-cache flakiness, not this ticket's concern, and unrelated to this diff.
+
+3) Live device (emulator-5562, Arabic locale, logged in as customer@nears.com): navigated
+   Grocery & Food module home post-fix; no crash, no RenderFlex overflow banner observed on
+   any screen reached. Could NOT reach a live BasicCampaign banner with a real (non-null)
+   start/end date this session — both seeded `campaigns` rows (id=1 "QA Single-Store
+   Campaign A", id=2 "QA Single-Store Campaign B") have NULL start_date/end_date in the
+   zone-1 DB, so no banner in the current seed exercises the CampaignScreen date-range pill
+   at all, let alone with a long Arabic month name. This is the same gap the fix's own new
+   test had to work around with a synthetic BasicCampaignModel (availableDateStarts:
+   '2026-09-01', availableDateEnds: '2026-09-30'). Live English/LTR visual regression check
+   of the pill itself is blocked by the same data gap.
+
+Conclusion: the specific NEARS-2811 repro is proven fixed by a real Flutter widget-tree
+render (not a mock) under the exact failing conditions (RTL, ar locale, long CLDR month
+name), backed by diff review. Live on-device confirmation of the same pill with production
+data was not reachable this session due to a seed-data gap (unrelated to the fix itself) —
+disclosed rather than faked.
