@@ -1,0 +1,121 @@
+Repro: cross-module global search (query "Chicken", zone 2 Abu Dhabi) -> add
+"Boneless Chicken" (item_id=59, module_id=1 Grocery & Food) via quick "Add To
+Cart" WITHOUT ever entering any module this session (module-selection landing
+-> "Search all categories" directly) -> tap a Food & Restaurant (module_id=2)
+result card -> "Start a new basket?" cross-module guard fires -> tap "Yes".
+
+Device: emulator-5556, package com.izzes.nears.nears_nears_2783_clear_cart_module_id,
+worktree fix/NEARS-2783-clear-cart-module-id.
+
+adb logcat (flutter tag), verbatim:
+
+09-02 05:39:17.572 12958 12958 I flutter : [NET] DELETE endpoint=/api/v1/customer/cart/remove
+09-02 05:39:18.455 12958 12958 I flutter : [NET] endpoint=/api/v1/customer/cart/remove http_status=400
+09-02 05:39:18.456 12958 12958 I flutter : The following exception was thrown api request failed:
+09-02 05:39:18.457 12958 12958 I flutter : ApiFailure(status: 400)
+09-02 05:39:18.457 12958 12958 I flutter : #3      CartRepository._clearCartOnline (package:sixam_mart/features/cart/domain/repositories/cart_repository.dart:178:25)
+09-02 05:39:18.457 12958 12958 I flutter : #4      CartRepository.delete (package:sixam_mart/features/cart/domain/repositories/cart_repository.dart:114:14)
+09-02 05:39:18.457 12958 12958 I flutter : #5      CartService.clearCartOnline (package:sixam_mart/features/cart/domain/services/cart_service.dart:47:12)
+09-02 05:39:18.457 12958 12958 I flutter : #6      CartController.clearCartOnline (package:sixam_mart/features/cart/controllers/cart_controller.dart:2103:20)
+09-02 05:39:18.457 12958 12958 I flutter : #7      GlobalSearchController.ensureModuleContext (package:sixam_mart/features/search/global/controllers/global_search_controller.dart:316:7)
+09-02 05:39:18.457 12958 12958 I flutter : #8      GlobalModuleSectionWidg...
+09-02 05:39:18.466 12958 12958 I flutter : [FAIL] endpoint=/api/v1/customer/cart/remove http_status=400 type=ApiFailure msg="api request failed" correlation_id=3c3e0481-e55b-43af-b114-5067125d4963
+
+Root cause: freshCacheModuleId resolved null (ModuleCacheIdentityHelper.resolveCachedModuleRaw
+returned no cached pref -- this session never wrote one, matching the AC's own premise "the
+cached identity-scoped module pref [is] also null"). _clearCartOnline has NO fallback tier for
+this state (unlike _removeCartItemOnline's fallbackModuleId, sourced from the removed item's own
+module_id) -- the module header is correctly omitted per NEARS-2556 but the backend
+(Admin/app/Http/Controllers/Api/V1/CartController.php:319-324, remove_cart) fails CLOSED on a
+missing header by design (NEARS-771): `$moduleId === null` -> 400 `messages.module_id_required`
+= "Module id required".
+
+Consequences (all three verified live):
+1. AC2 FAILS: DELETE /api/v1/customer/cart/remove returned 400, not 200.
+2. AC1 FAILS: cart is NOT emptied server-side. DB cross-check (multi_food_db.carts, guest
+   user_id=1332) after the whole flow completed and the module switch to Food & Restaurant (2)
+   had already gone through:
+     id=681 item_id=59 module_id=1 user_id=1332 is_guest=1 quantity=1 updated_at=2026-09-02 05:38:40
+   (updated_at == the original add-to-cart time; never touched by a delete.)
+3. NEW finding beyond the AC's literal text: the UI's Basket tab shows "Your cart is empty"
+   (screenshot: bug-clearcart-null-module-400-false-empty.png) -- a FALSE-empty state, not an
+   honest error. The subsequent /customer/cart/list GET rides the NEW module (2) header (module
+   switch already happened per the guard's load-bearing ordering), so the orphaned module-1 row
+   is silently excluded from the response and never surfaces to the user -- worse than a visible
+   error: a stuck, invisible, still-billable cart row survives the "Clear Cart" action.
+4. AC3 FAILS: _clearCartOnline's apiClient.deleteData call does not pass handleError:false, so
+   ApiChecker.checkApi (lib/api/api_checker.dart) runs its default non-2xx path:
+   `showCustomSnackBar(response.statusText, ...)`, where response.statusText carries the
+   backend's raw errors[0].message body verbatim (per api_client.dart's own NEARS-482/handleResponse
+   comment) -- i.e. the literal backend string "Module id required" is shown to the user via
+   snackbar. (Snackbar not independently screenshot-captured this run -- GetX/Flutter snackbars
+   paint outside the a11y tree per the documented gotcha, NEARS-1099 -- but the code path is
+   unambiguous and unconditional for this exact response shape: no branch suppresses statusText
+   for a 400 here.)
+
+AC4 (regression, normal already-has-module Clear Cart) not exercised live this run because
+reaching the null-module repro state consumed the session's only "never entered a module" window;
+the automated backstop (cart_repository_clear_cart_module_identity_test.dart, "AC4 regression"
+case) already pins this branch and is not implicated by the finding above (different code branch:
+`ModuleHelper.getModule()?.id == null` is false in the normal-module case, so `_clearCartOnline`
+never enters the null-fallback branch discussed here).
+
+---
+UPDATE — AC4 (regression: Clear Cart from a NORMAL already-has-module state) ALSO
+verified live and it ALSO FAILS, in THREE independently-run repro variants, not just
+the ticket's own null-module target state:
+
+Variant A (cold-boot resume into a previously-selected module, no explicit tap):
+  module=1 (Grocery & Food, resumed from persisted pref) -> add Boneless Chicken
+  (item 59) -> cross-module search -> tap NOODLE BAR "Chicken Burger" (module 2) card
+  -> "Start a new basket?" -> Yes
+  -> DELETE /api/v1/customer/cart/remove http_status=400, correlation_id=4d53991b-5143-4e2a-8527-fccab2d04ee1
+
+Variant B (chained switch: module was set via a PRIOR cross-module-guard switch,
+  not a direct tap):
+  module=2 (Food & Restaurant, set via a prior guard-driven switch) -> add
+  "Chicago Style Cheese" -> cross-module search -> tap Grocery & Food "Boneless
+  Chicken" card -> Yes
+  -> DELETE /api/v1/customer/cart/remove http_status=400, correlation_id=310f6fb8-55a9-420a-b59d-893324a37ae0
+
+Variant C (fully fresh app data via `pm clear`, explicit module TILE TAP — the
+  cleanest possible "normal" entry, guaranteed to run ModuleController.setModule()
+  synchronously via a real user gesture, not an auto-resume/synthetic-switch path):
+  pm clear -> fresh onboarding -> module-selection landing -> tap "Grocery & Food,
+  16 stores near you" tile directly -> add Boneless Chicken (item 59, new guest
+  user_id=1338) -> cross-module search -> tap NOODLE BAR "Chicken Burger" card ->
+  Yes
+  -> DELETE /api/v1/customer/cart/remove http_status=400, correlation_id=a392feab-4d74-4850-b3fe-63803f55b598
+  -> DB cross-check (multi_food_db.carts, user_id=1338):
+       id=689 item_id=59 module_id=1 user_id=1338 is_guest=1 quantity=1
+       updated_at=2026-09-02 05:51:03 (== original add time; never deleted)
+  -> Basket tab after the switch: "Your cart is empty" (false-empty, same as the
+     null-module repro) -- screenshot not re-captured for this variant (evidence
+     budget; identical UI outcome to bug-clearcart-null-module-400-false-empty.png).
+
+This means the UNCHANGED `apiClient.guestHeaders()` (bare, no `base:` override)
+branch -- the "normal, module already set" path this ticket's diff did NOT touch --
+is ALSO currently sending a request the backend 400s on, in this live environment,
+across every reachable trigger of `_clearCartOnline()` (the cross-module search
+guard is the ONLY live UI path to it now that NEARS-1290 removed the same-store
+reset dialog and left `ItemController.clearAndAddToCart` as dead code with zero
+call sites). Root mechanism not fully isolated (candidates: a later
+`apiClient.updateHeader()` call, e.g. from the async guest-login/zone-refresh
+sequence, overwriting `_mainHeaders` without a moduleId once more after
+`setModule()`'s own synchronous update set it correctly) -- flagged for the
+engineer to instrument/trace `_mainHeaders['moduleId']` at the exact moment
+`_clearCartOnline()`'s DELETE fires, rather than trusting the unit test's mocked
+`apiClient.guestHeaders()` stub, which never exercises the real `_mainHeaders`
+staleness because it's stubbed to return a fixed sentinel unconditionally.
+
+Whether this AC4 finding is IN-SCOPE for this ticket's own diff (task_bug) or a
+pre-existing, ticket-external regression (regression_bug) is genuinely ambiguous
+from a QA seat: the branch itself is unchanged code, but the ticket's own AC4 text
+explicitly asks QA to demonstrate it "still works" as a regression gate for this
+diff, and the automated backstop's AC4 test claims to cover exactly this and is
+green -- a real gap between the unit test's mock and live behavour. Reported as a
+task_bug per the ticket's own AC4 framing (QA is instructed to treat this specific
+regression check as this ticket's business), with a note that the underlying
+`_mainHeaders` staleness mechanism may pre-date this diff and could also be
+filed/cross-referenced as a broader header-staleness defect if the engineer's
+trace confirms it is unrelated to anything NEARS-2783 touched.
