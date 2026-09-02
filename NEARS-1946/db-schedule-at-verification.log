@@ -1,0 +1,13 @@
+id	store_id	schedule_at	HEX(schedule_at)
+91179	1	2026-09-03 18:01:00	323032362D30392D30332031383A30313A3030
+91180	38	2026-09-03 18:01:00	323032362D30392D30332031383A30313A3030
+91181	1	2026-09-03 08:01:00	323032362D30392D30332030383A30313A3030
+91182	1	2026-09-03 22:01:00	323032362D30392D30332032323A30313A3030
+
+# Slot mapping:
+# 91179 (store 1, Nears Mart) - group order, slot 06:00 PM-07:00 PM (THE 1946 REPRO) -> schedule_at 18:01:00 (was 19:01:00 before fix)
+# 91180 (store 38, Tower Mart) - same group order, same slot -> schedule_at 18:01:00
+# 91181 (store 1) - single-store order, FIRST slot of day 08:00 AM-09:00 AM -> schedule_at 08:01:00
+# 91182 (store 1) - single-store order, LAST slot of day 10:00 PM-11:00 PM (closing_time edge) -> schedule_at 22:01:00
+# Store 1 (Nears Mart) hours: 08:00:00-23:00:00 (store_schedule table)
+# HEX check: all 4 values are plain ASCII digit hex (32=='2',30=='0',2D=='-',3A==':') -- no E280AA/E280AC (NEARS-1708 bidi guard) present in any.
