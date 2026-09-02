@@ -1,0 +1,57 @@
+NEARS-2816 QA — AC1 live reproduction, emulator-5556, worktree build (com.izzes.nears / com.izzes.nears.nears_nears_2816_cart_merge_banner)
+
+Backend confirms cart_merged:false was genuinely computed and returned on the login response
+(Admin/storage/logs/laravel.log):
+[2026-09-02 13:52:55] production.WARNING: [FAIL] guest.cart.merge.rejected {"trace_id":"c5c1ebf2530803cb566d167b94742352","correlation_id":"0a2a3812-9ed2-4f64-9346-ade18561ccd0","reason":"token_mismatch","guest_id":"1401","request_id":"0a2a3812-9ed2-4f64-9346-ade18561ccd0"}
+
+Repro mechanism: a real guest cart was created for guest_id=1401 via the app's own UI (Add To
+Cart as guest, matched real guest_token in secure storage). A surgical reverse proxy
+(127.0.0.1:8010 -> 127.0.0.1:8000) corrupted ONLY the guest_token field of the app's own
+POST /api/v1/auth/login request body (JSON) to a bogus value, leaving every other guest-scoped
+call (cart/add, cart/list, guest/request) untouched with the real token -- so no unrelated 401
+fired and no self-heal guest-session re-mint occurred before the login attempt (see
+lib/api/api_checker.dart's global 401 force-logout+re-mint, which DOES fire on any OTHER guest
+401 and silently wipes/replaces guest_id+guest_token, defeating a naive "edit local
+SharedPreferences guest_id" repro -- confirmed live, guest_id incremented 1392->1397 across
+relaunches purely from boot-time guest calls tripping that handler).
+
+CLIENT SIDE — the pending flag IS correctly armed by this login response:
+  before login:  key flutter.6ammart_cart_merge_banner_pending ABSENT
+  after login:   flutter.6ammart_cart_merge_banner_pending = true   (auth_service.dart's
+                 `authResponse.cartMerged == false` branch fired correctly)
+
+CLIENT SIDE — on the NEXT fresh HomeScreen mount (force-stop + relaunch, landing directly on
+Home since address/module were already saved), the flag IS consumed:
+  after relaunch: key flutter.6ammart_cart_merge_banner_pending ABSENT (removed)
+  -> maybeShowCartMergeBanner() ran, pending==true, NSnackBar.show(...) WAS called.
+
+YET the banner text ("We couldn't restore your saved cart items, please re-add them") NEVER
+appeared on screen. Instrument: 10x `adb shell uiautomator dump` at ~0.8s spacing, spanning the
+full splash->Home mount window (logcat: "route: initial route module=null" at 13:54:18.800,
+i.e. HomeScreen's first build, well inside the poll window 13:54:17.x-13:54:25.x) -- zero
+matches for "restore your saved cart items" in any of the 10 dumps. No FlutterError, no
+exception, no red screen (`ui_errors` clean apart from an unrelated pre-existing
+GetPositionFailure). Positive control: the SAME dumps DO contain real, unrelated content-desc
+nodes ("House: 10 Av 2, Dhaka 1216, Bangladesh", "Grocery & Food, 6 stores near you", etc.),
+proving the accessibility instrument was live and not silently empty (see the paired
+bug-ac1-banner-not-rendered-dump.xml, one representative dump, dump #5 of 10).
+
+Reproduced independently 3 times across this session, in 3 different scenarios:
+  1. customer@nears.com, zone 1, WITH a competing "payment was Incomplete" NBottomSheet
+     (Get.context-rooted modal from DashboardScreen.initState) shown on the same first Home
+     frame -- banner never appeared across 12x 1s-spaced dumps while the modal sat open.
+  2. qa.cartbanner2816@nears.com (fresh signup, 0 orders, no competing dialog), login
+     triggered from the Profile tab -> returns to ProfileScreen in place (does NOT navigate to
+     Home) -- HomeScreen was never (re)mounted by the login itself; the flag sat pending,
+     unconsumed, until the NEXT genuine Home visit/app restart.
+  3. Same account, clean fresh app launch (zero competing dialogs, zero orders, first-ever
+     HomeScreen mount this install) -- flag correctly consumed on this exact mount, yet the
+     banner still never appeared in 10x 0.8s-spaced dumps. This is the cleanest possible case
+     and still fails -- the defect is not solely the modal-collision or the ProfileScreen-return
+     navigation path; NSnackBar.show(...) itself does not appear to make the toast visible from
+     this call site.
+
+Automated widget tests (cart_merge_banner_test.dart) pump maybeShowCartMergeBanner() against a
+minimal MaterialApp+Scaffold+mocked AuthRepositoryInterface and DO find the SnackBar text via
+find.text() -- consistent with a real widget-tree/context mismatch specific to the live
+Dashboard/HomeScreen composition, not a broken NSnackBar/NToast widget in isolation.
