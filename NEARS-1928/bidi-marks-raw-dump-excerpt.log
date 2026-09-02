@@ -1,0 +1,43 @@
+NEARS-1928 QA — raw uiautomator label dump excerpts showing the LRE (U+202A) / PDF (U+202C)
+invisible directional marks around wrapped date output (visible here as the curly ‪ ‬ glyphs
+your terminal renders them as; they are zero-width in the actual UI render).
+
+=== DeliveryApp (emulator-5556), Arabic locale, Order History tab, after NEARS-1928 fix ===
+طلب
+#164
+ (1 غرض)
+تم التوصيل
+‪01 Jul 2026  06:55 PM‬
+Abu Dhabi Fresh Market
+بقالة
+(dateTimeStringToDateTime output — wrapped, display-only card row)
+
+=== VendorApp (emulator-5562), Arabic locale, Home dashboard, after NEARS-1928 fix ===
+طلب
+ # 91171
+ (1 غرض)
+قيد الانتظار
+‪31 Aug, 2026 8:17 PM‬
+نوع الطلب
+توصيل منزلي
+(utcToDateTime output — wrapped, display-only order card row)
+
+=== VendorApp (emulator-5562), Arabic locale, Add Coupon screen — wire-bound fields, unwrapped ===
+2026-09-02   (تاريخ البدء / Start Date — dateTimeForCoupon)
+2026-09-10   (تاريخ انتهاء الصلاحية / Expiry Date — dateTimeForCoupon)
+No LRE/PDF marks present — matches the engineer's classification (wire methods left unwrapped).
+
+=== VendorApp (emulator-5562), Arabic locale, Store Registration screen — TIN expiry, unwrapped ===
+2026-09-20   (تاريخ انتهاء الصلاحية / TIN Expiry Date — dateTimeForCoupon, StoreBodyModel.tinExpireDate)
+No LRE/PDF marks present.
+
+=== VendorApp (emulator-5562), Arabic locale, Store Config — Business Hours range, wrapped ===
+‪12:00 AM‬ - ‪11:59 PM‬   (per weekday row, الأحد/الاثنين/يوم الثلاثاء/etc.)
+Renders start-then-end (12:00 AM before 11:59 PM), not inverted, under the RTL paragraph.
+
+Network confirmation (adb logcat, VendorApp pid 15268), business-hours screen "تحديث" (Update)
+tapped while UI locale = Arabic:
+  09-02 10:39:22.724 flutter : [NET] POST endpoint=/api/v1/vendor/update-business-setup
+  09-02 10:39:23.264 flutter : [NET] endpoint=/api/v1/vendor/update-business-setup http_status=200
+  09-02 10:39:23.264 flutter : API RESPONSE - Status: 200, Body: {message: Store settings updated}
+No corrupted body, no [FAIL]/[ERR] line for this action.
