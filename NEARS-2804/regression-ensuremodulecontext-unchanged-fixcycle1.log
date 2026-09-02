@@ -1,0 +1,21 @@
+NEARS-2804 delta QA (fix-cycle 1) — targeted regression: ensureModuleContext's
+cross-module clear-cart-fails path (global_search_controller.dart, NEARS-2783's
+shipped fix) must keep its existing [FAIL]+[FAIL]+[ERR] shape UNCHANGED (this
+call site did not opt into logTransportError:false/logError:false).
+
+Device: emulator-5556, package: com.izzes.nears.nears_nears_2804_reorder_openstore_clear
+Repro: customer@nears.com, active module=Food & Restaurant (module 2, 1 cart item:
+Double Bacon Burger). Sector landing -> Search all categories -> "Grocery" chip ->
+tap "Fresh Mart Grocery" (module 1 store) -> "Start a new basket?" confirm dialog ->
+network cut (svc wifi/data disable, confirmed via `ping 10.0.2.2` -> "Network is
+unreachable") -> tap "Yes".
+
+09-02 15:15:54.485 12384 12384 I flutter : [NET] DELETE endpoint=/api/v1/customer/cart/remove
+09-02 15:15:54.489 12384 12384 I flutter : [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=5b079d01-5188-47c3-8383-f4b9c1e2d3dc
+09-02 15:15:54.490 12384 12384 I flutter : [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null type=ApiFailure msg="cross-module clear-cart failed"
+09-02 15:15:54.490 12384 12384 I flutter : [ERR] msg="error snackbar shown"
+
+Result: unchanged double-[FAIL] shape confirmed live — this call site kept its
+existing defaults (logTransportError/logError both default true), exactly as the
+engineer's commit message claims ("Every other caller ... keeps its existing
+default and is unaffected"). No regression.

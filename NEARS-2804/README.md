@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2804
 
-**FAIL - AC4 double [FAIL] log confirmed live (2x repro); AC1/2/3/5 pass**
+**PASS (delta fix-cycle 1) — AC4 single-[FAIL]-log verified live (transport-throw), regression sweep clean**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -12,7 +12,9 @@
 </table>
 
 ### Other artifacts
+- [`ac4-single-fail-log-transport-throw-fixcycle1.log`](ac4-single-fail-log-transport-throw-fixcycle1.log)
 - [`bug-double-fail-log-on-clearcart-transport-failure.log`](bug-double-fail-log-on-clearcart-transport-failure.log)
+- [`regression-ensuremodulecontext-unchanged-fixcycle1.log`](regression-ensuremodulecontext-unchanged-fixcycle1.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-2804/` · public-repo scrub policy (no live secrets; verified clean).*
