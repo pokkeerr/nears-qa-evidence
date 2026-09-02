@@ -1,0 +1,50 @@
+NEARS-2816 delta re-QA (fix-cycle 1, commit 0f05cef1f), emulator-5562.
+
+Fix landed: TB1 (hasVisibleScaffold() gate before consume, resolve against Get.context! instead
+of HomeScreen's own context) + TB2 (DashboardScreen.initState + didPopNext call the function,
+not just HomeScreen.initState, so a Profile-tab login that returns to the SAME Dashboard
+instance still triggers it).
+
+RE-VERIFIED CORRECT (the fix's own stated mechanism):
+  - The Profile-tab login path (Sign In from profile_screen.dart, a pushed route on top of
+    Dashboard) now DOES eventually consume the flag -- confirmed via
+    flutter.6ammart_cart_merge_banner_pending going true->absent exactly when Dashboard's
+    didPopNext fires (on the "Back" tap that pops profile_screen.dart back to Dashboard),
+    matching the TB2 fix's documented mechanism. This was the ORIGINAL secondary finding
+    (TB2) and IS now fixed at the consume-timing level.
+  - No crash, no [FAIL]/[ERR], no red screen, in 2 independent trials.
+
+STILL BROKEN (the actual visible symptom, i.e. AC1 itself):
+Two independent live trials post-fix, using the SAME proxy-based repro technique validated in
+the original QA pass (real guest cart + matched real guest_token for every guest-scoped call;
+ONLY the login POST's guest_token field corrupted via a surgical reverse proxy 8010->8000):
+
+  Trial A (guest_id=1405, backend rejects at [exact timestamp visible in laravel.log], banner
+  triggered via DashboardScreen.initState on first Home landing after a Profile-tab login that
+  returned to ProfileScreen, then "Back" to Dashboard triggering didPopNext): flag consumed,
+  ZERO occurrences of "restore your saved cart items" across 8x 0.8s-spaced dumps immediately
+  after the Back tap.
+
+  Trial B (guest_id=1408, backend guest.cart.merge.rejected token_mismatch logged at
+  2026-09-02 14:45:27, SAME Profile-tab -> Sign In -> Back -> didPopNext path): flag consumed
+  (true -> absent) immediately after the "Back" tap, ZERO occurrences across 15x 0.6s-spaced
+  dumps (~9s window) covering the didPopNext firing + the up-to-2.4s retry budget +
+  the 2s display window. See paired bug-fix1-still-not-rendered-dump.xml (one representative
+  dump of the 15, positive control: real content-desc nodes for Banana/Red Apples/Orange Juice
+  present in the SAME dump, proving the accessibility instrument was live) and
+  bug-fix1-still-not-rendered.png (screenshot, not read into QA's own context, saved as
+  evidence only).
+
+INTERPRETATION: since the flag is consumed only AFTER hasVisibleScaffold() returns true (per
+the fix's own gating order), and it WAS consumed in both trials, hasVisibleScaffold() must have
+returned true and NSnackBar.show(Get.context!, ...) must have been called -- yet the banner
+still never became visible. This means the engineer's root-cause diagnosis (stale
+HomeScreen-local context vs a non-current Scaffold) explains a REAL problem class but is
+evidently NOT the (or not the only) reason this specific banner never renders live: routing
+through Get.context! + the hasVisibleScaffold() gate did not change the observed symptom at
+all. The defect is downstream of that fix -- possibly in NSnackBar/NToast's own rendering, or
+in hasVisibleScaffold() itself returning a false-positive "visible" answer for a Scaffold that
+is not actually the one painting on screen, or in Get.context resolving to something other than
+the intuitively-expected Dashboard context at the moment didPopNext/initState fires. Not
+diagnosed further live -- flagging precisely what WAS and was NOT confirmed so the next fix
+cycle does not re-assume the TB1 diagnosis is complete.
