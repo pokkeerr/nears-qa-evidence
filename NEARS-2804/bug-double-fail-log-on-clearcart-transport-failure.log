@@ -1,0 +1,43 @@
+NEARS-2804 QA — AC4 sub-check: "confirm it's a SINGLE failure log for the event, not doubled"
+Device: emulator-5560, package: com.izzes.nears.nears_nears_2804_reorder_openstore_clear
+Repro: customer@nears.com, active module=Food & Restaurant (module 2, 1 cart item),
+Profile > Orders > filter Grocery & Food > Reorder on module-1 order #91163 (NEARS-257 Fixture Store),
+airplane mode (wifi+data disabled, confirmed via `ping 10.0.2.2` -> "Network is unreachable")
+enabled immediately before the tap.
+
+Reproduced TWICE (independent taps, two different correlation ids) — same double-[FAIL] shape both times:
+
+--- repro 1 (14:31:58) ---
+09-02 14:31:54.965 I/flutter ( 6712): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+09-02 14:31:54.971 I/flutter ( 6712): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=262a617d-a8f7-4fcb-b7b7-32d965d4064e
+09-02 14:31:54.972 I/flutter ( 6712): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null type=ApiFailure msg="reorder open-store clear-cart failed"
+09-02 14:31:54.973 I/flutter ( 6712): [ERR] msg="error snackbar shown"
+
+--- repro 2 (14:34:20) ---
+09-02 14:34:20.218 I/flutter ( 6712): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+09-02 14:34:20.221 I/flutter ( 6712): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=f4b625c6-4071-45e5-b8f2-3e7342302786
+09-02 14:34:20.221 I/flutter ( 6712): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null type=ApiFailure msg="reorder open-store clear-cart failed"
+09-02 14:34:20.221 I/flutter ( 6712): [ERR] msg="error snackbar shown"
+
+Root cause (read from source, confirmed by the above): `silent: true` on
+CartController.clearCartOnline() only threads through as `handleError: false` down to
+ApiClient._send(), which correctly suppresses the ApiChecker.checkApi() generic toast/snackbar
+(gated on `handleError`). BUT on a TRANSPORT throw (airplane mode -> SocketException, never
+reaches handleResponse()), the api_client's own generic failure log is gated on a SEPARATE flag,
+`logTransportError`, which defaults `true` and is never threaded through by
+CartRepository._clearCartOnline() -> ApiClient.deleteData() (deleteData doesn't even expose a
+logTransportError parameter). So the generic "[FAIL] ... api request threw" line ALWAYS fires on
+a transport failure regardless of `silent:true`, stacking with reorder_helper's own new
+"[FAIL] ... reorder open-store clear-cart failed" line — two [FAIL] logs for one user-visible
+failure event, not one.
+
+Source refs (as of this fix's HEAD, cbdcf4a4c9a6c2bfbfb80e8210f2e5f0212af0ba):
+- UserApp/lib/features/order/helper/reorder_helper.dart:201-213 (_openStore, silent:true call)
+- UserApp/lib/features/cart/domain/repositories/cart_repository.dart:183-206 (_clearCartOnline,
+  passes handleError only, no logTransportError)
+- UserApp/lib/api/api_client.dart:668-836 (_send: logTransportError defaults true, independent of
+  handleError; deleteData() at line 1072 has no logTransportError param to opt out with)
+
+This is exactly the sub-check AC4 calls out as "a review finding that got fixed" — live testing
+shows it is NOT fully fixed for the transport-throw path (airplane mode), only for the non-2xx
+HTTP response path's snackbar. breaks_ac: true (AC4 explicitly requires a single log).
