@@ -1,0 +1,63 @@
+Regression-candidate check requested by t-2783: reorder_helper.dart:194
+Get.find<CartController>().clearCartOnline() (inside _openStore) is
+fire-and-forget, no return-value check -- same defect SHAPE as the cycle-0
+ensureModuleContext bug (now fixed), but in the reorder-to-store fallback flow,
+which is OUT OF SCOPE for NEARS-2783's own diff.
+
+VERDICT: CONFIRMED -- reproduces live, same symptom class.
+
+Repro (device emulator-5556, package
+com.izzes.nears.nears_nears_2783_clear_cart_module_id, account
+customer@nears.com / user_id=6):
+1. Logged in, entered Food & Restaurant module (module 2, active).
+2. Added "Thin Crust Margherita" (The Grill House, module 2) to cart --
+   carts.id=702, item_id=515, module_id=2, user_id=6, quantity=1.
+3. Profile -> Orders -> Filter by Module -> Grocery & Food -> found order
+   #91163 (NEARS-257 Fixture Store, module 1, Payment Failed status) with a
+   "Reorder" button. Active module (2) != order module (1), so
+   ReorderHelper.reorder() takes the _openStore(order) fallback branch
+   (module mismatch), NOT the direct-add path.
+4. Enabled airplane mode (settings put global airplane_mode_on 1 + svc wifi/data
+   disable) immediately before tapping "Reorder", to force clearCartOnline()'s
+   DELETE call to fail at the transport layer.
+5. Tapped "Reorder".
+
+Observed (adb logcat, flutter tag):
+  09-02 06:45:30.902 [NET] DELETE endpoint=/api/v1/customer/cart/remove
+  09-02 06:45:30.907 [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null
+    type=ApiFailure transport_error=socket msg="api request threw"
+    correlation_id=5b5e4782-4e29-4ba5-b6b3-371a8e482b7c
+  09-02 06:45:30.921 [NET] GET endpoint=/api/v1/stores/details/nears-257-fixture-store
+  (store detail fetch, also fails offline, then succeeds on Retry once network
+  is restored)
+
+No dedicated failure surfaced for the clear-cart call specifically -- no
+targeted snackbar/log the way ensureModuleContext's fixed version now emits
+("cross-module clear-cart failed" + a single showCustomSnackBar). The ONLY
+user-visible error was the generic "This store could not be loaded" /
+connectivity-retry screen, driven by the STORE fetch failing, not by the
+cart-clear failing -- the clear-cart failure is completely unsurfaced.
+
+_openStore does NOT await clearCartOnline() and does NOT check its return
+value -- Get.toNamed(RouteHelper.getStoreRoute(...)) fires immediately
+regardless of the clear outcome (confirmed: the store-details GET fired
+5ms after the cart/remove [FAIL], well before any await could have gated it).
+
+DB cross-check (post network-restore): carts.id=702 (item_id=515, module_id=2,
+user_id=6, quantity=1) is UNCHANGED -- the module-2 row was never deleted.
+
+Live UI cross-check: after Retry (network back), the app lands on the
+Grocery & Food store page (NEARS-257 Fixture Store, module 1) -- ReorderHelper
+never calls selectModuleByIdVerified/setModule at all in the _openStore branch,
+so there is no explicit module switch here (unlike the search cross-module
+guard). Tapping "View Cart" from that Grocery-module store page shows the
+STALE "Thin Crust Margherita" (Food & Restaurant, module 2) line item, with a
+live "Proceed to Checkout" button, while the user is browsing a Grocery & Food
+store. Screenshot: regression-candidate-reorder-helper-silent-orphan.png.
+
+This is a genuine, reproducible instance of the same defect class QA flagged
+in cycle 0 (a failed clear-cart silently lets the flow proceed, leaving a
+stale/wrong-module cart line reachable at checkout) -- but it lives entirely
+in reorder_helper.dart, a file NEVER touched by NEARS-2783's diff (confirmed
+by git diff against both cycle-0 and cycle-1 commits). Recommend as a
+regression Bug against ReorderHelper._openStore, not a NEARS-2783 task_bug.
