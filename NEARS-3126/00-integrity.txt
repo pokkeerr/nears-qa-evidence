@@ -1,0 +1,47 @@
+# NEARS-3126 QA — 0. evidence integrity (device-free, no lock) — HEAD 375c5f6cc
+## shasum -a 256 every manifest row against $HOME/.nears/workflow-audit-2026-09/
+
+### manifest.json rows=32
+
+### manifest-runs-extra.json rows=10
+
+$ (cd $HOME/.nears/workflow-audit-2026-09 && shasum -a 256 -c <42 manifest rows>)
+rc=0
+OK lines: 42 /       42 rows; FAILED lines: 0
+inputs/open-tickets.md: OK
+corpus/runs/NEARS-2979.json: OK
+corpus/runs/NEARS-2918.json: OK
+...
+corpus/runs-extra/NEARS-1810.json: OK
+corpus/runs-extra/NEARS-1247.json: OK
+
+## secrets / abs-path / session_id sweep
+$ /usr/bin/grep -rniE '(api[_-]?key|token|password|secret)[[:space:]]*[:=]|<abs-home-path-regex>|session_id' tasks/workflow-audit-2026-09/ | cut -d: -f1 | sort | uniq -c
+   7 tasks/workflow-audit-2026-09/00-audit-program.md
+=> hits only in 00-audit-program.md: PASS
+
+## diff-scope guard
+$ git diff --name-status a166a6774...HEAD
+A	docs/solutions/NEARS-3126-workflow-audit.md
+A	tasks/workflow-audit-2026-09/00-audit-program.md
+A	tasks/workflow-audit-2026-09/findings.json
+A	tasks/workflow-audit-2026-09/inputs/manifest-runs-extra.json
+A	tasks/workflow-audit-2026-09/inputs/manifest.json
+A	tasks/workflow-audit-2026-09/inputs/open-tickets-live-status.md
+A	tasks/workflow-audit-2026-09/partials/corpus-sample.txt
+A	tasks/workflow-audit-2026-09/partials/corpus-scores.json
+A	tasks/workflow-audit-2026-09/partials/lessons-classification.json
+A	tasks/workflow-audit-2026-09/partials/wf-agents-notes.md
+A	tasks/workflow-audit-2026-09/partials/wf-agents.json
+A	tasks/workflow-audit-2026-09/partials/wf-corpus-notes.md
+A	tasks/workflow-audit-2026-09/partials/wf-corpus.json
+A	tasks/workflow-audit-2026-09/partials/wf-incidents-notes.md
+A	tasks/workflow-audit-2026-09/partials/wf-incidents.json
+A	tasks/workflow-audit-2026-09/partials/wf-lessons-notes.md
+A	tasks/workflow-audit-2026-09/partials/wf-lessons.json
+A	tasks/workflow-audit-2026-09/partials/wf-tickets-notes.md
+A	tasks/workflow-audit-2026-09/partials/wf-tickets.json
+A	tasks/workflow-audit-2026-09/scripts/classify-lessons.py
+A	tasks/workflow-audit-2026-09/scripts/score-runs.py
+A	tasks/workflow-audit-2026-09/summary.md
+files=22 additions-only, 0 deletions, 0 outside tasks/workflow-audit-2026-09/** + docs/solutions/NEARS-3126-workflow-audit.md: PASS

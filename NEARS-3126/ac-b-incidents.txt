@@ -1,0 +1,37 @@
+# AC (b) — 10 seeded incidents [behav, manual] — PASS
+$ python3 json.loads partials/wf-incidents.json → one doc; findings=12 (INC-01..12; INC-01..10 = the 10 seeded incidents, INC-11/12 surfaced while pinning)
+## summary.md incident table (lines 50-61): 10 rows, cells #|severity|finding:
+ 1 | High (Critical without the backup floor) | AUD-WF-02 (AUD-WF-INC-01) 
+ 2 | High | AUD-WF-03 (AUD-WF-INC-02) 
+ 3 | Critical | AUD-WF-01 (AUD-WF-INC-03) 
+ 4 | High | AUD-WF-04 (AUD-WF-INC-04) 
+ 5 | Medium | AUD-WF-18 (AUD-WF-INC-05) 
+ 6 | Medium | AUD-WF-19 (AUD-WF-INC-06) 
+ 7 | Low (lane) — carried at High inside the merged finding | AUD-WF-INC-07 → AUD-WF-06 
+ 8 | High | AUD-WF-05 (AUD-WF-INC-08) 
+ 9 | Low | AUD-WF-43 (AUD-WF-INC-09) 
+ 10 | Medium | AUD-WF-20 (AUD-WF-INC-10) 
+incident 4 cell starts: Ticket premise refuted — measured cause:** monitor node `[2b]` has `deriveFrom: decisions` and flips only when a `decisions[]`/`trail[]` entry's `timelineText()` STARTS with `[2b]`; `timelineText()` r
+
+$ git ls-files --error-unmatch scripts/newtask-guards/tooling-drift-reset.sh scripts/newtask-guards/audit-crosscheck.sh scripts/newtask-guards/session-release-check.sh → rc=0 (all tracked)
+$ /usr/bin/grep -n 'ROOT=' scripts/newtask-guards/tooling-drift-reset.sh → 67:ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+$ /usr/bin/grep -n 'no PR URL' scripts/newtask-guards/audit-crosscheck.sh → 177:    say INFO "no PR URL recorded (may be a shared-branch run — confirm against [9b])"; grep -c merge_sha → 0
+$ ../nears-monitor/app/Services/RunMapReader.php: deriveFrom === "decisions" at line 83; private function timelineText() at line 676 (anchor exists)
+
+## reproductions — run from the PRIMARY tree root (read-only guards only; no writer guard run)
+$ bash scripts/newtask-guards/session-release-check.sh NEARS-1510
+usage: run file not found: NEARS-1510
+rc=2 (expect 2)
+$ bash scripts/newtask-guards/session-release-check.sh tasks/runs/NEARS-1510.json
+PASS  session-release-check: sessions: 4 entries, all released.
+rc=0 (expect 0)
+$ bash scripts/newtask-guards/audit-crosscheck.sh NEARS-3041
+  INFO  no PR URL recorded (may be a shared-branch run — confirm against [9b])
+-- result: 0 hard mismatch(es), 0 soft/degraded note(s) --
+rc=0 (expect 0, INFO line + 0 mismatches)
+$ claude agents </dev/null
+'claude agents' requires an interactive terminal (stdout is not a TTY) — use 'claude agents --json' for a machine-readable listing.
+rc=1 (expect 1)
+$ claude agents --json </dev/null | python3 json.load
+valid JSON list, len 19
+rc=0 (expect 0)

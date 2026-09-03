@@ -1,0 +1,8 @@
+# AC (d) — agent/rule claims vs corpus [behav, manual] — PASS
+$ python3 json.loads partials/wf-agents.json → one doc; counts.claims=95 == len(claims)=95; findings=20 severity {High:3, Medium:12, Low:5}; findings lacking evidence/file/lane_id: []
+## spot anchors in frozen copies
+NEARS-2903.json phases["9a"] keys = phase, agent, agentId, verdict, conflicts, note, drift → no "shas" (AGT-01 holds)
+NEARS-2918.json phases["8"] = null in the FROZEN copy (in flight at freeze). summary.md line 143 + NOT-COVERED line 249 + findings.json record exactly this: frozen copy holds phases 2,3,6,7 only; metric 8/21 on frozen vs lane 9/21. LIVE primary tasks/runs/NEARS-2918.json phases["8"] keys = agent, agentId, findings, gallery, phase, posted_comment, verdict=PASS → no per-AC table (AGT-02 mechanism holds on the live file, documented as NOT-COVERED on the frozen one).
+NEARS-3119.json phases["6"] keys = phase, agent, agentId, verdict, files_changed, tests, commit_sha, contract_impact, qa_points, summary, followups, drift, confidence → no "reuse_decision" (AGT-04 holds)
+$ /usr/bin/grep -n '^generated_count' packages/nears_dls/catalog.yaml → 39:generated_count: 62 (AGT-05: '40 components' claim stale)
+## summary.md agent-claims table (§"Agent / rule claims vs the corpus — AC (d)", lines 137-175): 24 rows present.

@@ -1,0 +1,20 @@
+# AC (e) — 330 review-lessons [behav, automated] — PASS
+$ python3 tasks/workflow-audit-2026-09/scripts/classify-lessons.py --root <worktree> --out <scratch>/lessons-classification.json
+rc=0
+review-lessons classification (ledger sha256 f6b900296e5f)
+population: 330   duplicate ids: 0
+status split raw: candidate=242 active=46 ACTIVE=10 missing=32 other=0
+...
+substring id pairs: 1
+    zone-decode-fail-open  <  zone-decode-fail-open-gate
+$ cmp <scratch>/lessons-classification.json tasks/workflow-audit-2026-09/partials/lessons-classification.json
+cmp rc=0 (byte-identical)
+population = 330 | actives_count = 56 | actives_unenforced_count = 56 | promotion_candidates_count = 3
+
+## LES-01 probes on docs/workflow/review-lessons.json
+$ /usr/bin/grep -cF -- 'status:"active"' → 0 (expect 0)
+$ /usr/bin/grep -cF -- '"status": "active"' → 46 (expect 46)
+$ /usr/bin/grep -cF -- '"status": "ACTIVE"' → 10 (expect 10)
+
+## positive control (notes §4 substitute) — scratch root = copies of the 5 consumer dirs (.claude/agents, .claude/commands, .claude/skills, docs/workflow, scripts/newtask-guards) + ledger; one line "- Lesson zone-decode-fail-open: …" appended to the scratch nears-backend-engineer.md; nothing in the worktree touched
+result: actives_unenforced_count 56 → 55; actives_with_id_citation_count 0 → 1; zone-decode-fail-open enforced=true, enforced_by=[id-citation], citation_sites=[{path: .claude/agents/nears-backend-engineer.md, line: 76}]; no longer in actives_unenforced. Control discriminates. PASS

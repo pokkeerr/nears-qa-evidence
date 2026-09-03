@@ -1,0 +1,34 @@
+# AC (c) — 30-run corpus sample [behav, automated+manual] — PASS
+partials/corpus-sample.txt: lines=30; non NEARS-<digits> lines=0; NEARS-3126 present=0; NEARS-1510=1; NEARS-3041=1; duplicates=0
+
+$ python3 tasks/workflow-audit-2026-09/scripts/score-runs.py --runs-dir $HOME/.nears/workflow-audit-2026-09/corpus/runs --log $HOME/.nears/workflow-audit-2026-09/corpus/log-sample.jsonl --sample-list tasks/workflow-audit-2026-09/partials/corpus-sample.txt --out <scratch>/corpus-scores.json
+rc=0
+key	lane	class	gate_skips	alias	miss_env	no_aid	aid_sess	aid_exempt	aid_skip	log_lines	no_runtotal	outliers	fir	fir_misuse	unrec10	top_lvl	nonstd
+NEARS-2979	express	in_flight	n/a	0	0	0	0	1	0	0	0	0	0	0	0	0	0
+...
+  sample_size	30
+  scored	19
+  gate_skips_no_reason	20
+  verdicts_no_agentid	40
+  verdicts_no_agentid_session_fallback	5
+  conductor_exempt_no_agentid	72
+  walltime_outliers	11
+  walltime_outliers_nonzero_median	8
+  fix_in_run_misuse	0
+  unrecorded_10_skips	0
+$ cmp <scratch>/corpus-scores.json tasks/workflow-audit-2026-09/partials/corpus-scores.json
+cmp rc=0 (byte-identical)
+
+## independent sample recompute from frozen corpus/runs (started_epoch desc, key desc ties, excl NEARS-3126): frozen files=30, top30 == list (order AND set): True
+## agentId metric: corpus-scores.json key conductor_phases_exempt_from_agentid = [1, 11, 2b, 5, 8b, 9, 9-dod, 9b, close, m1, m5, t, tripwire, *_precheck, *_note, agent starts with conductor]; totals verdicts_no_agentid=40 vs conductor_exempt_no_agentid=72 (separate column "conductor exempt" in the summary table). PASS
+## summary.md corpus table (§"Corpus score table — AC (c), 30 runs", lines 65-119): 30 rows + totals present.
+
+## spot anchors in frozen copies
+NEARS-2879.json: top-level phase11_closeout=True; phases keys end at 9a (1,2,3,5,6,7,8,8b,10,9,9a)
+NEARS-2880.json: phases["11"].tokens_captured=True; log-sample.jsonl lines mentioning NEARS-2880 = 0
+NEARS-2883.json: "3" in phases = False (keys 11,9b,9a,10,9,review,8,8b,qa,7,6,2,1)
+
+## positive control for the review fix (metric 5 breaks_ac): scratch runs dir, 2 copies of frozen NEARS-1510.json with top-level fix_in_run=[{lane:task_bugs, severity:Low, breaks_ac:<X>, verified_by, files:[1], loc:3}]
+breaks_ac:true  → fir_misuse=1 ["entry 0 task_bugs item without breaks_ac:false (got true)"]
+breaks_ac:false → fir_misuse=0
+totals fix_in_run_misuse=1. Control discriminates. PASS

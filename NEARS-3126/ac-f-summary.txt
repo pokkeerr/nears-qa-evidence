@@ -1,0 +1,27 @@
+# AC (f) — findings.json + summary.md [behav, manual] — PASS (Jira-half conductor-owned)
+$ python3 json.loads findings.json → one doc; findings=52; ids == AUD-WF-01..52 sequential: True; lane_id on all: True; severity {Critical:1, High:16, Medium:25, Low:10}; Critical/High=17, conductor_read on all 17: True; no evidence: [], no file: []
+lane tally from findings.json lane_id prefixes: INC 11 · TKT 4 · COR 8 · AGT 20 · LES 9 = 52; area: workflow-orchestration 11, workflow-guard 7, workflow-agent-def 17, workflow-docs 8, workflow-ledger 9
+summary.md §Counts: severity table 1/16/25/10 total 52; "By lane: incidents 11 · tickets 4 · corpus 8 · agents 20 · lessons 9"; "By area: workflow-guard 7 · workflow-orchestration 11 · workflow-agent-def 17 · workflow-ledger 9 · workflow-docs 8" → all == findings.json. PASS
+
+## section order (grep ^# summary.md):
+5:## Counts
+23:## Verify-closed ledger — AC (a), 14 open workflow tickets
+46:## Seeded incidents — AC (b), 10 rows
+65:## Corpus score table — AC (c), 30 runs
+120:## Review-lessons classification — AC (e), 330 entries
+137:## Agent / rule claims vs the corpus — AC (d)
+176:## Top-10 (by severity, then impact)
+195:## CLEAN — checked and found fine (with the proving command)
+213:## NOT-COVERED (union of every lane's list + consolidation)
+253:## Reproduction (from the worktree root, against the frozen local corpus)
+=> Counts · Verify-closed ledger · Seeded incidents · Corpus score table · Review-lessons (AC e) · Agent/rule claims (AC d) · Top-10 · CLEAN · NOT-COVERED · Reproduction = program §4.6 order (lessons counts precede agent-claims table, as §4.6 lists). top-10 rows=10; CLEAN bullets=15; reproduction block python3 commands=2; last line: "No Jira issues filed — owner review pending"
+
+## citation guard
+$ doc-citation-resolve.sh --root <worktree> --file tasks/workflow-audit-2026-09/summary.md → rc=0 :: PASS  doc-citation-resolve (explicit file set): 76 citation(s) across 1 doc(s) all resolve to tracke :: validity: 1 doc(s) scanned, 76 citation(s) asserted
+$ doc-citation-resolve.sh --root <worktree> --file tasks/workflow-audit-2026-09/partials/wf-tickets-notes.md → rc=0 :: PASS  doc-citation-resolve (explicit file set): 34 citation(s) across 1 doc(s) all resolve to tracke :: validity: 1 doc(s) scanned, 34 citation(s) asserted
+$ doc-citation-resolve.sh --root <worktree> --file tasks/workflow-audit-2026-09/partials/wf-incidents-notes.md → rc=0 :: PASS  doc-citation-resolve (explicit file set): 25 citation(s) across 1 doc(s) all resolve to tracke :: validity: 1 doc(s) scanned, 25 citation(s) asserted
+$ doc-citation-resolve.sh --root <worktree> --file tasks/workflow-audit-2026-09/partials/wf-corpus-notes.md → rc=0 :: PASS  doc-citation-resolve (explicit file set): 8 citation(s) across 1 doc(s) all resolve to tracked :: validity: 1 doc(s) scanned, 8 citation(s) asserted
+$ doc-citation-resolve.sh --root <worktree> --file tasks/workflow-audit-2026-09/partials/wf-agents-notes.md → rc=0 :: PASS  doc-citation-resolve (explicit file set): 4 citation(s) across 1 doc(s) all resolve to tracked :: validity: 1 doc(s) scanned, 4 citation(s) asserted
+$ doc-citation-resolve.sh --root <worktree> --file tasks/workflow-audit-2026-09/partials/wf-lessons-notes.md → rc=0 :: PASS  doc-citation-resolve (explicit file set): 8 citation(s) across 1 doc(s) all resolve to tracked :: validity: 1 doc(s) scanned, 8 citation(s) asserted
+
+## "no Jira issue filed for any finding" half: conductor-owned DoD (JQL labels = workflow-audit-2026-09) — not run by QA; summary.md final line asserts it.
