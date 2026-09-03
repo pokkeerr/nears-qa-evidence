@@ -1,0 +1,47 @@
+# NEARS-3132 delta re-QA (fix_cycle 2, FINAL) -- AC1 PASS, 2026-09-03
+
+## Setup
+- emulator-5558 re-verified live: `adb -s emulator-5558 emu avd name` -> nears_qa_wave56, OK
+- Device was briefly held by a genuinely different, actively-driving concurrent session
+  (key NEARS-3128, real UserApp pid 21277 alive, foreground activity
+  com.izzes.nears.nears_nears_3128_review_widget_nrating) -- respected it, bounded
+  queue-wait, freed after 60s, re-verified free + re-verified identity before acquiring.
+- Proxy fix independently re-verified BEFORE trusting the commit message:
+  `adb shell settings get global http_proxy` -> `:0`
+  `adb shell settings get global global_http_proxy_port` -> `0`
+  `adb shell settings get global global_http_proxy_host` -> empty
+  Re-checked again AFTER the pan test: still `:0`.
+- config.ini sanity: `PlayStore.enabled = yes` still set (first fix layer intact).
+- Fresh UserApp install, pid 9981, drove through language + notification + location
+  onboarding, landed on pick_map_screen.dart (fresh-install access-location picker).
+
+## Result: onCameraIdle FIRES, repeatedly, with zero Maps API token errors
+
+- Initial map load (before any manual pan) already showed a REAL rendered map with
+  street names/labels/POIs (897KB screenshot vs ~60-68KB blank screenshots in fix_cycle 1)
+  -- see ac1-cycle2-map-before-pan.png. Compare to fix_cycle 1's fully blank map.
+- Two independent rounds of off-centre pan gestures performed (avoiding the centre pin,
+  per the navigation guide's own recipe):
+    round 1: swipe 250,1800->250,1300 then 800,1300->800,1800
+    round 2: swipe 800,1900->800,1400 then 300,1400->300,1900
+- get-zone-id [NET] call count: 2 (initial fallback-position load) -> 6 (after round 1,
+  +4) -> 10 (after round 2, +4). geocode-api [NET] call count moved identically in lockstep
+  (2 -> 6 -> 10). Each pair is a real HTTP round-trip
+  (`[NET] GET endpoint=.../get-zone-id` + `[NET] endpoint=.../get-zone-id http_status=404`,
+  same for geocode-api with http_status=200) driven by
+  `pick_map_screen.dart`'s `onCameraIdle` -> `location_controller.dart`'s
+  `updatePosition()` -> `getZone()` + `getAddressFromGeocode()` -- exactly the AC's
+  required observable side effect.
+- `grep -c "Error requesting API token" <full session log>` = 0 (zero occurrences across
+  the entire session, vs 3 occurrences in fix_cycle 1's otherwise-identical test).
+- `ui_errors` (app-nav, pid-scoped) found exactly 1 match across the whole session: the
+  pre-existing, already-AppLogger-logged `LocationPermissionResolutionTimeout` fallback
+  (benign onboarding timing quirk, unrelated to Maps/onCameraIdle, correctly surfaced via
+  `[FAIL]` per the logging contract -- not a silent failure, not a new defect).
+
+## Conclusion
+AC1 is MET. The second root cause (stale guest-side HTTP proxy baked into persisted
+userdata) was the actual blocker; the engineer's proxy-clear + reboot fix (commit
+e721c014b) resolves it -- independently re-verified live, not taken on the commit
+message's word. `onCameraIdle` fires reliably across two independent pan gestures with
+real, repeated position-update network side effects and zero Maps SDK token errors.
