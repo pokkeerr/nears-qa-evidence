@@ -1,0 +1,15 @@
+=== AC1: qa-reconnect.sh pidfile write ===
+$ cat /Users/Apple/.nears/qa-pids/emulator-5556
+{"pid":76838,"lstart":"Thu Sep 3 16:53:18 2026","serial":"emulator-5556","app":"UserApp","written_at":"2026-09-03T12:53:18Z"}
+
+$ python3 -c "import json; d=json.load(open(...)); print(d.keys())"
+valid JSON, keys: ['app', 'lstart', 'pid', 'serial', 'written_at']
+
+$ ps -p 76838 -o pid=,lstart=
+76838 Thu Sep  3 16:53:18 2026
+
+pid AND lstart in the pidfile match the LIVE dart process exactly. The exec
+chain (flutter attach launcher -> exec dart) DOES preserve pid, same as
+flutter run's chain. Attach also reused the same VM Service port (53823) as
+the original flutter run session, confirming true state-preserving reattach
+(no reinstall).

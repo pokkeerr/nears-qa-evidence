@@ -1,0 +1,13 @@
+=== AC3: pidfile write failure must not block the reconnect ===
+$ QA_PIDS_DIR=/nonexistent-parent/no-perm bash scripts/qa-reconnect.sh UserApp emulator-5556
+[qa-reconnect] attaching to com.izzes.nears on emulator-5556 (no reinstall, state preserved)...
+[qa-reconnect] WARNING: pidfile write FAILED (/nonexistent-parent/no-perm/emulator-5556) — qa-run-stop.sh will not find this launch, so teardown falls back to manual. Reconnecting anyway (teardown is best-effort; reconnecting is the job).
+Waiting for a connection from Flutter on sdk gphone16k arm64...
+Syncing files to device sdk gphone16k arm64...    2,380ms
+Flutter run key commands.
+...
+A Dart VM Service on sdk gphone16k arm64 is available at: http://127.0.0.1:53823/...
+
+WARNING printed loudly to stderr, attach proceeded to full success anyway
+(reconnect not blocked). /nonexistent-parent was never created (mkdir -p
+failed as expected, non-privileged path under root).
