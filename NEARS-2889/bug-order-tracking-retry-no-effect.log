@@ -1,0 +1,31 @@
+NEARS-2889 QA finding: order_tracking_screen.dart Retry (post map-watchdog error) does not respond to taps
+Device: emulator-5560, worktree fix/NEARS-2889-map-watchdog
+
+Repro:
+1. Disable com.google.android.gms (pm disable-user --user 0), cold-restart app (am force-stop + am start)
+   so the FIRST GoogleMap widget mount in the process must complete Play-Services init while GMS is
+   unavailable.
+2. Navigate: Profile -> Orders -> Ongoing -> Track Order (single-store order #91182, Nears Mart).
+3. Watchdog fires correctly at ~8s:
+   09-03 05:41:14.506  I flutter : [FAIL] endpoint=order_tracking_screen http_status=null type=ApiFailure msg="map_open_failed: onMapCreated timeout"
+   NearsErrorRetry ("Something went wrong" / "Please try again" / "Retry") renders correctly.
+4. Resolve Retry button's LIVE bounds via uiautomator dump: bounds="[60,1480][1284,1624]" (center 672,1552).
+   `adb shell input tap 672 1552` (single tap) -- error card persists, no state change, no new [FAIL]
+   after 15s of clean polling (multiple attempts, incl. a rapid double-tap 300ms apart) -- 0/3 successful
+   across 3 separate clean attempts (2 single-tap, 1 double-tap), vs 2/2 successful retry-taps on the
+   IDENTICAL pattern in map_screen.dart under the same blocking technique (see ac1-map-screen evidence).
+5. CONTROL: immediately after a failed Retry tap, tapping "Need help?" (bounds [1083,2128][1299,2206],
+   OUTSIDE the map Stack's region) on the SAME screen instance registers normally (navigates to
+   SupportScreen) -- isolating the failure to taps landing within the map Stack's bounds, not a
+   screen-wide input problem.
+
+Widget-test coverage gap: test/features/order/order_tracking_map_watchdog_test.dart contains zero
+`tester.tap` calls -- the "tap Retry re-arms" behavior for order_tracking_screen was never pinned by
+the added test suite, only asserted live here.
+
+Not yet root-caused: could be a genuine _retryMapLoad wiring gap specific to this screen, or a
+Flutter/Android platform-view touch-composition artifact triggered by this screen's particular
+GetBuilder + Stack composition (map_screen.dart uses the structurally-identical
+GoogleMap + Positioned.fill(NErrorRetry) pattern and IS retry-tappable under the same test).
+Either way, a real user hitting a genuine Play-Services-unavailable map failure on this screen
+would have a Retry button that visibly does nothing.
