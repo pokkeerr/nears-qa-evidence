@@ -1,0 +1,61 @@
+NEARS-3129 QA — AC1 defect repro (2 reproductions, emulator-5562 NEARS_2411_QA)
+Mock GPS fixed at 24.453884,54.377343 (Abu Dhabi airport-area, resolves to
+"F93G+HW5 Cargo Systems, AUH Int Airport - Al Manhal - W15 01 - Abu Dhabi -
+United Arab Emirates" via geocode-api).
+
+Scenario: drag the map (finger-up), then tap "Use my current location" FAB
+~400-430ms later (well within the AC's "~1s" window).
+
+=== Trial 1 (drag_end host ~1788446725.153649, fab host ~1788446725.586010, gap 432ms) ===
+18:45:19.638 [NET] GET get-zone-id            <- DRAG's own zone check (dispatch A)
+18:45:19.815 [NET] GET geocode-api            <- FAB's geocode (dispatch B, Future.wait)
+18:45:19.816 [NET] GET get-zone-id            <- FAB's zone (dispatch C, Future.wait)
+18:45:20.199 [NET] get-zone-id 200            <- resolves A (drag's own zone, 561ms RTT)
+18:45:20.199 [NET] GET geocode-api            <- DRAG's own geocode (dispatch D), fired
+                                                  immediately after A resolves — this is
+                                                  where the DRAG's _addressRequestToken is
+                                                  incremented (AFTER its own getZone await)
+18:45:20.698 [NET] get-zone-id 200            <- resolves C (FAB's zone, 882ms RTT)
+18:45:20.698 [INFO] location: inZone=true
+18:45:20.962 [NET] geocode-api 200            <- resolves B (FAB's geocode, 1147ms RTT)
+                                                  -> FAB's token check FAILS: DRAG already
+                                                  bumped the token at 20.199 (before this).
+                                                  FAB's write is discarded.
+18:45:21.820 [NET] geocode-api 200            <- resolves D (DRAG's geocode, 1621ms RTT)
+                                                  -> DRAG's token check PASSES (still the
+                                                  newest token) -> DRAG's address applied.
+
+Final displayed address (stable t+3s..t+11s, 5 polls): "F94C+MQF - شارع - ١ - Al Manhal
+- W15 01 - Abu Dhabi - United Arab Emirates" — this is the DRAG's target, NOT the FAB's
+mock-GPS airport address ("F93G+HW5 Cargo Systems, AUH Int Airport...").
+
+=== Trial 2 (drag_end host ~1788446832.227519, fab host ~1788446832.658144, gap 431ms) ===
+18:47:06.655 [NET] GET get-zone-id            <- DRAG's own zone check
+18:47:06.877 [NET] GET geocode-api            <- FAB's geocode (Future.wait)
+18:47:06.877 [NET] GET get-zone-id            <- FAB's zone (Future.wait)
+18:47:07.078 [NET] get-zone-id 200            <- DRAG's zone resolves (423ms RTT)
+18:47:07.078 [INFO] location: inZone=true
+18:47:07.178 [NET] get-zone-id 200            <- FAB's zone resolves (301ms RTT)
+18:47:07.178 [NET] GET geocode-api            <- DRAG's own geocode fires (token bumped
+                                                  here, AFTER FAB's token was already
+                                                  issued at ~06.876)
+18:47:07.965 [NET] geocode-api 200            <- FAB's geocode resolves (1088ms RTT)
+                                                  -> stale by then, discarded
+18:47:09.196 [NET] geocode-api 200            <- DRAG's geocode resolves (2018ms RTT)
+                                                  -> newest token, applied
+
+Final displayed address (t+5s): "24 الكَرِيمِين - Al Manhal - W15 01 - Abu Dhabi -
+United Arab Emirates" — again the DRAG's target, not the FAB's airport address.
+
+ROOT CAUSE: UserApp/lib/features/location/controllers/location_controller.dart
+updatePosition()'s geocode branch (~L692-710) increments _addressRequestToken only
+AFTER its own `await getZone(...)` completes (sequential: zone, then token++, then
+geocode). getCurrentLocation() (~L420-452, the FAB path) increments the SAME token
+immediately after its own `await getPosition(...)` resolves, BEFORE its concurrent
+Future.wait([geocode, zone]). Because the drag's token issuance is delayed by a full
+zone-network round trip relative to the FAB's near-immediate issuance, a drag whose
+own zone call is merely "not unusually slow" (300-560ms observed) can still end up
+incrementing the shared token AFTER the FAB's tap — even though the user's real,
+chronologically-later action was the FAB tap. The guard then (correctly, by its own
+"whichever call issued last wins" rule) keeps the DRAG's answer and discards the
+FAB's — which is exactly the address-mismatch AC1 says must not happen.
