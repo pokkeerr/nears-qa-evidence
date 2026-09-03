@@ -1,0 +1,27 @@
+AC2 (regression guard): initial fetch fails with no profile ever loaded ->
+menu tab still shows the error card (unchanged prior behavior)
+Device: emulator-5554 | Package: com.izzes.nears.nears_nears_2884_menu_header_guard
+
+Steps: backend (php artisan serve --port=8000) briefly stopped -> app
+force-stopped + relaunched as a FRESH process (ProfileController._userInfoModel
+starts null in-memory; auth token persisted) -> navigated straight to the
+Menu/Profile tab -> first-ever getUserInfo() call for this process hits the
+down backend.
+
+Logcat (paired [FAIL], userInfoModel never populated this process):
+09-03 04:08:51.232 23164 23164 I flutter : [NET] GET endpoint=/api/v1/customer/info
+09-03 04:08:51.599 23164 23164 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=4c267ee2-3e69-45c8-8863-72b217261158
+09-03 04:08:51.599 23164 23164 I flutter : [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="profile load failed"
+
+Menu tab accessibility dump (ui_list) immediately after:
+  Back
+  Please try again
+  Profile
+  Retry
+  Something went wrong        <- NErrorRetry error card, as expected pre-fix behavior
+
+RESULT: PASS (unchanged / correct regression-guard behavior)
+
+Recovery check: backend restarted, tapped "Retry" -> Menu tab hero rendered
+the real header ("Customer Nears", "85 Orders", etc.) confirming clean
+recovery, no residual defect.

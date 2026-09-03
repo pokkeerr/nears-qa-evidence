@@ -1,0 +1,39 @@
+AC1: background refresh fails over an already-loaded profile -> real header renders, NOT error card
+Device: emulator-5554 | Package: com.izzes.nears.nears_nears_2884_menu_header_guard
+
+Steps: logged in (customer@nears.com) -> Menu tab (profile loaded, hero shows
+"Customer Nears") -> cut device network (svc wifi/data disable) -> visited
+Wallet tab (triggers ProfileController.getUserInfo() in the background) ->
+returned to Menu tab.
+
+Logcat (paired [FAIL], userInfoModel stays populated):
+I/flutter (21193): [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=66aefbe8-9b82-4421-94d7-e73637faf4c3
+I/flutter (21193): [FAIL] endpoint=/api/v1/customer/info http_status=null type=ApiFailure msg="profile load failed"
+
+Menu tab accessibility dump AFTER the failed background refresh (ui_list):
+  85 Orders
+  ACCOUNT SETTINGS
+  Avg Time
+  Back
+  Change Password
+  Coupons
+  Customer Nears          <- REAL hero header (name), not NErrorRetry
+  Dark Mode
+  Edit Profile
+  Help & Support
+  Joined 14 May, 2026
+  Logout
+  My Address
+  Notification
+  Orders
+  Profile
+  REWARDS & OFFERS
+  SUPPORT
+  Talk to Nears!
+  Version 3.8 - Built for Speed
+  Wallet
+
+No "something_went_wrong" / "Retry" / "please_try_again" strings present ->
+confirms hasError stayed false (3-term guard: userInfoModel != null blocks the
+error card even though userInfoLoadFailed flipped true).
+RESULT: PASS
