@@ -1,0 +1,75 @@
+# NEARS-3132 delta re-QA (fix_cycle 1) -- AC1 FAIL, 2026-09-03
+
+## Setup
+- emulator-5558 re-verified live: `adb -s emulator-5558 emu avd name` -> nears_qa_wave56, OK
+- Lock acquired cleanly: qa_lock_acquire emulator-5558 NEARS-3132 (was free, no contention this cycle)
+- UserApp booted via scripts/qa-run.sh (fresh install, package
+  com.izzes.nears.nears_nears_3132_qa_device_pool_avd_fix, pid 11167)
+- Landed on pick_map_screen.dart (fresh-install access-location picker) after
+  permission/language onboarding -- exactly the AC1 target screen.
+
+## Symptom (identical to the pre-fix repro documented in
+  docs/apps/userapp/userapp-navigation-guide.md's NEARS-2900 gotcha, despite
+  the engineer's PlayStore.enabled=yes + cold-boot fix having been applied)
+
+1. Map renders visually BLANK (beige background + Google watermark only, no
+   tiles) throughout the entire session -- see
+   docs/qa-evidence/NEARS-3132/ac1-map-before-check.png and
+   ac1-map-after-swipe-still-blank.png (both after multiple pan attempts).
+
+2. Persistent, repeating Maps SDK failure across the whole session (3x
+   observed, ~45s apart, matches the 10s retry/backoff loop):
+   `E Google Maps Android API: Error requesting API token. StatusCode=UNAVAILABLE [CONTEXT service_id=71]`
+   and the underlying cause surfaced once directly:
+   `Caused by: m140.hoa: Timed out: ... GWS client-parameters fetch`
+   `account=Account {name=signedout@, type=com.google.android.apps.maps}` --
+   no Google account is signed in on this AVD; client-parameter fetch via GWS
+   times out every retry.
+
+3. Two independent off-centre pan gestures were performed (per the navigation
+   guide's own recipe -- start away from the centre pin, e.g. 300,1700->300,1200
+   and 700,1200->700,1700; repeated a second time with different coordinates
+   after an extra 25s warm-up wait) -- app log file
+   (scripts/qa-run.sh's own captured flutter console output) grew by ZERO
+   flutter-tagged lines across all four swipes. Grep across the ENTIRE
+   session log for geocode-api / get-zone-id / [NET] produced only the
+   pre-map-screen auth/config/module bootstrap calls -- no onCameraIdle-driven
+   position-update call at any point.
+
+4. POSITIVE CONTROL proving the instrument itself is live: tapping the
+   "Use my current location" FAB (a DIFFERENT code path,
+   LocationController.getCurrentLocation, not onCameraIdle/updatePosition)
+   immediately produced the expected [NET] GET endpoint=/api/v1/config/geocode-api
+   + [NET] GET endpoint=/api/v1/config/get-zone-id + http_status lines within
+   6s. This proves app-nav driving, adb, and the app's own network/logging
+   plumbing are all working -- the gap is specifically that onCameraIdle
+   (fired by a user pan/drag on the map) is not producing ANY observable
+   position-update side effect on this device, exactly as pre-fix.
+
+## Conclusion
+AC1 is NOT met live on nears_qa_wave56 despite the applied config fix
+(PlayStore.enabled=yes, cold-boot, com.android.vending + com.google.android.gms
+packages present per the engineer's adb-level check). Root cause appears to be
+one level deeper than the PlayStore flag: the Maps SDK client-parameters fetch
+via GWS times out (likely because no Google account is signed into Play
+Services on this AVD, or a genuinely unavailable/blocked API-token endpoint
+from this host), so the Maps tile layer never initializes, no tiles render,
+and no camera-idle event reaches app code. Package presence (pm list packages)
+is necessary but not sufficient evidence that the Maps SDK can actually
+authenticate and serve tiles.
+
+## Additional diagnostics (actionable lead for the engineer)
+- `~/.android/avd/nears_qa_wave56.avd/config.ini` confirmed: `PlayStore.enabled = yes`
+  (the documented fix IS applied at the config level -- this is not a stale/unfixed AVD).
+- `adb shell dumpsys account` returns ZERO registered accounts on this AVD --
+  no Google account is signed into Play Services.
+- GMS itself is present and two versions show under dumpsys package
+  (versionName 26.32.62 / 26.11.36), so Play Services is installed, just
+  unauthenticated.
+- Working hypothesis: PlayStore.enabled=yes provisions the Play Store /
+  Play Services APKs but does NOT itself sign in a Google account or complete
+  Play Store first-run setup, and Maps SDK's "Error requesting API token" /
+  GWS client-parameters timeout looks consistent with an unauthenticated GMS
+  client. NEARS_2411_QA (the working comparator per the navigation guide) may
+  differ specifically in having a signed-in account, not just the PlayStore
+  flag -- worth diffing the two AVDs' account state as the next debugging step.
