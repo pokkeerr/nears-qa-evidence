@@ -1,0 +1,32 @@
+# NEARS-1510 AC3 red-proof — one-sided, in worktree /Users/Apple/Projects/nears-NEARS-1510-catalog-hashlinks-invariant @ bcc4649af
+# Mutation: sed insert after catalog.yaml line 66 (NActiveOrderBanner widgetbook block):
+#       Extra: "#/?path=components/x/x/extra"
+=== PRE ===
+md5_pre=c7c559a07b430e83fb75702fc3881141
+quoted_pre=146
+=== MUTATE (insert after line 66) ===
+md5_post=8448960fed6a8de1456fefc8677d0ee4
+quoted_post=147
+64: [    widgetbook:]
+65: [      Playground: "#/?path=components/nactiveorderbanner/nactiveorderb]
+66: [      Gallery: "#/?path=components/nactiveorderbanner/nactiveorderbann]
+67: [      Extra: "#/?path=components/x/x/extra"]
+68: [  NAppBar:]
+--- git sees the mutation:
+ M catalog.yaml
+=== RED RUN ===  (flutter test test/tool/generate_catalog_test.dart)
+red_rc=1
+00:00 +18 -1: committed catalog.yaml is byte-identical to a fresh render (the --check CI gate, in-process) [E]   <- expected collateral: catalog no longer matches render
+00:00 +22 -2: committed catalog.yaml every widgetbook link rides the hash fragment (NEARS-1580) [E]
+  Expected: <146>
+    Actual: <147>
+00:00 +22 -2: Some tests failed.
+=== RESTORE ===  (git checkout -- catalog.yaml)
+checkout_rc=0
+md5_restored=c7c559a07b430e83fb75702fc3881141
+quoted_restored=146
+--- status (empty=clean):
+[end]
+=== GREEN RE-RUN ===
+green_rc=0
+00:00 +24: All tests passed!

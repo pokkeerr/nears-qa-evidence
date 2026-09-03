@@ -1,0 +1,5 @@
+# NEARS-1510 QA-lite progress (device-free, worktree @ bcc4649af, base feat/userapp-reskin2 @ 35d3579fd)
+- AC1 PASS — worktree `flutter test test/tool/generate_catalog_test.dart` 24/24 "All tests passed!"; CI shape `--exclude-tags golden` 1524 passed rc=0; base repro in primary tree 23/1 `Expected: <145> Actual: <147>` (ac1-*.log)
+- AC2 PASS — `bash scripts/dls-catalog-check.sh` rc=0 "OK: catalog.yaml is up to date (61 entries)"; catalog.yaml status empty (ac2-catalog-check.log)
+- AC3 PASS — one-sided red-proof: md5 c7c559a0→8448960f, quoted count 146→147, hashLinks test RED `Expected: <146> Actual: <147>`, restore md5 back, 24/24 (ac3-*.log)
+- AC4 PASS — `expect(hashLinks, expectedHashLinks)` fold over `entries.widgetbookLinks`, quote-anchored RegExp; L430/431/501/519(bareLinks) unchanged; diff touches only the test file (ac4-static-greps.log)

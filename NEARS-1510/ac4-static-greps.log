@@ -1,0 +1,27 @@
+# AC4 static greps, worktree @ bcc4649af, packages/nears_dls/test/tool/generate_catalog_test.dart
+$ grep -n "expect(hashLinks"
+518:      expect(hashLinks, expectedHashLinks);
+$ grep -n "expect(components, hasLength"
+430:      expect(components, hasLength(entries.length));
+$ grep -n "expect(bareLinks"
+519:      expect(bareLinks, 0);
+$ grep -n "schema_version: 2"
+431:      expect(catalog, contains('\nschema_version: 2\n'));
+$ grep -n "expect(versions, hasLength"
+501:      expect(versions, hasLength(2));
+--- hunk lines 512-519:
+      // Quote-anchored: the generated header comment also spells `#/?path=` (NEARS-1510).
+      final hashLinks = RegExp(r'"#/\?path=').allMatches(catalog).length;
+      final bareLinks = RegExp(r'"\?path=').allMatches(catalog).length;
+      final expectedHashLinks =
+          entries.fold<int>(0, (n, e) => n + (e.widgetbookLinks?.length ?? 0));
+
+      expect(hashLinks, expectedHashLinks);
+      expect(bareLinks, 0);
+--- catalog.yaml: quoted "#/?path= count / unanchored count / header comment line:
+146
+147
+9:# `#/?path=` deep-link into the locally-served Widgetbook, derived
+--- git diff 35d3579fd..HEAD --stat:
+ packages/nears_dls/test/tool/generate_catalog_test.dart | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
