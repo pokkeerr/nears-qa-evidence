@@ -1,0 +1,41 @@
+diff --git a/.github/workflows/dls-ci.yml b/.github/workflows/dls-ci.yml
+index 8e8bd6b35..1f05ae57f 100644
+--- a/.github/workflows/dls-ci.yml
++++ b/.github/workflows/dls-ci.yml
+@@ -7,12 +7,11 @@ on:
+       - 'widgetbook/**'
+       # So a change to this gate is verified by the gate itself.
+       - '.github/workflows/dls-ci.yml'
+-  # NEARS-1433: this repo merges locally (no PRs), so a pull_request-only trigger
+-  # would mean the gates below never actually run.
++  # NEARS-2828: this repo merges locally on a moving integration branch (never bare
++  # main), so the push trigger matches every pushed branch; the paths: filters below
++  # bound the surface.
+   push:
+-    branches:
+-      - main
+-      - feat/init-storybook
++    branches: ['**']
+     paths:
+       - 'packages/nears_dls/**'
+       - 'widgetbook/**'
+diff --git a/.github/workflows/userapp-ci.yml b/.github/workflows/userapp-ci.yml
+index 1670edcc1..67bb1ace8 100644
+--- a/.github/workflows/userapp-ci.yml
++++ b/.github/workflows/userapp-ci.yml
+@@ -4,6 +4,15 @@ on:
+   pull_request:
+     paths:
+       - 'UserApp/**'
++      # So a change to this gate is verified by the gate itself.
++      - '.github/workflows/userapp-ci.yml'
++  # NEARS-2828: this repo merges locally on a moving integration branch, so the push
++  # trigger matches every pushed branch; the paths: filter bounds the surface.
++  push:
++    branches: ['**']
++    paths:
++      - 'UserApp/**'
++      - '.github/workflows/userapp-ci.yml'
+ 
+ jobs:
+   analyze-and-test:
