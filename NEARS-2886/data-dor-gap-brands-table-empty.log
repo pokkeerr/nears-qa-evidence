@@ -1,0 +1,27 @@
+NEARS-2886 QA-lite -- reachability finding (Data DoR gap, not caused by this ticket)
+
+`brands` table has 0 rows in the local dev DB:
+  mysql> SELECT COUNT(*) FROM brands;
+  +----------+
+  | COUNT(*) |
+  +----------+
+  |        0 |
+  +----------+
+
+Live network capture during Shop-module entry (emulator-5558, network UP):
+  09-03 08:45:59.681  I flutter : [NET] GET endpoint=/api/v1/brand
+  09-03 08:46:00.671  I flutter : [NET] endpoint=/api/v1/brand http_status=200
+  -> HTTP 200 with an EMPTY [] payload (0 seeded brand rows).
+
+Consequence for live reachability of BrandsScreen's NearsErrorRetry CTA:
+  - BrandsViewWidget (home rail) only renders its "Brands" section + "See all"
+    action when `brandList!.isNotEmpty` -- an empty [] list (not null, not a
+    failure) renders SizedBox.shrink(), so the ONLY app entry point into
+    BrandsScreen never appears, with network up OR down.
+  - No other route/deep-link reaches BrandsScreen (flutter_deeplinking_enabled
+    is false in AndroidManifest.xml; grep confirms BrandsScreen is pushed from
+    exactly one call site: brands_view_widget.dart's onAction).
+  - This means BrandsScreen's NearsErrorRetry CTA is NOT reachable via live UI
+    driving in this environment regardless of this ticket's fix -- a pure data
+    seeding gap in the local dev DB, unrelated to the one-line BrandsController
+    change under test.
