@@ -1,0 +1,19 @@
+NEARS-3007 AC2 PASS — evidence log
+
+BEFORE re-run:
+  mysql> SELECT COUNT(*) FROM brands;
+  1
+
+Re-run (from worktree Admin/, own artisan/vendor):
+  $ NEARS_SEED_ALLOW_DB=multi_food_db php artisan db:seed --class=Nears3007BrandSeeder --force
+     INFO  Seeding database.
+     NEARS-3007: brand id=3.
+
+AFTER re-run:
+  mysql> SELECT id,name,slug,module_id,status FROM brands;
+  id  name                    slug                  module_id  status
+  3   NEARS-3007 QA Brand     nears-3007-qa-brand   1          1
+
+Row count still 1 (no duplicate), same id=3 returned by the seeder's own
+check-then-create (ensureBrand() found existing row by immutable slug).
+Idempotent, confirmed live.
