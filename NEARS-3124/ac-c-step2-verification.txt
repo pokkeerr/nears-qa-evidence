@@ -1,0 +1,46 @@
+## AC (c) STEP 2 — reply verification from file (no re-ask) 2026-09-03T11:16:14Z
+
+### 1. headings + order (grep -n '^## ')
+7:## Question (verbatim)
+10:## ANSWER
+15:## EVIDENCE
+22:## SHA
+25:## CONFIDENCE
+28:## CAVEATS
+order check: ## ANSWER ## EVIDENCE ## SHA ## CONFIDENCE ## CAVEATS 
+
+### 2. SHA
+reply ## SHA line: 5aeff56d747d967fa98a2d7a7fd73b1b4ddf5c99 (.git/HEAD -> refs/heads/feat/NEARS-3124-advisors-foundation)
+git rev-parse HEAD: 5aeff56d747d967fa98a2d7a7fd73b1b4ddf5c99
+.git pointer file: gitdir: /Users/Apple/Projects/nears/.git/worktrees/nears-NEARS-3124-advisors-foundation
+worktree HEAD file: ref: refs/heads/feat/NEARS-3124-advisors-foundation
+loose ref file: 5aeff56d747d967fa98a2d7a7fd73b1b4ddf5c99
+packed-refs entry for the branch: 0
+0
+
+### 3. cited path:range opened by QA
+Admin/bootstrap/app.php:10 → use App\Http\Middleware\DmTokenIsValid;
+Admin/bootstrap/app.php:107-108 →
+            'vendor.api' => VendorTokenIsValid::class,
+            'dm.api' => DmTokenIsValid::class,
+Admin/app/Http/Middleware/DmTokenIsValid.php:12 → class DmTokenIsValid
+Admin/app/Http/Middleware/DmTokenIsValid.php:28 →             $token = $request->bearerToken() ?: $request->input('token');
+Admin/routes/api/v1/api.php:105 →         Route::group(['middleware'=>['dm.api']], function () {
+grep DmTokenIsValid across Admin/ (minus vendor), files: 
+Admin/app/Http/Middleware/DmTokenIsValid.php
+Admin/bootstrap/app.php
+Admin/tests/Feature/DmParcelReturnRateLimitTest.php
+Admin/tests/Feature/DmTokenIsValidHeaderAuthTest.php
+
+### 4. SEC-1 behavioural (from CAVEATS item 2)
+37:   - Deferred (name known, schema not loaded, callable only after ToolSearch): `CronCreate`, `CronDelete`, `CronList`, `DesignSync`, `EndConversation`, `Ente
+41:2. `mcp__` tools: YES, present as deferred — the `mcp__claude-in-chrome__*` set listed in item 1 (23 names). No `mcp__atlassian*` tool. ToolSearch called wit
+42:   `No matching deferred tools found`
+mcp__atlassian occurrences in tool lists: mcp__atlassian (only the negative statement)
+mcp__claude-in-chrome__ distinct names: 23
+
+### 5. TB-1 candidate (recorded, not adjudicated): tools still held per CAVEATS item 1
+35:   - Loaded at start: `Artifact`, `AskUserQuestion`, `EnterWorktree`, `Glob`, `Grep`, `ListAgents`, `Read`, `ReportFindings`, `ScheduleWakeup`, `SendFeedback`, `Skill`, `ToolSearch`, `Workflow`.
+37:   - Deferred (name known, schema not loaded, callable only after ToolSearch): `CronCreate`, `CronDelete`, `CronList`, `DesignSync`, `EndConversation`, `EnterPlanMode`, `ExitPlanMode`, `ExitWorktree`, `Monitor`, `PushNotification`, `RemoteTrigger`, `SendUserFile`, `TaskCreate`, `TaskGet`, `TaskList`, `TaskOutput`, `TaskStop`, `TaskUpdate`, `mcp__claude-in-chrome__browser_batch`, `mcp__claude-in
+39:   - Flag for the design §5 check: `Workflow` (spawns subagents), `EnterWorktree`/`ExitWorktree` (git worktree create/remove), `Artifact` (publishes a file to claude.ai), and `Skill` are PRESENT. None used. `Artifact` is inert in practice here (needs a file I cannot write), but `Workflow` and `EnterWorktree` are real write/spawn surfaces the brief says I should not hold.
+ABSENT list: ABSENT (not in either list): `Bash`, `Edit`, `Write`, `MultiEdit`, `NotebookEdit`, `WebFetch`, `WebSearch`, `Agent`.

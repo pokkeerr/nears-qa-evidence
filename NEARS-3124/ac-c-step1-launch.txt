@@ -1,0 +1,51 @@
+## AC (c) STEP 1 — live launch of advisor-backend, 2026-09-03T11:10:11Z, HEAD 5aeff56d7, cwd /Users/Apple/Projects/nears-NEARS-3124-advisors-foundation
+
+### precondition: claude agents --json | advisor-* (expect empty)
+
+(empty — precondition met)
+
+### $ bash scripts/advisors/up.sh advisor-backend
+stdout:
+launching: claude --bg -n advisor-backend --append-system-prompt-file docs/workflow/advisors/advisor-backend.md --model claude-fable-5-1 --effort xhigh --permission-mode bypassPermissions --strict-mcp-config --allowedTools Read Grep Glob ListAgents SendMessage --disallowedTools Bash Edit Write MultiEdit NotebookEdit WebFetch WebSearch Agent "Standby."
+backgrounded · 12e21e95 · advisor-backend
+  claude agents             list sessions
+  claude attach 12e21e95    open in this terminal
+  claude logs 12e21e95      show recent output
+  claude stop 12e21e95      stop this session
+launched: advisor-backend (cwd /Users/Apple/Projects/nears-NEARS-3124-advisors-foundation)
+stderr:
+Starting background service…
+rc=0
+
+### poll claude agents --json every ~5s, up to 30s, for name==advisor-backend && kind==background
+t+2s: FOUND {"pid":11265,"id":"12e21e95","cwd":"/Users/Apple/Projects/nears-NEARS-3124-advisors-foundation","kind":"background","startedAt":1788433813052,"sessionId":"12e21e95-9c3b-48cf-a182-3c2cb9cdb2de","name":"advisor-backend","status":"busy","state":"working"}
+advisor_session_id=12e21e95  launch_elapsed_s=2
+
+### idempotency: $ bash scripts/advisors/up.sh advisor-backend (again)
+stdout:
+present: advisor-backend (12e21e95)
+stderr:
+rc=0
+
+### listing after re-run: background sessions named advisor-backend (expect exactly 1)
+{"pid":11265,"id":"12e21e95","cwd":"/Users/Apple/Projects/nears-NEARS-3124-advisors-foundation","kind":"background","startedAt":1788433813052,"sessionId":"12e21e95-9c3b-48cf-a182-3c2cb9cdb2de","name":"advisor-backend","status":"busy","state":"working"}
+count: 1
+non-roster background sessions still present (safety-pin baseline for part 2):
+audit-userapp	7c6da713
+helper	c245890c
+
+### replies dir
+drwxr-xr-x@ 3 Apple  staff  96 Sep  3 11:54 /Users/Apple/.nears/advisors/replies
+entries: 1 (dir pre-existed from the 2026-09-03 11:54 design spike; up.sh's mkdir -p is idempotent — creation this run not provable)
+
+### state snapshot ~60s after launch 11:10:29Z:
+{"id":"12e21e95","kind":"background","status":"busy","state":"working","cwd":"/Users/Apple/Projects/nears-NEARS-3124-advisors-foundation"}
+### claude logs 12e21e95 (read-only; ANSI stripped, de-duplicated, spinner frames dropped) — observed at ~11:10:29Z:
+⎿ .git/HEAD✶317✳3648✢Imagining…52·Imagining…4Imagining…5Imagining…7)Imagining…9✢Imagining…860✳Imagining…2✶46✻Imagining…7✽Imagining…8Imagining…Imagining…
+Read 1 file
+⎿ .gitmagImagining…401·Imagining…2Imagining…38You've
+worktrees/nears-NEARS-3124-advisors-foundation/HEAD
+Read 3 file
+refs/heads/feat/NEARS-3124-advisors-foundation
+
+QA reading: the --bg session is ACTING on the placeholder prompt "Standby." (design §5 says a --bg session ignores it): it reads .git/HEAD, resolves the linked-worktree gitdir pointer and the branch ref — the brief's SHA protocol, read-only. Harmless, noted as drift. Also observed: a 'Fable limit 90%' usage notice in the advisor's own TUI — capacity risk for part 2.

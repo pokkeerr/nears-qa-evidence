@@ -1,0 +1,26 @@
+# TB-1 — advisor session still holds spawn/write/egress-capable tools after the design §5 launch line (NEARS-3124, candidate, conductor triages at [8b])
+# Source: the live advisor-backend reply (session 12e21e95, launched by scripts/advisors/up.sh with the exact §5 argv incl. --strict-mcp-config), CAVEATS item 1-2, verbatim:
+
+
+1. Tool names available in this session, exact:
+   - Loaded at start: `Artifact`, `AskUserQuestion`, `EnterWorktree`, `Glob`, `Grep`, `ListAgents`, `Read`, `ReportFindings`, `ScheduleWakeup`, `SendFeedback`, `Skill`, `ToolSearch`, `Workflow`.
+   - Loaded this session via ToolSearch: `SendMessage`.
+   - Deferred (name known, schema not loaded, callable only after ToolSearch): `CronCreate`, `CronDelete`, `CronList`, `DesignSync`, `EndConversation`, `EnterPlanMode`, `ExitPlanMode`, `ExitWorktree`, `Monitor`, `PushNotification`, `RemoteTrigger`, `SendUserFile`, `TaskCreate`, `TaskGet`, `TaskList`, `TaskOutput`, `TaskStop`, `TaskUpdate`, `mcp__claude-in-chrome__browser_batch`, `mcp__claude-in-chrome__computer`, `mcp__claude-in-chrome__file_upload`, `mcp__claude-in-chrome__find`, `mcp__claude-in-chrome__form_input`, `mcp__claude-in-chrome__get_page_text`, `mcp__claude-in-chrome__gif_creator`, `mcp__claude-in-chrome__javascript_tool`, `mcp__claude-in-chrome__list_connected_browsers`, `mcp__claude-in-chrome__navigate`, `mcp__claude-in-chrome__read_console_messages`, `mcp__claude-in-chrome__read_network_requests`, `mcp__claude-in-chrome__read_page`, `mcp__claude-in-chrome__resize_window`, `mcp__claude-in-chrome__select_browser`, `mcp__claude-in-chrome__shortcuts_execute`, `mcp__claude-in-chrome__shortcuts_list`, `mcp__claude-in-chrome__switch_browser`, `mcp__claude-in-chrome__tabs_close_mcp`, `mcp__claude-in-chrome__tabs_context_mcp`, `mcp__claude-in-chrome__tabs_create_mcp`, `mcp__claude-in-chrome__upload_image`.
+   - ABSENT (not in either list): `Bash`, `Edit`, `Write`, `MultiEdit`, `NotebookEdit`, `WebFetch`, `WebSearch`, `Agent`.
+   - Flag for the design §5 check: `Workflow` (spawns subagents), `EnterWorktree`/`ExitWorktree` (git worktree create/remove), `Artifact` (publishes a file to claude.ai), and `Skill` are PRESENT. None used. `Artifact` is inert in practice here (needs a file I cannot write), but `Workflow` and `EnterWorktree` are real write/spawn surfaces the brief says I should not hold.
+
+2. `mcp__` tools: YES, present as deferred — the `mcp__claude-in-chrome__*` set listed in item 1 (23 names). No `mcp__atlassian*` tool. ToolSearch called with query "mcp__atlassian" (max_results 5); exact result:
+   `No matching deferred tools found`
+
+# Design §5 table (tasks/advisors/00-advisors-design.md) — the removal list the launch line implements:
+| Permission mode | `bypassPermissions` | Same class as the conductors that ask; cross-class delivery is held for the recipient's user and expires |
+| No Bash | removed at launch | Read-only by tool removal, the only lock that held; the sha is read from `.git/HEAD` and the ref it names; no clock, no `git`, nothing executes |
+| No Write, Edit, MultiEdit, NotebookEdit | removed at launch | Path-scoped rules are not enforced under bypass; only whole-tool removal holds |
+| No WebFetch, WebSearch, Agent | removed at launch | The answer must come from the tree at the current sha, and an advisor never spawns |
+| No MCP servers | `--strict-mcp-config` | MCP tools bypass the built-in allow/deny lists; with no `--mcp-config` supplied, zero servers load |
+| Model and effort | Fable 5.1, xhigh | Pinned on the launch line with `--model claude-fable-5-1 --effort xhigh` (both flags exist on CLI 2.1.259); `up.sh` never relies on the CLI default. |
+
+# Launch line executed (lib.sh:87):
+  ADVISORS_ARGV=(--bg -n "$1" --append-system-prompt-file "$2" --model claude-fable-5-1 --effort xhigh --permission-mode bypassPermissions --strict-mcp-config --allowedTools Read Grep Glob ListAgents SendMessage --disallowedTools Bash Edit Write MultiEdit NotebookEdit WebFetch WebSearch Agent "Standby.")
+
+# QA reading: --disallowedTools removed exactly the 8 named tools (ABSENT list confirms). Still held: Workflow (subagent spawn), EnterWorktree/ExitWorktree (worktree create/remove = filesystem write), Artifact (publish to claude.ai), Skill, Cron*/ScheduleWakeup/RemoteTrigger/SendUserFile/Task*, and 23 deferred mcp__claude-in-chrome__* built-in bridge tools (not an --mcp-config server, so --strict-mcp-config does not remove them). Design §5's 'read-only by tool removal' claim is incomplete. Severity per conductor: High. None of these were used in the exchange.

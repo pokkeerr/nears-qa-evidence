@@ -1,0 +1,108 @@
+## Regression sweep C — qa-run-stop.test.sh (untouched shared suite; detached rerun after the in-tool run hung at case 0 'wait') 11:06:13Z
+
+### $ bash scripts/qa-run-stop.test.sh
+== qa-run-stop.test.sh (NEARS-2528) ==
+-- case 0: FIXTURE VALIDITY — the suite's own liveness instrument can see both directions
+  ok   0: a spawned sleeper reads as ALIVE — the survives-assertions below can discriminate
+  ok   0: after TERM + reap the same pid reads as DEAD — the was-killed assertions can discriminate
+-- case 1: AC1 — qa-run.sh records {pid, lstart, serial, app, written_at} JUST BEFORE the exec, and the recorded pid IS the exec'd pid
+  ok   1: the guarded launch runs to the exec and exits through the fake flutter (exit 0)
+  ok   1: the launch shape is UNCHANGED — flutter still gets exactly 'run -d <serial>'
+  ok   1: the pidfile exists at $QA_PIDS_DIR/<serial>
+  ok   1: the pidfile is exactly one line — greppable, and not a concatenation of stale writes
+  ok   1 (THE POINT): the recorded pid EQUALS the pid the fake flutter was exec'd as — pid preserved through the exec chain, measured not asserted
+  ok   1: the serial field round-trips
+  ok   1: the app field round-trips
+  ok   1: the lstart stamp is non-empty ('Thu Sep 3 15:06:13 2026') — the identity half qa-run-stop.sh compares against
+  ok   1: written_at carries a timestamp
+  ok   1: the launch announces the pidfile and where teardown lives
+  ok   1: the pidfile parses as ONE JSON document (json.load — jq would accept concatenated docs)
+  ok   1: the JSON-parsed pid agrees with the sed-parsed one — both parsers see the same fact
+-- case 2: AC1 — a pidfile write FAILURE warns loudly and NEVER costs the launch
+  ok   2: the launch still exits clean (exit 0)
+  ok   2 (THE POINT): flutter WAS exec'd — the launch happened despite the pidfile failure
+  ok   2: and the failure is warned LOUDLY, not swallowed
+  ok   2: the warning says the launch proceeds by design
+-- case 3: AC2 — only the RECORDED pid is killed; a flutter-shaped sibling on the SAME serial survives
+  ok   3 (FIXTURE): the recorded pid's args carry the 'emulator-5554' substring — the exact string an emulator-shape check must NOT trip on
+scripts/qa-run-stop.test.sh: line 211: 98127 Terminated: 15          sleep 300
+  ok   3: the stop exits clean (exit 0)
+  ok   3 (POSITIVE CONTROL): the recorded pid 98127 IS dead — the kill was observed on a live process, so the survival assertions below are not vacuous
+  ok   3 (THE POINT): the flutter-shaped SIBLING on the same serial survives — the kill is by pid, never by name or serial
+  ok   3: the pidfile is removed after a successful stop
+  ok   3: the success line names the pid it stopped
+  ok   3: …and says the emulator is untouched (reuse beats re-boot = the device, not the app)
+  ok   3 (NEGATIVE CONTROL): a legitimate stop trips no refusal path
+-- case 4: AC3 — lstart mismatch = PID REUSE: pinned refusal, NOTHING killed, stale pidfile removed
+  ok   4: the recorded process is gone, so the goal state holds — clean exit (exit 0)
+  ok   4 (PINNED): the refusal names the mechanism
+  ok   4 (PINNED): …and says exactly what it does about it
+  ok   4: the message shows the recorded stamp, so the mismatch is inspectable
+  ok   4 (THE POINT): the pid's current owner is untouched — zero kills on a reused pid
+  ok   4: the stale pidfile is removed — the recorded process no longer exists to stop
+-- case 5: AC4 — double-stop is idempotent; a dead recorded pid cleans its own stale pidfile
+  ok   5: stopping an already-stopped serial exits 0 (exit 0)
+  ok   5: …and says so, rather than failing or guessing
+  ok   5: the second stop killed nothing — the surviving sibling is still alive
+  ok   5: a pidfile whose pid already exited is a clean exit 0 (exit 0)
+  ok   5: …announced as already-stopped, not an error
+  ok   5 (THE POINT): the stale pidfile is gone afterwards — asserted absent, not assumed
+  ok   5: and a third stop on the now-clean serial is still exit 0 (exit 0)
+  ok   5: with the same no-pidfile message — fully idempotent
+-- case 6: AC5 — an emulator/qemu-shaped pid is REFUSED even when the pidfile names it; no name-based kill exists
+  ok   6: a qemu-shaped recorded pid is a REFUSAL exit, not a stop (exit 3)
+  ok   6 (PINNED): the refusal names the shape
+  ok   6 (PINNED): …and the rule
+  ok   6 (PINNED): …and that nothing was signalled
+  ok   6 (THE POINT): the qemu-shaped process is alive and untouched
+  ok   6: the pidfile is KEPT on an emulator refusal — evidence for the operator, this state should not exist
+  ok   6: the bare 'emulator' launcher binary is refused the same way (exit 3)
+  ok   6: same pinned refusal for the second emulator shape
+  ok   6: and it is still alive after that attempt too
+  ok   6 (STRUCTURAL PIN): no pkill/killall anywhere in qa-run-stop.sh — there is no name-based kill to reach
+  ok   6 (STRUCTURAL PIN): every kill invocation in qa-run-stop.sh targets "$pid" — nothing else can ever be signalled
+-- case 7: REFUSAL — alive + stamp matches, but the command is not dart/flutter-shaped
+  ok   7: a non-app-shaped pid is a refusal exit (exit 3)
+  ok   7 (PINNED): the refusal names the failed shape check
+  ok   7 (PINNED): …and that nothing was signalled
+  ok   7: the process is untouched (case 3 is the positive control that this gate PASSES a real dart shape)
+-- case 8: ROBUSTNESS — a malformed pidfile kills nothing and is removed with a loud warning
+  ok   8: a malformed pidfile is not a crash — clean exit (exit 0)
+  ok   8: with a loud warning naming the problem
+  ok   8: and the junk file is removed
+-- case 9: F1 — a pid REUSED by a qemu-shaped occupant is PID REUSE (self-cleaning), never the EMULATOR refusal
+  ok   9: identity is decided FIRST — a stamp mismatch is the clean pid-reuse exit whatever the occupant's shape (exit 0)
+  ok   9 (PINNED): classified as PID REUSE
+  ok   9 (THE POINT): NOT the emulator refusal — that branch keeps the pidfile, so a dead session would refuse forever instead of cleaning up
+  ok   9: the qemu-shaped occupant is untouched — the reuse branch kills nothing either, so the order swap cannot weaken the emulator invariant
+  ok   9: the stale pidfile is REMOVED — self-cleaning, repeat stops will not re-fight this pid
+-- case 10: NEARS-2531 — an EMPTY start stamp (either side) is INDETERMINATE IDENTITY: pinned refusal, zero kills, pidfile KEPT
+  ok   10: an empty RECORDED stamp is a cannot-prove refusal exit, not a stop and not the reuse cleanup (exit 3)
+  ok   10 (PINNED): the refusal names the mechanism
+  ok   10 (PINNED): …and says the pidfile survives
+  ok   10 (THE POINT): NOT the pid-reuse path — that branch deletes the pidfile, destroying the evidence of the empty stamp
+  ok   10: the live occupant is untouched — no kill on unproven identity (case 0 proved this instrument sees death)
+  ok   10: the pidfile is KEPT for inspection
+  ok   10: an empty LIVE stamp is the same cannot-prove refusal exit (exit 3)
+  ok   10 (PINNED): same pinned refusal for the live-side direction
+  ok   10: NOT the wrong-shape refusal — identity is judged (and refused) before shape ever runs
+  ok   10: still alive after the live-side attempt too
+  ok   10: and the pidfile is still present
+
+-- result: PASS
+-- validity: 74 assertion(s) made across 11 case(s); 0 failed
+assertion count matches the pin (74)
+scripts/qa-run-stop.test.sh: line 51: 98128 Terminated: 15          sleep 300
+scripts/qa-run-stop.test.sh: line 51: 98183 Terminated: 15          sleep 300
+scripts/qa-run-stop.test.sh: line 51: 98270 Terminated: 15          sleep 300
+scripts/qa-run-stop.test.sh: line 51: 98364 Terminated: 15          sleep 300
+scripts/qa-run-stop.test.sh: line 51: 98423 Terminated: 15          sleep 300
+scripts/qa-run-stop.test.sh: line 51: 98478 Terminated: 15          sleep 300
+rc=0
+
+### CONTROL: same suite on the primary tree (base feat/userapp-reskin2):
+## CONTROL — qa-run-stop.test.sh on the primary tree (base feat/userapp-reskin2) 11:06:18Z HEAD 4e2795075
+-- result: PASS
+-- validity: 74 assertion(s) made across 11 case(s); 0 failed
+rc=0
+### note: the first in-tool run hung at case 0 'wait' for 2 min — the agent Bash tool intercepts foreground sleep; detached rerun passes. Environmental, not a suite defect.

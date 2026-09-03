@@ -1,0 +1,29 @@
+## Regression sweep A — catalog.json + review-lessons.json 11:02:28Z
+
+### $ jq . docs/catalog.json >/dev/null
+rc=0
+top-level type: object
+
+### advisors items in catalog.json (path + exists on disk):
+EXISTS  docs/workflow/advisors/brief-template.md
+EXISTS  docs/workflow/advisors/advisor-backend.md
+EXISTS  docs/workflow/advisors/advisor-flutter.md
+EXISTS  docs/workflow/advisors/advisor-dls.md
+EXISTS  docs/workflow/advisors/advisor-product.md
+advisors item count: 5
+
+### catalog.json diff vs base (added lines mentioning advisors):
+12
+
+### $ jq . docs/workflow/review-lessons.json >/dev/null
+rc=0
+grep -c restricted-session-mcp-scope-gap: 1
+python json.load doc check:
+single JSON document OK, type dict
+
+### docs/index.md advisors lines:
+117:- [Advisor brief — advisor-backend (phase 1)](docs/workflow/advisors/advisor-backend.md) — Self-contained system-prompt brief for the standing read-only backend advisor session (NEARS-3124, loaded by scripts/advisors/up.sh via --append-system-prompt-file): Admin/ CentralLogics, routes/api v1+v2, per-actor guards, jobs and notifications, migrations and seeders as text, backend analytics/i18n/performance. Rules written out with sources from CLAUDE.md, nears-reference.md §9/§14 and the logging contract; Known traps = the 19 active review-lessons rules assigned to the domain; any DB write or seed execution is Tier C and answers 'owner'.
+118:- [Advisor brief — advisor-dls (phase 1)](docs/workflow/advisors/advisor-dls.md) — Self-contained system-prompt brief for the standing read-only design-system advisor session (NEARS-3124): NearsTokens, the 63 N* components of packages/nears_dls/catalog.yaml (as of the brief's authoring sha, including NRatingInput, NEARS-2910), goldens, Stitch specs, a11y and RTL rules. Rules written out with sources from docs/platform/design-system-nears.md (three-tier design authority, the 4 hard brand rules, tokens, the NEARS-1101 semantics-boundary rule, cross-cutting expectations), the catalog header and the profile; Known traps = the 7 active review-lessons rules assigned to the domain plus catalog-note gotchas; the token file wins any value dispute.
+119:- [Advisor brief — advisor-flutter (phase 1)](docs/workflow/advisors/advisor-flutter.md) — Self-contained system-prompt brief for the standing read-only Flutter advisor session (NEARS-3124): UserApp/VendorApp/DeliveryApp GetX layering, get_di.dart, route_helper.dart, the app_constants.dart endpoint map, api_client.dart, the AppLogger contract, analytics SDK wiring, app i18n and performance. Rules written out with sources from CLAUDE.md §Flutter, nears-reference.md §14/§16, docs/apps/_shared and the logging contract; Known traps = the 18 active review-lessons rules assigned to the domain; redirects token questions to advisor-dls and contract truth to advisor-backend.
+120:- [Advisor brief — advisor-product (phase 1)](docs/workflow/advisors/advisor-product.md) — Self-contained system-prompt brief for the standing read-only product advisor session (NEARS-3124), the stand-in for product-shaped gates: product intent, scope in/out, AC wording, ticket hygiene and every Tier B call of design §10. Carries nears-reference.md §0 (north star, model, promise, the four principles in priority order), the product-vision-check rule, the full A/B/C decision-tier table with the scope and data narrowings, the owner queues, and ticket-hygiene rules from CLAUDE.md and the profile; Known traps = the 6 active review-lessons evidence/AC rules; Tier C always answers 'owner'.
+121:- [Advisors — brief template (design §6 skeleton)](docs/workflow/advisors/brief-template.md) — Skeleton every advisor brief follows (NEARS-3124; design of record tasks/advisors/00-advisors-design.md §6): the eight H2s, the §7 question packet and answer envelope verbatim, the §8 one-hop rule verbatim, the shared investigation protocol (grep locates / re-read on every question / SHA stamp read from .git/HEAD / cite or say UNKNOWN) and the mandatory never-do list. scripts/advisors/advisors.test.sh compares each phase-1 brief's H2 set and 150–250-line length against this file.

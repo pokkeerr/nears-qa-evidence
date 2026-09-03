@@ -1,0 +1,76 @@
+## AC (d) structural — H2 sets, line counts, never-do items 11:01:58Z
+
+### template H2 set (fence-aware):
+## Answer contract
+## Identity and scope boundary
+## Investigation protocol
+## Known traps
+## Never-do list
+## One-hop rule
+## Project context
+## Rules and standards
+
+### advisor-backend
+wc -l: 203
+H2 set: EQUAL to template
+never-do section lines: 14
+  never-do 'only grep': 1 line(s)
+  never-do '"owner"': 2 line(s)
+  never-do 'second advisor': 1 line(s)
+  never-do 'guess a sha': 1 line(s)
+
+### advisor-flutter
+wc -l: 189
+H2 set: EQUAL to template
+never-do section lines: 14
+  never-do 'only grep': 1 line(s)
+  never-do '"owner"': 1 line(s)
+  never-do 'second advisor': 1 line(s)
+  never-do 'guess a sha': 1 line(s)
+
+### advisor-dls
+wc -l: 178
+H2 set: EQUAL to template
+never-do section lines: 14
+  never-do 'only grep': 1 line(s)
+  never-do '"owner"': 1 line(s)
+  never-do 'second advisor': 1 line(s)
+  never-do 'guess a sha': 1 line(s)
+
+### advisor-product
+wc -l: 174
+H2 set: EQUAL to template
+never-do section lines: 15
+  never-do 'only grep': 1 line(s)
+  never-do '"owner"': 2 line(s)
+  never-do 'second advisor': 1 line(s)
+  never-do 'guess a sha': 1 line(s)
+
+### verbatim never-do lines per brief:
+--- advisor-backend:
+- Never claim a file was read when only grep hit it.
+- Never answer a Tier C item with anything but "owner". Tier C (design §10, verbatim): scope widening that adds a new surface or actor (a new endpoint, schema, UI screen, money path, or a second actor); executing any write against the shared dev database or any non-local database (DML, seeder run, migration run) and any truncating or refresh seeder; destructive or irreversible actions; money-path behaviour change without a ticket; overriding a QA FAIL or a security Critical; merging past a semantic sentinel conflict; credentials; deploy; permission changes.
+- Never consult a second advisor: one hop per question, once; a question whose id ends in `-hop1` is terminal.
+- Never guess a sha.
+- Never describe a DB write or a seeder/migration RUN as something you can approve or perform: the file is text you can read; its execution against any shared or non-local database is "owner".
+--- advisor-flutter:
+- Never claim a file was read when only grep hit it.
+- Never answer a Tier C item with anything but "owner". Tier C (design §10, verbatim): scope widening that adds a new surface or actor (a new endpoint, schema, UI screen, money path, or a second actor); executing any write against the shared dev database or any non-local database (DML, seeder run, migration run) and any truncating or refresh seeder; destructive or irreversible actions; money-path behaviour change without a ticket; overriding a QA FAIL or a security Critical; merging past a semantic sentinel conflict; credentials; deploy; permission changes.
+- Never consult a second advisor: one hop per question, once; a question whose id ends in `-hop1` is terminal.
+- Never guess a sha.
+--- advisor-dls:
+- Never claim a file was read when only grep hit it.
+- Never answer a Tier C item with anything but "owner". Tier C (design §10, verbatim): scope widening that adds a new surface or actor (a new endpoint, schema, UI screen, money path, or a second actor); executing any write against the shared dev database or any non-local database (DML, seeder run, migration run) and any truncating or refresh seeder; destructive or irreversible actions; money-path behaviour change without a ticket; overriding a QA FAIL or a security Critical; merging past a semantic sentinel conflict; credentials; deploy; permission changes.
+- Never consult a second advisor: one hop per question, once; a question whose id ends in `-hop1` is terminal.
+- Never guess a sha.
+--- advisor-product:
+- Never claim a file was read when only grep hit it.
+- Never answer a Tier C item with anything but "owner". Tier C (design §10, verbatim): scope widening that adds a new surface or actor (a new endpoint, schema, UI screen, money path, or a second actor); executing any write against the shared dev database or any non-local database (DML, seeder run, migration run) and any truncating or refresh seeder; destructive or irreversible actions; money-path behaviour change without a ticket; overriding a QA FAIL or a security Critical; merging past a semantic sentinel conflict; credentials; deploy; permission changes.
+- Never consult a second advisor: one hop per question, once; a question whose id ends in `-hop1` is terminal.
+- Never guess a sha.
+- Never accept a widening: a new surface, a second actor, a money-path change or a schema change is "owner", however small it reads.
+
+### design §10 JQL cross-check vs owner-queue.sh:
+90:| `owner-queue.sh` | prints the two owner queues (section 10): `labels = advisor-decided` and `labels = waiting-on-owner` |
+233:| Ratify | `project = NEARS AND labels = advisor-decided` | read the comment; reply to override, or leave it |
+234:| Unblock | `project = NEARS AND labels = waiting-on-owner AND status = Blocked` | reply on the ticket with the answer; the run resumes |

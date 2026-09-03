@@ -1,0 +1,147 @@
+## AC (a) — advisors.test.sh run 2026-09-03T11:00:51Z from /Users/Apple/Projects/nears-NEARS-3124-advisors-foundation HEAD 5aeff56d7
+
+### BEFORE: claude agents --json | advisor-* names
+(count: 0)
+
+### $ bash scripts/advisors/advisors.test.sh
+== advisors.test.sh (NEARS-3124) ==
+-- case 0: INSTRUMENTS — the recorder records and the tripwire fires
+  ok   0: the fake claude records argv one-per-line (recorder positive control)
+  ok   0: a bare `claude` on PATH is the tripwire, not the real CLI (exit 99)
+  ok   0: the tripwire leaves a marker — the never-launched assertions below can see a breach
+-- case 1: ROSTER — 9 entries, file order, brief/phase per design §4, reader refuses empty/duplicate
+  ok   1: exactly 9 roster entries
+  ok   1: names in FILE order = the design §4 pilot order
+  ok   1: every brief path is docs/workflow/advisors/<name>.md
+  ok   1: pilot phases = 1,1,1,1,2,2,3,3,3 (design §4)
+  ok   1: every entry carries domain keywords
+  ok   1: advisors_roster_check accepts the shipped roster (exit 0)
+  ok   1: brief lookup by exact name
+  ok   1: a name not in the roster resolves to EMPTY, never a guess
+  ok   1: a roster that parses to zero entries is REFUSED (never 'nothing to do') (exit 1)
+  ok   1 (PINNED): the refusal names the mechanism
+  ok   1: duplicate names are refused (exit 1)
+  ok   1: PyYAML cross-check — a real YAML parser sees the same names in the same order as the awk reader
+-- case 2: DRY-RUN (AC b) — 9 lines, byte-equal to design §5, both flag orders, nothing launched or written
+  ok   2: up.sh --dry-run all exits 0 (exit 0)
+  ok   2: exactly 9 launch lines on stdout
+  ok   2 (THE POINT): line 1 is byte-equal to the §5 line for advisor-backend
+  ok   2: line 3 is byte-equal to the §5 line for advisor-dls
+  ok   2: all 9 lines, in roster order, each byte-equal to its own §5 line
+  ok   2 (SEC-1): every rendered line carries --strict-mcp-config immediately after bypassPermissions (MCP servers bypass --disallowedTools)
+  ok   2: `up.sh all --dry-run` prints the identical 9 lines (both flag orders)
+  ok   2: a single name prints one line
+  ok   2: …byte-equal to its §5 line
+  ok   2: dry-run never invoked the claude seam
+  ok   2: dry-run never reached a PATH `claude` either
+  ok   2: one stderr note per roster brief absent on disk (stdout stays 9 lines)
+  ok   2: the shipped state is 4 phase-1 briefs present, 5 phase-2/3 briefs absent
+  ok   2: nothing under docs/workflow/advisors or scripts/advisors was written by the dry-run
+-- case 3: LIVE DETECTION — exact name AND kind == background; failed/invalid listing is an error, never 'all missing'
+  ok   3: advisor-backend (background) is live with its id
+  ok   3: the prefix twin advisor-backend-old is NOT matched for advisor-backend
+  ok   3 (THE POINT): an INTERACTIVE window named advisor-flutter is not an advisor session
+  ok   3: an absent name is empty
+  ok   3 (FIXTURE): the non-roster background session IS in the listing — so 'never touched' below is not vacuous
+  ok   3: a listing that returns a JSON array is accepted (exit 0)
+  ok   3: a listing command that fails propagates its rc (exit 3)
+  ok   3 (PINNED): …and says so
+  ok   3: a listing that is not a JSON array (the non-TTY refusal text) is an error (exit 1)
+  ok   3 (PINNED): …named as such
+  ok   3: with no ADVISORS_AGENTS_CMD the default path calls the binary seam (exit 0)
+  ok   3: …as `agents --json` (bare `agents` refuses a non-TTY on CLI 2.1.259)
+-- case 4: UP (live path, fixture tree) — present is skipped, missing is launched with the exact argv, no brief is refused
+  ok   4a: a live advisor is a clean exit (exit 0)
+  ok   4a: …reported present with its id
+  ok   4a: zero launches for a present advisor
+  ok   4b: a missing advisor (interactive twin only) launches cleanly (exit 0)
+  ok   4b: exactly one claude invocation
+  ok   4b (THE POINT): the EXECUTED argv is byte-equal to the §5 line, element by element (literal here, not lib.sh)
+  ok   4b (SEC-1): the EXECUTED argv has --strict-mcp-config as the element right after bypassPermissions
+  ok   4b: the launch is announced
+  ok   4b: the announced line is the same §5 line the dry-run prints
+  ok   4b: up.sh created the reply dir (ADVISORS_REPLIES_DIR override — outside the repo)
+  ok   4c: a name whose brief file is missing is a refusal exit (exit 1)
+  ok   4c (PINNED): the refusal names the name and the path
+  ok   4c (THE POINT): nothing was launched for a missing brief
+  ok   4f (CR-2): two live sessions with the same advisor name are warned about by id, never silently collapsed
+  ok   4f: …and still nothing is launched (present wins)
+  ok   4d: `up.sh all` on an empty listing launches exactly the names whose briefs exist (3 in the fixture)
+  ok   4d: …in roster order
+  ok   4d: the six brief-less names are each refused on stderr
+  ok   4d: and the run reports the refusals via rc 1 (exit 1)
+  ok   4e: launched from cwd=/ the session cwd is the FIXTURE root (root from the script's own path, not the caller's cwd)
+  ok   4e: …and the brief path on the argv stays root-relative
+-- case 5: LISTING FAILURE — abort loud BEFORE any launch or stop; never 'all missing'
+  ok   5: up.sh all on a failed listing is an abort exit (exit 1)
+  ok   5 (PINNED): …that says it launched nothing
+  ok   5 (THE POINT): zero launches — a failed listing did not read as nine missing advisors
+  ok   5: the abort happens before the reply-dir mkdir
+  ok   5: the non-TTY refusal text as a listing is the same abort (exit 1)
+  ok   5: …with zero launches
+  ok   5: down.sh all on a failed listing is an abort exit (exit 1)
+  ok   5 (PINNED): …that says it stopped nothing
+  ok   5: zero stops
+-- case 6: DOWN — roster names only, background kind only; helper and the prefix twin are never touched
+  ok   6: down.sh all exits clean (exit 0)
+  ok   6: exactly one stop
+  ok   6 (THE POINT): the one stop targets advisor-backend's id
+  ok   6 (THE POINT): helper, advisor-backend-old and audit-userapp were never passed to stop
+  ok   6: the stop is announced with the id
+  ok   6: the interactive advisor-flutter window is 'not running' — never a stop target
+  ok   6: `down.sh helper` is a usage refusal (not a roster name) (exit 2)
+  ok   6: …with zero stops
+  ok   6 (PINNED): …naming the reason
+  ok   6: the prefix twin is refused by name too (exit 2)
+  ok   6: …zero stops
+  ok   6: an absent roster advisor is a clean 'not running' (exit 0)
+  ok   6: …zero stops
+  ok   6: two background sessions carrying the same advisor name are both stopped
+-- case 7: OWNER-QUEUE (AC f) — both §10 JQLs verbatim, the MCP tool named, no REST path
+  ok   7: owner-queue.sh exits 0 (exit 0)
+  ok   7: the Ratify JQL is printed verbatim
+  ok   7: the Unblock JQL is printed verbatim
+  ok   7: the hint names the Atlassian MCP tool
+  ok   7 (STRUCTURAL PIN): no curl/wget/URL/REST path in owner-queue.sh
+  ok   7 (STRUCTURAL PIN): no credential variable referenced
+  ok   7: owner-queue.sh never touches claude
+-- case 8: USAGE — no target, unknown flag, unknown name, two targets: exit 2, nothing launched
+  ok   8: up.sh with no target is usage (exit 2)
+  ok   8: an unknown flag is usage (exit 2)
+  ok   8: a name not in the roster is usage (dry-run too) (exit 2)
+  ok   8 (PINNED): …naming it
+  ok   8: two targets is usage (exit 2)
+  ok   8: down.sh with no target is usage (exit 2)
+  ok   8: none of the usage paths reached claude
+-- case 9: STRUCTURE — one launch template, no name-based kill, no repo write at runtime, tripwire clean
+  ok   9: the launch template appears exactly once in lib.sh
+  ok   9: no second template in up.sh/down.sh/owner-queue.sh
+  ok   9 (STRUCTURAL PIN): no pkill/killall/rm -rf anywhere in the scripts
+  ok   9: after every case, nothing under docs/workflow/advisors or scripts/advisors was written
+  ok   9 (THE POINT): the real `claude` was never reached by any case — no live session was started
+-- case 10: BRIEFS (AC d) — template H2 set, 150–250 lines, never-do list, §7/§8 verbatim in the template
+  ok   10: advisor-backend carries exactly the template's H2 set (fence-aware, code blocks excluded)
+  ok   10: advisor-backend is 203 lines (150–250, design §6)
+  ok   10: advisor-backend never-do list carries the four mandatory items (grep≠read, Tier C = "owner", no second advisor, no guessed sha)
+  ok   10: advisor-flutter carries exactly the template's H2 set (fence-aware, code blocks excluded)
+  ok   10: advisor-flutter is 189 lines (150–250, design §6)
+  ok   10: advisor-flutter never-do list carries the four mandatory items (grep≠read, Tier C = "owner", no second advisor, no guessed sha)
+  ok   10: advisor-dls carries exactly the template's H2 set (fence-aware, code blocks excluded)
+  ok   10: advisor-dls is 178 lines (150–250, design §6)
+  ok   10: advisor-dls never-do list carries the four mandatory items (grep≠read, Tier C = "owner", no second advisor, no guessed sha)
+  ok   10: advisor-product carries exactly the template's H2 set (fence-aware, code blocks excluded)
+  ok   10: advisor-product is 174 lines (150–250, design §6)
+  ok   10: advisor-product never-do list carries the four mandatory items (grep≠read, Tier C = "owner", no second advisor, no guessed sha)
+  ok   10: the template carries the design §7 answer envelope VERBATIM
+  ok   10: the template carries the design §8 one-hop rule verbatim (opening sentence)
+
+-- result: PASS
+-- validity: 118 assertion(s) made across 11 case(s); 0 failed
+assertion count matches the pin (118)
+rc=0
+
+### AFTER: claude agents --json | advisor-* names
+(count: 0)
+
+### diff before/after (empty = identical)
+IDENTICAL

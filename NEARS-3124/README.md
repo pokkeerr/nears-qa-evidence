@@ -1,0 +1,31 @@
+# QA Evidence — NEARS-3124
+
+**QA PASS — advisors foundation (device-free): ACs a-f live, advisor round-trip 12e21e95, TB-1 candidate recorded**
+
+**0 screenshot(s).** Click any thumbnail for full resolution.
+
+### Other artifacts
+- [`ac-a-selftest.txt`](ac-a-selftest.txt)
+- [`ac-b-dryrun.txt`](ac-b-dryrun.txt)
+- [`ac-c-step0-precondition-listing.json`](ac-c-step0-precondition-listing.json)
+- [`ac-c-step1-launch.txt`](ac-c-step1-launch.txt)
+- [`ac-c-step1-listing.json`](ac-c-step1-listing.json)
+- [`ac-c-step2-advisor-reply-q-20260903-151300-nears-7b-NEARS-3124-001.md`](ac-c-step2-advisor-reply-q-20260903-151300-nears-7b-NEARS-3124-001.md)
+- [`ac-c-step2-verification.txt`](ac-c-step2-verification.txt)
+- [`ac-c-step3-listing-after-down.json`](ac-c-step3-listing-after-down.json)
+- [`ac-c-step3-teardown.txt`](ac-c-step3-teardown.txt)
+- [`ac-d-advisor-backend.md`](ac-d-advisor-backend.md)
+- [`ac-d-advisor-dls.md`](ac-d-advisor-dls.md)
+- [`ac-d-advisor-flutter.md`](ac-d-advisor-flutter.md)
+- [`ac-d-advisor-product.md`](ac-d-advisor-product.md)
+- [`ac-d-structural.txt`](ac-d-structural.txt)
+- [`ac-f-owner-queue.txt`](ac-f-owner-queue.txt)
+- [`bug-tb1-advisor-tool-surface-not-removed.log`](bug-tb1-advisor-tool-surface-not-removed.log)
+- [`progress.md`](progress.md)
+- [`regression-a-catalog-lessons.txt`](regression-a-catalog-lessons.txt)
+- [`regression-b-docs-catalog-check.txt`](regression-b-docs-catalog-check.txt)
+- [`regression-c-qa-run-stop-test.txt`](regression-c-qa-run-stop-test.txt)
+- [`sec-1-strict-mcp-config.txt`](sec-1-strict-mcp-config.txt)
+
+---
+*From `nears/docs/qa-evidence/NEARS-3124/` · public-repo scrub policy (no live secrets; verified clean).*
