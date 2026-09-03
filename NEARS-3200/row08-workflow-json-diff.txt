@@ -1,0 +1,17 @@
+-            "status": "pilot — every consult point optional (design §12); mandatory only on a non-worse next-10 vs last-10 run comparison by lane",
++            "status": "pilot — asks are question-driven; only the [2b] gate is mandatory (design §12; the non-worse next-10 vs last-10 run comparison by lane still measures the pilot)",
+-            "asker": "the conductor only — no phase agent holds SendMessage/ListAgents; nears-qa's questions[] route back through the conductor into the delta re-QA packet",
++            "asker": "the conductor only — no phase agent holds SendMessage/ListAgents; a phase agent raises NEEDS_DECISION{question, options, recommendation, domain} and never waits",
+-                "[2] the TL's questions[], answered before it writes the solution doc",
+-                "[6] the engineer packet (questions[] from the build envelope -> advisor_answers[] in the next packet)",
+-                "[8] the compiled QA Test Scope, asked by the conductor before spawning QA and folded into the scope QA receives",
+-                "ad hoc, via the conductor"
++                "(1) a NEEDS_DECISION{question, options, recommendation, domain} from ANY phase agent — the conductor classifies the tier (design §10) and routes a Tier A/B item to the roster advisor named by domain; Tier C parks",
++                "(2) the [2b] tier gate (fail-closed, advisor-product)",
++                "(3) ad hoc — when the conductor holds a domain question it would otherwise put to the owner",
++                "nothing else asks: no pre-doc TL consult, no engineer-packet round-trip, no pre-QA scope review (NEARS-3200)"
++            "why": "advisors answer questions the workflow would otherwise put to the owner; they are not a review step",
+-            "packetField": "advisor_answers[]: [{qid, reply_path, answer_one_line}] in the fix-cycle packet",
+-            "envelopeField": "questions[]: [{question, domain: backend|flutter|dls|product, files_in_play[]}] — optional on any agent envelope; the agent never waits for the answer",
++            "packetField": "decisions_already_made (existing) carries NEEDS_DECISION answers; no advisor-specific field",
++            "envelopeField": "NEEDS_DECISION{question, options, recommendation, domain} — domain routes to the roster advisor; no agent asks or waits",

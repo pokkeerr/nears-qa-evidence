@@ -1,0 +1,126 @@
+§1 live controls — the guard must fail on the real defect and pass on the real fix
+  ok   1a control 2f9629dc: the pre-sweep doc FAILS
+  ok   1a control 2f9629dc: names all 11 :NN offenders + the bare-shape offender (NEARS-2170)
+  ok   1a control 2f9629dc: reports each offender's file and locator
+  ok   1a control 2f9629dc: reports the bare-shape offender too (NEARS-2170)
+  ok   1a control 2f9629dc: asserted the whole citation set
+  ok   1b control tip: the fixed corpus passes
+  ok   1b control tip: zero failures across every tracked doc
+§2 self-mutation class 1 — a CALL SITE is not a DECLARATION
+  ok   2a class 1: a citation resolving to call-site-only material FAILS
+  ok   2a class 1: the FAIL names the call-site evidence that does not live in the declaration
+  ok   2b class 1: the declaration's own doc comment still verifies (resolver found the DECLARATION)
+  ok   2c class 1: exactly one of the two citations fails
+§3 self-mutation class 2 — ONE shared short token is not a match
+  ok   3a class 2: a wrong section sharing only a short identifier FAILS
+  ok   3a class 2: the FAIL names the wrong section
+  ok   3b class 2: the right section still verifies (the rule is not just 'fail everything')
+  ok   3c class 2: exactly one of the two citations fails
+§4 self-mutation class 3 — the paraphrase tier cannot rescue quoted evidence
+  ok   4a class 3: quoted evidence that does not land is a FAIL, not a paraphrase
+  ok   4a class 3: the tier did not fire at all — it is unreachable when evidence exists
+  ok   4b class 3: the SAME prose with no quotation is allowed through the weak tier
+  ok   4b class 3: and is reported as a paraphrase
+  ok   4b class 3: a paraphrase is NEVER counted as verbatim-verified
+  ok   4b class 3: and is printed distinctly for a human to eyeball
+§5 seed mutants — six near-miss re-pointings of the REAL doc, each must kill
+  ok   5 mutant killed: m1-item21-sibling-dart-symbol-same-file
+  ok   5 mutant killed: m2-item25-sibling-h3-under-same-h2
+  ok   5 mutant killed: m3-item6-sibling-decl-sharing-the-literal-token
+  ok   5 mutant killed: m4-item27-sibling-h3-different-tokens
+  ok   5 mutant killed: m5-item23-paraphrase-stress-adjacent-sec5
+  ok   5 mutant killed: m6-item23-paraphrase-stress-adjacent-sec4
+§6 scope + exit discipline
+  ok   6a empty change-set: exit 4 (NOTHING-ASSERTED), never 0
+  ok   6a empty change-set: says SKIP
+  ok   6a empty change-set: publishes a validity count of 0
+  ok   6a empty change-set: never emits a PASS verdict — nothing was asserted
+  ok   6b doc with citations but no locators: exit 4 — something was READ, nothing was ASSERTED
+  ok   6b doc with citations but no locators: says SKIP
+  ok   6b doc with citations but no locators: never emits a PASS verdict
+  FAIL 6c reverse-dep: a change-set touching only a CITED SOURCE still pulls in every citing doc (incl. the NEARS-2170 bare-shape one) -- expected to contain: : asserting 2 of 
+  ok   6c reverse-dep: the pre-existing [source:]-citing doc is still pulled in
+  ok   6c reverse-dep: the new bare-shape-citing doc is pulled in too
+  ok   6d reverse-dep: an unrelated change-set asserts nothing — exit 4, not 0
+  ok   6d reverse-dep: and asserts nothing — the guard is free on commits that cannot have caused the defect
+  ok   6e usage error exits 2 (not 1 — a misuse is not a finding)
+  ok   6f --range with no argument exits 2
+§7 non-redundancy with doc-citation-resolve.sh — the reason this guard exists
+  ok   7a non-redundancy: doc-citation-resolve.sh returns the SAME verdict word (PASS), the SAME exit code (0) and the same digit-normalised finding on the fixed and the unfixed doc — N citation(s) across N doc(s) all resolve to tracked paths.
+  ok   7a non-redundancy: this guard DOES distinguish them (fixed exit 0, unfixed exit 1)
+  ok   7b doc-citation-content.sh names the sibling guard
+  ok   7b doc-citation-content.cjs names the sibling guard
+  ok   7b the wrapper header states the non-redundancy explicitly
+§8 wrong-tree regression (NEARS-1729) — the section that did not exist
+  ok   8a cross-tree --staged FAILs on the foreign tree's wrong-locator citation
+  ok   8a the BANNER names the tree that was actually measured
+  ok   8a ...and does not vacuously SKIP on an empty change-set
+  ok   8a a NON-ZERO number of citations was actually asserted
+  ok   8b --root <foreign tree> FAILs identically from a foreign cwd
+  ok   8b --root measures the tree it names, and names the offender
+  ok   8d control: from a foreign cwd WITHOUT --root an absolute fixture IS discarded (the danger is real)
+  ok   8d control: ...and NOTHING was asserted — every §2-§4 assertion would have gone vacuously green
+  ok   8c --root beats a foreign cwd: the §2 fixture is still measured
+  ok   8c ...the fixture was not discarded
+  ok   8c ...and returns the identical verdict it does from the repo's own cwd
+  ok   8e --root <subdir> is normalised to the toplevel and still FAILs
+  ok   8e the banner names the TOPLEVEL, not the subdirectory
+  ok   8e ...and the scope did NOT collapse — still a non-vacuous 1 citation asserted
+§8f/§8g root-resolution discipline (NEARS-1729 fix cycle 2)
+  ok   8f the script-path fallback ANNOUNCES itself (never silent)
+  ok   8f ...and the banner names the fallback as the source of the root
+  ok   8f ...and it still measures the script's tree (the §2 fixture still FAILs)
+  ok   8f ...non-vacuously: the identical verdict, 2 citations actually asserted
+  ok   8g --root with no value exits 2
+  ok   8g --root= (empty value) exits 2, never a silent fallback
+  ok   8g --root "" (empty value) exits 2, never a silent fallback
+  ok   8g --root <non-git path> exits 2
+  ok   8h git-missing SKIP exits 4 — a MISSING ENGINE asserted nothing (NEARS-1804)
+  ok   8h ...and it still prints a BANNER, naming the tree as unknown rather than saying nothing
+  ok   8h ...and names git as the reason, so the SKIP is not mistaken for an empty change-set
+  ok   8h ...and it states 0/0/0 in the SAME format as every other verdict (one shared format string)
+§9 the scope convention (NEARS-1804) — the library, and the legacy escape
+  ok   9a guard-scope.sh absent -> exit 4, never a green
+  ok   9b ...and it names the missing library
+  ok   9c NEARS_GUARD_LEGACY_EXIT0=1 downgrades a nothing-asserted run 4 -> 0
+  ok   9d ...and the verdict WORD still reads SKIP — read the word, not the code
+  ok   10a empty range is still NOTHING-ASSERTED (exit 4)
+  ok   10b ...and the empty-scope SKIP states what to do, not merely that it stopped
+  ok   10c positive control: a real scope prints no remedy, so 10b is not vacuous
+§11 NEARS-1500 --expect-nonempty escalation
+  ok   11(baseline) legacy path (no flag) exits 4 -- baseline for the byte-identical check below
+  ok   11a --expect-nonempty + empty change-set exits 1 (FAIL), not the bare SKIP/4
+  ok   11a ...and the verdict word reads FAIL, not SKIP
+  ok   11a ...and the message names the flag, so a reader does not go hunting for a bad citation
+  ok   11a ...and it is labelled an expectation violation, not a citation-content FAIL
+  ok   11b --expect-nonempty on a real, clean scope still exits 0
+  ok   11b ...and still reports zero failures across the tracked corpus
+  ok   11b ...and never mentions the escalation on a real pass
+  ok   11c legacy path (no flag) is unchanged: still exits 4
+  ok   11c ...and the output is BYTE-IDENTICAL to the pre-1500 baseline run
+  ok   11d(baseline) missing-library path (no flag) exits 4 -- baseline for the byte-identical check below
+  ok   11d --expect-nonempty + missing guard-scope.sh exits 1 (FAIL), not the bare SKIP/4
+  ok   11d ...and the verdict word reads FAIL, not SKIP
+  ok   11d ...and the message names the flag
+  ok   11d ...and it is labelled an expectation violation
+  ok   11e legacy path (no flag) on missing-library is unchanged: still exits 4
+  ok   11e ...and the output is BYTE-IDENTICAL to the pre-1500 missing-library run
+§12 NEARS-2170 — the bare `path §locator` citation-open (AC2, AC3, AC4)
+  ok   12a AC2: the bare shape IS asserted -- SELECT recognised it as locator-bearing, not SKIP
+  ok   12a AC2: both bare citations reached the engine (not 0 -- not silently dropped by SELECT)
+  ok   12a AC2: the correct one verifies
+  ok   12a AC2: the wrong one fails, on CONTENT (this is content.sh, not resolve.sh)
+  ok   12a AC2: never SKIP -- something real was asserted
+  ok   12b AC4: a bare path with no §, or backtick-wrapped, is NOT locator-bearing -- exit 4, never PASS
+  ok   12b AC4: ...and says SKIP
+  ok   12b AC4: ...and never emits a PASS verdict
+  ok   12c pre-mutation control: content.sh PASSes on the unmutated fixture
+  ok   12c pre-mutation control: resolve.sh PASSes on the unmutated fixture
+  ok   12d AC3: doc-citation-content.sh turns RED on the renamed heading
+  ok   12d AC3: ...and names the reason (sectionSpan found zero headings matching the old title)
+  ok   12e AC3: doc-citation-resolve.sh STAYS GREEN on the identical mutation -- it asserts file existence only, never heading content (intended asymmetry, not a gap)
+  ok   12e AC3: ...and it is a REAL pass (the citation was actually asserted, not vacuously skipped)
+  ok   12f regression: the pre-existing [source:] §"..." shape still verifies, unchanged by NEARS-2170
+  ok   12f regression: ...and it is the ONLY citation the merged extractor found on this doc (no phantom double-count)
+
+FAIL  doc-citation-content.test.sh

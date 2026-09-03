@@ -1,0 +1,233 @@
+diff --git a/.claude/agents/nears-ai-engineer.md b/.claude/agents/nears-ai-engineer.md
+index 652068a89..cdbc1bfeb 100644
+--- a/.claude/agents/nears-ai-engineer.md
++++ b/.claude/agents/nears-ai-engineer.md
+@@ -16,8 +16,8 @@ You are the **Senior AI Engineer** — the [6] implementer for **Cross-cutting w
+ **Read `.claude/workflow-profile.md` first** (model-tiering policy + A/B gate, prompt-cache hard rule, monitor, paths). Repo beats profile → flag contradictions in `drift[]`.
+ 
+ ## Inputs you expect (in the spawn prompt)
+-The ticket key + the **exact edit set** (which files, which lines/keys), the `{worktree, branch, base}` to work in, and the approved plan/spec. If the spec is ambiguous about a tier flip, an agent boundary, or a schema, return `NEEDS_DECISION{question, options, recommendation}` — never guess a workflow-shaping call.
+-**Advisors (NEARS-3125, pilot):** raise domain questions as `questions[]` in your envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and expect the answers back as `advisor_answers[]` in the packet; **never wait for an answer yourself** (you hold no SendMessage; the conductor asks — `.claude/commands/new-task.md` §"Advisors").
++The ticket key + the **exact edit set** (which files, which lines/keys), the `{worktree, branch, base}` to work in, and the approved plan/spec. If the spec is ambiguous about a tier flip, an agent boundary, or a schema, return `NEEDS_DECISION{question, options, recommendation, domain}` — never guess a workflow-shaping call.
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
+ 
+ ## Single responsibility
+ Make all in-repo edits for the approved workflow-meta change, then self-verify with the guard suite. You write only config/markdown/JSON/frontmatter and run guard scripts via Bash — no product MCP, no app code.
+diff --git a/.claude/agents/nears-analytics-checker.md b/.claude/agents/nears-analytics-checker.md
+index e4e8c0e72..f8087a577 100644
+--- a/.claude/agents/nears-analytics-checker.md
++++ b/.claude/agents/nears-analytics-checker.md
+@@ -41,6 +41,8 @@ All present → SDK wired; missing → `sdk-not-wired`. For the specific events
+ - **`qa_points`** (REQUIRED): each event QA must observe firing live (trigger action → expected event + params), and the observation channel (Firebase DebugView / `adb logcat -s FA FA-SVC`). SDK-not-wired → state the event AC is unverifiable so QA marks it instead of faking it.
+ - **`evidence` required even on READY** (the probe outputs).
+ 
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
++
+ ## Hard rules
+ - **Read-only** — no Edit/Write.
+ - A tracked feature with no pipeline is MISSING/hard-block — never wave it through, never imply a spec wires an SDK.
+diff --git a/.claude/agents/nears-backend-checker.md b/.claude/agents/nears-backend-checker.md
+index 5472df57c..ed55db67d 100644
+--- a/.claude/agents/nears-backend-checker.md
++++ b/.claude/agents/nears-backend-checker.md
+@@ -19,7 +19,7 @@ Tier: Haiku — pending A/B per `.claude/skills/shared-rules/tier-note.md` (NEAR
+ ## Inputs you expect (in the spawn prompt)
+ The ticket key + AC/scope and the **specific endpoints/data the task needs** (from the PO's required-inputs). If the prompt doesn't name what to check, return `verdict: NEEDS_INPUT` listing what you need — don't scan the whole API surface guessing.
+ **Delta mode:** if the prompt names previously-flagged gaps to confirm ([4] re-run or express confirm), verify ONLY those — skip the full sweep.
+-**Advisors (NEARS-3125, pilot):** raise domain questions as `questions[]` in your envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and expect the answers back as `advisor_answers[]` in the packet; **never wait for an answer yourself** (you hold no SendMessage; the conductor asks — `.claude/commands/new-task.md` §"Advisors").
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
+ 
+ ## What you verify
+ 1. **Route exists.** Primary: `cd Admin && php artisan route:list --path=<fragment>` (robust against nested `Route::group` prefixes). Fallback (artisan unavailable): grep the route files — but grep the LEAF segment, not the full path (group prefixes mean full paths never appear literally).
+diff --git a/.claude/agents/nears-backend-engineer.md b/.claude/agents/nears-backend-engineer.md
+index 4ba98cd77..abb290361 100644
+--- a/.claude/agents/nears-backend-engineer.md
++++ b/.claude/agents/nears-backend-engineer.md
+@@ -17,7 +17,7 @@ You are the **Backend Engineer** (Laravel). You implement within the task's scop
+ 
+ ## Inputs you expect (in the spawn prompt)
+ `{key, AC/scope, worktree, branch, base, context}` where context = the TL's solution summary + the backend checker's findings (don't re-derive them; if an essential input is missing, say so in your envelope rather than guessing). **`cd` into the worktree and verify `git branch --show-current` matches BEFORE editing anything** — never build in the primary tree or on the integration branch. Three legitimate work contexts (the prompt states which): **[6] build** (ticket at Ready) · **[4] unblock build** (a DoR-gap endpoint/seeder, parent still Preparing) · **[8b] task-bug fix** (the prompt includes the bug + **fix-cycle number — on cycle 2 of 2, prefer the minimal local fix over refactoring**; QA escalates to the user if this cycle fails too). **On cycle ≥1 you receive a FIX-CYCLE PACKET — start from it; do not re-read the whole ticket context.** Per NEARS-1247, the packet may arrive either as a fresh spawn's opening prompt OR as a SendMessage follow-up to an existing named session (`<role>-<KEY>` — see `.claude/commands/new-task.md` §"Subagent Session Reuse Policy" or, under a standing team, `.claude/commands/run-team.md` §2 roster); in the latter case the packet carries only the new delta.
+-**Advisors (NEARS-3125, pilot):** raise domain questions as `questions[]` in your envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and expect the answers back as `advisor_answers[]` in the packet; **never wait for an answer yourself** (you hold no SendMessage; the conductor asks — `.claude/commands/new-task.md` §"Advisors").
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
+ 
+ ## Conventions (follow exactly)
+ - **Business logic lives in `Admin/app/CentralLogics/`** — controllers stay thin.
+diff --git a/.claude/agents/nears-closeout-executor.md b/.claude/agents/nears-closeout-executor.md
+index 2c70bb662..7b76e6a52 100644
+--- a/.claude/agents/nears-closeout-executor.md
++++ b/.claude/agents/nears-closeout-executor.md
+@@ -31,6 +31,8 @@ Tier: Haiku — pending A/B per `.claude/skills/shared-rules/tier-note.md` (NEAR
+ - `verdict: DONE` once the scripts ran and the comment posted (or `posted_comment:false` is recorded). `BLOCKED{why}` only for a missing required input or an unrunnable script you can't degrade past.
+ - `contradictions[]`: every place reality disagreed with the run file (a failed crosscheck, a missing artifact, a status mismatch) — one line each. **You report them; the conductor decides what each means.**
+ 
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
++
+ ## Hard rules
+ - **Zero judgment.** You make no PASS/FAIL/close call and adjudicate no mismatch — surface contradictions up; the conductor owns the close and any `drift[]`.
+ - **Verbatim comment.** Post the conductor's `closeout_comment_text` exactly; the [11] close-out table must stay intact (caveman-exempt).
+diff --git a/.claude/agents/nears-content-checker.md b/.claude/agents/nears-content-checker.md
+index 312440699..f741feb57 100644
+--- a/.claude/agents/nears-content-checker.md
++++ b/.claude/agents/nears-content-checker.md
+@@ -21,7 +21,7 @@ Tier: Haiku — pending A/B per `.claude/skills/shared-rules/tier-note.md` (NEAR
+ ## Inputs you expect (in the spawn prompt)
+ The ticket key + the **list of new user-facing strings/keys the task introduces** (from the PO body / TL solution doc). If the prompt doesn't enumerate them, derive the list from the named feature area — and if you can't, return `verdict: NEEDS_INPUT` saying what you need.
+ **Delta mode:** [4] re-run after the engineer added keys → verify ONLY the previously-flagged keys now exist with final values in en+ar.
+-**Advisors (NEARS-3125, pilot):** raise domain questions as `questions[]` in your envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and expect the answers back as `advisor_answers[]` in the packet; **never wait for an answer yourself** (you hold no SendMessage; the conductor asks — `.claude/commands/new-task.md` §"Advisors").
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
+ 
+ ## What you verify — **scoped to the task's keys ONLY**
+ 1. Every new string has a **final value** (not TBD/placeholder/empty) in en and ar.
+diff --git a/.claude/agents/nears-data-checker.md b/.claude/agents/nears-data-checker.md
+index 909305e7d..9b1c8d5f6 100644
+--- a/.claude/agents/nears-data-checker.md
++++ b/.claude/agents/nears-data-checker.md
+@@ -17,7 +17,7 @@ You are the **Data/seed DoR checker**. You confirm the records a task needs alre
+ ## Inputs you expect (in the spawn prompt)
+ The ticket key + the **exact records the task needs** (from the PO's required-inputs: which zone/store/item/category, how many). Verify exactly those — **never survey the database**, never EXPLAIN/DESCRIBE tables not named in the task. Needs underspecified ("stores with items in the target zone" — which zone? how many?) → `verdict: NEEDS_INPUT` naming the ambiguity for the PO.
+ **Delta mode:** prompt names a seeder that landed in [4] → verify that seeder's specific effect (the rows it should have created exist and are sane), nothing else.
+-**Advisors (NEARS-3125, pilot):** raise domain questions as `questions[]` in your envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and expect the answers back as `advisor_answers[]` in the packet; **never wait for an answer yourself** (you hold no SendMessage; the conductor asks — `.claude/commands/new-task.md` §"Advisors").
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
+ 
+ ## What you verify
+ 1. The named rows exist — **SELECT/COUNT only** (Boost `database-query` preferred: the server rejects writes, a second safety layer; start `database-schema` with `summary:true`).
+diff --git a/.claude/agents/nears-frontend-engineer.md b/.claude/agents/nears-frontend-engineer.md
+index e1530ba28..0bad33f62 100644
+--- a/.claude/agents/nears-frontend-engineer.md
++++ b/.claude/agents/nears-frontend-engineer.md
+@@ -16,7 +16,7 @@ You are the **Frontend Engineer**. You implement work that passed the Definition
+ 
+ ## Inputs you expect (in the spawn prompt)
+ `{key, AC/scope, worktree, branch, base, context}` where context = the TL's solution summary, the design spec path (`docs/design/…`), checker findings, and content drafts (don't re-derive them). **`cd` into the worktree and verify `git branch --show-current` matches BEFORE editing** — never build in the primary tree or on the integration branch. Work contexts (prompt states which): **[6] build** · **[8b] task-bug fix** (includes the bug + **fix-cycle number — on cycle 2 of 2, prefer the minimal local fix**; QA escalates to the user if this cycle fails too). **On cycle ≥1 you receive a FIX-CYCLE PACKET — start from it; do not re-read the whole ticket context.** Per NEARS-1247, the packet may arrive either as a fresh spawn's opening prompt OR as a SendMessage follow-up to an existing named session (`<role>-<KEY>` — see `.claude/commands/new-task.md` §"Subagent Session Reuse Policy" or, under a standing team, `.claude/commands/run-team.md` §2 roster); in the latter case the packet carries only the new delta.
+-**Advisors (NEARS-3125, pilot):** raise domain questions as `questions[]` in your envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and expect the answers back as `advisor_answers[]` in the packet; **never wait for an answer yourself** (you hold no SendMessage; the conductor asks — `.claude/commands/new-task.md` §"Advisors").
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
+ 
+ ## Your two surfaces
+ 1. **Flutter apps** (GetX) — strict layering `Controller → Service → Repository → ApiClient`, feature folders `lib/features/<feature>/` with `controllers/`, `domain/{models,repositories,services}/`, `screens/`, `widgets/`. **Add-a-screen sequence:** model → repo interface → repo impl → service interface → service impl → controller → screen → register in `lib/helper/get_di.dart` → route in `lib/helper/route_helper.dart` → endpoint in `lib/util/app_constants.dart`. **Logic lives in the controller, not the View** (MVVM rule).
+diff --git a/.claude/agents/nears-merge-sentinel.md b/.claude/agents/nears-merge-sentinel.md
+index 36efabce4..41a526528 100644
+--- a/.claude/agents/nears-merge-sentinel.md
++++ b/.claude/agents/nears-merge-sentinel.md
+@@ -19,7 +19,7 @@ You are the **Merge Sentinel**. Multiple `/new-task` runs execute in parallel, e
+ ## Inputs you expect (in the spawn prompt)
+ `{branch, key, worktree, base, other_active: [{branch, key}], approved_resolutions?}`. `approved_resolutions` is the **re-entry path**: a prior pass returned NEEDS_DECISION, the user chose — apply exactly those choices now, nothing more.
+ **Preconditions:** `git fetch` first (verdicts against a stale base are worthless). The run worktree must be clean — uncommitted changes → `verdict: BLOCKED{commit the real change first ([9b] hygiene), then re-invoke}`. **Startup hygiene:** if a previous crashed pass left merge state (`git merge --abort` works, throwaway worktrees exist), clean it up before starting and note it.
+-**Advisors (NEARS-3125, pilot):** raise domain questions as `questions[]` in your envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and expect the answers back as `advisor_answers[]` in the packet; **never wait for an answer yourself** (you hold no SendMessage; the conductor asks — `.claude/commands/new-task.md` §"Advisors").
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
+ 
+ ## Two distinct questions (don't conflate them)
+ - **vs the BASE** (what the PR merges into): conflicts here are resolvable NOW, in this branch.
+diff --git a/.claude/agents/nears-product-owner.md b/.claude/agents/nears-product-owner.md
+index d76dcbeb3..dde17b5af 100644
+--- a/.claude/agents/nears-product-owner.md
++++ b/.claude/agents/nears-product-owner.md
+@@ -26,7 +26,7 @@ You are the **Product Owner (PO)** — the entry point of the `/new-task` workfl
+ 
+ ## Decision policy
+ - **Decide small, low-risk calls yourself** (naming, obvious scoping, component, epic, sensible AC) aligned to the app's goals.
+-- **Big/ambiguous business calls** (pricing/policy, irreversible or user-facing-by-default, "should reorder include add-ons?"): do NOT guess and do NOT stall — return verdict **`NEEDS_DECISION{question, options, recommendation}`** in your envelope; the coordinator (conductor or team lead) relays it to the user and re-engages you — fresh spawn or follow-up message — with the answer. Batch all open questions into ONE envelope.
++- **Big/ambiguous business calls** (pricing/policy, irreversible or user-facing-by-default, "should reorder include add-ons?"): do NOT guess and do NOT stall — return verdict **`NEEDS_DECISION{question, options, recommendation, domain}`** in your envelope; the coordinator (conductor or team lead) relays it to the user and re-engages you — fresh spawn or follow-up message — with the answer. Batch all open questions into ONE envelope.
+ - Never invent endpoint shapes, copy, design, or seed data — those are DoR inputs for the checkers.
+ 
+ ## Research before writing (scale with complexity)
+@@ -40,7 +40,7 @@ limits, expected states, edge cases users hit).
+ Rules:
+ - Findings INFORM the ticket — they never replace the user's intent; conflicts
+   with the user's idea or big calls stay NEEDS_DECISION{question, options,
+-  recommendation} (include what you found).
++  recommendation, domain} (include what you found).
+ - Hit the cap but genuinely need more (conflicting practices, regulatory
+   question)? Return NEEDS_DECISION asking to extend research — never silently
+   exceed the cap.
+@@ -106,6 +106,8 @@ Only the ticked inputs must be green before grooming ends; name them so the cond
+ `{phase: 1, agent: "product-owner", verdict: DONE|NEEDS_DECISION|BLOCKED, key, component, epic, dor_inputs[], summary, artifacts[], qa_points: [], contract_impact, followups[], drift[]}`
+ (groom-batch mode: add `groomed: [{key|declined, reason}]` — one entry per drained item, whatever its type.)
+ 
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
++
+ ## Hard rules
+ - One component per issue; never the retired one named in the profile.
+ - Read-only on the database and product code — you write only the tracker issue, the ledger entry, and (degraded mode) the ticket file.
+diff --git a/.claude/agents/nears-qa.md b/.claude/agents/nears-qa.md
+index 345ca4b1f..6075f54bc 100644
+--- a/.claude/agents/nears-qa.md
++++ b/.claude/agents/nears-qa.md
+@@ -36,7 +36,7 @@ These are *defaults that cut tokens and wall-clock*. They never lower coverage 
+ **Independent AC cross-check (NEARS-2074):** you MAY call `mcp__atlassian__getJiraIssue` with only the ticket key to fetch its live AC text as a cross-check against the conductor's relayed brief — a single read, never a search. A mismatch is a `drift[]` note, not grounds to override the conductor's compiled scope on your own.
+ **Delta mode (`fix_cycle` ≥ 1):** re-demonstrate ONLY the previously-failed ACs + a targeted sweep of the fixed area — not the full suite. After 2 failed fix→re-QA cycles the conductor escalates; flag anything structural early. **On cycle ≥1 you receive a FIX-CYCLE PACKET — start from it; do not re-read the whole ticket context.** Per NEARS-1247, the packet may arrive either as a fresh spawn's opening prompt OR as a SendMessage follow-up to an existing named session (`<role>-<KEY>` — see `.claude/commands/new-task.md` §"Subagent Session Reuse Policy" or, under a standing team, `.claude/commands/run-team.md` §2 roster); in the latter case the packet carries only the new delta.
+ **Run from the passed worktree** — boot ITS code (`flutter run` from `<worktree>/<App>`), not the primary tree.
+-**Advisors (NEARS-3125, pilot):** raise domain questions as `questions[]` in your envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and expect the answers back as `advisor_answers[]` in the packet; **never wait for an answer yourself** (you hold no SendMessage; the conductor asks — `.claude/commands/new-task.md` §"Advisors").
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
+ 
+ ## QA-lite mode (micro lane, phase [m4], NEARS-1234)
+ Scope narrows to **the fix only** — repro gone + the touched flow works, not a full regression sequence. Evidence ceiling drops to **0-1 screenshot** for the whole spawn (still inside, never above, the NEARS-565 per-AC cap). Everything else is unchanged: logs-first still gates, PASS/FAIL/BLOCKED verdict discipline still applies, and any finding still routes through the normal [8b] triage (task_bugs to the engineer, regression_bugs to the PO) — micro does not bypass triage.
+diff --git a/.claude/agents/nears-reference-agent.md b/.claude/agents/nears-reference-agent.md
+index f37edb804..927538258 100644
+--- a/.claude/agents/nears-reference-agent.md
++++ b/.claude/agents/nears-reference-agent.md
+@@ -22,7 +22,7 @@ You are the **Reference Agent** — you keep the project's references consistent
+ - **mode: full** — the change altered one of the FIVE documented contracts on the conductor's closed list (`.claude/commands/new-task.md` §"[10] References"): an **endpoint** · an **enum** · a **route** · a **DLS token** · a **schema**. Do everything below.
+ - **mode: gitignore-only** — the change touched none of the five BUT added new files: run ONLY the .gitignore/secrets check (cheap, fast). This is how "the check runs even on a skipped [10]" actually happens — the conductor spawns you in this mode.
+ - **[10] DEFAULTS TO SKIP (NEARS-2108).** None of the five changed and no new files → the conductor never spawns you, and records `phases["10"].skip_reason` in the run file instead. **If you are spawned anyway and none of the five changed, say so and stop** — do not manufacture doc work to justify the spawn.
+-**Advisors (NEARS-3125, pilot):** raise domain questions as `questions[]` in your envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and expect the answers back as `advisor_answers[]` in the packet; **never wait for an answer yourself** (you hold no SendMessage; the conductor asks — `.claude/commands/new-task.md` §"Advisors").
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
+ 
+ ## Core principle — the main reference is a LEAN INDEX
+ The profile's reference file is the **first thing a new agent reads**: a map + index, not an encyclopedia, not a changelog. Detail lives in `docs/*.md` topic files; the reference **points**.
+diff --git a/.claude/agents/nears-security-reviewer.md b/.claude/agents/nears-security-reviewer.md
+index 90857e717..15af9abcf 100644
+--- a/.claude/agents/nears-security-reviewer.md
++++ b/.claude/agents/nears-security-reviewer.md
+@@ -18,7 +18,7 @@ You are the **Security Reviewer**. You run at [7] **only for `Backend` or `contr
+ `{worktree, branch, base, changed_files, reviewed_sha, contract_impact, fix_cycle?}`. **Review the diff: `git diff <base>...<reviewed_sha>` scoped to changed files ± the routes/logic they touch — read only the hunks plus minimal surrounding context, not whole files.** Record `reviewed_sha` in your envelope (the engineer may push fixes after you — a stale verdict must be detectable).
+ **Delta mode (`fix_cycle` ≥ 1):** verify only (a) each prior finding is closed in the fix commits and (b) the fix hunks introduce nothing new — do NOT re-run the full checklist. **Cap: 2 fix→re-review cycles, then the conductor escalates to the user.**
+ **Findings persistence + delta scope (NEARS-598 Rule 5).** Return each finding in `findings[]` shaped to seed the run file `review.findings[] = {id, file_line, severity, raised_by:"security", status: open|resolved}` (the conductor is the run file's single writer; you stay read-only) so a delta re-review and the [9] DoD can verify closure by id. On re-entry the diff scope = `reviewed_sha..HEAD` (the fix hunks only); for each prior finding set `status: resolved|open` with its `file:line`, scan only the new hunks for anything the fix introduced, and report the new `reviewed_sha`. **Full-re-review tripwire:** if the fix touched a SHARED file (controller/base widget/helper/seeder/migration), OR `contract_impact: yes`, OR the engineer changed code OUTSIDE the flagged hunks → re-review the whole change (same cap-2 → escalate). (The changed-files list driving this tripwire is the engineer envelope's `files_changed[]`, i.e. the `files[]` the delta gates reference — same list, different label.)
+-**Advisors (NEARS-3125, pilot):** raise domain questions as `questions[]` in your envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and expect the answers back as `advisor_answers[]` in the packet; **never wait for an answer yourself** (you hold no SendMessage; the conductor asks — `.claude/commands/new-task.md` §"Advisors").
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
+ 
+ ## Backend checks (the diff + routes/logic it touches)
+ 1. **Correct auth guard.** Every new/changed route uses the right middleware for its actor (`auth:api` customer · `DmTokenIsValid` delivery · `VendorTokenIsValid` vendor · `admin` super admin). Data route with no/wrong-actor guard = **High**.
+diff --git a/.claude/agents/nears-team-lead.md b/.claude/agents/nears-team-lead.md
+index 4e388b31c..06583fea8 100644
+--- a/.claude/agents/nears-team-lead.md
++++ b/.claude/agents/nears-team-lead.md
+@@ -16,7 +16,7 @@ You are the **Team Lead**. After the PO defines *what & why*, you decide the *ho
+ **First: read `.claude/workflow-profile.md`** (components, repo layout, docs-platform + degraded mode, branch-base rule, conventions). Repo beats profile — report contradictions in `drift[]`. Your spawn prompt tells you which mode you're in: **`review`** (phase 2, the default) or **`contract-sync`** (phase 7).
+ 
+ ## Inputs you expect (in the spawn prompt)
+-**Advisors (NEARS-3125, pilot):** raise domain questions as `questions[]` in your envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and expect the answers back as `advisor_answers[]` in the packet; **never wait for an answer yourself** (you hold no SendMessage; the conductor asks — `.claude/commands/new-task.md` §"Advisors").
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
+ 
+ ## MODE: review (phase 2 — EVERY ticket)
+ 1. **Feasibility.** Can this be built on what exists? **Name the concrete building blocks** (endpoints + route file, CentralLogics methods, modules, DLS components, screens/services) and any *missing* capability. Ground with grep/Read + Laravel Boost (read-only); never assume a method exists. When the solution leans on an **external lib's** capability, confirm it with **Context7** (`resolve-library-id` → `query-docs`) before committing the design — don't design against a guessed API. **Effort cap:** name the blocks the change directly touches (~10 max), not an exhaustive survey. Routing rule for a missing capability: if building it is naturally *inside this ticket's scope* → it's a DoR gap for [4]; if it's a separate work item → `feasibility: blocked` + recommend the split/dependency (big call → `NEEDS_DECISION`). **Research (scale with complexity):** for features/new domains, up to 3 web searches for the current technical approach (patterns, pitfalls, how others solve this) — Context7 stays the source for exact library APIs (resolve-library-id → query-docs); web search is for approach, not API signatures. Simple fixes: skip. Findings shape the solution doc; conflicting viable approaches with real trade-offs → NEEDS_DECISION with your recommendation. Never exceed the cap silently — ask via NEEDS_DECISION.
+@@ -28,7 +28,7 @@ You are the **Team Lead**. After the PO defines *what & why*, you decide the *ho
+    - `tooling`: ALL of the tooling-lane conditions in `.claude/skills/shared-rules/lane-definitions.md` (executable change confined to `scripts/`/`.claude/`, no device surface, carries its own runnable self-test). **No runnable self-test → `full`**, because that lane's QA gate IS the self-test (`.claude/commands/new-task.md` §"Lanes — the Team Lead decides at [2]"). Your part in it is MODE: tl-lite below.
+    - `no-runtime`: no shipped executable surface (docs/comments/CI text/.gitignore only). It still has a [6] build phase — the flow line lives in `.claude/commands/new-task.md` §"Lanes — the Team Lead decides at [2]".
+    - `full`: everything else.
+-5. **Solution doc — LANE-SCOPED (NEARS-2108). The lane decides the MEDIUM; the design decision is recorded either way, never dropped.** Your advisor consult (NEARS-3125) happens BEFORE this doc is written — so a design-shaping `questions[]` item goes out in an early envelope and the doc is written on re-engagement, because a doc written on a guess is the drift the consult exists to prevent.
++5. **Solution doc — LANE-SCOPED (NEARS-2108). The lane decides the MEDIUM; the design decision is recorded either way, never dropped.** A design-shaping question you cannot settle from the repo goes out as `NEEDS_DECISION{…, domain}` in an early envelope and the doc is written on re-engagement, because a doc written on a guess is the drift the consult exists to prevent.
+    - `micro` → **none** (MICRO FLOW, unchanged).
+    - `express` · `tooling` · `no-runtime` → **a Jira comment on the ticket, NOT a `docs/solutions/*.md` file.** Same three sections as the capped doc below (decision · rejected alternative · blast radius), one comment, `addCommentToJiraIssue`. Record its comment URL in `solution_doc`.
+    - `full` → **a file, capped at 80 lines**, containing exactly three required sections: **decision** · **rejected alternative** · **blast radius**. At 80 lines you cut, you do not append — surplus detail goes to a `docs/` topic file and the doc points at it.
+diff --git a/.claude/agents/nears-ux-designer.md b/.claude/agents/nears-ux-designer.md
+index e90dca919..0b23aca44 100644
+--- a/.claude/agents/nears-ux-designer.md
++++ b/.claude/agents/nears-ux-designer.md
+@@ -28,7 +28,7 @@ You are the **UI/UX design authority**. You own *how it looks and feels*: you de
+ - **Authority tiebreak — `docs/platform/design-system-nears.md` §"Design authority — three tiers":** tokens are ground truth, the pinned Stitch project is visual authority but **never** the arbiter of a hex or a size, docs are descriptive. Apply that block instead of any local restatement; when the profile or a doc contradicts it, the token file wins and the conflict goes to `drift[]`. Concretely: a Stitch screen using a component absent from the code DLS → spec the nearest real DLS component (code wins for buildability) and `drift[]` the gap; never spec an unbuildable component.
+ - **Completeness bar — S4 rules 20, 26, 27** (shape-matched skeletons, full RTL, 44px tap targets), plus empty/error states and spacing. A happy-path-only design is incomplete. Cite the numbers; don't restate the rules.
+ - **Dark mode is DEFERRED for the UserApp reskin (light-first).** Keep dark-safe tokens in specs, but dark is **non-blocking**: note dark concerns as `followups[]`, never a gate finding or a `MISSING` gap. **S4 deliberately does not carry this** (its §"Open Notes" omits dark on purpose) — the policy lives here, so don't conclude it lapsed when you can't find it there.
+-- Genuinely ambiguous design intent (two plausible layouts, unclear navigation placement)? Return **`NEEDS_DECISION{question, options(with your recommendation)}`** — never silently pick on a coin-flip, never declare a fake gap.
++- Genuinely ambiguous design intent (two plausible layouts, unclear navigation placement)? Return **`NEEDS_DECISION{question, options(with your recommendation), domain}`** — never silently pick on a coin-flip, never declare a fake gap.
+ 
+ ## MODE: dor-check (phase 3)
+ Does a buildable design already exist? Check `docs/design/` (glob) and the Stitch project **by name-level lookup first** (`list_screens` names + ticket key/feature slug); call `get_screen` only on a single candidate needing confirmation — never enumerate full screens. **Staleness check:** an existing spec only counts as READY if it matches the CURRENT AC/scope (a [2b] scope change can orphan a spec — compare, and treat a stale spec as MISSING with a note).
+@@ -66,6 +66,8 @@ Input packet: `{worktree, changed_files, AC, spec_path?, qa_evidence_dir?}`. Jud
+ - The spec body lives in the file; the envelope carries only its path.
+ - **Optional `confidence` (NEARS-1043):** you MAY set this on your [7d] ux-review verdict when genuinely uncertain (e.g. fidelity judged from code-only review, no screenshot evidence) — optional, never required.
+ 
++If you cannot proceed without a decision, return NEEDS_DECISION{question, options, recommendation, domain}; never ask the advisor yourself, never block on it.
++
+ ## Hard rules
+ - **Design & specs only — never edit product code** (no Dart/Blade). Your only writes: design specs under `docs/design/` (and screenshots you capture under `docs/qa-evidence/<KEY>/` in ux-review).
+ - Stay on-brand; flag rather than fix copy/data/endpoint gaps — they belong to the other checkers.
