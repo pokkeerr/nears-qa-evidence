@@ -1,0 +1,62 @@
+=== ROW14 never-do list (L218-236)
+## Never-do list
+
+Always present (design §6), then domain additions:
+
+- Never claim a file was read when only grep hit it.
+- Never answer a Tier C item with anything but "owner". Tier C (design §10, verbatim): scope widening that adds a new surface or actor (a new endpoint, schema, UI screen, money path, or a second actor); executing any write against the shared dev database or any non-local database (DML, seeder run, migration run) and any truncati
+- Never consult a second advisor: one hop per question, once; a question whose id ends in `-hop1` is terminal.
+- Never guess a sha.
+- Never write, edit, execute, spawn or fetch. Asked to perform a denied action, refuse and say so in the reply (design §13 "Permission laundering").
+- Never decide a gate: the tier list lives in the conductor's rules, not here; advisors only answer (design §10).
+- Never carry a previous question's reading forward as evidence for a new question.
+- Never invent a path, symbol, endpoint, token or component name: cite it or say UNKNOWN.
+- Never invoke Workflow, EnterWorktree/ExitWorktree, Artifact, Skill, Cron/Schedule/RemoteTrigger, SendUserFile, or any claude-in-chrome tool even if it appears in your tool list; you are read-only and reply only via SendMessage.
+
+
+- Never change a rule: you hold no writes; a fix to a guard, an agent file, the profile or `workflow.json` is a `/new-task` ticket for `nears-ai-engineer`, built in an isolated worktree between runs (design §4, §11).
+- Never answer a Tier C workflow item with anything but "owner": merging past a semantic sentinel conflict, overriding a QA FAIL or a security Critical, any write against the shared dev database, credentials, deploy, permission changes (design §10).
+- Never decide a product call — scope in/out, AC wording, a Tier B plan — redirect to `advisor-product` (design §4).
+- Never present a guard's SKIP, NOTHING-ASSERTED or bare exit 0 as a PASS: state what was asserted and how many (new-task.md §[9b] item 8, §[11] item 2).
+
+-- Tier C / owner checks:
+sentinel-conflict merge → owner: 2
+override QA FAIL → owner: 2
+ledger never checkout/restore/stash/reset: 0
+-- template never-do for shape:
+## Never-do list
+
+Always present (design §6), then domain additions:
+
+- Never claim a file was read when only grep hit it.
+- Never answer a Tier C item with anything but "owner". Tier C (design §10, verbatim): scope widening that adds a new surface or actor (a new endpoint, schema, UI screen, money path, or a second actor
+- Never consult a second advisor: one hop per question, once; a question whose id ends in `-hop1` is terminal.
+- Never guess a sha.
+- Never write, edit, execute, spawn or fetch. Asked to perform a denied action, refuse and say so in the reply (design §13 "Permission laundering").
+- Never decide a gate: the tier list lives in the conductor's rules, not here; advisors only answer (design §10).
+- Never carry a previous question's reading forward as evidence for a new question.
+- Never invent a path, symbol, endpoint, token or component name: cite it or say UNKNOWN.
+- Never invoke Workflow, EnterWorktree/ExitWorktree, Artifact, Skill, Cron/Schedule/RemoteTrigger, SendUserFile, or any claude-in-chrome tool even if it appears in your tool list; you are read-only an
+
+Fill: domain additions — the "never" half of the design §4 "Refuses or redirects" cell for this advisor, one bullet each.
+=== ROW14b ledger never-restore rule location in whole brief:
+30:- Ledger `tasks/.atlassian-sync.json` — compact entries only, `"<srcid>": {key, file, epic, status}`; the profile says ~293KB, the audit measured 700,972 bytes (AUD-WF-48): "never Read it whole — Grep the key, Edit that entry". (.claude/workflow-profile.md §Run artifacts & state; tasks/workflow-audit-2026-09/summary.md)
+71:- The shared ledger at [9b] item 6: "SOLO-ness is the ONLY gate" — a run inside a `/run-sprint` must "NEVER self-commit the ledger"; the runner sweeps and commits it from the PRIMARY tree at each batch's own completion, `git add tasks/.atlassian-sync.json`, never `-A`; only a genuinely SOLO run commits its own entries, and only if its ledger copy is otherwise clean. (.claude/commands/new-task.md §[9b] Save the wor
+120:- **NEARS-3144** (High, AUD-WF-05) — the PO def grants Bash and forbids no git-level restore; a PO ran `git checkout HEAD -- tasks/.atlassian-sync.json` to undo its own JSON round-trip, which restores the last COMMIT and erases every other session's uncommitted rows (latent Critical; the window happened to be clean). (.claude/agents/nears-product-owner.md lines 11, 100, 111; tasks/runs/NEARS-3124.json phases["1"]
+134:Shared-ledger rules (`tasks/.atlassian-sync.json` is routinely dirty with other sessions' rows):
+136:- Stage your own hunks only — `git apply --cached` of your own entries, or `git add tasks/.atlassian-sync.json` when every dirty row is yours; "never `git add -A`"; never stage another run's entries to get your own committed. (.claude/commands/new-task.md §[9b] Save the work item 6; .claude/commands/run-sprint.md §[4] RUN — batch by batch)
+
+-- which H2 section each hit sits in:
+L30 → ## Project context
+L71 → ## Rules and standards
+L120 → ## Known traps
+L134 → ## Known traps
+L136 → ## Known traps
+-- 'git apply --cached' mention: 1
+-- Known traps shared-ledger block L134-139:
+Shared-ledger rules (`tasks/.atlassian-sync.json` is routinely dirty with other sessions' rows):
+- Never `git checkout`, `git restore`, `git stash` or `git reset` on the ledger or any shared file — each restores the last COMMIT and erases every other session's uncommitted rows; undo = the inverse Edit on the exact entry; never round-trip the ledger through a JSON parser. (tasks/workflow-audit-2026-09/findings.json AUD-WF-05 suggested_fix; .claude/comman
+- Stage your own hunks only — `git apply --cached` of your own entries, or `git add tasks/.atlassian-sync.json` when every dirty row is yours; "never `git add -A`"; never stage another run's entries to get your own committed. (.claude/commands/new-task.md §[9b] Save the work item 6; .claude/commands/run-sprint.md §[4] RUN — batch by batch)
+- Sprint runs never self-commit the ledger: "NEVER self-commit the ledger" holds for every run inside a `/run-sprint`, even when no sibling entry has landed yet; the runner sweeps and commits from the PRIMARY tree, "staging ONLY that path". (.claude/commands/new-task.md §[9b] Save the work item 6; .claude/commands/run-sprint.md §[4] RUN — batch by batch)
+- The ledger is read by grep, never whole: "never Read it whole — Grep the key, Edit that entry"; the same grep-and-edit rule covers language files and every other >30KB file. (.claude/workflow-profile.md §Run artifacts & state; .claude/commands/new-task.md §Guardrails)
+

@@ -1,0 +1,17 @@
+=== ROW5 self-contained (Rules L37-99 + Known traps L100-139)
+pointer bullets (^- (See|Read|Refer to|Follow) ): 0
+total top-level bullets: 70
+-- bullets WITHOUT a (…path…) or (NEARS-…) tail:
+14:- Tripwires: micro >1 logic file OR >~50 changed lines OR any contract touch; express >2 logic files OR >~150 changed lines OR >1 component → auto-escalate, work preserved; `/new-task --lane micro|express|tooling|no-runtime|full` "is always honored". (.claude/skills/shared-rules/lane-definitions.md §micro, §express; .claude/commands/new-task.md §MICRO FLOW (lane: micro — replaces phases 1-11))
+17:- `orphaned-run-check.sh <KEY>` runs before the claim-check when a run file already exists: `ORPHANED` (exit 10) → RESUME from the first incomplete phase; `MERGED_STALE_RECORD` (exit 3) → close out the record, never resume; `NOT_FLAGGED` (exit 0) → proceed; exit 2 is not a verdict. (.claude/commands/new-task.md §Pre-flight — orphaned-run check (conductor, at run/session start, before [1]))
+24:- Every re-spawn on a fix cycle carries the FIX-CYCLE PACKET `{cycle, your_previous_work, findings_to_fix, decisions_already_made, open_items, advisor_answers}` built from the run file, "never from memory"; the checkpoint fires again with `--label <phase>-fix<N>`; an [8b] task-bug fix envelope carries `change_class: code|comment-only|doc-only`. (.claude/commands/new-task.md §Fix-cycle packet (conductor → any re-spawned or re-engaged agent))
+54:- Caveman output mode compresses on the `full` lane only (`full` for chat and inter-agent prose, `lite` for Jira/Confluence/PR artifacts) and never touches the shared JSON envelope, the QA per-AC table, the [11] close-out, `NEEDS_DECISION`/security text, or a `^NEARS-\d+ #(comment|time)\b` trailer line. (.claude/commands/new-task.md §Output mode — caveman (token compression))
+85:- **NEARS-3145** (High, AUD-WF-06) — `audit-crosscheck.sh` never verifies `merge_sha` landed on base although [11] item 3 says it does; the AUD-WF-01 false record passed it with "0 hard mismatch(es)"; its `no PR URL recorded` INFO fires on 100% of local-merge runs (absorbs AUD-WF-INC-07; relates to NEARS-1315). (scripts/newtask-guards/audit-crosscheck.sh main(); .claude/commands/new-task.md §[11] Completion audit + close-out item 3)
+89:- **NEARS-3149** (High, AUD-WF-10) — merge-sentinel envelopes drop the mandatory `shas{}` (`{base, ours, theirs_per_branch}`) in 10 of 15 sampled [9a] verdicts (573 of 739 corpus-wide), so a CLEAR cannot be checked for staleness at [9b]. (.claude/agents/nears-merge-sentinel.md §Envelope (return exactly this, one fenced JSON block); tasks/runs/NEARS-2903.json phases["9a"])
+90:- **NEARS-3150** (High, AUD-WF-11) — QA PASS records carry no per-AC table in 8–9 of 21 sampled envelopes, and `nears-qa.md` names the field two ways (`acceptance_criteria` at line 85 vs `qa.ac_table[]` at line 101); a PASS without rows cannot be walked at [9]. (.claude/agents/nears-qa.md §Envelope (return exactly this, one fenced JSON block); .claude/commands/new-task.md §[9] Definition of Done)
+count=7
+-- also any pointer verbs anywhere in the two sections (softer scan, 'see ' lowercase):
+-- sample of 3 bullet tails:
+(.claude/commands/new-task.md §Run state — the conductor's memory lives on disk, not in your head)
+(.claude/commands/new-task.md §Run state — the conductor's memory lives on disk, not in your head)
+(.claude/commands/new-task.md §Shared envelope — every agent returns exactly one)
