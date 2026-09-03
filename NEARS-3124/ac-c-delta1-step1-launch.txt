@@ -1,0 +1,33 @@
+## AC (c) STEP 1 — DELTA re-QA cycle 1 relaunch, 2026-09-03T11:28:39Z, HEAD 076911573, cwd /Users/Apple/Projects/nears-NEARS-3124-advisors-foundation
+
+### precondition: advisor-* background sessions (expect none)
+
+(empty — precondition met)
+
+### $ bash scripts/advisors/up.sh advisor-backend
+stdout:
+launching: claude --bg -n advisor-backend --append-system-prompt-file docs/workflow/advisors/advisor-backend.md --model claude-fable-5-1 --effort xhigh --permission-mode bypassPermissions --strict-mcp-config --tools Read Grep Glob ListAgents SendMessage ToolSearch --allowedTools Read Grep Glob ListAgents SendMessage --disallowedTools Bash Edit Write MultiEdit NotebookEdit WebFetch WebSearch Agent Workflow EnterWorktree ExitWorktree Artifact Skill CronCreate CronDelete ScheduleWakeup SendUserFile RemoteTrigger TaskStop 'mcp__claude-in-chrome__*' "Standby."
+backgrounded · 27200a9e · advisor-backend
+  claude agents             list sessions
+  claude attach 27200a9e    open in this terminal
+  claude logs 27200a9e      show recent output
+  claude stop 27200a9e      stop this session
+launched: advisor-backend (cwd /Users/Apple/Projects/nears-NEARS-3124-advisors-foundation)
+stderr:
+Starting background service…
+rc=0
+
+### poll ≤30s for name==advisor-backend && kind==background
+t+2s: FOUND {"id":"27200a9e","kind":"background","name":"advisor-backend","state":"working","cwd":"/Users/Apple/Projects/nears-NEARS-3124-advisors-foundation"}
+advisor_session_id=27200a9e  launch_elapsed_s=2
+
+### idempotency: $ bash scripts/advisors/up.sh advisor-backend (again)
+present: advisor-backend (27200a9e)
+rc=0
+
+### listing after re-run
+advisor-backend background count: 1 (expect 1)
+non-roster background sessions (safety-pin baseline for part B):
+audit-userapp	7c6da713
+helper	c245890c
+launched line carried the cycle-2 tail: 1

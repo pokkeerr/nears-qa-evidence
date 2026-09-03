@@ -1,12 +1,18 @@
 # QA Evidence — NEARS-3124
 
-**QA PASS — advisors foundation (device-free): ACs a-f live, advisor round-trip 12e21e95, TB-1 candidate recorded**
+**QA PASS — advisors foundation, delta re-QA cycle 1 (NEARS-3133 tool lock verified live), final 9aa7400b6**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
 ### Other artifacts
 - [`ac-a-selftest.txt`](ac-a-selftest.txt)
 - [`ac-b-dryrun.txt`](ac-b-dryrun.txt)
+- [`ac-c-delta1-step1-launch.txt`](ac-c-delta1-step1-launch.txt)
+- [`ac-c-delta1-step1-listing.json`](ac-c-delta1-step1-listing.json)
+- [`ac-c-delta1-step2-advisor-reply-q-20260903-153000-nears-7b-NEARS-3124-002.md`](ac-c-delta1-step2-advisor-reply-q-20260903-153000-nears-7b-NEARS-3124-002.md)
+- [`ac-c-delta1-step2-verification.txt`](ac-c-delta1-step2-verification.txt)
+- [`ac-c-delta1-step3-listing-after-down.json`](ac-c-delta1-step3-listing-after-down.json)
+- [`ac-c-delta1-step3-teardown.txt`](ac-c-delta1-step3-teardown.txt)
 - [`ac-c-step0-precondition-listing.json`](ac-c-step0-precondition-listing.json)
 - [`ac-c-step1-launch.txt`](ac-c-step1-launch.txt)
 - [`ac-c-step1-listing.json`](ac-c-step1-listing.json)

@@ -1,6 +1,6 @@
-## AC (a) — advisors.test.sh run 2026-09-03T11:00:51Z from /Users/Apple/Projects/nears-NEARS-3124-advisors-foundation HEAD 5aeff56d7
+## AC (a) — advisors.test.sh FINAL, delta re-QA cycle 1 / B2, 2026-09-03T11:34:14Z, HEAD 9aa7400b6 (cycle-3 test-only commit; supersedes the 076911573 capture: pin 123 → 128)
 
-### BEFORE: claude agents --json | advisor-* names
+### BEFORE: advisor-* names
 (count: 0)
 
 ### $ bash scripts/advisors/advisors.test.sh
@@ -28,7 +28,9 @@
   ok   2 (THE POINT): line 1 is byte-equal to the §5 line for advisor-backend
   ok   2: line 3 is byte-equal to the §5 line for advisor-dls
   ok   2: all 9 lines, in roster order, each byte-equal to its own §5 line
-  ok   2 (SEC-1): every rendered line carries --strict-mcp-config immediately after bypassPermissions (MCP servers bypass --disallowedTools)
+  ok   2 (SEC-1/SEC-2): every rendered line carries --strict-mcp-config right after bypassPermissions and the --tools allowlist right after that
+  ok   2 (SEC-2): every rendered line ends with the single-quoted claude-in-chrome wildcard then the double-quoted prompt
+  ok   2 (SEC-2 GLOB): rendered from a cwd holding mcp__claude-in-chrome__zzz, the line is still byte-equal — the wildcard token was not expanded
   ok   2: `up.sh all --dry-run` prints the identical 9 lines (both flag orders)
   ok   2: a single name prints one line
   ok   2: …byte-equal to its §5 line
@@ -58,6 +60,9 @@
   ok   4b: exactly one claude invocation
   ok   4b (THE POINT): the EXECUTED argv is byte-equal to the §5 line, element by element (literal here, not lib.sh)
   ok   4b (SEC-1): the EXECUTED argv has --strict-mcp-config as the element right after bypassPermissions
+  ok   4b (SEC-2): the seven elements after --strict-mcp-config are the --tools allowlist
+  ok   4b (POSITIVE CONTROL): in the launch cwd an UNQUOTED mcp__claude-in-chrome__* DOES expand to the decoy — so the literal check below can fail
+  ok   4b (SEC-2 GLOB): the EXECUTED argv carries the literal wildcard token exactly once — no glob expansion in the launch cwd
   ok   4b: the launch is announced
   ok   4b: the announced line is the same §5 line the dry-run prints
   ok   4b: up.sh created the reply dir (ADVISORS_REPLIES_DIR override — outside the repo)
@@ -121,27 +126,34 @@
   ok   9 (THE POINT): the real `claude` was never reached by any case — no live session was started
 -- case 10: BRIEFS (AC d) — template H2 set, 150–250 lines, never-do list, §7/§8 verbatim in the template
   ok   10: advisor-backend carries exactly the template's H2 set (fence-aware, code blocks excluded)
-  ok   10: advisor-backend is 203 lines (150–250, design §6)
+  ok   10: advisor-backend is 204 lines (150–250, design §6)
   ok   10: advisor-backend never-do list carries the four mandatory items (grep≠read, Tier C = "owner", no second advisor, no guessed sha)
+  ok   10 (CR-3): advisor-backend never-do list carries the 5th bullet (no Workflow/EnterWorktree/Artifact/Skill/Cron/claude-in-chrome) exactly once
   ok   10: advisor-flutter carries exactly the template's H2 set (fence-aware, code blocks excluded)
-  ok   10: advisor-flutter is 189 lines (150–250, design §6)
+  ok   10: advisor-flutter is 190 lines (150–250, design §6)
   ok   10: advisor-flutter never-do list carries the four mandatory items (grep≠read, Tier C = "owner", no second advisor, no guessed sha)
+  ok   10 (CR-3): advisor-flutter never-do list carries the 5th bullet (no Workflow/EnterWorktree/Artifact/Skill/Cron/claude-in-chrome) exactly once
   ok   10: advisor-dls carries exactly the template's H2 set (fence-aware, code blocks excluded)
-  ok   10: advisor-dls is 178 lines (150–250, design §6)
+  ok   10: advisor-dls is 179 lines (150–250, design §6)
   ok   10: advisor-dls never-do list carries the four mandatory items (grep≠read, Tier C = "owner", no second advisor, no guessed sha)
+  ok   10 (CR-3): advisor-dls never-do list carries the 5th bullet (no Workflow/EnterWorktree/Artifact/Skill/Cron/claude-in-chrome) exactly once
   ok   10: advisor-product carries exactly the template's H2 set (fence-aware, code blocks excluded)
-  ok   10: advisor-product is 174 lines (150–250, design §6)
+  ok   10: advisor-product is 175 lines (150–250, design §6)
   ok   10: advisor-product never-do list carries the four mandatory items (grep≠read, Tier C = "owner", no second advisor, no guessed sha)
+  ok   10 (CR-3): advisor-product never-do list carries the 5th bullet (no Workflow/EnterWorktree/Artifact/Skill/Cron/claude-in-chrome) exactly once
   ok   10: the template carries the design §7 answer envelope VERBATIM
   ok   10: the template carries the design §8 one-hop rule verbatim (opening sentence)
+  ok   10 (CR-3): the template's never-do list carries the 5th bullet exactly once
 
 -- result: PASS
--- validity: 118 assertion(s) made across 11 case(s); 0 failed
-assertion count matches the pin (118)
+-- validity: 128 assertion(s) made across 11 case(s); 0 failed
+assertion count matches the pin (128)
 rc=0
 
-### AFTER: claude agents --json | advisor-* names
+### AFTER: advisor-* names
 (count: 0)
-
-### diff before/after (empty = identical)
+### diff
 IDENTICAL
+
+### git status --short after the run
+(end)

@@ -1,16 +1,21 @@
-## Security acceptance (SEC-1) — --strict-mcp-config placement 11:02:16Z
+## SEC-1 / NEARS-3133 tool lock — RECAPTURE, delta re-QA cycle 1, 11:28:24Z, HEAD 076911573 (supersedes the 5aeff56d7 capture)
 
 ### lib.sh launch template line:
-87:  ADVISORS_ARGV=(--bg -n "$1" --append-system-prompt-file "$2" --model claude-fable-5-1 --effort xhigh --permission-mode bypassPermissions --strict-mcp-config --allowedTools Read Grep Glob ListAgents SendMessage --disallowedTools Bash Edit Write MultiEdit NotebookEdit WebFetch WebSearch Agent "Standby.")
-lib.sh matches: 1
+91:  ADVISORS_ARGV=(--bg -n "$1" --append-system-prompt-file "$2" --model claude-fable-5-1 --effort xhigh --permission-m
+lib.sh matches (strict-mcp-config then --tools allowlist): 1
 
-### dry-run lines carrying the exact sequence:
+### dry-run lines carrying the full cycle-2 deny tail:
 count: 9  (expect 9)
+count with --strict-mcp-config --tools: 9 (expect 9)
 
-### design §5 line 69 carries it:
+### design line 70 carries both:
 1
 
-### argv element right after bypassPermissions (sourced lib, advisor-backend):
---strict-mcp-config
+### EXECUTED argv (sourced lib, advisor-backend): elements after --strict-mcp-config, and the wildcard element unexpanded
+--tools
+argv element count: 47
+wildcard element (literal, no shell expansion):
+46:mcp__claude-in-chrome__*
+last element: Standby.
 
-### behavioural proof (live advisor has no mcp__* tools): PENDING PART 2 — conductor §7 exchange
+### behavioural proof (live advisor holds ONLY Read Grep Glob ListAgents SendMessage ToolSearch; no mcp__*): PENDING PART B — conductor §7 probe
