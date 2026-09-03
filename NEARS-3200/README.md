@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3200
 
-**PASS — advisors question-only (12/12 rows, device-free, sha 64bd5c62c)**
+**PASS — advisors question-only (12/12 rows, device-free, sha 64bd5c62c; addendum tip 60433f8a4)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -28,6 +28,7 @@
 - [`row11-history-rows.diff.txt`](row11-history-rows.diff.txt)
 - [`row12-briefs-diff.txt`](row12-briefs-diff.txt)
 - [`row12-briefs-h2-and-linecounts.txt`](row12-briefs-h2-and-linecounts.txt)
+- [`row13-addendum-tip-60433f8a4-delta.txt`](row13-addendum-tip-60433f8a4-delta.txt)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3200/` · public-repo scrub policy (no live secrets; verified clean).*

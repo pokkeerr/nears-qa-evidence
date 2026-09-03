@@ -13,3 +13,4 @@
 | 10 | (e) | PASS | doc-citation-resolve PASS 393/1192; doc-citation-content --all --root PASS 71 citations; content SELF-TEST case 6c FAIL pre-existing (NEARS-3189; scripts/ untouched in range) — row10 |
 | 11 | history | PASS | 3125 rows reworded past-tense, attribution intact; 3200 changelog + design §11 row present — row11 |
 | 12 | briefs | PASS | template + 5 briefs: §7 placeholder line only (+ advisor-workflow lines 60/75); H2 sets identical; line counts identical — row12 |
+| 13 | addendum | PASS | tip moved to 60433f8a4 (6-fix1, one line in advisor-workflow.md:44 adding the domain enum); rows 1/8/10/12 re-hold at tip — row13 |
