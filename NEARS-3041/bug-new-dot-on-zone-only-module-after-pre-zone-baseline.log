@@ -1,0 +1,19 @@
+# PRE-EXISTING (NEARS-1508 semantics, unchanged by NEARS-3041) — fresh install badges a zone-only module "New"
+# Device emulator-5556, pkg com.izzes.nears.nears_nears_3041_module_controller_prefs, sha f73a0846a, backend :8000, 2026-09-03
+
+1) First /api/v1/module fetch at splash runs BEFORE any zone is known (no zoneId header). Backend response ids:
+   GET /api/v1/module (no zoneId)  -> [1, 2, 3, 5]
+2) The cold-install baseline seed (seed-once, containsKey guard) persisted exactly that response:
+    <string name="flutter.seenModuleIds">VGhpcyBpcyB0aGUgcHJlZml4IGZvciBhIGxpc3Qu![&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;5&quot;]</string>
+3) After the address/zone (zone 1) is set, the second fetch returns a WIDER list:
+   GET /api/v1/module (zoneId:[1]) -> [1, 2, 3, 5, 6, 9]
+   The seed-once guard (by design, NEARS-1508 comment 16768) does not re-seed, so ids 6 and 9 are "unseen".
+4) Home module row (zone 1) renders tiles 1,2,3,9. Pixel measurement on ac5-home-module-row-fresh-install.png
+   (mint = r<60,g>200,110<b<200) in the Shop tile's top-right corner box: 437 mint px  -> New dot PRESENT on id 9
+   controls: selected Grocery disc 1341 px (positive); Pharmacy corner 0 px (negative).
+   After markModuleSeen('9') (tap) the key became ["1","2","3","5","9"] and the same box on
+   ac6-module-row-after-tap-shop-then-pharmacy.png measures 0 mint px -> dot cleared (write path works).
+5) Why this is NOT NEARS-3041's defect: the diff moves _seedBaselineIfNeeded's body verbatim (same containsKey->return
+   guard, same first-response baseline) into SplashRepository.seedSeenModuleIdsIfAbsent; the call site
+   (_prepareModuleList, module_controller.dart:746) and the splash-then-zone fetch order are untouched. Base runs the
+   identical sequence. Module 9 (NEARS-2897 Shop, created 2026-09-03 06:05, zone-1-only) is what exposed it today.
