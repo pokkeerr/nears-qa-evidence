@@ -1,0 +1,33 @@
+# AC1 — BLOCKED, device contention, 2026-09-03
+
+## AVD identity re-verified live (drift check per NEARS-1727)
+$ adb -s emulator-5558 emu avd name
+nears_qa_wave56
+OK
+
+## Lock state at first check (14:39:04Z)
+$ cat ~/.nears/qa-locks/emulator-5558/owner.json
+{"pid": 96157, "pid_kind": "anchor", "anchor_started": "Wed Sep 2 18:36:50 2026",
+ "key": "NEARS-2874", "lane": "NEARS-2874", "started": "2026-09-03T14:31:48Z"}
+
+$ ps -p 96157 -o pid,lstart,command
+  PID STARTED                      COMMAND
+96157 Wed Sep  2 18:36:50 2026     claude --dangerously-skip-permissions
+
+Live anchor pid, age ~7min at first check — well inside the 4h QA_LOCK_ANCHOR_TTL, not
+reclaimable as stale. Held by a genuinely different live /new-task session (key NEARS-2874).
+
+## Bounded queue-wait: 10 minutes, polled every 30s (per nears-qa.md protocol)
+20/20 polls: still locked by key=NEARS-2874. Final re-check at 14:49Z: lock unchanged,
+anchor pid 96157 still alive.
+
+## Disposition
+Per "HARD: respect any live qa-lock on either device — do not boot/interrupt another
+session's active use" — did not force-acquire, did not boot the app, did not interrupt
+NEARS-2874's active use. AC1 (onCameraIdle live demo) could not be demonstrated this pass.
+This is device-pool contention on a shared host with 4+ concurrent /new-task sessions, not
+evidence against the fix itself. The AVD-level fix (PlayStore.enabled=yes, cold-booted, Play
+Services packages present) is independently confirmed via docs/data-qa/verification-checks.md's
+own adb-level verification (pm list packages showing com.android.vending +
+com.google.android.gms) — but the actual onCameraIdle-in-UserApp demonstration this AC requires
+is unverified pending device availability.

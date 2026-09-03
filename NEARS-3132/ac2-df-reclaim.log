@@ -1,0 +1,23 @@
+# AC2 evidence — Pixel_10_Pro_3 (emulator-5560) disk floor check, 2026-09-03
+
+## AVD identity re-verified live
+$ adb -s emulator-5560 emu avd name
+Pixel_10_Pro_3
+OK
+
+## Raw df /data
+$ adb -s emulator-5560 shell df /data
+Filesystem      1K-blocks    Used Available Use% Mounted on
+/dev/block/dm-5  10167132 1081916   8937760  11% /data/user/0
+
+Available = 8937760 KB (~8.7GB), floor = 819200 KB (800MB). PASS: 8937760 >= 819200.
+
+## qa_disk_reclaim (standard --clean run, scripts/qa-lock-guard.sh ~line 2517)
+disk serial=emulator-5560 free_mb=8728 floor_mb=800 verdict=ok
+cache size=unknown (dumpsys unanswerable) — pm trim-caches is still requestable
+inventory tmp_entries=0 shots=0
+[qa-lock] disk emulator-5560: cleaning — pm trim-caches (cache dirs only) + the inventoried tmp/screenshot paths. com.izzes.* is NEVER touched.
+clean action=trim-caches requested=999999M
+recheck before_mb=8728 after_mb=8796 floor_mb=800 verdict=ok
+
+Result: both before (8728MB) and after (8796MB) reclaim are comfortably above the 800MB floor.
