@@ -1,0 +1,22 @@
+NEARS-2976 QA tooling note (for the nav-guide steward duty, NEARS-1747-class finding):
+
+`adb shell uiautomator dump` REFUSES to write a snapshot at all (prints
+"ERROR: could not get idle state." to stderr and produces no file) while any
+Flutter-level animation (e.g. NSpinner's rotation during isLoading:true) keeps
+the window continuously repainting -- this is stronger than the already-documented
+"3-12s per dump" latency note (userapp-navigation-guide.md "Timed observations...").
+It is a hard block, not just slow: repeated attempts during an animating window
+(instrumented with epoch timestamps against a deliberately-extended request via a
+local delaying reverse-proxy, 6-30s artificial latency) either failed outright with
+no output file, or -- when the dump call happened to straddle the animation ending
+first -- silently returned the POST-animation idle state instead of the transient.
+
+Successful mid-animation captures WERE achieved twice in this run (verification
+resend button "Resent it, loading" and the app's own "Sign Up, loading" /
+"Request OTP, loading" primary-button spinners), so the block is not universal --
+it appears to depend on how much of the frame is actively repainting / GPU load at
+the exact moment `uiautomator dump`'s internal idle-poll samples. Treat any single
+mid-loading dump attempt as opportunistic, not guaranteed; do not rely on exactly
+one attempt when demonstrating a transient a11y state live -- take multiple, or use
+a screenshot (screencap, unaffected by the idle-gate) as the primary live artifact
+and treat a successful semantics dump as bonus corroboration.
