@@ -1,0 +1,85 @@
+-- case 0: INSTRUMENTS — guard present, real historical fixture parses and is internally consistent
+  ok   0: /Users/Apple/Projects/nears-NEARS-3194-advisor-budgets/scripts/newtask-guards/advisor-latency.sh is executable
+  ok   0: the historical fixture parses and carries 3 consults
+  ok   0: every fixture elapsed_s == received_epoch - sent_epoch
+  ok   0: the fixture carries exactly the spike + NEARS-3124 q-001/q-002 qids
+-- case 1: TABLE + PERCENTILES — 10 answered (60..600), 1 unanswered, 1 unparsed, header/legacy/numeric-only sources
+  ok   1: exit 0 with answered points (exit 0)
+  ok   1: counts line — run-file and fixture points reported separately, broken=0
+  ok   1: percentile line pins nearest-rank P50=300 (5th of 10), P95=600 (10th of 10) and names its set
+  ok   1: header row
+  ok   1: rows sorted by elapsed — 60 s first
+  ok   1: 12 rows (10 answered + 1 unanswered + 1 unparsed); no-consults and [] files add none
+  ok   1: integer elapsed_s without epochs is read from consults[]
+  ok   1 (CR-1): epoch delta is canonical — elapsed_s 999 disagreeing with epochs (300) loses
+  ok   1: legacy object elapsed_s falls back to the epochs (540, not .received 541)
+  ok   1: header-only qid: sent_at/received_at ISO-8601 Z parsed to 480 s, source=header
+  ok   1: no epochs + headerless reply file => listed as unparsed
+  ok   1: received_epoch null => unanswered row, not unparsed
+  ok   1: the counts line follows the blank line after the table
+  ok   1: per-advisor adv-a (60..300): P50=180 (3rd of 5), P95=300 (5th)
+  ok   1: per-advisor adv-b (360..600): P50=480, P95=600
+  ok   1: no per-advisor line below 2 answered points
+  ok   1: defaults 900/1200 — nothing over budget
+  ok   1: no stderr on a clean run
+  ok   1: exit 0 under custom budgets (exit 0)
+  ok   1: --budget 300 --budget-8 550 => 360, 420 (non-8) and 600 (phase 8) over
+  ok   1: phase 8 at 600 > 550 => over_budget yes
+  ok   1: phase 8 at 540 <= 550 => no
+  ok   1: 300 is not > 300 => no (strict greater-than)
+-- case 2: EMPTY — exit 2, no table, NOTHING ASSERTED on stderr
+  ok   2: empty runs dir + --no-fixtures (exit 2)
+  ok   2: no table printed
+  ok   2: stderr says nothing was asserted
+  ok   2: only no-consults / [] files => exit 2 as well (exit 2)
+-- case 3: BROKEN JSON (D5) — named on stderr, counted broken=N, table still printed, exit 0 by default, exit 1 under --strict; concatenated documents count as broken
+  ok   3: a broken run file => exit 0 by default (the measurement over the parseable files stands) (exit 0)
+  ok   3: the broken file is named on stderr
+  ok   3: broken=1 in the counts line
+  ok   3: the parseable files are still measured and printed
+  ok   3: --strict => exit 1 on the same dir (exit 1)
+  ok   3: --strict still prints the table and broken=1
+  ok   3: two concatenated JSON documents under --strict => exit 1 (not exit 2: the broken file is the finding) (exit 1)
+  ok   3: the concatenated file is named
+-- case 4: FIXTURES — default historical fixture adds the 3 points; --fixtures missing warns; --no-historical alias
+  ok   4: with the real fixture (exit 0)
+  ok   4: 10 run-file points and 3 fixture points counted SEPARATELY
+  ok   4: default set = runfile+fixture, n=13 (sorted 60,98,120,180,198,240,300,353,... -> 7th=300; 13th=600)
+  ok   4: spike row 98 s, source=fixture
+  ok   4: NEARS-3124 q-001 row 353 s, source=fixture
+  ok   4: NEARS-3124 q-002 row 198 s, source=fixture
+  ok   4: --runfiles-only narrows the percentile set to run-file points and says so
+  ok   4: ...while fixture rows stay in the table
+  ok   4: a missing --fixtures file does not abort (exit 0)
+  ok   4: ...but it is named on stderr, never silent
+  ok   4: --no-historical is an alias of --no-fixtures
+-- case 5: USAGE + jq ABSENT — exit 1, loud
+  ok   5: non-integer --budget (exit 1)
+  ok   5: unknown option (exit 1)
+  ok   5: jq absent from PATH => exit 1 (exit 1)
+  ok   5: jq absence is stated
+-- case 6: RED CONTROL — swap nearest-rank for linear interpolation in a COPY: the P50/P95 pin must fail against it
+  ok   6: the mutation landed (copy differs from the guard)
+  ok   6: the mutant computes linear interpolation (P50 330, P95 573 over 60..600)
+  ok   6: RED — the case-1 pin 'P50=300 P95=600' FAILS against the mutant: P50=330 P95=573 over_budget=0 set=runfile+fixture n=10 (budget=900, budget-8=1200)
+-- case 7: POSITIONAL FILES, header elapsed_s precedence, missing runs dir
+  ok   7: a positional run file is measured (exit 0)
+  ok   7: only NEARS-9001's 5 points
+  ok   7: header-only consult with an elapsed_s line (exit 0)
+  ok   7: the header's elapsed_s line wins over its ISO timestamps (77, not 480)
+  ok   7: a missing runs dir with no fixture => exit 2 (exit 2)
+  ok   7: ...and the missing dir is named
+-- case 8: HEADER FALLBACKS (D4) — sent_at derived from the qid timestamp; received_at from the file mtime
+  ok   8: fallbacks yield answered points (exit 0)
+  ok   8: sent_at absent => derived from the qid (11:13:07) => 480 s to received_at
+  ok   8: received_at absent => reply-file mtime (11:23:07) => 600 s
+  ok   8: no sent_at and no timestamp in the qid => unparsed, never guessed
+  ok   8: received_epoch null stays UNANSWERED even though its path names a reply file with a fixed header (the run file is the record; NEARS-3132 q-002 shape)
+  ok   8: a legacy free-text reply file (no qid: line) never yields an mtime-derived figure => unparsed
+  ok   8: no mtime-derived multi-hour figure appears anywhere
+  ok   8: counts
+  ok   8: no stderr
+
+-- result: PASS
+-- validity: 72 assertion(s) made across 9 case(s); 0 failed
+assertion count matches the pin (72)

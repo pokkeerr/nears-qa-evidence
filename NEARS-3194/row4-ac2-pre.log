@@ -1,0 +1,11 @@
+## claude agents --json (pre)
+type list count 20
+advisor-workflow mentions: 0
+## EXPECTED_SHA
+dcbd5d42767287465ee58f226714ce46f9ef2523
+## PRE_STATUS
+ M scripts/newtask-guards/README.md
+ M scripts/newtask-guards/advisor-latency.sh
+ M scripts/newtask-guards/advisor-latency.test.sh
+## EXPECTED_LINE
+186:10. **Merge locally instead of pushing — the default closing action for every run, no PR path, and no `git push` anywhere in this step.** From the PRIMARY tree (never the worktree), re-confirm its current branch == this run's recorded `base` (`git -C <primary-repo> branch --show-current`). Base advanced (step 2's assert now non-zero) → `git rebase <base>` in the worktree, resolve trivially, re-run step 5, **and re-run step 9's (a)-(d) sequence for every touched app on the post-rebase worktree HEAD** (its verdict was captured pre-rebase and does not carry forward — see step 9(e)). Then, from the PRIMARY tree: `git merge --no-ff <this run's branch> -m "merge(<KEY>): <one-line summary>"`. **Never a blind `--ours`/`--theirs`:** a ledger/status-type conflict takes whichever side is live-Jira-verified or structurally a superset; a real semantic code conflict **STOPS** and escalates `NEEDS_DECISION` to the user.

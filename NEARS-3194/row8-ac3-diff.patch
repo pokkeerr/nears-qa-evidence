@@ -1,0 +1,119 @@
+diff --git a/.claude/commands/new-task.md b/.claude/commands/new-task.md
+index ed62136c3..563cfa9b3 100644
+--- a/.claude/commands/new-task.md
++++ b/.claude/commands/new-task.md
+@@ -21,7 +21,7 @@ At [1], create **`tasks/runs/<KEY>.json`** (you are its only writer): `{key, ide
+ 
+ **`fix_in_run[]` — TOP LEVEL, alongside `decisions[]`/`trail[]`/`sessions{}`, never inside `phases{}`.** You are its only writer; empty is the normal state. One entry per finding the [8b] fix-in-run lane diverted: `{lane: "task_bugs"|"regression_bugs", what, where, severity, files[], loc, why_eligible, verified_by}` — `files[]` the paths the fix touched (the [9b] scope confirmation reads them), `loc` the changed-line count the ≤20/≤50 caps measure, `why_eligible` the conditions it cleared, **`verified_by` the delta re-QA that covered it** (a phase id or a `qa.ac_table[]` row).
+ 
+-**`consults[]` — TOP LEVEL, alongside `fix_in_run[]`, never inside `phases{}` (NEARS-3125).** You are its only writer; empty is the normal state (every consult point is optional during the pilot). One entry per advisor question, design §9's field set verbatim: `{qid, advisor, phase, sent_epoch, received_epoch, path, spot_check, timeout}` plus an optional `question` — `path` the `~/.nears/advisors/replies/<qid>.md` file YOU wrote, `spot_check: PASS|FAIL`, `timeout: true|false` — plus one `trail[]` line per consult pointing at that path. Protocol, budget and tiers: §"Advisors" below.
++**`consults[]` — TOP LEVEL, alongside `fix_in_run[]`, never inside `phases{}` (NEARS-3125).** You are its only writer; empty is the normal state (every consult point is optional during the pilot). One entry per advisor question, design §9's field set verbatim: `{qid, advisor, phase, sent_epoch, received_epoch, elapsed_s, path, spot_check, timeout}` plus an optional `question` — `elapsed_s` the integer `received_epoch - sent_epoch` (conductor-received, `null` when unanswered), `path` the `~/.nears/advisors/replies/<qid>.md` file YOU wrote, `spot_check: PASS|FAIL`, `timeout: true|false` — plus one `trail[]` line per consult pointing at that path. Protocol, budget and tiers: §"Advisors" below.
+ 
+ **Validate after every write.** Immediately after each Edit that appends a phase envelope into `tasks/runs/<KEY>.json`, run `jq . tasks/runs/<KEY>.json > /dev/null` (fallback if jq is unavailable: `python3 -c "import json; json.load(open('tasks/runs/<KEY>.json'))"`). A failed parse **stops the phase** — fix the JSON (most commonly a missing comma at the boundary of the just-inserted phase object) before doing anything else. This catches the NEARS-1478 corruption at the write that caused it, instead of at the next resume or audit.
+ 
+@@ -222,7 +222,7 @@ This is the floor under every re-spawn regardless of lane, and the **mandatory f
+ **Task-bug re-review trigger (NEARS-2043).** When this packet routes an [8b] task-bug fix to the implementing engineer — the one fix-cycle type that does not already re-enter [7] by definition (the [7] findings loop always does; [8] delta re-QA never touches review) — the re-spawned engineer's envelope MUST carry `change_class: code|comment-only|doc-only` alongside the fields above. See §[8b]'s re-review trigger for the default, the exemption spot-check, and the [9] DoD box it feeds. This adds one field to the returned envelope; the packet's own `findings_to_fix`/`your_previous_work` fields are unchanged.
+ 
+ ## Advisors — standing read-only domain sessions (pilot: NEARS-3122 / NEARS-3124 / NEARS-3125)
+-Design of record: `tasks/advisors/00-advisors-design.md` (§7 protocol · §9 trail · §10 tiers · §12 pilot). Roster: `docs/workflow/advisors/roster.yaml` (phase 1: `advisor-backend`, `advisor-flutter`, `advisor-dls`, `advisor-product`; the roster's domain keywords pick the advisor). **You — the conductor — are the ONLY asker:** no phase agent (nears-qa included) holds `SendMessage`/`ListAgents`, so every consult is conductor-driven; an advisor holds no Write and no Bash (a three-part lock at launch — design §5), so it only answers and you write the trail. **Pilot rule (design §12): every consult point is OPTIONAL.** Skip one → `trail[]` gets `advisor_skipped{phase, reason}`. Advisor absent from `ListAgents` → `bash scripts/advisors/up.sh <name>` ONCE, else skip. Deadline passes → proceed without the answer and record `advisor_timeout{qid, advisor}` in the run file's `drift[]` and your own envelope. **Never wait past the budget.** **Exception — tier gates ([2b] here, [3] in `/run-sprint`) are fail-closed:** a timeout or absence there never proceeds; each gate states its own retry-then-owner fallback.
++Design of record: `tasks/advisors/00-advisors-design.md` (§7 protocol · §9 trail · §10 tiers · §12 pilot). Roster: `docs/workflow/advisors/roster.yaml` (phase 1: `advisor-backend`, `advisor-flutter`, `advisor-dls`, `advisor-product`; the roster's domain keywords pick the advisor). **You — the conductor — are the ONLY asker:** no phase agent (nears-qa included) holds `SendMessage`/`ListAgents`, so every consult is conductor-driven; an advisor holds no Write and no Bash (a three-part lock at launch — design §5), so it only answers and you write the trail. **Pilot rule (design §12): every consult point is OPTIONAL.** Skip one → `trail[]` gets `advisor_skipped{phase, reason}`. Advisor absent from `ListAgents` → `bash scripts/advisors/up.sh <name>` ONCE, else skip. Standing advisor sessions load the brief at launch; after a budget/brief change run `down.sh`/`up.sh` so live sessions match the merged text. Deadline passes → proceed without the answer and record `advisor_timeout{qid, advisor}` in the run file's `drift[]` and your own envelope. **Never wait past the budget.** **Exception — tier gates ([2b] here, [3] in `/run-sprint`) are fail-closed:** a timeout or absence there never proceeds; each gate states its own retry-then-owner fallback.
+ 
+ **Consult points.** [2] the TL's `questions[]`, answered BEFORE it writes the solution doc · [6] the engineer packet (`questions[]` from the build envelope → `advisor_answers[]` in the next packet) · [8] the compiled QA Test Scope — asked by YOU to the domain advisor BEFORE spawning QA and folded into the scope QA receives; QA's own `questions[]` on return route through you into the delta re-QA packet · ad hoc, whenever you hold a domain question yourself. Any agent may return `questions[]` in its envelope — `{question, domain: backend|flutter|dls|product, files_in_play[]}` — and never waits for the answer itself.
+ 
+@@ -234,9 +234,9 @@ ADVISOR QUESTION (conductor -> advisor-<name>):
+ - phase: 6
+ - question: <one question, verbatim from the subagent's questions[] entry or the conductor's own>
+ - files_in_play: [paths the phase is touching]
+-- deadline: <sent time plus 3 min, plus 5 min when phase is 8>
++- deadline: <sent time plus 900 s, plus 1200 s when phase is 8>
+ ```
+-**qid rule:** `q-<YYYYMMDD-HHMMSS>-<asker>-<ticket>-<seq>` — `asker` = your session name as `ListAgents` shows it, `ticket` = the Jira key, `seq` = a three-digit counter per asker and ticket. **Answer envelope (design §7, verbatim)** — the advisor returns exactly these headings:
++**qid rule:** `q-<YYYYMMDD-HHMMSS>-<asker>-<ticket>-<seq>` — `asker` = your session name as `ListAgents` shows it, `ticket` = the Jira key, `seq` = a three-digit counter per asker and ticket. **Question shape (design §7):** one predicate per packet — a second question is a second qid; no ticket look-ups — the advisor holds no tracker tool, YOU resolve Jira keys; `files_in_play` lists the ONLY files the advisor needs to answer — a question that needs more is split into several packets or answered by you, and an advisor forced to widen past the list is a question-shape defect recorded in the reply file. **Answer envelope (design §7, verbatim)** — the advisor returns exactly these headings:
+ ```
+ ## ANSWER          the answer, one name when one name was asked for
+ ## EVIDENCE        every path plus line range READ this session; grep-only hits marked as such
+@@ -245,7 +245,17 @@ ADVISOR QUESTION (conductor -> advisor-<name>):
+ ## CAVEATS         edges, unverified assumptions, "read-only, nothing executed"
+ ## SUB_CONSULT     only when a hop was made: the hop question and the hop answer verbatim (section 8)
+ ```
+-**Budget:** 3 min per question, **5 min at [8]**; wait for the idle notice up to the deadline, no longer. **Spot-check (before relaying):** open ONE cited path + line range from EVIDENCE and confirm it says what ANSWER claims; a wrong citation is an advisor defect — relay the answer marked *unverified*, never as evidence. **Reply file (design §9):** you write `~/.nears/advisors/replies/<qid>.md` for every consult — header (qid, asker, ticket, phase, advisor, sha, sent/received timestamps, model) · the question verbatim · the answer verbatim · the spot-check result and the timeout flag — never committed, outside every worktree. Then append the `consults[]` entry (§"Run state") + one `trail[]` line, and hand the answer on as `advisor_answers[]: [{qid, reply_path, answer_one_line}]` in the next fix-cycle packet.
++**Budget:** 900 s per question, **1200 s at [8]**; wait for the idle notice up to the deadline, no longer. **Spot-check (before relaying):** open ONE cited path + line range from EVIDENCE and confirm it says what ANSWER claims; a wrong citation is an advisor defect — relay the answer marked *unverified*, never as evidence. **Reply file (design §9):** you write `~/.nears/advisors/replies/<qid>.md` for every consult — it STARTS with this fixed header block, one line each, verbatim (`scripts/newtask-guards/advisor-latency.sh` parses it when the run file carries no `consults[]` entry):
++```
++qid: <qid>
++advisor: advisor-<name>
++sent_at: <ISO-8601 Z>
++received_at: <ISO-8601 Z>
++elapsed_s: <int>
++phase: <phase>
++ticket: <NEARS-key>
++```
++`sent_at` is DERIVED from the qid's embedded timestamp (`q-YYYYMMDD-HHMMSS-…` is authoritative), `received_at` is a clock read at write time, and the file's mtime is the fallback when `received_at` is absent; then the remaining header items (asker, sha, model, spot-check result, timeout flag) · the question verbatim · the answer verbatim — never committed, outside every worktree. Then append the `consults[]` entry (§"Run state") + one `trail[]` line, and hand the answer on as `advisor_answers[]: [{qid, reply_path, answer_one_line}]` in the next fix-cycle packet.
+ 
+ **Decision tiers — the ONLY tier table in the workflow. The item list lives in design §10 and is cited, never restated.**
+ 
+diff --git a/tasks/advisors/00-advisors-design.md b/tasks/advisors/00-advisors-design.md
+index 0453e5fb3..393d098b6 100644
+--- a/tasks/advisors/00-advisors-design.md
++++ b/tasks/advisors/00-advisors-design.md
+@@ -131,7 +131,7 @@ ADVISOR QUESTION (conductor -> advisor-<name>):
+ - phase: 6
+ - question: <one question, verbatim from the subagent's questions[] entry or the conductor's own>
+ - files_in_play: [paths the phase is touching]
+-- deadline: <sent time plus 3 min, plus 5 min when phase is 8>
++- deadline: <sent time plus 900 s, plus 1200 s when phase is 8>
+ ```
+ 
+ Answer envelope, the shape the spike-4 reply already has. The advisor returns exactly these headings:
+@@ -174,12 +174,13 @@ Rules around the exchange:
+ 
+ | Rule | Value |
+ |---|---|
+-| Budget | 3 min per question, 5 min for [8] QA questions; the conductor waits for the idle notice up to the deadline |
++| Budget | 900 s per question, 1200 s for [8] QA questions; the conductor waits for the idle notice up to the deadline |
+ | On expiry | the phase proceeds without the answer; the conductor records `advisor_timeout{qid, advisor}` in the run file's `drift[]` and its own envelope |
+ | Spot-check | before relaying, the conductor opens one cited path and line range from EVIDENCE and confirms it says what ANSWER claims; the result goes in the reply file (section 9) |
+ | Wrong citation | an advisor defect: recorded in the reply file and the advisor defect log (section 14), and the brief gains a trap entry at the next between-runs edit; the answer is relayed marked unverified, never as evidence |
+ | Priority | a conductor's question outranks an advisor-to-advisor question; an advisor holding both answers the conductor first |
+ | One question per message | the idle notice is one-shot; a second question is a second message with its own qid |
++| Question shape | one predicate per packet (a second question is a second qid); no ticket look-ups — the advisor holds no tracker tool, the conductor resolves Jira keys itself; `files_in_play` lists the ONLY files needed to answer — a question that needs more is split into several packets or answered by the conductor, and an advisor forced to widen past the list records a question-shape defect in the reply file |
+ 
+ ## 8. Advisor-to-advisor, bounded one hop
+ 
+@@ -197,12 +198,24 @@ The conductor, never the advisor, writes `~/.nears/advisors/replies/<qid>.md` fo
+ 
+ | Part | Content |
+ |---|---|
+-| Header | qid, asker, ticket, phase, advisor, sha, sent timestamp, received timestamp, model |
++| Header | a fixed block FIRST, one line each, verbatim (below): qid, advisor, sent_at, received_at, elapsed_s, phase, ticket; then asker, sha, model |
+ | Question | verbatim, as sent |
+ | Answer | the envelope verbatim, as received |
+ | Spot-check | the citation opened, what it says, PASS or FAIL, and the timeout flag when the answer arrived late or never |
+ 
+-The run file gains a top-level `consults[]` array, one entry per qid: `{qid, advisor, phase, sent_epoch, received_epoch, path, spot_check, timeout}`; `trail[]` gets one line per consult pointing at the path. Both are written by the conductor, the run file's only writer.
++The fixed header block (`scripts/newtask-guards/advisor-latency.sh` reads it for consults that predate `consults[]` or lack an entry). `sent_at` is derived from the qid's embedded timestamp (`q-YYYYMMDD-HHMMSS-…` is authoritative), `received_at` is a clock read at write time, and the reply file's mtime is the fallback when `received_at` is absent:
++
++```
++qid: <qid>
++advisor: advisor-<name>
++sent_at: <ISO-8601 Z>
++received_at: <ISO-8601 Z>
++elapsed_s: <int>
++phase: <phase>
++ticket: <NEARS-key>
++```
++
++The run file gains a top-level `consults[]` array, one entry per qid: `{qid, advisor, phase, sent_epoch, received_epoch, elapsed_s, path, spot_check, timeout}` — `elapsed_s` is the integer `received_epoch − sent_epoch` (conductor-received, not advisor-idle) and `null` when the answer never arrived; `trail[]` gets one line per consult pointing at the path. Both are written by the conductor, the run file's only writer.
+ 
+ Retention mirrors `tasks/runs/`: the files stay on the machine, are never committed, and nothing prunes them today.
+ 
+@@ -283,8 +296,8 @@ The consult points become mandatory only on a non-worse result across the table.
+ | Risk | Mitigation |
+ |---|---|
+ | Fabricated advice | evidence with path and line range is mandatory; the conductor spot-checks one citation before relaying; a wrong citation is a recorded advisor defect fed back to the brief |
+-| Stale context | the brief orders a re-read on every question; every answer carries the sha it read; advisors restart daily |
+-| Latency | 3 min budget (5 for QA); on expiry the phase proceeds and `advisor_timeout` is recorded in drift |
++| Stale context | the brief orders a re-read on every question; every answer carries the sha it read; advisors restart daily. Standing advisor sessions load the brief at launch; after a budget/brief change run `down.sh`/`up.sh` so live sessions match the merged text |
++| Latency | 900 s budget (1200 s for [8] QA), recomputed from measured consults by `scripts/newtask-guards/advisor-latency.sh`; on expiry the phase proceeds and `advisor_timeout` is recorded in drift |
+ | Permission laundering | advisors hold no write or execute tools at all; an advisor asked to perform a denied action refuses and says so |
+ | An advisor deciding Tier C | the tier list is in the conductor's rules, not in the advisor; advisors only answer, and the brief's never-do list returns "owner" for Tier C items |
+ | Brief drift against CLAUDE.md and docs | the diff-guard ticket (section 14) compares each brief section against its source between runs |

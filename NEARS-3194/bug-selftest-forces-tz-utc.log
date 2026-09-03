@@ -1,0 +1,15 @@
+## committed 1a4e4455c advisor-latency.test.sh case 8 runs the script under TZ=UTC (line 220) — the qid-as-local-time defect is invisible to the pin and visible on the +04 host
+printf 'qid: q-20260903-111307-t-NEARS-9008-001\nadvisor: adv-e\nreceived_at: 2026-09-03T11:21:07Z\nphase: 2b\nticket: NEARS-9008\n' >"$TMP/fb/replies/q-20260903-111307-t-NEARS-9008-001.md"
+printf 'qid: q-20260903-111307-t-NEARS-9008-002\nadvisor: adv-e\nsent_at: 2026-09-03T11:13:07Z\nphase: 2b\nticket: NEARS-9008\n' >"$TMP/fb/replies/q-20260903-111307-t-NEARS-9008-002.md"
+TZ=UTC touch -t 202609031123.07 "$TMP/fb/replies/q-20260903-111307-t-NEARS-9008-002.md"
+printf 'qid: q-nodate-NEARS-9008-003\nadvisor: adv-e\nreceived_at: 2026-09-03T11:21:07Z\nphase: 2b\nticket: NEARS-9008\n' >"$TMP/fb/replies/q-nodate-NEARS-9008-003.md"
+OUT="$(TZ=UTC bash "$SCRIPT" --runs-dir "$TMP/fb/runs" --no-fixtures --replies-dir "$TMP/fb/replies" 2>"$TMP/.stderr")"; RC=$?; ERR="$(cat "$TMP/.stderr")"
+assert_rc "$RC" 0 "8: fallbacks yield answered points"
+assert_contains "$OUT" "NEARS-9008 | q-20260903-111307-t-NEARS-9008-001 | adv-e | 2b | 480 | - | no | header" "8: sent_at absent => derived from the qid (11:13:07) => 480 s to received_at"
+assert_contains "$OUT" "NEARS-9008 | q-20260903-111307-t-NEARS-9008-002 | adv-e | 2b | 600 | - | no | header" "8: received_at absent => reply-file mtime (11:23:07) => 600 s"
+
+## same fixture shape, host TZ (+0400), committed 1a4e4455c script: expected 100, got:
+NEARS-TZ | q-20260903-120000-qa-NEARS-3194-001 | advisor-workflow | 8 | 14500 | false | yes | header
+## real-data qid convention: reply q-20260903-152715-wf-2-NEARS-3194-001.md
+qid: q-20260903-152715-wf-2-NEARS-3194-001
+sent_at: 2026-09-03T15:27:15Z
