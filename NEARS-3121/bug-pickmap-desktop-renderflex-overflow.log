@@ -1,0 +1,12 @@
+[regression_bugs] pre-existing, NOT caused by NEARS-3121 diff (diff only touches FloatingActionButton tooltip prop, not this Column)
+Reproduced live 2026-09-03, emulator-5554, wm size override 3900x2000 (desktop-width isDesktop branch)
+
+09-03 15:42:28.605 14895 14895 I flutter : [FAIL] framework_error library=rendering library type=FlutterError msg="A RenderFlex overflowed by 7.3 pixels on the bottom."
+09-03 15:42:28.606 14895 14895 I flutter : [FAIL] framework_error   at Column Column:file:///UserApp/lib/features/location/screens/pick_map_screen.dart:188:32
+
+Location: fixed-height (600) desktop Container Column at pick_map_screen.dart:169/188, ResponsiveHelper.isDesktop(context) branch.
+Already documented as known/pre-existing in this ticket's own new test file
+(test/features/location/pick_map_screen_a11y_test.dart, desktop-branch test comment:
+"Pre-existing RenderFlex overflow on this fixed-height desktop branch (unrelated to
+this ticket — see pick_map_screen_rtl_test.dart)."). Filed here only because QA
+independently reproduced it live during the AC1 desktop spot-check.
