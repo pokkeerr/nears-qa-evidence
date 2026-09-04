@@ -1,0 +1,17 @@
+AC1 — Vendor logout (VendorApp, ahmed.khan@demo.com, worktree backend on 127.0.0.1:8123 via QA proxy)
+
+PRE-LOGOUT baseline (live token from app login):
+GET /api/v1/vendor/profile Authorization=Bearer pAAN1rx...SpV vendorType=owner -> HTTP 200
+
+App action: Menu -> Logout -> Yes (live UI tap via app-nav)
+
+Proxy-observed traffic during logout tap:
+POST /api/v1/vendor/logout Authorization=Bearer pAAN1rx...SpV vendorType=owner
+  -> status=200
+
+POST-LOGOUT re-check with the SAME token (curl direct to worktree backend):
+$ curl -s http://127.0.0.1:8123/api/v1/vendor/profile -H "Authorization: Bearer pAAN1rx...SpV" -H "vendorType: owner"
+{"errors":[{"code":"auth-001","message":"Unauthorized."}]}
+HTTP:401
+
+Result: PASS — POST /api/v1/vendor/logout is actually called client-side and the server nulls Vendor.auth_token, confirmed by the same bearer now returning 401.

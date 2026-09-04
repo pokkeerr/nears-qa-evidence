@@ -1,0 +1,34 @@
+AC5 — Fire-and-forget / offline logout (all 3 apps, backend stopped/unreachable)
+
+Method: killed the QA proxy process (backend unreachable from the device's perspective)
+immediately before tapping Logout, then measured/observed whether local teardown +
+navigation completed without waiting on the network.
+
+VendorApp (ahmed.khan@demo.com): Menu -> Logout -> Yes with proxy down.
+Navigated to the Sign-In screen within ~2s. App log:
+  [FAIL] endpoint=/api/v1/vendor/update-fcm-token http_status=null type=ApiFailure msg="api request threw"
+  [FAIL] endpoint=/api/v1/vendor/logout http_status=null type=ApiFailure msg="api request threw"
+  [WARN] msg="logout revoke request failed during teardown"
+
+DeliveryApp (ali.hassan@demo.com): Profile -> Logout -> Yes with proxy down.
+Navigated to the Sign-In screen within ~2s. App log:
+  [FAIL] endpoint=/api/v1/delivery-man/profile http_status=null type=ApiFailure msg="api request threw"
+  [NET] POST endpoint=/api/v1/delivery-man/logout
+  [WARN] msg="request aborted during logout teardown"
+  [WARN] msg="logout revoke request failed during teardown"
+
+UserApp (customer@nears.com): Profile -> Logout -> Yes with proxy down. Timed with `date +%s%N`
+around the tap+navigation-check: elapsed_ms=5527 (includes explicit 1.5s sleep + adb/uiautomator
+dump overhead — visually confirmed reaching the Guest-User screen well inside that window, no
+multi-second hang waiting on the dead backend). App log:
+  [FAIL] endpoint=/api/v1/auth/guest/request ... transport_error=socket msg="api request threw"
+  [INFO] msg="Post-logout guest re-mint did not land; cart path will self-heal"
+  [FAIL] endpoint=/api/v1/customer/cm-firebase-token ... transport_error=socket
+  [FAIL] endpoint=/api/v1/auth/logout ... transport_error=socket msg="api request threw"
+  [WARN] msg="logout revoke request failed during teardown"
+
+Result: PASS for all 3 apps — the new server-side logout POST is never awaited; local
+teardown (token/prefs clear) and navigation away from the authenticated screen complete
+promptly even with the backend fully unreachable. Every transport failure is caught and
+logged via a paired [FAIL] (from ApiClient's own exception handling) + [WARN] (the new
+NEARS-3049 .then() handler) — no unhandled exception, no crash, no silent swallow.

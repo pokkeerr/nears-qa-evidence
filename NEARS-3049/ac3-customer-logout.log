@@ -1,0 +1,20 @@
+AC3 — Customer logout (UserApp, customer@nears.com, worktree backend on 127.0.0.1:8123 via QA proxy)
+
+PRE-LOGOUT baseline (fresh Passport JWT issued by worktree's NEW /api/v1/auth/login on this run):
+$ curl -s http://127.0.0.1:8123/api/v1/customer/info -H "Authorization: AUTH[REDACTED]"
+HTTP:200
+
+App action: Profile -> Logout -> Yes (live UI tap via app-nav)
+
+Proxy-observed traffic during logout tap:
+POST /api/v1/auth/logout Authorization=AUTH[REDACTED] vendorType=-
+  -> status=200
+
+POST-LOGOUT re-check with the SAME token:
+$ curl -s http://127.0.0.1:8123/api/v1/customer/info -H "Authorization: AUTH[REDACTED]"
+{"message":"Unauthenticated."}
+HTTP:401
+
+DB read-only check: users.id=6 cm_firebase_token == '@' after logout (FCM-clear call also succeeded, no race lost here).
+
+Result: PASS — the NEW POST /api/v1/auth/logout is actually called client-side and revokes the Passport token ($user->token()->revoke()), confirmed by the same bearer now returning 401. No [FAIL]/[ERR] emitted in-app during this cycle beyond the expected paired logging (app log checked).
