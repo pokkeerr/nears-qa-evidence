@@ -1,0 +1,29 @@
+AC4 live evidence — store_settings_screen.dart delivery-time parse fallback
+(catch block #12 on the ticket's scope-in list), fired naturally on real
+seeded store data while opening Menu > Store Config as the logged-in vendor
+owner (Fresh Mart Grocery) on emulator-5556 / com.izzes.nearsvendor:
+
+  I/flutter: The following exception was thrown store delivery time parse fallback:
+  I/flutter: Exception: FormatException
+  I/flutter: [FAIL] endpoint=null http_status=null type=_Exception msg="store delivery time parse fallback"
+
+No raw deliveryTime string, no model/map dump, no PII in either line — only
+the wrapped exception's type name and the developer-supplied reason string.
+Screen rendered correctly afterwards (min/max delivery fields blanked per
+the fallback, Halal Tag Status toggle still interactive) — confirms the
+try/catch behavior itself (not just the logging call) is unchanged.
+
+Note on AppLogger's own (pre-existing, untouched-by-this-ticket)
+[FAIL] format: the console line's `type=` field always reads the wrapper's
+own runtime type (`_Exception`) rather than the embedded original exception
+type name, because AppLogger.failure's debugPrint uses `${e.runtimeType}`
+on the ALREADY-WRAPPED `Exception(e.runtimeType.toString())` object, not
+`${e}`/`.toString()`. The real type name ("FormatException" here) is still
+recoverable from the adjacent Crashlytics debug-recorder line
+("Exception: FormatException", shown above) and is what actually reaches
+Crashlytics via `recorder.recordError(error, ...)` (Crashlytics calls
+`.toString()` on the recorded error). Not a PII leak either way — flagged
+as a non-blocking followup, not a task_bug, since app_logger.dart itself is
+untouched by this ticket's diff (pre-existing facade characteristic, shared
+by every other AppLogger.failure(Exception(e.runtimeType.toString())...)
+call site in the codebase, not something NEARS-812 introduced).

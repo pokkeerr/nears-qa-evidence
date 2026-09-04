@@ -1,0 +1,40 @@
+Bug: .github/workflows/vendorapp-ci.yml "print/debugPrint/log sweep" step
+self-fails on this ticket's own diff.
+
+Repro (run from VendorApp/ in the NEARS-812 worktree, exact command copied
+from the workflow file):
+
+  hits="$(grep -rnE '(^|[^a-zA-Z_])(print|debugPrint|log)\(' lib/features/ --include='*.dart' \
+    | grep -v '^lib/features/store/screens/store_edit_screen.dart:.*log(' \
+    | grep -v '^lib/features/store/domain/repositories/store_repository.dart:' \
+    | grep -v '^lib/features/payment/screens/payment_screen.dart:' \
+    | grep -v '^lib/features/auth/domain/repositories/auth_repository.dart:.*Device Token' || true)"
+  if [ -n "$hits" ]; then
+    echo "FAIL: raw print()/debugPrint()/log() found in lib/features/** — route through AppLogger instead."
+    echo "$hits"
+    exit 1
+  fi
+
+Actual output:
+  FAIL: raw print()/debugPrint()/log() found in lib/features/** — route through AppLogger instead.
+  lib/features/auth/domain/repositories/auth_repository.dart:1:// NEARS-812: intentionally-retained device-token print() outside this ticket's scope (NEARS-807/820); NEARS-840 tracks removal.
+
+Root cause: auth_repository.dart's own new top-of-file explanatory comment
+(added by this ticket) contains the literal substring "print()" (lowercase
+"device-token", not "Device Token"). The file's exclusion filter only
+matches lines containing the exact substring "Device Token" (capitalized),
+so it does not exclude this comment line, and the grep step exits 1.
+
+Impact: this CI job will go red on the very commit that introduces it (and
+on every subsequent PR touching this file), defeating the purpose of Scope
+(in)'s "add the CI grep gate" deliverable. Verified independently that the
+underlying detection logic is otherwise sound — a genuinely injected
+debugPrint()/log() into a scratch lib/features/**/*.dart file IS correctly
+caught (confirmed separately, not a detection-logic defect, just this one
+exclusion filter being too narrow / comment-sensitive).
+
+Fix suggestion: either reword the comment to avoid the literal substrings
+print(/debugPrint(/log(, or (more robust) exclude auth_repository.dart's
+comment/import header lines by line number the same way the CI gate already
+whole-file-excludes payment_screen.dart and store_repository.dart, instead
+of a content-substring filter that only matches "Device Token".
