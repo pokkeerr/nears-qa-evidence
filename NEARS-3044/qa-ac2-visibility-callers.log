@@ -1,0 +1,21 @@
+NEARS-3044 QA — AC2 independent re-verification
+Method: extracted every `public static function` (162) and `private static function`
+(13, of which 11 are this diff's visibility changes + 2 pre-existing) name from the
+POST-edit Helpers.php via /usr/bin/grep + sed, then for each name ran ripgrep
+(pcre2, word-boundary via \b...\() for `Helpers::<fn>(` anywhere in Admin/ EXCLUDING
+vendor, node_modules, storage, and Helpers.php itself (= "external caller").
+Confirmed no `Helpers::` alias/`use ... as` exists anywhere in the codebase, so this
+pattern is the exhaustive call form.
+
+RESULT:
+  PUBLIC functions (162) with ZERO external callers: 0
+  PRIVATE functions (13) WITH an external caller (should be 0):     0
+
+Positive controls (proves the instrument isn't vacuously green):
+  - format_currency (known heavily-called public fn): 169 files hit -> correctly NOT flagged as zero-caller.
+  - sizeToMb (private, this diff): 0 external callers (correct) but 1 INTERNAL self::sizeToMb(
+    caller inside Helpers.php itself (from maxUploadSizeMb) -> correctly excluded/kept as a
+    legitimately-used-but-internal-only function, i.e. correctly privatized not deleted.
+
+Verdict: AC2 PASS — every remaining public function has >=1 external caller; every
+private function (11 changed + 2 pre-existing) has 0 external callers.

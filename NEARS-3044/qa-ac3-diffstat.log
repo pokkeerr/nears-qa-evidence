@@ -1,0 +1,16 @@
+NEARS-3044 QA — AC3 independent re-verification
+$ cd /Users/Apple/Projects/nears-NEARS-3044-helpers-deadcode-visibility
+$ git diff --stat feat/userapp-reskin2 -- .
+ Admin/app/CentralLogics/Helpers.php | 171 +++---------------------------------
+ 1 file changed, 11 insertions(+), 160 deletions(-)
+
+Note: during my own live-server boot (AC "live system" check, port 8033), the app
+auto-appended 2 missing i18n keys to Admin/resources/lang/en/messages.php
+('NEARS-2907 Campaign Banner Ecommerce', 'NEARS-2897 Shop (Ecommerce)') as a side
+effect of rendering the admin login page against the seeded module list — NOT part
+of this ticket's diff. Reverted with `git checkout -- Admin/resources/lang/en/messages.php`
+before re-confirming the stat above. Flagged as a followups[] note (env/tooling
+gotcha for future local-server QA), not a task_bug or regression_bug — it self-heals
+via git checkout and touches no ticket-relevant logic.
+
+Verdict: AC3 PASS — exactly 1 file changed vs base, clean.

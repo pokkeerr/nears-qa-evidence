@@ -1,0 +1,25 @@
+NEARS-3044 QA — AC1 independent re-verification
+Pinned /usr/bin/grep explicitly (agent-shell default grep is a ugrep shim — 2 prior
+false negatives on this exact ticket during grooming).
+
+10 deleted functions, checked via 3 patterns each (Helpers::<fn>, self::<fn>(,
+function <fn>() ), excluding vendor/node_modules/storage:
+
+category_data_formatting -> Helpers::0 self::0 function:0
+rating_count              -> Helpers::0 self::0 function:0
+day_part                  -> Helpers::0 self::0 function:0
+env_update                -> Helpers::0 self::0 function:0
+env_key_replace           -> Helpers::0 self::0 function:0
+product_tax               -> Helpers::0 self::0 function:0
+create_storage            -> Helpers::0 self::0 function:0
+getDefaultPaymentMethods  -> Helpers::0 self::0 function:0
+preparePaginatedResponse  -> Helpers::0 self::0 function:0
+minDiscountCheck          -> Helpers::0 self::0 function:0
+
+Note: a bare \b<fn>\b word-boundary grep (broader than the AC's 3 patterns) returned
+false-positive hits for 3 names — inspected and confirmed unrelated:
+  rating_count (37 hits)      -> DB column name / seeder data ('rating_count' => ...), not Helpers::rating_count() calls
+  product_tax (7 hits)        -> lang-file string key + local var $tax_type = 'product_tax', not a function call
+  preparePaginatedResponse (1)-> vendor/laravel/framework ResourceCollection's OWN unrelated method, not Helpers::
+
+Verdict: AC1 PASS — 0 real matches anywhere in Admin/ for all 10 names.

@@ -1,0 +1,53 @@
+NEARS-3044 QA — live-system boot proof (device-free ticket; backend-only equivalent
+to "demonstrate live" per the QA brief)
+
+Booted own server, confirmed PID identity + cwd before trusting any response (avoids
+the "php -S boot 200 not proof of own server, shared host" trap — port 8001 was
+already held by an unrelated concurrent session's server from a different worktree;
+switched to a genuinely free port 8033 and verified via `ps -p <pid> -o command`
+that the listening process's cwd was THIS worktree's Admin/server.php before curling
+it):
+
+  $ cd Admin && php artisan serve --host=0.0.0.0 --port=8033 &
+  $ ps -p 50115 -o pid,command
+    50115 /opt/homebrew/.../php -S 0.0.0.0:8033 /Users/Apple/Projects/nears-NEARS-3044-helpers-deadcode-visibility/Admin/server.php
+
+Endpoints hit (all clean, zero fatal PHP errors / zero 500s):
+
+  GET /                              -> 200  (landing page)
+  GET /login/admin                   -> 200  (admin login Blade; renders app name/logo
+                                                via Helpers::get_business_settings +
+                                                Helpers::get_full_url; <title>Login</title>
+                                                confirmed present, no HTML truncation)
+  GET /api/v1/config                 -> 200  (clean JSON: business_name, logo_full_url,
+                                                currency_symbol, currency_symbol_direction,
+                                                currency_code, ... — exercises
+                                                get_business_settings/get_full_url/currency
+                                                formatting code paths in Helpers.php)
+  GET /api/v1/stores/latest          -> 403  ({"errors":[{"code":"moduleId", ...}]}) clean
+                                               validation JSON via error_formater(), no fatal
+  GET /api/v1/items/latest           -> 403  same clean validation shape (with moduleId header,
+                                               store_id/category_id required) — reaches deep
+                                               into ItemController -> Helpers validation path
+  GET /api/v1/stores/details/1       -> 403  ({"code":"out_of_zone", ...}) clean — exercises
+                                               Helpers::storeZoneAllowed() (still-public,
+                                               UNTOUCHED by this diff) end-to-end
+  GET /api/v1/items/details/1        -> 403  same out_of_zone path via storeZoneAllowed()
+
+Server access log (php artisan serve stdout) for the whole session: no 500s, no PHP
+Fatal error / Warning / Deprecation lines — every request line shows a clean status.
+
+storage/logs/laravel.log cross-check for the exact request window
+(2026-09-04 16:54-16:56): 275 total log lines in that window, ALL prefixed
+`testing.` (a concurrent, unrelated phpunit run's own log output writing to the same
+file — verified 0 `production.`/`local.` entries, i.e. 0 exceptions attributable to
+MY curl-driven requests against the booted server).
+
+php -l app/CentralLogics/Helpers.php -> "No syntax errors detected"
+
+Server torn down cleanly after the check: `kill 50115`; confirmed port 8033 free.
+
+Verdict: live-system proof PASS — app boots, routes through controllers/CentralLogics
+that call still-public Helpers:: functions (get_business_settings, get_full_url,
+error_formater, storeZoneAllowed), and responds cleanly with zero fatal PHP errors
+post-refactor.
