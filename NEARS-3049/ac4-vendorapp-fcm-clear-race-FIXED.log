@@ -1,0 +1,56 @@
+09-04 19:39:00.732 11447 11447 I flutter : [NET] GET endpoint=/api/v1/config
+09-04 19:39:01.856 11447 11447 I flutter : [NET] endpoint=/api/v1/config http_status=200
+09-04 19:40:32.839 11447 11447 I flutter : [NET] POST endpoint=/api/v1/auth/vendor/login
+09-04 19:40:33.474 11447 11447 I flutter : [NET] endpoint=/api/v1/auth/vendor/login http_status=200
+09-04 19:40:33.478 11447 11447 I flutter : [NET] POST endpoint=/api/v1/vendor/update-fcm-token
+09-04 19:40:34.476 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+09-04 19:40:34.477 11447 11447 I flutter : [NET] GET endpoint=/api/v1/vendor/profile
+09-04 19:40:34.479 11447 11447 I flutter : [NET] GET endpoint=/api/v1/vendor/profile
+09-04 19:40:35.479 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-04 19:40:35.490 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-04 19:40:35.511 11447 11447 I flutter : [NET] GET endpoint=/api/v1/vendor/profile
+09-04 19:40:36.242 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-04 19:40:36.247 11447 11447 I flutter : [NET] GET endpoint=/api/v1/vendor/current-orders
+09-04 19:40:37.241 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/current-orders http_status=200
+09-04 19:40:37.246 11447 11447 I flutter : [NET] GET endpoint=/api/v1/vendor/notifications
+09-04 19:40:37.655 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/notifications http_status=200
+09-04 19:41:09.585 11447 11447 I flutter : [NET] POST endpoint=/api/v1/vendor/update-fcm-token
+09-04 19:41:10.194 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+09-04 19:41:10.194 11447 11447 I flutter : [NET] POST endpoint=/api/v1/vendor/logout
+09-04 19:41:11.006 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/logout http_status=200
+09-04 19:43:37.696 11447 11447 I flutter : [NET] POST endpoint=/api/v1/auth/vendor/login
+09-04 19:43:38.502 11447 11447 I flutter : [NET] endpoint=/api/v1/auth/vendor/login http_status=200
+09-04 19:43:38.505 11447 11447 I flutter : [NET] POST endpoint=/api/v1/vendor/update-fcm-token
+09-04 19:43:39.504 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+09-04 19:43:39.504 11447 11447 I flutter : [NET] GET endpoint=/api/v1/vendor/profile
+09-04 19:43:39.504 11447 11447 I flutter : [NET] GET endpoint=/api/v1/vendor/profile
+09-04 19:43:40.438 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-04 19:43:40.440 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-04 19:43:40.450 11447 11447 I flutter : [NET] GET endpoint=/api/v1/vendor/profile
+09-04 19:43:41.461 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-04 19:43:41.461 11447 11447 I flutter : [NET] GET endpoint=/api/v1/vendor/current-orders
+09-04 19:43:41.939 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/current-orders http_status=200
+09-04 19:43:41.939 11447 11447 I flutter : [NET] GET endpoint=/api/v1/vendor/notifications
+09-04 19:43:42.942 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/notifications http_status=200
+09-04 19:44:00.162 11447 11447 I flutter : [NET] POST endpoint=/api/v1/vendor/update-fcm-token
+09-04 19:44:00.964 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+09-04 19:44:00.964 11447 11447 I flutter : [NET] POST endpoint=/api/v1/vendor/logout
+09-04 19:44:01.964 11447 11447 I flutter : [NET] endpoint=/api/v1/vendor/logout http_status=200
+
+--- DB checks (read-only) ---
+Cycle 1 baseline after login: vendors.id=6 firebase_token=<real FCM token>, auth_token=<set>
+Cycle 1 after logout: vendors.id=6 firebase_token='@' auth_token=NULL  (cleared correctly, no race)
+Cycle 2 pre-logout auth_token captured: H0awVEloMHc...IG67T (redacted, full value read from DB, never logged in full)
+Cycle 2 after logout: vendors.id=6 firebase_token='@' auth_token=NULL  (cleared correctly, no race)
+
+--- AC1 spot-check (old bearer 401s after logout) ---
+$ curl http://127.0.0.1:8000/api/v1/vendor/profile -H "Authorization: Bearer H0awVEloMHc...IG67T" -H "vendorType: owner"
+{"errors":[{"code":"auth-001","message":"Unauthorized."}]}
+http_status=401
+
+Result: PASS (2/2). NEARS-3220's whenComplete() sequencing fix confirmed live on VendorApp:
+POST /api/v1/vendor/update-fcm-token always completes (200) BEFORE POST /api/v1/vendor/logout
+fires, on both cycles — no more race, no 401 on the FCM-clear call, vendors.firebase_token
+is correctly cleared to '@' on every logout. Reproduces the exact repro steps from
+bug-vendorapp-fcm-clear-race.log (organicshop@demo.com / store id 6, VendorApp on
+emulator-5554), now passing where it previously failed 2/2.
