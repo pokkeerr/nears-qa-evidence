@@ -1,0 +1,16 @@
+Byproduct check: _sidebar.blade.php's route('admin.zone.home') does not resolve to any registered
+route (confirmed by route:list before AND after this ticket's change -- pre-existing).
+
+Live check: logged in as admin@admin.com (role_id=1, zone_id=NULL -- module_permission_check('zone')
+returns true when probed directly via tinker), then loaded /admin (dashboard) and /admin/pos live via
+Chrome DevTools MCP. Both pages rendered cleanly (200, full page content, no 500/whoops page). The
+"Zone Setup" nav item (which would call route('admin.zone.home')) is ABSENT from the rendered sidebar
+in both page snapshots -- confirmed via full verbose accessibility-tree dump, not just a visual skim.
+
+php artisan tinker route('admin.zone.home') DOES throw RouteNotFoundException when called directly,
+confirming the route is genuinely gone -- but the live page never reaches that call, so the defect is
+SILENTLY UNUSED, not a visible broken link or 500.
+
+Verdict: OBSERVATION only, non-blocking for NEARS-3058 (item is pre-existing, out of this ticket's
+scope, and not made worse by this change). Flagged as a regression-candidate for the PO to decide
+whether the dead sidebar link / permission-check divergence is worth its own ticket.

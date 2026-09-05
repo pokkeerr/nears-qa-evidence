@@ -1,0 +1,26 @@
+AC (b2): ~8 in-repo callers updated to new route name/URL and continue to work live.
+
+Route-name callers (route('public.zone.*')) -- confirmed via git diff + live network capture:
+- admin-views/vendor/edit.blade.php   -> route('public.zone.get-coordinates'/'get-zone')
+- admin-views/vendor/index.blade.php  -> same
+- admin-views/zone/edit.blade.php     -> route('public.zone.zoneCoordinates')
+- admin-views/zone/index.blade.php    -> route('public.zone.zoneCoordinates')
+- vendor-views/auth/general-info.blade.php -> route('public.zone.get-coordinates'/'get-zone'/'check-location')
+
+Hard-coded-URL callers (unaffected by rename, URI unchanged /admin/zone/get-coordinates/{id}):
+- vendor-views/pos/index.blade.php (POS map picker)
+- admin-views/pos/index.blade.php (POS map picker)
+- admin-views/order/order-view.blade.php
+
+Live network captures (Chrome DevTools MCP, browser session):
+1. Vendor registration (/vendor/apply), pre-auth, select Business Zone "Main Service Zone":
+   GET /admin/zone/get-coordinates/1 -> 200   (confirms b2 for general-info.blade.php, pre-auth)
+2. Admin zone index (/admin/business-settings/zone):
+   GET /admin/get-all-zone-coordinates -> 200  (zone/index.blade.php)
+3. Admin zone edit (/admin/business-settings/zone/edit/1):
+   GET /admin/get-all-zone-coordinates/1 -> 200 (zone/edit.blade.php)
+4. Admin store/vendor edit (/admin/store/edit/1):
+   GET /admin/zone/get-coordinates/1 -> 200 (vendor/edit.blade.php)
+
+Result: every renamed-route caller confirmed loading zone data live post-rename; hard-coded POS
+map picker URLs unaffected by design (same URI). PASS.

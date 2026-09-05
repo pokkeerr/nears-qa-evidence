@@ -1,0 +1,18 @@
+AC (b1): 4 zone endpoints live under public.zone.* (web middleware only), no admin.zone.* remains.
+
+php artisan route:list --path=zone --json (relevant rows):
+GET|HEAD admin/get-all-zone-coordinates/{id?} public.zone.zoneCoordinates   middleware=['web']
+GET|HEAD admin/zone/check-location          public.zone.check-location     middleware=['web']
+GET|HEAD admin/zone/get-coordinates/{id}    public.zone.get-coordinates    middleware=['web']
+GET|HEAD admin/zone/get-zone                public.zone.get-zone          middleware=['web']
+
+grep -c "admin.zone.get-coordinates|admin.zone.get-zone|admin.zone.check-location|admin.zone.zoneCoordinates" route:list output = 0
+
+Live unauthenticated curl hits (no session cookie):
+GET /admin/zone/get-coordinates/1        -> 200, polygon json
+GET /admin/zone/get-zone?lat=..&lng=..   -> 200, {}
+GET /admin/zone/check-location?...       -> 200, validation json
+GET /admin/get-all-zone-coordinates      -> 200, []
+
+Result: all 4 live, unauthenticated, 200; only `web` middleware; zero admin.zone.* routes remain
+for these four. PASS.

@@ -1,0 +1,10 @@
+AC (a2): Vendor/POSController place_order resolves module_id/zone_id from store
+when moduleId/zoneId headers are absent.
+
+Request: POST /vendor-panel/pos/order  (curl, vendor session for demo.store@gmail.com / store 1, NO moduleId/zoneId headers)
+
+DB row after placement:
+mysql> SELECT id, module_id, zone_id, store_id, order_status, order_amount FROM orders ORDER BY id DESC LIMIT 1;
+100114	1	1	1	confirmed	28.06
+
+Result: order.module_id == store.module_id (1) and order.zone_id == store.zone_id (1). PASS.

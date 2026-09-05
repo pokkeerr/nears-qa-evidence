@@ -1,0 +1,11 @@
+AC (a1): Admin POSController place_order resolves module_id/zone_id from store
+when moduleId/zoneId headers are absent.
+
+Request: POST /admin/pos/order?store_id=1  (curl, admin session, NO moduleId/zoneId headers set)
+store 1 (Nears Mart): module_id=1, zone_id=1
+
+DB row after placement:
+mysql> SELECT id, module_id, zone_id, store_id, order_status, order_amount FROM orders ORDER BY id DESC LIMIT 1;
+91188	1	1	1	pending	28.06
+
+Result: order.module_id == store.module_id (1) and order.zone_id == store.zone_id (1). PASS.

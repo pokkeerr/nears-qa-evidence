@@ -1,0 +1,14 @@
+AC (a3): Customer-app API order placement (real moduleId/zoneId headers) unaffected.
+
+Request: POST /api/v1/customer/order/place, Authorization: Bearer <customer token, james.wilson@demo.com>,
+headers moduleId: 1, zoneId: [1], store_id=2 (Fresh Mart Grocery, module_id=1/zone_id=1)
+
+Response: {"message":"Order placed successfully","order_id":100115, ...}
+
+DB row:
+mysql> SELECT id, module_id, zone_id, store_id FROM orders WHERE id=100115;
+100115	1	1	2
+
+Result: order resolved module_id=1 / zone_id=1 matching the header values sent (header lookup path
+in PlaceNewOrder.php untouched by NEARS-3058 -- only a `?? $store?->module_id` fallback was ADDED
+for the header-absent case). Customer flow succeeds unchanged. PASS.

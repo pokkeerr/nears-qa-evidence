@@ -1,0 +1,26 @@
+AC (c1/c2/c3): DeliveryMan chat controller split + routing + behavior parity.
+
+c1: Api/V1/DeliveryMan/ConversationController exists with conversations/search_conversations/
+    messages/messages_store (mirrors Api/V1/Vendor/ConversationController). Customer
+    Api/V1/ConversationController retains only customer-actor methods (messages_store still
+    hard-codes sender_type='customer'; DM controller hard-codes sender_type='delivery_man').
+
+c2: route:list confirms all 4 dm.api-guarded routes point at
+    App\Http\Controllers\Api\V1\DeliveryMan\ConversationController (middleware: DmTokenIsValid).
+
+Live DM chat test (delivery man Ali Hassan, +971565656656, token via /api/v1/auth/delivery-man/login):
+- GET  /api/v1/delivery-man/message/list?token=...          -> 200, own conversation (id 60) returned
+- GET  /api/v1/delivery-man/message/search-list?token=...    -> 200, same conversation
+- GET  /api/v1/delivery-man/message/details?token=...&user_id=6 -> 200, 2 messages returned
+- POST /api/v1/delivery-man/message/send (receiver_id=3, receiver_type=customer) -> 200, message posted
+
+IDOR / non-participant check (conversation_id=1, belongs to a DIFFERENT delivery man):
+- GET  /api/v1/delivery-man/message/details?token=...&conversation_id=1 -> 403 {"code":"conversation","message":"Not found"}
+- POST /api/v1/delivery-man/message/send (conversation_id=1)             -> 403 {"code":"conversation","message":"Not found"}
+
+c3: Customer chat unaffected: GET /api/v1/customer/message/list (Authorization: Bearer <customer
+    token>) -> 200 clean. Vendor chat unaffected: GET /api/v1/vendor/message/list (vendorType: owner
+    header) -> 200, real conversation data returned.
+
+Result: PASS -- DM can list/search/read/send in own conversations, cannot read/send in a conversation
+they are not a participant of (403); customer + vendor chat unaffected.
