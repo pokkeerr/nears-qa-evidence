@@ -1,0 +1,15 @@
+=== FE [FAIL] log (DeliveryApp, emulator-5558, pid 4406) ===
+09-05 21:10:55.530  4406  4406 I flutter : [FAIL] endpoint=/api/v1/delivery-man/message/list http_status=500 type=ApiFailure msg="api request failed" correlation_id=975c7d0b-6777-4c80-85fb-3f2cc741f6da
+09-05 21:11:12.067  4406  4406 I flutter : [FAIL] endpoint=/api/v1/delivery-man/message/list http_status=500 type=ApiFailure msg="api request failed" correlation_id=cb7510e7-07a2-4219-b8fd-5abb06331a2f
+
+=== BE laravel.log (correlated by correlation_id) ===
+[2026-09-05 21:11:00] production.ERROR: [FAIL] Target class [App\Http\Controllers\Api\V1\DeliveryMan\ConversationController] does not exist. {"trace_id":"898247bf90ce88093b44e82bddcc983a","correlation_id":"975c7d0b-6777-4c80-85fb-3f2cc741f6da","type":"Illuminate\\Contracts\\Container\\BindingResolutionException","endpoint":"/api/v1/delivery-man/message/list"}
+[2026-09-05 21:11:17] production.ERROR: [FAIL] Target class [App\Http\Controllers\Api\V1\DeliveryMan\ConversationController] does not exist. {"trace_id":"84ef042d88a5290c0c4cfb98e75fcbd6","correlation_id":"cb7510e7-07a2-4219-b8fd-5abb06331a2f","type":"Illuminate\\Contracts\\Container\\BindingResolutionException","endpoint":"/api/v1/delivery-man/message/list"}
+
+Analysis: The backend controller class App\Http\Controllers\Api\V1\DeliveryMan\ConversationController
+does not exist, so BOTH tabs (Customer/Store) of DeliveryApp's Conversation screen show
+"Something went wrong". This is a backend routing/controller defect, entirely unrelated to
+NEARS-3068 (a Flutter widget-source consolidation touching zero backend files). The FE
+correctly surfaces a paired [FAIL] AppLogger line for this failure (not a silent failure) —
+no NEARS-566 finding against this ticket's diff. Filed as a regression_bugs candidate for
+the PO to route separately; does not affect this ticket's PASS verdict.
