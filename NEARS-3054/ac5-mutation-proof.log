@@ -1,0 +1,31 @@
+AC5 gate mutation-proof (Admin/tests/Feature/Structure/ZoneModuleIdiomOccurrenceGuardTest.php)
+
+1) Baseline confirmed clean on Admin/app/Http/Controllers/Api/V1/CouponController.php
+   (git status --short: no output).
+
+2) Mutation injected: appended a comment line containing the literal raw idiom
+   string whereHas('module.zones' to the end of CouponController.php (outside
+   app/Models/, a non-functional comment so this is a pure guard-instrument
+   change):
+
+     // NEARS-3054 QA mutation-proof (temporary, reverted immediately after guard-test observation):
+     // whereHas('module.zones', fn($q)=>$q->whereIn('zones.id', $zoneIds))
+
+3) Ran: vendor/bin/phpunit --configuration phpunit.xml --filter ZoneModuleIdiomOccurrenceGuardTest
+   Result: FAIL (as required) —
+
+     1) Tests\Feature\Structure\ZoneModuleIdiomOccurrenceGuardTest::test_no_new_zone_module_idiom_occurrences_beyond_the_committed_baseline
+     NEARS-3054: 1 file(s) exceed their committed zone-module-idiom-baseline.json ceiling ...:
+     Http/Controllers/Api/V1/CouponController.php :: whereHas_module_zones live=1 > baseline=0
+     Tests: 2, Assertions: 3, Failures: 1.
+
+   This proves the gate is NOT vacuously green — it actually fails on a new
+   occurrence of the guarded idiom outside app/Models/.
+
+4) Reverted: git checkout -- app/Http/Controllers/Api/V1/CouponController.php
+   Confirmed clean again (git status --short: no output).
+   Confirmed byte-identical to base commit 6f20303dc95f4059bc85cc9c96255a21b05c87a5
+   post-revert (git diff <base>..HEAD -- Admin/app/Http/Controllers/Api/V1/CouponController.php: 0 lines).
+
+5) Re-ran the same filter: OK (2 tests, 3 assertions) — gate is green again after
+   the revert, confirming the mutation and revert were both clean round-trips.

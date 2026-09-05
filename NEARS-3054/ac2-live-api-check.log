@@ -1,0 +1,43 @@
+AC2 live API corroboration (independent of the engineer's own tests) — worktree's
+own `php artisan serve --host=127.0.0.1 --port=8091` against the real seeded
+`multi_food_db` (not the phpunit twin DB).
+
+Endpoint: GET /api/v1/items/item-or-store-search (ItemController@item_or_store_search),
+which calls the new Store::scopeCurrentModuleZone via `->currentModuleZone(...)` on
+line 909 (one of the 33 confirmed consolidated call sites). This route is on
+ModuleCheckMiddleware's `$except` list, so moduleId is genuinely OPTIONAL here —
+letting us live-hit both the "module set" and "module unset" branches of the
+scope's documented contract without a 403.
+
+Fixture: zone 1 (Main Service Zone) contains store_id=4 "Burger Palace"
+(module_id=2, Food & Restaurant). zone 2 (Abu Dhabi Zone) contains
+store_id=47/51 (module_id=2) with similarly-named "Burger" items, plus
+store_id=12 (module_id=1, Grocery) with "Hamburger Buns"/"Round Wheat Bread".
+
+Test A — zoneId:[1], moduleId:2 (correct module for Burger Palace):
+  -> 29 items returned, stores:["Burger Palace" (id 4)]. Confirms zone+module
+     match surfaces the item.
+
+Test B — zoneId:[1], moduleId:1 (WRONG module — Grocery — for Burger Palace):
+  -> items: [], stores: []. Confirms the module filter correctly EXCLUDES a
+     store belonging to a different module even though the zone matches.
+
+Test C — zoneId:[1], NO moduleId header (exempt route, config('module.current_module_data')
+  is unset):
+  -> 28 items, stores:["Burger Palace"]. Same item set as Test A minus nothing
+     zone-1-scoped; "Hamburger Buns" (zone 2) correctly absent. Confirms the
+     documented contract: "module filter skipped, zone filter always applies."
+
+Test D — zoneId:[2], NO moduleId header:
+  -> 34 items, entirely disjoint from Tests A/B/C — zone-2 items only (BBQ
+     Burger from stores 47/51, Hamburger Buns from store 12, etc.), zero
+     "Burger Palace" (zone 1) leakage. Confirms the zone filter narrows
+     correctly and independently of the module-skip branch.
+
+Conclusion: live-observed behavior matches the AC2 "before vs after
+byte-identical, module filter skipped / zone filter always applies" contract
+exactly — corroborated independently of Admin/tests/Feature/ZoneModuleScopeConsolidationTest.php.
+
+BE log check: grep -F "item-or-store-search" Admin/storage/logs/laravel.log and a
+timestamp-scoped grep for the request window (05:53-05:55) returned zero lines —
+clean, no errors correlated with these 4 requests.

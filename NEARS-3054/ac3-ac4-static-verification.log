@@ -1,0 +1,29 @@
+AC3 (LanguageController) and AC4 (ReportController) — fallback verification
+(no live admin-session auth flow attempted; verified the tests exercise real
+DB rows / real SQL, not mocks/tautologies).
+
+AC3: grep confirms all 3 call sites (LanguageController.php:29,81,116) call
+Helpers::get_system_language_setting(). The new helper
+(app/CentralLogics/Helpers.php:2772) is `BusinessSetting::where('key',
+'system_language')->first()` — a plain live-DB query, matching the doc's
+"raw system_language row, NOT the cached system_default_language() string"
+design note.
+Test (ZoneModuleScopeConsolidationTest::test_get_system_language_setting_returns_the_live_business_setting_row)
+independently re-queries BusinessSetting::where('key','system_language')->first()
+and asserts ->id and ->value match Helpers::get_system_language_setting()'s
+result — a real live-row comparison, not a mock or an identity tautology
+(the expected/actual come from two separate query calls).
+
+AC4: grep confirms OrderLogic::orderDetailAggregateSubquery is called at the
+4 ReportController.php sites (683,706,1531,1554 in the census; verified
+call sites exist). The new test
+(test_order_detail_aggregate_subquery_produces_identical_sql_and_bindings)
+builds the subquery closure against a DB::table('items') query, then asserts
+->toSql() and ->getBindings() are byte-identical to the historically expected
+SQL/binding shape.
+Independently cross-checked: `git show 6f20303dc95f4059bc85cc9c96255a21b05c87a5:Admin/app/Http/Controllers/Admin/ReportController.php`
+shows the ORIGINAL total_discount closure (before consolidation) built the
+identical SUM(order_details.discount_on_item * order_details.quantity) query
+with the identical join, whereIn(order_status,...) list, and custom-date
+whereBetween shape the new test pins — confirms the extraction is genuinely
+byte-identical to the pre-refactor closure, not just internally self-consistent.
