@@ -1,0 +1,17 @@
+{
+  "note": "AC1 Admin panel — clean single POST /admin/search-routing per keyword (session cookie + CSRF, no per-keystroke race). Verified against DB seed data.",
+  "results": {
+    "Coca Cola (Item, id=9)": "2 results: Item Edit, Item View -> admin/item/edit/9, admin/item/view/9",
+    "Nears Mart (Store id=1 + Order dual-lookup + Banner)": "14 results: Store Edit/View/Recommended, 9x Order Details (customer/store match), Banner Add-new/Edit",
+    "James (Customer id=1 James Wilson + Order dual-lookup)": "8 results: Customer View, Wallet Transaction Report, 6x Order Details",
+    "Bakery (Store id=3716, category match filtered out by module scope)": "3 results: Store Edit/View/Recommended",
+    "1 (numeric -> numeric() definitions branch)": "51 results incl. Category Sub Index, Store id=1, multiple Order Details",
+    "NEARS10 (Coupon code)": "1 result: Coupon Edit",
+    "Hassan (DeliveryMan Ali Hassan + Store name collision)": "7 results: Delivery Man Edit/Preview - (Ali Hassan), plus Store matches",
+    "Fresh Grocery Picks (ItemCampaign id=13)": "2 results: Item Campaign Edit, Item Campaign View",
+    "QA Single-Store Campaign A (Campaign id=1, exact match only)": "2 results: Basic Campaign Edit/View admin/campaign/basic/edit|view/1",
+    "NEARS-2206 QA Pending Store (Store vendor.status=null branch)": "4 results incl. Store View -> .../pending-list suffix + Store Pending-requests route"
+  },
+  "models_covered": ["Item", "Store", "Order (customer+store dual lookup)", "Customer", "Category", "Coupon", "DeliveryMan", "ItemCampaign", "Campaign"],
+  "conclusion": "9 clean distinct-model Admin keyword tests, all matched expected DB rows and expected routeFilter branching (incl. pending-vendor status branch). Byte-diff of moved query logic (Store/Item/Order/DeliveryMan definitions) against pre-refactor commit 97fe75da3 also confirmed identical."
+}

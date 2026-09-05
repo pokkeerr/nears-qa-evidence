@@ -1,0 +1,39 @@
+NEARS-3062 QA — AC2, AC3, AC4 evidence
+
+=== AC2: single find/filter/push idiom ===
+$ grep -c "filterRoute(" Admin/app/Http/Controllers/Admin/SearchRoutingController.php Admin/app/Http/Controllers/Vendor/SearchRoutingController.php
+Admin/app/Http/Controllers/Admin/SearchRoutingController.php:0
+Admin/app/Http/Controllers/Vendor/SearchRoutingController.php:0
+Zero direct filterRoute()/filter+push calls remain in either controller.
+The idiom now lives exactly once in RouteSearchService (collectMatches,
+filterRouteAdmin, filterRouteVendor, computeRouteMatch — 4 method defs,
+confirmed via grep -c on those signatures = 4). PASS (better than the
+"near-zero" bar in the AC — it's exactly zero).
+
+=== AC3: full-rebuild verified for BOTH generators ===
+Admin generator:
+  - Live route admin/settings (routes/admin.php:16) temporarily commented out
+  - php artisan generate:admin-route
+  - admin_formatted_routes.json: entries for admin/settings dropped from 1 -> 0
+    (total 192 -> 191)
+  - route restored, regenerated again: entries back to 1, total 192, git
+    status clean (byte-identical to committed JSON)
+Vendor generator:
+  - Live route vendor-panel/pos (routes/vendor.php:32, POSController@index)
+    temporarily commented out
+  - php artisan generate:vendor-route
+  - vendor_formatted_routes.json: entries for vendor-panel/pos dropped from
+    1 -> 0 (total 41 -> 40)
+  - route restored, regenerated again: entries back to 1, total 41, git
+    status clean
+(Note: admin/attribute was tried first but is seeded via the hardcoded
+manualyAddedBladePath() dict, independent of live routes by design — not a
+suitable test route; admin/settings was used instead, which comes from the
+automatic Route::getRoutes() loop.)
+PASS for both commands.
+
+=== AC4: routes/ contract diff empty ===
+$ git diff 97fe75da3..HEAD -- Admin/routes/ | wc -l
+0
+Independently re-verified — zero lines changed under Admin/routes/ across
+the whole ticket's commit range. PASS.

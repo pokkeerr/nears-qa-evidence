@@ -1,0 +1,42 @@
+NEARS-3062 QA — regression-candidate live confirmation (pre-existing, not a
+new regression introduced by this refactor).
+
+Observed while typing "Nears Mart" into the Admin search box character by
+character (per-keystroke live search UI) — the first keystroke ("N" alone)
+fired its own POST /admin/search-routing request that returned HTTP 500.
+
+Admin/storage/logs/laravel.log:
+[2026-09-05 15:45:22] production.ERROR: [FAIL] Allowed memory size of
+134217728 bytes exhausted (tried to allocate 20480 bytes)
+{"trace_id":"402532fb0392d6e2151b676db9bc86b5",
+ "correlation_id":"f7550f61-af68-433a-a1a0-a2bc5f8f6b3b",
+ "type":"Symfony\\Component\\ErrorHandler\\Error\\FatalError",
+ "endpoint":"/admin/search-routing"}
+
+Root cause: a 1-character wildcard keyword (e.g. "N") makes every
+`WHERE name/description LIKE '%N%'` query match nearly the entire table —
+in this seed DB, Item::where(name LIKE %N% OR description LIKE %N%)->get()
+against 14,614 items returns most of the table, then gets cross-joined
+against every matching admin route in collectMatches(), exhausting the
+128MB PHP memory_limit in a single request.
+
+Confirmed PRE-EXISTING (not introduced by NEARS-3062): the identical query
+shape exists byte-for-byte in the pre-refactor controller at commit
+97fe75da3 (Admin/app/Http/Controllers/Admin/SearchRoutingController.php
+line ~1071-1076):
+  $Items = Item::when(...)->where(function ($query) use ($searchKeyword) {
+      $query->where('name', 'LIKE', '%' . $searchKeyword . '%')
+          ->orWhere('description', 'LIKE', '%' . $searchKeyword . '%');
+  })->get();
+— same unbounded ->get() with no LIMIT/pagination, same per-model repetition
+across ~15 definitions. This refactor moved the logic verbatim; it did not
+introduce or worsen this behavior.
+
+Re-verified NOT reproducible with normal-length keywords: subsequent clean
+single-shot curl tests with 4+ character keywords, including a broad one
+("Test", 1984 results) all returned HTTP 200 without memory exhaustion.
+Only extreme 1-2 character wildcards on this ~15k-row Item table trigger it.
+
+Recommendation to conductor/PO: file as a separate, non-blocking
+performance Bug (low/medium severity, pre-existing) — e.g. add a minimum
+keyword length guard or a query LIMIT — not in scope for NEARS-3062.

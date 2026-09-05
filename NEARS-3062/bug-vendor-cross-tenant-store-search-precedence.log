@@ -1,0 +1,60 @@
+NEARS-3062 QA — regression-candidate live confirmation
+Pre-existing bug (NOT introduced by this refactor; code comment in
+VendorSearchDefinitions.php:416-420 explicitly says "precedence bug preserved
+verbatim from the original ... not this ticket's to fix").
+
+Setup: logged in as vendor ahmed.khan@demo.com (store_id=2, "Fresh Mart Grocery").
+Target victim store: id=23 "Country Fair", vendor John Doe G, phone +101501014,
+email countryfair@demo.com — a DIFFERENT tenant, not owned by ahmed.khan.
+
+Requests (POST /vendor-panel/search-routing, authenticated as ahmed.khan):
+
+  search=countryfair@demo.com
+  -> [{"routeName":"My Store View","URI":"vendor-panel/store/view", ...}]
+  MATCHED — should NOT match (email belongs to a different store)
+
+  search=countryfair
+  -> [{"routeName":"My Store View", ...}]
+  MATCHED — partial substring of victim's email also triggers it
+
+  search=John Doe G   (victim vendor's own f_name + l_name)
+  -> [{"routeName":"My Store View", ...}]
+  MATCHED — victim vendor's own name also triggers it
+
+  search=+101501014   (victim's phone, exact)
+  -> []  NOT matched — because is_numeric("+101501014") is TRUE in PHP
+         (leading "+" is accepted by is_numeric), so the request is routed to
+         the numeric() definitions (Store::find($kw) by id) instead of the
+         vulnerable text() precedence-bug path. Not a contradiction — just
+         confirms the bug is reachable via non-numeric substrings only.
+
+  search=101501014x   (not a real substring of anything)
+  -> []  correctly no match (negative control)
+
+Root cause (VendorSearchDefinitions.php:420-427, both the "settings" and
+"info" store-lookup definitions):
+  Store::where('id', $ctx['storeId'])->where('name', 'LIKE', $like($kw))
+      ->orWhere('phone', 'LIKE', $like($kw))
+      ->orWhere('email', 'LIKE', $like($kw))
+      ...
+The trailing ->orWhere() calls are NOT wrapped in a closure, so they escape
+the `where('id', $ctx['storeId'])` scope entirely — the query becomes
+"this vendor's store WHERE name matches, OR ANY store's phone/email/etc.
+matches", vendor-boundary not enforced for those fields.
+
+IMPACT ASSESSMENT (for PO triage — this is confirmation, not a fix):
+- The result row surfaces regardless of tenant boundary (false-positive
+  match => confirms a given phone/email/name STRING exists as SOME store's
+  identity somewhere in the system — a low-severity vendor/PII **enumeration
+  oracle**).
+- It does NOT leak the target store's actual private data: the matched
+  route URI ('vendor-panel/store/view') carries no id/parameter, and that
+  page is rendered server-side scoped to the AUTHENTICATED vendor's own
+  session store — clicking through shows ahmed.khan's OWN store (Fresh Mart
+  Grocery), never Country Fair's details.
+- Byte-identical to the pre-refactor controller (confirmed via git diff
+  against 97fe75da3) — this predates NEARS-3062 and is not a new regression.
+
+Recommendation to conductor/PO: file as a separate, non-blocking security
+Bug (medium severity — confirmed-exploitable enumeration oracle, not a
+direct cross-tenant data leak) rather than an urgent escalation.
