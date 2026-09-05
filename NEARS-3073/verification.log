@@ -1,0 +1,60 @@
+NEARS-3073 — UserApp iOS Profile config bundle id fix — QA verification log
+Worktree: /Users/Apple/Projects/nears-NEARS-3073-ios-bundle-id-fix
+Branch: feat/NEARS-3073-ios-bundle-id-fix
+Commit under test: 562e5cb3c7c422044ddff2225a21cd94c992b551
+Base: 374d6701698db980b38c537d90886d1247dfedfa (feat/userapp-reskin2)
+Xcode: 26.6 (Build 17F113)
+Date: 2026-09-05
+
+$ git diff --stat 374d67016..HEAD
+ UserApp/ios/Runner.xcodeproj/project.pbxproj | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+=== AC1: Runner (app) target, Profile config ===
+$ xcodebuild -showBuildSettings -project Runner.xcodeproj -target Runner -configuration Profile | grep PRODUCT_BUNDLE_IDENTIFIER
+    PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears
+RESULT: PASS (expected com.izzes.nears)
+
+=== AC2: RunnerTests target, all 3 configs ===
+$ xcodebuild -showBuildSettings -project Runner.xcodeproj -target RunnerTests -configuration Debug | grep PRODUCT_BUNDLE_IDENTIFIER
+    PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears.RunnerTests
+$ xcodebuild -showBuildSettings -project Runner.xcodeproj -target RunnerTests -configuration Release | grep PRODUCT_BUNDLE_IDENTIFIER
+    PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears.RunnerTests
+$ xcodebuild -showBuildSettings -project Runner.xcodeproj -target RunnerTests -configuration Profile | grep PRODUCT_BUNDLE_IDENTIFIER
+    PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears.RunnerTests
+RESULT: PASS (all 3 configs read com.izzes.nears.RunnerTests)
+
+=== AC3: sixamtech grep ===
+$ grep -n sixamtech Runner.xcodeproj/project.pbxproj
+(no output, exit code 1 — zero matches)
+RESULT: PASS
+
+=== AC4 (regression): Runner target Debug/Release unaffected ===
+$ xcodebuild -showBuildSettings -project Runner.xcodeproj -target Runner -configuration Debug | grep PRODUCT_BUNDLE_IDENTIFIER
+    PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears
+$ xcodebuild -showBuildSettings -project Runner.xcodeproj -target Runner -configuration Release | grep PRODUCT_BUNDLE_IDENTIFIER
+    PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears
+$ grep -n "PRODUCT_BUNDLE_IDENTIFIER" Runner.xcodeproj/project.pbxproj
+510:				PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears;
+527:				PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears.RunnerTests;
+545:				PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears.RunnerTests;
+561:				PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears.RunnerTests;
+693:				PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears;
+720:				PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears;
+RESULT: PASS — lines 693/720 (Runner Debug/Release) unchanged and correct; diff confirmed exactly 4 lines edited (510, 527, 545, 561), 1 file touched total.
+
+=== Diff of the fix commit (562e5cb3c) ===
+@@ -507,7 +507,7 @@
+-				PRODUCT_BUNDLE_IDENTIFIER = com.sixamtech.6amMart;
++				PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears;
+@@ -524,7 +524,7 @@
+-				PRODUCT_BUNDLE_IDENTIFIER = com.sixamtech.sixammartUserApp.RunnerTests;
++				PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears.RunnerTests;
+@@ -542,7 +542,7 @@
+-				PRODUCT_BUNDLE_IDENTIFIER = com.sixamtech.sixammartUserApp.RunnerTests;
++				PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears.RunnerTests;
+@@ -558,7 +558,7 @@
+-				PRODUCT_BUNDLE_IDENTIFIER = com.sixamtech.sixammartUserApp.RunnerTests;
++				PRODUCT_BUNDLE_IDENTIFIER = com.izzes.nears.RunnerTests;
+
+Overall verdict: PASS — all 4 ACs demonstrated live via xcodebuild -showBuildSettings + grep, matching the compiled QA scope and the live Jira AC text (cross-checked via getJiraIssue). No sixamtech artifacts remain; no regression to Runner Debug/Release; blast radius confirmed at exactly 1 file. No live app UI to demonstrate for this ticket (pure iOS build-config value fix); no Android/emulator device lock was needed or acquired.
