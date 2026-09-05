@@ -1,0 +1,32 @@
+NEARS-3076 QA — regression evidence (device-free ticket, backend-only)
+Worktree: /Users/Apple/Projects/nears-NEARS-3076-dead-php-cleanup
+Branch: feat/NEARS-3076-dead-php-cleanup @ ebdf2a738
+Date: 2026-09-05
+
+== composer dump-autoload ==
+Generated optimized autoload files containing 18796 classes
+(no errors, no missing-class fatals)
+
+== php artisan route:list ==
+Showing [1501] routes
+(clean run, 0 fatals, 0 missing-class errors — matches engineer's stated
+before/after count of 1501; nothing deleted in this ticket was ever routed)
+
+== vendor/bin/phpunit --testsuite Unit ==
+OK, but there were issues!
+Tests: 155, Assertions: 3927, Deprecations: 1.
+(the two "[FAIL] OpenTelemetry export failed..." lines printed mid-run are
+test-emitted log assertions from an existing observability test, not actual
+PHPUnit test failures — final tally is OK, matches conductor's prior
+independent confirmation of 155/155)
+
+== vendor/bin/phpunit --filter 'Route|Controller|Business' tests/Feature ==
+OK (133 tests, 1518 assertions)
+(matches conductor's prior independent confirmation of 133/133)
+
+== vendor/bin/phpunit --filter 'Order|Product|Store|Category' tests/Feature ==
+OK (645 tests, 3906 assertions)
+(full run completed in 2:44, no network stall hit this pass)
+
+== DeadControllerMethodGuardTest ==
+OK (1 test, 1 assertion)

@@ -1,0 +1,68 @@
+NEARS-3076 QA — grep-based dead-code verification (device-free ticket)
+Worktree: /Users/Apple/Projects/nears-NEARS-3076-dead-php-cleanup @ ebdf2a738
+
+== AC1: 10 CentralLogics statics — confirmed 0 remaining defs/callers ==
+OrderLogic::gen_unique_id            -> 0 hits (grep -rn across Admin/)
+OrderLogic::updated_order_calculation -> 0 hits
+StoreLogic::get_overall_rating       -> 0 hits (distinct from ProductLogic::get_overall_rating,
+                                                 which was NEVER a deletion target and remains
+                                                 live, called from ItemController.php:784)
+StoreLogic::format_store_sales_export_data   -> 0 hits
+StoreLogic::format_store_summary_export_data -> 0 hits
+ProductLogic::get_product            -> 0 hits (function def + call sites both absent)
+ProductLogic::get_product_review     -> 0 hits (only get_product_reviews, a different/live
+                                                 controller method + route, remains)
+ProductLogic::get_rating             -> 0 hits
+ProductLogic::format_export_vehicles -> 0 hits
+CategoryLogic::parents               -> 0 hits
+
+== AC2: SmsGateway trait ==
+Admin/app/Traits/SmsGateway.php -> file absent (deleted)
+grep "App\Traits\SmsGateway" / "use App\Traits\SmsGateway" across Admin/ -> 0 hits
+All 7 live `SmsGateway::` call sites (Helpers.php, LoginController.php,
+CustomerController.php, SocialAuthController.php, PasswordResetController.php,
+CustomerAuthController.php, DMPasswordResetController.php) `use Modules\Gateways\Traits\SmsGateway`
+-- confirmed via explicit `use` statement in each file -- the OTHER (live, closed-source
+module) class, not the deleted one.
+
+== AC3: AISettingsController ==
+Admin/Modules/AI/app/Http/Controllers/Admin/Web/Settings/AISettingsController.php -> file absent
+grep "AISettingsController" across Admin/ -> 0 hits (no route, no reference)
+
+== AC4: 11 controller methods — confirmed gone, 0 dangling callers ==
+LiqPayController::get_response_code/cnb_form_raw/decode_params -> gone (only cnb_form remains, live)
+UpdateController::update_software_index/update_software -> gone
+InstallController::database_installation/force_import_sql -> gone
+Api/V1/ConversationController::chat_image -> gone
+Api/V1/Vendor/POSController::generate_invoice -> gone (Admin\POSController::generate_invoice,
+    Admin\OrderController::generate_invoice, Vendor\OrderController::generate_invoice are
+    live siblings in OTHER classes/routes, untouched)
+Vendor/OrderController::update_shipping -> gone (Admin\OrderController::update_shipping is the
+    live sibling in a different class/route, untouched)
+Vendor/DeliveryManController::get_account_data -> gone (Admin\VendorController::get_account_data
+    is the live sibling in a different class/route, untouched)
+grep for all 11 method names tree-wide -> only comments (NEARS-3076 removal notes) and the
+    unrelated live siblings above; no dangling callers.
+
+== AC5: 9 refuted items — confirmed untouched / still absent as claimed ==
+BusinessSettingsController::reactFaqStatus (line 6852) / reactFaqDestroy (line 6896) -> still
+    defined AND still routed via lowercase 'reactfaqStatus'/'reactfaqDestroy' route names in
+    routes/admin.php (case-insensitive PHP method dispatch) -- confirmed live.
+Admin\POSController::update_paid -> still absent (pre-existing, NEARS-3061)
+Admin\ItemController::search_vendor -> still absent
+Api/V1/CustomerController::get_order_list/get_order_details -> still absent
+Admin\ExternalConfigurationController (whole file) -> still absent
+Vendor\SystemController (whole file) -> still absent
+BusinessSettingsController::payment_update -> still absent (pre-existing, NEARS-3047)
+Api/V1/ExternalConfigurationController::updateDrivemondConfiguration -> still absent (never
+    existed)
+git diff feat/userapp-reskin2...HEAD --stat confirms these files/methods were never touched by
+    this ticket's 16-file diff.
+
+== AC8: NEARS-1268 CategoryController scope ==
+git diff feat/userapp-reskin2...HEAD -- Admin/app/Http/Controllers/Admin/CategoryController.php \
+    Admin/app/Http/Controllers/Api/V1/CategoryController.php -> empty diff (zero changes)
+
+== AC9: NEARS-2965 AI module /test-ai route ==
+Admin/Modules/AI/routes/web.php:21  Route::get('/test-ai', function (Request $request) { ... })
+-> present, untouched, unrelated to the deleted AISettingsController (different file/site)
