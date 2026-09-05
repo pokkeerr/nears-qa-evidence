@@ -1,0 +1,10 @@
+NEARS-3059 AC8 — vendor product-approval flow (TempProduct -> Item), individual path
+
+Seeded temp_products row (id=1) for item_id=84 with attributes=["1"] (item 84's live
+attributes at the time were ["1","2"]).
+
+GET /admin/item/approved?id=1 (Admin\ItemController@approved, the
+$item->attributes = $data->attributes; copy-assignment site named in the solution doc)
+  -> HTTP 302 redirect to /admin/item/new/item/list (normal success redirect, no crash)
+  -> DB items.id=84.attributes updated from ["1","2"] to ["1"] (copied cleanly from the
+     TempProduct row, both models array-cast, no double-encode, no type error)

@@ -1,0 +1,15 @@
+NEARS-3059 AC9 — item xlsx bulk export + re-import round trip (non-empty attributes)
+
+1. Item 84 attributes = ["1"] (Size) at export time.
+2. POST /admin/item/bulk-export (type=id_wise, start_id=84, end_id=84)
+   -> HTTP 200, real .xlsx (Microsoft Excel 2007+) returned.
+   -> Inspected xl/worksheets/sheet1.xml directly: Attributes column (Q2) = ["1"]
+      i.e. json_encode($item->attributes ?? []) produced valid JSON *text*, matching
+      the sibling ChoiceOptions/AddOns columns' text-JSON convention.
+3. Reset items.id=84.attributes to [] directly in DB (to make the round trip observable).
+4. POST /admin/item/bulk-import with the exported .xlsx (button=update path, since Id=84
+   is populated) -> HTTP 302 (no crash, no validation error).
+   -> DB items.id=84.attributes restored to ["1"] exactly as exported.
+   -> Re-GET /admin/item/edit/84 -> <option value="1" selected>Size</option> confirmed.
+
+Full round trip (export -> reset -> re-import) confirmed lossless and crash-free.

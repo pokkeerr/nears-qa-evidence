@@ -1,0 +1,14 @@
+NEARS-3059 AC7 — scalar attribute_id normalization (live sanity check, sec-3059-1)
+
+POST /admin/item/update/1 with attribute_id=5 (scalar, not an array)
+  -> HTTP 200 {"success":"Product updated successfully"} (no crash / no 500)
+  -> DB items.id=1.attributes = [] (normalized to empty array, not stored as scalar 5
+     or left as a stale value)
+
+Confirms live: Admin/ItemController.php's
+  $item->attributes = is_array($request->attribute_id) ? $request->attribute_id : [];
+guard works as intended for a syntactically-valid but non-array attribute_id value.
+
+Also covered by automated tests (both green, part of the 10/10 ItemAttributesCastTest run):
+  - test_admin_web_form_scalar_attribute_id_is_normalized_to_empty_array
+  - test_api_vendor_json_string_attribute_id_decoding_to_a_scalar_is_normalized_to_empty_array

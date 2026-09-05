@@ -1,0 +1,14 @@
+NEARS-3059 AC6 — Admin + Vendor panel create/update round trip (live HTTP, curl session)
+
+Admin panel: POST /admin/item/update/1 with attribute_id[]=2
+  -> HTTP 200 {"success":"Product updated successfully"}
+  -> DB items.id=1.attributes = ["2"]  (native JSON array, no double-encode)
+  -> Re-GET /admin/item/edit/1 -> <option value="2" selected>Color</option> confirmed in rendered HTML
+
+Vendor (Store) panel: POST /vendor-panel/item/update/84 with attribute_id[]=1&attribute_id[]=2
+  -> HTTP 200 {"success":"Product updated successfully"}
+  -> DB items.id=84.attributes = ["1","2"]
+  -> Re-GET /vendor-panel/item/edit/84 -> both <option value="1" selected>Size</option> and
+     <option value="2" selected>Color</option> confirmed in rendered HTML
+
+No 500s, no data loss, no double-encoding observed in either panel.
