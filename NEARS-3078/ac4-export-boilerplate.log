@@ -1,0 +1,64 @@
+AC4 — 9 Export classes' registerEvents/styles boilerplate consolidation
+=========================================================
+Diff confirms App\Exports\Concerns\BaseStyledExport trait extracts only the
+byte-identical shared pieces (hair border style block, bordered-data-range
+style array, center/left alignment helpers); each export class keeps its own
+column range / fill color / header-row count as the ticket's own comment in
+the trait states. Verified via
+`git diff 3a522ad5c..HEAD -- Admin/app/Exports/BasicCampaignExport.php` and
+`Admin/app/Exports/StoreSubCategoryExport.php` -- registerEvents()/styles()
+bodies produce the exact same PhpSpreadsheet calls, just routed through the
+shared trait methods.
+
+Representative subset actually downloaded live (admin/vendor session, real
+.xlsx parsed with PhpSpreadsheet to confirm structure/styling), all clean,
+no [FAIL]/[ERR] logged:
+
+1. CustomerWalletTransactionExport (A:I shape, requires ?type=excel):
+   admin/users/customer/wallet/export?type=excel -> exports/wallet.xlsx
+   dims A1:I28, header "Wallet transaction history", row1 height=50,
+   thin/black border on data range -- correct.
+
+2. AttributesExport (A:C shape):
+   admin/attribute/export -> exports/attributes.xlsx
+   dims A1:C3, header "Attributes List", row1 height=50 -- correct.
+
+3. UnitExport (A:C shape, same family as AttributesExport):
+   admin/unit/export/xlsx -> exports/unit.xlsx
+   dims A1:C11, header "Attributes List" (shared blade partial), row1
+   height=50 -- correct.
+
+4. ContactMessageExport (A:H shape):
+   admin/users/contact/contact-list-export -> exports/contact.xlsx
+   dims A1:H4, header "Contact messages", row1 height=50 -- correct.
+
+5. StoreSubCategoryExport (A:D shape -- substituted for BasicCampaignExport,
+   see bug note below; SAME shape family, same
+   applyHairBorderStyle/borderedDataStyle/centerAlign extraction as
+   BasicCampaignExport):
+   vendor-panel/category/export-sub-categories (vendor session) ->
+   exports/subcategory.xlsx
+   dims A1:D3, header "Category List", row1 height=50 -- correct.
+
+BUG FOUND, NOT part of this diff (regression_bugs, non-blocking):
+BasicCampaignExport (admin/campaign/basic-campaign-export) returns HTTP 500:
+  [FAIL] Call to a member function format() on null
+  (View: resources/views/file-exports/basic-campaign.blade.php)
+Root cause: all 3 seeded `campaigns` rows in this DB (ids 1,2,3 -- QA
+fixtures from other tickets) have NULL start_date/end_date; the blade view
+calls `$campaign->start_date->format(...)` unconditionally. The view file,
+the Campaign model, and CampaignController::basic_campaign_export() query
+are ALL untouched by this diff (only styles()/registerEvents() changed, per
+`git diff 3a522ad5c..HEAD -- Admin/app/Exports/BasicCampaignExport.php`) --
+this is a pre-existing null-safety gap in the view + a pre-existing data
+gap in the fixtures, unrelated to NEARS-3078. Logged as regression_bugs; NOT
+a task_bug, does not block this PASS. See
+bug-campaign-export-null-start-date.log for the exact log line.
+
+Environment note: an initial pass with APP_DEBUG=true (set for QA log
+visibility) had barryvdh/laravel-debugbar auto-enabled, which corrupted the
+FIRST wallet/campaign download attempts by injecting HTML/JS into the binary
+xlsx stream (0-byte or HTML-typed "xlsx" files). This was a QA-harness
+artifact from my own .env choice, NOT a code defect -- fixed by setting
+DEBUGBAR_ENABLED=false and re-downloading; all 5 real xlsx files above were
+captured after that fix.

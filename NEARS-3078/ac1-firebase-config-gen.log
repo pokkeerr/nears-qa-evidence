@@ -1,0 +1,55 @@
+AC1 — firebase_message_config_file_gen() consolidation
+=========================================================
+Diff confirms pure extraction: UpdateController.php:202 and
+BusinessSettingsController.php (old self::firebase_message_config_file_gen(),
+now removed) both call Helpers::firebase_message_config_file_gen() with a
+byte-identical method body (only the silent `catch (\Exception $e) { // }`
+was upgraded to a proper `\Log::error('[FAIL] ...')` line — a compliant fix,
+not a behavior change to the happy path).
+
+Entry point 1 (BusinessSettingsController::update_fcm, live HTTP POST via
+admin session, /admin/business-settings/update-fcm):
+  POST apiKey=QA-RETEST-APIKEY-999 (+ other fcm_credentials fields)
+  -> 302 redirect (Settings updated), DB business_settings.fcm_credentials
+     updated correctly.
+  -> Fresh-process read (php artisan tinker) of
+     Helpers::firebase_message_config_file_gen() output file
+     Admin/firebase-messaging-sw.js shows:
+        apiKey: "QA-RETEST-APIKEY-999"
+        authDomain: "nears-1d39b.firebaseapp.com"
+        projectId: "nears-1d39b"
+        storageBucket: "nears-1d39b.firebasestorage.app"
+        messagingSenderId: "1033648887925"
+        appId: "1:1033648887925:web:45da9aae3d9471f1cf003c"
+        measurementId: "G-GHZZVQJ65Q"
+     -- matches the just-saved business_settings data exactly.
+
+Entry point 2 (UpdateController's call site, inside update_software()):
+  update_software() is a genuinely destructive, one-time install/system-
+  update action (Helpers::setEnvironmentValue() rewrites Admin/.env,
+  Artisan::call('migrate', ['--force'=>true]), and
+  copy(RouteServiceProvider.txt, RouteServiceProvider.php) overwrites a
+  git-TRACKED source file) -- unsafe to execute against any environment,
+  including a disposable DB clone, because the destructive writes are to
+  the FILESYSTEM/worktree, not just the DB. Its call site is a bare,
+  parameterless static call identical to entry point 1's
+  (`Helpers::firebase_message_config_file_gen();`), so it was verified via
+  direct invocation of the exact same shared method (php artisan tinker)
+  rather than driving the destructive wizard end-to-end.
+  Result: byte-identical output to entry point 1, given the same
+  business_settings data (confirmed via diff of the two file snapshots).
+
+Logs: no [FAIL]/[ERR] logged for either firebase_message_config_file_gen
+invocation window (Admin/storage/logs/laravel.log grep, scoped to the
+request timestamps) -- clean.
+
+Regression note (pre-existing, NOT part of this diff): a `static $allSettings`
+in-process cache inside Helpers::get_business_settings() (line 1328, outside
+this diff's changed line ranges 5321-5423 confirmed via
+`git diff 3a522ad5c..HEAD -- Admin/app/CentralLogics/Helpers.php`) can serve
+a stale business_settings snapshot to a SECOND write-then-read within the
+SAME long-running `php artisan serve` process, even though the model's
+`booted()` hooks correctly call Helpers::deleteCacheData() (which flushes the
+DB-backed cache table) on every save. A brand-new process (tinker/php-fpm-
+style fresh request) always reads the correct, latest value. Logged as
+regression_bugs (pre-existing, unrelated to this ticket) -- see envelope.

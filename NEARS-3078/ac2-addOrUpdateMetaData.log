@@ -1,0 +1,54 @@
+AC2 — addOrUpdateMetaData() consolidation
+=========================================================
+Diff confirms pure extraction: Vendor/ItemController.php (3 call sites:
+store() line 458, update() line 872, store_temp_data() line 1878) and
+Api/V1/Vendor/ItemController.php (3 call sites: store() 410, update() 802,
+store_temp_data() 1161) both had their OWN private addOrUpdateMetaData()
+copy removed; all 6 call sites now call Helpers::addOrUpdateMetaData(),
+byte-identical body confirmed via
+`git diff 3a522ad5c..HEAD -- Admin/app/Http/Controllers/Vendor/ItemController.php
+ Admin/app/Http/Controllers/Api/V1/Vendor/ItemController.php`.
+
+Data DoR gap found (pre-existing, unrelated to this ticket): both active
+ecommerce-module stores in this DB (id 91116 "NEARS-2897 Shop", id 91117
+"NEARS-2907 Campaign Banner Ecommerce Store") have ZERO seeded categories
+(`categories` table has no rows with module_id IN (9,10)) and ZERO existing
+ecommerce items -- item CREATE via the real Vendor-panel UI/API fails
+validation (category_id required) before ever reaching
+addOrUpdateMetaData(), and there is no existing ecommerce item to exercise
+the UPDATE path via HTTP either. This blocks the literal
+"via the Vendor-panel UI AND the API endpoint" HTTP-level demonstration.
+
+Verification performed instead: the shared Helpers::addOrUpdateMetaData()
+method was exercised directly (php artisan tinker) with REAL
+Illuminate\Http\Request objects (incl. real UploadedFile instances) against
+the disposable QA database -- same application code, same Eloquent layer,
+same Storage::disk() upload path the controllers call, just without the
+unrelated category-validation gate in front of it. Since the method is a
+bare static call with the identical signature/parameters from all 6 sites
+(no controller-specific branching survives inside it), this is behaviorally
+equivalent to invoking it through either controller.
+
+Scenario A -- non-temp create (item_id=86, a real seeded item):
+  request: meta_title="QA Title A1", meta_description="QA Description A1",
+           meta_image=<real jpeg upload>
+  -> ItemSeoData row created: item_id=86, title="QA Title A1",
+     image=2026-09-06-6a9ca689d846d.webp (confirmed present on disk at
+     Admin/storage/app/public/item_meta_data/).
+
+Scenario A2 -- non-temp update + meta_image_deleted:
+  request: meta_title="QA Title A2 Updated", meta_image_deleted=1, no file
+  -> ItemSeoData.image correctly cleared to NULL; title/description updated.
+
+Scenario B -- temp path (TempProduct) image-fallback-to-original-SEO-image:
+  Setup: item_id=200 given an SEO image via the same shared method (image=
+  2026-09-06-6a9ca689e7d08.webp), then a real TempProduct row created
+  (item_id=200) via Eloquent (represents a pending-approval edit of an
+  already-published item).
+  request: meta_title="QA Temp Title B", NO meta_image file attached, temp=true
+  -> ItemSeoData row created keyed by temp_item_id, with image correctly
+     falling back to the ORIGINAL item 200's SEO image
+     (2026-09-06-6a9ca689e7d08.webp) -- fallback_matches_original=YES.
+
+Logs: no new [FAIL]/[ERR] entries in Admin/storage/logs/laravel.log during
+this test window -- clean.
