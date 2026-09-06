@@ -1,0 +1,67 @@
+NEARS-3089 QA spot-check — login_suggestion_bottomsheet.dart site-count discrepancy
+=====================================================================
+
+Source: UserApp/lib/common/widgets/login_suggestion_bottomsheet.dart
+Worktree: /Users/Apple/Projects/nears-NEARS-3089-getfind-binder-audit
+Commit checked: HEAD (6b4e2086a)
+
+Jira comment 18214 / docs/solutions/NEARS-3089-getfind-binder-audit.md claim for
+this file: "6 sites | 6 (a) | 0 (b)" — reasoning given covers only two buckets:
+(1) SplashController.configModel reads in build(), (2) AuthController.enableOtpView
+in onPressed.
+
+Actual grep of the file (QA-run, this session):
+
+  $ grep -o "Get\.find<[A-Za-z]*Controller>" login_suggestion_bottomsheet.dart | sort | uniq -c
+     4 Get.find<AuthController>
+     2 Get.find<LocationController>
+    13 Get.find<SplashController>
+  (19 raw occurrences total; 18 live + 1 commented-out at line 335)
+
+  $ grep -n "Get\.find<" login_suggestion_bottomsheet.dart
+  30:    bool googleLoginActive = Get.find<SplashController>()...
+  31:        && Get.find<SplashController>()...
+  33:    bool facebookLoginActive = Get.find<SplashController>()...
+  34:        && Get.find<SplashController>()...
+  36:    bool canAppleLogin = Get.find<SplashController>()...
+  38:    bool appleLoginActive = canAppleLogin && Get.find<SplashController>()...
+  39:        && Get.find<SplashController>()...
+  41:    bool isOtpActive = Get.find<SplashController>()...
+  118:    Get.find<AuthController>().enableOtpView(enable: true);      [onPressed — classified]
+  216:    Get.find<AuthController>().loginWithSocialMedia(...)         [_googleLogin — NOT mentioned]
+  243:    Get.find<AuthController>().loginWithSocialMedia(...)         [_facebookLogin — NOT mentioned]
+  270:    String clientID = Get.find<SplashController>()...appleLogin  [_appleLogin — NOT mentioned]
+  271:    String redirectURL = Get.find<SplashController>()...appleLogin [_appleLogin — NOT mentioned]
+  289:    Get.find<AuthController>().loginWithSocialMedia(...)         [_appleLogin — NOT mentioned]
+  333:    Get.find<LocationController>().syncZoneData();               [_processSocialSuccessSetup — NOT mentioned]
+
+Finding: the posted classification's site-count (6) and reasoning cover only the
+5 build()-level boolean reads + the one onPressed call. Six additional, distinct
+call sites in _googleLogin/_facebookLogin/_appleLogin/_processSocialSuccessSetup
+(lines 216, 243, 270, 271, 289, 333) are not enumerated or individually
+classified anywhere in Jira comment 18214 or the solution doc, despite AC1
+requiring "every Get.find<XController>() call site in that file is read and
+classified."
+
+QA independently walked all 6 omitted sites: every one sits inside an async
+event-handler method (_googleLogin/_facebookLogin/_appleLogin/_processSocialSuccessSetup),
+never inside build() or any other render path — so by the ticket's own predicate
+("a call site outside build() ... triggers an action or a one-time decision, not
+paint — so it is (a) by construction") they are ALL correctly (a) too. The
+ultimate 0-(b) conclusion for this file is NOT falsified, and the zero-code-change
+outcome (AC3/AC4) remains correct. This is a completeness/documentation gap in
+the posted AC1 record, not a missed stale-render bug.
+
+Other 6 files checked for the same site-count pattern (raw grep vs claimed):
+  social_login_widget.dart:        claimed ~14, actual 18   (within stated "~")
+  order_info_widget.dart:          claimed 15,  actual 15   (exact match)
+  VendorApp splash_screen.dart:    claimed ~13, actual 14   (within stated "~")
+  VendorApp dashboard_screen.dart: claimed ~7,  actual 9    (within stated "~")
+  DeliveryApp dashboard_screen.dart: claimed ~14, actual 20 (within ticket's own
+                                     cited "~14-20" range; doc's own "~14" is low end)
+  DeliveryApp my_account_screen.dart: claimed ~11, actual 12 (within stated "~")
+
+login_suggestion_bottomsheet.dart is the only file with a materially wrong
+count (6 claimed vs 18 live sites, ~3x) and the only one where distinct call
+sites are entirely absent from the reasoning text rather than just under an
+approximate tilde-count.
