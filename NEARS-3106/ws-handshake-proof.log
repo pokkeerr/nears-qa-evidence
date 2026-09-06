@@ -1,0 +1,51 @@
+NEARS-3106 QA — supplementary protocol-level proof
+Environment: local Reverb server (php artisan reverb:start --host=0.0.0.0 --port=6001),
+config REVERB_APP_KEY=PUSHER_APP_KEY=6ammart (Admin/.env, matches live /api/v1/config's
+websocket_key, see ac3-config-body.json).
+
+Request shape below is byte-identical to the URI PusherHelper.initializePusher() (UserApp)
+and ProfileRepository._ensureLocationChannel() (DeliveryApp) build post-fix:
+  /app/<resolveWebsocketKey(configModel.websocketKey)>?protocol=7&client=js&version=8.4.0-rc2&flash=false
+
+=== POSITIVE CONTROL: key = '6ammart' (the live-resolved value) ===
+$ curl -s -i --http1.1 -H "Connection: Upgrade" -H "Upgrade: websocket" \
+    -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
+    "http://127.0.0.1:6001/app/6ammart?protocol=7&client=js&version=8.4.0-rc2&flash=false"
+
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+X-Powered-By: Laravel Reverb
+
+{"event":"pusher:connection_established","data":"{\"socket_id\":\"787985853.782587259\",\"activity_timeout\":30}"}
+
+=== NEGATIVE CONTROL: key = 'wrong_key_xyz' ===
+$ curl -s -i --http1.1 -H "Connection: Upgrade" -H "Upgrade: websocket" \
+    -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
+    "http://127.0.0.1:6001/app/wrong_key_xyz?protocol=7&client=js&version=8.4.0-rc2&flash=false"
+
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+X-Powered-By: Laravel Reverb
+
+{"event":"pusher:error","data":"{\"code\":4001,\"message\":\"Application does not exist\"}"}
+
+=== Interpretation ===
+The literal key value is what gates a real Pusher-protocol connection_established vs. a
+pusher:error "Application does not exist" — proving the config-driven key value ('6ammart',
+as served live and as resolveWebsocketKey() would resolve it) results in a genuine successful
+connection against the real backend, using the app's exact request shape.
+
+Why this substitute was needed (not a full live-app boot to `pusherClient` connected state):
+this local dev DB has ZERO business_settings rows for websocket_status/websocket_url
+(verified: SELECT * FROM business_settings WHERE key LIKE '%websocket%' -> 0 rows), so
+ConfigController defaults websocket_status=0, websocket_url=''. Both UserApp's
+order_tracking_screen.dart (line 250) and DeliveryApp's profile_controller.dart
+_maybeSendLocation (line 208-209) gate the real-time call behind this same flag and
+gracefully skip it — see live-boot evidence (userapp-order-tracking.png,
+deliveryapp-online-status.png + flutter run console logs). This is a pre-existing,
+unrelated-to-this-ticket environment/data gap (flagged as a Data DoR followup), not a code
+defect — read-only DB rule (CLAUDE.md) forbids seeding it ad hoc during QA.
