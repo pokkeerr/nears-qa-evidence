@@ -1,0 +1,24 @@
+AC5 (QA scope item 8 / prompt's regression-candidate confirmation) — re-ran
+each of the 3 claimed pre-existing failure groups in isolation on the worktree.
+
+1. order_info_widget_null_item_details_test.dart (NEARS-2904, claimed 5 failures):
+   `flutter test test/features/order/order_info_widget_null_item_details_test.dart`
+   -> +5, All tests passed. NOT reproducing. Dropped as environment/cache flake
+   (consistent with the stale-shader-cache class, see ac1 log).
+
+2. payment_screen_error_retry_test.dart (claimed 1 failure):
+   `flutter test test/features/payment/payment_screen_error_retry_test.dart`
+   -> +7 -1. CONFIRMED LIVE — reproduces both isolated and full-suite, on
+   BOTH worktree and base branch. Real, pre-existing, unrelated to NEARS-3113.
+   See bug-payment-screen-error-retry-null-outcome.log.
+
+3. golden/dls_golden_test.dart (claimed 2 golden-image failures):
+   `flutter test test/golden/dls_golden_test.dart`
+   -> +2, All tests passed (light theme (CI) + dark theme (CI), both green).
+   NOT reproducing. Consistent with docs/solutions/NEARS-1274-ink-sparkle-golden-drift-premise-obsolete.md
+   ("Won't Do" — same false-failure class not reproducible on the pinned SDK
+   with a clean cache).
+
+Verdict: 1 of 3 claimed groups (payment_screen_error_retry) confirmed live and
+real -> routed to regression_bugs[]. The other 2 groups could not be
+reproduced -> dropped per QA protocol, noted here.

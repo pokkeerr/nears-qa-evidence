@@ -1,0 +1,33 @@
+AC1 — full UserApp/test/ suite, worktree vs base, clean cache (SDK 3.41.9 pinned).
+
+NOTE: initial run (stale .dart_tool/build cache, pre-existing in both trees)
+produced 140-142 failures, ALL attributable to the same known false-failure
+signature: "Asset 'shaders/ink_sparkle.frag' manifest could not be decoded:
+... Unsupported runtime stages format version. Expected 1, got 2." — the
+documented NEARS-1274/NEARS-1554/NEARS-1743 stale-shader-cache class, not a
+real regression. Cleared with `rm -rf .dart_tool build && flutter pub get`
+in BOTH trees before measuring.
+
+Worktree (feat/NEARS-3113-store-controller-clock-seam), clean cache:
+  +5688 -1   (5689 total)
+  Failing: UserApp/test/features/payment/payment_screen_error_retry_test.dart
+           "onLoadStop flips _isLoading to false, clearing the spinner"
+
+Base (feat/userapp-reskin2 @ fd1c339dd, primary tree), clean cache:
+  +5684 -1   (5685 total)
+  Failing: SAME test, same file, same exception.
+
+Delta: worktree has +4 tests total vs base (net of the 2 new clock-seam
+tests in store_controller_test.dart + other converted-file test additions);
+ZERO new/different failures introduced by this diff. Failure identity is
+IDENTICAL between branches -> confirmed pre-existing, not introduced by
+NEARS-3113.
+
+Discrepancy vs engineer/team-lead self-report (5682/5690 passing, 8 failures:
+5x order_info_widget_null_item_details_test.dart [NEARS-2904], 1x
+payment_screen_error_retry_test.dart, 2x golden/dls_golden_test.dart):
+measured (this QA pass, clean cache, both branches) only the payment_screen
+failure reproduces. The other 7 claimed failures (5 NEARS-2904 + 2 golden)
+do NOT reproduce here, full-suite OR isolated (see ac5-regression-candidates.log).
+Read as the self-report likely having been taken under the same stale-cache
+condition this run diagnosed and cleared -- not a defect in NEARS-3113.

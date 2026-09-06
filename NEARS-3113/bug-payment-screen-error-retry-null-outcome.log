@@ -1,0 +1,23 @@
+Pre-existing failure, confirmed LIVE (not caused by NEARS-3113, not a cache/env flake).
+File: UserApp/test/features/payment/payment_screen_error_retry_test.dart
+Test: "field-mutability bug fix — the spinner clears on load completion > onLoadStop flips _isLoading to false, clearing the spinner"
+
+Reproduced on:
+  - worktree (feat/NEARS-3113-store-controller-clock-seam), full suite AND isolated run
+  - base branch (feat/userapp-reskin2), full suite run
+Both branches: IDENTICAL failure (same test, same exception).
+
+type 'Null' is not a subtype of type 'PaymentRedirectOutcome'
+
+When the exception was thrown, this was the stack:
+#0      _NoopOrderService.paymentRedirect (file:///.../UserApp/test/features/payment/payment_screen_error_retry_test.dart:45:7)
+#1      OrderController.paymentRedirect (package:sixam_mart/features/order/controllers/order_controller.dart:691:43)
+#2      MyInAppBrowser.onLoadStop (package:sixam_mart/features/payment/screens/payment_screen.dart:322:33)
+...
+The test description was:
+  onLoadStop flips _isLoading to false, clearing the spinner
+
+Root cause (from stack): the test's own `_NoopOrderService.paymentRedirect` stub
+returns null where `OrderController.paymentRedirect` now expects a non-null
+`PaymentRedirectOutcome` — a test-stub/production-signature mismatch, unrelated
+to StoreController/weekday logic. Unrelated to NEARS-3113.

@@ -1,0 +1,23 @@
+AC2 — store_controller_test.dart "clock seam (NEARS-3113)" group.
+
+Pre-mutation (as shipped):
+  flutter test test/features/store/store_controller_test.dart --plain-name "clock seam"
+  -> +2, All tests passed:
+     - "a Sunday instant and a weekday instant agree — the schedule day tracks
+        the SAME injected clock, never the real one"
+     - "DEFAULT now (no now: passed) still resolves the real weekday —
+        production behaviour is byte-identical to before the seam"
+
+Mutation (falsifiable-proof check, QA-only, reverted immediately after):
+  lib/features/store/controllers/store_controller.dart:1603
+  changed `int weekday = _now().weekday;` -> `int weekday = DateTime.now().weekday;`
+  inside isStoreOpenNow (bypassing the seam).
+
+Post-mutation:
+  flutter test test/features/store/store_controller_test.dart --plain-name "clock seam"
+  -> +0 -1 (RED): "a Sunday instant and a weekday instant agree ..." failed
+     with `Expected: true / Actual: <false>` at line 773.
+
+Mutation reverted; `git diff --stat` on store_controller.dart confirmed clean
+(zero diff) after revert. Test group genuinely exercises the seam, not a
+vacuous pass.
