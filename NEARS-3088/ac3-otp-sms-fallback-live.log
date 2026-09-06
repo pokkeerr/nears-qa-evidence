@@ -1,0 +1,40 @@
+NEARS-3088 AC3 — OTP/SMS send path: no fatal, same SMS_module fallback fires, normal JSON shape.
+Server: same booted worktree Admin server (127.0.0.1:8010).
+
+--- Direct live invocation of the new facade (via `php artisan tinker` against the running app) ---
+$ php artisan tinker --execute="
+    echo 'smsGatewayAvailable: ' . var_export(\App\CentralLogics\Helpers::smsGatewayAvailable(), true);
+    echo Helpers::sendViaSmsGateway result: ...
+"
+smsGatewayAvailable: false
+sendViaSmsGateway result: 'not_found'
+
+'not_found' is SMS_module::send()'s own pre-existing "no active provider configured
+(twilio/nexmo/2factor/msg91/alphanet_sms all off in this dev DB)" response -- SMS_module.php was
+NOT touched by this diff. This proves the fallback branch (Modules\Gateways absent ->
+smsGatewayAvailable() false -> SMS_module::send()) is reached and returns cleanly, not a fatal.
+
+--- End-to-end HTTP exercise of the SAME sendViaSmsGateway call site inside LoginController.php
+    (a file this diff touched) via the real admin "forgot password" -> "resend OTP" flow ---
+1) GET /reset-password (admin@admin.com is the only role_id=1 admin) -> 302, inserts a
+   password_resets row with created_by='admin' and a fresh token (this is the app's own normal
+   write for this feature, not QA-fabricated data).
+2) GET /otp-resent?token=<that token>
+   -> HTTP 200
+   -> body: {"otp_fail":"otp_fail"}
+
+This is LoginController::otp_resent()'s normal, pre-existing failure JSON shape for
+`$response != 'success'` (here $response == 'not_found', same value tinker showed above) --
+NOT a new error, NOT a 500, NOT an exception. Exactly the AC3(b) predicate: "the endpoint
+returns its normal success/failure JSON shape, not a new error."
+
+--- Logs-first check (storage/logs/laravel.log) around both calls ---
+No new [FAIL]/[ERR]/exception lines were appended for either the /reset-password or the
+/otp-resent request (tail compared before/after) -- clean.
+
+Note: business_settings.firebase_otp_verification = 1 in this dev DB, which short-circuits the
+customer-facing OTP endpoints (api/v1/auth/forgot-password, api/v1/auth/sign-up,
+api/v1/auth/delivery-man/forgot-password) before they ever reach Helpers::sendViaSmsGateway --
+this is a pre-existing business-setting, not something this ticket changed, and not something QA
+mutated (read-only DB rule). The admin forgot-password/otp-resent flow above is NOT gated by that
+setting and was used instead to reach the same shared Helpers::sendViaSmsGateway() call site live.

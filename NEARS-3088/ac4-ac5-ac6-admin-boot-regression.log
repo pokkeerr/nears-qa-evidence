@@ -1,0 +1,39 @@
+NEARS-3088 AC4/AC5/AC6 — Admin panel boots clean; modules_statuses.json flip is inert;
+CentralLogics/Helpers.php collateral check on adjacent flows.
+
+--- AC4: admin panel boots without fatal errors ---
+$ curl -s -i http://127.0.0.1:8010/admin   (no session)
+HTTP/1.1 302 Found -> Location: http://127.0.0.1:8010 (login redirect, expected, no fatal)
+
+$ (after logging in as admin@admin.com) curl -s -o dashboard.html -w "HTTP:%{http_code}\n" http://127.0.0.1:8010/admin
+HTTP:200
+<title>Nears</title>
+grep -iE "exception|fatal|stack trace|Whoops" dashboard.html -> no matches (4063 lines)
+
+--- AC5: modules_statuses.json Gateways/Rental/Controller -> false: no visible UI change ---
+$ php artisan module:list
+  Status / Name .............................................. Path / priority
+  [Enabled] AI ................................................ Modules/AI [0]
+  [Enabled] TaxModule .................................. Modules/TaxModule [0]
+
+nwidart's own module:list only enumerates PHYSICALLY PRESENT module directories
+(Admin/Modules/ contains only AI + TaxModule) -- Rental/Gateways/Controller entries in
+modules_statuses.json were never visible to this tooling before OR after the flip, since their
+directories don't exist. The flip true->false is a no-op for something that was already
+unreachable. Confirmed no app code reads modules_statuses.json directly:
+  $ grep -rln "modules_statuses" app/ routes/ resources/views/   -> (no output)
+Only nwidart's internal Module facade reads it.
+
+Found (unrelated pre-existing bug, NOT caused by this diff -- see regression_bugs below): the ONE
+admin UI surface that surfaces "system addons" (Modules/Addon listing) 500s, but for reasons
+entirely unrelated to this diff -- see bug-system-addon-500.log.
+
+--- AC6: CentralLogics/Helpers.php is touched; sanity-check unrelated flows that also use it ---
+1) Admin login (LoginController.php IS a touched file) -- worked cleanly (see AC4 above): real
+   session, real dashboard render.
+2) GET /api/v1/config (ConfigController.php IS a touched file -- diff swapped
+   addon_published_status('Rental') for RentalModule::enabled() in the vehicle-pricing branch)
+   -> HTTP 200, valid JSON, 9020 bytes, business_name/logo/currency/etc all present, no error keys.
+3) GET /admin/store/export/order/csv/1 (VendorController.php IS a touched file, non-rental branch)
+   -> HTTP 200, clean OrderTransaction.csv download (see ac2 log).
+None of these flows show any collateral damage from the Helpers.php edit.

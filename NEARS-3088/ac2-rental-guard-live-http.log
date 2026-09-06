@@ -1,0 +1,26 @@
+NEARS-3088 AC2 — Rental-guarded admin routes still 404, live HTTP against a booted Admin server
+Server: php artisan serve --host=127.0.0.1 --port=8010 (worktree: /Users/Apple/Projects/nears-worktrees/NEARS-3088/Admin)
+Auth: logged in as admin@admin.com via /login/admin + /login_submit (curl cookie jar), landed on 302 -> /admin (200, title "Nears").
+
+$ curl -s -c $JAR -b $JAR -o /dev/null -w "HTTP:%{http_code}\n" "http://127.0.0.1:8010/admin/users/customer/rental-view/1"
+HTTP:404
+
+$ curl -s -c $JAR -b $JAR -o /dev/null -w "HTTP:%{http_code}\n" "http://127.0.0.1:8010/admin/users/customer/trip-export"
+HTTP:404
+
+$ curl -s -c $JAR -b $JAR -o /dev/null -w "HTTP:%{http_code}\n" "http://127.0.0.1:8010/admin/store/export/order/csv/1?provider_id=1"
+HTTP:404
+
+All three RentalModule::enabled()-guarded (hardcoded false) endpoints 404 exactly as before the
+refactor (addon_published_status('Rental') also resolved false pre-change, since Modules/Rental
+is physically absent). Matches Admin/tests/Feature/Security/RentalRouteGuardTest.php (NEARS-3042),
+which was also run live and green (see ac1-phpunit.log).
+
+--- Branch-scoping regression check: the SAME route's non-rental branch is untouched ---
+$ curl -s -c $JAR -b $JAR -i -X GET "http://127.0.0.1:8010/admin/store/export/order/csv/1" | grep -iE "HTTP|Content-Type|Content-Disposition"
+HTTP/1.1 200 OK
+Content-Disposition: attachment; filename=OrderTransaction.csv
+Content-Type: text/csv; charset=utf-8
+
+Confirms VendorController@order_export's non-Rental (OrderTransaction) export path is unaffected
+by the guard refactor -- a clean CSV download, not a 404 or an error.

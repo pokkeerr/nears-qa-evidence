@@ -1,0 +1,25 @@
+Pre-existing bug, NOT caused by NEARS-3088 (file not in this ticket's diff; unchanged since base
+commit 6d005c4a0).
+
+GET /admin/business-settings/system-addon (as authenticated admin) -> HTTP 500
+
+storage/logs/laravel.log:
+[2026-09-06 14:18:13] production.ERROR: [FAIL] scandir(Modules): Failed to open directory: No
+such file or directory {"correlation_id":"547ba12e-5a58-48ae-a71c-7fe85a2ed85e",
+"type":"ErrorException","endpoint":"/admin/business-settings/system-addon"}
+
+Root cause: App\Http\Controllers\Admin\System\AddonController::index() does
+    $dir = 'Modules';           // RELATIVE path
+    $directories = self::getDirectories($dir);   // scandir($dir) internally
+`php artisan serve` (and the plain `php -S ... server.php` it wraps) runs the actual PHP
+built-in webserver with its CWD set to Admin/public/, not Admin/ -- verified live:
+    $ lsof -p <serve-child-pid> | grep cwd
+    php ... cwd DIR ... /Users/Apple/Projects/nears-worktrees/NEARS-3088/Admin/public
+So the relative 'Modules' resolves to Admin/public/Modules, which does not exist (the real
+Modules/ dir lives at Admin/Modules/, one level up) -- scandir() throws ErrorException on ANY
+request-served process using the built-in dev server, regardless of what modules_statuses.json
+says or whether Rental/Gateways are enabled/disabled/absent.
+
+Confirmed unrelated to this diff: app/Http/Controllers/Admin/System/AddonController.php is not
+among NEARS-3088's 22 modified + 2 new files, and the relative-path scandir() call predates this
+ticket. Filed as a regression-candidate followup, not a NEARS-3088 finding.

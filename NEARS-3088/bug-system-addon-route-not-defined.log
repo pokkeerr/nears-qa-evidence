@@ -1,0 +1,18 @@
+Pre-existing bug, NOT caused by NEARS-3088 (file not in this ticket's diff; unchanged since base
+commit 6d005c4a0).
+
+GET /admin/addon/system-addons (as authenticated admin) -> HTTP 500
+
+storage/logs/laravel.log:
+[2026-09-06 14:18:13] production.ERROR: [FAIL] Route [admin.system-addon.index] not defined.
+{"correlation_id":"cf797cfd-838a-4bf7-acf2-746478058f93","type":"Symfony\\Component\\Routing\\Exception\\RouteNotFoundException","endpoint":"/admin/addon/system-addons"}
+
+Root cause: routes/admin.php line ~244 has
+    Route::get('addon/system-addons', function () {
+        return to_route('admin.system-addon.index');
+    })->name('addon.index');
+but the real route (routes/admin.php ~line 534) is nested under a 'business-settings.' name
+prefix, so its actual name is admin.business-settings.system-addon.index, not
+admin.system-addon.index. The redirect closure calls the wrong route name and 500s. This closure
+and the AddonController it targets are untouched by NEARS-3088's diff (24-file changeset does not
+include routes/admin.php's addon.index closure or app/Http/Controllers/Admin/System/AddonController.php).
