@@ -1,0 +1,62 @@
+NEARS-3105 — QA evidence (backend express lane, fix-cycle 1)
+Worktree: /Users/Apple/Projects/nears-NEARS-3105-notification-channel-id
+Branch: feat/NEARS-3105-notification-channel-id (base feat/userapp-reskin2)
+Verdict: PASS
+
+=== Diff scope (confined to exactly 2 files, 6 one-line edits) ===
+$ git diff feat/userapp-reskin2..HEAD --stat
+ Admin/app/CentralLogics/Helpers.php    | 6 +++---
+ Admin/app/Traits/NotificationTrait.php | 6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+=== AC1: static grep — all 6 sites 'nears', zero '6ammart' remaining ===
+$ grep -rn "channelId" Admin/app
+Admin/app/Traits/NotificationTrait.php:59:                            "channelId" => 'nears',
+Admin/app/Traits/NotificationTrait.php:91:                            "channelId" => 'nears',
+Admin/app/Traits/NotificationTrait.php:163:                        "channelId" => 'nears',
+Admin/app/CentralLogics/Helpers.php:1604:                        "channelId" => 'nears',
+Admin/app/CentralLogics/Helpers.php:1669:                            "channelId" => 'nears',
+Admin/app/CentralLogics/Helpers.php:1701:                            "channelId" => 'nears',
+
+$ grep -n "6ammart" Admin/app/CentralLogics/Helpers.php Admin/app/Traits/NotificationTrait.php
+(no output — zero matches)
+
+=== apns/aps block untouched (verified via diff — apns lines appear only as
+    unchanged context around the changed channelId lines, no +/- markers) ===
+apns.payload.aps.sound = "notification.wav" — unchanged at all 6 sites.
+
+=== Caller cross-check (QA Test Scope: 5 caller controllers) ===
+Diff touches ONLY Admin/app/CentralLogics/Helpers.php and
+Admin/app/Traits/NotificationTrait.php — zero controller files appear in the
+diff (confirmed via --stat above), so every caller (NotificationController,
+DeliveryManController, both OrderController.php, both ConversationController.php,
+and all other Helpers::send_push_notif_to_* callers) references these methods
+unchanged by construction.
+
+=== AC2: automated backstop ===
+$ php -l app/CentralLogics/Helpers.php && php -l app/Traits/NotificationTrait.php
+No syntax errors detected in app/CentralLogics/Helpers.php
+No syntax errors detected in app/Traits/NotificationTrait.php
+
+$ vendor/bin/phpunit --filter "Nears1665NotificationWindowSeederTest|Nears2464HelpersSendNotificationPiiTest|Nears2428NotificationTraitHttpResultTest"
+OK (23 tests, 156 assertions)
+(independently re-run, matches engineer's reported 23/23 green)
+
+=== Pre-existing unrelated suite crash (regression_bugs candidate, non-blocking) ===
+GroupPaymentTest::test_reconcile_command_recovers_stranded_group — engineer
+reports this crashes mid-full-suite-run via a real unmocked outbound HTTP call
+to Google OAuth/FCM exceeding 180s max_execution_time, reproduced identically
+on the unmodified base branch. Independently re-ran the same test in ISOLATION
+here: it passed cleanly (OK, 1 test, 4 assertions, 19.7s) — consistent with a
+full-suite-only crash (shared HTTP/queue state accumulated across the suite),
+not something this ticket's diff could cause. This ticket's diff is confined
+to two literal-string edits inside notification payload builders and has zero
+control-flow or HTTP-call relationship to GroupPaymentTest/Stripe reconciliation
+logic. Filed as regression_bugs[] for triage, not a task_bug, per the ticket's
+own framing.
+
+=== AC3 (non-gating, optional) ===
+Device push-notification demo — SKIPPED per ticket's own framing (optional,
+non-gating for a Low-severity, contract_impact:no, literal-string metadata
+fix). Static verification (grep + targeted regression tests + caller
+cross-check + syntax check) is proportional evidence depth for this change.
