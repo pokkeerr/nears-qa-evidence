@@ -1,0 +1,19 @@
+AC4 — `~/Tools/flutter/bin/flutter test --exclude-tags pin --reporter compact` (run from UserApp/).
+
+Final line:
+02:48 +5597 -1: Some tests failed.
+(5598 tests total, 5597 passed, 1 failed)
+
+The 1 failure isolated and reproduced directly:
+$ flutter test test/features/payment/payment_screen_error_retry_test.dart --reporter expanded
+The following _TypeError was thrown running a test:
+type 'Null' is not a subtype of type 'PaymentRedirectOutcome'
+  at _NoopOrderService.paymentRedirect (payment_screen_error_retry_test.dart:45)
+  Test failed: "onLoadStop flips _isLoading to false, clearing the spinner"
+
+Pre-existing confirmation:
+- `git diff e996f3b148379607e26816c247d268bcc6f12c57..HEAD -- UserApp/test/features/payment/payment_screen_error_retry_test.dart` = 0 lines (file byte-identical between base and this ticket's HEAD).
+- `git log` on the file shows last real change in NEARS-2579 (unrelated payment-browser-race fix), well before this ticket's base.
+- Re-ran the identical test directly on the base branch commit (primary tree `/Users/Apple/Projects/nears`, checked out at e996f3b148379607e26816c247d268bcc6f12c57, file confirmed unmodified there via `git status --short`): SAME failure, same _TypeError, same test name.
+
+VERDICT: PASS (regression-free) — the only failure present is the known pre-existing payment_screen_error_retry_test.dart failure, confirmed live and confirmed reproducible on the base branch. No OTHER new failures introduced by this ticket's tagging change. This is filed as a confirmed regression-candidate (engineer-flagged -> QA-confirmed-live) for the PO to file as a separately-linked regression Bug; it does not block this ticket's PASS.

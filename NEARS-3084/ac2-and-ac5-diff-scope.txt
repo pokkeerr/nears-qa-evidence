@@ -1,0 +1,25 @@
+AC2 (cross-check) — every real PIN:-titled test()/testWidgets() call is tagged; no non-PIN test carries the tag.
+
+- `grep -rln "PIN:" test --include='*.dart'` = 30 files (any-quote, any-context match).
+- `grep -rln "tags: \['pin'\]" test --include='*.dart'` = 26 files.
+- The 4-file gap (chat_controller_pin_test.dart, loyalty_paginate_pin_test.dart, payment_controller_pin_test.dart, wallet_paginate_pin_test.dart) verified by direct read: in all 4, "PIN:" appears ONLY in a file-header/inline COMMENT describing what the suite pins conceptually, never inside an actual test()/testWidgets() title string. Confirmed each of these files' real test titles (grep '^\s*test(\|^\s*testWidgets(') carry no "PIN:" substring.
+- Spot-checked test/features/verification/verification_controller_test.dart: 51 total test()/testWidgets() calls, only 4 carry tags: ['pin'], and those 4 are exactly the 4 titles containing "PIN:" in that file. Confirms scoping is per-test, not blanket-per-file.
+- Spot-checked test/features/address/address_controller_test.dart (8 tagged calls): manually read all 8 closing-brace diff hunks against their preceding `test(...)` titles — every one titled with "PIN:" (e.g. "PIN: unparseable input...", "PIN: add SUCCESS + fromRide...").
+
+AC5 — changed-file set is exactly the expected shape.
+
+$ git diff --stat e996f3b148379607e26816c247d268bcc6f12c57..HEAD (inside worktree, base -> HEAD 6cb7f6e0c)
+29 files changed, 175 insertions(+), 63 deletions(-):
+  - UserApp/dart_test.yaml (tag declaration)
+  - 26 files under UserApp/test/** (exactly matches the 26-file tagged-file list)
+  - tasks/recovery/nears-3084-pin-census.txt (TL-authored enumeration artifact, TOTAL: 79)
+  - docs/workflow/review-lessons.json (code-review ledger promotion: "marker-sweep-comment-occurrence-overcounts-tag-scope", documents the exact same 97-vs-79 / 30-vs-26-file reconciliation independently verified above)
+
+$ git diff --stat e996f3b148379607e26816c247d268bcc6f12c57..HEAD -- UserApp/lib | wc -l
+0   <- ZERO changes under UserApp/lib/** confirmed.
+
+Every line-level diff under UserApp/test/** is exactly `-    });` / `+    }, tags: ['pin']);` (or the testWidgets/multi-arg equivalent) — zero test titles, bodies, or assertions changed. Verified via:
+$ git diff <base>..HEAD -- UserApp/test/ | grep -E "^[+-]" | grep -v "^+++\|^---" | grep -v "tags: \['pin'\]"
+-> every remaining line is a bare "});" (or "  });" at various indents) with no other content changed.
+
+VERDICT: PASS on both AC2 cross-check and AC5.

@@ -1,0 +1,12 @@
+AC3 — `~/Tools/flutter/bin/flutter test --tags pin --reporter compact` (run from UserApp/, SDK 3.41.9 pinned, worktree HEAD 6cb7f6e0c).
+
+Final line:
+02:30 +80: All tests passed!
+
+Cross-check (source-vs-runtime reconciliation):
+- `grep -rn "tags: \['pin'\]" test --include='*.dart' | wc -l` = 79 source call sites across 26 files (matches tasks/recovery/nears-3084-pin-census.txt TOTAL: 79).
+- `flutter test --tags pin --reporter json` testStart events: 98 non-"loading" entries = 80 real named tests + 9 (setUpAll) + 9 (tearDownAll).
+- All 80 real test names contain the literal substring "PIN:" (verified: `grep -c "PIN:"` over the 80-name list = 80/80).
+- The +1 gap between 79 source sites and 80 runtime tests is fully explained: UserApp/test/features/item/item_load_more_failure_test.dart defines a parameterized helper `axisTests({... required String pin ...})` (line 117) containing ONE `test(..., tags: ['pin'])` call (line 127/137), and that helper is invoked TWICE (lines 169, 181) — one source tag annotation, two runtime test instances. Not a defect; tagging is correctly applied at the single call site and inherited by both invocations.
+
+VERDICT: PASS — exactly the enumerated PIN: set runs under --tags pin, all 80 pass unchanged (tagging did not alter behavior, including the tests that pin known crash/wrong-value defects, e.g. store_controller_test.dart 'PIN: null _storeItemModel ... throws on force-unwrap' passed as expected-to-throw).
