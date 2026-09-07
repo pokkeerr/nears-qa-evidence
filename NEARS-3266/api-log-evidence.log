@@ -1,0 +1,72 @@
+NEARS-3266 — DeliveryApp Conversation autoload fix — QA evidence
+Backend under test: worktree /Users/Apple/Projects/nears-NEARS-3266-conversation-autoload/Admin,
+served on http://127.0.0.1:8010 (php -S 0.0.0.0:8010 server.php), shared multi_food_db.
+Diff under test: Admin/composer.json (removed config.optimize-autoloader) +
+docs/backend/bootstrap-admin.md doc line. composer.lock byte-identical (confirmed).
+
+=== AC3/AC4 — live endpoint + log-correlation proof ===
+Delivery-man: ali.hassan@demo.com (id 1), existing conversation_id=60 (customer id 3).
+Delivery-man: david.miller@demo.com (id 2), active order #91124 (order_status=processing).
+
+GET /api/v1/delivery-man/message/list?token=<ali>          -> HTTP 200
+GET /api/v1/delivery-man/message/search-list?token=<ali>&name=customer -> HTTP 200
+GET /api/v1/delivery-man/message/details?token=<ali>&conversation_id=60 -> HTTP 200
+POST /api/v1/delivery-man/message/send (conversation_id=60, message="QA test NEARS-3266 autoload fix verification") -> HTTP 200, {"message":"successfully sent!"}
+GET /api/v1/delivery-man/message/list?token=<david>&type=customer -> HTTP 200
+GET /api/v1/delivery-man/message/list?token=<david>&type=vendor   -> HTTP 200
+GET /api/v1/delivery-man/message/details?token=<david>&conversation_id=61 -> HTTP 200
+
+laravel.log baseline before any request: 1024 lines.
+After list/search-list/details x2 dm accounts: still 1024 lines (zero new entries — no
+exception, no failure path triggered).
+After the one POST /send call: 1026 lines, both new lines are
+  production.WARNING: FCM Sending notification {...}
+  production.WARNING: FCM Send Success {...,"status":200,...}
+(unrelated FCM push-notification info logging — not an error, no BindingResolutionException,
+no mention of ConversationController anywhere in the new lines.)
+
+X-Request-Id echoed on every response (SetRequestId middleware live), e.g.
+  X-Request-Id: 72d8801f-f9f0-415c-ab7d-a9a9b22e2c77
+grep -F "BindingResolutionException" storage/logs/laravel.log (whole file, incl. pre-existing
+history) across the QA session: 0 hits for any request made in this run.
+
+=== AC5 — prevention proof (the real regression test) ===
+Pre-check: grep -c "ConversationController" vendor/composer/autoload_classmap.php -> 0
+(App\ namespace is PSR-4-resolved at runtime, not classmap-snapshotted — this is the
+self-healing property the fix restores for local/dev.)
+
+Ran, from the worktree:
+  $ composer install --no-interaction
+  Nothing to install, update or remove
+  Generating autoload files ... (package:discover) ... done
+
+NO manual `composer dump-autoload` was run afterward. Immediately after, with zero delay:
+  GET /api/v1/delivery-man/message/list?token=<ali>                      -> HTTP 200
+  GET /api/v1/delivery-man/message/search-list?token=<ali>&name=customer -> HTTP 200
+  GET /api/v1/delivery-man/message/details?token=<ali>&conversation_id=60 -> HTTP 200
+Post-install classmap re-check: grep -c "ConversationController" vendor/composer/autoload_classmap.php -> 0
+laravel.log line count unchanged (1026 -> 1026) after this second round of hits — clean.
+
+This directly reproduces the ticket's described regression scenario (a new PSR-4 class
+landing without a manual dump-autoload) and confirms the endpoints resolve on the first
+try post-install, independently re-confirming the engineer's own build-time verification.
+
+=== AC6 — composer.lock unchanged ===
+$ git diff 1acb9d8bd^ 1acb9d8bd -- Admin/composer.lock | wc -l
+0
+$ git diff Admin/composer.lock   (worktree HEAD, after running composer install locally)
+(no output — 0 lines; composer install, unlike composer update, never rewrites the lock file)
+
+=== Regression sweep (adjacent backend surface, composer/autoloader is process-wide) ===
+GET /api/v1/delivery-man/profile?token=<ali>        -> HTTP 200
+GET /api/v1/delivery-man/current-orders?token=<ali>  -> HTTP 403 (pre-existing auth/zone
+  gate, unrelated to autoloading — 0 new laravel.log lines, no exception)
+GET /api/v1/config                                    -> HTTP 200
+GET /admin                                             -> HTTP 302 (redirect to login — Admin
+  Blade panel + its controllers resolve fine)
+GET /api/v1/customer/message/list?token=bogus          -> HTTP 401 (Api\V1\ConversationController,
+  the customer-facing sibling controller, also resolves fine — auth rejection, not 500)
+
+=== Automated backstop ===
+$ vendor/bin/phpunit --configuration phpunit.xml --filter "Conversation"
+OK (24 tests, 234 assertions)
