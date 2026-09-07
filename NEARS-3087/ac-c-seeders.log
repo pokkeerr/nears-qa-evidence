@@ -1,0 +1,44 @@
+AC(c) — no functional regression: mass-assignment seeders run clean, no MassAssignmentException.
+
+Run against the DISPOSABLE per-worktree test DB clone (never the shared live multi_food_db),
+per scripts/lib/test_db.sh's assert_disposable allow-list and the seeders' own
+NEARS_SEED_ALLOW_DB gate (Live multi_food_db is READ-ONLY by hard rule).
+
+DB used: multi_food_db_test_nears_nears_3087_itemcampaign_guarded_fi
+(the worktree's own private phpunit-clone twin, already provisioned by tests/bootstrap.php)
+
+$ DB_DATABASE=multi_food_db_test_nears_nears_3087_itemcampaign_guarded_fi \
+  NEARS_SEED_ALLOW_DB=multi_food_db_test_nears_nears_3087_itemcampaign_guarded_fi \
+  php artisan db:seed --class=Nears1864ItemCampaignSeedSeeder --force
+
+   INFO  Seeding database.
+
+NEARS-1864: created item campaign 'Fresh Grocery Picks' (id=9002457, store=1, module=1).
+NEARS-1864: created item campaign 'Tasty Food Favorites' (id=9002458, store=4, module=2).
+NEARS-1864: created item campaign 'Pharmacy Essentials' (id=9002459, store=7, module=3).
+NEARS-1864: created item campaign 'Abu Dhabi Fresh Finds' (id=9002460, store=8, module=1).
+NEARS-1864: 4 item campaign(s) created (of 4 targets).
+
+$ DB_DATABASE=multi_food_db_test_nears_nears_3087_itemcampaign_guarded_fi \
+  NEARS_SEED_ALLOW_DB=multi_food_db_test_nears_nears_3087_itemcampaign_guarded_fi \
+  php artisan db:seed --class=Nears2399FoodItemCampaignZone2Seeder --force
+
+   INFO  Seeding database.
+
+NEARS-2399: created item campaign 'Abu Dhabi Food Favorites' (id=9002461, store=49, module=2).
+
+Both seeders mass-assign via ItemCampaign::firstOrCreate([...]) — the exact 17-field $fillable
+list is what makes these succeed instead of silently dropping fields (Laravel's default
+$fillable behavior drops unlisted keys rather than throwing, so a green run here is the correct
+proof, not just "no exception").
+
+Additional live code-path audit (no MassAssignmentException risk elsewhere):
+$ grep -rn "ItemCampaign::create\|ItemCampaign::firstOrCreate\|ItemCampaign::updateOrCreate\|new ItemCampaign(" app/ database/ Modules/
+database/seeders/Nears1864ItemCampaignSeedSeeder.php:53:  ItemCampaign::firstOrCreate(
+database/seeders/Nears2399FoodItemCampaignZone2Seeder.php:61: ItemCampaign::firstOrCreate(
+(no other call sites)
+
+$ grep -n "new ItemCampaign\|ItemCampaign::\|->fill(\|->save()" app/Http/Controllers/Admin/CampaignController.php app/Http/Controllers/Vendor/CampaignController.php
+-> both controllers use `$campaign = new ItemCampaign; $campaign->field = ...; $campaign->save();`
+   (direct property assignment, never ::create()/fill()) — confirmed these are UNAFFECTED by
+   the $fillable list either way, as the fix's own code comment claims.

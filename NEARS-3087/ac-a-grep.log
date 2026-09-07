@@ -1,0 +1,15 @@
+AC(a) — live grep against Admin/app/Models/ItemCampaign.php (worktree feat/NEARS-3087-itemcampaign-guarded-fix, sha 34a8c6676)
+
+$ grep -n '\$guarded\|\$fillable' app/Models/ItemCampaign.php
+21:    protected $fillable = [
+
+No `protected $guarded = [];` present anywhere in the file. Full declaration (lines 18-25):
+
+    // NEARS-3087: fillable is exactly what the two seed seeders mass-assign (repo-wide
+    // grep confirmed no other call site does); admin/vendor CampaignControllers set
+    // attributes directly and are unaffected by this list either way.
+    protected $fillable = [
+        'title', 'status', 'admin_id', 'start_date', 'end_date', 'category_id',
+        'category_ids', 'variations', 'add_ons', 'price', 'tax', 'tax_type',
+        'discount', 'discount_type', 'store_id', 'module_id', 'food_variations',
+    ];

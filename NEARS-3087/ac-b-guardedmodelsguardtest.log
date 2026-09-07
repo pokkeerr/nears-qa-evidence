@@ -1,0 +1,29 @@
+AC(b) — regression test that guards against a future revert.
+
+$ cd Admin && vendor/bin/phpunit --filter GuardedModelsGuardTest
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_3087_itemcampaign_guarded_fi
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.5.6
+Configuration: /Users/Apple/Projects/nears-NEARS-3087-itemcampaign-guarded-fix/Admin/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:00.170, Memory: 80.50 MB
+
+OK (1 test, 3 assertions)
+
+Broader ItemCampaign regression sweep (name-filter):
+
+$ vendor/bin/phpunit --filter ItemCampaign
+......                                                              6 / 6 (100%)
+OK (6 tests, 40 assertions)
+
+Additional test files that reference ItemCampaign but weren't caught by the name filter
+(CampaignZoneScopingTest, CartUpdateNullGuardTest, DetailsZoneGuardTest, OrderDetailsNullItemDetailsTest):
+
+$ vendor/bin/phpunit tests/Feature/CampaignZoneScopingTest.php tests/Feature/CartUpdateNullGuardTest.php tests/Feature/DetailsZoneGuardTest.php tests/Feature/OrderDetailsNullItemDetailsTest.php
+.............................                                     29 / 29 (100%)
+OK (29 tests, 172 assertions)
+
+Total: 36 tests / 215 assertions across every ItemCampaign-touching test file in the repo, all green.
