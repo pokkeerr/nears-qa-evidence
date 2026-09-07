@@ -1,0 +1,39 @@
+AC4 — business subscription flow (become-a-vendor payment-method selection): LIVE DEMO BLOCKED.
+
+What was reached live: Profile > Open Vendor > Vendor Registration wizard (store_registration_screen.dart), Basic Info
+tab: business name/logo/cover filled successfully; zone selection ("Main Service Zone") successfully triggers
+GET /api/v1/module (http_status=200, confirmed non-empty module list for zone 1: grocery/food/pharmacy/ecommerce);
+inZone flips true after a valid in-zone mock GPS fix; the Next button's own pre-existing validation snackbars
+("please_select_zone", "please_select_module_first") fire correctly via the SAME showCustomSnackBar/AppLogger.error
+mechanism proven live in AC5-9 above -- confirming the shared toast pipeline is healthy on this screen.
+
+Blocker: the "Business Info" sectionCard (containing ModuleViewWidget's module-select dropdown, needed to progress
+past this step) renders with ZERO visible height in the accessibility tree despite the backend confirming a non-empty,
+correctly-filtered module list -- reproduced 3x across fresh app states, tab-remounts, and re-fetches. This screen
+(store_registration_screen.dart / store_registration_controller.dart / module_view_widget.dart) is PRE-EXISTING code
+NOT touched by NEARS-3259's diff (confirmed: git diff d95b94d4a..8f72595bf --stat has zero hits for these files) --
+it sits UPSTREAM of the actual business_service.dart/business_controller.dart payment-method dispatch this ticket
+changed, several wizard steps before the package/payment screen AC4 targets.
+
+Given the inability to progress past this pre-existing, unrelated blocker, AC4's specific dialog/snackbar/navigation
+checks (desktop dialog, mobile snackbar, submit-toward-payment-route, submission-failure snackbar) were NOT
+independently demonstrated live in this session.
+
+Mitigating evidence (does not substitute for the live demo, but is strong corroboration):
+1. Full diff of business_service.dart + business_controller.dart reviewed character-by-character: the refactor is an
+   EXACT, verbatim relocation of the pre-existing Get.dialog/showCustomSnackBar/Get.offAllNamed/Get.toNamed logic --
+   same conditions (paymentIndex==1 && digitalPaymentName==null, ResponsiveHelper.isDesktop check), same string keys
+   ('please_select_payment_method', 'something_went_wrong'), same routes (RouteHelper.getPaymentRoute /
+   getSubscriptionSuccessRoute), moved into a `_dispatch(BusinessPlanDispatch)` switch in BusinessController.
+2. NEARS-3066's HomeServiceInterface calls (saveRegistrationSuccessful/saveIsRestaurantRegistration) confirmed
+   present, unchanged, at the same call site in the diff.
+3. The identical "service returns outcome -> controller calls showCustomSnackBar/Get.*" dispatch PATTERN is proven
+   LIVE and firing correctly for 4 sibling files in this SAME ticket/commit (item_controller.dart AC5,
+   cart_controller.dart AC6, deliveryman_registration_controller.dart AC7, profile_controller.dart AC8,
+   location_controller.dart AC9) -- all via the identical showCustomSnackBar/AppLogger.failure choke point.
+
+RECOMMENDATION: file the "Business Info" zero-height rendering issue as a regression-candidate followup (pre-existing,
+unrelated to this ticket) so someone can investigate with Flutter DevTools / a widget inspector attached (this QA
+session had no DTD connection available in the worktree). Re-attempt AC4's live demo once that blocker is fixed, or
+have engineering do a targeted code walkthrough of business_controller.dart's _dispatch method against the reviewed
+diff as an accepted substitute if a live demo remains infeasible.

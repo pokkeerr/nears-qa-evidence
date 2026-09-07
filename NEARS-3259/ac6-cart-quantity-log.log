@@ -1,0 +1,10 @@
+AC6 — cart quantity flow, max-quantity-limit on Sample Product (limit=2), cart screen increment:
+09-07 17:28:59.549 flutter : #1 showCustomSnackBar (package:nears/common/widgets/custom_snackbar.dart:30:17)
+09-07 17:28:59.549 flutter : #2 CartController._safeSnack (package:nears/features/cart/controllers/cart_controller.dart:1131:7)
+09-07 17:28:59.549 flutter : #3 CartController._showCapMessage (package:nears/features/cart/controllers/cart_controller.dart:1118:5)
+09-07 17:28:59.549 flutter : #4 CartController._canIncrement (package:nears/features/cart/controllers/cart_controller.dart:1024:12)
+09-07 17:28:59.550 flutter : [ERR] msg="error snackbar shown"
+09-07 17:28:59.732 flutter : [NET] endpoint=/api/v1/customer/cart/update http_status=200
+Note: this is a PRE-EXISTING mechanism in cart_controller.dart (NOT touched by NEARS-3259's diff — cart_service.dart's
+decideItemQuantity has zero production callers, per the ticket's own known-issue note). Confirms no regression: the
+snackbar still fires identically, and the cart-sync POST still succeeds (http_status=200) after the cap is enforced.

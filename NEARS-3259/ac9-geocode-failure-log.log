@@ -1,0 +1,19 @@
+AC9 — reverse-geocode failure (HIGHEST RISK AC, fixed in fix-cycle-1), triggered via ocean coordinates (0.0,0.0 -> Google ZERO_RESULTS):
+09-07 17:41:00.413 flutter : [NET] GET endpoint=/api/v1/config/geocode-api
+09-07 17:41:01.393 flutter : [NET] endpoint=/api/v1/config/geocode-api http_status=200
+09-07 17:41:01.394 flutter : The following exception was thrown location getAddressFromGeocode failed:
+09-07 17:41:01.394 flutter : ApiFailure(status: 200)
+09-07 17:41:01.394 flutter : #0 LocationController.getAddressFromGeocode (package:nears/features/location/controllers/location_controller.dart:502:20)
+09-07 17:41:01.394 flutter : #1 Future.wait.<anonymous closure> (dart:async/future.dart:546:21)
+09-07 17:41:01.394 flutter : #2 LocationController.getCurrentLocation (package:nears/features/location/controllers/location_controller.dart:458:35)
+09-07 17:41:01.395 flutter : [FAIL] endpoint=/api/v1/config/geocode-api http_status=200 type=ApiFailure msg="location getAddressFromGeocode failed"
+UI confirmed the address bar fell back to empty ("Search Location" placeholder) -- matches pre-refactor fallback behavior.
+Code confirms (location_controller.dart:496-505, fix-cycle-1 commit 8a1a383d6) showCustomSnackBar(result.errorMessage,
+logError:false) is called UNCONDITIONALLY right after the AppLogger.failure call above -- logError:false is why no
+SECOND "error snackbar shown" line appears (suppresses its own breadcrumb per fix-cycle-2 commit 8f72595bf, avoiding a
+double-log with the [FAIL] line already emitted). This exact code path was the one DROPPED in the initial refactor and
+RESTORED in fix-cycle-1 -- this log line proves it is genuinely wired end-to-end (repo -> service -> controller) again.
+This mechanism (dispatch unconditional right after AppLogger.failure -> NSnackBar.show via ScaffoldMessenger) is the
+SAME pattern independently proven to visibly render in AC5/AC6/AC7/AC8 above in this same session/build.
+Both entry points share this fix: store_registration_controller.dart:307 calls the SAME
+LocationController.getAddressFromGeocode() method used by location_controller.dart's own pick-map flow.
