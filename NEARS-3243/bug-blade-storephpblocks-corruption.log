@@ -1,0 +1,75 @@
+NEARS-3243 QA finding: fix regresses ALL campaign-item edit pages (not just NULL-attributes ones)
+
+Live laravel.log excerpt (production mode, APP_DEBUG=false), hitting GET /admin/campaign/item/edit/13:
+[2026-09-07 15:34:25] production.ERROR: [FAIL] Undefined variable $campaignChoiceNo (View: .../resources/views/admin-views/campaign/item/edit.blade.php) {"trace_id":"27c3048970ae20cae0e57326027a7722","correlation_id":"97563a43-83e1-4a42-bc02-e18703cf65ab","type":"Illuminate\\View\\ViewException","endpoint":"/admin/campaign/item/edit/13"}
+
+Debug-mode exception detail (APP_DEBUG=true, same request):
+  ErrorException
+  resources/views/admin-views/campaign/item/edit.blade.php:440
+  Undefined variable $campaignChoiceNo
+  (also: Undefined variable $campaignChoiceOptions, same line)
+
+Root cause (confirmed via BladeCompiler::storePhpBlocks reflection):
+  Laravel's storePhpBlocks() runs BEFORE normal directive compilation and uses the regex
+    /(?<!@)@php(.*?)@endphp/s
+  This lazily pairs the FIRST literal "@php" occurrence anywhere in the template with the
+  FIRST "@endphp" occurrence anywhere AFTER it, regardless of directive form. Pre-fix, this
+  file had 5 INLINE `@php(expr)` directives (lines 28-30, 253-254) and ZERO `@endphp` tokens,
+  so storePhpBlocks found no match and every inline @php(expr) compiled normally via the
+  standard compileStatements()/compilePhp() path.
+
+  The fix introduces the file's ONLY `@endphp` (closing the new bare `@php ... @endphp` block
+  added at the attribute_section, NEARS-3243's guard code). storePhpBlocks now greedily pairs
+  the FIRST inline directive in the file (`@php($language=\App\Models\BusinessSetting::where(...)of
+  ->first())`, line 28) with this NEW @endphp (line 425) and treats the ENTIRE ~400-line span
+  between them as one opaque "raw PHP block", stored verbatim and restored UNPROCESSED at the
+  end of compilation.
+
+  Confirmed via reflection: BladeCompiler->rawBlocks[0] is 29,155 bytes, starting at
+  "<?php($language=\App\Models\BusinessSetting::where('key','language')->first())" and ending
+  at "...$campaignChoiceOptions = is_array($campaignChoiceOptions) ? $campaignChoiceOptions : [];\n ?>"
+  i.e. it swallows: language tabs, item info fields, item image, store/addon/category/
+  sub-category/veg/generic_name, nutrition/allergy selects, price/discount/unit section, tax
+  info section, food_variations section, AND the fix's own new @php guard block itself.
+
+  Crucially: "<?php(" (no space before the paren) is NOT a valid PHP open tag (PHP requires
+  whitespace after <?php to enter PHP mode), so this whole restored span is emitted as LITERAL
+  TEXT, not executed as code — meaning $campaignAttributeIds / $campaignChoiceNo /
+  $campaignChoiceOptions from the fix's own guard block NEVER GET ASSIGNED. The genuinely
+  compiled code right after (attribute dropdown foreach + the _choices include, both AFTER the
+  swallowed @endphp) then reads those variables and finds them undefined -> fatal
+  ErrorException in the HTTP path (warnings are promoted to exceptions there), confirmed 500
+  identically for id=13 (attributes/choice_options/start_time/end_time all NULL) both before
+  and after the diagnostic APP_DEBUG toggle, and pre-existing since view:clear was run
+  (rules out stale compiled-view-cache as an explanation).
+
+  Verified NOT present pre-fix: `git show b76914616:.../edit.blade.php | grep '@php\|@endphp'`
+  shows only the 5 inline @php(expr) forms and ZERO @endphp — storePhpBlocks has nothing to
+  pair, so this corruption is 100% newly introduced by NEARS-3243's chosen fix shape (bare
+  @php/@endphp block in a file that already uses inline @php(expr) earlier).
+
+Consequence for both ACs:
+  - AC1 (NULL attributes -> 200, nothing pre-checked): FAILS. Page still 500s, but now via
+    this NEW compile-corruption defect rather than the original `in_array(): $haystack null`
+    bug the fix targeted.
+  - AC2 (valid attributes -> pre-checked unchanged): FAILS for the same reason. The
+    corruption is a per-VIEW compile-time defect, independent of any specific campaign row's
+    data — it will reproduce identically for every item campaign, NULL-attributes or not,
+    since the swallowed span is the same regardless of $campaign's field values.
+
+Also: the ticket-documented pre-existing/unrelated start_time/end_time NULL bug
+(`Call to a member function format() on null`) is STILL real and reproduced live via
+`php artisan tinker` (non-HTTP context where warnings don't halt execution): it fires at
+edit.blade.php:477 (`$campaign->start_time->format('H:i')`) for the same seeded rows
+(ids 13-17, which also have NULL start_time/end_time). In the actual HTTP path this bug is
+currently MASKED — execution now fatals earlier, at the new compile-corruption defect,
+before ever reaching the time_schedule section. Once the compile-corruption is fixed, this
+pre-existing start_time/end_time bug becomes reachable again and will still 500 the same 5
+seeded rows.
+
+Suggested fix direction (for the engineer, not applied by QA): avoid introducing the file's
+first `@endphp` — e.g. use the inline `@php($expr)` form for each guard assignment (matching
+the file's existing convention, e.g. `@php($campaignAttributeIds = ...)` /
+`@php($campaignAttributeIds = is_array($campaignAttributeIds) ? $campaignAttributeIds : [])`),
+or compute the guarded values in the controller/CentralLogics and pass them into the view,
+rather than a bare @php/@endphp block.
