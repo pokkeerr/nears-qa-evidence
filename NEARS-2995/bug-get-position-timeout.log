@@ -1,0 +1,13 @@
+Device: emulator-5558, pid 7252, com.izzes.nears.nears_nears_2995_store_scroll_rebuild
+Observed during live QA of NEARS-2995 (unrelated pre-existing regression, not caused by this diff):
+
+09-08 00:38:21.637  7252  7252 I flutter : [FAIL] endpoint=null http_status=null type=GetPositionFailure msg="location: getPosition threw (TimeoutException) — falling back to default position"
+09-08 00:38:34.937  7252  7252 I flutter : [FAIL] endpoint=null http_status=null type=GetPositionFailure msg="location: getPosition threw (TimeoutException) — falling back to default position"
+
+Context: occurred while browsing the "Fresh local" store (zone 2 / Abu Dhabi) after an
+emulator `emu geo fix` location change. Paired AppLogger.failure() emission confirms this
+is NOT a silent-failure violation (logging-contract compliant) — flagged only because the
+underlying GetPosition timeout itself is a pre-existing emulator/location-service flake
+unrelated to the NEARS-2995 store-screen scroll-rebuild scope (store_controller.dart /
+store_screen.dart). No user-visible impact observed beyond the log line (app fell back to
+default position and continued normally).
