@@ -1,12 +1,13 @@
 # QA Evidence — NEARS-3327
 
-**PASS - System Addons redirect + scandir absolute-path fix verified live**
+**PASS - System Addons redirect + scandir absolute-path fix verified live (AC1-3 + regression)**
 
-**1 screenshot(s).** Click any thumbnail for full resolution.
+**2 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
 <td align="center" width="33%"><a href="ac1-redirect-loads-index.png"><img src="ac1-redirect-loads-index.png" width="240"></a><br><sub>ac1 redirect loads index</sub></td>
+<td align="center" width="33%"><a href="regression-direct-sidebar-entry-point.png"><img src="regression-direct-sidebar-entry-point.png" width="240"></a><br><sub>regression direct sidebar entry point</sub></td>
 </tr>
 </table>
 
