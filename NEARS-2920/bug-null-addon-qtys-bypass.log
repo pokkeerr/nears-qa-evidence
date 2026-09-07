@@ -1,0 +1,57 @@
+NEARS-2920 QA finding: CartController add_on_qtys top-level `null` bypasses the
+NEARS-2920 parity-check closure (add_to_cart AND update_cart), persisting a
+mismatched add_on_ids/add_on_qtys cart row instead of 403ing.
+
+Root cause: Laravel's `nullable` validation rule short-circuits ALL other rules
+(including the custom closure) for that attribute when its value is literally
+JSON `null` — the closure that enforces add_on_ids/add_on_qtys length parity
+never executes.
+
+=== Repro 1: POST /api/v1/customer/cart/add ===
+Request:
+  Authorization: Bearer <customer@nears.com token>
+  zoneId: [1]
+  moduleId: 2
+  Content-Type: application/json
+  Body: {"item_id":16,"model":"Item","price":8.99,"quantity":1,"add_on_ids":[1],"add_on_qtys":null}
+
+Response: HTTP 200 (expected: 403)
+Persisted cart row (id=765, cleaned up after capture):
+  {"id":765, "item_id":16, "add_on_ids":[1], "add_on_qtys":[]}
+  -> length mismatch (1 vs 0) written directly to the carts table.
+
+=== Repro 2: POST /api/v1/customer/cart/update (same bug, second call site) ===
+Setup: valid row cart_id=766 with add_on_ids=[1], add_on_qtys=[1]
+Request:
+  Body: {"cart_id":766,"price":8.99,"quantity":1,"add_on_ids":[1],"add_on_qtys":null}
+
+Response: HTTP 200 (expected: 403)
+Row after update (cleaned up after capture):
+  {"id":766, "add_on_ids":[1], "add_on_qtys":[]}
+  -> same length mismatch introduced via update_cart.
+
+=== Severity context (defense-in-depth confirmed intact) ===
+The actual order-placement/tax-preview trust boundary (makeOrderDetails, reached
+via both order/place and order/get-Tax) DOES still catch this exact malformed
+shape and 403s cleanly — verified live:
+
+POST /api/v1/customer/order/get-Tax (is_buy_now=1) with
+  cart: [{"item_id":16,"item_type":"Item","quantity":1,"price":8.99,"add_on_ids":[1],"add_on_qtys":[]}]
+-> HTTP 403 {"errors":[{"code":"addon","message":"Invalid add-on selection"}]}
+
+So this is a CartController-layer completeness gap (fails the AC's explicit
+`add_on_qtys: null -> 403` requirement, and leaves a malformed row sitting in
+the shared `carts` table / cart-list response), NOT a money-loss / order-
+placement bypass — the deeper gate the ticket's title cares about (AUD-SEC-02)
+still holds.
+
+Also confirmed: the existing PHPUnit suite (CartAddonQtySignTest.php) covers
+`add_on_qtys: [null]` (a null ENTRY inside the array — passes/rejects
+correctly) but has no test for the top-level `add_on_qtys: null` case — this
+is a real coverage gap in the automated backstop, not just a live-probe-only
+finding.
+
+Fix suggestion: replace `'nullable'` with an explicit `sometimes|array` (or run
+the parity check as a `Rule::forEach`/top-level `after()` validator hook so it
+always runs regardless of null-shortcut), or normalize `add_on_qtys` to `[]`
+before validation when it arrives as JSON null and add_on_ids is non-empty.
