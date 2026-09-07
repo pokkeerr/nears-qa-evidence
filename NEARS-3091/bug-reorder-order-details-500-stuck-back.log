@@ -1,0 +1,28 @@
+FE log (UserApp, pid 8335, order #91174 reorder tap):
+I/flutter ( 8335): [NET] GET endpoint=/api/v1/customer/order/details
+I/flutter ( 8335): [NET] endpoint=/api/v1/customer/order/details http_status=500
+I/flutter ( 8335): [FAIL] endpoint=/api/v1/customer/order/details http_status=500 type=ApiFailure msg="api request failed" correlation_id=c10d0005-a8a1-4ed0-99da-5f8932faa178
+I/flutter ( 8335): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+I/flutter ( 8335): [NET] endpoint=/api/v1/customer/cart/remove http_status=400
+I/flutter ( 8335): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null type=ApiFailure msg="reorder open-store clear-cart failed"
+I/flutter ( 8335): [ERR] msg="error snackbar shown"
+
+BE log (Admin/storage/logs/laravel.log, correlation join confirmed):
+[2026-09-07 07:54:09] production.ERROR: [FAIL] Trying to access array offset on null {"trace_id":"4be35e6b9ee7b2e67eada7b4bf647776","correlation_id":"c10d0005-a8a1-4ed0-99da-5f8932faa178","type":"ErrorException","endpoint":"/api/v1/customer/order/details"}
+
+Repro: UserApp -> My Orders -> order #91174 (Burger Palace, Cancelled) -> Reorder (or View details).
+order_details_screen.dart renders its error/retry state correctly (paired AppLogger.failure -> no
+silent-failure finding), but:
+  1. The underlying /api/v1/customer/order/details 500 is a BACKEND data bug unrelated to this
+     ticket (order_group_helper.dart / reorder_helper.dart moved with 0 content diff, git mv only;
+     order_details_screen.dart/order_tracking_hub_screen.dart only had import-path lines changed).
+     Reproduced against a foreign worktree backend (nears-NEARS-1947-relative-date-notifications,
+     clean git status) -- classified regression_bug, not caused by NEARS-3091.
+  2. On this specific error/retry screen, the "Back" button (bounds [48,177][192,321], not a
+     barrier-trap) does not pop the route -- tap registers (uiautomator dump refreshes) but the
+     screen never changes across 6+ attempts incl. hardware KEYCODE_BACK. Recovered only via
+     app force-stop + relaunch. Verified NOT general: order #91159's order_details_screen (healthy
+     backend response) navigates via the same "Back" button with no issue. Isolated to the
+     error/retry state specifically. Also classified regression_bug (pre-existing reskin behavior,
+     unrelated to this ticket's import-path-only changes -- confirmed no stale/duplicate helper
+     files, all import sites point at the single new domain/helpers/ location).
