@@ -1,0 +1,60 @@
+AC4 FINAL ATTEMPT — isolated, ticket-scoped DB clone (multi_food_db_qa3259) + dedicated backend (port 8010) +
+--dart-define=API_HOST=10.0.2.2:8010 override, per the conductor/advisor-qa's documented non-Tier-C recipe.
+
+SETUP (all against the ISOLATED CLONE only, primary multi_food_db never touched -- verified before/after):
+- mysqldump -u root --set-gtid-purged=OFF multi_food_db -> restored into fresh multi_food_db_qa3259 (162 tables).
+- UPDATE business_settings SET value='1' WHERE key='subscription_business_model'; -- clone only.
+- Verified: multi_food_db.business_settings still reads 0 (primary untouched); clone reads 1.
+- Worktree Admin/ bootstrapped (composer install, passport:keys, .env copied from primary) -- fresh-worktree
+  requirements per workflow-profile.md.
+- php artisan serve --host=0.0.0.0 --port=8010 with DB_DATABASE=multi_food_db_qa3259; cache:clear against it
+  (CACHE_DRIVER=database, so the cache table itself lives in the isolated clone -- no cross-DB cache leak).
+- Verified via GET http://127.0.0.1:8010/api/v1/config -> subscriptionBusinessModel: 1 (clone only).
+- flutter run -d emulator-5554 --dart-define=API_HOST=10.0.2.2:8010 (direct launch, not qa-run.sh -- no
+  --dart-define pass-through in that script; used the NEARS-551 documented override precedent).
+
+RESULT: "Subscription Base" plan option now visible in the wizard (confirms the clone's config flip reached the
+app). Completed registration through to the real subscription_payment_screen.dart with a real package
+("QA Single-Store Fixture", 30 days, 50.00 AED) and a non-null package_id from the backend.
+
+subscription_payment_screen.dart shows: "Confirm" / "Continue with 7 day free trial" / "Pay Via Online
+(Faster & secure way to pay bill)" / "Paypal" / "Razor pay" -- this IS the actual UI business_service.dart's
+processesBusinessPlan dispatches into.
+
+EXHAUSTIVE CODE READ (every tap handler in subscription_payment_screen.dart + business_controller.dart):
+- The free-trial PaymentCartWidget's onTap calls ONLY businessController.setPaymentIndex(0).
+- EVERY gateway grid tile's onTap calls setPaymentIndex(1) AND changeDigitalPaymentName(gateway) TOGETHER,
+  unconditionally, in the same tap -- there is no code path, on mobile OR desktop (same grid, only
+  crossAxisCount differs by ResponsiveHelper.isDesktop), that sets paymentIndex=1 while leaving
+  digitalPaymentName null.
+- grep -rn "setPaymentIndex" across the whole UserApp/lib tree confirms only these two call sites drive
+  BusinessController.paymentIndex from this screen (plus one inside business_payment_method_bottom_sheet_widget.dart,
+  which is the DIALOG shown as the OUTCOME of already being in the target state -- not a way INTO it).
+- LIVE CONFIRMATION: tapped "Confirm" with the controller's untouched default state (paymentIndex=0,
+  digitalPaymentName=null) -> hit the free-trial branch of processesBusinessPlan, NOT the
+  "paymentIndex==1 && digitalPaymentName==null" dialog/snackbar branch:
+    09-07 18:48:14.400 flutter : [NET] POST endpoint=/api/v1/vendor/business_plan
+    09-07 18:48:15.217 flutter : [NET] endpoint=/api/v1/vendor/business_plan http_status=200
+  -> landed on real "Registration Success" screen again (2nd real store, id=91121 "QA Sub Test", zone 1,
+     businessPlan='subscription' this time, vs 'commission' for the first store -- broadening live coverage
+     of setUpBusinessPlan's callers, still the same file/dispatch this ticket touched).
+
+CONCLUSION: `paymentIndex==1 && digitalPaymentName==null` is -- as currently wired in
+subscription_payment_screen.dart -- NOT reachable through any tap sequence a real user can perform, on
+mobile or desktop width. This is not a regression introduced by NEARS-3259: the diff shows this exact guard
+condition (and its dispatch action) is a VERBATIM, byte-for-byte relocation from the pre-refactor
+business_service.dart into the new outcome-object pattern -- the same unreachability (if it is unreachability,
+and not something this instrumentation session simply couldn't find) predates this ticket. Recommend a
+followup ticket to investigate this specific branch's reachability (likely dead/defensive code, or missing UI
+wiring on the "Pay Via Online" section header that was never fully built) -- separately from NEARS-3259, since
+the code this ticket changed correctly preserves the pre-existing behavior byte-for-byte either way.
+
+TEARDOWN: flutter run process + com.izzes.nears package force-stopped; device lock released; clone backend
+(port 8010) stopped; multi_food_db_qa3259 DROPPED (one-off verification, fully reproducible via this same
+recipe for a future re-QA). NOTE: because --dart-define required bypassing qa-run.sh, the install landed on
+the UNSUFFIXED base package `com.izzes.nears` (qa-run.sh normally applies the NEARS-1808 per-worktree
+suffix) -- dumpsys confirms firstInstallTime=2026-08-30, predating this session by >1 week, so this was NOT a
+QA-run-scoped install; my flutter run OVERWROTE it via reinstall (unavoidable side effect of the directed
+override) but it was NOT uninstalled at teardown, since it is not this session's package to remove. Flagging
+this as a process gap: qa-run.sh has no --dart-define pass-through, so any future custom-backend QA run will
+hit the same base-package overwrite unless the script is extended.
