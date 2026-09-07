@@ -1,0 +1,61 @@
+NEARS-3247 QA — admin.business-settings.file-manager.index 500 investigation.
+
+CONFIRMED PRE-EXISTING, not a regression from this ticket's diff. Root cause is
+League\Flysystem\SymbolicLinkEncountered thrown from FileManagerController.php:65 when
+listing the 'public' disk, triggered by the per-file symlink structure that
+scripts/newtask-guards/worktree-bootstrap-images.sh creates under storage/app/public/
+(11,349 symlinks) in ANY worktree that has run that bootstrap script -- unrelated to
+FileManagerController.php or CacheInvalidationObserver code.
+
+Reproduced identically on the pre-ticket base commit (merge-base
+d95b94d4a9a059eef50bd0171eb7bf3c6115502a of feat/userapp-reskin2) after running the SAME
+image-bootstrap script there for a fair apples-to-apples comparison:
+
+  [PROBE file-manager] status=500
+  [PROBE file-manager] exception: League\Flysystem\UnableToListContents: Unable to list
+  contents for 'public', shallow listing
+  .../vendor/league/flysystem/src/UnableToListContents.php:17
+  #0 .../vendor/league/flysystem/src/Filesystem.php(117):
+     League\Flysystem\UnableToListContents::atLocation('public', false,
+     Object(League\Flysystem\SymbolicLinkEncountered))
+  #8 .../app/Http/Controllers/Admin/FileManagerController.php(65): ...
+
+Identical trace/line on HEAD (this ticket's worktree). FileManagerController.php is not
+touched anywhere in this ticket's diff (git diff <fork-point>..HEAD --stat). Verdict: not
+this ticket's regression -- environment/tooling artifact of the per-worktree image bootstrap
+script, applies to any worktree with product-image symlinks synced. Reported as followup,
+not a task_bug of this ticket.
+
+--- ADDENDUM: admin.maintenance-mode / rotating-route flakiness investigation ---
+The engineer's flagged AdminRouteSmokeTest run also intermittently showed
+admin.maintenance-mode (and, across repeated runs, a ROTATING set of other unrelated
+routes: admin.landing-page, admin.parcel.orders, admin.parcel.parcel_orders_export,
+admin.parcel.list, admin.order.list, admin.refund.refund_attr/refund_mode,
+admin.business-settings.site_direction) as 500s. Investigated directly:
+
+  - Isolated single-route call to admin.maintenance-mode (fresh admin, fresh app boot,
+    no other routes in the same request/test) = 200 OK, no exception, both on HEAD and
+    on the base commit.
+  - Direct call to the exact underlying code path the route exercises
+    (Helpers::businessUpdateOrInsert -> BusinessSetting::firstOrNew()->save(), which is
+    what fires CacheInvalidationObserver) = no exception, 0 unexpected cache-table
+    queries under phpunit's CACHE_DRIVER=array.
+  - A clean, fully-isolated run of the FULL 320-route sweep (confirmed via `ps aux` no
+    other phpunit process alive, nothing else touching the private test DB) showed ZERO
+    occurrence of maintenance-mode or file-manager failing -- only the ALREADY-ALLOWLISTED
+    pre-existing admin.users.delivery-man.message-list-search 500 (Bucket C, verbatim
+    matching exception).
+  - Other runs, executed while a SIBLING /new-task session's own phpunit suite
+    (nears-NEARS-2925-offline-payment-gate, confirmed live via `ps aux` + MySQL
+    SHOW PROCESSLIST sharing the same MySQL server) was concurrently running against a
+    DIFFERENT private test DB, showed a DIFFERENT rotating set of 500s each time,
+    never repeating the identical set twice.
+
+Conclusion: the ROTATING-set routes (maintenance-mode included) are NOT confirmed as a
+regression introduced by this diff. The pattern (disappears in isolation, absent on a
+clean quiescent full-sweep run, varies incoherently under concurrent system load) is the
+signature of shared-machine resource contention / this specific test's own sensitivity to
+running 320 sequential mutating HTTP calls in one shared app boot, not a deterministic
+behavior change traceable to CacheInvalidationObserver. Filed as a non-blocking
+regression-candidate followup for AdminRouteSmokeTest's own flakiness under concurrent
+load, NOT a task_bug of NEARS-3247.

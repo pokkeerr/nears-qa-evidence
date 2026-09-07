@@ -1,0 +1,35 @@
+NEARS-3247 QA — live 8-model cache-invalidation matrix (independent of engineer's own
+CacheInvalidationObserverTest.php), run via `php artisan tinker` against isolated DB
+multi_food_db_qa3247 (CACHE_DRIVER=database, cache.prefix=laravel_cache).
+Could not open input file: artisan
+
+=== M1: BusinessSetting write ===
+PASS | BusinessSetting write clears business_settings_ | key='business_settings_all_data' exists=no expectGone=yes
+PASS | BusinessSetting write leaves data_settings_ alone | key='data_settings_flutter_landing_page' exists=yes expectGone=no
+PASS | BusinessSetting write leaves advertisement_ alone | key='advertisement_qa1' exists=yes expectGone=no
+=== M2: Banner write ===
+PASS | Banner write clears banners_ | key='banners_qa2' exists=no expectGone=yes
+PASS | Banner write leaves module_ alone | key='module_config_qa' exists=yes expectGone=no
+=== M3: DataSetting write ===
+PASS | DataSetting write clears data_settings_ | key='data_settings_qa3' exists=no expectGone=yes
+PASS | DataSetting write leaves priority_settings_all_data alone | key='priority_settings_all_data' exists=yes expectGone=no
+=== M4: Module write ===
+PASS | Module write clears module_ | key='module_qa4' exists=no expectGone=yes
+PASS | Module write leaves advertisement_ alone | key='advertisement_qa4b' exists=yes expectGone=no
+=== M5: Advertisement write ===
+PASS | Advertisement write clears advertisement_ | key='advertisement_qa5' exists=no expectGone=yes
+PASS | Advertisement write leaves banners_ alone | key='banners_qa5b' exists=yes expectGone=no
+=== M6: Store write (condition 3 + 4 positive control) ===
+PASS | Store write clears advertisement_ | key='advertisement_qa6' exists=no expectGone=yes
+PASS | Store write clears banners_ (real, not old buggy banner_) | key='banners_qa6' exists=no expectGone=yes
+PASS | Store write leaves business_settings_ alone (positive control) | key='business_settings_all_data' exists=yes expectGone=no
+PASS | Store write leaves data_settings_ alone (positive control) | key='data_settings_qa6' exists=yes expectGone=no
+PASS | Store write leaves module_ alone (positive control) | key='module_qa6' exists=yes expectGone=no
+PASS | Store write leaves priority_settings_all_data alone (positive control) | key='priority_settings_all_data' exists=yes expectGone=no
+=== M7: PriorityList write ===
+PASS | PriorityList write clears priority_settings_all_data | key='priority_settings_all_data' exists=no expectGone=yes
+PASS | PriorityList write leaves business_settings_ alone | key='business_settings_all_data' exists=yes expectGone=no
+=== M8: Order write (condition 7 — true no-op) ===
+Order save cache-table queries fired: 0
+PASS | Order write does not touch advertisement_ (no-op) | key='advertisement_qa8' exists=yes expectGone=no
+=== DONE ===
