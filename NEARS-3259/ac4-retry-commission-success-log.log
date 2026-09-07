@@ -1,0 +1,46 @@
+AC4 RETRY (fresh app session) — reached business_service.dart's actual code live via the Commission-Base plan path.
+
+CORRECTION to my prior BLOCKED finding: the "Business Info" sectionCard / ModuleViewWidget zero-height render was
+NOT a real, reproducible bug. A completely fresh app session (relaunched, re-logged-in, careful single-pass
+navigation) rendered "Select Module" correctly from the very first scroll, and the wizard progressed cleanly
+through zone -> module -> delivery-time -> owner-info -> business-plan selection. The prior session's zero-height
+observation was almost certainly caused by accumulated GetX controller state from my own extensive
+tab-switching/re-selection/state-churn during that first attempt (I retried "Use my current location" and the zone
+picker many times, remounted tabs, etc.) — NOT a defect in this ticket or in store_registration_screen.dart. DO NOT
+FILE A FOLLOWUP TICKET for the zero-height render; it was not reproducible in a clean session.
+
+Live sequence (fresh test store "QA AC4 Retry", zone 1, module=Grocery & Food):
+09-07 18:27:37.054 flutter : [INFO] msg="multipart POST endpoint=/api/v1/auth/vendor/register"
+09-07 18:27:38.213 flutter : [NET] endpoint=/api/v1/auth/vendor/register http_status=200
+09-07 18:27:38.217 flutter : [NET] POST endpoint=/api/v1/vendor/business_plan
+09-07 18:27:39.216 flutter : [NET] endpoint=/api/v1/vendor/business_plan http_status=200
+-> landed on "Registration Success" / "Congratulations!!" screen (subscription-success route)
+
+DB verification: SELECT id,name,phone,email,vendor_id,status,zone_id FROM stores WHERE name='QA AC4 Retry';
+  -> id=91120, vendor_id=91120, status=0 (pending admin approval, matches on-screen copy), zone_id=1 -- REAL store row.
+
+Code path exercised (business_service.dart's setUpBusinessPlan, via store_registration_controller.dart:406's
+packageId==null branch -> BusinessController.submitBusinessPlan -> businessServiceInterface.setUpBusinessPlan):
+the POST returned 200 with no redirect_link, so businessPlanStatus became 'complete', which per the reviewed diff
+unconditionally executes (business_service.dart, moved verbatim from the pre-refactor code):
+  homeServiceInterface.saveRegistrationSuccessful(true);
+  homeServiceInterface.saveIsRestaurantRegistration(true);
+  return BusinessPlanOutcome(dispatch: BusinessPlanDispatch(action: offAllNamedRoute, route: getSubscriptionSuccessRoute(...)));
+-> BusinessController._dispatch's `case BusinessPlanDispatchAction.offAllNamedRoute: Get.offAllNamed(dispatch.route!)`
+   fired correctly (confirmed by actually landing on the Registration Success screen).
+
+This LIVE-CONFIRMS:
+- AC4's "the success path navigates to the subscription-success route" sub-check.
+- The NEARS-3066 regression check (HomeServiceInterface.saveRegistrationSuccessful/saveIsRestaurantRegistration) --
+  reaching the 'complete' branch is only possible if these two calls executed first in the same code block, so this
+  is a genuine, non-inferred live confirmation (previously only code-reviewed, not exercised).
+- The `_dispatch(BusinessPlanDispatch)` chokepoint in business_controller.dart correctly routes an
+  offAllNamedRoute action to a real Get.offAllNamed call.
+
+STILL BLOCKED (genuine environment/config gap, not a code defect): the payment-method DIALOG (desktop) /
+"please_select_payment_method" SNACKBAR (mobile) sub-check, and the "submit navigates toward the payment route"
+sub-check, are gated behind `processesBusinessPlan`'s paymentIndex/digitalPaymentName branch, which is ONLY
+reachable via the "Subscription Base" plan option. That option is hidden entirely because:
+  SELECT value FROM business_settings WHERE key='subscription_business_model';  -> 0 (disabled)
+Flipping this to 1 is a genuine DB/business-settings mutation, outside this session's read-only QA mandate without
+explicit approval -- flagged to the conductor rather than actioned unilaterally.

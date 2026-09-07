@@ -1,12 +1,13 @@
 # QA Evidence — NEARS-3259
 
-**8/9 ACs PASS live+code-confirmed, AC4 UNVERIFIABLE (blocked by unrelated pre-existing rendering issue), 1 pre-existing unrelated test failure**
+**AC4 retry: 3/4 sub-checks live-confirmed via commission-base path (setUpBusinessPlan + NEARS-3066 regression); payment-method dialog/snackbar sub-check still blocked by disabled subscription_business_model in dev business_settings (needs owner decision)**
 
-**2 screenshot(s).** Click any thumbnail for full resolution.
+**3 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
 <td align="center" width="33%"><a href="ac4-business-info-section-blocked.png"><img src="ac4-business-info-section-blocked.png" width="240"></a><br><sub>ac4 business info section blocked</sub></td>
+<td align="center" width="33%"><a href="ac4-commission-base-success.png"><img src="ac4-commission-base-success.png" width="240"></a><br><sub>ac4 commission base success</sub></td>
 <td align="center" width="33%"><a href="ac5-out-of-stock-item.png"><img src="ac5-out-of-stock-item.png" width="240"></a><br><sub>ac5 out of stock item</sub></td>
 </tr>
 </table>
@@ -14,6 +15,7 @@
 ### Other artifacts
 - [`ac4-business-info-blocked.log`](ac4-business-info-blocked.log)
 - [`ac4-business-info-dump.xml`](ac4-business-info-dump.xml)
+- [`ac4-retry-commission-success-log.log`](ac4-retry-commission-success-log.log)
 - [`ac5-item-quantity-log.log`](ac5-item-quantity-log.log)
 - [`ac6-cart-quantity-log.log`](ac6-cart-quantity-log.log)
 - [`ac7-deliveryman-registration-log.log`](ac7-deliveryman-registration-log.log)
