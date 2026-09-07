@@ -1,0 +1,50 @@
+NEARS-2920 delta re-QA (fix-cycle 1) — NEARS-3347 fix verification
+Worktree: /Users/Apple/Projects/nears-NEARS-2920-place-order-qty-sign
+HEAD: 2a1aca8383c97a64624987b87df2baf11c489c94
+Own server: php artisan serve --host=127.0.0.1 --port=8020 (pid 75593, cwd verified via lsof
+to be the worktree Admin/ dir, distinct from the stale primary-tree server on :8000)
+
+=== Automated backstop ===
+vendor/bin/phpunit --filter CartAddonQtySignTest
+OK (10 tests, 20 assertions) -- includes the 2 new NEARS-3347 tests
+(test_add_to_cart_rejects_top_level_null_addon_qtys,
+test_update_cart_rejects_top_level_null_addon_qtys)
+
+=== Probe 1: POST cart/add, add_on_ids=[1], add_on_qtys=null (literal top-level JSON null) ===
+Request: {"item_id":16,"model":"Item","price":8.99,"quantity":1,"add_on_ids":[1],"add_on_qtys":null}
+Response: HTTP 403 {"errors":[{"code":"add_on_qtys","message":"Invalid add-on selection"}]}
+DB check: SELECT * FROM carts WHERE item_id=16 -> 0 rows (no cart row persisted)
+Prior cycle-0 result on this exact probe: HTTP 200, cart row id=765 persisted with
+add_on_qtys=[] (length mismatch). FIXED.
+
+=== Probe 2: POST cart/update on existing valid row, add_on_ids=[1], add_on_qtys=null ===
+Setup: cart/add add_on_ids=[1], add_on_qtys=[1] -> row id=769 created
+  {"id":769,"item_id":16,"add_on_ids":[1],"add_on_qtys":[1]}
+Request: {"cart_id":769,"price":8.99,"quantity":1,"add_on_ids":[1],"add_on_qtys":null}
+Response: HTTP 403 {"errors":[{"code":"add_on_qtys","message":"Invalid add-on selection"}]}
+DB check: SELECT add_on_ids, add_on_qtys FROM carts WHERE id=769 -> [1], [1] (UNCHANGED)
+Prior cycle-0 result: HTTP 200, row rewritten to add_on_qtys=[] (length mismatch introduced).
+FIXED.
+(row 769 deleted after capture)
+
+=== Probe 3: no-regression, cart/add with NEITHER add_on_ids NOR add_on_qtys sent ===
+Request: {"item_id":388,"model":"Item","price":43.75,"quantity":1}
+Response: HTTP 200 (existing row id=742 quantity incremented, no addon fields touched)
+Confirms the new after() hook's `!empty($request->add_on_ids)` gate does not
+false-positive when no add-ons are sent at all.
+(quantity reverted to 1 after capture to restore pre-probe state)
+
+=== Spot-check A (previously-PASS regression check): negative add_on_qtys reject ===
+Request: {"item_id":16,...,"add_on_ids":[1],"add_on_qtys":[-1]}
+Response: HTTP 403 {"errors":[{"code":"add_on_qtys.0","message":"The add_on_qtys.0 must be at
+least 1."}]} -- unchanged from cycle 0, still PASS.
+
+=== Spot-check B (previously-PASS regression check): valid-addon positive control ===
+Request: {"item_id":16,...,"add_on_ids":[1],"add_on_qtys":[1]}
+Response: HTTP 200, cart row created with matching add_on_ids/add_on_qtys ([1],[1]).
+Unchanged from cycle 0, still PASS. (row 770 deleted after capture)
+
+=== Cleanup ===
+All cart rows created during probing (769, 770) deleted; row 742's quantity reverted to
+pre-probe value (1). Own php artisan serve instance (pid 75593) killed after probing.
+Verified 0 leftover rows: SELECT id FROM carts WHERE item_id=16 -> empty.
