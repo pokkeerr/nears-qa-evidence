@@ -1,17 +1,11 @@
 # QA Evidence — NEARS-3243
 
-**FAIL — fix introduces page-wide Blade compile corruption; both ACs still 500**
+**PASS - m4-fix1 delta re-QA: campaign edit page 500 fixed, no Blade corruption**
 
-**1 screenshot(s).** Click any thumbnail for full resolution.
-
-<table>
-<tr>
-<td align="center" width="33%"><a href="bug-edit-still-500-prod.png"><img src="bug-edit-still-500-prod.png" width="240"></a><br><sub>bug edit still 500 prod</sub></td>
-</tr>
-</table>
+**0 screenshot(s).** Click any thumbnail for full resolution.
 
 ### Other artifacts
-- [`bug-blade-storephpblocks-corruption.log`](bug-blade-storephpblocks-corruption.log)
+- [`fix-verification-grep.txt`](fix-verification-grep.txt)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3243/` · public-repo scrub policy (no live secrets; verified clean).*
