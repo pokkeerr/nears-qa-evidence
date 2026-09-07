@@ -1,0 +1,44 @@
+NEARS-3344 QA — regression sweep, live HTTP against worktree backend
+(port 8123, isolated private test DB multi_food_db_test_nears_nears_3344_drivemond_null_user_gua,
+local fake Drivemond responder on port 8199 standing in for the real external
+service, per-scenario responses via DRIVEMOND_SCENARIO env var).
+
+1) drivemond_user_404 (get-data non-2xx, untouched sibling branch):
+   fake responder -> HTTP 500
+   POST /api/v1/auth/external-login -> HTTP 403
+   body: {"errors":[{"code":"drivemond_user_404", ...}]}  [implied by branch;
+   status code + log line confirmed, see bug evidence file for the full log line]
+   -> STILL WORKS, unaffected by this diff.
+
+2) email_unique_402 (new phone, Drivemond verified=true, email collides with
+   an existing user in the private test DB — james.wilson@demo.com):
+   POST /api/v1/auth/external-login -> HTTP 403
+   body: {"errors":[{"code":"email_unique_402","message":"Email already exists, Please update mart email and switch Nears"}]}
+   -> STILL WORKS, unaffected by this diff.
+
+3) Happy path (new phone, Drivemond verified=true, fresh non-colliding
+   email/phone +9779998887799):
+   POST /api/v1/auth/external-login -> HTTP 200
+   -> user row created: SELECT phone FROM users WHERE phone='+9779998887799'
+      returned 1 row.
+   -> STILL WORKS, unaffected by this diff.
+
+4) error_code == 402 (new phone, unchanged 403 branch NEARS-3344 explicitly
+   must not touch):
+   POST /api/v1/auth/external-login -> HTTP 403
+   body: {"errors":[{"code":"drivemond_external_configuration_402", ...}]}
+   -> STILL WORKS, unaffected by this diff. Matches
+      test_new_phone_with_error_code_402_still_returns_its_own_403 (PHPUnit).
+
+5) Automated backstop (Admin, from this worktree):
+   vendor/bin/phpunit --filter DrivemondNewPhoneNullUserGuardTest -> OK (2 tests, 10 assertions)
+   vendor/bin/phpunit --filter DrivemondExistingPhoneAuthBypassTest -> OK (4 tests, 17 assertions)
+   vendor/bin/phpunit --testsuite Feature --filter Drivemond -> OK (13 tests, 64 assertions)
+   (covers DrivemondNewPhoneNullUserGuardTest, DrivemondExistingPhoneAuthBypassTest,
+    DrivemondWalletCreditTest — all green, private per-worktree DB
+    multi_food_db_test_nears_nears_3344_drivemond_null_user_gua, never the
+    shared multi_food_db.)
+
+Note: items 1/2/4 are adjacent-but-untouched paths per the engineer's own
+flag; smoke-checked live here beyond the ticket's "if practical" bar since
+the harness was already booted.

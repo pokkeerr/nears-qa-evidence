@@ -1,0 +1,68 @@
+NEARS-3344 QA — task_bug evidence
+==================================
+Finding: the NEW `!$user` guard branch added by this fix
+(Admin/app/Http/Controllers/Api/V1/Auth/CustomerAuthController.php:1429-1435)
+returns the graceful 401/auth-001 response correctly, but emits ZERO log
+lines — no \Log::error(...) call exists on this new branch, unlike its
+sibling branches in the same method (line 1386 "get-data call unsuccessful",
+line 1443 "existing-phone identity verification failed", both of which DO
+log and DO carry correlation_id).
+
+This breaks AC1's literal requirement to "confirm the request's X-Request-Id
+shows up in the log at all" for this endpoint/path, and violates the
+MANDATORY logging-contract rule (CLAUDE.md / docs/platform/logging-contract.md):
+"every NEW failure path emits a structured failure log carrying the request id."
+
+--- Reproduction (live HTTP, private isolated worktree test DB, port 8123) ---
+
+Backend booted from THIS worktree:
+  DB_DATABASE=multi_food_db_test_nears_nears_3344_drivemond_null_user_gua \
+  php artisan serve --host=127.0.0.1 --port=8123
+Fake Drivemond responder (local, not the real external service):
+  DRIVEMOND_SCENARIO=unmapped php -S 127.0.0.1:8199 fake_drivemond.php
+  -> {"status":false,"data":{"error_code":"some_other_error"}}
+
+Log line count BEFORE request: 19 (storage/logs/laravel.log)
+
+Request 1 (RID c0ffee01-1234-4abc-8def-0123456789ab):
+  curl -i -X POST http://127.0.0.1:8123/api/v1/auth/external-login \
+    -H "X-Request-Id: c0ffee01-1234-4abc-8def-0123456789ab" \
+    -d '{"phone":"+9779998887771","token":"livehttpqa"}'
+  -> HTTP/1.1 401 Unauthorized
+  -> {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+  -> X-Request-Id echoed back correctly.
+
+Log line count AFTER request 1: 19 (UNCHANGED)
+grep -F "c0ffee01-1234-4abc-8def-0123456789ab" storage/logs/laravel.log storage/logs/laravel-structured.log
+  -> 0 matches in either file.
+
+Request 2 (RID d00dbeef-2222-4bcd-9def-fedcba987654), fresh unused phone,
+same scenario:
+  -> HTTP/1.1 401 Unauthorized, same auth-001 body.
+  Log line count AFTER request 2: still 19 (UNCHANGED).
+  grep -F "d00dbeef-2222-4bcd-9def-fedcba987654" -> 0 matches, both files.
+
+--- Positive control: the correlation/log mechanism itself IS live ---
+
+Same harness, same worktree, drivemond_user_404 branch (get-data returns
+HTTP 500 — an EXISTING, already-logged sibling branch, untouched by this
+diff), RID deadbeef-3333-4cde-8fed-13579acefdb1:
+  -> HTTP/1.1 403 Forbidden
+  storage/logs/laravel.log gained exactly this line:
+  [2026-09-07 20:33:48] production.ERROR: [FAIL] customerLoginFromDrivemond: get-data call unsuccessful {"trace_id":"786306ba1eb4a9bd0b6ea2cd6708446c","correlation_id":"deadbeef-3333-4cde-8fed-13579acefdb1","endpoint":"api/v1/auth/external-login","status":500}
+
+This proves SetRequestId's log-context binding + \Log::error() correlation
+plumbing works correctly end-to-end when the code path actually calls
+\Log::error(...) — the silence on the NEW null-user-guard branch is a real
+gap in this diff's own code, not a harness/tooling artifact.
+
+--- Crash-line absence (the part of AC1 that DOES pass) ---
+
+grep -F 'Attempt to read property "id" on null' storage/logs/laravel.log storage/logs/laravel-structured.log
+  -> 0 matches across the whole run (all live requests + the phpunit runs
+     that preceded it). The 500 crash is genuinely gone. Only the
+     log-correlation half of AC1 fails.
+
+Recommendation: add a `\Log::error('[FAIL] customerLoginFromDrivemond: new-phone unmapped error_code', ['endpoint' => 'api/v1/auth/external-login', 'status' => 401, 'code' => 'auth-001'])`
+call (matching the sibling branches' shape) to the new guard at line
+1429-1435 before this ships.
