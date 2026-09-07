@@ -1,0 +1,42 @@
+NEARS-1241 QA — independent RED->GREEN falsifiable proof
+Method: temporarily replaced the new gate block (Admin/app/Http/Controllers/Vendor/ItemController.php
+lines 1419-1433) with a one-line comment, reran the 6 hijack-sensitive tests, confirmed genuine RED,
+restored the exact original bytes via backup file, confirmed `git diff` clean, reran tests -> GREEN.
+
+=== RED (gate removed) ===
+$ vendor/bin/phpunit --configuration phpunit.xml --filter BulkImportStoreScopeTest
+
+F.E..F                                                              6 / 6 (100%)
+
+1) test_the_new_store_gate_is_what_rejects_a_batch_containing_a_foreign_id
+Mockery\Exception\InvalidCountException: Method warning(<Any Arguments>) from
+Mockery_0_Illuminate_Log_LogManager should be called at least 1 times but called 0 times.
+(the new gate's attribution log never fired — because the gate is gone)
+
+FAILURES:
+1) test_a_mixed_batch_carrying_a_foreign_store_id_writes_nothing_at_all
+   "a foreign item was HIJACKED into the attacker's store"
+   Failed asserting that 2 is identical to 1.
+   (foreign item's store_id was rewritten from 1 -> 2, i.e. reassigned into the attacker's store)
+
+2) test_approval_active_batch_with_a_foreign_id_inserts_zero_temp_products_rows
+   "a foreign item must not reach the temp_products admin-approval queue"
+   Failed asserting that 1 is identical to 0.
+   (the foreign item's row DID land in temp_products — the AC4 admin-approval-queue leak)
+
+Tests: 6, Assertions: 16, Errors: 1, Failures: 2.
+
+=== restore ===
+$ git diff Admin/app/Http/Controllers/Vendor/ItemController.php
+(empty — byte-identical restore confirmed)
+
+=== GREEN (gate restored) ===
+$ vendor/bin/phpunit --configuration phpunit.xml --filter BulkImportStoreScopeTest
+
+......                                                              6 / 6 (100%)
+Time: 00:00.685, Memory: 92.50 MB
+OK (6 tests, 34 assertions)
+
+Conclusion: the vulnerability the engineer's own [6] envelope reported (RED pre-fix, GREEN post-fix)
+was independently reproduced by QA on this same worktree/HEAD, confirming the RED-repro requirement
+is genuine and the fix is what makes the difference (not some pre-existing check).

@@ -1,0 +1,28 @@
+NEARS-1241 QA — AC5 toast message, en + ar
+
+$ grep -n "bulk_import_items_not_in_your_store" Admin/app/Http/Controllers/Vendor/ItemController.php \
+    Admin/resources/lang/en/messages.php Admin/resources/lang/ar/messages.php
+
+Admin/app/Http/Controllers/Vendor/ItemController.php:1431:
+    Toastr::error(translate('messages.bulk_import_items_not_in_your_store'));
+
+Admin/resources/lang/en/messages.php:9881:
+    'bulk_import_items_not_in_your_store' => 'One or more items in this file do not belong to your
+    store. No changes were made.',
+
+Admin/resources/lang/ar/messages.php:9824:
+    'bulk_import_items_not_in_your_store' => 'عنصر واحد أو أكثر في هذا الملف لا ينتمي إلى متجرك.
+    لم يتم إجراء أي تغييرات.',
+
+Key exists in BOTH locale files (no missing-translation fallback risk) and matches the exact key
+referenced by the controller. Both strings are deliberately generic — neither names an item id,
+item name, or store — satisfying the "stays generic, no foreign item ids/names disclosed" clause.
+
+Rendering mechanism is the pre-existing, unmodified `{!! Toastr::message() !!}` block in
+resources/views/layouts/vendor/app.blade.php (laracasts/toastr package facade) — identical to every
+other `Toastr::error(translate(...))` call in this controller and across the codebase; not a new
+rendering path introduced by this ticket.
+
+LIVE render confirmed over real HTTP (session auth, CSRF, file upload) in
+live-http-e2e-hijack-and-happy-path.log — the rendered toastr.error() call carries the exact en
+string above, byte-for-byte, when a real vendor session triggers the reject path.

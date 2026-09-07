@@ -1,0 +1,36 @@
+NEARS-1241 QA — AC7 independent probe: vendor_employee guard path
+
+BulkImportStoreScopeTest.php only authenticates via auth('vendor') (the owner). AC7 requires
+confirming the GATE ITSELF (not just the log field) also protects an `auth('vendor_employee')`
+session, since Helpers::get_store_id()/get_vendor_id() branch differently for that guard.
+
+Mechanism check (Admin/app/CentralLogics/Helpers.php):
+  get_store_id(): if (auth('vendor_employee')->check()) return auth('vendor_employee')->user()->store->id;
+  get_vendor_id(): elseif (auth('vendor_employee')->check()) return auth('vendor_employee')->user()->vendor_id;
+Both the NEARS-1241 gate (`Item::withoutGlobalScope(StoreScope::class)` vs plain `Item::whereIn`,
+scoped via the SAME `StoreScope` -> `Helpers::get_store_id()`) and the pre-existing StoreScope
+global scope reuse this identical helper for BOTH guards — so the gate does not need guard-specific
+code to cover the employee path; it inherits the existing employee-aware scoping.
+
+Live-verified via a standalone QA-only probe harness (NOT a product test file — lives in this
+session's scratchpad only, run as a direct phpunit file argument against the same isolated
+per-worktree test DB used by phpunit itself; never committed to the repo):
+
+$ vendor/bin/phpunit --configuration phpunit.xml <scratchpad>/EmployeeGateProbeTest.php --testdox
+
+Employee Gate Probe (Tests\Feature\Security\EmployeeGateProbe)
+ [x] Employee actor is blocked from cross store hijack
+ [x] Employee actor own store update still succeeds
+
+OK (2 tests, 6 assertions)
+
+Fixture: a fresh vendor_employees row (vendor_id=2, store_id=2 — the attacker's own store),
+authenticated via Auth::guard('vendor_employee')->setUser($employee). Same hijack shape as AC1
+(own item id + a foreign store-1 item id in one batch):
+ - test 1: foreign item's name/price/store_id all UNCHANGED after the batch (fails closed for the
+   employee actor, exactly as for the owner actor in AC1).
+ - test 2: an employee (vendor 1, store 1) updating only its own store's item still succeeds
+   (no over-block for the employee path — mirrors AC2 for the owner path).
+
+Worktree left clean after this probe (`git status --short` empty) — the probe touches only the
+isolated per-worktree phpunit test DB via DatabaseTransactions (auto-rolled-back), never the repo.

@@ -1,0 +1,43 @@
+NEARS-1241 QA — phpunit evidence
+Worktree: /Users/Apple/Projects/nears-NEARS-1241-vendor-bulk-import-store-hijack
+HEAD: 57c15409b (fix/NEARS-1241-vendor-bulk-import-store-hijack)
+Private per-worktree test DB: multi_food_db_test_nears_nears_1241_vendor_bulk_import_stor
+
+=== AC1/AC2/AC3/AC4 — BulkImportStoreScopeTest (post-fix, GREEN) ===
+$ vendor/bin/phpunit --configuration phpunit.xml --filter BulkImportStoreScopeTest
+
+......                                                              6 / 6 (100%)
+Time: 00:00.612, Memory: 90.50 MB
+OK (6 tests, 34 assertions)
+
+Tests:
+ - test_a_mixed_batch_carrying_a_foreign_store_id_writes_nothing_at_all (AC1)
+ - test_an_all_foreign_batch_is_still_rejected_by_the_pre_existing_existence_check (AC2 boundary)
+ - test_the_new_store_gate_is_what_rejects_a_batch_containing_a_foreign_id (AC1 attribution — asserts the
+   NEW gate's Log::warning fired, not some older pre-existing check)
+ - test_a_vendor_updating_only_its_own_stores_items_still_succeeds (AC2 — no over-block)
+ - test_an_id_that_exists_nowhere_is_still_inserted (AC3 — two-probe doesn't conflate foreign with absent)
+ - test_approval_active_batch_with_a_foreign_id_inserts_zero_temp_products_rows (AC4 — temp_products leak closed)
+
+=== AC6 — BulkImportZoneScopeTest (pre-existing NEARS-1203 admin gate, untouched — regression check) ===
+$ vendor/bin/phpunit --configuration phpunit.xml --filter BulkImportZoneScopeTest
+
+......                                                              6 / 6 (100%)
+Time: 00:00.541, Memory: 97.52 MB
+OK (6 tests, 33 assertions)
+
+=== Full Admin/tests/Feature/Security/ directory (blast radius sweep) ===
+$ vendor/bin/phpunit --configuration phpunit.xml tests/Feature/Security
+
+...............................................................  63 / 633 (  9%)
+...............................................................  ...
+...                                                             633 / 633 (100%)
+Time: 01:56.894, Memory: 245.00 MB
+OK (633 tests, 3596 assertions)
+
+Note: same 633/633 result obtained independently via both `--filter Security` (matches the whole
+Feature testsuite's Security-namespaced classes) and the direct `tests/Feature/Security` directory
+argument — both converge on 633 tests / 3596 assertions, all green, including this ticket's own
+6 BulkImportStoreScopeTest cases. (Ticket text estimated "634+ post-fix"; actual is 633 — flagged
+as a minor drift note, not a blocker: all tests present are green and the new test file's 6 cases
+are included in that count.)

@@ -1,0 +1,63 @@
+NEARS-1241 QA — unrelated regression_bug finding (does NOT affect this ticket's verdict)
+
+Summary: the vendor (and, by identical shared mechanism, likely the admin) bulk-import CSV upload
+path is non-functional over a REAL HTTP file upload — pre-existing, unrelated to NEARS-1241's diff,
+upstream of the NEARS-1241 gate entirely (fails during file parsing, before any store/zone check
+runs).
+
+Root cause: `Admin/app/Http/Controllers/Vendor/ItemController.php::bulk_import_data()` calls
+`(new FastExcel)->import($request->file('products_file'))`, passing the Laravel `UploadedFile`
+object directly. `Rap2hpoutre\FastExcel\Importable::reader($path)`
+(vendor/rap2hpoutre/fast-excel/src/Importable.php) does:
+
+    if (Str::endsWith($path, 'csv')) { ... CSV reader ... }
+    elseif (Str::endsWith($path, 'ods')) { ... ODS reader ... }
+    else { ... XLSX reader (default) ... }
+
+`Str::endsWith()` implicitly stringifies `$path` via PHP's native `SplFileInfo::__toString()`,
+which returns `getPathname()` — for a REAL HTTP upload this is PHP's own temp upload path
+(e.g. `/tmp/phpXXXXXX`), which never carries a `.csv`/`.ods` extension regardless of the client's
+original filename. So a real CSV upload always falls through to the `else` (XLSX) branch, which
+then fails to open the plain-text CSV as a zip-based XLSX archive.
+
+Reproduced directly (bypassing the try/catch to see the real exception):
+  $f = new \Illuminate\Http\UploadedFile('/tmp/phpQAprobe1241', 'products.csv', 'text/csv', null, true);
+  (new \Rap2hpoutre\FastExcel\FastExcel())->import($f);
+  => THROWS: OpenSpout\Common\Exception\IOException — Could not open /tmp/phpQAprobe1241 for reading.
+
+This IS caught by the controller's own `catch (\Exception $exception)` around the import() call,
+so the user just sees a generic "You have uploaded a wrong format file" toast with no further
+detail — masking the real cause.
+
+Why the phpunit regression suite never caught this: `BulkImportStoreScopeTest`/`BulkImportZoneScopeTest`
+construct their fixture via `new UploadedFile(tempnam(...).'.csv', 'products.csv', 'text/csv', null, true)`
+— the FIRST constructor argument is a path the test itself created with an explicit `.csv` suffix,
+so `Str::endsWith()` passes in the test harness but never would for a real browser upload (PHP's own
+`$_FILES[...]['tmp_name']` is always extension-less). XLSX uploads are unaffected (XLSX is the
+`else`/default branch), which is presumably why this has gone unnoticed — the shipped "download
+template" / bulk-export feature produces `.xlsx`, and CSV appears to be an alternate, apparently
+never-exercised-over-real-HTTP path.
+
+Live confirmation: a real multipart CSV POST (curl, matching browser upload shape) to
+`/vendor-panel/item/bulk-import` returned "you_have_uploaded_a_wrong_format_file" for a
+byte-valid CSV that FastExcel parses correctly when read from a path with a literal .csv name.
+Switching only the fixture format to `.xlsx` (identical rows, same controller code path) worked
+end-to-end — see live-http-e2e-hijack-and-happy-path.log.
+
+Scope/impact: affects BOTH the vendor bulk-import controller under test here AND, by the identical
+shared FastExcel/OpenSpout dependency and pattern, plausibly the analogous Admin bulk-import
+controller (`Admin/app/Http/Controllers/Admin/ItemController.php`) and any other FastExcel-based CSV
+importer in this codebase — not independently re-verified for each call site in this QA pass (out
+of this ticket's blast radius), flagged here as a lead for whoever triages this finding.
+
+Not caused by NEARS-1241: the diff under test here (lines 1419-1433 gate + the vendor_id log-field
+commit) is entirely downstream of the `(new FastExcel)->import(...)` call at controller line 1111 —
+by inspection, the CSV file-type-detection failure throws and is caught (returning early) well
+before execution ever reaches the NEARS-1241 gate at line 1419, for CSV specifically. This was not
+independently re-tested against the gate-reverted worktree state (the RED repro above used the
+phpunit harness's `.csv`-suffixed tempnam() path, which sidesteps this exact bug — see "Why the
+phpunit regression suite never caught this" above) — the line-order argument is by direct code
+reading of the unmodified control flow, not a second live repro.
+
+Filed to regression_bugs (unrelated-issue routing, non-blocking for NEARS-1241's verdict) per this
+run's QA protocol — never fixed in-run.

@@ -1,0 +1,61 @@
+NEARS-1241 QA — independent live HTTP/browser-equivalent pass (AC1, AC2, AC5)
+Server: isolated `php artisan serve --host=127.0.0.1 --port=8021` from THIS worktree, DB_DATABASE
+overridden to the private per-worktree phpunit test DB (multi_food_db_test_nears_nears_1241_
+vendor_bulk_import_stor — a full snapshot copy, NOT the shared dev multi_food_db). No shared-DB
+mutation occurred. Session driven via curl with a real cookie jar (CSRF token + session cookie),
+i.e. exactly what a browser would send — not the direct-controller-call harness.
+
+Login: POST /login_submit as ahmed.khan@demo.com (vendor 2, owner of store 2 "Fresh Mart Grocery"),
+role=vendor, dev-mode-prefilled six_captcha value scraped from the GET /login/vendor page
+(env APP_MODE=dev pre-fills the captcha answer into the form for local/dev use — not a bypass of
+anything in this ticket's own diff). -> HTTP 302 to /vendor-panel, session cookie set. Confirmed
+logged-in vendor by fetching /vendor-panel (title: "Dashboard").
+
+--- Note: a genuine, PRE-EXISTING, UNRELATED bug was hit and worked around here — see
+    bug-vendor-csv-http-upload-broken.log. CSV uploads over real HTTP fail file-type detection
+    (FastExcel casts the UploadedFile to string via SplFileInfo::__toString(), which returns the
+    extension-less PHP tmp path, so `Str::endsWith($path,'csv')` is always false for a real upload
+    and the CSV reader is never selected). XLSX uploads are unaffected (XLSX is the `reader()`
+    method's default/else branch), so the live pass below uses XLSX fixtures generated via the
+    same FastExcel package (import/export round-trip), which exercises the identical controller
+    code path (collections -> the NEARS-1241 gate -> items/temp_products writes) end-to-end. ---
+
+=== AC1 — live hijack attempt (vendor 2 attacking store 1's item id=1, alongside its own item id=2) ===
+Pre-state:  items.id=1 "Sample Product"  price=10.00 store_id=1  (victim)
+            items.id=2 "Red Apple"       price=3.50  store_id=2  (attacker's own)
+
+POST /vendor-panel/item/bulk-import  button=update  products_file=hijack.xlsx
+  rows: {Id:2, Name:"QA-1241-pwned-own", Price:99}, {Id:1, Name:"QA-1241-pwned-victim", Price:99}
+
+Response: HTTP 302 -> /vendor-panel/item/bulk-import (back())
+X-Request-Id: 5ee392f1-2c7e-4c53-884c-f7d9d5af9e74
+
+Rendered toast (fetched the redirect target, grepped the Toastr script block):
+  toastr.error('One or more items in this file do not belong to your store. No changes were made.','')
+  <- exact match of messages.bulk_import_items_not_in_your_store, en. Generic: no ids/names leaked.
+
+storage/logs/laravel.log (correlated by X-Request-Id -> correlation_id, confirms end-to-end join):
+  [2026-09-07 22:46:38] production.WARNING: vendor item bulk update rejected: items outside the
+  vendor store {"trace_id":"34108baca2a07f4a7c56c5a2607df5b3",
+  "correlation_id":"5ee392f1-2c7e-4c53-884c-f7d9d5af9e74","item_ids":[1],"vendor_id":2}
+
+Post-state (DB re-read past all scopes): items.id=1 UNCHANGED (name/price/store_id all identical
+to pre-state); items.id=2 (attacker's own row) ALSO UNCHANGED — fails closed on the whole batch,
+confirming AC1 live over the real HTTP/session/CSRF/file-upload stack, not just the phpunit harness.
+
+=== AC2 — live happy path (vendor 2 updating only its own item id=2) ===
+POST /vendor-panel/item/bulk-import  button=update  products_file=legit.xlsx
+  rows: {Id:2, Name:"QA-1241-legit-own-update", Price:77}
+
+Response: HTTP 302 -> /vendor-panel/item/bulk-import
+Rendered toast: toastr.success('1 Products imported successfully','')
+Post-state: items.id=2 -> name="QA-1241-legit-own-update" price=77.00 store_id=2 (unchanged store)
+  -> ordinary in-store bulk update still works end-to-end; the gate does not over-block.
+
+Fixture item 2 restored to its original name/price ("Red Apple", 3.50) immediately after this
+check via a direct UPDATE on the ISOLATED per-worktree test DB (never the shared dev DB).
+
+Teardown: `php artisan serve` on port 8021 killed; worktree `git status` confirmed clean
+(the two known NEARS-1057 runtime self-writes — config/system-addons.php domain field,
+messages.php auto-heal key — were reset via `scripts/newtask-guards/tooling-drift-reset.sh`,
+backups retained under .claude/newtask-guards/.drift-reset-log/ per that script's own contract).
