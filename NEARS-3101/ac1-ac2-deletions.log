@@ -1,0 +1,15 @@
+== AC1: git ls-files check for the 6 deleted artifacts (expect nothing) ==
+$ git ls-files | grep -E "fix_images1\.py|import_items1\.py|import_stores1\.py|items1\.xlsx|nears-1861-cacheid-pairs\.json|nears-1899-cacheid-verbatim\.py"
+(no output, grep exit 1)
+
+== AC1: repo-wide basename grep, excluding tasks/audit-2026-09/**, tasks/runs/**, tasks/recovery/**, tasks/.atlassian-sync.json ==
+Only hit: docs/solutions/NEARS-3101-scripts-hygiene.md (the solution doc itself, describing the deletion — not a live reference).
+
+== AC2: requirements.txt ==
+$ git diff 33bab9bd9..HEAD -- scripts/requirements.txt
+(empty — no changes)
+$ cat scripts/requirements.txt
+pyyaml
+
+$ grep -rn -E "^\s*(import|from)\s+(mysql|openpyxl|bcrypt|PIL)" scripts --include="*.py"
+(no output, grep exit 1 — no surviving script imports any of the four)

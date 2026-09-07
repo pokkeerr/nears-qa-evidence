@@ -1,0 +1,43 @@
+== AC3: live resolve_root() probe (sourcing the real scripts/lib/root_resolve.sh) ==
+case 1: no --root, no NEARS_ROOT, script_dir = worktree/scripts (git-toplevel resolution)
+  [run_apps] root: /Users/Apple/Projects/nears-NEARS-3101-scripts-hygiene (source: git-toplevel)
+  MATCH: resolved to WORKTREE
+case 2: --root explicit override
+  [stop_apps] root: /Users/Apple/Projects/nears-NEARS-3101-scripts-hygiene (source: --root)
+case 3: NEARS_ROOT env var
+  [qa-reconnect] root: /Users/Apple/Projects/nears-NEARS-3101-scripts-hygiene (source: NEARS_ROOT)
+case 4: script_dir under the PRIMARY tree (control — proves no worktree-hardcode either)
+  [run_apps] root: /Users/Apple/Projects/nears (source: git-toplevel)
+  MATCH: resolved to PRIMARY tree
+
+== AC3: stop_apps.sh phpMyAdmin kill_by_pattern — resolved pattern string ==
+resolved ROOT_DIR = /Users/Apple/Projects/nears-NEARS-3101-scripts-hygiene
+phpMyAdmin kill pattern would be: php -S 127.0.0.1:[0-9]+ -t /Users/Apple/Projects/nears-NEARS-3101-scripts-hygiene/phpmyadmin
+(stop_apps.sh:99 literal source line: kill_by_pattern "php -S 127.0.0.1:[0-9]+ -t $ROOT_DIR/phpmyadmin" "phpMyAdmin")
+
+== AC3: literal-path grep across all 5 touched scripts (expect none) ==
+run_apps.sh: (no literal path found)
+stop_apps.sh: (no literal path found)
+qa-reconnect.sh: (no literal path found)
+download_product_images.sh: (no literal path found)
+monitor/sync-board.sh: (no literal path found)
+
+== AC3: bash scripts/root-resolution.test.sh (real run, this session) ==
+-- result: PASS
+-- validity: 50 assertion(s) made across 16 case(s); 0 failed
+
+== AC3: independent refusal-path check (QA's own, outside the fixture) ==
+Copied the real scripts/lib/root_resolve.sh + scripts/run_apps.sh into a tmp dir
+OUTSIDE any git repo (verified via `git -C . rev-parse --show-toplevel` -> "fatal: not a
+git repository", exit 128). Ran the real run_apps.sh with NEARS_ROOT unset and no --root:
+
+[run_apps] REFUSING: cannot resolve the repo root — refusing to guess (NEARS-3101/NEARS-1531).
+         tried: --root <dir>                                  (not given)
+         tried: $NEARS_ROOT                                   (not set)
+         tried: git -C '<tmpdir>/scripts' rev-parse --show-toplevel (not a git work tree)
+         -> re-run with --root <repo-root>, or NEARS_ROOT=<repo-root>.
+run_apps.sh exit: 2
+
+Confirms: non-zero exit (2), a message naming every override tried, never a silent
+fallback to a hardcoded path. Script exits at this refusal point, before any
+NDK/emulator/Terminal code runs — safe to execute for real.
