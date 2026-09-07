@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2921
 
-**QA PASS — chat order_id scoped to sender, IDOR closed; live HTTP demo 5/5 AC + guest-order qa_point**
+**Regression-candidate confirmed live: vendor message/send 500 on receiver_type=admin (pre-existing, unrelated to NEARS-2921 diff)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -14,6 +14,8 @@
 - [`ac5b-message-search-list.json`](ac5b-message-search-list.json)
 - [`phpunit-backstop.log`](phpunit-backstop.log)
 - [`qapoint-guest-order-id-collision.json`](qapoint-guest-order-id-collision.json)
+- [`regression-vendor-message-send-admin-500-response.json`](regression-vendor-message-send-admin-500-response.json)
+- [`regression-vendor-message-send-admin-500.log`](regression-vendor-message-send-admin-500.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-2921/` · public-repo scrub policy (no live secrets; verified clean).*
