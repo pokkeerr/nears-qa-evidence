@@ -1,0 +1,38 @@
+AC2 evidence — NEARS-3327 — scandir() absolute-path fix verified from a non-project-root CWD
+
+Method: invoked the ACTUAL fixed AddonController::getDirectories() method (post-fix, base_path()
+applied) from a raw PHP process whose CWD was deliberately set to /private/tmp (not the project
+root), bootstrapping the real worktree's Laravel container. Paired with a negative control: the
+same relative scandir('Modules') call WITHOUT the fix's base_path() wrapping, from the identical
+CWD.
+
+--- Control (pre-fix relative-path behavior, same CWD) ---
+$ cd /private/tmp && php -r '
+    chdir("/private/tmp");
+    echo "cwd: " . getcwd() . "\n";
+    $items = @scandir("Modules");
+    if ($items === false) { echo "scandir FAILED (relative path, non-project-root CWD)\n"; }
+    else { print_r($items); }
+  '
+cwd: /private/tmp
+scandir FAILED (relative path, non-project-root CWD)
+
+--- Post-fix (actual AddonController::getDirectories('Modules'), same CWD) ---
+$ cd /private/tmp && php /path/to/nears3327-cwd-check.php
+  (bootstraps /Users/Apple/Projects/nears-NEARS-3327-system-addons-500/Admin, instantiates
+   App\Http\Controllers\Admin\System\AddonController, calls ->getDirectories('Modules'))
+
+CWD at call time: /private/tmp
+getDirectories('Modules') result:
+Array
+(
+    [0] => AI
+    [1] => TaxModule
+)
+
+Interpretation: with CWD != project root, the pre-fix relative scandir('Modules') call fails
+outright (control, reproduces the reported defect). The actual post-fix getDirectories(), which
+wraps $path in base_path($path) before scandir(), correctly resolves the absolute path from the
+identical non-project-root CWD and returns the real installed module/addon directories, including
+AI (the expected installed addon directory named in the AC) and TaxModule — confirming the
+absolute-path fix holds independent of PHP's working directory.
