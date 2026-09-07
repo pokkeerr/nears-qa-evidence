@@ -1,0 +1,65 @@
+NEARS-3239 — VendorController@view tab-scope safelist — live QA HTTP transcript
+Server under test: this worktree's own `php artisan serve` (port 8130), DB = shared local
+dev `multi_food_db` (read-only — no rows written; auth established by minting an in-process
+Laravel session for an EXISTING admin row, matching login_remember_token so AdminMiddleware
+accepts it, with zero writes to the admins/admin_roles tables).
+
+Actors (pre-existing seeded fixtures, found already present in the local dev DB):
+  - admin id=1  admin@admin.com        role_id=1 (Master admin / super admin)
+  - admin id=4  qa.role.c@nears-qa.test role_id=4, AdminRole modules=["withdraw_list"], zone_id=2
+
+Store used: id=10 "Eorange", zone_id=2 (store id=1 is a DIFFERENT zone and is filtered out of
+this zoned admin's ZoneScope — a pre-existing, unrelated zoning behavior, not a defect of this
+ticket; switched to a same-zone store once discovered).
+
+== AC1 — withdraw_list-only denied on a non-disbursement tab ==
+GET /admin/transactions/store/view/10/conversations  (session: qa.role.c, withdraw_list only)
+  -> HTTP 302 (Toastr deny + back(), not the conversations view)
+Followed redirect target body contains:
+  `<script type="text/javascript">toastr.error('Access denied','');</script>`
+  and no store-conversation content — generic deny toast only, no tab content leaked.
+
+== AC2 — withdraw_list-only reaches null tab and disbursements tab ==
+GET /admin/transactions/store/view/10                (no tab)
+  -> HTTP 200, <title>Eorange</title>  (admin-views.vendor.view.index)
+GET /admin/transactions/store/view/10/disbursements
+  -> HTTP 200, body contains "Disbursement"/"Withdraw" (admin-views.vendor.view.disbursement)
+
+== AC3 mechanism — sibling admin.store.view route unaffected (zero code touched) ==
+GET /admin/store/view/10/business_plan                (session: super admin, id=1, role_id=1)
+  -> HTTP 200, body contains "Business Plan"/"Subscription"/"Package"
+     (admin-views.vendor.view.subscription) — super admin's role_id==1 bypass in
+     Helpers::module_permission_check is exercised live and reaches every tab unchanged.
+GET /admin/store/view/10/business_plan                (session: qa.role.c, withdraw_list only)
+  -> HTTP 302 (module:store route-level gate still enforced — this diff touched zero code on
+     this route; the pre-existing gate for a non-store-holding role is intact).
+
+== Additional QA point — status-filter unaffected by this fix ==
+POST /admin/transactions/store/status-filter  withdraw_status_filter=approved
+  (session: qa.role.c, withdraw_list only, same module.any:account,withdraw_list route gate)
+  -> HTTP 200, body: "approved"  (unchanged session-filter echo, VendorController@view not
+     involved in this endpoint at all)
+
+== Regression spot checks (unrelated admin pages, super admin session) ==
+GET /admin                    -> HTTP 200 <title>Nears</title> (dashboard)
+GET /admin/store/list         -> HTTP 200 <title>Store List</title>
+GET /admin/customer/list      -> HTTP 200 <title>Customer List</title>
+
+== Logs-first check ==
+`Admin/storage/logs/laravel.log` — no new [FAIL]/[ERR]/exception entries during this live
+session's requests (grepped the request time window); the only recent entries are from this
+worktree's OWN `vendor/bin/phpunit --filter "Nears3239VendorViewTabScopeTest|AdminModuleGateTest"`
+run (43/43 green, independently re-run by QA, not just relayed from the engineer).
+
+== Data DoR gap (documented, not silently skipped) ==
+No pre-existing local-DB fixture holds account-only, store-only, withdraw_list+store,
+withdraw_list+report, or withdraw_list+customer_management. Per the standing read-only-DB hard
+rule (no raw DML / ad-hoc AdminRole rows without an approved, versioned seeder), QA did not
+create these. Those five scenarios are covered by
+`Admin/tests/Feature/Security/Nears3239VendorViewTabScopeTest.php`
+(test_account_only_is_denied_on_conversations_tab,
+test_account_only_reaches_{null,disbursements}_tab,
+test_withdraw_list_plus_{store,report,customer_management}_role_reaches_conversations_tab,
+test_store_only_role_reaches_business_plan_tab_via_sibling_route) — all passing, independently
+re-run above, and asserting via Laravel's TestResponse (full HTTP-kernel + real
+routing/middleware/controller dispatch), not a bare unit test.
