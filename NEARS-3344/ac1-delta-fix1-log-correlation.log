@@ -1,0 +1,79 @@
+NEARS-3344 QA — delta re-QA (fix-cycle 1), AC1 log-correlation half
+=====================================================================
+Prior FAIL (cycle 0): null-user guard branch (CustomerAuthController.php
+~1429-1440) returned 401/auth-001 correctly but emitted ZERO log lines, so
+its X-Request-Id never showed up in laravel.log. Filed as task_bugs[0].
+
+Fix (cycle 1): added
+  \Log::error('[FAIL] customerLoginFromDrivemond: unmapped error_code on new
+  phone, no user resolved', ['endpoint' => 'api/v1/auth/external-login',
+  'status' => 401, 'code' => 'auth-001'])
+to that same guard branch (logging-only, no response/status/body change),
+matching the shape of sibling branches in the same method.
+
+--- Harness (reused from cycle 0) ---
+Worktree: /Users/Apple/Projects/nears-NEARS-3344-drivemond-null-user-guard
+Branch:   fix/NEARS-3344-drivemond-null-user-guard
+HEAD:     4bc6d8bc868744c588c80343bc624a97d7119d3f
+
+Backend booted from THIS worktree, private isolated test DB:
+  DB_DATABASE=multi_food_db_test_nears_nears_3344_drivemond_null_user_gua \
+  php artisan serve --host=127.0.0.1 --port=8123
+  (migration_signature matched the multi_food_db_test twin -> DB is current)
+
+Fake Drivemond responder (local stand-in, not the real external service):
+  DRIVEMOND_SCENARIO=unmapped php -S 127.0.0.1:8199 fake_drivemond.php
+  -> {"status":false,"data":{"error_code":"some_other_error"}}
+
+ExternalConfiguration rows inserted into the disposable test DB only
+(activation_mode=1, drivemond_base_url=http://127.0.0.1:8199,
+drivemond_token/system_self_token = fake values) — never the shared
+multi_food_db.
+
+--- Request 1 (fresh phone +9779998887788, never used before this run) ---
+RID: f00dcafe-9944-4aaa-9bbb-0123456789ab
+  curl -is -X POST http://127.0.0.1:8123/api/v1/auth/external-login \
+    -H "X-Request-Id: f00dcafe-9944-4aaa-9bbb-0123456789ab" \
+    -d '{"phone":"+9779998887788","token":"delta-requq-cycle1"}'
+  -> HTTP/1.1 401 Unauthorized
+  -> X-Request-Id echoed back correctly.
+  -> {"errors":[{"code":"auth-001","message":"Unauthorized"}]}   (unchanged body/status vs cycle 0)
+
+grep -F "f00dcafe-9944-4aaa-9bbb-0123456789ab" storage/logs/laravel.log:
+[2026-09-07 20:43:37] production.ERROR: [FAIL] customerLoginFromDrivemond: unmapped error_code on new phone, no user resolved {"trace_id":"255eae6e3ac55138bf104a02886b81c0","correlation_id":"f00dcafe-9944-4aaa-9bbb-0123456789ab","endpoint":"api/v1/auth/external-login","status":401,"code":"auth-001"}
+
+grep -F "f00dcafe-9944-4aaa-9bbb-0123456789ab" storage/logs/laravel-structured.log:
+{"tag":"[FAIL]","timestamp":"2026-09-07T20:43:37.131865+04:00","correlation_id":"f00dcafe-9944-4aaa-9bbb-0123456789ab","level":"error","message":"[FAIL] customerLoginFromDrivemond: unmapped error_code on new phone, no user resolved","context":{"trace_id":"255eae6e3ac55138bf104a02886b81c0","endpoint":"api/v1/auth/external-login","status":401,"code":"auth-001"}}
+
+RESULT: the new [FAIL] log line IS present in both laravel.log and
+laravel-structured.log, correctly correlated to the request's X-Request-Id.
+The log-correlation gap from cycle 0 is closed.
+
+--- Request 2 (second fresh phone, different RID, repeat check) ---
+RID: deadf00d-1111-4222-8333-abcdefabcdef
+  -> HTTP/1.1 401 Unauthorized, same auth-001 body.
+grep -F "deadf00d-1111-4222-8333-abcdefabcdef" storage/logs/laravel.log:
+[2026-09-07 20:43:46] production.ERROR: [FAIL] customerLoginFromDrivemond: unmapped error_code on new phone, no user resolved {"trace_id":"d76fbc4fb1fcadc5618088eb05c9b538","correlation_id":"deadf00d-1111-4222-8333-abcdefabcdef","endpoint":"api/v1/auth/external-login","status":401,"code":"auth-001"}
+RESULT: correlated again, consistent.
+
+--- Crash-line absence (re-confirmed, unchanged from cycle 0) ---
+grep -F 'Attempt to read property "id" on null' storage/logs/laravel.log storage/logs/laravel-structured.log
+-> 0 matches across both requests. Crash still gone.
+
+--- PII/secrets spot-check on the new log line ---
+Logged context fields: trace_id, correlation_id, endpoint, status, code.
+No phone number, no token, no request body, no response body present in
+either log line above. Matches the logging-contract PII allow-list.
+
+--- Automated backstop (optional sanity per delta scope, cheap) ---
+DB_DATABASE=multi_food_db_test_nears_nears_3344_drivemond_null_user_gua \
+  vendor/bin/phpunit --filter DrivemondNewPhoneNullUserGuardTest
+-> OK (2 tests, 10 assertions)
+
+--- Teardown ---
+Worktree artisan serve (port 8123) and fake Drivemond responder (port 8199)
+both killed after evidence capture. No leftover processes. Private test DB
+left in place (disposable, matches multi_food_db_test twin signature).
+
+VERDICT: AC1 PASS (log-correlation half re-verified fixed; 401/auth-001 +
+X-Request-Id echo + crash-absence all reconfirmed unchanged).
