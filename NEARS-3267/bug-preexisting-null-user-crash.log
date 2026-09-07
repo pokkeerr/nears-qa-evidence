@@ -1,0 +1,24 @@
+NON-BLOCKING regression_bugs finding (pre-existing, NOT introduced by NEARS-3267, out of this ticket's scope):
+
+customerLoginFromDrivemond(): on the brand-new-phone branch, when the Drivemond get-data call
+is successful but returns {"status": false, ...} WITHOUT a mapped error_code (i.e. not 402), the
+code falls through with $user still null (no early return), then unconditionally calls
+Auth::loginUsingId($user->id) further down -- $user->id on a null $user throws an uncaught
+ErrorException ("Attempt to read property \"id\" on null"), producing a masked HTTP 500 instead
+of a graceful 401/403.
+
+This pattern already existed identically in the pre-NEARS-3267 code (see git diff: the old
+!$user branch had the same "successful, status false, error_code != 402" fallthrough with no
+early return) -- NEARS-3267's own diff comment even flags it explicitly: "else: unmapped
+error_code on a brand-new phone -- pre-existing fallthrough to the Auth::loginUsingId($user->id)
+401 path below, unchanged by NEARS-3267." So this is a real, reproducible, PRE-EXISTING latent
+crash, not a regression introduced by this fix. Filed as a followup for a future ticket, not
+blocking NEARS-3267's verdict.
+
+Repro (against the local throwaway server/mock set up for this QA pass):
+curl -X POST http://127.0.0.1:8267/api/v1/auth/external-login --data-urlencode "phone=+101600000001" --data-urlencode "token=unverified-tok"
+(with a phone that does NOT match any user AND mock Drivemond response {"status": false, "data": []})
+-> HTTP 500 {"message":"Something went wrong"}
+
+Backend log:
+[2026-09-07 11:29:30] production.ERROR: [FAIL] Attempt to read property "id" on null {"trace_id":"c1c866327f764bcfb32839c1a31e8f22","correlation_id":"d3c20d87-c3a3-4005-8ac0-5fbe2bb39159","type":"ErrorException","endpoint":"/api/v1/auth/external-login"}

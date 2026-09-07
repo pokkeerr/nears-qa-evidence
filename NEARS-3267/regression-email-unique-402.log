@@ -1,0 +1,7 @@
+Regression sweep: new-phone signup email-uniqueness rejection (email_unique_402) still fires, unchanged.
+Mock Drivemond response confirms a brand-new phone but reuses an EXISTING user's email (james.wilson@demo.com).
+
+curl -X POST http://127.0.0.1:8267/api/v1/auth/external-login --data-urlencode "phone=+19995550099" --data-urlencode "token=dup-email-token"
+
+Response: HTTP 403 {"errors":[{"code":"email_unique_402","message":"Email already exists, Please update mart email and switch Nears"}]}
+Users table row count for phone=+19995550099: 0 before and 0 after (no user created).

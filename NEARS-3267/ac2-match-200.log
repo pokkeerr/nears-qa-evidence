@@ -1,0 +1,10 @@
+AC2 — existing phone + Drivemond-confirmed MATCHING phone -> expect 200 + token, handshake preserved.
+Mock Drivemond response: {"status":true,"data":{"phone":"+101600000003"}}
+
+curl -X POST http://127.0.0.1:8267/api/v1/auth/external-login --data-urlencode "phone=+101600000003" --data-urlencode "token=confirmed-token"
+
+Response: HTTP 200
+{"token":"<jwt, truncated for evidence file>...","is_phone_verified":1}
+Response keys: ["token","is_phone_verified"] -- byte-identical to pre-fix success shape.
+
+oauth_access_tokens count for user_id=3: before=1 after=2 (exactly one new row minted on legitimate confirmed login)

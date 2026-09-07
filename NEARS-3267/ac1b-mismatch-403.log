@@ -1,0 +1,9 @@
+AC1b — existing phone + Drivemond confirms a DIFFERENT phone (the actual bypass this ticket closes) -> expect 401/403, zero new tokens.
+Mock Drivemond response: {"status":true,"data":{"phone":"+999999999999"}}
+
+curl -X POST http://127.0.0.1:8267/api/v1/auth/external-login --data-urlencode "phone=+101600000002" --data-urlencode "token=someone-elses-token"
+
+Response: HTTP 403
+{"errors":[{"code":"drivemond_identity_mismatch_403","message":"Drivemond identity verification failed"}]}
+
+oauth_access_tokens count for user_id=2: before=4 after=4 (zero new rows) -- pre-fix this scenario would have minted a real token.

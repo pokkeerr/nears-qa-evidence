@@ -1,0 +1,14 @@
+AC1a — existing phone + Drivemond does NOT confirm (status:false) -> expect 401/403, zero new oauth_access_tokens rows.
+Live server: php artisan serve (127.0.0.1:8267) against private disposable test DB multi_food_db_test_nears_nears_3267_drivemond_existing_phon.
+Mock Drivemond (127.0.0.1:8268) response: {"status":false,"data":[]}
+
+curl -X POST http://127.0.0.1:8267/api/v1/auth/external-login --data-urlencode "phone=+101600000001" --data-urlencode "token=unverified-tok"
+
+Response: HTTP 403
+{"errors":[{"code":"drivemond_identity_mismatch_403","message":"Drivemond identity verification failed"}]}
+
+oauth_access_tokens count for user_id=1: before=32 after=32 (zero new rows)
+
+Correlated backend log line:
+[2026-09-07 11:32:01] production.ERROR: [FAIL] customerLoginFromDrivemond: existing-phone identity verification failed {"trace_id":"bfabc2331d6ad54a198ad5d6f5d41f74","correlation_id":"11112222-3333-4444-8555-666677778888","endpoint":"api/v1/auth/external-login","status":403,"code":"drivemond_identity_mismatch_403"}
+X-Request-Id response header echoed the same correlation id (11112222-3333-4444-8555-666677778888) sent on the request, confirming the correlation join.
