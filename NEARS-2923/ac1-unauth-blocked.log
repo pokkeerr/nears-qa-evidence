@@ -1,0 +1,22 @@
+AC1: Original audit exploit repro — unauthenticated POST /subscribeToTopic
+(public XSRF cookie only, no login) — must now 401.
+
+Request:
+  GET http://127.0.0.1:8001/            (obtain public XSRF cookie, no login)
+  POST http://127.0.0.1:8001/subscribeToTopic
+    -H "X-XSRF-TOKEN: <decoded XSRF cookie>"
+    -d "token=arbitrary-attacker-fcm-token"
+    -d "topic=store_panel_1_message"
+
+Response:
+  HTTP/1.1 401 Unauthorized
+  X-RateLimit-Limit: 20
+  X-RateLimit-Remaining: 19
+  {"message":"Unauthorized"}
+
+Result: BLOCKED as expected. No 200. No Firebase side-effect (auth check
+runs before the messaging call). throttle:firebase-topic (20/min/IP)
+confirmed still active via X-RateLimit-* headers on the 401 response.
+Grepped storage/logs/laravel.log for this request window: zero new lines
+written (no PII/token logged, since the request never reaches the
+Firebase-calling code path).

@@ -1,0 +1,35 @@
+AC2: Authenticated vendor (ts@ts.com, vendor_id=26, store_id=35) posts a
+DIFFERENT store's topic — must be ignored, server derives own topic.
+
+Login: POST /login_submit (role=vendor, real session/captcha flow) -> 302
+  to /vendor-panel (authenticated session cookie established).
+
+Request:
+  POST http://127.0.0.1:8001/subscribeToTopic
+    -H "X-XSRF-TOKEN: <vendor session XSRF>"
+    -d "token=vendor-live-test-token"
+    -d "topic=store_panel_999_message"     <- someone else's store, attacker-supplied
+
+Response:
+  HTTP/1.1 200 OK
+  {"message":"Successfully subscribed to topic"}
+
+Live network call to the REAL configured Firebase project (nears-1d39b)
+succeeded (200), proving the code path executed through
+Helpers::get_store_id() without error using the vendor's own session
+identity (DB confirms vendor 26 -> store 35 only).
+
+Exact topic-string proof (live end-to-end cannot observe the outbound
+Firebase request body without modifying product code, which QA may not
+do): the mocked automated backstop test
+(tests/Feature/Security/Nears2923SubscribeToTopicAuthTest.php::
+test_authenticated_vendor_gets_own_store_topic_not_the_posted_one)
+asserts the exact string sent to messaging->subscribeToTopic() is
+'store_panel_'.$ownStoreId.'_message' while the posted 'topic' field is
+'store_panel_999_message' — proving the posted value is discarded.
+Code path read: FirebaseController::subscribeToTopic() derives $topic
+purely from auth()->check() + Helpers::get_store_id() (session-only,
+zero request input) for any non-admin authenticated caller. Combining
+the live 200 (code path ran clean) with the code read + the mocked
+unit assertion is the ticket-sanctioned approach when live Firebase
+topic-string interception isn't practical without code changes.

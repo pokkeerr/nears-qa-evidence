@@ -1,0 +1,23 @@
+AC3: Authenticated admin (admin@admin.com) posts an arbitrary/attacker
+topic — must always resolve to admin_message.
+
+Login: POST /login_submit (role=admin, real session/captcha flow) -> 302
+  to /admin (authenticated session cookie established).
+
+Request:
+  POST http://127.0.0.1:8001/subscribeToTopic
+    -H "X-XSRF-TOKEN: <admin session XSRF>"
+    -d "token=admin-live-test-token"
+    -d "topic=store_panel_999_message"
+
+Response:
+  HTTP/1.1 200 OK
+  {"message":"Successfully subscribed to topic"}
+
+Code (unconditional, no request-input dependence):
+  $topic = auth('admin')->check() ? 'admin_message' : 'store_panel_'...
+Combined with the mocked backstop test
+(test_authenticated_admin_always_gets_admin_message_topic, posts
+topic=store_panel_{7}_message, asserts subscribeToTopic() called with
+literal 'admin_message') — full proof the posted value never matters
+for an admin session.

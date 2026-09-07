@@ -1,0 +1,26 @@
+AC4: Regression — the real admin-panel and vendor/store-panel JS
+callers (layouts/admin/app.blade.php ~L635-646,
+layouts/vendor/app.blade.php ~L433-446) still succeed after the guard.
+
+Both requests replicated the EXACT client shape those blade files use:
+  fetch(url('/')+'/subscribeToTopic', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json', 'X-CSRF-TOKEN': <csrf_token()>},
+    body: JSON.stringify({token, topic})
+  })
+
+Vendor panel (GET /vendor-panel confirmed authenticated dashboard render,
+found the live subscribeToTopic fetch() call embedded in the page,
+extracted its own csrf-token meta value):
+  POST /subscribeToTopic  X-CSRF-TOKEN: <vendor csrf-token meta>
+    JSON body {"token":"vendor-js-style-token","topic":"store_panel_35_message"}
+  -> HTTP/1.1 200 OK  {"message":"Successfully subscribed to topic"}
+
+Admin panel (GET /admin confirmed authenticated dashboard render, found
+the live subscribeToTopic fetch() call embedded in the page):
+  POST /subscribeToTopic  X-CSRF-TOKEN: <admin csrf-token meta>
+    JSON body {"token":"admin-js-style-token","topic":"admin_message"}
+  -> HTTP/1.1 200 OK  {"message":"Successfully subscribed to topic"}
+
+Result: zero regression for real authenticated callers — both existing
+JS integrations still get a clean 200 after the new auth guard.
