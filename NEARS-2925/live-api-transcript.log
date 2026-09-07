@@ -1,0 +1,90 @@
+NEARS-2925 QA — live API transcript against dedicated worktree backend (php artisan serve --port=8001)
+HEAD: aebd74b04, base: c70376608de9bad77b8c4f3830b83afc34de0596
+DB: multi_food_db (shared local dev DB), offline_payment_status=1 (enabled)
+Auth: customer@nears.com (user_id=6), Passport token via /api/v1/auth/login (login_type=manual, field_type=email)
+Endpoint: PUT /api/v1/customer/order/offline-payment
+
+=== AC1: own DELIVERED/paid order (id=1) ===
+Request:  {"order_id":1,"method_id":4}  Auth: user 6
+Response: 403 {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+DB after: order 1 -> order_status=delivered, payment_status=paid, payment_method=cash_on_delivery (UNCHANGED)
+offline_payments row for order_id=1: none created
+Verdict: PASS
+
+=== AC2: own CANCELED order (id=144) ===
+Request:  {"order_id":144,"method_id":4}  Auth: user 6
+Response: 403 {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+DB after: order 144 -> order_status=canceled, payment_method=cash_on_delivery (UNCHANGED)
+offline_payments row for order_id=144: none created
+Verdict: PASS
+
+=== AC3 (positive control): own PENDING/unpaid order (id=91150) ===
+Request:  {"order_id":91150,"method_id":4}  Auth: user 6
+Response: 200 {"payment":"success"}
+DB after: order 91150 -> order_status=pending (unchanged, no-op), payment_method=offline_payment (SET)
+offline_payments row id=48 created for order_id=91150
+Verdict: PASS
+
+=== AC4 (positive control): own FAILED order ===
+No live 'failed'-status order existed in the seeded local DB (read-only DB — QA does not
+fabricate rows via raw DML). Verified instead via the automated regression suite, which
+exercises the identical code branch (in_array($order->order_status, ['pending','failed'])
+treats 'failed' identically to 'pending'):
+  test_own_failed_order_can_submit_offline_payment -> PASS (200, payment_method=offline_payment,
+  OfflinePayments row created) -- see vendor/bin/phpunit run below.
+Verdict: PASS (automated, code-path-identical to live AC3)
+
+=== AC5: own order pending but payment_status already 'paid' (Gate B) ===
+No live order in this state existed in the seeded local DB. Verified via automated test:
+  test_own_pending_but_already_paid_order_cannot_be_repended -> PASS (403, code=order,
+  order_status/payment_status unchanged, no OfflinePayments row).
+Verdict: PASS (automated)
+
+=== AC6: FOREIGN order_id (belongs to user 1), authenticated as user 6 ===
+Request:  {"order_id":91110,"method_id":4}  Auth: user 6
+Response: 404 (HTML error page -- NOT the 403 JSON gate; pre-existing NEARS-370 IDOR guard,
+untouched by this fix, correctly short-circuits at firstOrFail() before the new gate is reached)
+DB after: order 91110 (owner user 1) -> order_status=pending, payment_status=unpaid (UNCHANGED)
+Verdict: PASS -- 404 vs 403 distinction confirmed
+
+=== AC7a: guest branch, gate applies (guest_id=106, order 156, status=confirmed) ===
+Request:  {"order_id":156,"guest_id":106,"method_id":4}  No Authorization header (guest branch,
+legacy null-token guest, grace mode per GuestTokenGuard)
+Response: 403 {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+DB after: order 156 -> order_status=confirmed, payment_method=cash_on_delivery (UNCHANGED)
+Verdict: PASS -- confirms the gate applies identically on the guest branch, not just the auth:api branch
+
+=== AC7b: guest branch positive control (guest_id=106, order 157, status=pending/unpaid) ===
+Request:  {"order_id":157,"guest_id":106,"method_id":4}
+Response: 200 {"payment":"success"}
+DB after: order 157 -> order_status=pending, payment_method=offline_payment (SET)
+offline_payments row id=49 created for order_id=157
+Verdict: PASS
+
+=== admin_message/new_order push does not fire on rejected paths ===
+Static code check: Helpers::send_push_notif_to_topic(...) call sits inside the try{} block
+AFTER the write to $order->save(), which is itself after the 403 gate's early return -- the
+push call is structurally unreachable on any 403 response (confirmed by reading
+OrderController@offline_payment, lines ~828-880). No push/notification log lines were emitted
+during any of the 403 calls above (grepped storage/logs/laravel.log for send_push_notif /
+new_order around the test window -- none found).
+Verdict: PASS (confirmed by code position + absence of log activity)
+
+=== Automated backstop ===
+$ vendor/bin/phpunit --configuration phpunit.xml --filter 'NEARS2925OfflinePaymentStatusGateTest|OfflinePaymentGuestIdorTest' tests/Feature/Security
+OK (10 tests, 51 assertions)
+
+$ vendor/bin/phpunit --configuration phpunit.xml tests/Feature/Security
+Tests: 620, Assertions: 3535, Failures: 1
+1 failure: RegistrationNonceTest::test_registration_nonce_survives_the_full_register_save_chain
+  -- pre-existing, unrelated, already tracked as NEARS-3308. Matches the engineer's reported
+  619/620 (excl. this pre-existing failure) exactly.
+
+=== Regression / blast-radius check ===
+grep of UserApp/lib/features/ confirms OfflinePaymentScreen is navigated to ONLY from
+checkout_controller.dart (2 call sites, both post-place-order / retry-payment flows that
+operate on freshly-placed pending/failed orders) -- no other caller of the offline-payment
+endpoint exists in the Flutter tree. This is a backend-only fix (no Flutter files in the diff);
+the legitimate UI flow is structurally confined to the exact positive-control path already
+demonstrated live in AC3/AC7b, so no Flutter app boot was performed -- stated explicitly per
+QA scope guidance. No other regression surface identified.
