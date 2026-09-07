@@ -1,0 +1,21 @@
+NEARS-2965 QA — live demonstration against locally-booted Admin backend
+Server: `php artisan serve --host=127.0.0.1 --port=8953` run FROM
+/Users/Apple/Projects/nears-NEARS-2965-dd-debug-routes/Admin (confirmed via
+`lsof -p <pid> | awk '$4=="cwd"'` = .../nears-NEARS-2965-dd-debug-routes/Admin/public,
+i.e. this worktree's own code, not a stray shared-host server).
+
+=== GET /test ===
+$ curl -s -o /dev/null -w "HTTP_STATUS:%{http_code}\n" http://127.0.0.1:8953/test
+HTTP_STATUS:404
+Body: app's standard "Error 404 | Nears" page (verified head -c 300) — NOT the
+`dd('Hello tester')` var-dump the route used to emit.
+
+=== GET /module-test ===
+$ curl -s -o /dev/null -w "HTTP_STATUS:%{http_code}\n" http://127.0.0.1:8953/module-test
+HTTP_STATUS:404
+Body: app's standard "Error 404 | Nears" page.
+
+laravel.log grep (scoped to these two paths) — no matching lines, i.e. clean 404s,
+not a masked 500:
+$ grep -F "/test" Admin/storage/logs/laravel.log | tail -10   -> (empty)
+$ grep -F "module-test" Admin/storage/logs/laravel.log | tail -10  -> (empty)

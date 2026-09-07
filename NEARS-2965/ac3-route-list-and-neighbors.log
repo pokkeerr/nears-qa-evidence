@@ -1,0 +1,33 @@
+NEARS-2965 QA — AC3: route:list absence + neighbor spot-check
+
+Exact-URI match for the two deleted routes against `php artisan route:list --json`:
+$ php artisan route:list --json | python3 -c "... r['uri'] in ('test','module-test') ..."
+exact-uri matches: []
+(zero hits — routes fully removed from the route table, not just returning 404 at
+request time; substring grep on 'test' alone would have false-matched
+admin/business-settings/third-party/test-mail, so this used exact URI equality.)
+
+Neighbor spot-check (paytabs group just above the deleted block, vendor-registration
+group just below it):
+
+$ php artisan route:list --json | ... uri in ('paytabs/pay','vendor/apply') or name in ('paytabs.pay','restaurant.create')
+GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS  payment/paytabs/pay  paytabs.pay      App\Http\Controllers\PaytabsController@payment
+GET|HEAD                                 vendor/apply         restaurant.create App\Http\Controllers\VendorController@create
+POST                                     vendor/apply         restaurant.store  App\Http\Controllers\VendorController@store
+-> both neighbors still registered correctly, same controller/action as before.
+
+Live GET spot-check:
+$ curl -s -o /dev/null -w "HTTP_STATUS:%{http_code}\n" http://127.0.0.1:8953/payment/paytabs/pay
+HTTP_STATUS:404
+$ curl -s -o /dev/null -w "HTTP_STATUS:%{http_code}\n" http://127.0.0.1:8953/vendor/apply
+HTTP_STATUS:200
+
+Investigated the paytabs 404: it is NOT a regression from this ticket. The whole
+`payment/*` route group (routes/web.php:87) is wrapped in
+`Route::group(['prefix' => 'payment', 'middleware' => 'gateway.active'], ...)`.
+app/Http/Middleware/GatewayActiveMiddleware.php intentionally 404s any payment-gateway
+route whose addon_settings row is not is_active=1 (pre-existing, unrelated hardening —
+its own docblock cites the attack-surface rationale). Paytabs is simply not the
+active gateway in this local seed DB. The route:list JSON already proves the route
+itself is registered with the correct controller/action — "resolves normally" is
+satisfied at the routing layer; the middleware gate is out of scope for this ticket.
