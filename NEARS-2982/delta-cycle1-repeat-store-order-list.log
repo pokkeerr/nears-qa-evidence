@@ -1,0 +1,40 @@
+NEARS-2982 delta re-QA (cycle 1) — AC1/AC3 targeted re-verification
+Root cause: NEARS-3387 (shared Eloquent Store instance mutated by store_data_formatting()'s
+unset() cleanup, defeating the N+1 fix for pages with >1 order from the SAME store).
+Fix: 534e53918 (clone Store before mutating + setRelation() instead of array-offset-set).
+
+Independent verification method: standalone tinker harness (not the engineer's own test
+file), 3 orders sharing 1 store, real HTTP dispatch via app()->handle(), wrapped in
+DB::beginTransaction()/rollBack() so nothing is persisted to the shared dev DB.
+
+=== customer/order/list (3 orders, 1 shared store) ===
+BEFORE (pre-fix code, commit 5cc3fc64d — swapped in temporarily, restored after):
+  STATUS=200 TOTAL_QUERIES=55 STORE_CONFIG=3 MIN=2 MAX=2 PER_ROW_FALLBACK=6
+  order_count=3, all 3 orders: store.min=10 store.max=25 (values correct but N+1'd)
+
+AFTER (current fixed code, HEAD f48de427f):
+  STATUS=200 TOTAL_QUERIES=43 STORE_CONFIG=1 MIN=0 MAX=0 PER_ROW_FALLBACK=0
+  order_count=3, all 3 orders: store.min=10 store.max=25 (correct AND flat/batched)
+
+=== customer/order/running-orders (3 orders, 1 shared store, pending status) ===
+BEFORE (pre-fix code, commit 5cc3fc64d):
+  STATUS=200 TOTAL_QUERIES=54 STORE_CONFIG=3 MIN=2 MAX=2 PER_ROW_FALLBACK=6
+  order_count=3, all 3 orders: store.min=10 store.max=25
+
+AFTER (current fixed code, HEAD f48de427f):
+  STATUS=200 TOTAL_QUERIES=42 STORE_CONFIG=1 MIN=0 MAX=0 PER_ROW_FALLBACK=0
+  order_count=3, all 3 orders: store.min=10 store.max=25
+
+Falsifiability proof (RED->GREEN) via vendor/bin/phpunit --filter
+StoreDataFormattingNPlusOneTest (temporarily reverting Helpers.php/OrderController.php/
+VendorController.php/Store.php to pre-fix commit 5cc3fc64d, keeping the new tests):
+  test_order_list_repeat_store_on_page_does_not_fall_back_per_row: FAIL
+    "no order on the page may fall back to a per-row items.store_id equality query
+     Failed asserting that 6 is identical to 0."
+  test_running_orders_repeat_store_on_page_does_not_fall_back_per_row: FAIL (same shape)
+Restored fixed files -> both tests GREEN again; full suite 6/6, 70 assertions, OK.
+Working tree confirmed clean (git status --short) before and after the swap.
+
+Conclusion: AC1 and AC3 both hold for order/list and running-orders under the exact
+repeat-store scenario that caused the cycle-0 FAIL. Every order on the page (not just
+the first) now gets correct, batched store data.

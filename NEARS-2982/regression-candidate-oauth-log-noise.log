@@ -1,0 +1,20 @@
+Pre-existing, unrelated regression-candidate observed during logs-first check of
+customer/order/list and customer/order/running-orders (both endpoints under delta re-QA).
+
+Admin/storage/logs/laravel.log carries a testing.ERROR [FAIL] line on every phpunit
+Feature-test hit to these two endpoints:
+  [2026-09-07 23:39:49] testing.ERROR: [FAIL] The resource owner or authorization server
+  denied the request. {"type":"League\\OAuth2\\Server\\Exception\\OAuthServerException",
+  "endpoint":"/api/v1/customer/order/list"}
+(same shape for /api/v1/customer/order/running-orders)
+
+Earliest occurrence 2026-09-07 23:39:49, which predates commit 534e53918 (cycle-1 fix,
+2026-09-08 01:41:54) and even 5cc3fc64d (the original cycle-0 build checkpoint) --
+this is present across the ticket's entire lifetime, not introduced by this delta.
+
+Not a functional defect: every test hitting these endpoints (StoreDataFormattingNPlusOneTest
+x6, this QA's own tinker-harness calls) still asserts/observes HTTP 200 with correct payload
+data. Root cause is almost certainly Passport's AuthorizationValidator middleware attempting
+real bearer-token introspection against the test harness's placeholder "Bearer test" header
+before Passport::actingAs()'s guard override wins -- a test-only harness artifact, not a
+production code path. Non-blocking, does not affect this ticket's verdict.

@@ -1,0 +1,30 @@
+NEARS-2982 delta re-QA (cycle 1) — fix-in-run item (schedules tie-break) + cycle-2 dead-code
+removal (VendorController::get_profile) spot-checks.
+
+=== Store::schedules() id tie-break (fix-in-run, Store.php: ->orderBy('opening_time')->orderBy('id')) ===
+Live query against the real dev DB (multi_food_db, read-only, no mutation) found a genuine
+tie group: store_id=2 has 7 schedule rows all sharing opening_time=08:00:00.
+  $store->schedules()->get()->pluck('id') called 3x in a row:
+    order1=[1,2,3,4,5,6,7]
+    order2=[1,2,3,4,5,6,7]
+    order3=[1,2,3,4,5,6,7]
+  stable across 3 calls: YES
+
+=== VendorController::get_profile() dead-line removal (faf35b5ef) byte-identity check ===
+Independent tinker harness: real vendor (vendor_id=1, store_id=1) loaded with
+Vendor::with('stores'), get_profile() invoked directly via app(VendorController::class),
+serialized stores[0].schedules / stores[0].module / stores[0].min / stores[0].max captured
+to JSON.
+
+BEFORE (534e53918 version, with the two redundant offset-set lines
+  $store['schedules']=$store->schedules()->get(); $store['module']=$store->module;):
+  captured to /tmp/vendor_profile_BEFORE.json
+
+AFTER (current HEAD, faf35b5ef — lines removed):
+  captured to /tmp/vendor_profile_AFTER.json
+
+diff BEFORE AFTER -> BYTE-IDENTICAL (7 schedule rows for store_id=1, module id=1
+"Grocery & Food" with full translations/storage payload, min=2.13, max=40 -- all fields
+identical between the two versions).
+
+Working tree confirmed clean (git status --short) before and after each file swap.
