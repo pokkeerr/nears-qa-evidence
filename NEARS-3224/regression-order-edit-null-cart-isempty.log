@@ -1,0 +1,20 @@
+[2026-09-08 14:17:05] production.WARNING: [WARN] track_order {"trace_id":"09852b91f9c7589e41f859eba07bb248","correlation_id":"b9864ba7-5855-4cae-a074-f13dc683ac6d","order_id":91215} 
+[2026-09-08 14:17:15] production.WARNING: [WARN] track_order {"trace_id":"eb2b6d901e85a6afdbc38cb180b085da","correlation_id":"1d2438db-400e-40b0-b02b-b401fbd808b5","order_id":91215} 
+[2026-09-08 14:17:17] production.ERROR: [FAIL] Call to a member function isEmpty() on null {"trace_id":"3255742b2057b9a125fcb2510daac4e7","correlation_id":"27939a06-1219-445f-b579-e56fd57d7398","type":"Error","endpoint":"/admin/order/add-to-cart"} 
+[2026-09-08 14:17:25] production.WARNING: [WARN] track_order {"trace_id":"5478c8f94a923f50861106039797a77d","correlation_id":"4c4d8d1e-703d-4e73-a591-2ae163970e77","order_id":91215} 
+[2026-09-08 14:17:35] production.WARNING: [WARN] track_order {"trace_id":"08cdd6bc3ace3d8ad17aae8ed3007bb6","correlation_id":"9d939488-77f1-43af-bdf1-660e4ddf79fc","order_id":91215} 
+
+--- Repro ---
+POST /admin/order/add-to-cart (cart_item_key set) when session('order_cart') is ABSENT
+(e.g. edit-mode was never entered, or a prior admin.order.update already cleared it via
+session()->forget('order_cart') at OrderController.php:1464) -> 500
+"Call to a member function isEmpty() on null" from OrderDetailBuilder::buildForEdit()'s
+$carts->isEmpty() call (no null-guard upstream in OrderTaxService::setOrderEditCalculatedTax(),
+which does $carts = session()->get('order_cart'); with no default/null-check before build()).
+
+PRE-EXISTING, NOT caused by this ticket: verified the identical unguarded
+$carts->isEmpty() call already existed in the pre-refactor
+Admin/app/Traits/PlaceNewOrder.php::makeEditOrderDetails() (git show c68e4d491, line 1684) before
+NEARS-3224's extraction — this ticket carried the fragility over verbatim into
+OrderDetailBuilder::buildForEdit(), it did not introduce it. Filed as regression_bug (pre-existing),
+not a task_bug of this ticket. Does not affect this run's PASS/FAIL verdict.

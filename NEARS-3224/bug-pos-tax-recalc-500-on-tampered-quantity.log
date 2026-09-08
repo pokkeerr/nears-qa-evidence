@@ -1,0 +1,64 @@
+[2026-09-08 14:10:35] production.WARNING: [WARN] track_order {"trace_id":"3f323bb483b9078dc0a3f8a3991027c6","correlation_id":"5ec2cb0a-da74-4817-97de-1f1d535bd0f6","order_id":91215} 
+[2026-09-08 14:10:45] production.WARNING: [WARN] track_order {"trace_id":"9065421fb550743716e61d18f7f6f0bc","correlation_id":"ca8131f3-36d3-41eb-89e5-1191f3283470","order_id":91215} 
+[2026-09-08 14:10:45] production.ERROR: [FAIL] Undefined array key "total_addon_price" {"trace_id":"54a271b27952c8f0aa3c9be8f4bed3b5","correlation_id":"20e9d55f-fe93-4f8e-b8df-26e8fbd0e5b6","type":"ErrorException","endpoint":"/admin/pos/add-to-cart"} 
+[2026-09-08 14:10:55] production.WARNING: [WARN] track_order {"trace_id":"29ba771573d47304baca6d6bfc6a037e","correlation_id":"3abd9188-943e-4c5e-bdec-02edbe1ce8dc","order_id":91215} 
+[2026-09-08 14:11:05] production.WARNING: [WARN] track_order {"trace_id":"92079d363301092dab65b6b5e0b0afd0","correlation_id":"1341c4e5-51c2-40cc-82ad-248f9c6a3194","order_id":91215} 
+
+--- Repro (Admin POS, worktree backend :8721, DB multi_food_db_qa_nears3224) ---
+POST /admin/pos/empty-cart -> 200 []
+POST /admin/pos/add-to-cart {id:111, quantity:0} -> HTTP 500 {"message":"Something went wrong"}
+  (item WAS still written into session cart with quantity=0 despite the 500)
+POST /admin/pos/add-delivery-address {...} -> 200
+POST /admin/pos/order?store_id=2 {user_id:409, type:cash} -> HTTP 403 {"errors":[{"code":"quantity","message":"Invalid item quantity"}]}
+  (place_order's OWN call site correctly checks status_code===403 before indexing, so the
+   final order-placement rejection is clean and correct — AC7's literal ask passes here)
+
+Root cause: Admin/app/Services/Order/OrderTaxService.php::setPosCalculatedTax() (line ~327-328)
+calls $this->detailBuilder->build($carts, new PosOrderContext(...)) and immediately indexes
+$order_details['total_addon_price'] with NO data_get($order_details,'status_code')===403 guard —
+unlike its two siblings in the same file, getCalculatedTax() (line 234) and
+setOrderEditCalculatedTax() (line 382), which both correctly check status_code===403 before
+indexing. When the cart holds a non-positive/non-numeric-quantity line (reachable only via a
+crafted request to add-to-cart/update-quantity, since the real POS UI's quantity inputs are
+client-min-clamped to 1), build() returns the short error array
+{status_code:403, code:'quantity', message:...} instead of the full order_details shape, and
+$order_details['total_addon_price'] throws "Undefined array key" -> Laravel converts the PHP
+warning to an ErrorException -> HTTP 500 "Something went wrong".
+
+Blast radius: setPosCalculatedTax() is called from POSController::addToCart(),
+::updateQuantity() and ::removeFromCart() in BOTH Admin/app/Http/Controllers/Admin/POSController.php
+and Admin/app/Http/Controllers/Vendor/POSController.php (same injected OrderTaxService, same
+method, same missing guard). LIVE-reproduced on BOTH: Admin POS add-to-cart{id:111,quantity:0} ->
+500 above; Vendor Store Panel (vendor-panel/pos) add-to-cart{id:111,quantity:-1} -> same 500
+"Something went wrong" (Vendor's own place_order?quantity=-1 submit still correctly 403'd
+afterward: {"errors":[{"code":"quantity","message":"Invalid item quantity"}]}). Practical effect:
+once a bad-quantity line lands in a POS cart via a crafted request, every subsequent normal POS
+cart action that recalculates tax (add another item, change quantity, remove an item) 500s until
+the operator hits "Clear Cart" (emptyCart() does not call setPosCalculatedTax) — a stuck-cart
+defect on top of the 500 itself.
+
+CORRECTED classification (initial read below was wrong — keeping the correction visible rather
+than silently rewriting history): Pre-existing before this ticket? YES. Checked
+Admin/app/Traits/PlaceNewOrder.php @ c68e4d491 (pre-refactor): setPosCalculatedTax() there
+(line 2104-2128) has the BYTE-IDENTICAL missing status_code===403 guard before indexing
+$order_details['total_addon_price'] — this ticket's OrderTaxService::setPosCalculatedTax() is a
+structural port of that exact method, not new code. AND makePosOrderDetails() (the pre-refactor
+callee) already returned the SAME short error-array shape (no 'total_addon_price' key) via
+pre-existing 'different_stores', 'prescription', and a PRE-EXISTING max-quantity 'quantity' guard
+(different message: "maximum_cart_quantity_limit_over", unrelated to this ticket's non-positive
+guard) — so this exact 500 was already reachable pre-ticket (e.g. cross-store cart tamper, or
+tampering an item past its maximum_cart_quantity). This ticket's new non-positive-quantity guard
+is simply ONE MORE way to trigger an already-broken caller-side check, not a new introduction.
+Filed as regression_bug (pre-existing, unrelated to this ticket's own correctness) — does not
+affect this run's verdict per the QA-agent lane rules, but flagged here with full repro + root
+cause since it is a real, reproducible defect (and touches the same AUD-SEC-36 quantity-guard
+surface this ticket partially closes, so worth prioritizing).
+
+[Superseded — kept for audit trail, DO NOT rely on this paragraph, see CORRECTED above]
+"Pre-existing before this ticket? NO — pre-refactor, makePosOrderDetails() (PlaceNewOrder trait)
+had no line-quantity guard at all for POS, so this code path could never previously return a 403
+error array; setPosCalculatedTax() only started receiving that shape once THIS ticket's AC6b
+uniform-guard landed, so the missing status_code check is a genuine gap in this ticket's own new
+code, not an inherited pre-existing defect." — this was written before checking whether
+makePosOrderDetails had OTHER pre-existing error-return paths (different_stores/prescription/
+max-quantity); it did, so the conclusion above was wrong and is corrected.

@@ -1,0 +1,46 @@
+[2026-09-08 14:18:05] production.WARNING: [WARN] track_order {"trace_id":"9272d61d152d89001fe5ce773fe5edda","correlation_id":"591c8d51-5f7d-45ab-bea0-3551baaa5729","order_id":91215} 
+[2026-09-08 14:18:15] production.WARNING: [WARN] track_order {"trace_id":"402b2c4fbef2b26a47654601553f5669","correlation_id":"46023e4e-e596-48cd-ab36-76a2a74ecd69","order_id":91215} 
+[2026-09-08 14:18:21] production.ERROR: [FAIL] Undefined array key "order_details" {"trace_id":"b83475d6264b07e82f7d8c0b4a22c1bf","correlation_id":"e793f0aa-6ae5-44e4-9a92-8cc0afa465c8","type":"ErrorException","endpoint":"/admin/order/update/91216"} 
+[2026-09-08 14:18:25] production.WARNING: [WARN] track_order {"trace_id":"997306ceb61a00db6d47a52395493d71","correlation_id":"b6de703f-f78f-48c5-b69f-6a5dd38f9f79","order_id":91215} 
+[2026-09-08 14:18:35] production.WARNING: [WARN] track_order {"trace_id":"bc26f592b038790400a9a6bd9896e78b","correlation_id":"9b86b823-7c0e-48a6-81f8-ea488d2005aa","order_id":91215} 
+
+--- Repro (Admin order-edit, order 91216, worktree backend :8721) ---
+GET  /admin/order/edit-order/91216        -> 200 (enters edit mode, session('order_cart') set)
+POST /admin/order/add-to-cart {cart_item_key:0, id:112, item_type:item, order_id:91216, quantity:-1}
+     -> 200 {"data":2}   (accepted into session cart uncritically — no server-side guard here either,
+                          matches the POS addToCart()/updateQuantity() pattern already documented
+                          in NEARS-3224's separate bug-pos-tax-recalc-500... note)
+GET  /admin/order/update/91216            -> HTTP 500 "Something went wrong"
+     (the FINAL submit action — this is the step AC7 asks to observe a clean
+      quantity/invalid_quantity 403 on for the order-edit caller)
+
+Root cause: Admin/app/Http/Controllers/Admin/OrderController.php::update() (~line 1357-1376):
+    $order_details = $this->orderDetailBuilder->build($cart, new EditOrderContext(null, $store));
+        foreach($order_details['order_details'] as $key => $order_de){   <- indexes BEFORE the check
+            ...
+        }
+    if (data_get($order_details, 'status_code') === 403) { ... return response()->json(...); }
+When build() returns the short error array (no 'order_details' key) for a non-positive quantity,
+the foreach on line ~1359 throws "Undefined array key 'order_details'" (ErrorException, Laravel
+converts the PHP warning to a hard throw) BEFORE execution ever reaches the correct status_code
+check a few lines below — so the clean 403/quantity JSON never gets returned to the caller; the
+operator sees a raw 500 instead.
+
+CORRECTED classification (pre-existing, not this ticket's own defect): checked
+Admin/app/Traits/PlaceNewOrder.php @ a47c1bb32 (pre-refactor Admin/OrderController.php::update()) —
+the IDENTICAL ordering (foreach($order_details['order_details']...) before the status_code check)
+already existed verbatim pre-refactor. And makeEditOrderDetails() (the pre-refactor callee)
+already had pre-existing 'not_found' (empty cart) / 'different_stores' / 'prescription' guards
+returning the SAME short error-array shape — so this exact update() crash was ALREADY reachable
+pre-ticket (e.g. tampering a cart line's store id, or a prescription item with no attachment).
+This ticket's new non-positive-quantity guard is one more (previously nonexistent for order-edit)
+trigger for an already-broken caller-side check, not a new introduction.
+
+Filed as regression_bug (pre-existing, unrelated to this ticket's own correctness) — does not
+affect this run's verdict per the QA-agent lane rules. Flagged prominently because it means AC7's
+literal "order-edit rejects a non-positive line quantity with the existing error code" could NOT
+be cleanly demonstrated for the Admin order-edit caller specifically — what actually surfaces to
+an operator today is a generic 500, not the intended quantity/invalid_quantity error. The
+UNDERLYING GUARD LOGIC is correct (OrderDetailBuilder::buildForEdit does return the right 403
+shape, confirmed by the fact update() crashes exactly at the moment it tries to read the WRONG
+key off that very shape) — the gap is entirely in this pre-existing unguarded caller.
