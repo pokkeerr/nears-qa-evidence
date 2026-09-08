@@ -1,0 +1,110 @@
+NEARS-2984 QA — live query-count instrument (independent of the diff's own phpunit file)
+Method: real Illuminate\Http\Request dispatched through the app's actual HTTP kernel
+(full route/middleware/controller stack) against the live worktree backend on
+127.0.0.1:8091, DB multi_food_db, with DB::listen()-equivalent query capture
+(container 'db'->listen(), hooked via $app->booted()). Script:
+Admin/qcount_nears2984.php (QA scratch instrument, removed after this run).
+
+Precise-pattern counts (same SQL substrings the diff's own
+Nears2984MultiDataBatchQueryCountTest.php asserts on):
+  CATEGORY_Q = count of `select \`name\`, \`id\` from \`categories\` where \`id\` in (...)`
+  FLASH_Q    = count of any query `from \`flash_sale_items\``
+  ADDON_Q    = count of any query `from \`add_ons\``
+
+=== AC1 GET /api/v1/categories/items/19?limit=25&offset=1 (zoneId=[1,2], moduleId=1) ===
+20 items returned (category 19, zone-filtered).
+STATUS=200  TOTAL_QUERIES=271  CATEGORY_Q=3  FLASH_Q=1  ADDON_Q=0
+Marginal-cost re-run at limit=5 vs limit=20 (same route/headers):
+  limit=5  -> TOTAL_QUERIES=94
+  limit=20 -> TOTAL_QUERIES=263
+  marginal cost = (263-94)/(20-5) = 11.3 queries/item (NOT 0/row, NOT <=12 total)
+CATEGORY_Q/FLASH_Q/ADDON_Q stayed flat (3/1/0) at both sizes — the SPECIFIC
+category/flash-sale/add-on batching this ticket targeted DOES hold (confirms the
+fix's own claim), but the whole-request total is dominated by OTHER, untouched
+per-item relations (see root-cause section below). Ticket threshold: <=12 total,
+0/row. Baseline (Jira NEARS-2984 description): 703 queries / 25 items on
+categories/items/1. Result: real ~2x improvement per item (28/item -> ~13/item),
+but the AC's own <=12 bar is missed by ~20x.
+
+=== AC2 GET /api/v1/items/popular?limit=25 (zoneId=[2], moduleId=1) ===
+25 items returned.
+STATUS=200  TOTAL_QUERIES=158  CATEGORY_Q=0  FLASH_Q=25  ADDON_Q=0
+FLASH_Q=25 (one FlashSaleItem query PER ITEM) — this route is UNTOUCHED by the
+diff. ItemController::get_popular_products() (app/Http/Controllers/Api/V1/
+ItemController.php:494) calls Helpers::productListDataFormatting() (Helpers.php:353),
+a SEPARATE function from product_data_formatting() — NOT part of this diff's
+files_changed (Helpers.php diff only touches product_data_formatting/
+addon_data_formatting/cart_product_data_formatting/wishlist_data_formatting).
+productListDataFormatting() calls product_discount_calculate($item, $item->price,
+$item->store, true) with NO 5th ($prefetchedFlashSale) arg (Helpers.php:356), so
+product_discount_calculate's own per-item FlashSaleItem::Active()->whereHas(...)
+->first() (Helpers.php:1992-1997) still fires once per row — the exact pre-fix
+N+1 pattern the ticket named this route as having. Baseline (Jira): 186 queries/
+25 items. Post: 158/25 — no real fix landed on this code path (measured drop is
+noise/unrelated, not attributable to this diff, since the diff never touches this
+function).
+
+=== AC3 GET /api/v1/items/search?name=a&limit=10&offset=1 (zoneId=[1,2], moduleId=1) ===
+STATUS=200  TOTAL_QUERIES=156  CATEGORY_Q(broad substring)=6, but precise pattern
+`select \`name\`, \`id\` from \`categories\` where \`id\` in (...)` = 1 (the other 5
+"categories" hits are the route's OWN unrelated category-search EXISTS subqueries
+and the search-facet category listing — not a batching regression, confirmed by
+reading the captured SQL text). FLASH_Q=1  ADDON_Q=0.
+Baseline (Jira): 287 queries / 10 items (name=milk). Post: 156/10 items (name=a) —
+real ~46% reduction, still ~15x over the <=12 target.
+
+=== AC4 GET /api/v1/vendor/get-items-list?limit=25&offset=1 (vendor ts@ts.com, store 35, 16 items) ===
+STATUS=200  TOTAL_QUERIES=220  CATEGORY_Q=1  FLASH_Q=1  ADDON_Q=0
+Baseline (Jira): 472 queries / 16 items. Post: 220/16 — real ~53% reduction,
+still ~18x over the <=12 target.
+
+=== AC5 GET /api/v1/customer/cart/list (customer@nears.com, module_id=2: 2 rows,
+item 390 on an active flash sale + item 388 plain) ===
+STATUS=200  TOTAL_QUERIES=73  CATEGORY_Q=1  FLASH_Q=1  ADDON_Q=0
+CartController::cartListResponse() (Api/V1/CartController.php:83-104) DOES batch
+Category/FlashSaleItem/AddOn via buildCartPrefetch() — confirmed (1/1/0) — but
+`Cart::where(...)->get()` (line 87-90) carries NO eager-load at all (no
+->with('item.store.storeConfig','item.module',...)), so $cart->item (accessed at
+line 92's partition filter) and every downstream $item->store / $item->module /
+$item->store->storeConfig access inside cart_product_data_formatting() each
+lazy-load PER ROW — unlike product_data_formatting()'s multi_data branch, which
+DOES call ->loadMissing([...]) once (Helpers.php:409). CartController has no
+equivalent loadMissing call. Baseline (Jira): 138 queries / 8 rows (17.25/row).
+
+=== AC6 GET /api/v1/customer/wish-list (customer@nears.com, 10 items in module 1,
+5 on active flash sales: items 97/3/98/215/8) ===
+STATUS=200  TOTAL_QUERIES=257  CATEGORY_Q=1  FLASH_Q=1  ADDON_Q=0
+Baseline (Jira): 192 queries / 18 rows. wishlist_data_formatting's own
+Category/FlashSaleItem/AddOn batching (buildWishlistItemPrefetch, Helpers.php
+~1211-1240) is confirmed working (1/1/0), but each item still goes through
+product_data_formatting(..., multi_data:false, ...) which independently computes
+nutritions_name/allergies_name/generic_name/tax_data via lazy relation access +
+4 more whereIn queries PER ITEM (Helpers.php ~510-523) — untouched by this diff.
+
+=== Root cause (confirmed by direct code read, Helpers.php:401-536) ===
+product_data_formatting()'s multi_data==true branch (the ticket's primary target)
+DOES batch Category/FlashSaleItem/AddOn (lines 411-434) into O(1) queries, and DOES
+loadMissing(['store.storeConfig','store.discount','store.translations',
+'store.storage','unit','module']) once (line 409). But lines 510-523 (UNCHANGED by
+this diff — outside the diff hunks) still run, per item inside the SAME foreach:
+  $item?->nutritions            (lazy relation load)
+  $item?->allergies             (lazy relation load)
+  $item?->generic                (lazy relation load)
+  $item?->pharmacy_item_details  (lazy relation load)
+  $item?->ecommerce_item_details (lazy relation load, via ->brand_id/->is_basic/...)
+  $item?->taxVats()->pluck(...)  (METHOD call — always re-queries, no
+                                   relationLoaded() guard, same bug class NEARS-2986
+                                   fixed elsewhere but not here)
+  $item?->seoData                (lazy relation load, ecommerce module_type only)
+  + 4 whereIn queries (Nutrition/Allergy/GenericName/Tax) when those relations are
+    non-empty.
+None of these 7 relations are in the loadMissing() list added by this diff. The
+solution doc (docs/solutions/NEARS-2984-product-data-formatting-batch.md,
+"Rejected alternative" section) states: "Verified the multi-branch computes zero
+queries for these today (fields are absent from the listing response entirely,
+not merely per-item)" — this is FALSIFIED by direct code read: the fields ARE
+present in the multi_data branch's own foreach (lines 510-523, same file, same
+function, just below the diff's own last hunk) and DO cost queries per item
+whenever an item has any nutrition/allergy/generic/tax data. This is very likely
+why the ~11-13 queries/item marginal cost persists across every list route
+measured above.

@@ -1,0 +1,46 @@
+NEARS-2984 QA — AC7 value-level correctness (live, cross-checked against raw DB).
+
+Flash-sale item, wish-list response (item 97):
+  live response: {"id":97,"flash_sale":1,"discount":10,"discount_type":"percent"}
+  raw DB: SELECT item_id,discount,discount_type,status FROM flash_sale_items
+          JOIN flash_sales ... WHERE item_id=97 AND status=1
+          -> discount=10.000, discount_type=percent   MATCH
+
+Flash-sale item, cart/list response (item 390, "Double Bacon Burger"):
+  live response: flash_sale=1, discount=18, discount_type="percent", stock=51
+  Consistent across two independent calls (cart/list AND items/details/390) —
+  same discount/flash_sale values both times.
+
+Plain-discount item (no flash sale), wish-list response:
+  item 65: discount=45, discount_type="percent"   raw items.discount=45.00/percent MATCH
+  item 2:  discount=5,  discount_type="percent"   raw items.discount=5.00/percent  MATCH
+
+No-discount item, wish-list response:
+  item 230: discount=0, discount_type="percent"    raw items.discount=0.00/percent MATCH
+
+category_ids resolved via the batched Category::whereIn prefetch: spot-checked
+against categories.name for category 14 ("Burgers") and 19 for cart/AC1 fixtures
+— correct in every response inspected.
+
+add_ons / tax_ids (taxed vs untaxed add-on): the local dev DB seed carries no
+taxed add-ons (verified: 0 rows in `taxables` for taxable_type=AddOn), so this
+specific case could not be constructed live under the read-only-DB QA rule.
+Corroborating evidence: the diff's own
+Nears2984MultiDataBatchQueryCountTest::test_flash_sale_and_control_item_discount_
+parity_survives_the_batched_hand_off asserts (real AddOn + Taxable + Tax fixtures,
+not vacuous — read directly, not just observed green):
+  assertSame([], $addOnsById[$plain]['tax_ids'])
+  assertSame([$tax->id], $addOnsById[$taxed]['tax_ids'])
+This test was independently re-run in this QA session (not merely trusted from
+build/review): `vendor/bin/phpunit --filter Nears2984` -> OK (6 tests, 57
+assertions).
+
+Multi-flash-sale tie-break (2 simultaneously-active FlashSaleItem rows on one
+item): covered by the diff's own
+test_multi_flash_sale_rows_on_one_item_batched_tie_break_matches_the_old_per_item_
+query, independently re-run — OK.
+
+Verdict: AC7 (value-level correctness) — PASS. Every value spot-checked live
+against raw DB truth matched; the batched $prefetch hand-off does not corrupt
+data. This is separate from the query-COUNT findings (see bug-query-cap-not-met.log),
+which are a performance-threshold miss, not a correctness defect.

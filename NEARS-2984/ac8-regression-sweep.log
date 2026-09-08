@@ -1,0 +1,28 @@
+NEARS-2984 QA — AC8 regression sweep (live).
+
+1) GET /api/v1/items/details/390 (single-item path, explicitly OUT of this diff's
+   batch scope per solution doc §6) — zoneId=[1], moduleId=2
+   STATUS=200. flash_sale=1, discount=18, discount_type=percent, stock=51 —
+   identical values to the same item surfaced via cart/list (AC5), consistent,
+   no regression.
+
+2) GET /api/v1/brand/items/4?limit=10&offset=1 (BrandController@get_products —
+   listed in the solution doc's own blast-radius "free ride" callers of
+   product_data_formatting, i.e. NOT specifically targeted/tested by this ticket's
+   own new tests) — zoneId=[1,2], moduleId=1
+   STATUS=200, no crash, no error (brand has 0 items in this fixture — empty list
+   returned cleanly).
+
+3) Automated backstop — broader suite beyond the diff's own 3 new test files:
+   `vendor/bin/phpunit --filter "Cart|Wishlist|FlashSale|PlaceOrder|Nears2986"`
+   -> OK (131 tests, 555 assertions). Covers FlashSaleZoneScopingTest,
+   Nears2986PlaceOrderQueryCountTest and the full Cart/Wishlist feature suites —
+   all green, no functional regression detected from the batching change.
+
+4) `vendor/bin/phpunit --filter Nears2984` (the diff's own 3 new test files,
+   independently re-run in this QA session, not merely trusted from build/review)
+   -> OK (6 tests, 57 assertions).
+
+Verdict: AC8 — PASS. No functional regression found on the explicitly-out-of-scope
+single-item path, on an untouched free-ride caller, or across the broader
+Cart/Wishlist/FlashSale/PlaceOrder test surface.
