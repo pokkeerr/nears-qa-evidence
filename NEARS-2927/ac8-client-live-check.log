@@ -1,0 +1,35 @@
+AC8 client spot-check — LIVE device demonstration (VendorApp), superseding the earlier
+static-only check per a peer QA request to close the UNVERIFIABLE gate.
+
+Device: emulator-5558 (locked via qa-lock-guard.sh, key NEARS-2927). App: VendorApp, launched
+`flutter run -d emulator-5558 --dart-define=BASE_URL=http://10.0.2.2:8010` (runtime override,
+no source edit) against this worktree's own disposable backend (php artisan serve --port=8010,
+DB multi_food_db_qa2927 — a fresh clone; the earlier clone used for the web-panel probes had
+already been dropped, so item 91135 "QA-2927 Client Check Item" was recreated via the vendor
+panel with the same AC6 negative-control description:
+  <b>bold</b> and <i>italic</i> text, plus a list: <ul><li>list item</li></ul> and a link:
+  <a href="https://example.com">click here</a>
+
+Logged in as john.smith@demo.com (store 4, Burger Palace) -> Menu -> All Items -> tapped
+"QA-2927 Client Check Item" -> Item Details screen.
+
+Result (adb logcat -s flutter, pid 875, and a live accessibility-tree list via
+scripts/app-nav/uinav.sh ui_list):
+(a) No crash / no exception — `ui_errors` (pid-scoped flutter-tag scan) found 0 matches;
+    logcat shows a clean sequence ending `[NET] GET endpoint=/api/v1/items/reviews/91135
+    http_status=200` with no ERROR/FATAL lines around the navigation.
+(b) Description renders as PLAIN TEXT (not an HTML widget) — confirmed live: the Description
+    section on-screen shows the description as one literal string node in the accessibility
+    tree (a single Text/NText node, not a tree of <b>/<i>/<ul><li> elements), matching the
+    static claim (`Text(item.description ?? '', style: robotoRegular)` at
+    VendorApp/lib/features/store/screens/item_details_screen.dart:379).
+(c) The literal tag characters ARE visible as raw text: the on-screen/accessibility content is
+    exactly `<b>bold</b> and <i>italic</i> text, plus a list: <ul><li>list item</li></ul> and a
+    link: <a href="https://example.com">click here</a>` — no bold/italic/bullet/clickable-link
+    rendering occurred. This is NOT a client-side rendering defect: it is the documented,
+    intended behavior for this ticket (contract_impact: no — "the literal tag characters a
+    client shows today will change slightly for newly-saved items post-fix... a content nuance
+    not a shape change", per docs/solutions/NEARS-2927-item-description-sanitize.md). No script
+    executed, no crash, no partial-HTML-interpretation artifact.
+
+Screenshot: ac8-vendorapp-item-detail.png

@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-2927
 
-**PASS - stored XSS sanitize verified across vendor/admin write+bulk-import+non-default-locale, negative control clean; 3 pre-existing unrelated bugs flagged**
+**PASS - AC8 closed live on VendorApp/emulator-5558, all ACs demonstrated**
 
-**9 screenshot(s).** Click any thumbnail for full resolution.
+**10 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -17,13 +17,17 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="ac7-vendor-item-view.png"><img src="ac7-vendor-item-view.png" width="240"></a><br><sub>ac7 vendor item view</sub></td>
+<td align="center" width="33%"><a href="ac8-vendorapp-item-detail.png"><img src="ac8-vendorapp-item-detail.png" width="240"></a><br><sub>ac8 vendorapp item detail</sub></td>
 <td align="center" width="33%"><a href="bug-null-review-order-id-500.png"><img src="bug-null-review-order-id-500.png" width="240"></a><br><sub>bug null review order id 500</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="bug-variation-min-zero-required-deadlock.png"><img src="bug-variation-min-zero-required-deadlock.png" width="240"></a><br><sub>bug variation min zero required deadlock</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
 - [`ac7-regression-pos-order-quickview.log`](ac7-regression-pos-order-quickview.log)
+- [`ac8-client-live-check.log`](ac8-client-live-check.log)
 - [`ac8-client-static-check.log`](ac8-client-static-check.log)
 - [`bug-null-review-order-id-500.log`](bug-null-review-order-id-500.log)
 - [`bug-translations-shadow-stale-after-bulk-import.log`](bug-translations-shadow-stale-after-bulk-import.log)
