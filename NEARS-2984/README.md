@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2984
 
-**FAIL — query-count AC thresholds not met live (263-325 total vs <=12 target across AC1/AC3/AC4/AC5/AC6; AC2 route untouched by fix); value-correctness (AC7) and regression sweep (AC8) both PASS**
+**Follow-up re-measurement (fix-cycle 2, HEAD 5fbfb9ef4): 0-per-row PASS (bounded, small residual on cart/wishlist), route-level <=12 re-homed to epic per advisor-product ruling**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -8,6 +8,7 @@
 - [`ac7-value-correctness.log`](ac7-value-correctness.log)
 - [`ac8-regression-sweep.log`](ac8-regression-sweep.log)
 - [`bug-query-cap-not-met.log`](bug-query-cap-not-met.log)
+- [`followup-fix-cycle2-remeasure.log`](followup-fix-cycle2-remeasure.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-2984/` · public-repo scrub policy (no live secrets; verified clean).*

@@ -1,0 +1,105 @@
+NEARS-2984 QA — follow-up re-measurement pass (fix-cycle 2), requested by nt-2984
+per advisor-product's Tier-B close-out ruling (qid q-20260908-nt2984-NEARS-2984-002,
+verified on disk against tasks/runs/NEARS-2984.json's consults[] before acting on it —
+first read attempt found only the sent record with received_epoch:null; re-checked
+after a short wait and the reply had landed genuinely, not fabricated).
+
+HEAD: 5fbfb9ef49922e684f603e8e7afecd240d49c44e (fix-cycle 2, commit "batch
+NEARS-3407/3408 remaining per-item lookups"). Same independent live instrument as
+the original FAIL run (real Illuminate\Http\Request via the app's HTTP kernel,
+db->listen() query capture), re-created fresh in the worktree and removed after use.
+Headers matched to the ORIGINAL audit finding's own measurement params where the
+route accepts them: zoneId=[400,2], moduleId=1 (tasks/audit-2026-09/
+performance-findings.json AUD-PERF-05 measurement block). AC1 additionally re-run
+against category_id=1 (the literal route the baseline 703-query figure was measured
+on), not category 19 used in the original FAIL run.
+
+=== Automated backstop ===
+vendor/bin/phpunit --filter "Nears2984|Nears3407|Nears3408" -> OK (12 tests, 99 assertions)
+
+=== Per-route K (fixed total query count) + 0-per-row proof ===
+
+AC1 categories/items/1 (zoneId=[400,2], moduleId=1):
+  limit=25: K=47  (baseline 703 -> 14.9x reduction)
+  marginal-cost re-check limit=5/25/50: TOTAL=54/47/47 -- FLAT, confirms 0/row.
+
+AC2 items/popular (zoneId=[400,2], moduleId=1):
+  limit=25: K=41  (baseline 186 -> 4.5x reduction)  FLASH_Q=1 (was 25 pre-fix-cycle-2 --
+  NEARS-3408 fix confirmed live: productListDataFormatting() now batches FlashSaleItem +
+  eager-loads store.storeConfig/discount/module/unit).
+  marginal-cost re-check limit=5/50: TOTAL=39/41 -- effectively flat, confirms 0/row.
+
+AC3 items/search (name=milk to match baseline term, limit=10):
+  K=51  (baseline 287 -> 5.6x reduction)
+  marginal-cost re-check (name=a, limit=5/10/25): TOTAL=53/53/53 -- FLAT, confirms 0/row.
+
+AC4 vendor/get-items-list (store 35, 16 items):
+  K=49  (baseline 472 -> 9.6x reduction)
+  Not independently marginal-tested at a second N in this pass (single-store fixture
+  caps at 16 items) -- flagged, not claimed as proven flat.
+
+AC5 customer/cart/list (module 2, flash-sale item 390 + item 388):
+  N=2 rows: K=50 (baseline 138/8 rows = 17.25/row)
+  N=1 row (module 3, item 660): K=48
+  marginal cost = (50-48)/(2-1) = 2 queries/row -- NOT literally 0, but the diff's own
+  new test (Nears2984CartBatchTest::test_cart_list_absolute_query_total_is_bounded_and_
+  flat_across_row_count) itself only asserts "+/-few, never +15-20 per row" (tolerance
+  <=+3/row) -- my measured +2/row is inside that tolerance and matches the test's own
+  honesty about the bound. ~89% reduction vs baseline per-row rate.
+
+AC6 customer/wish-list:
+  N=10 items (customer@nears.com): K=65 (baseline 192/18 rows = 10.67/row)
+  N=2 items (emily.johnson@demo.com, same module): K=51
+  marginal cost = (65-51)/(10-2) = 1.75 queries/row -- same "bounded, not proportional"
+  shape as AC5, not literal zero. ~84% reduction vs baseline per-row rate.
+
+CORRECTED CHARACTERIZATION: "0 additional queries per row" is accurate for AC1/AC2/AC3/
+AC4(assumed); AC5/AC6 (both driven through cart_product_data_formatting / the wishlist
+prefetch path) land at a small ~2/row residual, not literal zero. This matches what the
+diff's own new tests claim ("bounded and flat", explicit +3/row tolerance) -- neither the
+diff's tests nor this independent re-measurement claim a literal 0 for cart/wishlist.
+
+=== Per-route query attribution (SQL text classified by table, programmatic count) ===
+
+Buckets:
+  A = NEARS-2997 (`cache` table -- CACHE_DRIVER=database; both `update cache` and
+      `insert ignore into cache` counted)
+  B = NEARS-2996 (`business_settings` + `priority_lists` -- uncached config reads)
+  C = NEARS-2983 (`information_schema` -- StoreConfig::__construct's unmemoized
+      Schema::hasTable('storeConfigs') check, AUD-PERF-04; ledger confirms
+      srcid-aud-perf-04 = NEARS-2983, status Preparing as of this run -- NOT yet merged,
+      correcting advisor-backend's "likely already fixed since 2983 merged" guess.
+      The N+1 MULTIPLIER on this defect (pre-fix: 24-51 information_schema hits/route
+      per AUD-PERF-04's own evidence) is ALREADY gone as a side-effect of this ticket's
+      loadMissing(store.storeConfig) batching -- every route below now shows exactly 1,
+      not 24-51. The remaining flat 1/request tax is NEARS-2983's own unmemoized-check
+      scope, still open.)
+  D = this ticket's own remaining fixed page-level cost: translations, storages,
+      store_configs, discounts, units, modules, stores, categories, flash_sale_items,
+      flash_sales, pharmacy_item_details, ecommerce_item_details, item_seo_data,
+      nutritions, allergies, generic_names, taxables, store_subscriptions -- each of
+      these fires EXACTLY ONCE per page/collection (the O(1) floor achievable under
+      Eloquent's per-relation-type eager loading without moving to raw joins/denormalization,
+      per advisor-backend's own read).
+  E = Passport auth baseline (oauth_access_tokens, oauth_clients, users) -- framework
+      tax on every authenticated request, not in any audit ticket's scope.
+  F = the route's own base domain query (items/carts/wishlists/vendors/tags/campaigns/
+      store_schedule -- the LISTING query itself, unrelated to item-formatting N+1).
+  UNKNOWN = none needed this run; every query in every route's log classified cleanly
+      into A-F (verified by exact total reconciliation, not left as a residual).
+
+  AC1 categories/items/1  (K=47):  D=27  A=13  B=5  C=1  F=1
+  AC2 items/popular       (K=41):  D=24  A=14  B=1  C=1  F=1
+  AC3 items/search        (K=51):  D=29  A=13  B=4  C=1  F=4
+  AC4 vendor/get-items    (K=49):  D=29  A=14  B=1  C=1  F=4
+  AC5 cart/list           (K=50):  D=29  A=13  B=1  C=1  E=4  F=2
+  AC6 wish-list           (K=65):  D=34  A=21  B=1  C=1  E=4  F=4
+
+Reading: on every route, bucket D (this ticket's own genuinely-irreducible-under-Eloquent
+page-level cost) plus bucket A (NEARS-2997's cache-table territory) together account for
+~85-95% of K. If NEARS-2997 lands (cache-table queries -> 0, e.g. moving to a non-DB cache
+store or memoising within-request) the remaining total would drop to roughly D+B+C+E+F,
+i.e. ~26-38 depending on route -- still not literal <=12, consistent with advisor-backend's
+read that <=12 with full field parity needs a larger structural change (raw joins /
+disabling per-relation translate+storage global scopes) beyond what any of the 5 sibling
+tickets individually attempt.
