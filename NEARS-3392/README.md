@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3392
 
-**Delta QA fix-cycle 2 -- delivery-quote mechanism live-tested for the first time; found a stale-state defect where a failed quote fetch does not surface the retry UI and Place Order is not disabled**
+**fix-cycle 3 PASS - TB1 verified fixed live: 429 throttle-exhaustion -> failed/retry state renders, Place Order gated, retry re-fires and resolves**
 
 **6 screenshot(s).** Click any thumbnail for full resolution.
 
