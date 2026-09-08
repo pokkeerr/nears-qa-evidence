@@ -1,0 +1,10 @@
+09-08 22:18:11.177 29998 29998 I flutter : [FAIL] endpoint=null http_status=null type=LocationPermissionResolutionTimeout msg="location: _checkPermission timed out after 6s — falling back to pick-map"
+09-08 22:18:35.089 29998 29998 I flutter : [FAIL] endpoint=null http_status=null type=GetPositionFailure msg="location: getPosition threw (TimeoutException) — falling back to default position"
+
+Observed once, right after cold sign-in on this emulator (splash-time location prefetch).
+App handled it gracefully (fell back to pick-map / default position, no crash, no visible
+defect) and both are paired AppLogger.failure() lines per the logging contract, not silent
+failures. Not reproduced again in the rest of the session. Unrelated to NEARS-3393 (location
+prefetch/permission code is untouched by this diff). Logged here as a regression-candidate
+observation only, non-blocking.
+Device: emulator-5560, NEARS-3393 QA run, 2026-09-08.

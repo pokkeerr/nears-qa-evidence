@@ -1,0 +1,25 @@
+09-08 22:20:50.696 29998 29998 I flutter : ----------------FIREBASE CRASHLYTICS----------------
+09-08 22:20:50.696 29998 29998 I flutter : The following exception was thrown uncaught async error (_TypeError):
+09-08 22:20:50.696 29998 29998 I flutter : UncaughtAsyncError
+09-08 22:20:50.696 29998 29998 I flutter : #0      new CartSuggestItemModel.fromJson (package:nears/features/store/domain/models/cart_suggested_item_model.dart:13:5)
+09-08 22:20:50.696 29998 29998 I flutter : #1      StoreRepository.getCartStoreSuggestedItemList (package:nears/features/store/domain/repositories/store_repository.dart:420:51)
+09-08 22:20:50.696 29998 29998 I flutter : <asynchronous suspension>
+09-08 22:20:50.696 29998 29998 I flutter : #2      StoreService.getCartStoreSuggestedItemList (package:nears/features/store/domain/services/store_service.dart:175:12)
+09-08 22:20:50.696 29998 29998 I flutter : <asynchronous suspension>
+09-08 22:20:50.696 29998 29998 I flutter : #3      StoreController.getCartStoreSuggestedItemListForStores (package:nears/features/store/controllers/store_controller.dart:438:43)
+09-08 22:20:50.696 29998 29998 I flutter : <asynchronous suspension>
+09-08 22:20:50.697 29998 29998 I flutter : [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (_TypeError)"
+09-08 22:20:50.697 29998 29998 I flutter : type 'int' is not a subtype of type 'String?'
+--
+Root cause (read, not just log-observed): UserApp/lib/features/store/domain/models/cart_suggested_item_model.dart:5-6
+  String? limit;
+  String? offset;
+CartSuggestItemModel.fromJson assigns json['limit']/json['offset'] directly without a toString()
+cast; the backend's cart-suggested-items response returns these as ints, so the fromJson()
+constructor throws a TypeError. Fires whenever the store screen loads with a non-empty cart
+(StoreController.getCartStoreSuggestedItemListForStores). Verified unrelated to NEARS-3393 --
+neither cart_suggested_item_model.dart nor store_repository.dart/store_service.dart appear in
+this ticket's diff; only store_controller.dart:980 changed (one line, retargeting
+CheckoutController.initializeTimeSlot -> addressDeliveryOptionController.initializeTimeSlot),
+nowhere near this call chain.
+Device: emulator-5560, NEARS-3393 QA run, 2026-09-08.
