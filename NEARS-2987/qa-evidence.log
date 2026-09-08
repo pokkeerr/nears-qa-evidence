@@ -1,0 +1,96 @@
+NEARS-2987 — storages.data_id column type + index QA evidence
+QA run: 2026-09-08, worktree /Users/Apple/Projects/nears-NEARS-2987-storages-data-id-index
+Isolated DB clone used throughout: multi_food_db_test_nears_nears_2987_storages_data_id_index
+Shared DB `multi_food_db` was NEVER pointed at by this migration (DB_DATABASE was explicitly
+overridden on every artisan/mysql call).
+
+=== AC1 — EXPLAIN on representative storage() eager-load, PRE vs POST migration ===
+
+Real ORM query captured via `php artisan tinker` (Item::with('storage')->limit(20)->get()):
+  select * from `storages` where `storages`.`data_id` in (1,2,...,20)
+    and `storages`.`data_type` = 'App\Models\Item'
+
+PRE-migration (EXPLAIN FORMAT=TRADITIONAL):
+  id | select_type | table    | type | possible_keys          | key  | rows | Extra
+   1 | SIMPLE      | storages | ALL  | storages_data_id_index | NULL | 1309 | Using where
+  -> full table scan (varchar data_id vs int literals defeats the single-col index)
+
+POST-migration (same query, EXPLAIN FORMAT=TRADITIONAL):
+  id | select_type | table    | type  | possible_keys                    | key                               | rows | Extra
+   1 | SIMPLE      | storages | range | storages_data_type_data_id_index | storages_data_type_data_id_index  |  78  | Using index condition
+  -> index range scan via the new composite (data_type, data_id) index, 1309 -> 78 rows examined
+
+VERDICT: PASS — type=ALL/table scan (pre) -> type=range/index lookup (post), confirmed independently.
+
+=== AC2 — row count unchanged, no data loss/corruption ===
+
+PRE-migration:  SELECT COUNT(*) FROM storages;              => 1309
+POST-migration: SELECT COUNT(*) FROM storages;               => 1309
+POST-rollback:  SELECT COUNT(*) FROM storages;               => 1309
+
+Schema PRE:  data_id varchar(100), index storages_data_id_index (data_id)
+Schema POST: data_id bigint unsigned, index storages_data_type_data_id_index (data_type, data_id)
+Schema POST-ROLLBACK: data_id varchar(100), index storages_data_id_index (data_id)  [== PRE, exact]
+
+Spot-check data integrity (per-data_type COUNT + SUM(data_id) post-migration, cross-checked
+against sampled pre-migration rows): Item type had 866 rows summing to 490359; sampled rows
+(id=50/51 -> data_id=1, id=213/214 -> data_id=2, id=215 -> data_id=3) match the pre-migration
+values exactly — cast BIGINT UNSIGNED preserved every value bit-for-bit (all storages.data_id
+values were purely numeric, confirmed by the migration's own pre-flight REGEXP guard which found
+0 non-numeric rows and did not abort).
+
+VERDICT: PASS — 1309 -> 1309 -> 1309, zero data loss/corruption, migration is cleanly reversible.
+
+=== AC3 — no visual/data regression on screens reading images via storage() ===
+
+Path taken: booted the real Admin backend (php artisan serve --port=8091) against the
+POST-migration isolated clone DB (multi_food_db_test_nears_nears_2987_storages_data_id_index,
+NEVER the shared multi_food_db, NEVER the shared port-8000 instance), then drove the real public
+API endpoints UserApp/StoreApp actually call, which resolve images via storage()/get_full_url():
+
+GET /api/v1/stores/details/1 (zoneId header only, unauthenticated, public endpoint)
+  -> "storage": [{"data_type":"App\\Models\\Store","data_id":1,"key":"logo",...},
+                 {"data_type":"App\\Models\\Store","data_id":1,"key":"cover_photo",...}]
+     (exactly the 2 rows for this store, correctly joined post-migration BIGINT data_id=1)
+  -> "logo_full_url": ".../storage/store/2024-11-19-673c404ae469c.png"
+  -> "cover_photo_full_url": ".../storage/store/cover/2024-11-19-673c404ae633e.png"
+
+GET /api/v1/items/details/1 (zoneId + moduleId headers, unauthenticated, public endpoint)
+  -> item "storage" (2 rows: image, images), nested store_details.storage (2 rows),
+     nested category_details[].storage (per-category rows), nested module.storage (5 rows)
+     — every morph relation resolved the CORRECT rows for its own data_id post-migration.
+  -> image_full_url / images_full_url / category image_full_url / module icon+thumbnail
+     full_url all populated correctly.
+
+Image bytes fetched directly from the running server (proves the storage()-resolved paths are
+real, not just present in JSON):
+  GET /storage/store/2024-11-19-673c404ae469c.png        -> 200 image/png 3120B   (store logo)
+  GET /storage/store/cover/2024-11-19-673c404ae633e.png  -> 200 image/png 7880B   (store cover)
+  GET /storage/product/2024-11-19-673c408cf104a.png      -> 200 image/png 61555B  (item image)
+  GET /storage/product/2024-11-19-673c408cedb59.png      -> 200 image/png 9523B   (item gallery image)
+  GET /storage/category/2024-11-19-673c3ffb0a6f7.png     -> 200 image/png 13772B  (category image)
+  GET /storage/module/2026-03-01-9f4876593842.png        -> 200 image/png 34393B  (module thumbnail)
+
+All 6 images across Store/Item/Category/Module (all use the same storage() morphMany relation as
+User/Banner) resolved with HTTP 200 + correct image/png content-type + non-zero byte sizes,
+served by a live backend running against the POST-migration schema. No broken images, no 404s,
+no empty storage[] arrays for models that have real image rows.
+
+A live-browser screenshot was attempted for extra visual confirmation but was not captured this
+run: the shared chrome-devtools-mcp browser profile on this host was already in use by another
+concurrent session (`--isolated` not available through this MCP surface), so the API+image-byte
+path above (explicitly offered as an acceptable alternative in the QA brief) was used as the sole
+AC3 evidence instead.
+
+VERDICT: PASS — zero regression in image resolution via storage() across all checked model types.
+
+=== Cleanup ===
+
+- Migration rolled back on the isolated clone (`php artisan migrate:rollback --step=1 --force`,
+  DB_DATABASE=multi_food_db_test_nears_nears_2987_storages_data_id_index): confirmed schema +
+  index + row count restored to exact pre-migration state.
+- Shared `multi_food_db` spot-checked post-run: data_id still varchar(100), still single-column
+  index storages_data_id_index, row count 1368 (unchanged from this run's start), and
+  `migrations` table has NO row for this migration — confirms the shared DB was never migrated,
+  never touched, at any point during this QA pass.
+- Temporary `php artisan serve --port=8091` QA instance stopped; port 8091 free.
