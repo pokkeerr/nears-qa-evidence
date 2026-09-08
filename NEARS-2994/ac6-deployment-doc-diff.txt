@@ -1,0 +1,50 @@
+diff --git a/docs/platform/deployment.md b/docs/platform/deployment.md
+index 0774dcb68..ec44ee951 100644
+--- a/docs/platform/deployment.md
++++ b/docs/platform/deployment.md
+@@ -74,7 +74,9 @@ If the app uses Laravel queues, run workers with Supervisor or systemd. Example
+ 
+ ```ini
+ [program:nears-worker]
+-command=php /path/to/project/artisan queue:work --sleep=3 --tries=3 --timeout=90
++; NEARS-2994: --queue=default,broadcasts — the broadcasts queue carries
++; DispatchDriverLocationJob (see "Queue readiness" below); default alone misses it.
++command=php /path/to/project/artisan queue:work --queue=default,broadcasts --sleep=3 --tries=3 --timeout=90
+ process_name=%(program_name)s_%(process_num)02d
+ numprocs=1
+ autostart=true
+@@ -300,6 +302,34 @@ BROADCAST_DRIVER=log
+ 
+ With `BROADCAST_DRIVER=log`, broadcast events are written to `storage/logs/laravel.log` instead of being delivered, so you can confirm what *would* have fired without running Pusher or Reverb. The Flutter apps just won't receive live updates (pull-to-refresh still works).
+ 
++### Queue readiness for a real driver (NEARS-2994)
++
++Local dev correctly stays on `QUEUE_CONNECTION=sync` (unchanged by this ticket) — everything below
++is inert until a later deploy flips the driver (tracked by **NEARS-986**), but the code was made
++driver-agnostic now so that flip doesn't also require a code change:
++
++- **`App\Jobs\SendOrderPlaceNotificationJob`** — the order-place push notification
++  (`Helpers::send_order_notification`) and the two order-confirmation emails now run inside this
++  `ShouldQueue` job (`Admin/app/Jobs/SendOrderPlaceNotificationJob.php`), dispatched from
++  `PlaceNewOrder::sentOrderPlaceNotification()` after `DB::commit()`. Its own `handle()` catches
++  everything internally (`$tries = 1`, PII-safe `failed()` logging order id only) — a notification
++  failure can never fail the already-committed order response.
++- **4 outbound `Http::` calls** (FCM send + OAuth token fetch, duplicated across
++  `Admin/app/Traits/NotificationTrait.php` and `Admin/app/CentralLogics/Helpers.php`) now carry
++  `->timeout(10)` so a hung FCM/Google endpoint can't stall a queue worker indefinitely.
++- **`config/queue.php`**'s `redis` connection has `after_commit => true` — once a real driver is
++  configured, a job dispatched inside a still-open DB transaction won't be picked up by a worker
++  before the transaction commits (`database`/`sqs`/`beanstalkd` are untouched — out of this
++  ticket's scope).
++- **`HandleClientMessage.php`**'s `DispatchDriverLocationJob` dispatch moved off the `default`
++  queue onto **`broadcasts`** — a future worker must consume both:
++  `php artisan queue:work --queue=default,broadcasts` (not just `--queue=default`, or driver-
++  location broadcasts silently stop being picked up).
++- **Conditional Reverb self-call blocker**: `HandleClientMessage` is a `Laravel\Reverb\Events\MessageReceived`
++  listener — it only fires once `BROADCAST_DRIVER=reverb` (this repo's default is `log`, see
++  above), so the `broadcasts` queue above only carries real traffic once Reverb is the active
++  broadcast driver.
++
+ ### Twilio / SMS OTP
+ 
+ Avoid sending real SMS during signup/login:

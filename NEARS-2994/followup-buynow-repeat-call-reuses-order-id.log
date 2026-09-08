@@ -1,0 +1,21 @@
+=== followup (non-blocking, pre-existing, unrelated): repeat is_buy_now=1 order/place call re-dispatches the notification job for the SAME already-existing order_id, with no new DB row and a response total_ammount that does not match the persisted order_amount ===
+Call 1 (15:30:54): order_id=91215 total_ammount=4.2 -> DB order_amount=4.20, updated_at=2026-09-08 15:30:54
+Call 2 (15:33:24), same cart shape, is_buy_now=1: order_id=91215 (same!) total_ammount=8.4 (does NOT match DB)
+
+DB proof - order 91215 untouched by call 2:
+91215	4.20	2026-09-08 15:30:54	2026-09-08 15:30:54
+
+Notification job re-fired for order 91215 on call 2 anyway (FCM log lines, correlation_id 74292c85...):
+5949:[2026-09-08 15:33:25] production.WARNING: FCM Sending notification {"trace_id":"5f30bc4ed76069286bac2498a0d9333c","correlation_id":"74292c85-e401-491b-ba7d-eade1ccf11d4","message_type":"topic"} 
+5950:[2026-09-08 15:33:26] production.WARNING: FCM Send Success {"trace_id":"5f30bc4ed76069286bac2498a0d9333c","correlation_id":"74292c85-e401-491b-ba7d-eade1ccf11d4","status":200,"order_id":"91215"} 
+5951:[2026-09-08 15:33:26] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"5f30bc4ed76069286bac2498a0d9333c","correlation_id":"74292c85-e401-491b-ba7d-eade1ccf11d4","cache_key":"fcm_oauth_access_token_nears-1d39b"} 
+5952:[2026-09-08 15:33:26] production.WARNING: FCM Sending notification {"trace_id":"5f30bc4ed76069286bac2498a0d9333c","correlation_id":"74292c85-e401-491b-ba7d-eade1ccf11d4","message_type":"token"} 
+5953:[2026-09-08 15:33:26] production.ERROR: FCM API Error {"trace_id":"5f30bc4ed76069286bac2498a0d9333c","correlation_id":"74292c85-e401-491b-ba7d-eade1ccf11d4","status":404,"reason":"Not Found","order_id":"91215"} 
+5954:[2026-09-08 15:33:26] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"5f30bc4ed76069286bac2498a0d9333c","correlation_id":"74292c85-e401-491b-ba7d-eade1ccf11d4","cache_key":"fcm_oauth_access_token_nears-1d39b"} 
+5955:[2026-09-08 15:33:26] production.WARNING: FCM Sending notification {"trace_id":"5f30bc4ed76069286bac2498a0d9333c","correlation_id":"74292c85-e401-491b-ba7d-eade1ccf11d4","message_type":"unknown"} 
+5956:[2026-09-08 15:33:26] production.ERROR: FCM API Error {"trace_id":"5f30bc4ed76069286bac2498a0d9333c","correlation_id":"74292c85-e401-491b-ba7d-eade1ccf11d4","status":400,"reason":"Bad Request","order_id":"91215"} 
+5957:[2026-09-08 15:33:26] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"5f30bc4ed76069286bac2498a0d9333c","correlation_id":"74292c85-e401-491b-ba7d-eade1ccf11d4","cache_key":"fcm_oauth_access_token_nears-1d39b"} 
+5958:[2026-09-08 15:33:26] production.WARNING: FCM Sending notification {"trace_id":"5f30bc4ed76069286bac2498a0d9333c","correlation_id":"74292c85-e401-491b-ba7d-eade1ccf11d4","message_type":"topic"} 
+5959:[2026-09-08 15:33:27] production.WARNING: FCM Send Success {"trace_id":"5f30bc4ed76069286bac2498a0d9333c","correlation_id":"74292c85-e401-491b-ba7d-eade1ccf11d4","status":200,"order_id":"91215"} 
+
+Not caused by NEARS-2994 — this trait's order-creation/is_buy_now code (PlaceNewOrder.php, everywhere except the sentOrderPlaceNotification tail) is untouched by this diff; the notification dispatch call itself just relocated unchanged.

@@ -1,0 +1,39 @@
+NEARS-2994 AC5 evidence — vendor/bin/phpunit --configuration phpunit.xml
+
+MONOLITHIC single-process run: FATAL after ~150/1906 tests —
+  "Fatal error: Maximum execution time of 180 seconds exceeded in
+  tests/Feature/SearchThrottlePolicyTest.php on line 62"
+Root cause traced: app/Http/Controllers/UpdateController.php line 10 —
+  ini_set('max_execution_time', 180) sits at FILE SCOPE (between `use`
+  statements), so it fires once that class is autoloaded anywhere in the
+  process and applies PROCESS-WIDE from that point on (PHP CLI default is
+  unlimited/0). Any single phpunit invocation whose cumulative wall time
+  after that autoload exceeds 180s will fatal, regardless of which test is
+  running when the clock runs out. Confirmed pre-existing and UNRELATED to
+  NEARS-2994 (git log -1 on that file: NEARS-3107, unrelated ticket;
+  NEARS-2994 never touches UpdateController.php). Filed as regression_bugs
+  (non-blocking) — see envelope.
+
+WORKAROUND (fresh PHP process per chunk resets the ini_set clock):
+  Unit suite:            169 tests  — OK (3971 assertions, 1 deprecation)
+  Feature chunk aa (58 files, incl. SearchThrottlePolicyTest, ConfigContractTest):
+                          326 tests — 1 FAILURE: ConfigContractTest::
+                          test_decimal_precision_is_two_not_whole_dirhams —
+                          self-documented in-test as "EXPECTED RED — the
+                          money defect, not a broken build" (NEARS-2019,
+                          already tracked, unrelated to this diff).
+  Feature chunk ab (58 files): 324 tests — OK (2302 assertions)
+  Feature chunk ac (58 files, incl. tests/Feature/Queue/
+    SendOrderPlaceNotificationJobTest.php — THIS TICKET'S OWN TEST):
+                          308 tests — OK (3215 assertions) — SearchThrottlePolicyTest
+                          passes cleanly in isolation (confirms the fatal was the
+                          180s-ceiling artifact, not a real failure in that test).
+  Feature chunk ad (58 files): 233 tests — OK (1174 assertions)
+  Feature chunk ae (58 files): 280 tests — OK (2034 assertions)
+  Feature chunk af (54 files): 266 tests — OK (1633 assertions, 1 skipped)
+
+TOTAL: 169 + 326+324+308+233+280+266 = 1906 tests — matches the fatal run's
+own reported denominator (1906), i.e. full coverage achieved via chunking.
+Net result: 0 failures attributable to NEARS-2994's diff. 1 pre-existing
+tracked failure (NEARS-2019). 1 skip (unexamined further, not diff-related —
+none of NEARS-2994's changed files are in chunk af).

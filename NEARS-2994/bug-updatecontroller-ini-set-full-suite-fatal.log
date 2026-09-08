@@ -1,0 +1,44 @@
+=== regression_bug: UpdateController.php file-scope ini_set('max_execution_time',180) ===
+Pre-existing, unrelated to NEARS-2994. sed -n '1,12p':
+<?php
+
+namespace App\Http\Controllers;
+
+
+use App\Models\Store;
+use App\Models\Setting;
+use App\Models\DataSetting;
+
+ini_set('max_execution_time', 180);
+
+use Illuminate\Support\Str;
+
+git log -1 (proves not touched by this ticket):
+40bce6065799cc48761ba809f631b9738046a53b 2026-09-06 20:08:40 +0400 wip(NEARS-3107): backend — purge vendor branding fallback literals + 500 error-page link
+
+Fatal excerpt from the monolithic full-suite run:
+  Maximum execution time of 180 seconds exceeded  
+                                                  
+
+
+In SearchThrottlePolicyTest.php line 62:
+                                                  
+  Maximum execution time of 180 seconds exceeded  
+                                                  
+
+
+Fatal error: Maximum execution time of 180 seconds exceeded in /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/tests/Feature/SearchThrottlePolicyTest.php on line 62
+Stack trace:
+#0 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/tests/Feature/SearchThrottlePolicyTest.php(153): Tests\Feature\SearchThrottlePolicyTest->hitTimes(80, 'api/v1/zone/lis...', '203.0.113.51')
+#1 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/vendor/phpunit/phpunit/src/Framework/TestCase.php(1667): Tests\Feature\SearchThrottlePolicyTest->test_v1_total_is_one_bucket_across_search_and_non_search()
+#2 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/vendor/phpunit/phpunit/src/Framework/TestCase.php(519): PHPUnit\Framework\TestCase->runTest()
+#3 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/vendor/phpunit/phpunit/src/Framework/TestRunner/TestRunner.php(87): PHPUnit\Framework\TestCase->runBare()
+#4 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/vendor/phpunit/phpunit/src/Framework/TestCase.php(365): PHPUnit\Framework\TestRunner->run(Object(Tests\Feature\SearchThrottlePolicyTest))
+#5 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/vendor/phpunit/phpunit/src/Framework/TestSuite.php(369): PHPUnit\Framework\TestCase->run()
+#6 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/vendor/phpunit/phpunit/src/Framework/TestSuite.php(369): PHPUnit\Framework\TestSuite->run()
+#7 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/vendor/phpunit/phpunit/src/Framework/TestSuite.php(369): PHPUnit\Framework\TestSuite->run()
+#8 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/vendor/phpunit/phpunit/src/TextUI/TestRunner.php(64): PHPUnit\Framework\TestSuite->run()
+#9 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/vendor/phpunit/phpunit/src/TextUI/Application.php(211): PHPUnit\TextUI\TestRunner->run(Object(PHPUnit\TextUI\Configuration\Configuration), Object(PHPUnit\Runner\ResultCache\DefaultResultCache), Object(PHPUnit\Framework\TestSuite))
+#10 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/vendor/phpunit/phpunit/phpunit(104): PHPUnit\TextUI\Application->run(Array)
+#11 /Users/Apple/Projects/nears-NEARS-2994-queue-sync-readiness/Admin/vendor/bin/phpunit(122): include('/Users/Apple/Pr...')
+#12 {main}
