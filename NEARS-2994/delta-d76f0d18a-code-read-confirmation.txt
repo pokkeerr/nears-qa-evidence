@@ -1,0 +1,37 @@
+=== OrderPlacementService.php:163-166 (single order, post-commit dispatch) ===
+            $order = $result['order'];
+
+            DB::commit();
+            $this->sentOrderPlaceNotification($request, $order, $store);
+            return response()->json([
+
+=== OrderPlacementService.php:1024-1039 (sentOrderPlaceNotification impl, dispatches job) ===
+    public function sentOrderPlaceNotification($request, $order, $store)
+    {
+        $payments = $order->payments()->where('payment_method', 'cash_on_delivery')->exists();
+        try {
+            if (!in_array($order->payment_method, ['digital_payment', 'partial_payment', 'offline_payment'])  || $payments) {
+                if ($store?->is_valid_subscription == 1 && $store?->store_sub?->max_order != "unlimited" && $store?->store_sub?->max_order > 0) {
+                    $store?->store_sub?->decrement('max_order', 1);
+                }
+
+                $email = $order->is_guest == 1 ? $request->contact_person_email : $request->user?->email;
+                $name = $order->is_guest == 1 ? $request->contact_person_name : $request->user?->f_name;
+
+                // NEARS-2994: push + mail are queued, decoupled from this already-committed order response.
+                dispatch(new SendOrderPlaceNotificationJob($order->id, $email, $name));
+            }
+        } catch (\Exception $exception) {
+
+=== PlaceGroupOrder.php:184-189 (group order fan-out, post-commit) ===
+            $group->save();
+
+            DB::commit();
+
+            foreach ($placedOrders as $po) {
+                $this->sentOrderPlaceNotification($po['request'], $po['order'], $po['store']);
+
+=== OrderController.php:85-87 (delegating shim: trait call -> service method) ===
+    private function sentOrderPlaceNotification($request, $order, $store)
+    {
+        return $this->orderPlacementService->sentOrderPlaceNotification($request, $order, $store);

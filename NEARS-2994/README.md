@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2994
 
-**PASS - order-place notification queue-sync readiness, live order-place demonstrated, phpunit chunked green (1906 tests, 0 new failures)**
+**Delta re-QA PASS at d76f0d18a (post-rebase, NEARS-3224 relocation confirmed structurally sound)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -12,6 +12,10 @@
 - [`ac6-deployment-doc-diff.txt`](ac6-deployment-doc-diff.txt)
 - [`ac8-unit-test-live-run.txt`](ac8-unit-test-live-run.txt)
 - [`bug-updatecontroller-ini-set-full-suite-fatal.log`](bug-updatecontroller-ini-set-full-suite-fatal.log)
+- [`delta-d76f0d18a-code-read-confirmation.txt`](delta-d76f0d18a-code-read-confirmation.txt)
+- [`delta-d76f0d18a-fcm-notification-log.txt`](delta-d76f0d18a-fcm-notification-log.txt)
+- [`delta-d76f0d18a-jobtest.txt`](delta-d76f0d18a-jobtest.txt)
+- [`delta-d76f0d18a-order-place-response.json`](delta-d76f0d18a-order-place-response.json)
 - [`followup-buynow-repeat-call-reuses-order-id.log`](followup-buynow-repeat-call-reuses-order-id.log)
 
 ---
