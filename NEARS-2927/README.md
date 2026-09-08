@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2927
 
-**PASS - stored XSS sanitize verified across vendor/admin write+bulk-import+non-default-locale, negative control clean**
+**PASS - stored XSS sanitize verified across vendor/admin write+bulk-import+non-default-locale, negative control clean; 3 pre-existing unrelated bugs flagged**
 
 **9 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -23,6 +23,8 @@
 </table>
 
 ### Other artifacts
+- [`ac7-regression-pos-order-quickview.log`](ac7-regression-pos-order-quickview.log)
+- [`ac8-client-static-check.log`](ac8-client-static-check.log)
 - [`bug-null-review-order-id-500.log`](bug-null-review-order-id-500.log)
 - [`bug-translations-shadow-stale-after-bulk-import.log`](bug-translations-shadow-stale-after-bulk-import.log)
 - [`bug-variation-min-zero-required-deadlock.log`](bug-variation-min-zero-required-deadlock.log)

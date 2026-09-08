@@ -1,0 +1,23 @@
+AC8 client spot-check (UserApp / VendorApp item detail) — verified STATICALLY, not via live
+device boot. Reason: this ticket is explicitly scoped as a WEB surface (Laravel Admin +
+Store/Vendor panel) per the QA brief itself ("not a Flutter app"); contract_impact: no is
+already established by the engineer (description stays a string, same shape); and booting a
+3rd platform + emulator + custom-baseUrl wiring purely to re-confirm an unchanged plain-text
+render call site was judged not worth the added device/time cost for a spot-check item, given
+strong existing coverage of the 6 core/security ACs. Marking UNVERIFIABLE (live) rather than a
+fabricated PASS; static evidence below is real and traceable.
+
+grep confirms both clients render `description` as plain text, never HTML:
+- UserApp/lib/common/widgets/item_bottom_sheet.dart:706-709
+    NText(
+      item.description!,
+      role: NTextRole.body,
+      variant: NVariant.secondary,
+    )
+- VendorApp/lib/features/store/screens/item_details_screen.dart:379
+    Text(item.description ?? '', style: robotoRegular),
+
+Neither app imports flutter_html / webview_flutter / any HTML-interpreting widget at this call
+site — grep for `Html(` / `WebView` near both lines returns zero hits. A raw `<img onerror=...>`
+or purified plain-text description would render identically (as literal characters), with zero
+script-execution risk either way.

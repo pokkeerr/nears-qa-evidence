@@ -1,0 +1,21 @@
+AC7 regression spot-check: sibling read sinks (POS quick-view + Order quick-view), item 91135.
+
+GET (AJAX) admin/pos/quick-view?product_id=91135 -> 200, JSON {"success":1,"view":"<html>..."}
+  - "pwned" NOT found in rendered view HTML.
+  - "onerror" substring found ONLY inside the pre-existing broken-image-fallback markup
+    (class="onerror-image" / data-onerror-image="..." — a CSS class + data attribute pattern
+    used for image load-failure handling, NOT an executable onerror= event attribute). No
+    <img ...onerror=...> event handler present.
+  - Description block rendered cleanly as plain text inside
+    <span class="d-block text-dark text-break"> ... </span> (admin-views/pos/_quick-view-data.blade.php,
+    wrapped by Helpers::purify_description() per the ticket's blast-radius list).
+
+GET (AJAX) admin/order/quick-view?product_id=91135&order_id=1 -> 200, JSON {"success":1,"view":"<html>..."}
+  - Same result: no "pwned", "onerror" only in the same fallback-image markup, description
+    rendered as safe plain text inside the Description panel
+    (admin-views/order/partials/_quick-view.blade.php).
+
+Note (see bug-translations-shadow-stale-after-bulk-import.log): both sinks displayed the
+description value as of the LAST form-edit ("Admin write probe."), not the more recent
+bulk-import value ("Admin bulk import test.") — a pre-existing translations-shadow staleness
+quirk, unrelated to sanitization; both values were independently confirmed sanitized.
