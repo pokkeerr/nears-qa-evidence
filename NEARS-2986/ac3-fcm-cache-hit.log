@@ -1,0 +1,30 @@
+# AC3 — FCM OAuth token caching, positive-control log evidence (NEARS-1856 (c))
+
+Step 1: cleared cache (`php artisan cache:clear`) — confirmed `cache` table has 0 rows for
+key LIKE '%fcm%'.
+
+Step 2: placed order 91225 (store 2, qty2 item6). Cache was cold at the START of this order's
+notification fan-out; ended warm — a real Google OAuth2 access token now sits in the `cache` table:
+```
+key: laravel_cachefcm_oauth_access_token_nears-1d39b
+value (prefix): s:1024:"ya29.c.c0AZ4bNpYyFZkn1...   <- real Google OAuth2 token shape, 1024 chars
+expiration: 1788846343  (~50 min out, matches the ticket's Cache::put(...,'50 minutes'))
+```
+
+Step 3: within that SAME order's multi-recipient push fan-out, and on the immediately-following
+order (91226), every subsequent push hit the warm cache — laravel.log:
+```
+[2026-09-08 09:09:01] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"5603fa4c3506064c7a08e30705a24165","correlation_id":"9e013196-1fff-480a-808e-dd1152f192a6","cache_key":"fcm_oauth_access_token_nears-1d39b"}
+[2026-09-08 09:09:01] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"5603fa4c3506064c7a08e30705a24165","correlation_id":"9e013196-1fff-480a-808e-dd1152f192a6","cache_key":"fcm_oauth_access_token_nears-1d39b"}
+[2026-09-08 09:09:22] production.WARNING: FCM Sending notification {"trace_id":"8e0b1539467c2593f940ed2b4c04230f","correlation_id":"aba009a2-6721-408b-a3f8-69648a67f634","message_type":"token"}
+[2026-09-08 09:09:22] production.ERROR: FCM API Error {"trace_id":"8e0b1539467c2593f940ed2b4c04230f","correlation_id":"aba009a2-6721-408b-a3f8-69648a67f634","status":404,"reason":"Not Found","order_id":"91226"}
+[2026-09-08 09:09:22] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"8e0b1539467c2593f940ed2b4c04230f","correlation_id":"aba009a2-6721-408b-a3f8-69648a67f634","cache_key":"fcm_oauth_access_token_nears-1d39b"}
+[2026-09-08 09:09:23] production.WARNING: FCM Send Success {"trace_id":"8e0b1539467c2593f940ed2b4c04230f","correlation_id":"aba009a2-6721-408b-a3f8-69648a67f634","status":200,"order_id":"91226"}
+```
+
+Positive control confirmed: cache-hit log line carries `cache_key` ONLY, no token value, on every
+occurrence (grepped 806 occurrences across the log, none carry a token). `FCM API Error 404` on the
+"token" push is a dummy/no-registration-token artifact of this QA sandbox account, unrelated to this
+diff (push CONTENT/payload code is untouched by the NEARS-2986 diff — only getAccessToken()'s
+internals gained a cache layer); "topic" push and the next order's pushes succeed 200 with the same
+cache-hit line.

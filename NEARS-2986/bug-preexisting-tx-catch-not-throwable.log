@@ -1,0 +1,17 @@
+# Pre-existing finding (NOT introduced by NEARS-2986; regression_bugs lane, non-blocking)
+
+Admin/app/Traits/PlaceNewOrder.php, new_place_order(), unchanged by this diff (confirmed via
+`git diff abf27ae29 HEAD -- Admin/app/Traits/PlaceNewOrder.php` — this hunk does not appear):
+
+    } catch (\Exception $exception) {
+        info([$exception->getFile(), $exception->getLine(), $exception->getMessage()]);
+        DB::rollBack();
+        return response()->json(['errors' => [['code' => 'order', 'message' => translate('messages.failed_to_place_order')]]], 403);
+    }
+
+Matches active review-lessons.json rule `tx-guard-catch-exception-not-throwable` [low]:
+a DB::beginTransaction()/lockForUpdate() guard must catch \Throwable, not \Exception — a PHP
+\Error (TypeError, null method-call, DivisionByZeroError) thrown between beginTransaction() and
+commit() escapes catch(\Exception), so DB::rollBack() is skipped and the transaction (plus this
+flow's coupon-row FOR UPDATE lock) stays open on the connection. Pre-existing before this ticket;
+flagged here since QA's own coverage of this exact transaction body surfaced it directly.
