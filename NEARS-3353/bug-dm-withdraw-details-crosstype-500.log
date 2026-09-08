@@ -1,0 +1,73 @@
+NEARS-3353 QA finding — admin.transactions.delivery-man.getWithdrawDetails still 500s on a
+real (cross-type) seeded row.
+
+Route: admin.transactions.delivery-man.getWithdrawDetails
+Controller: Admin/app/Http/Controllers/Admin/DeliveryMan/DeliveryManController.php:747
+Guard added by this ticket (verified in tree):
+    public function getWithdrawDetails(Request $request)
+    {
+        $withdraw = WithdrawRequest::with(['deliveryman'])->where(['id' => $request->withdraw_id])->first();
+        if (!$withdraw) {
+            abort(404); // NEARS-3353: missing/invalid withdraw_id — degrade instead of null-deref in the partial
+        }
+        return response()->json([
+            'view' => view('admin-views.wallet.dm-partials._side_view', compact('withdraw'))->render(),
+        ]);
+    }
+
+Root cause: `withdraw_requests` is a SHARED table for both vendor and delivery-man
+withdrawals (vendor_id set + delivery_man_id null == vendor row; delivery_man_id set +
+vendor_id null == delivery-man row). The guard only checks "row exists" — it never checks
+that the found row is actually a delivery-man-type row (delivery_man_id IS NOT NULL) before
+eager-loading `deliveryman` and rendering the delivery-man-only partial, which unconditionally
+dereferences `$withdraw->deliveryman->f_name` (dm-partials/_side_view.blade.php:33) with no
+null-guard of its own.
+
+Live repro (worktree's own `php artisan serve --port=8353`, real dev DB `multi_food_db`,
+authenticated as super-admin admin@admin.com):
+
+Dev-DB fixture used (read-only SELECT, no seeding needed — this is the ONLY data in
+withdraw_requests):
+    mysql> SELECT id, vendor_id, delivery_man_id FROM withdraw_requests;
+    id  vendor_id  delivery_man_id
+    1   26         NULL
+    2   1          NULL
+  (both rows are vendor-type; no delivery-man-type row exists in this dev DB, but the
+  controller has no type filter, so any GET with an existing WithdrawRequest id — regardless
+  of type — is a reachable input.)
+
+Request:
+    GET /admin/transactions/delivery-man/get-Withdraw-Details?withdraw_id=1
+
+Response:
+    HTTP/1.1 500 Internal Server Error
+    X-Request-Id: afa87d22-7896-47d3-ab40-377b2bbcce5f
+
+storage/logs/laravel.log (matching X-Request-Id == correlation_id, confirms correlation join):
+    [2026-09-08 04:06:38] production.ERROR: [FAIL] Attempt to read property "f_name" on null
+    (View: .../resources/views/admin-views/wallet/dm-partials/_side_view.blade.php)
+    {"trace_id":"e9dc7f1f6c59eb0cabd282e502d2eb84",
+     "correlation_id":"afa87d22-7896-47d3-ab40-377b2bbcce5f",
+     "type":"Illuminate\\View\\ViewException",
+     "endpoint":"/admin/transactions/delivery-man/get-Withdraw-Details"}
+
+Reproduced twice (first occurrence crashed the single-worker `artisan serve` process
+entirely via an unrelated mpdf shutdown-time hang stacked behind it; re-verified cleanly
+after restarting the server — second occurrence above, clean isolated repro, server stayed
+up).
+
+Symmetric risk (code-inspection only, not live-reproduced — no delivery-man-type
+withdraw_requests row exists in this dev DB to feed the mirror case): VendorController's
+sibling `getWithdrawDetails` (admin.transactions.store.getWithdrawDetails, VendorController.php:1100)
+has the IDENTICAL guard shape (`if (!$withdraw) abort(404);` with no type check) and its own
+partial `admin-views/wallet/partials/_side_view.blade.php:34,38,46,60,64,68` unconditionally
+dereferences `$withdraw->vendor->...` the same way — a delivery-man-type id fed to the STORE
+endpoint would be expected to 500 identically, by the same root cause.
+
+Verdict impact: breaks AC for Category-D item #28 (admin.transactions.delivery-man.getWithdrawDetails
+— "never a 500, missing id -> 404/redirect"). A 404-only guard does not cover this route's full
+input space; a same-table cross-type id is real production-day input this route accepts.
+
+Suggested fix shape (not applied — QA is read-only): guard on the type-specific column too,
+e.g. `if (!$withdraw || !$withdraw->delivery_man_id) { abort(404); }` (and the VendorController
+mirror: `if (!$withdraw || !$withdraw->vendor_id) { abort(404); }`).
