@@ -1,0 +1,33 @@
+== qa-reconnect.test.sh (NEARS-3402) ==
+-- case 0: FIXTURE VALIDITY — the tree is a real git repo, the subject is executable, the gradle fixture parses
+  ok   0: $TREE is a real, resolvable git work tree
+  ok   0: the fixture carries an executable copy of the shipped script
+  ok   0: the gradle fixture parses to the expected static applicationId
+  ok   0: the worktree-slug cross-check produced a non-blank suffix (nears_qa_fix)
+-- case 2: DEFECT PIN — the PRE-FIX derivation+check, executed, misreports a suffixed install as already wiped
+  ok   2: the pre-fix form exits 1 on a genuinely-installed (but suffixed) app — the defect, executable (exit 1)
+  ok   2: …naming the BARE static id (never the suffixed one it never looked for)
+  ok   2 (POSITIVE CONTROL): …and it is the SAME wording qa-reconnect.sh uses for a genuine wipe — this fixture cannot be told apart from a real one by an operator reading the message, which is exactly the bug
+  ok   2: the suffixed id that IS installed is never even named
+-- case 3: THE FIX — the shipped script derives the suffix itself (NEARS_PKG_SUFFIX unset) and finds the suffixed install
+  ok   3: the fixed script proceeds to attach instead of refusing (exit 0)
+  ok   3 (THE POINT): it resolved and reported the SUFFIXED id, not the bare static one
+  ok   3: the exec chain actually reached the (fake) flutter binary
+  ok   3: …and passed the SUFFIXED id as --app-id, matching what is actually installed
+  ok   3 (REGRESSION GUARD): the false 'already wiped' verdict is gone
+  ok   3 (POSITIVE CONTROL): qa_lock_check genuinely ran (marker written) — the free verdict was not skipped
+-- case 4: PRECEDENCE — an already-exported NEARS_PKG_SUFFIX is honored VERBATIM, not overridden by the worktree derivation
+  ok   4: an exported NEARS_PKG_SUFFIX is used as-is (exit 0)
+  ok   4: the effective app-id used the EXPORTED suffix
+  ok   4 (NEGATIVE CONTROL): …not the worktree-derived one, which was not even asked for here
+-- case 5: GATING — VendorApp (no applicationIdSuffix wiring) is NEVER suffix-scoped, even with NEARS_PKG_SUFFIX exported
+  ok   5: VendorApp attaches on its bare (unsuffixed) id (exit 0)
+  ok   5 (REGRESSION GUARD): gradle only wires applicationIdSuffix for UserApp's debug build — VendorApp's app-id is untouched by a stray NEARS_PKG_SUFFIX export
+  ok   5: …never suffix-scoped, not even to the exported value
+-- case 6: NO REGRESSION — a genuine wipe (NEITHER bare nor suffixed id installed) is still correctly refused
+  ok   6: a real wipe is still refused (exit 1)
+  ok   6: …and now names the id it ACTUALLY checked (the suffixed one), not the bare id that was never the real answer
+  ok   6: the operator-facing wording is unchanged for a genuine wipe
+
+-- result: PASS
+-- validity: 23 assertion(s) made across 6 case(s); 0 failed
