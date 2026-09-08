@@ -1,0 +1,16 @@
+AC1 - Unauthenticated GET admin/get-all-zone-coordinates/2 (dedicated QA DB, port 8236):
+HTTP:302 REDIRECT:http://127.0.0.1:8236/
+(no JSON body; meta-refresh HTML redirect page only)
+
+AC2 - Authenticated as zone1.manager@nears.test (role_id=3, admin_roles.modules=["item","store","order","category"] — NO "zone"):
+GET admin/get-all-zone-coordinates/2 -> HTTP:302 REDIRECT:http://127.0.0.1:8236/login/admin
+(ModulePermissionMiddleware:zone denied -> Toastr::error + back(); session itself still valid, confirmed via GET /admin -> HTTP 200 Dashboard)
+
+AC3 - Authenticated as admin@admin.com (role_id=1, master admin, module:zone implied true):
+GET admin/get-all-zone-coordinates/2 -> HTTP:200
+Body: [[{"lat":24.35,"lng":54.3},{"lat":24.35,"lng":54.55},{"lat":24.55,"lng":54.55},{"lat":24.55,"lng":54.3},{"lat":24.35,"lng":54.3}]]
+
+Regression guard - 3 public routes, unauthenticated (no cookies at all):
+GET admin/zone/get-coordinates/2      -> HTTP:200 {"coordinates":[...],"center":{...}}
+GET admin/zone/get-zone?lat=..&lng=.. -> HTTP:200 {"id":2,"name":"Abu Dhabi Zone",...}
+GET admin/zone/check-location?lat=..&lng=.. -> HTTP:200 {"errors":[{"code":"validation",...}]}  (200 = route reachable; validation-shaped body is expected app behavior for coords outside zone, not an auth block)

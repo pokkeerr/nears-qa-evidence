@@ -1,0 +1,20 @@
+AC4 - zone/index.blade.php and zone/edit.blade.php, authenticated as admin@admin.com (module:zone),
+real Chromium (Playwright) session, live console + network capture:
+
+=== zone/index (http://127.0.0.1:8236/admin/business-settings/zone) ===
+zoneCoordinates network: 200 http://127.0.0.1:8236/admin/get-all-zone-coordinates   <- renamed route, resolves + 200
+console: 1 unhandled-promise error present:
+  "Unhandled promise rejection Error: The DrawingManager functionality in the Maps JavaScript
+   API is no longer available in the Maps JavaScript API as of version 3.65. ..."
+  -> PRE-EXISTING / UNRELATED: Google Maps JS SDK v3.65 deprecation of google.maps.drawing.DrawingManager,
+     thrown from initialize() in the page's own inline script, zero overlap with this ticket's diff
+     (routes.php + 2 blade route() calls + allowlist file only). Filed as regression_bugs (non-blocking).
+  (other console lines are benign dev-mode warnings: web-share feature flag, Firebase JS SDK dev-build
+  notice, Maps loading=async perf hint, WebGL GPU-stall perf notices — none reference zone-coordinates.)
+
+=== zone/edit (http://127.0.0.1:8236/admin/business-settings/zone/edit/2) ===
+zoneCoordinates network: 200 http://127.0.0.1:8236/admin/get-all-zone-coordinates/2   <- renamed route, resolves + 200
+console: clean of errors (only benign warnings: web-share, Firebase dev-build notice, Maps
+loading=async perf hint, deprecated-but-functional addDomListener notice)
+
+Screenshot: ac4-zone-index-map.png (zone/index page render, light mode)

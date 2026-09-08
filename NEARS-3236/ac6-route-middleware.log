@@ -1,0 +1,13 @@
+AC6 - php artisan route:list --path=admin --json (live, post-fix), filtered to the 4 zone routes:
+
+GET|HEAD admin/get-all-zone-coordinates/{id?} | admin.zone.zoneCoordinates | ['web', 'App\Http\Middleware\AdminMiddleware', 'App\Http\Middleware\CurrentModule', 'App\Http\Middleware\ActivationCheckMiddleware:admin_panel', 'App\Http\Middleware\ModulePermissionMiddleware:zone']
+GET|HEAD admin/zone/check-location     | public.zone.check-location  | ['web']
+GET|HEAD admin/zone/get-coordinates/{id} | public.zone.get-coordinates | ['web']
+GET|HEAD admin/zone/get-zone            | public.zone.get-zone        | ['web']
+
+git diff 3faf9f73c..HEAD -- Admin/routes/admin/routes.php confirms structurally: the ONLY
+route.php change is (a) removal of the unguarded `zone.zoneCoordinates` line from the
+`public.` group, (b) re-insertion of the same route inside the `admin.` group's inner
+`['admin','current-module','actch:admin_panel']` middleware block with `->middleware(['module:zone'])`
+appended. No other route definition in the file was touched (full file diff reviewed).
+routes 1-3 (public.zone.*) are byte-identical to base commit.
