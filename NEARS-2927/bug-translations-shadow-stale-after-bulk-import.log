@@ -1,0 +1,31 @@
+Pre-existing product-behavior gap (NOT introduced by NEARS-2927; add_or_update_translations()
+is untouched by this ticket's diff — confirmed via
+`git diff development...HEAD -- Admin/app/CentralLogics/Helpers.php | grep add_or_update_translations`
+returning zero hits). Not a security defect: every value observed on every path below is fully
+sanitized. Flagging because it could confuse an admin auditing "is this really neutralized" if
+they don't know the visible page can lag the DB.
+
+Mechanism:
+- Item/TempProduct use HasTranslations -> TranslateScope, which eager-loads `translations`
+  filtered to app()->getLocale() (default 'en') and an accessor prefers that translation's
+  value over the base items.description column whenever a matching row exists.
+- The vendor/admin item-edit form-write path calls Helpers::add_or_update_translations(...,
+  data_value: $model->description) for the 'name'/'description' keys, which (re)writes the
+  'en' translations row to match whatever was just saved to the base column.
+- The bulk-import write path (Vendor/ItemController::bulk_import_data() and its Admin twin) NEVER
+  calls add_or_update_translations() at all -- it writes items.description directly via
+  DB::table('items')->insertGetId()/raw update, bypassing the translations table entirely.
+
+Observed live on item 91135 (QA-2927 Primary Probe Item, store 4):
+  1. Vendor form-edit set description = "Admin write probe." -> items.description AND the
+     translations('en','description') row both = "Admin write probe."
+  2. Admin bulk-import (Update Existing Data) then set description = "Admin bulk import test."
+     -> items.description correctly updated to "Admin bulk import test." (verified via
+     `SELECT description FROM items WHERE id=91135`), sanitized as expected.
+  3. GET admin/pos/quick-view?product_id=91135 and admin/order/quick-view?product_id=91135
+     (both TranslateScope-active reads) still rendered "Admin write probe." -- the STALE
+     translations('en') row from step 1, not the true current items.description from step 2.
+
+Impact: cosmetic/data-consistency only -- any content reaching these sinks via either path is
+independently sanitized by this ticket's fix, so there is no XSS regression. Filed as a
+non-blocking follow-up since it's orthogonal to NEARS-2927's scope.

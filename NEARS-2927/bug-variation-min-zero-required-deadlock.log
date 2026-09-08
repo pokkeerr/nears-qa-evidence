@@ -1,0 +1,29 @@
+Pre-existing bug (NOT introduced by NEARS-2927; confirmed via `git diff development...HEAD` —
+Admin/resources/views/admin-views/product/partials/_new_variations.blade.php has ZERO changes
+in this ticket's diff).
+
+Repro: vendor-panel/item/edit/{id} for an item whose food_variations includes a `type: "multi"`
+option group with `min: 0` cannot be saved via the normal panel UI.
+
+Root cause (admin-views/product/partials/_new_variations.blade.php):
+  <input id="min_max1_{{ $key }}" {{ $item['type'] == 'single' ? 'readonly ' : 'required' }}
+      value="{{ ($item['min'] != 0) ? $item['min']:''  }}" name="options[{{ $key }}][min]" ...>
+When type='multi' the field is `required`, but the value is deliberately rendered as an EMPTY
+STRING whenever the item's own saved min is 0 (the `!= 0 ? ... : ''` ternary). Client-side
+FormValidation.validateInput() (public/assets/admin/js/view-pages/common.js:1181) then blocks
+submission with "This field is required." on a field the page itself blanked out — a
+self-inflicted deadlock: the item's own stored data makes it un-editable until the vendor
+notices and manually re-types the Min value.
+
+Observed live: item 16 "Classic Cheeseburger" (store 4, john.smith@demo.com) has food_variations
+= [{"name":"Size","type":"single","min":0,...},{"name":"Toppings","type":"multi","min":0,"max":5,...}].
+Filling only the Description field and clicking Update silently fails (AJAX POST never fires /
+form stays on the edit page) because options[2][min] (the Toppings group's Min field) is blank
++required. Confirmed via a live DOM probe: the field IS visible (real bounding rect, not a
+hidden template row) inside #add_new_option, so the blank-required combination is hit on every
+normal edit of this item, not just automation.
+
+Impact: blocks vendors from saving ANY edit (including this ticket's own sanitize fix) to items
+whose food-variation option groups have min=0 + type=multi, via the primary panel edit form.
+Worked around during this QA run by testing the sanitize fix on items without this
+pre-existing food_variations shape (17, then a freshly-created item 91135).

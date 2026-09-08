@@ -1,0 +1,18 @@
+Pre-existing bug (NOT introduced by NEARS-2927; confirmed via `git diff development...HEAD -- Admin/resources/views/admin-views/product/view.blade.php` showing only the 1-line purify_description() wrap).
+
+Repro: GET admin/item/view/{id} 500s whenever the item has ANY review row with order_id IS NULL,
+because admin-views/product/view.blade.php:484 builds
+  route('admin.order.details', ['id' => $review->order_id])
+and Laravel's route() throws when a required route param is null.
+
+Observed on the QA clone DB (multi_food_db_qa2927, dumped from the live shared dev DB
+multi_food_db on 2026-09-08): 71/77 seeded `reviews` rows have order_id IS NULL, covering 63
+distinct items (e.g. items 16-21, 115-123 for store 4 "Burger Palace"; items 22-26,124-128 for
+store 5 "Pizza Palace"). Every one of those items' admin/item/view page 500s.
+
+Laravel log excerpt (Admin/storage/logs/laravel.log):
+[2026-09-08 09:56:41] production.ERROR: [FAIL] Missing required parameter for [Route: admin.order.details] [URI: admin/order/details/{id}] [Missing parameter: id]. (View: /Users/Apple/Projects/nears-NEARS-2927-item-desc-sanitize/Admin/resources/views/admin-views/product/view.blade.php) {"correlation_id":"0d59e903-f255-4053-9ac3-0362ee21c6fd","type":"Illuminate\\View\\ViewException","endpoint":"/admin/item/view/17"}
+
+Impact: blocks the admin from viewing (and therefore moderating) the majority of realistic
+seeded items via the exact endpoint this ticket's own AC names (admin/item/view/{id}). Worked
+around during this QA run by using a freshly-created review-free item (id 91135) instead.
