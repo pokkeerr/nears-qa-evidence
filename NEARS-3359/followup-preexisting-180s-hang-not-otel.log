@@ -1,0 +1,45 @@
+NEARS-3359 QA — pre-existing unrelated 180s hang, confirmed NOT OTel/ioreg-driven.
+Full combined Unit+Feature run and standalone Feature run both hit this;
+call sites: (1) Nwidart\Modules\ModuleManifest::getModulesData() glob(), (2) App\Http\Middleware\ModuleCheckMiddleware (matches ticket-cited pre-existing followup).
+No 'ioreg' string in either log (grep -c = 0), confirming zero correlation with the OTel Host resource detector caveat.
+
+=== Attempt 1 (full combined Unit,Feature suite) — crashed at 48% (915/1879), exit 255 ===
+5446:Fatal error: Maximum execution time of 180 seconds exceeded in /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php on line 575
+5447-Stack trace:
+5448-#0 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(575): glob('/Users/Apple/Pr...', 0)
+5449-#1 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/nwidart/laravel-modules/src/ModuleManifest.php(99): Illuminate\Filesystem\Filesystem->glob('/Users/Apple/Pr...')
+5450-#2 [internal function]: Nwidart\Modules\ModuleManifest->{closure:Nwidart\Modules\ModuleManifest::getModulesData():98}('/Users/Apple/Pr...', 0)
+5451-#3 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/laravel/framework/src/Illuminate/Collections/Arr.php(841): array_map(Object(Closure), Array, Array)
+5452-#4 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/laravel/framework/src/Illuminate/Collections/Collection.php(829): Illuminate\Support\Arr::map(Array, Object(Closure))
+5453-#5 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/laravel/framework/src/Illuminate/Collections/Traits/EnumeratesValues.php(466): Illuminate\Support\Collection->map(Object(Closure))
+5454-#6 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/nwidart/laravel-modules/src/ModuleManifest.php(98): Illuminate\Support\Collection->flatMap(Object(Closure))
+5455-#7 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/nwidart/laravel-modules/src/ModuleManifest.php(69): Nwidart\Modules\ModuleManifest->getModulesData()
+5456-#8 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/nwidart/laravel-modules/src/ModuleManifest.php(61): Nwidart\Modules\ModuleManifest->build()
+5457-#9 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/nwidart/laravel-modules/src/ModulesServiceProvider.php(32): Nwidart\Modules\ModuleManifest->getProviders()
+5458-#10 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/nwidart/laravel-modules/src/LaravelModulesServiceProvider.php(51): Nwidart\Modules\ModulesServiceProvider->registerModules()
+
+=== Attempt 2 (Feature suite alone) — crashed at 46% (793/1710), exit non-zero ===
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_3359_otel_phpunit_inert
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.5.6
+Configuration: /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/phpunit.xml
+
+.
+NEARS-3207 admin route smoke sweep: total=409 executed=361 skipped_action=15 skipped_param=33 status_distribution={"200":296,"302":16,"404":49}
+............................................................   61 / 1710 (  3%)
+.............................................................  122 / 1710 (  7%)
+...................................................F.........  183 / 1710 ( 10%)
+.............................................................  244 / 1710 ( 14%)
+.............................................................  305 / 1710 ( 17%)
+.............................................................  366 / 1710 ( 21%)
+.............................................................  427 / 1710 ( 24%)
+.............................................................  488 / 1710 ( 28%)
+.............................................................  549 / 1710 ( 32%)
+.............................................................  610 / 1710 ( 35%)
+.............................................................  671 / 1710 ( 39%)
+.............................................................  732 / 1710 ( 42%)
+5018:Fatal error: Maximum execution time of 180 seconds exceeded in /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/laravel/framework/src/Illuminate/Database/Connection.php on line 425
+5019-Stack trace:
+5020-#0 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/laravel/framework/src/Illuminate/Database/Connection.php(425): PDOStatement->execute()
+5021-#1 /Users/Apple/Projects/nears-NEARS-3359-otel-phpunit-inert/Admin/vendor/laravel/framework/src/Illuminate/Database/Connection.php(827): Illuminate\Database\Connection->{closure:Illuminate\Database\Connection::select():411}('select * from `...', Array)
