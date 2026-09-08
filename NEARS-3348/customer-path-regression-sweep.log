@@ -1,0 +1,11 @@
+Regression sweep: customer place-order path (NEARS-2920, buildForCustomer) -- confirmed UNTOUCHED
+by this diff (git diff base..HEAD -- Admin/app/Services/Order/OrderDetailBuilder.php shows only
+buildForPos/buildForEdit hunks changed). Quick smoke via the real v1 customer API against the
+isolated clone DB:
+
+POST /api/v1/auth/login {email_or_phone: customer@nears.com, password: 123456789, login_type:
+    manual, field_type: email} -> 200, token issued (user_id=6)
+POST /api/v1/customer/cart/add (Authorization: Bearer <token>, zoneId: [1])
+    {item_id:16, model:Item, price:8.99, quantity:1, add_on_ids:[1], add_on_qtys:[1]}
+    -> 200, cart row id=795 created with add_on_ids=[1], add_on_qtys=[1], item.addons[0].isChecked=true
+VERDICT: clean, no regression -- a normal same-store add-on cart-add still succeeds.

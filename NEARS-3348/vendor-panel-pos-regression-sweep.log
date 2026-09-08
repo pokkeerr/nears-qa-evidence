@@ -1,0 +1,9 @@
+Regression sweep: Vendor Store Panel POS, no add-ons, end-to-end.
+Login: john.smith@demo.com (store 4 owner) via /login/vendor.
+POST /vendor-panel/pos/add-to-cart {id:16, quantity:1} -> 200 clean JSON
+POST /vendor-panel/pos/order {user_id:1, type:cash_on_delivery} -> 200
+DB proof: orders.id=100136 user_id=1 store_id=4 order_amount=9.44 order_status=delivered
+VERDICT: clean, no regression. (Vendor\POSController::place_order calls the SAME
+OrderDetailBuilder::build()/PosOrderContext as Admin\POSController -- identical code path already
+verified above -- AND correctly checks status_code===403 before indexing, unlike the Admin
+edit-order callers.)

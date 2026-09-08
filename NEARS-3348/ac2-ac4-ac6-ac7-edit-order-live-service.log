@@ -1,0 +1,51 @@
+Setup: same isolated clone (multi_food_db_qa3348) + dedicated backend (port 8030).
+
+DISCOVERY (live, via the real HTTP flow first): the Admin edit-order surface has TWO pre-existing,
+already-tracked, OUT-OF-SCOPE caller bugs (explicitly anticipated in this ticket's own "Scope
+(out/limits)" section) that prevent the literal HTTP response from ever showing a clean 403 for
+this surface, regardless of this ticket's diff:
+  1. OrderController::add_to_cart() calls OrderTaxService::setOrderEditCalculatedTax() (which DOES
+     correctly check status_code===403 and build a clean JSON 403) but DISCARDS its return value --
+     add-to-cart(edit) always returns 200 {"data":0} even for a malformed cart line.
+  2. OrderController::update() calls $this->orderDetailBuilder->build(...) then immediately loops
+     `foreach ($order_details['order_details'] as ...)` BEFORE its own `status_code===403` check a
+     few lines below (== the exact NEARS-3405 bug this ticket's brief names). Live repro below:
+
+  POST /admin/order/add-to-cart {item_type:item, id:16, order_id:91222, quantity:-1} -> 200 {"data":0}
+  GET  /admin/order/update/91222 -> 500
+  laravel.log: [2026-09-08 20:01:59] production.ERROR: [FAIL] Undefined array key "order_details"
+      {"type":"ErrorException","endpoint":"/admin/order/update/91222"}
+  -- this IS proof the guard fired: buildForEdit's 403 return shape has no 'order_details' key,
+     which is the ONLY way that access throws. Confirms this ticket's diff functioned correctly
+     even though the pre-existing NEARS-3405 caller bug then turns the clean 403 into a 500 before
+     the client sees it. NOT a regression from this diff -- already tracked, already scoped out.
+
+Given both real HTTP callers of buildForEdit() have this pre-existing gap, verified the BUILDER
+function itself directly and live -- same running app container, same real DB (multi_food_db_qa3348),
+real Eloquent queries (Store::find, Item::with('module')->active()->find, AddOn::whereIn()->where
+('store_id',...)->get()) -- via a one-off bootstrapped PHP script (not phpunit, not a mock):
+
+  $store = Store::find(4); $builder = app(OrderDetailBuilder::class);
+  $ctx = new EditOrderContext(null, $store);
+  $builder->build(collect([$cartLine]), $ctx);
+
+=== AC2 Admin edit-order quantity=-1 (regression) ===
+cart line {item_id:16, quantity:-1, add_ons:[], add_on_qtys:[]}
+RESULT: status_code=403 code=quantity
+VERDICT: PASS (regression confirmed)
+
+=== AC4 Admin edit-order add-on qty=-1 (NEW) ===
+cart line {item_id:16, quantity:1, add_ons:[1], add_on_qtys:[-1]}
+RESULT: status_code=403 code=addon
+VERDICT: PASS
+
+=== AC6 Admin edit-order cross-store add-on (NEW) ===
+cart line {item_id:16 (store4), quantity:1, add_ons:[5] (store5), add_on_qtys:[1]}
+RESULT: status_code=403 code=addon
+VERDICT: PASS
+
+=== AC7 Admin edit-order happy path ===
+cart line {item_id:16, quantity:1, add_ons:[1] (store4, same store), add_on_qtys:[1]}
+RESULT: success (no status_code/code key) -- total_addon_price=1.5, product_price=8.99,
+        order_details[0].add_ons=[{"id":1,"name":"Extra Cheese","price":1.5,"quantity":1,...}]
+VERDICT: PASS -- guard does not regress a legitimate same-store positive-qty request.

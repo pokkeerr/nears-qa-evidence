@@ -1,0 +1,11 @@
+Additional QA point: a non-array add_ons/add_on_qtys scalar input must degrade to a clean 403,
+never a raw TypeError/500. Not producible through any live HTTP caller (the browser/AJAX layer
+always builds add_ons/add_on_qtys as PHP arrays by construction), so verified directly against
+buildForPos() live via the same bootstrapped-script technique against the real app+DB:
+
+add_ons='not-an-array' (scalar string), add_on_qtys=[1]  -> status_code=403 code=addon
+add_ons=[1], add_on_qtys='not-an-array' (scalar string)  -> status_code=403 code=addon
+add_ons/add_on_qtys both absent (no addons at all)        -> success (happy path, no addons)
+
+VERDICT: PASS -- the is_array(...) ? ... : [] defensive cast in buildForPos degrades cleanly to a
+403 addon rejection for a scalar, never a raw exception.

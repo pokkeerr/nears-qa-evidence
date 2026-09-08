@@ -1,0 +1,33 @@
+Setup: isolated DB clone multi_food_db_qa3348 (mysqldump'd from multi_food_db, never touched shared dev DB),
+dedicated `php artisan serve --host=127.0.0.1 --port=8030` for THIS worktree, authenticated via
+Playwright (persistent context) as admin@admin.com against the real running backend + real MySQL.
+Item 16 "Classic Cheeseburger" (store 4, Burger Palace). Add-on 1 "Extra Cheese" (store 4). Add-on 5
+"Extra Mozzarella" (store 5, Pizza Heaven) used as the cross-store probe.
+
+=== AC1 POS quantity=-1 (regression, NEARS-3224 AC6, confirm no regression) ===
+POST /admin/pos/add-to-cart {id:16, quantity:-1}  -> 500 (PRE-EXISTING NEARS-3404 caller crash in
+    OrderTaxService::setPosCalculatedTax(), missing status_code===403 check before indexing the
+    builder's return array -- confirmed via laravel.log: "[FAIL] Undefined array key total_addon_price").
+    Session cart IS still persisted (Laravel session save happens on request terminate regardless).
+POST /admin/pos/order (place_order) -> 403 {"errors":[{"code":"quantity","message":"Invalid item quantity"}]}
+VERDICT: PASS -- POSController::place_order DOES correctly check status_code===403 (unlike
+setPosCalculatedTax) and returns the clean guard rejection.
+
+=== AC3 POS add_on_qtys non-positive (NEW) ===
+add-to-cart {id:16, quantity:1, addon_id[]:1, addon-price1:1, addon-quantity1:-1} -> 500 (same
+    pre-existing NEARS-3404 caller crash, any guard-triggering shape hits it, not specific to code=addon)
+place-order -> 403 {"errors":[{"code":"addon","message":"Invalid add-on selection"}]}
+VERDICT: PASS
+
+=== AC5 POS cross-store add-on (NEW) ===
+add-to-cart {id:16 (store4), quantity:1, addon_id[]:5 (store5), addon-price5:1, addon-quantity5:1} -> 500 (same)
+place-order -> 403 {"errors":[{"code":"addon","message":"Invalid add-on selection"}]}
+VERDICT: PASS -- store-scoping enforced, cross-store addon id correctly rejected.
+
+=== AC7 POS happy path (regression) ===
+add-to-cart {id:16, quantity:1, addon_id[]:1 (store4, same store), addon-price1:1, addon-quantity1:1} -> 200 clean JSON
+add-delivery-address -> 200
+place-order -> 200, real order created.
+DB proof: orders.id=91222 user_id=1 store_id=4 order_amount=16.01 order_status=pending
+          order_details: item_id=16 quantity=1 price=8.99 add_ons=[{"id":1,"name":"Extra Cheese","price":1.5,...}] total_add_on_price=1.50
+VERDICT: PASS -- guard does not regress a legitimate same-store positive-qty request.
