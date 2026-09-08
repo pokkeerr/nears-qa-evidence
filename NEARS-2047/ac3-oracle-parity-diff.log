@@ -1,0 +1,19 @@
+AC3 — existence-oracle parity: "no vendor row" vs "real vendor, zero stores" must be byte-identical.
+
+Case A — nonexistent vendor id (1091120, > max(vendors.id)=91120):
+POST {"receiver_id":1091120,"receiver_type":"vendor","message":"AC3 oracle probe a"}
+-> HTTP/1.1 403 Forbidden   X-Request-Id: b42b5c14-29a3-49dc-90ee-08a74f660693
+   {"errors":[{"code":"conversation","message":"Not found"}]}
+
+Case B — REAL vendor row with ZERO stores, found live in the seeded dev DB (vendor id 91118,
+"NEARS3066", verified via `SELECT COUNT(*) FROM stores WHERE vendor_id=91118` = 0):
+POST {"receiver_id":91118,"receiver_type":"vendor","message":"AC3 oracle probe b"}
+-> HTTP/1.1 403 Forbidden   X-Request-Id: 9ee397d1-d7ff-4f33-9682-339f9688f28b
+   {"errors":[{"code":"conversation","message":"Not found"}]}
+
+`diff` of the two raw response bodies: IDENTICAL (0 differences).
+Status lines: IDENTICAL (HTTP/1.1 403 Forbidden both).
+
+Both halves of AC3 demonstrated LIVE against the real seeded dev DB (a storeless vendor row,
+91118, already existed in seed data — no need to fall back to automated-test-only evidence).
+Also independently confirmed by Admin/tests/Feature/Security/Nears2047ConversationStoreVendorGuardTest.php::test_no_vendor_and_storeless_vendor_return_identical_response (byte-for-byte assertion, phpunit run below). PASS.

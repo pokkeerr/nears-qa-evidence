@@ -1,0 +1,21 @@
+Regression sweep — bounded to messages_store()'s sibling branches + the GET-side messages() endpoint.
+
+1) GET customer/message/details?conversation_id=65 (messages() sibling, out-of-scope, already
+   fixed): HTTP 200, total_size=3, messages returned correctly. Unaffected.
+
+2) conversation_id branch of messages_store() — participant posting by conversation id:
+   POST {"conversation_id":65,"message":"regression spot check via conversation_id branch"}
+   -> HTTP 200, conversation.id=65 (correct thread). Unaffected.
+
+3) conversation_id branch — non-participant refusal (pre-existing guard, same 403 shape the fix
+   mirrors): customer@nears.com (not a participant of conversation 65) POSTs
+   {"conversation_id":65,...} -> HTTP 403. Unaffected — still refuses exactly as before.
+
+4) receiver_type=admin branch: POST {"receiver_id":0,"receiver_type":"admin",...} -> HTTP 200,
+   conversation.id=45. Unaffected.
+
+5) receiver_type=delivery_man branch: POST {"receiver_id":2,"receiver_type":"delivery_man",...}
+   -> HTTP 200, conversation.id=61, message persisted. Unaffected.
+
+All spot checks green — the fix is scoped to the vendor branch's resolve-guard and does not touch
+sibling branches.

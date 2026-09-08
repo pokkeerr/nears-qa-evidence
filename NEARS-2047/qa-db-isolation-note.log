@@ -1,0 +1,12 @@
+DB-mutating QA isolation (profile: "a DB-mutating QA needs its own php artisan serve --port=<n> +
+DB copy — never mutate the shared DB during a parallel run"):
+
+- Dumped the live seeded dev DB read-only: `mysqldump --single-transaction multi_food_db`
+- Restored into a disposable copy: `multi_food_db_qa_nears2047` (never touched multi_food_db itself)
+- Booted this worktree's own `php artisan serve --host=127.0.0.1 --port=8047` with
+  DB_DATABASE=multi_food_db_qa_nears2047 exported (confirmed via
+  `php artisan tinker --execute="echo DB::connection()->getDatabaseName();"` -> multi_food_db_qa_nears2047)
+- All curl-driven message/conversation creation in this QA run landed in the disposable copy only.
+- Confirmed vendor id 1 (storeful, 4 stores) and vendor id 91118 (real row, 0 stores) both existed
+  in the live dev DB's seed data BEFORE cloning, so the clone carries real, non-fabricated fixtures.
+- Torn down at end of run (see teardown log).

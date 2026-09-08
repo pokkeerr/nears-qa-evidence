@@ -1,0 +1,16 @@
+AC2 — negative control: real storeful vendor (id=1, 4 stores incl "Nears Mart") must be UNAFFECTED by the fix.
+
+(a) First contact — fresh customer (signed up live: qa.nears2047b@example.test, user 434, no prior conversation with vendor 1):
+POST http://127.0.0.1:8047/api/v1/customer/message/send
+{"receiver_id":1,"receiver_type":"vendor","message":"AC2a hi from a brand new customer"}
+-> HTTP/1.1 200 OK   X-Request-Id: d9e41990-c340-4c58-a549-5cfd63e68179
+   conversation.id=65 (new), messages[0].message="AC2a hi from a brand new customer"
+
+(b) Existing conversation — same customer, second POST to same vendor:
+POST http://127.0.0.1:8047/api/v1/customer/message/send
+{"receiver_id":1,"receiver_type":"vendor","message":"AC2b second message same thread"}
+-> HTTP/1.1 200 OK   X-Request-Id: 51e16338-24e6-438a-a691-c1d6fa9631cd
+   conversation.id=65 (SAME id reused, thread continuity confirmed), unread_message_count incremented to 3
+
+Result: both first-contact and existing-conversation paths for a real storeful vendor still return
+200, persist the message, and (re)use the conversation exactly as before the fix. PASS.

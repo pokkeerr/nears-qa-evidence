@@ -1,0 +1,17 @@
+AC4 — structured [FAIL] log line + X-Request-Id correlation + no distinguishing detail leaked.
+
+grep -F "[FAIL] conversation messages_store: vendor unresolved" Admin/storage/logs/laravel.log:
+
+[2026-09-08 05:56:11] production.ERROR: [FAIL] conversation messages_store: vendor unresolved for receiver_id lookup {"correlation_id":"a216cec8-f7e2-4546-bff0-b4f2e95e3ed6","endpoint":"customer/message/store","receiver_id":1091120}
+[2026-09-08 05:56:45] production.ERROR: [FAIL] conversation messages_store: vendor unresolved for receiver_id lookup {"correlation_id":"b42b5c14-29a3-49dc-90ee-08a74f660693","endpoint":"customer/message/store","receiver_id":1091120}
+[2026-09-08 05:56:45] production.ERROR: [FAIL] conversation messages_store: vendor unresolved for receiver_id lookup {"correlation_id":"9ee397d1-d7ff-4f33-9682-339f9688f28b","endpoint":"customer/message/store","receiver_id":91118}
+
+Correlation join verified: each log line's `correlation_id` matches byte-for-byte the response's
+`X-Request-Id` header for the SAME request (a216cec8.../b42b5c14.../9ee397d1... all cross-checked
+against the AC1/AC3 response headers captured above).
+
+No PII / no vendor-distinguishing field logged: the only per-request field is `receiver_id`
+(the caller's own input echo, not a vendor name/email/phone/other lookup detail) plus a static
+`endpoint` string. The two refusal-case log lines (no-vendor vs storeless-vendor) are IDENTICAL in
+shape, differing only in the caller-supplied `receiver_id` value — which is not itself a leak
+(the caller already knows the id it sent). PASS.
