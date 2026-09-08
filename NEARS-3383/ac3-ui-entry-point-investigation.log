@@ -1,0 +1,33 @@
+NEARS-3383 QA — AC3 "real VendorApp/Store Panel 'chat with admin' entry point" -- investigation
+
+AC3 (verbatim): "Repeating the same action from the real VendorApp/Store Panel 'chat with admin' entry
+point (with no prior conversation) succeeds and a message is visibly sent, not an error toast."
+
+Investigated both client surfaces for a live UI path that composes a NEW message with receiver_type=admin
+and no conversation_id (i.e. the path this ticket's fix repairs):
+
+VendorApp (Flutter):
+  - grep for every call site of RouteHelper.getChatRoute(...) across VendorApp/lib: only 4 exist —
+    order_details_screen.dart (chat-with-customer icon on an order), splash_screen.dart (FCM notification
+    tap), conversation_screen.dart (opening an EXISTING conversation row from the list), notification_helper.dart
+    (FCM tap). None construct a receiver_type=admin / no-conversation_id call.
+  - ChatRepository.sendMessage() always sends 'receiver_type': userType, where userType is sourced from
+    NotificationBodyModel.type, which every call site above sets to only 'customer' or 'delivery_man'.
+  - ConversationScreen has no compose/"+"/new-message affordance -- only a list of existing conversations.
+  - Tapping an existing admin-thread ROW (if one existed) would also dead-end: the list-item tap handler
+    resolves `user` from conversation.receiver, which is null for receiver_id=0 (no UserInfo row for admin),
+    so it falls into the `else { showCustomSnackBar('sorry_cannot_view_this_conversation'...) }` branch
+    rather than opening the thread. This is pre-existing VendorApp UI behavior, not touched by this diff.
+
+Store Panel (Admin/resources/views/vendor-views/messages + Admin/app/Http/Controllers/Vendor/ConversationController.php,
+web, a SEPARATE controller from the one this ticket fixed):
+  - store(Request $request, $user_id, $user_type) only branches on $user_type == 'user' | 'delivery_man'.
+    No 'admin' arm exists in the web controller at all.
+  - messages/index.blade.php has no admin-chat button/link (grepped for 'admin' -- zero relevant hits).
+
+Conclusion: there is currently NO live UI entry point, in either VendorApp or the Store Panel, that can trigger
+receiver_type=admin with no conversation_id. This is a pre-existing client-side gap (not introduced or touched
+by this ticket's 2-file backend diff) -- the fixed endpoint is reachable today only via direct API call (as
+demonstrated in ac1-ac2-vendor-to-admin.log). AC3 as literally written cannot be demonstrated through a genuine
+UI action; marked UNVERIFIABLE rather than faked via a non-UI substitute. Recommend a follow-up ticket if the
+product still wants a client-facing "message admin" entry point surfaced.

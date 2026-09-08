@@ -1,0 +1,14 @@
+NEARS-3383 QA — security-reviewer's cross-vendor isolation check
+
+Vendor A (ahmed.khan@demo.com, sender UserInfo id 112) created admin conversation id=65 (receiver_id=0).
+
+1) Vendor B (demo.store@gmail.com, store 1) GET /api/v1/vendor/message/list?offset=1&limit=50
+   -> HTTP 200, total_size=1, conversation ids visible: [46]. Conversation 65 NOT present.
+
+2) Vendor B POST /api/v1/vendor/message/send with conversation_id=65 (attempt to post into vendor A's admin thread)
+   -> HTTP 403 {"errors":[{"code":"conversation","message":"Not found"}]}
+
+Result: no cross-vendor visibility or write access to another vendor's receiver_id=0 admin conversation. The
+VAPI-09 IDOR guard (participant-only lookup: sender_id/receiver_id == caller's own UserInfo id) correctly excludes
+receiver_id=0 rows from matching a different vendor's sender_id, since UserInfo ids are never 0 (auto-increment
+starts at 1). Confirmed both via WhereConversation() scope reading and live probe.

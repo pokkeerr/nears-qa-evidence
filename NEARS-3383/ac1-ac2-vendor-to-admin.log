@@ -1,0 +1,20 @@
+NEARS-3383 QA — AC1/AC2: vendor -> admin, no conversation_id, no prior conversation
+Endpoint: POST /api/v1/vendor/message/send (worktree backend, port 8383, disposable DB clone multi_food_db_test_qa3383)
+Vendor: ahmed.khan@demo.com (store 2, "Fresh Mart Grocery")
+
+Request:
+  curl -X POST http://127.0.0.1:8383/api/v1/vendor/message/send \
+    -H "Authorization: Bearer <vendor A token>" -H "vendorType: owner" -H "X-Request-Id: nears3383-qa-marker-001" \
+    -F "receiver_type=admin" -F "message=NEARS-3383 QA marker request"
+
+Response: HTTP 200, X-Request-Id: d7147d8c-8193-4d4a-bbad-ad803f703ed7
+  conversation: {id:65, sender_id:112, sender_type:"vendor", receiver_id:0, receiver_type:"admin"}
+  message: "successfully sent!"
+
+laravel.log (grep -F d7147d8c-8193-4d4a-bbad-ad803f703ed7):
+[2026-09-08 22:20:47] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"4c616fa2f3cee38b8aedb55fe72aeb7d","correlation_id":"d7147d8c-8193-4d4a-bbad-ad803f703ed7","cache_key":"fcm_oauth_access_token_nears-1d39b"}
+[2026-09-08 22:20:47] production.WARNING: FCM Sending notification {"trace_id":"4c616fa2f3cee38b8aedb55fe72aeb7d","correlation_id":"d7147d8c-8193-4d4a-bbad-ad803f703ed7","message_type":"topic"}
+[2026-09-08 22:20:47] production.WARNING: FCM Send Success {"trace_id":"4c616fa2f3cee38b8aedb55fe72aeb7d","correlation_id":"d7147d8c-8193-4d4a-bbad-ad803f703ed7","status":200,"order_id":""}
+
+Result: NO "Undefined variable $receiver_id" / ErrorException. Clean.
+Push notification: dispatched via Helpers::send_push_notif_to_topic('admin_message') -- message_type=topic, FCM Send Success status=200. Confirms AC2 + the admin-push-notification scope item.
