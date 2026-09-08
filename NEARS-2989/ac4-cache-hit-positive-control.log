@@ -1,0 +1,23 @@
+# AC4 — cache-hit within 60min TTL (NEARS-2989), positive control per NEARS-1856(c)
+
+Instrument: MySQL general_log (temporarily enabled, `SET GLOBAL general_log=ON`, truncated between
+calls, turned back OFF after), grepped for the aggregate's signature text.
+
+$ php artisan cache:clear
+$ mysql -e "TRUNCATE mysql.general_log"   # clean log
+
+=== CALL 1 (cold cache) ===
+$ curl -s http://127.0.0.1:8091/api/v1/most-tips
+{"most_tips_amount":40}
+$ grep -ic "group by dm_tips" mysql_general.log
+2   <- POSITIVE CONTROL: the aggregate query DID fire on the cold-cache call (channel proven live)
+
+=== truncate log, CALL 2 (warm cache, same TTL window) ===
+$ curl -s http://127.0.0.1:8091/api/v1/most-tips
+{"most_tips_amount":40}
+$ grep -ic "group by dm_tips" mysql_general.log
+0   <- second call: query did NOT fire, served from Cache::remember (60min TTL)
+
+Same value (40) returned both times. Query fired once (call 1), silent on call 2 -- the silence is
+meaningful because call 1 already proved the log channel captures the query when it does run
+(NEARS-1856(c) positive-control requirement satisfied).

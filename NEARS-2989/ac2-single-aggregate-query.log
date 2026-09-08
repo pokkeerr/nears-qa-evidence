@@ -1,0 +1,31 @@
+# AC2 — single SQL aggregate, never full hydration (NEARS-2989)
+
+## Live tinker run against the real dev DB (127.0.0.1/multi_food_db), cache cleared first
+$ php artisan cache:clear
+$ php artisan tinker
+>>> DB::enableQueryLog();
+>>> $data = App\Models\Order::withoutGlobalScope('storage')
+        ->whereNot('dm_tips', 0)->select('dm_tips')->groupBy('dm_tips')
+        ->orderByRaw('COUNT(*) DESC, dm_tips ASC')->first();
+RESULT: float(40)
+QUERY COUNT: 1
+Array
+(
+    [0] => Array
+        (
+            [query] => select `dm_tips` from `orders` where not `dm_tips` = ? group by `dm_tips` order by COUNT(*) DESC, dm_tips ASC limit 1
+            [bindings] => Array ( [0] => 0 )
+            [time] => 1.18
+        )
+)
+
+-> Exactly ONE query fires: a GROUP BY aggregate selecting only `dm_tips`, LIMIT 1. No `SELECT *`,
+no per-row hydration, no second query for the `storage` global scope eager-load (Order::booted()
+unconditionally does addGlobalScope('storage', fn($b) => $b->with('storage')) -- confirmed at
+app/Models/Order.php:396-400 -- which the fix suppresses via withoutGlobalScope('storage') so this
+scalar-only select stays a single query).
+
+## Backed by the automated suite (phpunit, DatabaseTransactions, isolated test DB)
+test_query_is_a_single_sql_aggregate_not_full_hydration (Nears2989MostTipsControllerTest.php):
+seeds 4 distinct tipped orders (12.00 x3, 7.00 x1), asserts exactly 1 query fires and its SQL
+contains "group by". PASS (see automated backstop section of QA comment).

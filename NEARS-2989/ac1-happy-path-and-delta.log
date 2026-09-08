@@ -1,0 +1,42 @@
+# AC1 — happy path + behavioral delta demonstration (NEARS-2989)
+
+## Happy path (live GET against worktree backend, port 8091, cache cleared first)
+$ php artisan cache:clear
+Application cache cleared successfully.
+
+$ mysql -u root multi_food_db -e "SELECT dm_tips, COUNT(*) c FROM orders WHERE dm_tips <> 0 GROUP BY dm_tips ORDER BY c DESC, dm_tips ASC;"
+dm_tips  c
+40.00    1
+
+$ curl -s http://127.0.0.1:8091/api/v1/most-tips
+{"most_tips_amount":40}
+
+Correct: only tipped order in dev DB is dm_tips=40.00, count=1 -> most_tips_amount=40 (JSON drops
+trailing .0 for whole-number floats -- same as pre-fix, see AC5 note).
+
+## Behavioral delta mechanism (AC1 "stated behavioural delta") -- live proof, no DB mutation
+Old code: Order::whereNot('dm_tips', 0)->get()->mode('dm_tips')
+Laravel Collection::mode() (vendor/laravel/framework/src/Illuminate/Collections/Collection.php:115-133)
+counts via `$counts[$value] = ...` -- i.e. PHP ARRAY KEY assignment. PHP truncates float array
+keys to int. Live repro (plain PHP, no DB touched):
+
+$ php -r '
+$counts = [];
+foreach ([2.5, 2.5, 2.0] as $v) { $counts[$v] = ($counts[$v] ?? 0) + 1; }
+var_dump($counts);
+'
+array(1) { [2]=> int(3) }
+(PHP 8.5 also emits "Implicit conversion from float 2.5 to int loses precision" deprecation notices,
+confirming the truncation happens at the language level, not merely a theoretical concern.)
+
+So old mode() would have bucketed 2.5 and 2.0 as the SAME "2" and returned whichever bucket-2
+value happened to sort first internally -- losing the distinction between 2.0 and 2.5 tips.
+
+New code (SQL GROUP BY dm_tips) groups the EXACT float value -- proven by the passing unit test
+`test_tied_counts_return_the_lower_amount` (5.25 x2, 3.75 x2, 8.10 x1 -> correctly returns 3.75,
+never merging 5.25/3.75 into a shared bucket) and by the live tinker query below (AC2 section)
+which shows dm_tips selected and grouped as an exact value, not an int-truncated one.
+
+Conclusion: delta demonstrated live via language-level proof (array-key truncation) + the
+engineer's passing float-precision test. Whole-number tips (today's only dev-DB tip, 40.00) are
+unaffected either way, matching the ticket's stated note.

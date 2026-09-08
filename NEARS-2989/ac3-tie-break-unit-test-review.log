@@ -1,0 +1,24 @@
+# AC3 — deterministic tie-break (NEARS-2989)
+
+Dev DB has only 1 tipped order (dm_tips=40.00, count=1) -- no real tie exists to observe live, and
+constructing one would mean writing rows into the shared dev `orders` table, which the QA hard
+rule "read-only on the database" disallows (writes only via versioned seeder/migration after
+approval -- out of scope here). Per the QA Test Scope's own fallback ("...or trust the engineer's
+unit test test_tied_counts_return_the_lower_amount; read it and confirm it actually asserts what
+it claims"), reviewed that test directly:
+
+Admin/tests/Feature/Api/V1/Nears2989MostTipsControllerTest.php:48-59
+- Seeds dm_tips=5.25 x2, dm_tips=3.75 x2 (genuine tie on max count=2), plus dm_tips=8.10 x1
+  (strictly lower count, cannot win).
+- Asserts response is EXACTLY {"most_tips_amount": 3.75} -- the LOWER of the two tied amounts.
+- Also asserts the value is PHP float-typed (assertIsFloat), so this isn't a vacuous int-coerced
+  check.
+- Fractional (non-whole) amounts used deliberately so the assertion can't pass by accident.
+
+Ran isolated: `vendor/bin/phpunit --filter Nears2989MostTipsControllerTest` -> 4/4 PASS (see
+automated backstop). Query logic (ORDER BY COUNT(*) DESC, dm_tips ASC LIMIT 1) is inherently
+deterministic SQL, not order-dependent PHP array iteration -- the test's assertion is a faithful,
+non-vacuous pin of the AC3 tie-break requirement.
+
+Verdict: PASS by code+test review, live construction of a real tie in the shared dev DB
+deliberately not attempted (DB read-only rule).
