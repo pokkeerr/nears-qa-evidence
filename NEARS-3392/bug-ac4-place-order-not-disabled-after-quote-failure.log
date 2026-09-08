@@ -1,0 +1,28 @@
+I/flutter (13061): [INFO] msg="checkout: place-order button clicked"
+I/flutter (13061): ----------------FIREBASE CRASHLYTICS----------------
+I/flutter (13061): The following exception was thrown app error:
+I/flutter (13061): Exception: app_error
+I/flutter (13061): #0      AppLogger.error (package:nears/helper/app_logger.dart:107:18)
+I/flutter (13061): #1      showCustomSnackBar (package:nears/common/widgets/custom_snackbar.dart:30:17)
+I/flutter (13061): #2      CheckoutController.placeOrderFromCheckout (package:nears/features/checkout/controllers/checkout_controller.dart:1800:7)
+I/flutter (13061): <asynchronous suspension>
+I/flutter (13061): #3      CheckoutScreenState._orderPlaceButton.<anonymous closure> (package:nears/features/checkout/screens/checkout_screen.dart:1066:17)
+I/flutter (13061): <asynchronous suspension>
+I/flutter (13061): ----------------------------------------------------
+I/flutter (13061): [ERR] msg="error snackbar shown"
+I/flutter (13061): [INFO] msg="checkout: place-order button clicked"
+I/flutter (13061): 📊 analytics: begin_checkout {value: 501.9}
+I/flutter (13061): 📊 analytics: add_payment_info {payment_type: cash_on_delivery, value: 501.9}
+I/flutter (13061): [INFO] msg="multipart POST endpoint=/api/v1/customer/order/place"
+E/FA      (13061): Missing google_app_id. Firebase Analytics disabled. See https://goo.gl/NAOOOI
+I/flutter (13061): [NET] endpoint=/api/v1/customer/order/place http_status=203
+E/FA      (13061): Missing google_app_id. Firebase Analytics disabled. See https://goo.gl/NAOOOI
+I/flutter (13061): [INFO] msg="route: initial route module=pharmacy"
+
+--- DB proof: no order persisted for this attempt (backend's own OrderPlacementService gate caught it, frontend gate did not) ---
+Backend returned http_status=203 with message key messages.amount_crossed_maximum_cod_order_amount
+(Admin/app/Services/Order/OrderPlacementService.php:599-600) -- a SEPARATE, pre-existing
+final-placement COD-cap gate, unrelated to NEARS-2345/NEARS-3392, which discloses the
+EXISTENCE of a cod cap (not its value) via UI text "Amount crossed maximum cod order amount".
+This is what actually stopped the bad order from landing -- the FRONTEND gate
+(isDeliveryQuotePending/isDeliveryQuoteFailed) had already failed to do its job.
