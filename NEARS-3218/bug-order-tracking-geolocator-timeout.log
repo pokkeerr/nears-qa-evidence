@@ -1,0 +1,14 @@
+Pre-existing, unrelated, low-severity — found during NEARS-3218 QA (2026-09-08, emulator-5558).
+NOT caused by NEARS-3218's diff: order_tracking_screen.dart is untouched by this ticket.
+
+Symptom: on landing on the post-place-order OrderTrackingScreen, `LocationController.getCurrentLocation`
+times out fetching a live GPS fix from the emulator (despite an earlier `adb emu geo fix` call) and
+falls back to a default position. This IS correctly logged via AppLogger (no silent-failure
+contract violation):
+  [FAIL] endpoint=null http_status=null type=GetPositionFailure msg="location: getPosition threw
+  (TimeoutException) — falling back to default position"
+Observed identically on both order 91213 (11:21:28) and order 91214 (11:25:25).
+
+Likely emulator GPS-provider timing flakiness (geo fix sets a location but geolocator's
+getCurrentPosition() query can still time out against it on this AVD), not a functional defect in
+the ticket's scope. Logging non-blocking follow-up only.

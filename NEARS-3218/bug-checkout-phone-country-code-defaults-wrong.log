@@ -1,0 +1,44 @@
+Pre-existing, unrelated regression candidate — found during NEARS-3218 QA (2026-09-08, emulator-5558).
+NOT caused by NEARS-3218's diff: delivery_section.dart and phone_country_picker_leading.dart are
+untouched by this ticket (diff --stat confirms only checkout_controller.dart getters/imports,
+get_di.dart registrations, and 4 new empty controller files were touched).
+
+Symptom: on the Checkout screen (logged-in, mobile, non-guest), the Contact Person Number
+country-code picker defaults to "+1" (US/Canada/Dominican Republic) instead of the business's
+configured country ("AE" / +971, business_settings.country=AE). Tapping "Place Order" then
+silently fails client-side validation (a real, logged failure — not a silent-failure-contract
+violation) with toast "please_enter_valid_phone_number", giving the user no indication that the
+problem is the country-code prefix, not their typed digits.
+
+Root cause (code-read, not just observed): `CheckoutController.countryDialCode` (checkout_controller.dart:107)
+resolves to a "+"-prefixed DIAL CODE string (e.g. "+971"), which is then passed straight into
+`NPhoneField.initialCountryCode` (delivery_section.dart:204) -> `PhoneCountryPickerLeading.initialCountryCode`
+-> `CodePickerWidget.initialSelection` (phone_country_picker_leading.dart). The country_code_picker
+package's `initialSelection`/`favorite` params expect an ISO-3166 alpha-2 country code (e.g. "AE"),
+not a dial code — so the lookup fails to match any country and the widget falls back to its own
+default (+1 US group), which is silently wrong for every checkout session on this UAE-configured
+business, not just this QA account.
+
+Evidence — uiautomator dump excerpt showing the wrong default:
+  <node ... class="android.widget.ImageView" content-desc="+1" ... bounds="[169,1408][311,1540]" />
+(bounds match the Contact Person Number field's leading country-code picker button)
+
+Evidence — app [ERR]/[INFO] log around the blocked Place Order tap (default +1 + seed phone):
+09-08 11:09:06.438  3896  3896 I flutter : [INFO] msg="checkout: place-order button clicked"
+09-08 11:09:06.446  3896  3896 I flutter : #2      CheckoutController.placeOrderFromCheckout (package:nears/features/checkout/controllers/checkout_controller.dart:2530:7)
+09-08 11:09:06.452  3896  3896 I flutter : [ERR] msg="error snackbar shown"
+(repeats identically at 11:09:53 and 11:10:39 for further retries with the same default +1 prefix)
+
+Workaround used to complete this ticket's QA (manual country-code re-selection + a known-valid
+digit string) — proves the underlying single-store COD checkout path itself is unaffected once the
+prefix is corrected: order 91213 (2026-09-08 11:21:27, +971566000002) and order 91214
+(2026-09-08 11:25:25, +971566000002) both placed successfully after switching the picker to
+"+971 دولة الإمارات العربية المتحدة" via digit-search "971" (name-text search for
+"United Arab Emirates"/"Emirates"/"Arab" all returned "No country found" — a second, narrower
+symptom of the same underlying country_code_picker misconfiguration, not filed separately here).
+
+Severity: High — silently blocks the money-path (Place Order via COD) for essentially any
+logged-in, non-guest, mobile checkout session on this business config, with a toast that points
+the user at the wrong field. Recommend routing to the PO as a regression_bugs candidate against
+checkout_controller.dart:107 / delivery_section.dart:204 (pass an ISO code, not a dial code, or
+fix CodePickerWidget usage to accept dial codes).

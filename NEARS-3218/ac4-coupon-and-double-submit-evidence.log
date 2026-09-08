@@ -1,0 +1,41 @@
+NEARS-3218 QA — AC4 regression checks (2026-09-08, emulator-5558, worktree
+nears-NEARS-3218-checkout-step0-shells, account michael.brown@demo.com).
+
+=== AUD-UA-3 (coupon double-subtract) ===
+Cart: Almond Milk 1L x5 @ 4.80 AED = subtotal 24.00 AED (Daily Fresh Market, zone 1).
+Applied coupon NEARS2924PCT (percent, discount=10.00, min_purchase=20.00) via the Checkout
+screen's "Enter Promo Code" + Apply.
+
+uiautomator dump (bounds-ordered) after Apply:
+  y=2325 Subtotal            24.00 AED
+  y=2421 Discount             0.00 AED
+  y=2517 Coupon Discount     -2.40 AED   <- exactly 10% of 24.00, ONE subtraction
+  y=2596 Total Amount        22.68 AED
+
+DB row for the resulting order (placed at 11:21:27):
+  id=91213 order_amount=22.68 coupon_discount_amount=2.40 coupon_code=NEARS2924PCT
+  payment_method=cash_on_delivery order_status=pending
+
+2.40 = 10% x 24.00 subtracted exactly ONCE (a double-subtract would show 4.80 / a ~19.20-20.28
+total). PASS — no regression on AUD-UA-3.
+
+=== AUD-UA-4 (place-order double-submit) ===
+Cart: Cheddar Block x1 @ 14.22 AED (Daily Fresh Market, zone 1), no coupon.
+Baseline: `SELECT COUNT(*) FROM orders WHERE user_id=3` = 5 (before this sub-test).
+
+Rapid double-tap on "Place Order" (two `adb shell input tap 672 1858` issued back-to-back,
+no sleep between):
+
+App log (only ONE "place-order button clicked" for the whole double-tap):
+  09-08 11:25:19.359  I flutter : [INFO] msg="checkout: place-order button clicked"
+  09-08 11:25:19.360  I flutter : [INFO] msg="multipart POST endpoint=/api/v1/customer/order/place"
+  09-08 11:25:21.505  I flutter : [NET] endpoint=/api/v1/customer/order/place http_status=200
+  (no second "place-order button clicked" / no second POST anywhere in the log — the
+  `_isLoading` guard at checkout_controller.dart:2401-2403 swallowed the second tap before it
+  ever logged, matching the NEARS-720 fix's intent)
+
+DB after: `SELECT COUNT(*) FROM orders WHERE user_id=3` = 6 (+1, exactly one new row, id=91214,
+order_amount=14.93, created_at 2026-09-08 11:25:25).
+
+PASS — no regression on AUD-UA-4 (exactly one order created per double-tap, exactly one
+POST /api/v1/customer/order/place, exactly one "place-order button clicked" log line).
