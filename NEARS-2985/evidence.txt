@@ -1,0 +1,56 @@
+NEARS-2985 QA evidence — live API run, backend on 127.0.0.1:8020, DB multi_food_db, zone=2, module=1
+Date: Tue Sep  8 12:11:03 +04 2026
+
+=== phpunit ItemLimitClampTest (12/12) ===
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.5.6
+Configuration: /Users/Apple/Projects/nears-NEARS-2985-item-limit-clamp/Admin/phpunit.xml
+
+............                                                      12 / 12 (100%)
+
+Time: 00:05.896, Memory: 92.50 MB
+
+OK (12 tests, 92 assertions)
+
+=== AC2: limit=500 clamps to 100 ===
+-- popular --
+http 200 limit 100 offset 1 products_len 100
+-- most-reviewed --
+http 200 limit 100 offset 1 products_len 4
+-- discounted --
+http 200 limit 100 offset 1 products_len 70
+
+=== AC3: in-range limit=50 unaffected ===
+-- popular --
+limit 50 products_len 50
+-- most-reviewed --
+limit 50 products_len 4
+-- discounted --
+limit 50 products_len 50
+
+=== AC4: cart-suggest/recommended omitted -> unpaginated fallback preserved ===
+-- suggested?store_id=12 --
+limit None offset None total_size 31 items_len 31
+-- recommended?store_id=12 --
+limit None offset None total_size 5 items_len 5
+
+=== AC5: shape unchanged at limit=100 vs limit=500 (all 5 routes) — MATCH confirmed above in run transcript ===
+
+=== AC6 [fix-in-run]: offset=999999999 clamps to 10000 (all 5 routes) ===
+-- popular --
+offset 10000
+-- most-reviewed --
+offset 10000
+-- discounted --
+offset 10000
+-- suggested?store_id=12 (limit present) --
+offset 10000
+-- recommended?store_id=12 (limit present) --
+offset 10000
+
+=== AC7 [fix-in-run]: presence-gating independence — omitted offset stays null even with clamp code present ===
+-- suggested?store_id=12 both omitted --
+limit None offset None
+-- recommended?store_id=12 both omitted --
+limit None offset None
