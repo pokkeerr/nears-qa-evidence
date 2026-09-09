@@ -1,0 +1,20 @@
+NEARS-3404 AC2 — Vendor Store Panel POS add-to-cart, invalid quantity, no longer 500
+Backend: same worktree/server as AC1. Session: ahmed.khan@demo.com (owner of store_id=2,
+"Fresh Mart Grocery" — same store as item 111) logged in via /login_submit (role=vendor).
+
+--- GET vendor-panel/pos --- HTTP 200 (confirms vendor session reaches the POS surface)
+
+--- empty-cart ---
+POST /vendor-panel/pos/empty-cart -> HTTP 200
+
+--- add-to-cart quantity=-1 (invalid) ---
+POST /vendor-panel/pos/add-to-cart  id=111 quantity=-1
+HTTP/1.1 200 OK
+{"data":{"id":111,"variations":[],"variant":"","quantity":"-1","price":19.06,"name":"Carrots", ...}}
+
+laravel.log grep "total_addon_price" / "ErrorException" after this request: only pre-existing,
+unrelated "testing" channel noise from 09:00:37 (create_transaction post-commit, order_id
+91939) predating this request — not from this ticket's surface, not from this request.
+
+Verdict: AC2 PASS — both call sites (Admin POSController + Vendor POSController) confirmed
+independently live: invalid-quantity cart line no longer 500s on either surface.

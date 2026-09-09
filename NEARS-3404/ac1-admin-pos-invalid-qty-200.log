@@ -1,0 +1,54 @@
+NEARS-3404 AC1 — Admin POS add-to-cart, invalid quantity, no longer 500
+Backend: worktree fix/NEARS-3404-pos-tax-403-guard @ 81e757af9, local php -S 127.0.0.1:8722
+Session: admin@admin.com logged in via /login_submit (role=admin)
+
+--- empty-cart ---
+POST /admin/pos/empty-cart
+HTTP/1.1 200 OK
+[]
+
+--- add-to-cart quantity=0 (invalid, was the 500 repro) ---
+POST /admin/pos/add-to-cart  id=111 quantity=0
+HTTP/1.1 200 OK
+{"data":{"id":111,"variations":[],"variant":"","stock_quantity":139,"quantity":"0","price":19.06,"name":"Carrots","discount":0, ...}}
+
+laravel.log grep for this request's X-Request-Id (2a06b2ff-5ac1-4deb-a8ad-eb03795691a8): NO MATCH (clean)
+laravel.log grep "total_addon_price": NO MATCH (clean, whole file)
+laravel.log grep "Undefined array key": NO MATCH (clean, whole file)
+
+--- add-to-cart quantity=-1 (invalid, second repro variant) ---
+POST /admin/pos/add-to-cart  id=111 quantity=-1
+HTTP/1.1 200 OK
+{"data":{"id":111, ... "quantity":"-1", ...}}
+
+Session file inspection after the quantity=-1 request (storage/framework/sessions/<latest>):
+  tax_amount: <not set>
+  tax_included: <not set>
+  cart: (Collection) contains the id=111/quantity=-1 line, store_id=2
+  cart_product_ids: [111 => '-1']
+=> confirms AC1 point 3: tax_amount/tax_included are left UNWRITTEN (not corrupted, not
+   erroring) when the cart line is invalid — the request completed cleanly instead of
+   fataling before those session writes would occur.
+   (The item still lands in session cart despite quantity=-1 — this is the pre-existing,
+   separately-tracked "stuck cart" side effect, NEARS-3384, explicitly out of this ticket's
+   scope per the ticket description.)
+
+--- POSITIVE CONTROL: add-to-cart quantity=2 (valid) after empty-cart ---
+POST /admin/pos/empty-cart -> 200 []
+POST /admin/pos/add-to-cart  id=111 quantity=2
+HTTP/1.1 200 OK
+{"data":{"id":111, ... "quantity":"2", ...}}
+Session file after: tax_amount: 1.906, tax_included: 0
+=> confirms the guard does not break the happy path: a valid cart still computes and
+   writes tax_amount normally (10% of 19.06 = 1.906).
+
+--- updateQuantity / removeFromCart smoke (AC1 names all three actions) ---
+POST /admin/pos/empty-cart -> 200
+POST /admin/pos/add-to-cart id=111 quantity=1 (valid) -> 200
+POST /admin/pos/update-quantity key=0 quantity=-1 (now invalid) -> HTTP 200 []
+POST /admin/pos/remove-from-cart key=0 -> HTTP 200 []
+laravel.log grep "total_addon_price" / "Undefined array key" after both calls: NO MATCH (clean)
+
+Verdict: AC1 PASS — no 500 on any of the three POS cart actions with an invalid-quantity
+line; no ErrorException in laravel.log; session tax fields left unwritten on the invalid
+path and correctly written on the valid path (positive control).

@@ -1,0 +1,63 @@
+NEARS-3404 AC3 — sibling flows (getCalculatedTax, setOrderEditCalculatedTax) unaffected
+
+1) Diff proof — the ONLY change in this ticket, verified against reviewed sha 81e757af9:
+
+   git show 81e757af9 -- Admin/app/Services/Order/OrderTaxService.php
+
+   @@ -325,6 +325,15 @@ class OrderTaxService
+            $carts = session()->get('cart');
+            $order_details = $this->detailBuilder->build($carts, new PosOrderContext(null, $store));
+   +
+   +        if (data_get($order_details, 'status_code') === 403) {
+   +            return response()->json([...], data_get($order_details, 'status_code'));
+   +        }
+   +
+            $total_addon_price = $order_details['total_addon_price'];
+            ...
+
+   This is the entire diff to the file — 9 lines added inside setPosCalculatedTax() only.
+   getCalculatedTax() (line ~130) and setOrderEditCalculatedTax() (line ~367) are BYTE
+   IDENTICAL to pre-fix — their behavior cannot have changed by construction.
+
+2) Live check — order-edit add-to-cart (setOrderEditCalculatedTax's own caller), admin
+   session, order_id=91176 (store_id=2, pending):
+
+   POST /admin/order/add-to-cart  item_type=item id=111 order_id=91176 quantity=-1
+   HTTP/1.1 200 OK
+   {"data":0}
+
+   Same pre-existing pattern as the POS controllers: the controller discards
+   setOrderEditCalculatedTax()'s return value and always responds 200 itself — unchanged
+   by this ticket. No 500, no ErrorException in laravel.log for this request.
+
+   Session inspection after: edit_tax_amount=0.3375, edit_tax_included=0 (written, i.e. the
+   403 branch did not fire for this specific cart state — order 91176 already had other
+   order_details in play; OrderDetailBuilder's line-quantity guard logic is untouched,
+   pre-existing, and independently pinned green by
+   Nears3224OrderDetailBuilderTest::test_edit_non_positive_line_quantity_rejected_with_quantity_code,
+   which isolates a single-line cart and confirms the 403 path fires there). Not a defect
+   introduced by this ticket — OrderTaxService.php's edit-tax method is byte-identical to
+   pre-fix, so whatever this cart-state-dependent behavior is, it existed before NEARS-3404
+   too.
+
+3) Automated backstop (re-run independently in this QA pass, not just cited):
+
+   vendor/bin/phpunit --configuration phpunit.xml \
+     --filter "Nears3224OrderDetailBuilderTest|Nears2660CheckoutTaxPrescriptionTest"
+
+   OK, 15 tests, 52 assertions (12 + 3, matches expected count).
+   Covers: getCalculatedTax's prescription-403 gate (Nears2660, 3 tests) and
+   setOrderEditCalculatedTax's null-session-cart 403 gate + the OrderDetailBuilder
+   quantity/addon guards feeding all three contexts (Nears3224, 12 tests, including the 2
+   new NEARS-3404 pins: invalid-quantity POS 403-shape + valid-cart 200 positive control).
+
+   getCalculatedTax (customer checkout tax-preview) was not separately driven over raw HTTP
+   in this pass — it requires an authenticated/guest customer with a persisted DB Cart row
+   (different auth/data shape from POS's session cart), and is already covered end-to-end
+   by Nears2660CheckoutTaxPrescriptionTest (3/3, re-confirmed above) against byte-identical
+   code. Diff-proof + independently re-run automated coverage is the evidence for this half
+   of AC3.
+
+Verdict: AC3 PASS — both siblings confirmed unchanged by diff; setOrderEditCalculatedTax's
+own call site live-confirmed no-500; automated regression suite for both siblings green,
+independently re-run.
