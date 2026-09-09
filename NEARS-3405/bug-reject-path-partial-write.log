@@ -1,0 +1,44 @@
+regression_bug: rejected admin order-edit still leaves a partial DB write
+(pre-existing, NOT introduced by NEARS-3405's diff -- see root cause below)
+
+QA Test Scope item 5 asked to confirm: "DB::rollBack() on the 403 reject path
+fires correctly (now reached earlier) -- a rejected edit leaves order_details
+rows untouched, no partial write." This does NOT hold.
+
+Repro (same session as the AC1 evidence, order 91219, item_id=102, order_details.id=173):
+  BEFORE: order_details.id=173 quantity=26
+  Set quantity=0 via the modal (invalid), submit add-to-cart (200), then
+  GET /admin/order/update/91219 -> clean 403 JSON (AC1's own fix working correctly).
+  AFTER (same DB, queried immediately after the 403 response):
+    SELECT id,order_id,item_id,quantity,updated_at FROM order_details WHERE order_id=91219;
+    173 | 91219 | 102 | 0  | 2026-09-09 11:04:10   <- MUTATED to the invalid value
+    174 | 91219 | 103 | 1  | 2026-09-09 11:04:10   <- touched (same timestamp)
+    175 | 91219 | 104 | 1  | 2026-09-09 11:04:10   <- touched (same timestamp)
+
+ROOT CAUSE (both pre-existing, orthogonal to the moved guard this ticket fixed):
+ 1. OrderController::update() has NO DB::beginTransaction() anywhere on this call
+    path (grepped app/Http/Controllers/Admin/OrderController.php,
+    app/Services/Order/OrderDetailBuilder.php -- no match). Laravel's
+    Connection::rollBack() is a documented no-op when transactionLevel()==0
+    (vendor/laravel/framework/.../ManagesTransactions.php:270-272 --
+    `if ($toLevel < 0 || ...) return;`) -- so the guard's `DB::rollBack()` call
+    (OrderController.php:1360) never rolls back anything in this flow.
+ 2. Even with a transaction, it would be too late: update()'s FIRST foreach
+    (OrderController.php:1223-1317, untouched by the NEARS-3405 diff) calls
+    `OrderDetail::where('id', $c->id)->update([...'quantity' => $c->quantity...])`
+    UNCONDITIONALLY for every session-cart line, BEFORE the
+    $this->orderDetailBuilder->build(...) guard at line 1357 is even reached.
+    So the exact line the guard is about to reject already has its invalid
+    quantity persisted to the live `order_details` table by the time the 403
+    is returned.
+
+IMPACT: an admin who is shown a clean "Invalid item quantity" 403 (correctly,
+per AC1) may not realize the order's live order_details row for that item has
+already been silently corrupted (quantity 0) in the database, and the other
+line items in the same cart also got their rows re-written (same updated_at,
+though same values in this repro).
+
+SCOPE: this defect predates NEARS-3405 -- the diff only moved the guard's
+position relative to the SECOND ($order_details['order_details']) foreach; the
+FIRST foreach and the missing transaction wrapper are untouched. Filed as
+regression_bug, does not block this ticket's AC1/AC2 verdict.

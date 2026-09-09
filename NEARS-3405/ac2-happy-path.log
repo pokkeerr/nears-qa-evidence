@@ -1,0 +1,25 @@
+AC2 live evidence — happy-path regression (no rejected line)
+Backend: worktree clone DB multi_food_db_qa3405, php artisan serve --port=8853
+Order: 91226 (store 39, pending), cart item key=0 (order_details.id=182, item_id=390)
+
+BEFORE:
+  order_details: id=182 qty=2 price=26.98 discount_on_item=4.86 discount_on_product_by=flash_sale discount_type=flash_sale
+  orders: order_amount=46.46 total_tax_amount=2.21 delivery_charge=0.00 edited=<unset/0>
+
+ACTION: entered edit mode, opened the quick-view-cart-item modal for key=0, changed
+  quantity 2 -> 3 (valid), submitted via update_order_item() -> POST add-to-cart
+  status 200, then GET /admin/order/update/91226.
+
+RESULT:
+STATUS: 200, redirected to /admin/order/details/91226 (Toastr "order_updated_successfully"
+  + back(), no JSON error) -- the exact non-rejected completion path.
+
+AFTER:
+  order_details: id=182 qty=3 price=26.98 discount_on_item=4.86 discount_on_product_by=flash_sale
+    discount_type=flash_sale  <- per-line discount fields re-applied by the
+    foreach($order_details['order_details']...) loop (unchanged from the fix's diff)
+  orders: order_amount=69.69 total_tax_amount=3.32 edited=1
+    <- full order-amount recalculation ran (product_price/addon/discount/tax/delivery/
+    additional_charge all folded through Helpers::getFinalCalculatedTax + $order->save())
+
+laravel.log: 6325 lines before and after this request -- zero new entries, clean.

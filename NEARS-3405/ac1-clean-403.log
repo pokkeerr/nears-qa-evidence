@@ -1,0 +1,29 @@
+AC1 live evidence — Admin order-edit reject path
+Backend: worktree clone DB multi_food_db_qa3405, php artisan serve --port=8853
+Order: 91219 (store 1, pending), cart item key=0 (order_details.id=173, item_id=102)
+
+STEP 1: GET /admin/order/edit-order/91219 -> enters edit mode (order_cart set in session)
+STEP 2: open quick-view-cart-item modal for key=0, set quantity=0 (invalid), submit
+         via the real page JS function update_order_item() (same code path the
+         "Update" button's delegated click handler calls) -> POST /admin/order/add-to-cart
+         status 200 (cart-session updated, no crash at this stage)
+STEP 3: GET /admin/order/update/91219  (the guarded endpoint fixed by NEARS-3405)
+
+RESULT:
+STATUS: 403
+CONTENT-TYPE: application/json
+BODY: {"errors":[{"code":"quantity","message":"Invalid item quantity"}]}
+
+Never a 500 / "Something went wrong" / raw ErrorException trace.
+
+laravel.log check (scoped, before/after byte+line count):
+  before this request: 6325 lines (all entries timestamped <= 2026-09-09 10:44:12,
+    i.e. pre-existing/historical from the engineer's pre-fix repro + earlier phpunit runs)
+  after this request:  6325 lines -- ZERO new entries. The 403 guard returns cleanly,
+    no [FAIL]/ErrorException logged for this request.
+
+Reproduction driver: Playwright (scripts/app-nav/uinav_web.py's Chromium, via a
+purpose-built scratch script) under the real admin@admin.com session cookie --
+chrome-devtools MCP had zero open page targets this run (see drift[]), so the
+documented token-light fallback was used for the full interactive flow, not just
+screenshots.
