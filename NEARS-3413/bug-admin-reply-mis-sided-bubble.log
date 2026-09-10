@@ -1,0 +1,58 @@
+NEARS-3413 QA finding (cycle 2b): a live admin reply into an EXISTING
+vendor-initiated admin-sentinel conversation renders as a "sent" (vendor's own)
+bubble, not a "received" (Nears Support) bubble — no badge, wrong side, wrong
+attribution.
+
+Repro (100% live, no DB writes — a normal Admin-panel reply, per
+advisor-product's citation that Admin\ConversationController::store()
+reuses an existing conversation via whereConversation($receiver->id, 0)):
+
+1. Vendor Ahmed Khan (UserInfo id=112) has an existing admin-sentinel
+   conversation (id=65, sender_type=vendor/receiver_type=admin/receiver_id=0),
+   3+ prior vendor-authored messages.
+2. Logged into the Admin panel (admin@admin.com) against the isolated sandbox
+   backend, POSTed a reply via the real endpoint:
+     POST /admin/message/store/112  (reply=NEARS-3413-cycle2b-admin-reply-badge-check)
+   -> HTTP 200. Confirmed via DB read: the reply landed in the SAME
+   conversation_id=65 (not a new thread) — whereConversation(112, 0) matched
+   the existing row as predicted. New row:
+     messages.id=120, conversation_id=65, sender_id=131 (the ADMIN's own
+     real UserInfo row, admin_id=1, f_name='Ahmad Izzeddin'), NOT sender_id=0.
+3. Refreshed VendorApp's ChatScreen for this same conversation (same session,
+   no re-login). The new message appears in the thread (confirms delivery/
+   dispatch works) — but renders in the exact same style/alignment/color as
+   the vendor's OWN messages (green "sent" bubble, no Nears Support badge),
+   see screenshot cycle2b-admin-reply-bubble-side.png. Compare against
+   ac2-chatscreen-vendor-initiated.png (cycle 1) / cycle2-ac3-reply-sent-and-
+   visible.png (cycle 2) for the correct "sent" style this message wrongly
+   matches.
+
+Root cause (read, not guessed): VendorApp/lib/features/chat/screens/
+chat_screen.dart resolves `otherParty` ONCE per screen
+(`conversation.resolvedReceiver`), which for this conversation is the
+SYNTHESIZED admin placeholder (`User.adminPlaceholder()`, hardcoded id: 0 —
+conversation_model.dart) because the backend's `receiver` relation is null
+for receiver_id=0. `message_bubble_widget.dart` then computes, for EVERY
+message in the list:
+    bool isReply = message.senderId == user?.id;   // user == otherParty, fixed at id:0
+This correctly distinguishes "received" vs "sent" for a normal 2-party thread
+where the other party has one STABLE real id for the whole conversation. But
+for an admin-sentinel thread, the "other party" (admin) never actually has a
+consistent per-message id: this cycle's live Admin-panel reply used the
+admin's own REAL UserInfo id (131), not the synthetic id:0 the frontend
+placeholder assumes. No message.senderId will ever equal 0 in practice for a
+real admin reply, so isReply is FALSE for every genuine admin-authored
+message => it falls into the "sent by me" render branch instead of
+"received", regardless of who actually sent it.
+
+This is distinct from (and not covered by) the cycle-1 scalar-swap fix,
+which addresses the CONVERSATION-LEVEL sender/receiver swap for a genuinely
+admin-initiated (sender_type=admin) conversation — that swap never fires
+here (conv 65 is vendor-initiated, receiverType stays 'admin', not
+'vendor'), so this is a separate, still-open per-MESSAGE authorship bug,
+reproducible on the only real live admin-reply path this product has today.
+
+Severity: High/Critical — this misattributes REAL admin/support replies as
+if the vendor sent them to themselves, which is actively misleading in the
+one live support flow that does exist (replying into an existing
+vendor-initiated thread), not just a missing edge case.
