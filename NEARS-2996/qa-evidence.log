@@ -1,0 +1,56 @@
+NEARS-2996 QA evidence log — pure backend, no screenshots (no device/UI surface)
+
+=== AC1: query collapse (cache:clear -> hit1 cold -> hit2 warm) ===
+hit1 (cold) query_count=58, includes:
+  select id,key,value from business_settings order by id asc   (business_settings_all_data warm)
+  select * from business_settings where key in (119 params)     (unrelated pre-existing bulk load)
+hit2 (warm, same process instance freshly booted) query_count=30, ZERO extra business_settings queries for the 14 boot keys
+
+=== AC1: value/type parity vs raw DB row (14 keys) ===
+order_delivery_verification: cfg='0' (string) == raw '0'
+default_pagination: cfg=25 (int, fallback - no row) == expected code default
+digit_after_decimal_point -> round_up_to_digit: cfg='0' (string) == raw '0'
+dm_maximum_orders: cfg='2' (string) == raw '2'
+order_confirmation_model: cfg='store' (string) == raw 'store'
+timezone: cfg='Asia/Dubai' (string) == raw 'Asia/Dubai'
+timeformat: cfg='h:i:a' (raw timeformat=12 -> mapped correctly)
+canceled_by_store: cfg=true (bool) == raw '1' cast to bool
+canceled_by_deliveryman: cfg=false (bool) == raw '0' cast to bool
+toggle_veg_non_veg: cfg=true (bool) == raw '1' cast to bool
+mail config: full parity, config('mail') == mail_config row fields exactly
+
+=== AC2: null-as-cache-miss fix, module_config + 2 data_settings_* keys ===
+Pre-existing natural null state: 6 active modules (!=1) -> module_config null; 'cancellation_policy_status'/'shipping_policy_status' absent from data_settings -> null
+hit1: cache rows created, key=laravel_cachemodule_config expiration=2104442213, laravel_cachedata_settings_cancellation_policy_status exp=2104442213, laravel_cachedata_settings_shipping_policy_status exp=2104442213
+hit2 (no clear): SAME expiration timestamps, COUNT(*) GROUP BY key = 1 each -> zero re-write on null result
+
+=== AC3: language delete cache freshness + json integrity ===
+Added probe language nq2996 via admin/business-settings/language/add-new -> immediately visible in /api/v1/config .language[]
+cache row laravel_cachebusiness_settings_all_data: count=1 before delete
+GET admin/business-settings/language/delete/nq2996 -> HTTP 302
+cache row count=0 IMMEDIATELY after delete (Eloquent $language->update() fired CacheInvalidationObserver, no manual cache:clear)
+raw DB business_settings.system_language value: [{...en...},{...ar...}]  -- clean JSON array, nq2996 removed, en/ar intact
+re-GET /api/v1/config -> .language == [en, ar] only, fresh, no stale nq2996
+resources/lang/nq2996 directory self-cleaned by delete() (verified absent, git status clean for that path)
+
+=== AC3 regression: payment gateway rotation via admin/business-settings/third-party/payment-method-update (paystack) ===
+POST rotated public_key=QA_ROTATED_KEY_1789082395, secret_key=QA_ROTATED_SECRET, merchant_email=qa@nears.test -> HTTP 302
+addon_settings.live_values updated immediately with rotated key (DB row confirmed)
+cache row laravel_cachegateway_payment_settings_conf: count=0 IMMEDIATELY after write (Cache::forget fired), count=1 after next read (rewarmed)
+config('paystack') = {publicKey: QA_ROTATED_KEY_1789082395, secretKey: QA_ROTATED_SECRET, merchantEmail: qa@nears.test} -- served immediately, NOT stale
+
+=== AC4: vehicle_* keys, RentalModule::enabled() ===
+RentalModule::enabled() hardcoded 'return false;' -- app/CentralLogics/RentalModule.php
+git diff feat/userapp-reskin2...HEAD -- Admin/app/Http/Controllers/Api/V1/ConfigController.php: hunks at L200/L451 ONLY, zero diff at L283-300 (the 3 vehicle_* Cache::rememberForever calls, all still gated by RentalModule::enabled())
+
+=== AC5: automated backstop ===
+vendor/bin/phpunit --filter 'ConfigContractTest|Api\V1\ConfigControllerTest|CacheInvalidationObserverTest|BusinessSettingsControllerRouteIntegrityTest|NEARS2996ConfigCacheClusterTest'
+Tests: 55, Assertions: 290, Failures: 1 (pre-existing unrelated NEARS-2019 money-rounding seed-twin defect, test's own failure message states 'EXPECTED RED — the money defect, not a broken build')
+NEARS2996ConfigCacheClusterTest: 6/6 pass. CacheInvalidationObserverTest: 13/13 pass.
+
+=== Blast-radius route-type smoke ===
+GET /api/v1/config -> 200; GET /admin -> 302 (unauthenticated redirect, expected); GET / -> 200; GET /api/v1/config/get-zone-id -> 404 (no zone covers seeded coords, documented app behavior, not a crash)
+
+=== BE log check (NEARS-566, [api]-tagged) ===
+storage/logs/laravel.log: zero 'production.' channel entries during live QA actions (server ran APP_ENV=production) -- clean, no [ERR]/exceptions logged by any live QA action.
+Only 'testing.' channel entries present, all from the phpunit run above (pre-existing FCM/geocode test-fixture warnings, unrelated to this ticket).
