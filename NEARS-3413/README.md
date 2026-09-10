@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3413
 
-**Cycle 2b — live Admin-panel reply confirmed reaching the existing thread (per advisor citation), but exposed a NEW reproducible defect: admin-authored replies mis-side as vendor's own 'sent' bubble, no badge**
+**Cycle 3 — bubble mis-attribution bug CONFIRMED FIXED: admin reply (sender_id=131) now renders as a received bubble with Nears Support badge; vendor's own sent bubbles unaffected**
 
-**10 screenshot(s).** Click any thumbnail for full resolution.
+**11 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -21,6 +21,7 @@
 <td align="center" width="33%"><a href="cycle2b-admin-reply-bubble-side.png"><img src="cycle2b-admin-reply-bubble-side.png" width="240"></a><br><sub>cycle2b admin reply bubble side</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="cycle3-admin-reply-bubble-fixed.png"><img src="cycle3-admin-reply-bubble-fixed.png" width="240"></a><br><sub>cycle3 admin reply bubble fixed</sub></td>
 <td align="center" width="33%"><a href="regression-deliveryman-chat.png"><img src="regression-deliveryman-chat.png" width="240"></a><br><sub>regression deliveryman chat</sub></td>
 </tr>
 </table>
