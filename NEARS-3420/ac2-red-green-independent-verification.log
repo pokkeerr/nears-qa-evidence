@@ -1,0 +1,15 @@
+=== AC2 positive control: independent RED-before/GREEN-after verification ===
+Method: swapped Admin/Modules/TaxModule/Services/CalculateTaxService.php to the pre-fix
+content from feat/userapp-reskin2 (git show), re-ran the SAME test file (Nears3420TaxNullGuardTest.php,
+unmodified), then restored the fixed file (byte-identical to HEAD, confirmed 0-line diff).
+
+--- RED (pre-fix code) ---
+Tests: 3, Assertions: 3, Failures: 3
+test_get_calculated_tax_does_not_roll_back_ambient_transaction FAILED:
+  'the before-call fixture row did not survive — getCalculatedTax rolled back the ambient
+   (outer) transaction it never opened' / Failed asserting that false is true.
+test_null_tax_ids_does_not_typeerror_and_fires_warn_guard FAILED:
+  got error key: count(): Argument #1 ($value) must be of type Countable|array, null given
+
+--- GREEN (post-fix code, restored, 0-line diff vs HEAD) ---
+Tests: 3, Assertions: 7, Failures: 0 — OK

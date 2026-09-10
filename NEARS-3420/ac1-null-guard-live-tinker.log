@@ -1,0 +1,8 @@
+=== AC1: live tinker repro (no DB writes) — null tax_ids guard ===
+Command: php artisan tinker --execute="...ReflectionMethod(calculateTax)..."
+Result (2026-09-10 23:52:01 +04): QA-NEARS-3420-TINKER-RESULT: {"include":0,"totalTaxPercent":0,"totalTaxamount":0,"orderTaxIds":[]}
+No TypeError/500. Fails open to zero tax.
+
+=== Matching [WARN] log line appended to Admin/storage/logs/laravel.log (line 8652) ===
+[2026-09-10 23:52:01] production.WARNING: [WARN] tax_ids not an array, skipping tax lookup {"source":"system_tax_setup","system_tax_setup_id":-9999,"tax_payer":"vendor","store_id":null} 
+[2026-09-10 23:53:43] testing.WARNING: [WARN] tax_ids not an array, skipping tax lookup {"source":"system_tax_setup","system_tax_setup_id":147,"tax_payer":"vendor","store_id":null} 

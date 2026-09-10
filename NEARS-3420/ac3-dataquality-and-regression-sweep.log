@@ -1,0 +1,15 @@
+=== AC3: read-only data-quality SELECT, live multi_food_db (2026-09-10 23:51:02 +04) ===
+mysql -u root multi_food_db -e "SELECT id, tax_payer, tax_type, tax_ids, is_active FROM system_tax_setups WHERE tax_payer='vendor' AND tax_type='order_wise' AND tax_ids IS NULL;"
+Result: 0 rows (empty result set).
+Consistent with prior runs at [2] and [6]. The only order_wise/vendor row present is id=3, tax_ids='[3]'.
+
+=== Regression sweep: happy-path tax calc against the live valid row (id=3), wrapped in a
+QA-owned outer transaction that was rolled back afterward (DB left byte-identical, read-only).
+This exercises the exact nested-SAVEPOINT topology of OrderPlacementService.php (ambient tx
+opened at placeOrderTransaction():224, CalculateTaxService called from within it at
+placeOrderCore():706) and OrderTaxService.php's storeData:true parcel/prescription branch (:294).
+Command: php artisan tinker --execute="DB::beginTransaction(); $result = CalculateTaxService::getCalculatedTax(amount:100.0, productIds:[], taxPayer:'vendor', storeData:true, countryCode:null, storeId:null); ... DB::rollBack(); ..."
+Result: totalTaxamount=5 (5% VAT on $100, tax id 3) — same shape/values as pre-fix expectation.
+OrderTax row 98 written by the nested savepoint DURING the transaction (confirms writes still happen).
+After our own outer DB::rollBack(): OrderTax row 98 count = 0 (confirms nested savepoint correctly
+unwinds when the ambient/outer transaction rolls back — no orphaned writes, DB restored to pre-test state).
