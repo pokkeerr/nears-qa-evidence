@@ -1,0 +1,22 @@
+NEARS-3419 QA — mandatory IDOR/security regression, live against isolated backend (127.0.0.1:8933, DB nears_qa_3419_scratch)
+Our guest: id=1601, token=<redacted-64char-scratch-guest-token> (own order id=91231, placed live via app)
+
+Test A: own guest_id(1601)+own token, FOREIGN order_id(91191, owned by guest 1584)
+  GET /api/v1/customer/order/track?order_id=91191&guest_id=1601  -H "X-Guest-Token: <ours>"
+  -> HTTP 404  {"errors":[{"code":"order","message":"Not found"}]}
+
+Test B: FOREIGN guest_id(1584, real owner of 91191) + OUR token (mismatch)
+  GET /api/v1/customer/order/track?order_id=91191&guest_id=1584  -H "X-Guest-Token: <ours>"
+  -> HTTP 401  {"errors":"Unauthorized"}
+
+Test C: own guest_id(1601)+own token, an AUTHENTICATED user's order (91230, is_guest=0, belongs to user_id=6)
+  GET /api/v1/customer/order/track?order_id=91230&guest_id=1601  -H "X-Guest-Token: <ours>"
+  -> HTTP 404  {"errors":[{"code":"order","message":"Not found"}]}
+
+Control (positive): own guest_id(1601)+own token, OWN order (91231)
+  GET /api/v1/customer/order/track?order_id=91231&guest_id=1601  -H "X-Guest-Token: <ours>"
+  -> HTTP 200  (real order JSON — proves the instrument itself is live, not vacuously rejecting everything)
+
+Verdict: no cross-guest / cross-user data leak observed; all rejections return clean error
+bodies (code+message only), never order data. NEARS-528 IDOR gate held under the NEARS-3419
+guest re-open.
