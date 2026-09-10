@@ -1,0 +1,30 @@
+NEARS-2179 QA-lite evidence — AC1: GET /api/v1/items/popular offset=1 vs offset=2 disjoint ids
+Worktree: /Users/Apple/Projects/nears-NEARS-2179-popular-items-secondary-sort (branch fix/NEARS-2179-popular-items-secondary-sort)
+Backend under test: php artisan serve --host=127.0.0.1 --port=8001 (pid 55434, cwd verified = worktree Admin/, boot 2026-09-11 03:48:02 +04)
+Request params: zoneId header=[417], moduleId header=1, limit=10 (offset varies)
+Repeated 3x to rule out a one-off race.
+
+=== Repeat 1 ===
+GET /api/v1/items/popular?limit=10 (offset=1, default)
+  ids: [48124, 48125, 48126, 48127, 48128, 48129, 48130, 48131, 48132, 48133]
+GET /api/v1/items/popular?limit=10&offset=2
+  ids: [48134, 48135, 48136, 48137, 48138, 48154, 48155, 48156, 48157, 48158]
+  overlap with offset=1: set() -- DISJOINT
+
+=== Repeat 2 ===
+  ids offset=1: [48124, 48125, 48126, 48127, 48128, 48129, 48130, 48131, 48132, 48133]
+  ids offset=2: [48134, 48135, 48136, 48137, 48138, 48154, 48155, 48156, 48157, 48158]
+  overlap: set() -- DISJOINT
+
+=== Repeat 3 ===
+  ids offset=1: [48124, 48125, 48126, 48127, 48128, 48129, 48130, 48131, 48132, 48133]
+  ids offset=2: [48134, 48135, 48136, 48137, 48138, 48154, 48155, 48156, 48157, 48158]
+  overlap: set() -- DISJOINT
+
+Result: identical, disjoint id sets across all 3 repeats -> deterministic pagination confirmed
+(ORDER BY items.id secondary sort added in commit 2d8e1cc4a is doing its job).
+
+Envelope shape spot-check (both offsets): keys present = ['categories', 'limit', 'offset', 'products', 'total_size']
+total_size=300, limit=10, offset echoed correctly (1 / 2).
+Cross-checked against unpatched primary tree server (port 8000, /Users/Apple/Projects/nears/Admin,
+pre-fix code) on the same endpoint: identical key set -- envelope shape unchanged by the fix.

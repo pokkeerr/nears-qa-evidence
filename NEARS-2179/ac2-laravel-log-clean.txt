@@ -1,0 +1,21 @@
+NEARS-2179 QA-lite evidence — AC2: Admin/storage/logs/laravel.log clean around the tested requests
+Worktree log path: /Users/Apple/Projects/nears-NEARS-2179-popular-items-secondary-sort/Admin/storage/logs/laravel.log
+
+Test window: server boot 2026-09-11 03:48:02 +04 -> requests fired 03:48:12-03:48:40 +04 (6 total:
+3x offset=1 + 3x offset=2 against GET /api/v1/items/popular).
+
+`wc -l` on the log file before and after the 6 requests: unchanged at 6 lines total (whole file).
+`grep -n "items/popular" storage/logs/laravel.log` -> 0 matches, exit code 1 (no log lines at all
+reference this endpoint, i.e. no error/exception was logged around either request).
+
+Full log content at time of check (6 lines, both entries predate the test window and predate this
+server's boot -- see regression-preexisting-log-entries.txt for detail; neither is caused by, or
+related to, the NEARS-2179 fix or the /items/popular endpoint):
+  [2026-09-10 23:43:37] production.INFO: (business_settings query against DB user 'forge' --
+    worktree bootstrap artifact, day before this QA session)
+  [2026-09-11 03:44:16] production.ERROR: [FAIL] Cannot access offset of type string on string,
+    endpoint=/api/v1/config -- 4 minutes before this server was even started (03:48:02), unrelated
+    endpoint.
+
+Conclusion: AC2 PASS -- no error/exception logged for either /items/popular request across all 3
+repeats.
