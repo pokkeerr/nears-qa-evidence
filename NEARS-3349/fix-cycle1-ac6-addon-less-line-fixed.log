@@ -1,0 +1,51 @@
+NEARS-3349 delta re-QA (fix-cycle 1) — re-demonstration of the previously
+FAILED AC (QA Test Scope item 6: "POS addon-less cart line, no add_on_ids
+key at all").
+
+Setup: this worktree's own code (HEAD 625d2db07, fix/NEARS-3349-addon-qty-by-id),
+isolated DB clone `multi_food_db_qa3349_delta` (mysqldump snapshot of the
+shared multi_food_db, loaded fresh for this run so the mutating POS-order
+call never touches the shared dev DB), own `php artisan serve` on
+127.0.0.1:8091, LOG_LEVEL temporarily raised to debug (worktree default is
+warning) to surface the controller's `info()`-level catch line, same as
+fix-cycle 0's method.
+
+Repro (identical payload shape to fix-cycle 0's crash repro):
+  POST /api/v1/vendor/pos/place-order (vendor bearer token, vendorType: owner header)
+  body: {"cart":[{"item_id":95,"quantity":1,"variant":[],"variation":[]}],
+         "paid_amount":10.00,"payment_method":"cash","store_id":35}
+  (no add_on_ids, no add_on_qtys key at all — the exact "addon-less line" shape)
+
+Result: HTTP 302 (X-Request-Id 6a9e8f5c-245a-4b94-bb0c-e5fd7270a61e), NOT the
+HTTP 500 "Undefined array key add_on_qtys" that fix-cycle 0 reproduced.
+
+laravel.log line for this request's correlation_id:
+[2026-09-11 01:39:36] production.INFO: SQLSTATE[23000]: Integrity constraint
+violation: 1452 Cannot add or update a child row: a foreign key constraint
+fails (`multi_food_db_qa3349_delta`.`orders`, CONSTRAINT
+`orders_module_id_foreign` FOREIGN KEY (`module_id`) REFERENCES `modules`
+(`id`)) ... insert into `orders` (... order_amount ...) values
+(paid, delivered, pos, cash, 35, ?, 0, 0, ..., 0, 0, 10, 10)
+{"correlation_id":"6a9e8f5c-245a-4b94-bb0c-e5fd7270a61e"}
+
+Interpretation: the request now runs the ENTIRE addon-pricing block
+(POSController.php:76-80) without crashing — order_amount computed
+correctly as 10 (= item price, no addons) — and proceeds all the way to the
+Order::save() INSERT, which fails only on the SEPARATE, pre-existing,
+already-filed regression NEARS-3437 (POS place_order() never sets
+module_id; blocks ALL POS orders end-to-end, unrelated to this ticket, out
+of scope for this delta per the conductor's instructions). Confirmed this
+is NOT the add_on_qtys crash by grepping laravel.log for any "[FAIL]
+Undefined array key" line on this request's correlation_id/timeframe —
+none found; the only fix-cycle-0-era "Undefined array key add_on_qtys"
+ERROR line in the log is the stale one from the PRIOR (00:55:01) run,
+predating this fix.
+
+Verdict: the in-scope defect (500 crash on an addon-less POS cart line
+missing both add_on_ids and add_on_qtys) is FIXED. Full 200/order-created
+end-to-end is still blocked by the separately-filed NEARS-3437 — consistent
+with fix-cycle 0's own finding, not a new regression introduced by this fix,
+and explicitly out of scope for this delta per the task instructions.
+
+Cleanup: multi_food_db_qa3349_delta dropped, .env restored to original
+(DB_DATABASE=multi_food_db, LOG_LEVEL=warning) after evidence capture.

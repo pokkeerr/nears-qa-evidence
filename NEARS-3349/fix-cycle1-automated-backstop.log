@@ -1,0 +1,20 @@
+NEARS-3349 delta re-QA (fix-cycle 1) — automated backstop / light targeted
+sweep confirming the OTHER 6 previously-PASSed ACs are not regressed by the
+one-line add_on_qtys guard.
+
+cd Admin && vendor/bin/phpunit --configuration phpunit.xml --filter \
+  "CalculateAddonPriceFloorTest|Nears2986BatchedAddonPositionalMappingTest|Nears3224OrderDetailBuilderTest|Nears3348AddonGuardPortTest|PlaceOrderQtySignTest|Nears3349AddonQtyByIdOrderPlaceTest|CalculateAddonPriceByIdTest|PosPlaceOrderReconcileTest" --testdox
+
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_3349_addon_qty_by_id
+PHPUnit 11.5.55
+Tests: 51, Assertions: 160, PHPUnit Deprecations: 1 (pre-existing, unrelated).
+OK, but there were issues! (the "issues" line is the same pre-existing
+deprecation notice fix-cycle 0 also reported — not a new failure).
+
+All 51 tests green, including PosPlaceOrderReconcileTest's 3 tests (the 2
+pre-existing paid-amount-reconcile tests PLUS the NEW
+"Cart line without any addon keys places cleanly" regression test added
+for this fix cycle) and Nears3349AddonQtyByIdOrderPlaceTest's id-pairing
+pin. No regression across the addon id/qty pairing mechanism, the addon
+guard-port security tests, the floor/sign tests, or the order-detail
+builder goldens.

@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3349
 
-**FAIL - task_bug breaks AC6 (POS addon-less cart line still 500s on add_on_qtys); AC1-3/AC5 PASS on customer path + tinker-verified on admin/POS**
+**Delta fix-cycle 1 PASS: addon-less POS cart line no longer 500s; 51/51 automated targeted sweep green**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -15,6 +15,8 @@
 - [`bug-admin-add-to-cart-session-not-persisted.log`](bug-admin-add-to-cart-session-not-persisted.log)
 - [`bug-pos-addon-less-cart-line-crash.log`](bug-pos-addon-less-cart-line-crash.log)
 - [`bug-pos-order-module-id-fk-violation.log`](bug-pos-order-module-id-fk-violation.log)
+- [`fix-cycle1-ac6-addon-less-line-fixed.log`](fix-cycle1-ac6-addon-less-line-fixed.log)
+- [`fix-cycle1-automated-backstop.log`](fix-cycle1-automated-backstop.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3349/` · public-repo scrub policy (no live secrets; verified clean).*
