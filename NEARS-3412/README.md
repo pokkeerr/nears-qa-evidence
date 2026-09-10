@@ -26,5 +26,8 @@
 </tr>
 </table>
 
+### Other artifacts
+- [`progress.md`](progress.md)
+
 ---
 *From `nears/docs/qa-evidence/NEARS-3412/` · public-repo scrub policy (no live secrets; verified clean).*
