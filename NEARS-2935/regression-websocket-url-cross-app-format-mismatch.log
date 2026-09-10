@@ -1,0 +1,11 @@
+Pre-existing (unrelated to NEARS-2935 diff) cross-app format mismatch, discovered while setting up live Reverb env for this ticket's required round-trip test:
+
+Admin's own websocket-settings form (Admin/resources/views/admin-views/business-settings/websocket-index.blade.php) + validator (BusinessSettingsController::update_websocket) REQUIRE websocket_url to include the ws:// or wss:// scheme (regex '^(ws|wss)://...', placeholder 'ws://178.128.117.0').
+
+DeliveryApp/lib/features/profile/domain/repositories/profile_repository.dart:135 interpolates the config value directly assuming it ALREADY has the scheme ('${webSocketUri}:${webSocketPort}/app/$key?...' then Uri.parse) -- consistent with Admin's contract. Confirmed WORKING when websocket_url='ws://10.0.2.2'.
+
+UserApp/lib/helper/pusher_helper.dart:~172 passes the SAME config value as the bare 'host' param of dart_pusher_channels' PusherChannelsOptions.fromHost(host: websocketUrl, scheme: 'ws', ...), which expects a BARE hostname per the package's own doc example (host: 'my.domain.com') and builds Uri(scheme:, host:, ...) -- a host string that already contains '://' produces a malformed URI and the base pusher connection fails outright (repeating 'pusher reconnect scheduled attempt=N' backoff loop, ApiFailure(status:null), confirmed live on-device).
+
+Net effect: there is NO single value of business_settings.websocket_url that satisfies both apps at once -- with scheme (Admin's own contract) DeliveryApp works but UserApp's whole pusher client fails to connect (not just the driver-location channel); without scheme UserApp works but would presumably break DeliveryApp's Uri.parse (not independently re-tested after switching back, given time budget, but implied by the code reading).
+
+Reproduced live with the ACTUAL apps (not just static reading) on emulator-5558, this run's own isolated Reverb server + DB copy (multi_food_db_qa2935). See userapp-run2.log (attached separately in this evidence dir) for the FormatException / reconnect-loop stack traces under the with-scheme setting, and userapp-logcat-9650.log for the successful 'pusher connected' sequence once switched to the bare-host setting.

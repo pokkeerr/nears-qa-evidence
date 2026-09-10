@@ -1,0 +1,10 @@
+Pre-existing (unrelated to NEARS-2935 diff — routes/channels.php line untouched, confirmed via git diff) regression finding:
+App.Models.User.{id} channel's registered closure has NO explicit 'guards' option, so it falls back to the default 'web' session guard for retrieveUser() per Laravel's PusherBroadcaster — a mobile Bearer-token client can never satisfy this, so /broadcasting/auth 403s even for the customer's own user id.
+
+=== own user id (5), own bearer token -> got 403 (expected 200) ===
+{
+    "message": ""
+}
+HTTP 403
+
+No consumer of this channel found anywhere in UserApp/VendorApp/DeliveryApp lib/ or Admin/resources (grepped) -- likely dead/unused, so real-world impact is low, but flagging as found during this QA sweep.
