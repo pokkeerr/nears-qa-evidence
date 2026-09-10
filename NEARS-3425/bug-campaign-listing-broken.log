@@ -1,0 +1,48 @@
+NEARS-3425 QA — regression_bugs evidence (pre-existing, unrelated to this ticket)
+
+Endpoint: GET /api/v1/campaigns/item (CampaignController::get_item_campaigns)
+Symptom: always returns [] with HTTP 200, regardless of active/seeded item_campaigns
+data that pass the query's own active()/running()/zone scopes. Silently swallowed
+by the controller's broad `catch (\Exception $e) { return response()->json([], 200); }`
+— no log line, so this reads as "no campaigns configured" rather than a defect.
+
+Impact observed live during QA: this is the ONLY user-reachable UI path into a
+"buy-now" (is_buy_now=1) checkout for a regular item — item_bottom_sheet.dart's
+"Order Now" button only appears for isCampaign:true items (ItemCampaignScreen /
+"Just For You" section). With the endpoint always empty, that section never
+renders, "Just For You" never appears on Food/Shop home, and NO regular-item
+buy-now UI entry point is reachable on this build — blocking live device
+verification of NEARS-3425 scope items 8/9/10 (retry/409/coupon-rotation toast
+behavior). NEARS-3425's own AC1/AC2/AC3 were independently verified via direct
+backend API replay against /api/v1/customer/order/place (see QA envelope) —
+this defect does not touch OrderPlacementService and is NOT caused by this
+ticket's diff.
+
+Root cause (reproduced via `php artisan tinker` against the QA DB, bypassing the
+controller's swallow-all catch):
+
+  Illuminate\Database\Eloquent\RelationNotFoundException: Call to undefined
+  relationship [pharmacy_item_details] on model [App\Models\ItemCampaign]
+
+  #0 .../Builder.php(969): RelationNotFoundException::make(ItemCampaign, 'pharmacy_item_details')
+  ...
+  #8 app/CentralLogics/Helpers.php(440): Collection->loadMissing([...])
+
+Helpers::product_data_formatting() (Admin/app/CentralLogics/Helpers.php:440)
+eager-loads 'pharmacy_item_details' (and presumably 'ecommerce_item_details') on
+whatever collection it is handed — those relations exist on App\Models\Item but
+NOT on App\Models\ItemCampaign. Any caller that hands product_data_formatting()
+an ItemCampaign collection (CampaignController::get_item_campaigns is one; there
+may be others, e.g. basic_campaign_details) throws, and get_item_campaigns's own
+catch(\Exception) turns that into a clean-looking empty array — a genuinely
+silent failure, no [ERR]/[FAIL] anywhere, unlike NEARS-566's log-contract intent
+for a new failure path (this one is pre-existing, not a NEARS-3425 regression).
+
+Reproduction (read-only against the QA-private DB clone, config-only mutation via
+tinker, no product code edited):
+  cd Admin && php artisan tinker --execute="... ItemCampaign::active()->...->running()->get()
+  then Helpers::product_data_formatting(\$campaigns, true, false, 'en')"
+  -> count: 3 (query itself is fine) -> product_data_formatting throws immediately after.
+
+Suggested owner: backend-engineer, CentralLogics/Helpers.php product_data_formatting
+(guard the eager-load list by model class, or give ItemCampaign a no-op relation).
