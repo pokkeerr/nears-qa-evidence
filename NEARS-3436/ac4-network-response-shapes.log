@@ -1,0 +1,66 @@
+NEARS-3436 QA — POST admin/order/add-to-cart / remove-from-cart response-shape evidence
+Captured live via Playwright route interception against the worktree's own Admin server
+(http://127.0.0.1:8001, worktree fix/NEARS-3436-add-to-cart-session-persist, disposable DB
+clone multi_food_db_qa3436).
+
+--- NON-FOOD BRANCH (order 91216, store 12 "Fresh local") ---
+[add item53 "Hamburger Buns" (new, non-food)] ->
+  POST http://127.0.0.1:8001/admin/order/add-to-cart -> 200 {"data":0}
+  (new-item success shape unchanged; item persisted after reload)
+
+[add item53 again (duplicate, same session)] ->
+  POST http://127.0.0.1:8001/admin/order/add-to-cart -> 200 {"data":1}
+  (duplicate-item shape unchanged; correctly blocked now that session actually holds the
+  first add — pre-fix this check silently never fired since the cart was never persisted)
+
+[add item62 "Oreo Choco Cookies" (different, legit, same session)] ->
+  POST http://127.0.0.1:8001/admin/order/add-to-cart -> 200 {"data":0}
+  (proves the duplicate check does not over-block a legitimately different item)
+
+[edit item53 cart_item_key path, qty 1 -> 3] ->
+  POST http://127.0.0.1:8001/admin/order/add-to-cart -> 200 {"data":2}
+  (edit success shape unchanged; qty change persisted after reload — cart row showed "3 x")
+
+[remove item62 via remove_from_cart] ->
+  POST http://127.0.0.1:8001/admin/order/remove-from-cart -> 200 []
+  (response shape unchanged; item removed from cart table after reload)
+
+--- FOOD-VARIATION BRANCH (order 91133, store 4 "Burger Palace") ---
+[add item16 "Classic Cheeseburger" variation Size=Regular (new, food)] ->
+  POST http://127.0.0.1:8001/admin/order/add-to-cart -> 200 {"data":0}
+  (new-item success shape unchanged; item + selected variation "Size - Regular"
+  persisted after reload)
+
+[edit item16 cart_item_key path, qty 1 -> 2] ->
+  POST http://127.0.0.1:8001/admin/order/add-to-cart -> 200 {"data":2}
+  (edit success shape unchanged; qty change persisted after reload — cart row showed
+  "2 x د.إ. 8.99" = 17.98, variation retained)
+
+[add item16 again with NO Size selected (variation-error early-return)] ->
+  POST http://127.0.0.1:8001/admin/order/add-to-cart -> 200
+  {"data":"variation_error","message":"Please select items from Size"}
+  (variation-error shape unchanged; cart table text before/after this call byte-identical
+  -> confirmed NO cart mutation on this early-return path)
+
+--- FULL PLACE-ORDER / SUBMIT-EDIT-ORDER FLOW (regression sweep) ---
+Order 91133 (food branch, 2-item cart: Veggie Burger qty1 @9.99 + Classic Cheeseburger
+qty2 @8.99 w/ Size=Regular variation):
+  on-screen total pre-submit: د.إ. 29.37
+  after .submit-edit-order -> admin.order.update -> DB:
+    orders.order_amount = 29.37, orders.total_tax_amount = 1.40
+    order_details: (item 18 qty1 price 9.99, variation []),
+                    (item 16 qty2 price 8.99, variation [{"name":"Size",...,"values":[{"label":"Regular","optionPrice":"0"}]}])
+  MATCH: on-screen pre-submit total == finalized DB order_amount (29.37 == 29.37)
+
+Order 91216 (non-food branch, 2-item cart: Brown Dinner Rolls qty1 @4.00 + Hamburger Buns
+qty1 @4.00):
+  on-screen total pre-submit: د.إ. 9.40
+  after .submit-edit-order -> admin.order.update -> DB:
+    orders.order_amount = 9.40, orders.total_tax_amount = 0.40
+    order_details: (item 51 qty1 price 4.00), (item 53 qty1 price 4.00)
+  MATCH: on-screen pre-submit total == finalized DB order_amount (9.40 == 9.40)
+
+Conclusion: totals/tax compute correctly end-to-end through the full place-order/update
+flow now that add_to_cart() actually persists the cart both branches feed from real,
+session-backed multi-item carts (this path previously only ever saw an empty/stale cart
+due to the NEARS-3436 bug).
