@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3413
 
-**FAIL — AC1/AC2 vendor-initiated direction + RTL/regression clean; AC3 blocked (compose bar never renders for admin threads once they have >=1 message); admin-initiated direction unreachable live (no product flow originates it)**
+**Delta re-QA cycle 2 — AC3 confirmed fixed (compose bar renders, reply sends, appears on refresh); targeted regression clean; reachability gap for admin-initiated direction still open, declined raw-DB-insert workaround per read-only-DB hard rule**
 
-**6 screenshot(s).** Click any thumbnail for full resolution.
+**9 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -13,6 +13,11 @@
 <tr>
 <td align="center" width="33%"><a href="ac2-chatscreen-vendor-initiated.png"><img src="ac2-chatscreen-vendor-initiated.png" width="240"></a><br><sub>ac2 chatscreen vendor initiated</sub></td>
 <td align="center" width="33%"><a href="bug-admin-compose-bar-hidden.png"><img src="bug-admin-compose-bar-hidden.png" width="240"></a><br><sub>bug admin compose bar hidden</sub></td>
+<td align="center" width="33%"><a href="cycle2-ac3-compose-bar-visible.png"><img src="cycle2-ac3-compose-bar-visible.png" width="240"></a><br><sub>cycle2 ac3 compose bar visible</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cycle2-ac3-reply-sent-and-visible.png"><img src="cycle2-ac3-reply-sent-and-visible.png" width="240"></a><br><sub>cycle2 ac3 reply sent and visible</sub></td>
+<td align="center" width="33%"><a href="cycle2-regression-deliveryman-compose-still-hidden.png"><img src="cycle2-regression-deliveryman-compose-still-hidden.png" width="240"></a><br><sub>cycle2 regression deliveryman compose still hidden</sub></td>
 <td align="center" width="33%"><a href="regression-deliveryman-chat.png"><img src="regression-deliveryman-chat.png" width="240"></a><br><sub>regression deliveryman chat</sub></td>
 </tr>
 </table>
