@@ -1,0 +1,48 @@
+NEARS-3413 QA finding: reply compose bar never renders for an admin-sentinel
+conversation once it has >=1 message (blocks AC3).
+
+Root cause (confirmed by reading + live API call):
+- VendorApp/lib/features/chat/screens/chat_screen.dart gates the entire compose
+  Row (image-pick / text field / send button) behind:
+    (chatController.messageModel != null &&
+     (chatController.messageModel!.status! || chatController.messageModel!.messages!.isEmpty))
+  else branch renders `const SizedBox()` — no fallback compose UI at all.
+- `status` comes verbatim from the backend's `messages()` endpoint
+  (Admin/app/Http/Controllers/Api/V1/Vendor/ConversationController.php), which
+  computes it as "does the vendor have an active order with this participant" —
+  and has NO branch at all for receiver_type/sender_type == 'admin', so it always
+  falls through to `else { $order = 0; }` => status:false for every admin thread.
+- The only escape hatch is `messages.isEmpty` (first message ever). Every
+  subsequent app-open of that same admin thread has status:false AND
+  messages non-empty => compose permanently hidden. There is no "active order"
+  concept for a Nears Support thread, so this can never self-resolve.
+
+Live proof — curl against the isolated QA backend (multi_food_db_qa3413, port 8413),
+vendor Ahmed Khan (ahmed.khan@demo.com), conversation_id=65 (the only real
+admin-sentinel fixture in the seed data, 3 vendor-authored messages):
+
+  $ curl -s "http://127.0.0.1:8413/api/v1/vendor/message/details?conversation_id=65&limit=10&offset=1" \
+      -H "Authorization: Bearer <token>" -H "vendorType: owner"
+  {
+    "total_size": 3,
+    ...
+    "status": false,
+    ...
+  }
+
+Screenshot bug-admin-compose-bar-hidden.png (= ac2-chatscreen-vendor-initiated.png)
+shows the live ChatScreen for this exact conversation: AppBar "Nears Support" +
+badge render correctly (the ticket's own fix), full message history renders, but
+there is NO text field / send button / image-attach icon anywhere on screen —
+confirmed by a full-screen screenshot down to the bottom safe area.
+
+Regression cross-check: the SAME gate also hides the compose bar for a
+delivery_man thread with no active order (Ali Hassan, all vendor-authored,
+screenshot regression-deliveryman-chat.png) — so the underlying order-gate
+mechanism is pre-existing, generic product behavior, NOT introduced by this
+diff. What IS new/in-scope: AC3 explicitly promises "sending a reply... succeeds"
+for admin threads, and that promise is unreachable via the UI for any admin
+thread beyond its first message, because no "order" concept can ever apply to a
+Nears Support conversation. The dispatch-layer fix in chat_service.dart
+(processSendMessage's new admin branch) is correct but unreachable — there is no
+send button to tap.
