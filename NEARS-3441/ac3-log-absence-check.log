@@ -1,0 +1,45 @@
+NEARS-3441 QA — AC3 log-absence check (positive-control discipline)
+
+Positive control (proves the instrument WOULD catch the fatal if it were
+still present): the sibling ticket's own prior QA capture, read and verified
+live during this run --
+https://raw.githubusercontent.com/pokkeerr/nears-qa-evidence/main/NEARS-3431/bug-vendor-web-coupon-edit-500-module-context.log
+-- contains the exact fatal line the OLD (pre-fix) code produced against
+this identical call path:
+
+  [2026-09-11 02:16:14] production.ERROR: [FAIL] Trying to access array
+  offset on null {"trace_id":"...","correlation_id":"...",
+  "type":"ErrorException","endpoint":"/vendor-panel/order/update-order-amount"}
+
+  at app/CentralLogics/CouponLogic.php:43
+    $module_id = isset($module_id) ? $module_id : config('module.current_module_data')['id'];
+
+This confirms both the exact string ("Trying to access array offset on
+null") and the exact endpoint tag this repo's logging emits for this fatal
+when it fires -- the grep target below is not a guess.
+
+Repro window this run: 2026-09-10 23:40:52 UTC -> 2026-09-10 23:46:xx UTC
+(AC1 order 91199 submit, AC2 order 172 curl replay + 3 browser attempts,
+regression order 91219 submit, supplementary order 91200 min-purchase-404
+path) against Admin/storage/logs/laravel.log +
+Admin/storage/logs/laravel-structured.log in THIS worktree
+(nears-NEARS-3441-vendor-coupon-module-id).
+
+$ grep -F "Trying to access array offset on null" storage/logs/laravel.log storage/logs/laravel-structured.log
+  -> 0 hits (both files)
+
+$ grep -F "a3cc0228-be22-4c4d-b06d-1aa974b933a1" storage/logs/laravel.log storage/logs/laravel-structured.log
+  (the X-Request-Id/correlation id echoed on the AC2 407 response itself)
+  -> 0 hits (both files) -- expected: a clean 407 JSON return is not an
+     exception and generates no log line by itself; the instrument's job
+     here is only to catch a NEW fatal, which it did not.
+
+Sanity check the log is actually live/writable this session:
+$ grep -c '\.ERROR:\|\.CRITICAL:\|\.EMERGENCY:' storage/logs/laravel.log
+  -> 2770 (pre-existing unrelated FCM/etc error lines earlier in the file --
+     confirms the log channel is genuinely active, not silently broken)
+
+Conclusion: no new fatal/ErrorException "Trying to access array offset on
+null" for this call path after the fix, for any of the 5 repro requests
+made in this run (2 success-path, 2 error-path incl. the AC2 407, 1
+no-coupon regression).

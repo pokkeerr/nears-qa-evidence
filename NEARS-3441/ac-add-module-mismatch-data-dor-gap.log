@@ -1,0 +1,48 @@
+NEARS-3441 QA — AC-add (module-mismatch -> 404) Data DoR gap
+
+Query (READ-ONLY, SELECT/JOIN only) across every coupon-bearing order in the
+seeded multi_food_db:
+
+  SELECT o.id, o.coupon_code, o.store_id, s.module_id AS store_module,
+         c.module_id AS coupon_module
+  FROM orders o
+  JOIN stores s ON s.id=o.store_id
+  LEFT JOIN coupons c ON c.code = o.coupon_code
+  WHERE o.coupon_code IS NOT NULL AND o.coupon_code != ''
+    AND (c.module_id IS NULL OR c.module_id != s.module_id);
+
+  -> 0 rows. All 14 coupon-bearing orders in seed data carry a coupon whose
+     module_id already matches their own store's module_id (all module 1 =
+     Grocery & Food). No naturally-occurring module-mismatch order exists to
+     drive live through the real Store Panel web UI without a DB write (out
+     of scope for read-only QA -- and even placing a NEW order through the
+     app's own customer flow would not reproduce it, since normal checkout
+     already validates the coupon's module against the cart's module before
+     the order is ever created; this scenario is a defense-in-depth branch
+     for historical drift, e.g. a store's module_id reassigned after the
+     order/coupon existed -- not a state reachable through a live legitimate
+     order-placement flow either).
+
+Verdict: UNVERIFIABLE (live web UI) -- Data DoR gap, not a code defect.
+
+Supporting evidence (not a substitute for the live demo, but materially
+de-risks it):
+1. Code-level: CouponLogic::is_valide() lines 45-48 (the 404 module-mismatch
+   branch) is NOT new/untested logic -- it is unconditionally exercised in
+   normal production traffic by the customer-facing coupon-apply API
+   (Api/V1/CouponController.php:100) and by the vendor-API order-amount-edit
+   twin (Api/V1/Vendor/VendorController.php:1078, via the
+   config('module.current_module_data') fallback populated by
+   VendorTokenIsValid middleware on that surface). The NEARS-3441 fix simply
+   threads the same $store variable this function already uses elsewhere in
+   the same call (store_wise / created_by=vendor branches, lines 66-73) into
+   the module_id argument -- not new code shape.
+2. Automated backstop: tests/Feature/Security/Nears3441VendorCouponModuleIdTest.php
+   ::test_coupon_module_mismatch_returns_404() constructs a fixture coupon
+   with module_id = store's module_id + 1 and asserts the controller
+   response is exactly 404 with no exception thrown. Ran live this session:
+   4/4 tests, 10 assertions, PASS (see automated backstop in envelope).
+
+Followup filed: seed a real coupon+order pair with a genuine module_id
+mismatch (e.g. a Pharmacy-module coupon attached to a Grocery-module store's
+order) so this AC-add can be demonstrated live end-to-end in a future pass.
