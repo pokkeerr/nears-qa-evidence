@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3430
 
-**Delta re-QA cycle 2: AC1/AC2/AC4 PASS, AC3 phone-format regression FIXED (log-confirmed), AC3 remains UNVERIFIABLE live (Firebase billing gap + no email-unverified DB fixture) — env limitations, not code defects**
+**fix-cycle 3 PASS: manual_login gates verification flags on BusinessSetting (mirrors register()), AC1/AC2/AC3a/AC4 live+automated-confirmed, AC3b deferred per packet**
 
-**4 screenshot(s).** Click any thumbnail for full resolution.
+**5 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -11,6 +11,7 @@
 <td align="center" width="33%"><a href="ac3-phone-fix-confirmed-billing-blocker.png"><img src="ac3-phone-fix-confirmed-billing-blocker.png" width="240"></a><br><sub>ac3 phone fix confirmed billing blocker</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ac3a-manual-login-verification-off-lands-in-app.png"><img src="ac3a-manual-login-verification-off-lands-in-app.png" width="240"></a><br><sub>ac3a manual login verification off lands in app</sub></td>
 <td align="center" width="33%"><a href="bug-firebase-phone-format-crash.png"><img src="bug-firebase-phone-format-crash.png" width="240"></a><br><sub>bug firebase phone format crash</sub></td>
 </tr>
 </table>
