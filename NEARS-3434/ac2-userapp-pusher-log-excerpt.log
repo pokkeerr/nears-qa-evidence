@@ -1,0 +1,18 @@
+NEARS-3434 AC2 — UserApp initializePusher() live connect, order_tracking_screen,
+emulator-5564, BROADCAST_DRIVER=reverb (worktree-local .env only), reverb:start
+bound 0.0.0.0:6001, business_settings.websocket_url=ws://10.0.2.2 (Android-emulator
+host-loopback alias), websocket_port=6001.
+
+  I/flutter ( 4299): [INFO] msg="running_order_card_tapped order_id: 91150"
+  I/flutter ( 4299): [NET] GET endpoint=/api/v1/config/geocode-api
+  I/flutter ( 4299): [NET] GET endpoint=/api/v1/config/get-zone-id
+  I/flutter ( 4299): [INFO] msg="pusher connected"
+  I/flutter ( 4299): [NET] endpoint=/api/v1/config/geocode-api http_status=200
+  I/flutter ( 4299): [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+  ... (order-tracking screen remained open ~15s, single "pusher connected" line,
+       zero "pusher disconnected", zero reconnect/backoff log lines, zero
+       ApiFailure(status:null) lines for the remainder of the capture)
+
+"pusher connected" is logged only from PusherHelper's lifecycleStream listener on
+PusherChannelsClientLifeCycleState.establishedConnection (pusher_helper.dart:119) —
+a real (re)connect ack from the dart_pusher_channels client, not a synthetic string.

@@ -1,0 +1,13 @@
+NEARS-3434 AC4 — Admin/storage/logs/laravel.log around the update_websocket save window.
+
+Last log line before the AC1/AC4 curl session:
+[2026-09-11 01:07:49] testing.WARNING: [WARN] new_place_order - buy-now request missing/invalid X-Idempotency-Key, falling through unguarded {...}
+
+wall clock at check time: Fri Sep 11 01:36:56 +04 2026 (27+ min later)
+grep -c for each of the 4 captured X-Request-Id values (ws-bare accept, embedded-port/path/query rejects)
+against storage/logs/laravel.log: 0 hits for all four.
+
+No new line was appended to laravel.log as a result of ANY of the update_websocket
+POSTs (accepted or rejected) — the tightened regex validation is enforced entirely
+by Laravel's request validation layer (302 back() + session $errors), which does not
+itself log. No [FAIL]/[ERR] line, clean.

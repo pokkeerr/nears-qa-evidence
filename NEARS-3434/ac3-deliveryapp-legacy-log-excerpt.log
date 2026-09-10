@@ -1,0 +1,32 @@
+NEARS-3434 AC3 — DeliveryApp _ensureLocationChannel(), emulator-5564, delivery man
+"Ali Hassan" (id 1) toggled Online, same reverb:6001 server.
+
+CANONICAL value (business_settings.websocket_url = 'ws://10.0.2.2', port 6001):
+  I/flutter ( 5900): [NET] POST endpoint=/broadcasting/auth
+  I/flutter ( 5900): [NET] endpoint=/broadcasting/auth http_status=200
+  (no "location ws connect failed" / "subscribe failed" warn lines — full
+  connect -> pusher:connection_established -> /broadcasting/auth (200) ->
+  pusher:subscribe -> pusher_internal:subscription_succeeded handshake completed)
+
+LEGACY value (business_settings.websocket_url mutated directly in the isolated
+qa3434 clone DB to '10.0.2.2:6001' — a schemeless host:port shape the tightened
+Admin validator would now reject on save, but a pre-fix row could still hold),
+app force-stopped + relaunched to force a fresh /api/v1/config fetch:
+  I/flutter ( 7028): [NET] endpoint=/api/v1/config http_status=200
+  I/flutter ( 7028): [NET] POST endpoint=/broadcasting/auth
+  I/flutter ( 7028): [NET] endpoint=/broadcasting/auth http_status=200
+  (identical successful handshake — parseWebsocketHost('10.0.2.2:6001') strips the
+  port and defaults scheme to 'ws', exactly the pusher_helper_test.dart /
+  profile_repository_websocket_key_test.dart 'legacy host:port' case)
+
+GARBAGE value (websocket_url = '://'), same restart procedure:
+  I/flutter ( 7028): [NET] endpoint=/api/v1/config http_status=200
+  I/flutter ( 7028): [WARN] msg="location ws subscribe aborted: websocket_url unusable"
+  I/flutter ( 7028): [FAIL] endpoint=null http_status=null type=LocationRecordFailure msg="location record failed: LocationRecordFailure"
+  I/flutter ( 7028): [NET] POST endpoint=/api/v1/delivery-man/record-location-data
+  I/flutter ( 7028): [NET] endpoint=/api/v1/delivery-man/record-location-data http_status=200
+  — safe null-guard path: parseWebsocketHost('://') returns null, no
+  WebSocketChannel.connect() attempted, no uncaught FormatException/crash,
+  the caller (profile_controller._maybeSendLocation) caught the thrown
+  LocationRecordFailure and fell through to the plain HTTP record-location
+  endpoint so DeliveryHistory liveness still holds.

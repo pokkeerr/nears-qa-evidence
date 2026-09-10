@@ -1,0 +1,17 @@
+NEARS-3434 AC1 — live curl against POST /admin/business-settings/update-websocket
+(Admin worktree backend, isolated DB multi_food_db_qa3434, port 8034)
+
+ACCEPTED (persisted, toastr.success "Successfully updated to changes restart app"):
+  ws://example.com   -> saved, websocket_url field value="ws://example.com", no error
+  wss://example.com  -> saved, websocket_url field value="wss://example.com", no error
+
+REJECTED (session validation error, value NOT persisted, field kept prior value):
+  ws://example.com:6001  (embedded port)  -> toastr.error('Please enter a valid WebSocket URL', ...)
+  ws://example.com/path  (embedded path)  -> toastr.error('Please enter a valid WebSocket URL', ...)
+  ws://example.com?x=1   (embedded query) -> toastr.error('Please enter a valid WebSocket URL', ...)
+
+Round-trip check: GET /api/v1/config after the last accepted save returned
+  websocket_url=wss://example.com, websocket_port=6001, websocket_status=1
+  — matches exactly what was POSTed to the Admin update endpoint.
+
+Matches Admin/tests/Feature/Nears3434WebsocketUrlValidationTest.php's data providers 1:1.

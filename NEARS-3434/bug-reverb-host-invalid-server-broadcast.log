@@ -1,0 +1,35 @@
+NEARS-3434 QA regression-candidate finding (pre-existing, unrelated to this
+ticket's diff — filed as regression_bugs, does NOT affect this ticket's verdict).
+
+Admin/storage/logs/laravel.log, surfaced while exercising a real BROADCAST_DRIVER
+(reverb) for AC2, which is not the app's normal dev state (BROADCAST_DRIVER=log):
+
+[2026-09-11 01:51:29] production.ERROR: [FAIL] dm-location broadcast dispatch failed {"trace_id":"4387b887e5e1f834c39aa7f55a1f6260","deliveryman_id":1,"exception":"Invalid host: \"127.0.0.1:8034\""}
+[2026-09-11 01:53:39] production.ERROR: [FAIL] dm-location broadcast dispatch failed {"trace_id":"21cf4c9fc363d9271de3e99f15cd7454","deliveryman_id":1,"exception":"Invalid host: \"127.0.0.1:8034\""}
+
+Source: Admin/app/Listeners/HandleClientMessage.php:74, catching an exception
+thrown by `dispatch(new DispatchDriverLocationJob(...))->onQueue('broadcasts')`
+(Admin/app/Jobs/DispatchDriverLocationJob.php), which runs SYNCHRONOUSLY because
+QUEUE_CONNECTION=sync (pre-existing .env default) and throws inside
+`\App\Events\DeliveryLocationUpdated::broadcast()` when it hits Reverb's
+server-side (HTTP-trigger) broadcaster client.
+
+Root cause: .env's `REVERB_HOST="${APP_URL}"` interpolates the FULL URL
+(scheme + host, e.g. "http://127.0.0.1:8034") into config/broadcasting.php's
+reverb 'host' key, which Reverb's PHP broadcaster client expects to be a BARE
+hostname. This is a pre-existing template default — confirmed identical in the
+untouched worktree .env backup (.env.qa-backup, before any of this QA session's
+edits): `REVERB_HOST="${APP_URL}"`, `APP_URL=http://localhost` — so ANY
+environment with BROADCAST_DRIVER=reverb hits this, independent of NEARS-3434's
+change.
+
+Scope/impact: this is the SERVER-triggered broadcast path (Laravel pushing a
+location update OUT to other subscribers of private-user-location.<id>, e.g. a
+customer watching a delivery), NOT the client-initiated raw WebSocket connect/
+subscribe path this ticket's AC2/AC3 exercise (UserApp Pusher connect,
+DeliveryApp's own _ensureLocationChannel + client-location-update send) — both
+of which connect directly to the Reverb WebSocket port and are UNAFFECTED. The
+failure is caught (Log::error, not an uncaught exception), so it doesn't crash
+the request — it just means any OTHER subscriber never receives the pushed
+location update while BROADCAST_DRIVER=reverb is active with this REVERB_HOST
+value.
