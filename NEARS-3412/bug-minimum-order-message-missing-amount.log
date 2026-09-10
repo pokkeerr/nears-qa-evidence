@@ -1,0 +1,19 @@
+Pre-existing content bug (NOT introduced by NEARS-3412) — found incidentally while demonstrating AC4.
+
+Live repro (AJAX response body, admin/order/update, minimum_order guard reject):
+  {"errors":[{"code":"minimum_order","message":"You need to order at least "}]}
+
+Toast rendered from that response: "You need to order at least " (trailing space, no amount).
+
+Root cause: Admin/resources/lang/en/messages.php:3116
+  'you_need_to_order_at_least' => 'You need to order at least ',
+The lang string has no `:amount`/`:currency` placeholder token at all, so the
+translate() call's replacement array (`['amount' => $store->minimum_order . ' ' . Helpers::currency_code()]`)
+in OrderController.php has nothing to substitute into -- the string always
+renders as the bare prefix. This predates NEARS-3412 (the string/translate()
+call site is untouched by this ticket's diff -- verified via
+`git show c20710ea2 --stat -- Admin/resources/lang/` = no output).
+
+Same call site also exists in POSController.php (admin POS place-order's
+`min_purchase`-style guard uses a similarly-shaped translate() call) -- not
+independently re-verified live, flagged as the same class of defect.

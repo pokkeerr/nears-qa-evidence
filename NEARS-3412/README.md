@@ -27,6 +27,7 @@
 </table>
 
 ### Other artifacts
+- [`bug-minimum-order-message-missing-amount.log`](bug-minimum-order-message-missing-amount.log)
 - [`progress.md`](progress.md)
 
 ---
