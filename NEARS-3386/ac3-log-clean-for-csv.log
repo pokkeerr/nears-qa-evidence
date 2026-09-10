@@ -1,0 +1,18 @@
+NEARS-3386 QA — AC3 log check
+==============================
+Valid CSV upload (multipart POST to /vendor-panel/item/bulk-import, real HTTP form path)
+completed 19:15:34 UTC+4 2026-09-10. Grep of Admin/storage/logs/laravel.log for any
+[FAIL]/[ERR]/IOException/UnsupportedTypeException line at or after that timestamp: NONE.
+Item id 91110 "NEARS-3386 QA CSV Import 1789053225" created for store_id=9 (items count
+15 -> 16). Toast returned: "1 Products are added for the admin approval" (success path).
+
+Valid XLSX upload (same endpoint, public/assets/restaurant_panel/items_bulk_format.xlsx)
+completed 19:15:5x. Grep of laravel.log for any [FAIL]/[ERR] at or after that timestamp: NONE.
+Items count 16 -> 18 (Demo 1 id=91111, Demo 2 id=91112). Toast: "2 Products are added for
+the admin approval" (success path, regression-free).
+
+Unsupported-extension .txt upload (same endpoint) — allowlist gate + hardened error path:
+[2026-09-10 19:16:27] production.ERROR: [FAIL] vendor bulk-import parse failed {"trace_id":"3e820bc6fd09f303d662ff0bd97294e2","correlation_id":"7ae3568b-f950-4b86-b8b3-7bbc3563f7e1","store_id":9,"extension":"txt","error":"Exception","message":"unsupported bulk-import extension"}
+Toast returned: "You have uploaded a wrong format file" (302 redirect, no 500). Items count
+unchanged at 18 (no row imported). Confirms the [FAIL] log enrichment (error class + message)
+from the NEARS-3386 fix-cycle commit 9567140d3 is live and correlatable via trace_id/correlation_id.
