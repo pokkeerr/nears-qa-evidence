@@ -1,0 +1,38 @@
+NEARS-3349 QA finding — task_bug, breaks AC6 (QA Test Scope item 6:
+"POS addon-less cart line (Vendor/POSController.php:76) — confirm a cart
+line with no add_on_ids key at all still places cleanly").
+
+Repro: POST /api/v1/vendor/pos/place-order (vendor token, vendorType: owner)
+  cart: [{"item_id": 2, "quantity": 1, "variant": [], "variation": []}]
+  (no add_on_ids, no add_on_qtys key at all — the exact "addon-less line" shape)
+
+HTTP response: 500 {"message":"Something went wrong"}
+
+Matching laravel.log line:
+[2026-09-11 00:55:01] production.ERROR: [FAIL] Undefined array key "add_on_qtys" {"trace_id":"bd00556230491f2d531a7a1ae3873224","correlation_id":"24e2d3e7-5f8b-4de4-96ae-4c41203382f0","type":"ErrorException","endpoint":"/api/v1/vendor/pos/place-order"}
+
+Root cause: Admin/app/Http/Controllers/Api/V1/Vendor/POSController.php:76-79
+  $addOnIds = is_array($c['add_on_ids'] ?? null) ? $c['add_on_ids'] : [];   // guarded (NEARS-3349)
+  $addon_data = Helpers::calculate_addon_price(
+      \App\Models\AddOn::whereIn('id', $addOnIds)->get(),
+      $c['add_on_qtys'],   // <-- NOT guarded — literal array access on a raw PHP array,
+                            //     throws ErrorException (Undefined array key) when the
+                            //     cart line omits add_on_qtys entirely.
+      $addOnIds
+  );
+
+The engineer's own inline comment on line 76-77 says "$c['add_on_ids'] isn't
+guaranteed present/array for an addon-less cart line; coerce for the now-
+required 3rd param" and fixed $c['add_on_ids'] with a null-coalesce + is_array
+guard, but left the sibling $c['add_on_qtys'] access on line 79 as a bare
+array-index read — same undefined-key crash class, just moved from
+add_on_ids (which crashed pre-fix too, same way) to add_on_qtys post-fix.
+Net effect: the exact scenario named in this ticket's own QA Test Scope item
+6 ("a POS cart line with NO add_on_ids key at all must still place cleanly
+(was previously unguarded against this shape)") is still unguarded and still
+crashes with a 500 — just on a different key than before.
+
+Suggested fix (for the engineer, not prescribed): coerce add_on_qtys the same
+way as add_on_ids, e.g.
+  $addOnQtys = is_array($c['add_on_qtys'] ?? null) ? $c['add_on_qtys'] : [];
+and pass $addOnQtys instead of the raw $c['add_on_qtys'].

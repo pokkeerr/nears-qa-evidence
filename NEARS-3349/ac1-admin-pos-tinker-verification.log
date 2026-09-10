@@ -1,0 +1,37 @@
+AC1/AC3 manual spot-check - admin cart-add (OrderController.php:1111) and
+vendor POS (Vendor/POSController.php:76-79) call calculate_addon_price()
+directly, no dedicated feature test exists for either (per QA Test Scope
+item 1). Both HTTP round-trips are blocked by SEPARATE, pre-existing,
+unrelated bugs (see bug-admin-add-to-cart-session-not-persisted.log and
+bug-pos-order-module-id-fk-violation.log) - so the pairing mechanism was
+verified directly via tinker, replicating the EXACT real-DB fetch + real
+function call each call site makes, not a synthetic/mocked call.
+
+--- Admin cart-add shape (OrderController.php:1111) ---
+$add_ons = [14, 13];   // reversed submission order, matches AC1 shape
+$add_on_qtys = [2, 5];
+$addons = AddOn::withoutGlobalScope(StoreScope::class)->whereIn('id', $add_ons)->get();
+// Fetched order (whereIn PK order): 13,14  <- DB order differs from submitted order
+$result = Helpers::calculate_addon_price($addons, $add_on_qtys, $add_ons);
+// => {"addons":[{"id":13,...,"quantity":5},{"id":14,...,"quantity":2}],"total_add_on_price":16}
+// id 13 (low, submitted 2nd) => qty 5 (correct); id 14 (high, submitted 1st) => qty 2 (correct)
+
+--- Vendor POS shape (POSController.php:76-79) ---
+addon_ids=[19,18] (high,low reversed), add_on_qtys=[2,5]
+$addons = AddOn::whereIn('id', $addOnIds)->get();
+$result = Helpers::calculate_addon_price($addons, $add_on_qtys, $addOnIds);
+// => total_add_on_price = 9  (= 2*2.00(high=19) + 5*1.00(low=18) = 4+5=9, correct;
+//    a positional swap would have given 5*2.00 + 2*1.00 = 12, wrong)
+
+--- POS addon-less cart line (no add_on_ids key at all) ---
+$addOnIds = is_array($c['add_on_ids'] ?? null) ? $c['add_on_ids'] : [];   // []
+$result = Helpers::calculate_addon_price(AddOn::whereIn('id', [])->get(), $c['add_on_qtys'] ?? null, []);
+// => no crash when null-coalesced -- BUT the REAL controller code (POSController.php:79)
+//    does NOT null-coalesce $c['add_on_qtys'], and live HTTP reproduction confirms this
+//    DOES crash for real (500) -- see bug-pos-addon-less-cart-line-crash.log.
+
+Verdict: the calculate_addon_price() id-pairing MECHANISM itself is
+correctly fixed at both call sites (AC1/AC3 satisfied at the function
+level). Separately, POSController.php:76-79's own addon-less-line handling
+is NOT fully fixed (see task_bug) - the 3rd-param guard the engineer added
+for add_on_ids was not mirrored for add_on_qtys.

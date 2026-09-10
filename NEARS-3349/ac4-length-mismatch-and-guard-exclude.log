@@ -1,0 +1,31 @@
+AC4 - length mismatch (ids/qtys count differ) must not produce a new 500.
+
+1) Customer path (regular cart, non-buy-now): mismatch is rejected UPSTREAM
+   at cart/add's own validator, before ever reaching calculate_addon_price:
+   POST /api/v1/customer/cart/add {"add_on_ids":[15,16],"add_on_qtys":[1]}
+   -> HTTP 403 {"errors":[{"code":"add_on_qtys","message":"Invalid add-on selection"}]}
+   (unchanged pre-existing guard, per AC wording.)
+
+2) calculate_addon_price() direct behavior on mismatch (exact shape used by
+   admin OrderController.php:1016/:1111 and Vendor/POSController.php:76-79,
+   which have no upstream length-parity guard of their own):
+   tinker: Helpers::calculate_addon_price($addons, [1], [15,16])  // 2 ids, 1 qty
+   -> no exception, returns {"addons":[],"total_add_on_price":0}
+   laravel.log:
+   [WARN] calculate_addon_price - add_on_ids/add_on_qtys length mismatch, all add-ons excluded {"addon_ids_count":2,"add_on_qtys_count":1}
+   [WARN] calculate_addon_price - invalid add-on quantity excluded {"add_on_id":15,...,"rejected_qty":null}
+   [WARN] calculate_addon_price - invalid add-on quantity excluded {"add_on_id":16,...,"rejected_qty":null}
+
+3) Admin cart-add HTTP round-trip with a real mismatched form submission
+   (addon_id[]=15,16 but only addon-quantity15 supplied):
+   POST /admin/order/add-to-cart -> HTTP 200 {"data":0} (no 500).
+
+4) Edit-order path (OrderDetailBuilder.php:334) has its OWN explicit
+   pre-guard (count($addOnQtys) !== count($addOnIds) -> 403 'addon') that
+   fires BEFORE calculate_addon_price is ever reached on that call site, so
+   this AC is naturally satisfied there too - no 500 possible.
+
+Verdict: PASS - no new 500 on any of the 3 call shapes; each degrades to
+its own existing/appropriate rejection (403 upstream on customer path,
+WARN+exclude-all inside calculate_addon_price for the 2 direct callers with
+no upstream guard).

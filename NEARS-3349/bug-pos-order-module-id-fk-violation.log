@@ -1,0 +1,47 @@
+NEARS-3349 QA finding — regression_bug (pre-existing, unrelated to this fix).
+
+Vendor\POSController::place_order() (Admin/app/Http/Controllers/Api/V1/Vendor/POSController.php)
+builds and saves a new Order (payment_status, order_status, order_type,
+payment_method, store_id, user_id, delivery_charge, original_delivery_charge,
+created_at, updated_at, store_discount_amount, total_tax_amount,
+order_amount, transaction_reference) but NEVER sets $order->module_id
+anywhere in the method (grep for "module_id" in this file: 0 matches).
+orders.module_id is NOT NULL with an FK to modules(id) and no default —
+every POS order placement therefore fails at INSERT time.
+
+Live repro (this worktree's isolated QA DB/serve instance), full valid
+payload (correct paid_amount reconciled to the penny, variant/variation
+keys present, valid store/item/add-ons):
+  POST /api/v1/vendor/pos/place-order (vendor bearer token, vendorType: owner)
+  -> HTTP 302 (controller's own catch-all: catches the exception, calls
+     Toastr::warning + `return back()`, which redirects rather than
+     returning a JSON error — itself a separate API/web response-shape
+     mismatch worth noting but not the primary defect here)
+
+Matching laravel.log line (LOG_LEVEL temporarily raised from the
+worktree .env default `warning` to `debug` to surface it — the
+controller's catch block only calls the bare `info()` helper, which is
+silently dropped at the default `warning` level):
+[2026-09-11 00:53:43] production.INFO: SQLSTATE[23000]: Integrity constraint
+violation: 1452 Cannot add or update a child row: a foreign key constraint
+fails (`multi_food_db_qa3349`.`orders`, CONSTRAINT `orders_module_id_foreign`
+FOREIGN KEY (`module_id`) REFERENCES `modules` (`id`)) ... insert into
+`orders` (...) values (paid, delivered, pos, cash, 2, ?, 0, 0,
+2026-09-11 00:53:43, 2026-09-11 00:53:43, 0.18, 0.62, 12.94, 12.94)
+
+Blame: order-creation lines in this method trace to the original fork-base
+commit 0d2e3efcf (2026-03-04) — predates every NEARS ticket touching this
+file, including this one (later NEARS-380 commit 8b096aeaf8 touched
+adjacent lines/comments but never added module_id). NOT introduced by
+NEARS-3349.
+
+Impact: this means the vendor-POS money path currently cannot complete an
+order end-to-end AT ALL, independent of the add-on pairing fix under QA.
+The add-on id-pairing mechanism itself (Helpers::calculate_addon_price at
+POSController.php:76-79) was verified directly via tinker replication of
+the exact real-DB fetch + real function call (see solution notes) since
+the full HTTP round-trip cannot complete due to this separate blocker.
+Given AC1 explicitly requires the fix to "hold on ALL 3 money paths ...
+vendor POS", flagging this prominently — the vendor-POS path is currently
+unusable for a reason unrelated to this ticket, and that fact was
+previously unobserved (this diff never touched order creation/save code).

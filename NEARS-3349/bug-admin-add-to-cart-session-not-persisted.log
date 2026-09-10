@@ -1,0 +1,38 @@
+NEARS-3349 QA finding — regression_bug (pre-existing, unrelated to this fix).
+
+Admin\OrderController::add_to_cart() (Admin/app/Http/Controllers/Admin/OrderController.php)
+reads the manual-order-builder cart via
+  $cart = $request->session()->get('order_cart', collect([]));
+mutates the local $cart Collection (push/array-set), but NEVER calls
+  $request->session()->put('order_cart', $cart);
+anywhere in the method (confirmed via full-method grep — 0 matches for
+session()->put in add_to_cart(), vs. remove_from_cart() right below it,
+which DOES call session()->put('order_cart', $cart) correctly).
+
+Effect: every "add to cart" call from the admin manual-order-builder UI
+returns 200 {"data":0} but the cart is silently NOT saved to the session —
+the admin panel's own "add-to-cart" endpoint never actually adds anything.
+
+Live repro (this worktree's isolated QA DB/serve instance):
+  POST /admin/order/add-to-cart (authenticated admin session)
+    id=51, item_type=item, quantity=1, order_id=,
+    addon_id[]=14, addon_id[]=13, addon-price14=3, addon-quantity14=2,
+    addon-price13=2, addon-quantity13=5
+  -> HTTP 200 {"data":0}
+  Session file (storage/framework/sessions/<matching sid>) dumped
+  immediately after: keys present = _token, landing_site_direction,
+  six_captcha, _previous, _flash, login_admin_<hash>, login_remember_token,
+  site_direction, dash_params — NO "order_cart" key at all.
+
+Blame: the session-read-only lines (Admin/app/Http/Controllers/Admin/OrderController.php
+~1036-1133, both the food-variation and non-food branches) trace to the
+original fork-base commit 0d2e3efcf (2026-03-04) — predates every NEARS
+ticket touching this file, including this one. NOT introduced by NEARS-3349.
+
+Impact: this blocks a full HTTP round-trip demonstration of AC1/AC3 on the
+"admin cart-add" money path named in this ticket's QA Test Scope — the
+underlying Helpers::calculate_addon_price() id-pairing fix was instead
+verified directly via the exact real-DB fetch + real function call shape
+used at OrderController.php:1111 (tinker replication, see solution notes),
+which confirmed correct pairing. This log documents the separate,
+pre-existing blocker so it can be triaged independently.
