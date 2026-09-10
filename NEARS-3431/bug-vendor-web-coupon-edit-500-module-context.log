@@ -1,0 +1,56 @@
+NEARS-3431 QA — pre-existing (unrelated) blocker found while live-testing AC1/AC3(web)/AC4
+
+Endpoint: POST /vendor-panel/order/update-order-amount (App\Http\Controllers\Vendor\OrderController@edit_order_amount)
+Repro: any order with orders.coupon_code set to an active coupon, edited via the Store
+Panel "Update order amount" modal (prescription order, status pending/confirmed/...).
+
+Backend log (Admin/storage/logs/laravel.log, isolated QA clone multi_food_db_qa3431, port 8431):
+[2026-09-11 02:16:14] production.ERROR: [FAIL] Trying to access array offset on null {"trace_id":"062a36f404683018c8f5055c1c5b5790","correlation_id":"51bddd9f-f2e3-4621-b6ea-dd7ccfe60301","type":"ErrorException","endpoint":"/vendor-panel/order/update-order-amount"}
+
+Full trace (APP_DEBUG=true, one-off, restored to false immediately after capture):
+ErrorException: Trying to access array offset on null
+  at app/CentralLogics/CouponLogic.php:43
+    $module_id = isset($module_id) ? $module_id : config('module.current_module_data')['id'];
+  called from App\CentralLogics\CouponLogic::is_valide(Coupon, int, int, null, string)
+  called from app/Http/Controllers/Vendor/OrderController.php:486
+    CouponLogic::is_valide($coupon, $order->user_id, $order->store_id, null, $request->order_amount);
+
+Root cause: is_valide() is always called with a literal `null` 4th arg (module_id) by
+this call site (added by NEARS-915, predates NEARS-3431's diff — confirmed via
+`git diff feat/userapp-reskin2...HEAD` touching only the coupon_discount_amount/
+coupon_discount_title/total_uses gating AFTER this line, never this call itself).
+`isset($module_id)` is therefore always false, so is_valide() unconditionally falls
+through to `config('module.current_module_data')['id']`. That config key is set only
+by two call sites in the whole app: VendorTokenIsValid (API vendor-auth middleware)
+and ModuleCheckMiddleware (customer-facing API routes needing a `moduleId` header).
+Neither is in the vendor-panel WEB middleware stack (`web, vendor, actch:admin_panel,
+module:order` — confirmed by reading VendorMiddleware.php, ModulePermissionMiddleware.php,
+CurrentModule.php in full: CurrentModule only ever sets `module.current_module_id`/
+`_type`/`_name`, a DIFFERENT config key, and only on admin.php routes). So the config
+key CouponLogic::is_valide() reads is NEVER populated for a Store Panel (web) vendor
+session, unconditionally, for ANY order carrying a non-null coupon_code.
+
+Same defect CLASS already fixed once elsewhere in this codebase for the identical
+unconditional-deref pattern: docs/solutions/NEARS-1028-moduleless-typeahead.md
+("Even if except-listed, the handler's stores query derefs
+config('module.current_module_data')['id'] unconditionally ... With the config null,
+PHP's 'array offset on value of type null' warning is promoted to ErrorException").
+
+Impact: the ENTIRE "vendor edits a prescription order's amount while a coupon is
+applied" flow 500s, unconditionally, on the web Store Panel — for ANY coupon type,
+not just free_delivery. Unrelated to NEARS-3431's diff (which only touches code AFTER
+this crash point) and to NEARS-3366 (which fixed the sibling Admin-panel call site,
+Admin\OrderController::edit_order_amount, which does not call is_valide() at all).
+
+Verified via: 5 fixture coupon+order pairs constructed in an isolated QA-only DB clone
+(multi_food_db_qa3431, disposable, mysqldump snapshot of the shared dev DB) + isolated
+backend (php -S 0.0.0.0:8431, own .env DB_DATABASE=multi_food_db_qa3431) — chosen per
+the profile's "DB-mutating QA needs its own php artisan serve --port=<n> + DB copy"
+rule, so the shared dev DB/port 8000 backend was never touched. Logged in live as
+demo.store@gmail.com (vendor_id=1, store_id=1 "Nears Mart") via the real Store Panel
+login form; order #91231 (fixture, coupon N3431QAWI, min_purchase 95) set
+prescription_order=1 to reach the "Update order amount" modal trigger (button is
+gated on prescription_order=1 in order-view.blade.php:544-546); submitted order_amount=100
+via the real modal form (Chrome DevTools MCP) -> 500, reproduced twice (once with
+APP_DEBUG=false showing the generic 500 page, once with APP_DEBUG=true one-off to
+capture the trace above).
