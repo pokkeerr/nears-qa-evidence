@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3505
 
-**PASS — X-localization allow-list live-verified: AC1-4 demonstrated, 14/14 automated tests green**
+**PASS (delta re-QA fix-cycle 1) — whitespace-trim bug fixed, AC1/AC3 no regression, 16/16 automated**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -11,6 +11,7 @@
 - [`ac4-cache-bounded-code-trace.log`](ac4-cache-bounded-code-trace.log)
 - [`additional-qa-points.log`](additional-qa-points.log)
 - [`bug-whitespace-padded-value-trim-dead-code.log`](bug-whitespace-padded-value-trim-dead-code.log)
+- [`fix1-whitespace-trim-verified.log`](fix1-whitespace-trim-verified.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3505/` · public-repo scrub policy (no live secrets; verified clean).*

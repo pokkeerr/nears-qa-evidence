@@ -1,0 +1,28 @@
+=== Delta re-QA: NEARS-3505 fix-cycle 1 verification ===
+Commits: 3efd4bc2c (fix: trim before charset gate), bd19ab4f0 (test fixture mutation-resistance)
+
+Fix diff: resolveAllowedLocale() now runs trim($raw) FIRST, then the char-reject/charset/
+allow-list checks operate on the trimmed value ($trimmed) instead of $raw. logRejection() still
+receives the original $raw (untouched) for length/hash — no PII-safety regression.
+
+--- Re-verify the specific bug is fixed ---
+X-localization: "en " (trailing space)      -> HTTP 200, ZERO new laravel.log lines (no rejection). FIXED.
+X-localization: "  en  " (leading+trailing) -> HTTP 200, ZERO new laravel.log lines (no rejection). FIXED.
+
+--- AC1 regression check: whitespace-wrapped traversal payload ---
+X-localization: "  ../../etc/passwd  " -> HTTP 200 (safe fallback), +1 new WARN line:
+[2026-09-11 22:14:03] production.WARNING: [WARN] localization_header_rejected {"header_length":18,"header_hash":"ac48d901701f","request_id":"4da63e6e-8af9-402b-89b1-4e9da8768dcf"}
+Raw substring "etc/passwd" confirmed absent from laravel.log (grep -F). Trim does NOT bypass the
+character-content reject — only outer whitespace is stripped; the traversal chars inside are
+still caught by str_contains('/','.') / the charset regex, unchanged. NOT a regression.
+
+--- AC3 regression check: 'ar' still resolves normally ---
+X-localization: "ar" (plain)     -> HTTP 200, zero new log lines (unchanged, as before the fix).
+X-localization: "  ar  " (padded) -> HTTP 200, zero new log lines (NEW: now also trims cleanly,
+consistent extension of the same fix, no regression to the plain case).
+
+--- Automated backstop ---
+vendor/bin/phpunit --filter LocalizationMiddlewareAllowlistTest -> 16/16 tests, 17 assertions, OK
+(14 original + 2 new whitespace tests; 1 unrelated PHPUnit deprecation notice, same as fix-cycle 0).
+
+Verdict: fix confirmed, no regression to AC1 or AC3.
