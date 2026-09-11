@@ -1,0 +1,11 @@
+NEARS-1206 — CurrentModule middleware trust-boundary demonstration (live, port 8124)
+Authenticated admin session (jar2, admin@admin.com).
+
+1. GET /admin?module_id=1               -> session('current_module') = '1'
+2. GET /admin?module_id=999999 (invalid) -> session('current_module') STAYS '1'
+                                             (crafted id did NOT poison scope)
+3. GET /admin?module_id=2 (valid)        -> session('current_module') = '2'
+
+Each value read directly from storage/framework/sessions/<latest session file>
+via `unserialize()` immediately after each request. Backend log clean
+(no new [FAIL]/[ERR] lines).

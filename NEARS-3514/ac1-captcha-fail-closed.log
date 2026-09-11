@@ -1,0 +1,24 @@
+NEARS-1205 — Admin login captcha fail-closed demonstration (live, port 8124)
+
+(a) Session that NEVER visited /login/admin (started at GET / only, so
+    session('six_captcha') is unset), POST /login_submit with valid
+    admin@admin.com creds, role=admin, NO custome_recaptcha value:
+    -> HTTP 302 redirect to http://127.0.0.1:8124 (root, i.e. back()) — NOT
+       redirect()->route('admin.dashboard').
+    -> Session dump confirms no login_admin_* auth key was set (never
+       authenticated). Session keys present: _token, landing_site_direction,
+       _previous{url:'http://127.0.0.1:8124', route:'home'}, _flash.
+    -> Follow-up GET /admin with the same cookie jar also redirects to '/'
+       (not the dashboard) — confirms rejection held.
+    PRE-FIX this would have PASSED (empty session('six_captcha') compared
+    equal to empty $request->custome_recaptcha via strtolower(null)==strtolower(null)).
+
+(b) Fresh session: GET /login/admin (seeds session('six_captcha') =
+    '8MW7C', read from storage/framework/sessions/<id> directly), then
+    POST /login_submit with matching custome_recaptcha=8MW7C, valid creds:
+    -> HTTP 302 redirect to http://127.0.0.1:8124/admin (dashboard route).
+    -> Follow-up GET /admin (same jar) renders the authenticated Dashboard
+       page (<title>Nears</title>, "Dashboard" repeated in nav/breadcrumbs).
+
+Backend log (storage/logs/laravel.log): clean, no new [FAIL]/[ERR] lines
+during either request.

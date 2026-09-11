@@ -1,0 +1,12 @@
+NEARS-2700 — ModuleCheckMiddleware except-list invalid-moduleId demonstration (live, 8124)
+
+Excepted route (api/v1/banners, matches the `except` array literally):
+  no moduleId header    -> 200
+  moduleId: 999999 (invalid, unresolvable) -> 200  <- the fix under test
+  moduleId: 1 (valid)    -> 200
+
+Non-excepted control route (api/v1/coupon/list/all -- does NOT match the
+literal 'api/v1/coupon/list' except pattern, confirmed no wildcard):
+  no moduleId header      -> 403 {"code":"moduleId","message":"Module id required"}
+  moduleId: 999999 (invalid) -> 403 {"code":"moduleId","message":"Not found"}
+  moduleId: 1 (valid)      -> 200

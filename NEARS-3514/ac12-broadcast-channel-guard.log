@@ -1,0 +1,21 @@
+NEARS-3460 — App.Models.User.{id} channel guard demonstration
+
+Live (port 8124) attempt: BROADCAST_DRIVER=log in this worktree's .env, and
+Illuminate\Broadcasting\Broadcasters\LogBroadcaster::auth() is a complete
+no-op (empty method body — never calls retrieveUser()/the channel closure
+at all), so POST /broadcasting/auth returns 200 for EVERY channel_name
+regardless of the guards fix under test on this dev backend -- confirmed by
+reading vendor/laravel/framework/.../LogBroadcaster.php and observing BOTH
+an own-channel and a foreign-channel request return identical 200/empty-body
+responses live. This makes live-HTTP demonstration on the shared dev
+backend structurally incapable of exercising the fix (a driver-choice gap,
+not a defect in the fix).
+Substituted with the dedicated phpunit suite, which forces
+broadcasting.default=pusher (a real Pusher-protocol broadcaster, same
+pattern as the existing BroadcastChannelAuthzTest for delivery-man
+channels) so retrieveUser()/the guards option is actually exercised:
+  Nears3460UserModelChannelGuardTest (3/3 passed, 4 assertions):
+   - a Bearer-authenticated (Passport 'api' guard) user CAN authorize their
+     own App.Models.User.{own_id} channel -> 200 + {"auth": ...} structure.
+   - the SAME user CANNOT authorize another user's channel -> 403.
+   - an unauthenticated caller is denied -> 403.

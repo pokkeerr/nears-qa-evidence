@@ -1,0 +1,40 @@
+NEARS-1853/1854 — Coupon response hardening + AC9 (NEARS-2700) control (live, port 8124)
+
+GET /api/v1/coupon/list/all -H "moduleId: 1" -H "zoneId: [1]"
+  -> 6 coupons returned; grep for customer_id|created_by|total_uses across the
+     full response body: 0 matches.
+
+GET /api/v1/coupon/list/all?customer_id=6 -H "moduleId: 1" -H "zoneId: [1]"
+  -> byte-identical to the request above (diff: no output) -> customer_id
+     query param has zero effect on an unauthenticated caller.
+
+Live DB (read-only SELECT) has no vendor-created (created_by='vendor')
+coupon fixture for any store, and no customer-scoped (non-"all")
+coupon fixture — so the two positive-control scenarios (vendor sees the
+3 restored fields; a customer-scoped coupon is un-targetable) cannot be
+demonstrated live without mutating the shared dev DB. Substituted with the
+dedicated phpunit suites (isolated per-worktree test DB), both passing:
+  - Nears1853And1854CouponResponseHardeningTest (4/4, 23 assertions) —
+    includes an anti-vacuity "all"-scoped-coupon-still-visible control AND
+    a genuine customer-scoped-coupon-not-targetable-via-query-param case.
+  - Nears3514VendorCouponOwnerFieldsRestoredTest (5/5, 28 assertions) —
+    positive control proves the fixture genuinely carries all 3 fields
+    non-null; vendor list/view/view-without-translate all restore them;
+    the unauthenticated route (NEARS-1853) still hides the same fields on
+    the SAME fixture coupon (single source, both directions pinned).
+
+VendorApp (booted live on emulator-5556 against this backend via
+--dart-define BASE_URL=http://10.0.2.2:8124) navigated Menu -> Coupon:
+Coupon List screen renders "No coupon found" (consistent with the DB
+finding above) with NO crash, no runtime error in the flutter run log.
+total_uses IS parsed (coupon_body_model.dart:66) and rendered
+(coupon_card_dialogue_widget.dart:209, 'total_user'.tr) when present —
+confirmed by source read + the Nears3514 test's positive assertion
+(total_uses=3 round-trips through /api/v1/vendor/coupon/list).
+Screenshot: ac6-vendorapp-coupon-list-no-crash.png
+
+Admin panel coupon screens (Blade: index.blade.php, edit.blade.php) read
+$coupon->total_uses / $coupon->customer_id via DIRECT property access,
+which Eloquent's $hidden does NOT affect (hidden only strips
+toArray()/toJson() serialization) -- confirmed no Admin-panel regression
+surface from the Coupon::$hidden change.

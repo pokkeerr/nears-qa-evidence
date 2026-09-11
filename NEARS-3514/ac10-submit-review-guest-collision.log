@@ -1,0 +1,17 @@
+NEARS-2932 — submit_product_review guest-id-collision demonstration
+
+Live (port 8124): POST /api/v1/items/reviews/submit as customer id 6 with a
+bogus order_id -> 403 {"code":"order_id","message":"Order data not found"}
+(confirms the endpoint + error path are reachable/correct in this build).
+
+The specific collision scenario (a GUEST order whose `user_id` column
+equals the caller's own user id) requires a purpose-built fixture pairing
+(Order.is_guest=1, Order.user_id == attacker's own User.id) that does not
+exist in the live dev DB and would require a DB write to construct.
+Substituted with the dedicated phpunit suite (isolated test DB):
+  Nears2932SubmitReviewGuestIdCollisionTest (2/2 passed, 6 assertions):
+   - an authenticated user CANNOT review a guest order whose user_id
+     collides with their own id -> 403 order_data_not_found, AND no Review
+     row is ever written.
+   - anti-vacuity control: the same user's own genuine (non-guest) order
+     still reviews successfully (200, Review row created).

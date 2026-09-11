@@ -1,0 +1,16 @@
+NEARS-2963 — Admin message routes RBAC gate + view() scope demonstration
+
+Live (port 8124): authenticated super-admin (role_id=1) session ->
+  GET /admin/message/list -> 200 (no over-gating regression for super-admin).
+
+A non-RBAC'd admin-employee fixture (e.g. qa.role.order@nears.test) does
+not exist in the live dev DB (per users_test_data.md, "Not executed against
+the dev DB"). Substituted with the dedicated phpunit suite (isolated test
+DB): Nears2963MessageModuleGateTest (7/7 passed, 13 assertions):
+ - the 3 message.* routes are wired with module:customer_management
+   (route-introspection check, not just a behavioural proxy).
+ - an admin employee WITHOUT customer_management is blocked at the gate.
+ - an admin employee WITH customer_management (and separately, the super
+   admin) reaches the gate (anti-over-gating controls).
+ - ConversationController::view() 404s a conversation not involving the
+   admin side, 404s an unknown id, and 200s a genuine admin-side conversation.

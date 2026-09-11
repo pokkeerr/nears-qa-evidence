@@ -1,0 +1,12 @@
+NEARS-1310 — guest_token_enforcement grace->strict demonstration (live, port 8124)
+config('nears.guest_token_enforcement') confirmed 'strict' via tinker + Admin/.env.
+
+Legacy null-token guest (guest id=1, Guest::token IS NULL, read-only SELECT):
+  GET /api/v1/customer/cart/list?guest_id=1  (no X-Guest-Token)
+  -> HTTP 401 {"errors":"Unauthorized"}
+  -> laravel.log: [FAIL] guest.token.rejected {"reason":"legacy_null_token_strict","guest_id":"1",...}
+
+Token-bearing guest (guest id=340, has a real token, read-only SELECT):
+  GET /api/v1/customer/cart/list?guest_id=340
+    -H "X-Guest-Token: <guest 340's real token>"
+  -> HTTP 200 (no log entry -> clean)

@@ -1,0 +1,30 @@
+NEARS-1245/1246 — bulk-import zone scope + raw DB::table() audit
+
+AC3 [1245]: VendorController::bulk_import_data() writes the `stores` table
+via a raw DB::table() insert/update, bypassing Store's ZoneScope. Fixed with
+zoneScopedBulkImportIsAuthorized() (private method), invoked on BOTH the
+create-branch and update-branch write paths, before either write executes.
+Running the actual multi-row CSV bulk-import flow against the shared dev DB
+would create/overwrite real `stores` rows (a mutating write against
+production-shaped data) -- out of scope for a read-only QA pass.
+Substituted with the dedicated phpunit suite, which invokes the PRIVATE
+gate method directly via reflection (never shadowed by any other
+pre-existing check -- see review-lesson
+batch-rejection-test-shadowed-by-preexisting-check, deliberately avoided
+here since the method is called in isolation, not through the full HTTP
+endpoint):
+  Nears1245VendorBulkImportZoneScopeTest (5/5 passed, 5 assertions):
+   - zone-restricted admin REJECTED when any NEW row claims a foreign zone.
+   - zone-restricted admin PASSES when every row is in their own zone.
+   - zone-restricted admin REJECTED when updating an EXISTING store that
+     actually lives in a different zone (existing-row probe, not just the
+     claimed zone_id on the row).
+   - zone-restricted admin PASSES updating their own zone's existing store.
+   - super-admin (role_id=1) is never restricted.
+
+AC4 [1246]: docs/solutions/NEARS-1246-raw-db-table-zone-store-scope-audit.md
+confirmed present in the worktree, 38 lines, methodology (grep DB::table()
+write verbs cross-referenced against every ZoneScope/StoreScope model)
++ a table of every hit found with an exploitability verdict for each,
++ an outcome section. Substantive, satisfies this AC (a document deliverable,
+not a live demo per the ticket's own text).

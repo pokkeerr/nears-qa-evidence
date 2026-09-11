@@ -1,0 +1,16 @@
+NEARS-1887 — OTP pre-check account-enumeration demonstration
+
+Live (port 8124), login_type=otp, no `verified`:
+  phone=+971565811199 (registered, active customer) -> 200
+    {"token":null,"is_phone_verified":0,"is_email_verified":1,"is_personal_info":1,
+     "is_exist_user":null,"login_type":"otp","email":null}
+  phone=+971500009999888 (unregistered)              -> 200 (byte-identical shape)
+No blocked-account (status=0) fixture exists in the live dev DB (read-only
+SELECT confirmed zero rows), so the blocked-vs-unregistered half is
+substituted with the dedicated phpunit suite (isolated test DB):
+  Nears1887OtpAccountEnumerationTest (3/3 passed, 6 assertions):
+   - send_otp response identical (status + full JSON body) for an
+     unregistered phone vs a blocked-account phone; no auth-003 code present.
+   - the SAME blocked account still gets 403 auth-003 once ownership is
+     proven via otp_login() with a valid OTP.
+   - an active account can still complete OTP login (anti-vacuity control).
