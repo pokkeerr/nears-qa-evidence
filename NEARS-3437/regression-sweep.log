@@ -1,0 +1,22 @@
+QA NEARS-3437 — bounded regression sweep
+
+1) Mismatched paid_amount still 422s, no order created (untouched code path):
+POST /api/v1/vendor/pos/place-order paid_amount=999.00 (server-computed order_amount=9.45)
+HTTP_STATUS:422
+{"errors":[{"code":"paid_amount","message":"Paid amount does not match the order amount"}]}
+orders WHERE order_type='pos' count: 2 before, 2 after -- no row created. PASS.
+
+2) Cart line with no add_on_ids/add_on_qtys keys still places cleanly (NEARS-3349 regression zone):
+POST /api/v1/vendor/pos/place-order body cart line has NEITHER add_on_ids NOR add_on_qtys keys
+HTTP_STATUS:200
+{"message":"Order placed successfully","order_id":91232,"total_ammount":9.45}
+orders WHERE id=91232: module_id=1, store_id=1, order_amount=9.45. PASS.
+
+3) Sibling POS controllers untouched (file-level check):
+git diff feat/userapp-reskin2...HEAD -- Admin/app/Http/Controllers/Admin/POSController.php \
+  Admin/app/Http/Controllers/Vendor/POSController.php
+=> 0 lines changed. Confirmed untouched by this diff. PASS (no live re-demo needed per scope).
+
+Automated backstop:
+vendor/bin/phpunit --configuration phpunit.xml --filter PosPlaceOrderReconcileTest
+=> OK, 3 tests, 19 assertions (private test DB multi_food_db_test_nears_nears_3437_pos_module_id).

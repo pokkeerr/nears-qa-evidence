@@ -1,0 +1,43 @@
+QA NEARS-3437 — AC1 happy path: real authenticated HTTP round trip
+Serve: worktree /Users/Apple/Projects/nears-NEARS-3437-pos-module-id/Admin, isolated DB nears_qa_3437 (clone of dev multi_food_db), port 8437.
+
+--- Login (vendor 1, demo.store@gmail.com) ---
+POST /api/v1/auth/vendor/login
+< 200
+{"token":"THHy...(redacted)","zone_wise_topic":"zone_1_store","store_id":1,"module_type":"grocery"}
+
+--- POS place-order (store 1, item 1 qty 1, paid_amount reconciled to server-computed 9.45 after active item discount) ---
+POST /api/v1/vendor/pos/place-order
+Headers: Authorization: Bearer <token>, vendorType: owner, X-localization: en
+Body: {"store_id":1,"payment_method":"cash","paid_amount":9.45,"cart":[{"item_id":1,"quantity":1,"variation":[],"variant":[],"add_on_ids":[],"add_on_qtys":[]}]}
+
+HTTP_STATUS:200
+{"message":"Order placed successfully","order_id":91231,"total_ammount":9.45}
+
+--- DB verification of created row (AC2, AC3) ---
+SELECT id, order_type, module_id, store_id, order_amount, payment_status, order_status, transaction_reference FROM orders WHERE id=91231;
+91231	pos	1	1	9.45	paid	delivered	9.45
+
+order_details row exists (id 187, order_id 91231, item_id 1), item_details is well-formed JSON,
+parses cleanly, and its top-level "id" field (1) matches item_id — same shape OrderDetailBuilder.php:196
+writes for other order-creation paths (json_encode($product)).
+
+--- Independent root-cause confirmation (schema-level, no product-code edits) ---
+information_schema.columns: orders.module_id -> IS_NULLABLE=NO, bigint unsigned
+information_schema.key_column_usage: orders_module_id_foreign -> module_id REFERENCES modules(id)
+  => confirms root cause 1 (unset module_id) is a real NOT NULL + FK violation, not cosmetic.
+information_schema.columns on order_details, filtered to ('food_details','item_details'):
+  only 'item_details' exists -- 'food_details' is not and was never a real column.
+  => confirms root cause 2 (stale 'food_details' key) necessarily throws an unknown-column error.
+
+Prior to this fix, max(orders.id) in the shared dev DB (source of this clone) was 91230 with
+exactly ONE pre-existing order_type='pos' row (id 91130, created 2026-08-21, module_id already 1
+-- created via a sibling controller that already set module_id correctly, not this endpoint).
+No vendor-API POS order had ever successfully persisted via this endpoint before the fix.
+
+--- BE laravel.log check ([api]-tagged AC, NEARS-566) ---
+storage/logs/laravel.log line count unchanged (8173 before and after the place-order call) --
+no [FAIL]/[ERR] logged for this request. grep -F "pos/place-order" storage/logs/laravel.log:
+0 matches (clean). Pre-existing unrelated [FAIL] entries in the file are from a prior "testing."
+channel run (phpunit /api/v1/zone/list timeout, dated 2026-09-11 03:48:54) -- unrelated to this
+diff, not a regression from this change, not filed.
