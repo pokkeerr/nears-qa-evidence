@@ -1,0 +1,60 @@
+NEARS-3445 QA — live verification, worktree /Users/Apple/Projects/nears-NEARS-3445-storelogic-categorylogic-n1-discount
+Backend: own php artisan serve on 127.0.0.1:8001, pid 20255, booted from THIS worktree's code (verified cwd via lsof before hit).
+DB: shared dev DB multi_food_db (127.0.0.1:3306), read-only (SELECT only; no DML executed).
+
+=== AC1/AC2 — N+1 elimination, positive control + POST-fix (via php artisan tinker, real dev DB) ===
+POSITIVE CONTROL (replays the exact REMOVED per-row query shape from the pre-fix source,
+one call per store id, to prove the `items`.`store_id` = ? grep instrument is live):
+  N=14 stores -> positive-control per_store_items_eq_queries = 14 (== N, as expected pre-fix)
+
+POST-FIX (current code, same 14-store get_discounted_stores() result set):
+  store_count=14 total_queries=14 per_store_items_eq_queries=0
+
+Additional POST-fix runs across all 4 call sites, store counts do not correlate with
+per-row `items`.`store_id` = ? queries (always 0):
+  StoreLogic::get_discounted_stores()  N=14  per_store_items_eq_queries=0
+  StoreLogic::get_discounted_stores()  N=5 (page2) -- unaffected, no regression
+  StoreLogic::search_stores('Market')  N=8   per_store_items_eq_queries=0
+  StoreLogic::search_stores('Zero Offer') N=2 per_store_items_eq_queries=0
+  CategoryLogic::category_stores([1])  N=12  per_store_items_eq_queries=0
+  CategoryLogic::category_stores([145]) N=1  per_store_items_eq_queries=0
+  CategoryLogic::stores(145)           N=1   per_store_items_eq_queries=0
+
+=== AC3 — discount_status correctness (live HTTP, own booted server :8001) ===
+GET /api/v1/stores/search?name=Zero%20Offer  (moduleId:1, zoneId:[2])
+  store 4117 "NEARS600 Offers QA Store"       (has discount>0 item) -> discount_status: True
+  store 4118 "NEARS600 Zero Offer QA Store"   (0 discounted items)  -> discount_status: False  [was always-true pre-fix]
+
+GET /api/v1/stores/discounted?...  (moduleId:1, zoneId:[2])
+  store 4118 correctly EXCLUDED (query requires whereHas items Discounted() — matches expectation)
+
+GET /api/v1/categories/stores/list?category_ids=[145]  (moduleId:1, zoneId:[2])
+  store 4118 -> discount_status: False, category_ids: [145]
+
+GET /api/v1/categories/stores/145  (moduleId:1, zoneId:[2])
+  store 4118 -> discount_status: False, category_ids: [145]
+
+=== AC4 — response shape unchanged ===
+toArray() keys on a live CategoryLogic::stores() row include both `discount_status` and
+`category_ids`; no `items` key present (matches pre-fix intent: pre-fix code explicitly
+unset($store['items']) after use; post-fix never attaches it via withExists() in the first
+place — same net absence). Full live HTTP key list (stores/discounted) unchanged shape:
+active, address, ..., category_ids, ..., discount, discount_status, ..., module, ... (68 keys,
+same as CentralLogics's existing store_data_formatting() contract).
+
+=== Regression sweep (live spot-check) ===
+Pagination: stores/discounted?limit=5&offset=2 -> 5 rows, total_size=14 (matches page 1's 14) -- OK
+Zone scoping: stores/discounted with zoneId:[364] -> 3 different stores, all zone_id=364 -- OK
+(only zone-2 stores returned for zoneId:[2] request above -- no cross-zone leakage)
+
+=== Logs (scoped [api] check per NEARS-566) ===
+Admin/storage/logs/laravel.log grepped for [FAIL]/[ERR] in the live-HTTP request window
+(09:36:53-09:39:25): zero matches. Pre-existing [FAIL] entries in the file are all from an
+earlier phpunit run (channel "testing", timestamps 09:29-09:30, unrelated
+"meal period lookup failed"/"global_search" — different call sites, not touched by this
+ticket) -- not caused by this change, not re-triaged here (out of scope, already
+correctly logged via AppLogger contract, no silent failure).
+
+=== Automated backstop ===
+cd Admin && vendor/bin/phpunit --configuration phpunit.xml --filter StoreCategoryLogicN1DiscountStatusTest
+Result: OK - Tests: 4, Assertions: 21, PHPUnit Deprecations: 1 (deprecation is pre-existing/unrelated to this change)
