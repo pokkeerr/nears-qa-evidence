@@ -1,0 +1,39 @@
+=== Additional QA points ===
+
+Case variant: "EN" -> normalized via strtolower to 'en', NO rejection log. PASS.
+Case variant: "AR" -> normalized via strtolower to 'ar', NO rejection log. PASS.
+
+Multi-value header (curl -H "X-localization: en" -H "X-localization: ar"): PHP/webserver
+combines into a single comma-joined string; combined string fails the charset regex (comma not
+in [A-Za-z0-9_-]) -> safely rejected, falls back to 'en', logged once. No crash, no ambiguity.
+
+[WARN] localization_header_rejected log shape confirmed: carries header_length, header_hash,
+request_id (+ correlation_id/trace_id from log context processor) — grep -F across the WHOLE
+laravel.log for every raw malicious substring used in this run ("etc/passwd", "../../",
+"malicious1") returned ZERO hits — raw header value never appears in the log. PII/log-injection
+safety CONFIRMED.
+
+Absent X-localization header: HTTP 200, zero new log lines (unchanged prior behavior, defaults to
+'en', no WARN emitted — matches pre-fix behavior for the no-header case). PASS.
+
+Empty X-localization header ("X-localization:" with no value): zero new log lines (treated as
+"no header" sentinel per step 1 of the decision, same as absent). PASS.
+
+Idempotency: same rejected value ("../../secret") sent 3x independently -> 3 separate WARN log
+lines, all sharing the same header_hash (7cc50a8f827a) confirming deterministic hashing +
+independent per-request logging (no dedup/suppression that would mask a live attack). PASS.
+
+--- NON-BLOCKING FINDING (task_bug, low severity, does not break any stated AC) ---
+Whitespace-padded otherwise-valid values are REJECTED rather than trimmed-and-accepted:
+  curl -H "X-localization: en " (trailing space, raw len=3) -> WARN rejected, header_hash=8e9f1c38a5bd
+  curl -H "X-localization:   en  " (raw len=4 after curl/webserver OWS handling) -> WARN rejected, header_hash=d025d25db2ba
+Root cause: LocalizationMiddleware::resolveAllowedLocale() applies the charset regex
+`^[A-Za-z0-9_-]+$` (which excludes whitespace) to $raw BEFORE trim() is ever applied — trim() only
+runs on values that already passed the charset gate, i.e. values that already contained no
+whitespace. This makes `trim()` in `$normalized = strtolower(trim($raw))` structurally dead code:
+it can never observe a string containing whitespace, since any such string was already rejected
+one line earlier by $matchesCharset. Effect is SAFE (falls back to 'en', not exploitable, no log
+leak) but diverges from the QA instruction "normalizes correctly via strtolower/trim" for the trim
+half specifically (the strtolower/case half was verified working). Filed as task_bugs[] below,
+breaks_ac:false since no verbatim AC1-4 mentions whitespace-padding and the case-variant example
+explicitly given ("EN") does work.

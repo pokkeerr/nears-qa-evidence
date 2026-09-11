@@ -1,0 +1,22 @@
+=== AC4: NEARS-3447 per-process static cache bounded by the finite allow-list (code trace + log evidence) ===
+Admin/app/helpers.php translate(), line 30-43:
+    $local = app()->getLocale();
+    static $langArrayCache = [];
+    ...
+    $cached = $langArrayCache[$local] ?? null;
+    ...
+    $langArrayCache[$local] = ['data' => $lang_array, 'mtime' => $mtime];
+
+Cache is keyed exactly by app()->getLocale(), which is set ONLY by
+LocalizationMiddleware::handle()'s App::setLocale($local) call (grep confirms this is the sole
+caller reachable from request input). Since resolveAllowedLocale() now returns EITHER a member of
+$allowList (exact in_array match) OR $fallback (itself a member of $allowList or the 'en'
+literal), setLocale() can never be invoked with an attacker-controlled raw string. Therefore
+$langArrayCache's key space is bounded to |system_language allow-list| entries, never growing per
+malicious request.
+
+Live evidence: 7 distinct malicious/nonsense header values sent sequentially
+("../../etc/passwd", "....//....//etc/passwd", "xx","yy","zz","malicious1","malicious2") each
+independently logged a WARN localization_header_rejected line (7 before -> 7 after, i.e. +7,
+1444->1451 total lines), each falling back to the SAME bounded fallback code ('en') rather than
+creating 7 distinct cache-eligible locale keys. Confirms no per-value cache growth is possible.

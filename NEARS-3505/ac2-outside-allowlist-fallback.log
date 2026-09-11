@@ -1,0 +1,10 @@
+=== AC2: value outside configured system_language list falls back to default entry ===
+Seeded system_language (live, via Helpers::get_business_settings): 
+[{"id":1,"code":"en","status":1,"default":true},{"id":"ar2","code":"ar","status":0,"default":false}]
+=> fallback = 'en' (the default:true entry), matching literal 'en' in this seed as the ticket predicted.
+
+Request: curl -H "X-localization: fr" http://127.0.0.1:8501/api/v1/config
+Response: HTTP 200, X-Request-Id: 017d35b5-7db4-4cac-a37c-58bdf7197bc9, business_name: "Nears"
+laravel.log:
+[2026-09-11 22:04:14] production.WARNING: [WARN] localization_header_rejected {"trace_id":"68766ada5f520651d93c3cf993453440","correlation_id":"017d35b5-7db4-4cac-a37c-58bdf7197bc9","header_length":2,"header_hash":"67ad8f41a7bb","request_id":"017d35b5-7db4-4cac-a37c-58bdf7197bc9"}
+header_length=2 matches len("fr"). Fell back to 'en' — confirmed via regression-sweep endpoint (store 403 error message in English, see ac3 file).

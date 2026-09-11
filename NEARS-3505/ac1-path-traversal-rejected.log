@@ -1,0 +1,7 @@
+=== AC1: path-traversal-shaped X-localization header rejected pre-setLocale ===
+Request: curl -H "X-localization: ../../../../etc/passwd" -H "X-Request-Id: qa3505-ac1-..." http://127.0.0.1:8501/api/v1/config
+Response: HTTP/1.1 200 OK, X-Request-Id: 1d8d69ef-58cd-4523-af32-8f9b7b99dd58, body = normal /api/v1/config JSON (business_name, logo, address, etc.)
+laravel.log (correlated by response X-Request-Id):
+[2026-09-11 22:04:00] production.WARNING: [WARN] localization_header_rejected {"trace_id":"750cbb424c57cd3ac92e031d540d1f41","correlation_id":"1d8d69ef-58cd-4523-af32-8f9b7b99dd58","header_length":22,"header_hash":"a032902ca26b","request_id":"1d8d69ef-58cd-4523-af32-8f9b7b99dd58"}
+
+header_length=22 matches len("../../../../etc/passwd")=22. Raw value "../../../../etc/passwd" and substring "etc/passwd" NOT present anywhere in laravel.log (grep -F confirmed zero hits across the whole run). Request served normally (200, valid business config JSON) confirming setLocale never received the traversal string and no include()/file_put_contents() was attempted with it.

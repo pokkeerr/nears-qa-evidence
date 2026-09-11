@@ -1,0 +1,11 @@
+=== AC3: seeded 'ar' locale (status:0 in system_language) still resolves normally — no regression ===
+Request: curl -H "X-localization: ar" http://127.0.0.1:8501/api/v1/config
+Response: HTTP 200, X-Request-Id: 8fcd472a-7142-4acf-872b-5351485fd4a6
+laravel.log lines before=1444, after=1444 — ZERO new WARN localization_header_rejected line for this request (i.e. NOT rejected, resolves as legitimate despite status:0).
+
+=== Regression sweep: en vs ar produce different translated content end-to-end ===
+GET /api/v1/stores/details/1 with X-localization: en  -> {"errors":[{"code":"out_of_zone","message":"Store not available in your zone"}]}
+GET /api/v1/stores/details/1 with X-localization: ar  -> {"errors":[{"code":"out_of_zone","message":"المتجر غير متوفر في منطقتك"}]}
+Both HTTP 403 (zone-gated, expected — QA machine outside seeded store's zone), but the translated
+error message correctly differs per locale for BOTH en and the status:0 'ar' locale, proving
+translate()/App::setLocale() function identically to pre-fix behavior for legitimate values.
