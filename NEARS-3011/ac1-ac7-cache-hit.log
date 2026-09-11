@@ -1,0 +1,48 @@
+NEARS-3011 QA — AC1 + AC7 live evidence
+Backend: worktree Admin (commit a73fa34d5), private DB multi_food_db_qa_nears3011 (dropped post-run), php artisan serve --port=8010
+Two real orders placed via UserApp (emulator-5558) within the same ~50min FCM OAuth cache TTL window.
+
+Order #1 (order_id=91231, correlation_id=f17d1b8c-9dbd-43b5-9215-d99c0e133aa0) — FIRST push of the run, cache empty:
+[2026-09-11 05:01:28] production.WARNING: FCM Sending notification {"trace_id":"0a6ad95fc4f4a731bc08d2346d763a04","correlation_id":"f17d1b8c-9dbd-43b5-9215-d99c0e133aa0","message_type":"topic"}
+[2026-09-11 05:01:28] production.WARNING: FCM Send Success {"trace_id":"0a6ad95fc4f4a731bc08d2346d763a04","correlation_id":"f17d1b8c-9dbd-43b5-9215-d99c0e133aa0","status":200,"order_id":"91231"}
+[2026-09-11 05:01:28] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"0a6ad95fc4f4a731bc08d2346d763a04","correlation_id":"f17d1b8c-9dbd-43b5-9215-d99c0e133aa0","cache_key":"fcm_oauth_access_token_nears-1d39b"}
+[2026-09-11 05:01:28] production.WARNING: FCM Sending notification {"trace_id":"0a6ad95fc4f4a731bc08d2346d763a04","correlation_id":"f17d1b8c-9dbd-43b5-9215-d99c0e133aa0","message_type":"token"}
+[2026-09-11 05:01:29] production.WARNING: FCM Send Success {"trace_id":"0a6ad95fc4f4a731bc08d2346d763a04","correlation_id":"f17d1b8c-9dbd-43b5-9215-d99c0e133aa0","status":200,"order_id":"91231"}
+[2026-09-11 05:01:29] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"0a6ad95fc4f4a731bc08d2346d763a04","correlation_id":"f17d1b8c-9dbd-43b5-9215-d99c0e133aa0","cache_key":"fcm_oauth_access_token_nears-1d39b"}
+[2026-09-11 05:01:29] production.WARNING: FCM Sending notification {"trace_id":"0a6ad95fc4f4a731bc08d2346d763a04","correlation_id":"f17d1b8c-9dbd-43b5-9215-d99c0e133aa0","message_type":"unknown"}
+[2026-09-11 05:01:29] production.ERROR: FCM API Error {"trace_id":"0a6ad95fc4f4a731bc08d2346d763a04","correlation_id":"f17d1b8c-9dbd-43b5-9215-d99c0e133aa0","status":400,"reason":"Bad Request","order_id":"91231"}
+[2026-09-11 05:01:29] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"0a6ad95fc4f4a731bc08d2346d763a04","correlation_id":"f17d1b8c-9dbd-43b5-9215-d99c0e133aa0","cache_key":"fcm_oauth_access_token_nears-1d39b"}
+[2026-09-11 05:01:29] production.WARNING: FCM Sending notification {"trace_id":"0a6ad95fc4f4a731bc08d2346d763a04","correlation_id":"f17d1b8c-9dbd-43b5-9215-d99c0e133aa0","message_type":"topic"}
+[2026-09-11 05:01:30] production.WARNING: FCM Send Success {"trace_id":"0a6ad95fc4f4a731bc08d2346d763a04","correlation_id":"f17d1b8c-9dbd-43b5-9215-d99c0e133aa0","status":200,"order_id":"91231"}
+
+NOTE: even WITHIN order #1's own 4-channel fan-out (admin topic / customer device / store / DM),
+only the very FIRST push mints a fresh token (implicit, no log line on a fresh successful mint);
+all 3 remaining pushes hit "[WARN] FCM OAuth access token cache hit" against the SAME cache_key
+"fcm_oauth_access_token_nears-1d39b" — first partial evidence for AC7 (single shared key across
+actor-context channels).
+
+Order #2 (order_id=91232, correlation_id=ca0a9b72-609f-40f6-8df8-4bde15e2383a), placed ~1m36s later,
+same TTL window — THIS is the AC1 regression-lock: the FIRST log line for this order's FIRST push
+is ALREADY a cache-hit -- zero "Firebase Token Generation" exchange lines appear anywhere for this
+order (none exist in the whole log file for either order beyond the initial implicit mint before
+order #1's first push):
+[2026-09-11 05:03:04] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","cache_key":"fcm_oauth_access_token_nears-1d39b"}
+[2026-09-11 05:03:04] production.WARNING: FCM Sending notification {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","message_type":"topic"}
+[2026-09-11 05:03:04] production.WARNING: FCM Send Success {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","status":200,"order_id":"91232"}
+[2026-09-11 05:03:04] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","cache_key":"fcm_oauth_access_token_nears-1d39b"}
+[2026-09-11 05:03:04] production.WARNING: FCM Sending notification {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","message_type":"token"}
+[2026-09-11 05:03:05] production.WARNING: FCM Send Success {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","status":200,"order_id":"91232"}
+[2026-09-11 05:03:05] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","cache_key":"fcm_oauth_access_token_nears-1d39b"}
+[2026-09-11 05:03:05] production.WARNING: FCM Sending notification {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","message_type":"unknown"}
+[2026-09-11 05:03:05] production.ERROR: FCM API Error {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","status":400,"reason":"Bad Request","order_id":"91232"}
+[2026-09-11 05:03:05] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","cache_key":"fcm_oauth_access_token_nears-1d39b"}
+[2026-09-11 05:03:05] production.WARNING: FCM Sending notification {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","message_type":"topic"}
+[2026-09-11 05:03:06] production.WARNING: FCM Send Success {"trace_id":"5e5dfb27c7c93e35879055b53783d6d5","correlation_id":"ca0a9b72-609f-40f6-8df8-4bde15e2383a","status":200,"order_id":"91232"}
+
+AC3 cross-check: every logged line above uses only cache_key/status/reason/order_id/message_type/
+correlation_id/trace_id — no token/JWT/assertion value anywhere.
+
+Unrelated / pre-existing (NOT caused by this diff — identical shape in both orders, one channel per
+order always resolves to message_type=unknown -> FCM API Error 400; code-read of
+send_order_notification confirms neither push-target selection nor payload construction was
+touched by NEARS-3011): filed as a regression_bugs note, non-blocking.
