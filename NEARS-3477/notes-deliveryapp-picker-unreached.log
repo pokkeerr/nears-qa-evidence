@@ -1,0 +1,51 @@
+NEARS-3477 QA — DeliveryApp CameraButtonSheetWidget (delivery_confirmation_section.dart) —
+live trigger NOT reached within QA budget. Documented here rather than silently skipped.
+
+What was tried (2026-09-11, emulator-5564):
+1. Static code read confirms delivery_confirmation_section.dart wires the new
+   onPickImage({required isRemove, required isCamera}) callback identically to the
+   already-live-verified UserApp/VendorApp call sites (same shared
+   packages/nears_shared/lib/camera_button_sheet_widget.dart import).
+2. DeliveryApp boots clean on-device with 0 runtime errors, proving the
+   nears_shared package import resolves and builds correctly at runtime for this app
+   (compile-time 0-errors was already confirmed by the conductor's flutter analyze).
+3. Attempted to reach the live trigger (order at 'handover' status, deliveryman
+   pickedUp=true, dm_picture_upload_status=1 business_setting -> confirmed already 1):
+   - Original DB scan found only 1 order at handover (id 91112? -> actually
+     delivery_man_id=2, order still handover) whose assigned delivery-man
+     (david.miller@demo.com) is blocked from UI login by a pre-existing, already-known
+     seed-data bug (NEARS-2509: malformed +101700000002 phone fails client-side
+     validation on the DeliveryApp login screen).
+   - Walked a fresh order (id 172, "Test Store"/ts@ts.com) from processing ->
+     Ready For Handover via VendorApp's own swipe action (legitimate, reversible
+     app-driven state change, same category as documented QA precedent in
+     vendorapp-navigation-guide.md #9).
+   - Logged into DeliveryApp as ali.hassan@demo.com (zone_id=2, matches store 35's
+     zone_id=2; active=1, status=1, approved; Online Status toggle already ON).
+   - Order Request tab reported "No order request available" — order 172 never
+     broadcast to this delivery man. Root cause not isolated within QA budget (likely
+     an additional broadcast/geofence/assignment condition in the backend
+     order-request query, outside this ticket's diff — order_history_body_widget.dart,
+     the request-list backend, and the order-request controller are all untouched by
+     NEARS-3477). Not a regression of this ticket; flagged as a regression-candidate
+     followup (pre-existing test-fixture/broadcast-availability gap), not a task_bug.
+
+Net: the ONE real behavior-bearing surface of this ticket (the CameraButtonSheetWidget
+onPickImage callback) was live-verified end-to-end (camera + gallery + remove) on
+UserApp, and (gallery, via the real VendorApp "Take a Picture" delivery-confirmation
+flow) on VendorApp — both zero-error. DeliveryApp's identical call site is verified
+statically + via clean runtime boot, not via a live picker trigger. Given the shared
+component is proven correct on 2/3 apps with byte-identical wiring, and the
+DeliveryApp-specific blocker is a pre-existing fixture/reachability gap unrelated to
+this ticket's diff, this is reported as a scope note, not a FAIL.
+
+Side effects of this QA session on the seeded dev DB (via legitimate app actions, not
+raw DML):
+- Order #91133 (VendorApp, take_away, store 4): swiped processing -> Ready For
+  Handover -> Deliver dialog -> gallery-picked a QA test image -> left at
+  "Ready For Handover" with "Completed After Delivery Picture" (NOT completed/
+  delivered — I stopped short of "Complete Delivery").
+- Order #172 (VendorApp, store 35/"Test Store"): swiped processing -> Ready For
+  Handover (left there; never picked up by a delivery man in this session).
+- UserApp order 91129/pharmacy checkout: no order was placed (picker exercised only,
+  "Place Order" never tapped).
