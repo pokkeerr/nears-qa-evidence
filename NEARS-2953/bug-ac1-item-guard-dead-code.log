@@ -1,0 +1,53 @@
+NEARS-2953 QA — AC1 cross-store item leak, live E2E via real HTTP + VendorTokenIsValid middleware
+Backend: php artisan serve on worktree (Admin/), DB multi_food_db (real dev DB, not phpunit's private test DB)
+Vendor: john.smith@demo.com (store_id=4). Item 22 belongs to store_id=5 (Pizza Heaven / maria.garcia).
+
+Request:
+POST /api/v1/vendor/pos/place-order
+Headers: Authorization: Bearer <john.smith token>, vendorType: owner, zoneId: [1]
+Body: {"store_id":4,"paid_amount":20.45,"payment_method":"cash_on_delivery",
+       "cart":[{"item_id":22,"quantity":2,"variation":[],"variant":[],"add_on_ids":[],"add_on_qtys":[]}]}
+
+ACTUAL response:
+HTTP/1.1 401 Unauthorized
+{"errors":[{"code":"campaign","message":"not found!"}]}
+
+EXPECTED per AC1: HTTP 403, errors[0].code == 'different_stores'
+
+Root cause: Item model (app/Models/Item.php Item::booted()) registers a global
+StoreScope (app/Scopes/StoreScope.php) whenever `auth('vendor')->check()` is true.
+VendorTokenIsValid middleware (app/Http/Middleware/VendorTokenIsValid.php, the
+"NEARS-378 ORDERING INVARIANT" comment block) deliberately calls
+`auth('vendor')->setUser($vendor)` before the controller runs, specifically to arm
+this scope. StoreScope::apply() adds `where('store_id', Helpers::get_store_id())`
+to EVERY Item query, including the bare `Item::find($c['item_id'])` at the top of
+POSController::place_order(). Helpers::get_store_id() resolves to the SAME store
+id the new guard compares against ($store = $request->vendor->stores[0]).
+
+Net effect: for an item_id belonging to any store other than the vendor's own,
+Item::find() returns null BEFORE the new `if ($product->store_id != $store->id)`
+guard is ever reached — the request falls into the PRE-EXISTING
+`else { return ['code' => 'campaign', 'message' => 'not found!'], 401 }` branch a
+few lines above (already in the file before this diff). The new `different_stores`
+branch (Admin/app/Http/Controllers/Api/V1/Vendor/POSController.php, added by
+d43583117) is therefore DEAD CODE on the real HTTP+middleware path — it can never
+fire in production traffic.
+
+Why the shipped test didn't catch it: Nears2953PosCartGuardsTest::posRequest()
+builds `Request::create('/x', 'POST', [...])` and calls
+`app(POSController::class)->place_order($request)` DIRECTLY, never routing through
+VendorTokenIsValid — so `auth('vendor')->setUser()` is never called, StoreScope is
+never armed, Item::find() returns the cross-store item unfiltered, and the test
+observes the new `different_stores` branch that is unreachable in real traffic.
+This is exactly the "PHPUnit bypasses VendorTokenIsValid" gap flagged by the
+security reviewer in the QA brief.
+
+Net security posture: NOT regressed — the cross-store item IS still rejected
+(via the pre-existing StoreScope + "campaign not found" 401 path), so there is no
+re-opened IDOR. But AC1's literal contract (403 / different_stores) is not met,
+and the new item-guard code this ticket shipped never executes.
+
+For contrast, the add-on guards (AC3-5) ARE reachable and effective — AddOn also
+carries the same StoreScope, but the guard's `$addOns->count() !== count(array_unique($addOnIds))`
+check (not a raw find-then-compare) correctly detects the StoreScope-caused
+under-fetch and returns 403/addon, confirmed live below.

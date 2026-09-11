@@ -1,0 +1,60 @@
+NEARS-2953 QA — live E2E transcripts, AC2-AC8 (real HTTP through VendorTokenIsValid + DB)
+Backend: php artisan serve --port=8953 on worktree Admin/, DB multi_food_db.
+Vendor under test: john.smith@demo.com, store_id=4 (Burger Palace). Item 16 = Classic Cheeseburger
+($8.99, tax 5%, discount 0), Item 18 = Veggie Burger ($9.99, discount 0). Add-on 1 = Extra Cheese
+($1.50, store 4). Add-on 5 = Extra Mozzarella (store 5, cross-store control).
+
+AC2 quantity guards (item 16, same store):
+  quantity=-1  -> 403 {"errors":[{"code":"quantity","message":"Invalid item quantity"}]}
+  quantity=0   -> 403 {"errors":[{"code":"quantity","message":"Invalid item quantity"}]}
+  quantity="abc" -> 403 {"errors":[{"code":"quantity","message":"Invalid item quantity"}]}
+  orders table: SELECT COUNT(*) FROM orders WHERE store_id=4 AND order_type='pos' => 0 (none persisted)
+
+AC3 cross-store add-on (add_on_ids:[5] on store-4 order):
+  -> 403 {"errors":[{"code":"addon","message":"Invalid add-on selection"}]}
+
+AC4 add_on_ids/add_on_qtys length mismatch (ids:[1,2], qtys:[1]):
+  -> 403 {"errors":[{"code":"addon","message":"Invalid add-on selection"}]}
+
+AC5 non-positive/non-numeric add-on qty (ids:[1]):
+  qtys:[0]   -> 403 {"errors":[{"code":"addon","message":"Invalid add-on selection"}]}
+  qtys:[-2]  -> 403 {"errors":[{"code":"addon","message":"Invalid add-on selection"}]}
+  qtys:["x"] -> 403 {"errors":[{"code":"addon","message":"Invalid add-on selection"}]}
+
+AC6 duplicate add-on id, two different qtys (ids:[1,1], qtys:[1,2], item 16 qty 1):
+  Probe with paid_amount=0.01 -> 422 {"errors":[{"code":"paid_amount","message":"Paid amount does not match the order amount"}]}
+  (confirms NOT rejected as a duplicate/addon error — passed guard checks, reached reconciliation)
+  Computed server order_amount: 8.99 (item) + 4.50 (addon 1.50 * summed qty 3) = 13.49,
+  + 5% tax 0.67 = 14.16
+  Retried with paid_amount=14.16 -> 200 {"message":"Order placed successfully","order_id":91357,"total_ammount":14.16}
+  DB check: SELECT add_ons, total_add_on_price FROM order_details WHERE order_id=91357
+    -> add_ons: [{"id":1,"name":"Extra Cheese","price":1.5,"quantity":3,"category_id":null}]
+       total_add_on_price: 4.50
+  Confirms MERGE/SUM (qty 1+2=3), not a silent drop and not a rejection.
+
+AC7 happy path / regression (item 16 qty2 + addon 1 qty1, plus item 18 qty3 no add-ons):
+  Computed order_amount: (8.99*2 + 9.99*3) + (1.50*1) = 49.45, +5% tax 2.47 = 51.92
+  paid_amount=51.92 -> 200 {"message":"Order placed successfully","order_id":91358,"total_ammount":51.92}
+  GET /api/v1/vendor/pos/orders?limit=5&offset=1 -> orders[0]: {id:91358, order_amount:51.92,
+    payment_status:"paid", order_status:"delivered", store_id:4, order_type:"pos", ...}
+  Confirms order appears in the order list with the correct server-computed amount.
+
+AC8 reconciliation still distinct (otherwise-valid cart, paid_amount deliberately wrong):
+  item 16 qty1, paid_amount=1.00 -> 422 {"errors":[{"code":"paid_amount","message":"Paid amount does not match the order amount"}]}
+  Distinct status (422 vs the new guards' 403) and distinct code ('paid_amount' vs
+  'different_stores'/'quantity'/'addon') -- confirms the pre-existing reconciliation
+  guard (NEARS-380/BE-18b) still functions unchanged after this fix.
+
+Final persisted-orders check (store 4, order_type=pos), across ALL of the above
+including every rejected attempt:
+  SELECT id, order_amount FROM orders WHERE store_id=4 AND order_type='pos' ORDER BY id;
+  91357 | 14.16
+  91358 | 51.92
+  Exactly the 2 legitimate (200) orders persisted; every 403/422 rejection left zero rows.
+
+BE log check (Admin/storage/logs/laravel.log, grep -F "pos/place-order"): 0 matches --
+clean, no [FAIL]/[ERR]/exception logged for any of the above requests.
+
+Automated backstop: vendor/bin/phpunit --filter
+"Nears2953PosCartGuardsTest|PosPlaceOrderReconcileTest|PosOrderListPaginationTest"
+-> OK, 15 tests, 71 assertions, 1 PHPUnit deprecation (non-failing).
