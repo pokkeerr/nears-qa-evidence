@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3477
 
-**PASS — DeliveryApp CameraButtonSheetWidget picker live-verified (camera+gallery, order #91187); ticket-wide ac_table all PASS**
+**Delta re-QA PASS: post-merge (ccb3166dc) live spot-check of 3 CameraButtonSheetWidget call sites — DeliveryApp confirmation picker + VendorApp order-details picker + VendorApp DialogImageWidget picker, all camera+gallery paths working, logs clean**
 
-**4 screenshot(s).** Click any thumbnail for full resolution.
+**6 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -12,6 +12,8 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="deliveryapp-order91187-before-picker.png"><img src="deliveryapp-order91187-before-picker.png" width="240"></a><br><sub>deliveryapp order91187 before picker</sub></td>
+<td align="center" width="33%"><a href="deltaqa-deliveryapp-confirmation-picker.png"><img src="deltaqa-deliveryapp-confirmation-picker.png" width="240"></a><br><sub>deltaqa deliveryapp confirmation picker</sub></td>
+<td align="center" width="33%"><a href="deltaqa-vendorapp-order-details-picker.png"><img src="deltaqa-vendorapp-order-details-picker.png" width="240"></a><br><sub>deltaqa vendorapp order details picker</sub></td>
 </tr>
 </table>
 
