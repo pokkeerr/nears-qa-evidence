@@ -1,0 +1,87 @@
+=== AC2 cold-start (existing session) observation #1 — initial flutter run boot ===
+I/flutter (24265): Type: owner
+I/flutter (24265): [NET] GET endpoint=/api/v1/config
+I/flutter (24265): [NET] endpoint=/api/v1/config http_status=200
+I/flutter (24265): [NET] POST endpoint=/api/v1/vendor/update-fcm-token
+I/flutter (24265): [NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+I/flutter (24265): [NET] GET endpoint=/api/v1/vendor/profile      <-- exactly 1
+I/flutter (24265): [NET] endpoint=/api/v1/vendor/profile http_status=200
+I/flutter (24265): [NET] GET endpoint=/api/v1/vendor/current-orders
+I/flutter (24265): [NET] endpoint=/api/v1/vendor/current-orders http_status=200
+I/flutter (24265): [NET] GET endpoint=/api/v1/vendor/notifications
+I/flutter (24265): [NET] endpoint=/api/v1/vendor/notifications http_status=200
+
+=== AC2 cold-start observation #2 — force-stop + relaunch (via adb logcat -d -s flutter:I) ===
+09-11 08:23:16.525 27244 27244 I flutter : [NET] GET endpoint=/api/v1/config
+09-11 08:23:17.489 27244 27244 I flutter : [NET] endpoint=/api/v1/config http_status=200
+09-11 08:23:18.498 27244 27244 I flutter : [NET] POST endpoint=/api/v1/vendor/update-fcm-token
+09-11 08:23:19.490 27244 27244 I flutter : [NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+09-11 08:23:19.493 27244 27244 I flutter : [NET] GET endpoint=/api/v1/vendor/profile      <-- exactly 1
+09-11 08:23:20.484 27244 27244 I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-11 08:23:20.571 27244 27244 I flutter : [NET] GET endpoint=/api/v1/vendor/current-orders
+09-11 08:23:21.562 27244 27244 I flutter : [NET] endpoint=/api/v1/vendor/current-orders http_status=200
+09-11 08:23:21.564 27244 27244 I flutter : [NET] GET endpoint=/api/v1/vendor/notifications
+09-11 08:23:22.075 27244 27244 I flutter : [NET] endpoint=/api/v1/vendor/notifications http_status=200
+
+=== AC2 cold-start observation #3 — force-stop + relaunch again ===
+09-11 08:23:29.548 27357 27357 I flutter : [NET] GET endpoint=/api/v1/config
+09-11 08:23:30.634 27357 27357 I flutter : [NET] endpoint=/api/v1/config http_status=200
+09-11 08:23:31.647 27357 27357 I flutter : [NET] POST endpoint=/api/v1/vendor/update-fcm-token
+09-11 08:23:31.835 27357 27357 I flutter : [NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+09-11 08:23:31.835 27357 27357 I flutter : [NET] GET endpoint=/api/v1/vendor/profile      <-- exactly 1
+09-11 08:23:31.991 27357 27357 I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-11 08:23:32.074 27357 27357 I flutter : [NET] GET endpoint=/api/v1/vendor/current-orders
+09-11 08:23:32.692 27357 27357 I flutter : [NET] endpoint=/api/v1/vendor/current-orders http_status=200
+09-11 08:23:32.694 27357 27357 I flutter : [NET] GET endpoint=/api/v1/vendor/notifications
+09-11 08:23:33.307 27357 27357 I flutter : [NET] endpoint=/api/v1/vendor/notifications http_status=200
+
+=== AC2 login attempt #1 (cold/first login, demo.store@gmail.com) ===
+[NET] POST endpoint=/api/v1/auth/vendor/login
+[NET] endpoint=/api/v1/auth/vendor/login http_status=200
+[NET] POST endpoint=/api/v1/vendor/update-fcm-token
+[NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+[NET] GET endpoint=/api/v1/vendor/profile      <-- exactly 1
+[NET] endpoint=/api/v1/vendor/profile http_status=200
+[NET] GET endpoint=/api/v1/vendor/current-orders
+[NET] endpoint=/api/v1/vendor/current-orders http_status=200
+[NET] GET endpoint=/api/v1/vendor/notifications
+[NET] endpoint=/api/v1/vendor/notifications http_status=200
+
+=== AC2 login attempt #2 (warm: logout -> different account, organicshop@demo.com) ===
+[NET] POST endpoint=/api/v1/auth/vendor/login
+[NET] endpoint=/api/v1/auth/vendor/login http_status=200
+[NET] POST endpoint=/api/v1/vendor/update-fcm-token
+[NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+[NET] GET endpoint=/api/v1/vendor/profile      <-- exactly 1
+[NET] endpoint=/api/v1/vendor/profile http_status=200
+[NET] GET endpoint=/api/v1/vendor/current-orders
+[NET] endpoint=/api/v1/vendor/current-orders http_status=200
+[NET] GET endpoint=/api/v1/vendor/notifications
+[NET] endpoint=/api/v1/vendor/notifications http_status=200
+
+=== AC2 login attempt #3 (warm: logout -> different account, maria.garcia@demo.com; also login attempt to vendor@nears.demo returned 401 invalid creds, not counted as a race observation) ===
+[NET] POST endpoint=/api/v1/auth/vendor/login
+[NET] endpoint=/api/v1/auth/vendor/login http_status=200
+[NET] POST endpoint=/api/v1/vendor/update-fcm-token
+[NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+[NET] GET endpoint=/api/v1/vendor/profile      <-- exactly 1
+[NET] endpoint=/api/v1/vendor/profile http_status=200
+[NET] GET endpoint=/api/v1/vendor/current-orders
+[NET] endpoint=/api/v1/vendor/current-orders http_status=200
+[NET] GET endpoint=/api/v1/vendor/notifications
+
+=== AC4 pull-to-refresh observation #1 ===
+09-11 08:24:06.627 27357 27357 I flutter : [NET] GET endpoint=/api/v1/vendor/profile   <-- exactly 1, force:true
+09-11 08:24:07.363 27357 27357 I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-11 08:24:07.364 27357 27357 I flutter : [NET] GET endpoint=/api/v1/vendor/current-orders
+09-11 08:24:08.360 27357 27357 I flutter : [NET] endpoint=/api/v1/vendor/current-orders http_status=200
+09-11 08:24:08.361 27357 27357 I flutter : [NET] GET endpoint=/api/v1/vendor/notifications
+09-11 08:24:09.365 27357 27357 I flutter : [NET] endpoint=/api/v1/vendor/notifications http_status=200
+
+=== AC4 pull-to-refresh observation #2 ===
+09-11 08:24:15.277 27357 27357 I flutter : [NET] GET endpoint=/api/v1/vendor/profile   <-- exactly 1, force:true
+09-11 08:24:16.049 27357 27357 I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-11 08:24:16.050 27357 27357 I flutter : [NET] GET endpoint=/api/v1/vendor/current-orders
+09-11 08:24:17.051 27357 27357 I flutter : [NET] endpoint=/api/v1/vendor/current-orders http_status=200
+09-11 08:24:17.051 27357 27357 I flutter : [NET] GET endpoint=/api/v1/vendor/notifications
+09-11 08:24:18.054 27357 27357 I flutter : [NET] endpoint=/api/v1/vendor/notifications http_status=200
