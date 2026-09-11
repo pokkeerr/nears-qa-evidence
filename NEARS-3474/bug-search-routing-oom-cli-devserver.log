@@ -1,0 +1,45 @@
+=== bug-search-routing-oom-cli-devserver.log ===
+Backend log (Admin/storage/logs/laravel.log), production channel, endpoint /admin/search-routing
+
+[2026-09-11 15:09:07] production.ERROR: [FAIL] Allowed memory size of 134217728 bytes exhausted (tried to allocate 4096 bytes) {"trace_id":"eda70e9436a3a0570fa03180c2a6a4a7","correlation_id":"4a8baa79-d28f-4526-8afe-618f399285a4","type":"Symfony\\Component\\ErrorHandler\\Error\\FatalError","endpoint":"/admin/search-routing"} 
+[2026-09-11 15:09:29] production.ERROR: [FAIL] Allowed memory size of 134217728 bytes exhausted (tried to allocate 20480 bytes) {"trace_id":"645d764a78851353447dd1c070bbd6a1","correlation_id":"b2dc85b2-ac19-4e10-9f10-33380cbd814d","type":"Symfony\\Component\\ErrorHandler\\Error\\FatalError","endpoint":"/admin/search-routing"} 
+[2026-09-11 15:09:49] production.ERROR: [FAIL] Allowed memory size of 134217728 bytes exhausted (tried to allocate 20480 bytes) {"trace_id":"51abe120d602105ff54012ecfa90e2a5","correlation_id":"8ad37e30-b694-49f6-8a69-f165592c3401","type":"Symfony\\Component\\ErrorHandler\\Error\\FatalError","endpoint":"/admin/search-routing"} 
+
+=== php artisan serve stdout stack trace (first occurrence) ===
+  PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 4096 bytes) in /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/app/Services/RouteSearch/RouteSearchService.php on line 164
+  Stack trace:
+  #0 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/app/Services/RouteSearch/RouteSearchService.php(198): App\Services\RouteSearch\RouteSearchService->computeRouteMatch(Object(App\Models\Item), Object(Illuminate\Routing\Route), 'Item', NULL, 'Item', NULL)
+  #1 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/app/Http/Controllers/Admin/SearchRoutingController.php(51): App\Services\RouteSearch\RouteSearchService->filterRouteAdmin(Object(App\Models\Item), Object(Illuminate\Routing\Route), 'Item', NULL, 'Item', NULL, NULL)
+  #2 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/app/Services/RouteSearch/RouteSearchService.php(127): App\Http\Controllers\Admin\SearchRoutingController->{closure:App\Http\Controllers\Admin\SearchRoutingController::index():51}(Object(App\Models\Item), Object(Illuminate\Routing\Route), Array)
+  #3 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/app/Http/Controllers/Admin/SearchRoutingController.php(46): App\Services\RouteSearch\RouteSearchService->collectMatches(Array, 'N', Object(Illuminate\Support\Collection), Array, Object(Closure), Array)
+  #4 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): App\Http\Controllers\Admin\SearchRoutingController->index(Object(Illuminate\Http\Request))
+  #5 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(43): Illuminate\Routing\Controller->callAction('index', Array)
+  #6 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Routing/Route.php(265): Illuminate\Routing\ControllerDispatcher->dispatch(Object(Illuminate\Routing\Route), Object(App\Http\Controllers\Admin\SearchRoutingController), 'index')
+  #7 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Routing/Route.php(211): Illuminate\Routing\Route->runController()
+  #8 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php(822): Illuminate\Routing\Route->run()
+  #9 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\Routing\Router->{closure:Illuminate\Routing\Router::runRouteWithinStack():821}(Object(Illuminate\Http\Request))
+  #10 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/app/Http/Middleware/ActivationCheckMiddleware.php(35): Illuminate\Pipeline\Pipeline->{closure:Illuminate\Pipeline\Pipeline::prepareDestination():178}(Object(Illuminate\Http\Request))
+  #11 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): App\Http\Middleware\ActivationCheckMiddleware->handle(Object(Illuminate\Http\Request), Object(Closure), 'admin_panel')
+  #12 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/app/Http/Middleware/CurrentModule.php(58): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}(Object(Illuminate\Http\Request))
+  #13 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): App\Http\Middleware\CurrentModule->handle(Object(Illuminate\Http\Request), Object(Closure))
+  #14 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/app/Http/Middleware/AdminMiddleware.php(47): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}(Object(Illuminate\Http\Request))
+  #15 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/app/Observability/GuardSpan.php(92): App\Http\Middleware\AdminMiddleware->{closure:App\Http\Middleware\AdminMiddleware::handle():24}(Object(Closure), Object(Closure))
+  #16 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/app/Http/Middleware/AdminMiddleware.php(24): App\Observability\GuardSpan::measure('auth.guard.admi...', Object(Closure))
+  #17 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): App\Http\Middleware\AdminMiddleware->handle(Object(Illuminate\Http\Request), Object(Closure))
+  #18 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/barryvdh/laravel-debugbar/src/Middleware/InjectDebugbar.php(59): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}(Object(Illuminate\Http\Request))
+  #19 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Barryvdh\Debugbar\Middleware\InjectDebugbar->handle(Object(Illuminate\Http\Request), Object(Closure))
+  #20 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/app/Http/Middleware/Localization.php(84): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}(Object(Illuminate\Http\Request))
+  #21 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): App\Http\Middleware\Localization->handle(Object(Illuminate\Http\Request), Object(Closure))
+  #22 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}(Object(Illuminate\Http\Request))
+  #23 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Routing\Middleware\SubstituteBindings->handle(Object(Illuminate\Http\Request), Object(Closure))
+  #24 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(87): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}(Object(Illuminate\Http\Request))
+  #25 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Foundation\Http\Middleware\VerifyCsrfToken->handle(Object(Illuminate\Http\Request), Object(Closure))
+  #26 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(48): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}(Object(Illuminate\Http\Request))
+  #27 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\View\Middleware\ShareErrorsFromSession->handle(Object(Illuminate\Http\Request), Object(Closure))
+  #28 /Users/Apple/Projects/nears-NEARS-3474-devenv-residue/Admin/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(120): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}(Object(Illuminate\Http\Request))
+
+=== root cause confirmation: CLI default memory_limit ===
+128M
+
+=== confirmed pre-existing / not caused by NEARS-3474: RouteSearchService.php untouched by this diff ===
+(empty = file not touched)
