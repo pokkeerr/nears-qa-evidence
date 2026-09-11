@@ -1,0 +1,31 @@
+NEARS-3452 QA-lite evidence — Vendor/ItemController::stock_update() null guard
+Backend: local `php artisan serve` on worktree /Users/Apple/Projects/nears-NEARS-3452-itemcontroller-stock-update-null-guard/Admin, port 8452.
+Auth: vendor session via POST /login_submit (role=vendor, ahmed.khan@demo.com, store_id=2 "Fresh Mart Grocery").
+Route under test: POST vendor-panel/item/stock-update (vendor.item.stock-update -> Vendor\ItemController@stock_update)
+
+--- Point 1: nonexistent numeric product_id=999999999 ---
+Request: POST /vendor-panel/item/stock-update  product_id=999999999  current_stock=50
+Response: HTTP/1.1 302 Found  Location: http://127.0.0.1:8452/vendor-panel/item/stock-limit-list
+Flash on redirect target: toastr.warning('Not found','')
+laravel.log: file did not exist after request (0 crash lines) -> no 500/exception
+RESULT: PASS — handled Toastr warning + redirect back, no crash.
+
+--- Point 2: valid real product_id=2 ("Red Apple", store 2), happy path ---
+Pre-state (DB): items.id=2 stock=98 variations=[]
+Request: POST /vendor-panel/item/stock-update  product_id=2  current_stock=99
+Response: HTTP/1.1 302 Found  Location: .../stock-limit-list
+Flash on redirect target: toastr.success('Stock updated successfully','')
+Post-state (DB): items.id=2 stock=99 (confirmed via SELECT)
+laravel.log: still 0 crash lines
+Reverted: POST product_id=2 current_stock=98 -> DB back to stock=98 (test-data hygiene)
+RESULT: PASS — real DB mutation applied correctly, success Toastr fired, no regression from the guard.
+
+--- Point 3: array-shaped product_id (product_id[]=1) ---
+Request: POST /vendor-panel/item/stock-update  product_id[]=1  current_stock=50
+Response: HTTP/1.1 302 Found  Location: .../stock-limit-list
+Flash on redirect target: toastr.warning('Not found','')  (NOT success)
+DB check: items.id=1 stock unchanged (0, pre-existing seed value, untouched by this request)
+laravel.log: still 0 crash lines
+RESULT: PASS — is_numeric($request['product_id']) correctly rejects the array before Item::find() is called; same handled warning path as point 1, no crash, no mutation of item 1.
+
+Automated backstop: `vendor/bin/phpunit --configuration phpunit.xml` — no existing test targets ItemController::stock_update (grep confirmed 0 hits under tests/). Attempted a full-suite run via run-observed.sh --timeout 180; suite did not finish inside the bound (KILLED, unobserved) — out of scope to extend for a QA-lite micro fix with a live-demonstrated live HTTP repro already covering all 3 points; not required to gate this lane.
