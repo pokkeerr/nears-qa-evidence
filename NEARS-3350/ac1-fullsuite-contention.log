@@ -1,0 +1,24 @@
+$ ../scripts/newtask-guards/run-observed.sh --timeout 900 --label AC1-FullSuite -- \
+    vendor/bin/phpunit --configuration phpunit.xml --testsuite Unit,Feature
+(launched in background, pid 96853, started 14:57)
+
+Polled over ~9 real minutes via `ps -p 96853 -o pid,etime,time,stat`:
+  etime 04:25  time 1:30.31  STAT S
+  etime 06:00  time 2:05.63  STAT S
+  etime 08:00  time 2:40.16  STAT R
+  etime 09:06  time 2:46.74  STAT S
+(CPU time barely advancing relative to wall-clock elapsed -- host-side contention, not
+a hang/crash in this process)
+
+$ ps aux | grep -c "[p]hp.*phpunit"
+8
+
+$ top -l 1 -n 5 -stats pid,command,cpu
+Load Avg: 9.21, 10.21, 9.98
+PhysMem: 46G used (4856M wired, 19G compressor), 836M unused.
+
+Conclusion: shared host under heavy concurrent-session load at QA time (8 simultaneous
+phpunit processes, load avg ~9-10, near-zero free RAM) -- exactly the contention the
+ticket's AC1 note pre-authorizes a bounded/partial report for. See progress.md for the
+positive proxy evidence (individual AC file runs + full tests/Feature/Security directory,
+both clean) that stands in for full-suite completion.
