@@ -1,0 +1,31 @@
+NEARS-3479 AC4 — live smoke test: qa-run.sh --dart-define reaches the final exec unmangled.
+
+Command:
+  FLUTTER_BIN=/tmp/qa-run-dryrun-bin/flutter QA_LOCK_OWNER_PID=64995 \
+    bash scripts/qa-run.sh --root <worktree> --dart-define FOO=bar VendorApp emulator-5566
+
+Output:
+[qa-run] root: /Users/Apple/Projects/nears-NEARS-3479-hygiene-bundle (source: --root)
+[qa-lock] emulator-5566: lane — ours='NEARS-3479'(derived) derived='NEARS-3479' holder='NEARS-3479' holder_key='NEARS-3479' match=yes via=lane verdict=self-lane site=check
+[qa-run] pidfile: /Users/Apple/.nears/qa-pids/emulator-5566 (pid 42781, started 'Fri Sep 11 14:26:56 2026') — stop with: scripts/qa-run-stop.sh emulator-5566
+FAKE_FLUTTER_EXEC_ARGV: run -d emulator-5566 --dart-define=FOO=bar
+
+Observation: the --dart-define FOO=bar flag reached flutter's exec unmangled as
+--dart-define=FOO=bar, AFTER the NEARS-1808/NEARS-1727 lock-check (self-lane
+match, unaffected by the new flag parsing), proving the flag pass-through does
+not disturb the pre-existing lock-guard/pidfile sequencing.
+
+Automated backstop (authoritative for this AC — qa-run.sh is a harness script,
+not app UI):
+  bash scripts/qa-run.test.sh
+  -- result: PASS
+  -- validity: 85 assertion(s) made across 21 case(s); 0 skipped; 0 failed
+  (case 19: --dart-define / --dart-define-file both forms reach exec unmangled;
+   case 20: negative control — no flag given, exec stays byte-for-byte the old
+   bare form)
+
+Note: this dry-run FLUTTER_BIN stub was invoked while emulator-5566's lock was
+already held by this same QA session for the real VendorApp launch (AC3); it
+temporarily overwrote that launch's pidfile, which QA corrected by hand before
+teardown (see envelope summary) — noted here for traceability, not a product
+defect.
