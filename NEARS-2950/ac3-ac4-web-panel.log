@@ -1,0 +1,42 @@
+NEARS-2950 — AC3/AC4: Web vendor-panel POST update-order-amount / update-discount-amount
+
+Driven through the REAL route + full middleware stack (VendorMiddleware,
+VerifyCsrfToken, StartSession) via a one-off PHP script that boots the actual
+Laravel kernel (Illuminate\Contracts\Http\Kernel::handle()) against the same
+isolated DB clone (multi_food_db_qa2950), NOT a bare controller call. Vendor
+guard authenticated via Auth::guard('vendor')->setUser($vendor) (same
+mechanism Laravel's own TestCase::actingAs() uses) plus the session
+`login_remember_token` set to match the vendor row (mirrors what
+LoginController@submit does on a real form login) so VendorMiddleware's
+logout-on-mismatch check doesn't fire. Real CSRF token minted from the
+session and submitted as `_token`. Routes resolved via
+`php artisan route:list`: POST vendor-panel/order/update-order-amount,
+POST vendor-panel/order/update-discount-amount.
+
+== web_oa_wrongstatus — order 92999, order_status=picked_up, prescription_order=1 ==
+(picked_up was in the OLD wider allow-set — proves the narrowing, not just a
+pre-existing status check, actually took effect)
+HTTP 302 -> http://localhost
+Toastr: {"type":"error","message":"Order can not edit a completed order"}
+DB before/after order_amount: 999.00 -> 999.00 (unchanged)
+
+== web_oa_accept — order 93000, order_status=confirmed, prescription_order=1 ==
+HTTP 302 -> http://localhost
+Toastr: {"type":"success","message":"Order amount updated"}
+DB order_amount: 999.00 -> 40.00
+
+== web_da_wrongstatus — order 93001, order_status=handover, prescription_order=1 ==
+(handover also in the OLD wider allow-set)
+HTTP 302 -> http://localhost
+Toastr: {"type":"error","message":"Order can not edit a completed order"}
+DB store_discount_amount: 0.00 -> 0.00 (unchanged)
+
+== web_da_accept — order 93002, order_status=accepted, prescription_order=1 ==
+HTTP 302 -> http://localhost
+Toastr: {"type":"success","message":"Discount amount updated"}
+DB store_discount_amount: 0.00 -> 10.00, order_amount recomputed 999.00 -> 989.00
+
+Verdict: PASS — narrowed 4-status gate (picked_up/handover now correctly
+REJECTED, where the old 6-status gate previously accepted them) confirmed
+live on the real route, real middleware, real session/CSRF cycle. Accept
+path confirmed 200-equivalent (302 + success Toastr) with correct DB mutation.

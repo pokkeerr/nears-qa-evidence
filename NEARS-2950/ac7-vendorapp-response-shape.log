@@ -1,0 +1,33 @@
+NEARS-2950 — AC7: VendorApp error-surfacing (HTTP-layer verification; UI leg NOT driven)
+
+Reason UI leg not driven: this ticket is scoped backend-only (per spawn
+instructions: "no device/emulator needed... drive it via HTTP requests").
+No Android/iOS device or Flutter run was booted for this QA pass. Verified
+at the HTTP layer per the ticket's own stated fallback allowance.
+
+VendorApp/lib/api/api_client.dart:528-548 handles any non-200 JSON response
+whose GetX-decoded body (a Dart Map from jsonDecode, not the raw JSON string)
+stringifies to a value starting with the literal `{errors: [{code:` — that's
+Dart's default Map.toString() format (unquoted keys, `key: value`), which is
+what `jsonDecode('{"errors":[{"code":"status","message":"..."}]}')` produces
+when re-stringified.
+
+Every one of this ticket's 4 new reject responses (ac1/ac2 logs above) is
+exactly this shape:
+  {"errors":[{"code":"status","message":"Order can not edit a completed order"}]}
+  {"errors":[{"code":"not_prescription","message":"Access denied"}]}
+  {"errors":[{"code":"order_amount","message":"The order amount must be at least 0."}]}
+  {"errors":[{"code":"discount_amount","message":"The discount amount must be at least 0."}]}
+Decoded to a Dart Map and re-stringified, each begins with `{errors: [{code:`
+— matching api_client.dart's regex-style startsWith check, which then runs
+`ErrorResponse.fromJson(response0.body)` and rebuilds `response0.statusText`
+= the message. That statusText is what VendorApp's generic error-handling
+snackbar (ApiChecker.checkApi) surfaces — no new client code path was needed
+because it's the SAME shape as every other existing `{errors: [...]}` 403 the
+app already handles elsewhere (e.g. the pre-existing `order`/`coupon` error
+codes on this same endpoint).
+
+Verdict: UNVERIFIABLE-at-UI, PASS-at-HTTP-layer — response shape confirmed
+byte-for-byte compatible with the app's existing generic error parser; no
+new snackbar wiring required. A live device pass was out of this backend-only
+ticket's scope.

@@ -1,0 +1,37 @@
+NEARS-2950 — AC1: API PUT /api/v1/vendor/update-order-amount, order_amount branch
+Backend: dedicated `php artisan serve --port=8950` against isolated DB clone
+multi_food_db_qa2950 (mysqldump'd twin of this worktree's phpunit DB,
+multi_food_db_test_nears_nears_2950_edit_order_amount_gate). Vendor A =
+ahmed.khan@demo.com (vendor_id=2, store_id=2), auth via Authorization: Bearer
+<token> + vendorType: owner header.
+
+== reject: wrong status (order 92991, order_status=delivered, prescription_order=1) ==
+$ curl -X PUT $BASE -H "Authorization: Bearer $TOKEN_A" -H "vendorType: owner" -d "order_id=92991&order_amount=40"
+{"errors":[{"code":"status","message":"Order can not edit a completed order"}]}
+HTTP:403
+
+== reject: not_prescription (order 92992, order_status=pending, prescription_order=0) ==
+{"errors":[{"code":"not_prescription","message":"Access denied"}]}
+HTTP:403
+
+== reject: negative amount (order 92993, order_status=pending, prescription_order=1) ==
+$ curl -X PUT $BASE ... -d "order_id=92993&order_amount=-10"
+{"errors":[{"code":"order_amount","message":"The order amount must be at least 0."}]}
+HTTP:403
+
+== reject: non-numeric amount (order 92993) ==
+$ curl -X PUT $BASE ... -d "order_id=92993&order_amount=not-a-number"
+{"errors":[{"code":"order_amount","message":"The order amount must be a number."}]}
+HTTP:403
+
+== accept: valid edit (order 92994, order_status=accepted, prescription_order=1) ==
+BEFORE: id=92994 order_amount=999.00 order_status=accepted
+$ curl -X PUT $BASE ... -d "order_id=92994&order_amount=40"
+{"message":"Order updated successfully"}
+HTTP:200
+AFTER:  id=92994 order_amount=40.00 order_status=accepted
+(order_amount correctly recomputed: delivery_charge=0, total_tax_amount=0,
+dm_tips=0, additional_charge=0 for this fixture -> total_price passthrough = 40)
+
+Verdict: PASS — all 3 reject classes independently confirmed live + 200 accept
+with correct recompute. No DB mutation on any reject path.

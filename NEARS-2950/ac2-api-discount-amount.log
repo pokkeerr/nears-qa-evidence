@@ -1,0 +1,24 @@
+NEARS-2950 — AC2: API PUT /api/v1/vendor/update-order-amount, discount_amount branch
+Same server/DB/auth as ac1-api-order-amount.log.
+
+== reject: wrong status (order 92995, order_status=canceled, prescription_order=1) ==
+{"errors":[{"code":"status","message":"Order can not edit a completed order"}]}
+HTTP:403
+
+== reject: not_prescription (order 92996, order_status=confirmed, prescription_order=0) ==
+{"errors":[{"code":"not_prescription","message":"Access denied"}]}
+HTTP:403
+
+== reject: negative discount (order 92997, order_status=confirmed, prescription_order=1) ==
+{"errors":[{"code":"discount_amount","message":"The discount amount must be at least 0."}]}
+HTTP:403
+
+== accept: valid edit (order 92998, order_status=processing, prescription_order=1) ==
+BEFORE: id=92998 store_discount_amount=0.00 order_status=processing
+$ curl -X PUT $BASE ... -d "order_id=92998&discount_amount=10"
+{"message":"Order updated successfully"}
+HTTP:200
+AFTER:  id=92998 store_discount_amount=10.00 order_status=processing
+
+Verdict: PASS — all 3 reject classes independently confirmed live + 200 accept
+with correct store_discount_amount.

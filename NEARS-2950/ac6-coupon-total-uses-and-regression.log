@@ -1,0 +1,22 @@
+NEARS-2950 — AC6 + coupon regression sweep (is_valide / discount computation)
+
+Live coupon created via Eloquent (Coupon::forceFill()->save(), same mechanism
+the ticket's own phpunit fixtures use): code=QA2950LIVE, discount=5 (amount),
+total_uses seeded to 1 (mirrors placement-time increment per NEARS-3449).
+Order 93004: store_id=2, order_status=accepted, prescription_order=1,
+coupon_code=QA2950LIVE, order_amount=999.
+
+BEFORE: coupons.id=147 total_uses=1; orders.id=93004 order_amount=999.00 coupon_discount_amount=0.00
+
+$ curl -X PUT $BASE -H "Authorization: Bearer $TOKEN_A" -H "vendorType: owner" -d "order_id=93004&order_amount=100"
+{"message":"Order updated successfully"}
+HTTP:200
+
+AFTER: coupons.id=147 total_uses=1 (UNCHANGED — not double-incremented by the
+gate-accepted edit, NEARS-3449 behaviour preserved)
+orders.id=93004: order_amount=95.00, coupon_discount_amount=5.00,
+coupon_discount_title="QA2950 live coupon" (coupon correctly applied: 100 - 5 = 95)
+
+Verdict: PASS — the new gate sits ahead of the coupon/is_valide/discount logic
+and does not disturb it; total_uses fires exactly once (at placement, not
+re-incremented by the edit).

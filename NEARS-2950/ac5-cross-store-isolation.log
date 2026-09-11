@@ -1,0 +1,26 @@
+NEARS-2950 — AC5: Cross-store isolation (pre-existing ownership check, both surfaces)
+
+== API surface ==
+Vendor B = ecomarket@demo.com (vendor_id=19->store_id=19), token via
+POST /api/v1/auth/vendor/login. Vendor B attempts to edit Vendor A's
+(store_id=2) order 92991 via PUT /api/v1/vendor/update-order-amount:
+
+$ curl -X PUT $BASE -H "Authorization: Bearer $TOKEN_B" -H "vendorType: owner" -d "order_id=92991&order_amount=1"
+{"errors":[{"code":"order","message":"Order not found"}]}
+HTTP:403
+DB check: orders.id=92991 order_amount still 999.00, store_id=2 (untouched).
+
+== Web surface ==
+Vendor B (id=20, countryfair@demo.com, store_id=23) attempts to edit Vendor
+A's (store_id=2) order 93003 via the real
+POST vendor-panel/order/update-order-amount route (full kernel dispatch,
+session+CSRF, per ac3-ac4-web-panel.log method):
+
+HTTP 302 -> http://localhost
+Toastr: {"type":"error","message":"Order not found"}
+DB order 93003: order_amount 999.00 -> 999.00 (unchanged)
+
+Verdict: PASS — ownership check (`Order::where('store_id', Helpers::get_store_id())`
+on web, `$order->store_id != $vendor_store->id` on API) rejects cross-store
+edits ahead of/alongside the new NEARS-2950 status/prescription gate, on both
+surfaces, confirmed live.
