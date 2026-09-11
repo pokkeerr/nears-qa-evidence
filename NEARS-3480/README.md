@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3480
 
-**FAIL — AC3 Flash Sales sidebar gate broken by pre-existing Orders-block nesting (campaign-only role never sees the link); AC1/AC2/AC4/AC5 PASS**
+**Delta re-QA cycle 1: AC3 Flash Sales sidebar gate PASS (grocery+ecommerce, campaign-only/order+campaign/neither, active-state, Orders+Marketing regression clean)**
 
-**10 screenshot(s).** Click any thumbnail for full resolution.
+**14 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -13,14 +13,20 @@
 <tr>
 <td align="center" width="33%"><a href="ac2-positive-account-store-disbursement.png"><img src="ac2-positive-account-store-disbursement.png" width="240"></a><br><sub>ac2 positive account store disbursement</sub></td>
 <td align="center" width="33%"><a href="ac3-bug-campaign-only-no-flash-sales-link.png"><img src="ac3-bug-campaign-only-no-flash-sales-link.png" width="240"></a><br><sub>ac3 bug campaign only no flash sales link</sub></td>
+<td align="center" width="33%"><a href="ac3-fix-campaign-only-flash-sales-visible-ecommerce.png"><img src="ac3-fix-campaign-only-flash-sales-visible-ecommerce.png" width="240"></a><br><sub>ac3 fix campaign only flash sales visible ecommerce</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="ac3-fix-campaign-only-flash-sales-visible-grocery.png"><img src="ac3-fix-campaign-only-flash-sales-visible-grocery.png" width="240"></a><br><sub>ac3 fix campaign only flash sales visible grocery</sub></td>
 <td align="center" width="33%"><a href="ac3-negative-no-campaign-no-flash-sales.png"><img src="ac3-negative-no-campaign-no-flash-sales.png" width="240"></a><br><sub>ac3 negative no campaign no flash sales</sub></td>
-</tr>
-<tr>
 <td align="center" width="33%"><a href="ac3-order-plus-campaign-flash-sales-visible.png"><img src="ac3-order-plus-campaign-flash-sales-visible.png" width="240"></a><br><sub>ac3 order plus campaign flash sales visible</sub></td>
-<td align="center" width="33%"><a href="ac4-order-details-after-formrequest-actions.png"><img src="ac4-order-details-after-formrequest-actions.png" width="240"></a><br><sub>ac4 order details after formrequest actions</sub></td>
-<td align="center" width="33%"><a href="ac4-refund-reason-added.png"><img src="ac4-refund-reason-added.png" width="240"></a><br><sub>ac4 refund reason added</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ac3-regression-flash-sales-active-state.png"><img src="ac3-regression-flash-sales-active-state.png" width="240"></a><br><sub>ac3 regression flash sales active state</sub></td>
+<td align="center" width="33%"><a href="ac3-regression-orders-section-intact.png"><img src="ac3-regression-orders-section-intact.png" width="240"></a><br><sub>ac3 regression orders section intact</sub></td>
+<td align="center" width="33%"><a href="ac4-order-details-after-formrequest-actions.png"><img src="ac4-order-details-after-formrequest-actions.png" width="240"></a><br><sub>ac4 order details after formrequest actions</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="ac4-refund-reason-added.png"><img src="ac4-refund-reason-added.png" width="240"></a><br><sub>ac4 refund reason added</sub></td>
 <td align="center" width="33%"><a href="ac5-bulk-import-page.png"><img src="ac5-bulk-import-page.png" width="240"></a><br><sub>ac5 bulk import page</sub></td>
 </tr>
 </table>
