@@ -1,0 +1,42 @@
+NEARS-3453 QA verification (device-free, code-level per AC1's own definition)
+Worktree: /Users/Apple/Projects/nears-NEARS-3453-vendor-store-guard
+Branch:   fix/NEARS-3453-vendor-store-guard
+Commit:   122fb4b1101dda33f6de69e032e2d71efab1bd64
+
+1) Feature test run:
+$ cd Admin && vendor/bin/phpunit --configuration phpunit.xml --filter Nears3453VendorStoreConversationGuardTest
+OK, but there were issues!
+Tests: 12, Assertions: 45, PHPUnit Deprecations: 1.
+(the "deprecation" is a PHPUnit 11 framework notice, unrelated to this ticket's code)
+
+2) Regression sweep - full Feature/Security directory:
+$ vendor/bin/phpunit --configuration phpunit.xml tests/Feature/Security
+OK (707 tests, 3816 assertions)
+
+3) Call-site audit:
+- Pre-fix raw `stores[0]` sites: web=2 (lines 129,133 of Vendor/ConversationController.php pre-fix,
+  shifted to 141/145 by intervening unrelated commits), api=16 (Api/V1/Vendor/ConversationController.php).
+  18 total, matches ticket description exactly.
+- Post-fix: `grep -n "stores\[0\]"` on both files = 0 hits. All raw dereferences replaced with
+  `$vendor->stores->first()` (web, guarded inline) or the new `resolveVendorStoreOrGuard()` helper
+  (api, called once per method: messages_store, conversations, search_conversations, messages).
+- Verified by reading pre-fix (git show dc486b469:<path>) vs post-fix side by side that every one of
+  the 18 original line numbers is now covered: messages_store() and messages() had a SECOND,
+  unconditional dereference later in the method (order-count lookup, outside the `if(!$sender)`
+  block) - the fix correctly hoists the guard call to the top of those two methods so it covers
+  both the sender-creation site and the later order-lookup site. conversations()/search_conversations()/
+  web store() only ever dereferenced inside `if(!$sender)`, so the guard call was correctly left
+  nested there, matching prior behavior 1:1 for the happy path.
+
+4) Scope check: `git show 122fb4b11 --stat` = exactly 3 files (2 controllers + the new test), 394
+   insertions / 18 deletions. No unrelated files in the actual ticket commit (the branch's own
+   history carries other tickets' commits as ancestors, per this repo's shared-tree workflow, but
+   this commit's own diff is scoped correctly).
+
+5) Live/E2E demo: DELIBERATELY SKIPPED per ratified AC1 rewording. The live HTTP path to these
+   guarded methods is unreachable for a store-less vendor today - it 500s earlier in
+   VendorTokenIsValid.php / VendorLoginController.php (tracked separately as NEARS-3466) before
+   ever reaching these controllers. Reproducing that live would only re-demonstrate NEARS-3466's
+   known defect, not this ticket's guard. advisor-backend + advisor-product both confirmed this
+   during grooming; the [7] security reviewer independently live-verified the 500 via a feature
+   test hitting the real route. This is a deliberate, ratified scope decision, not an oversight.
