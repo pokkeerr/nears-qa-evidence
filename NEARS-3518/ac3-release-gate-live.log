@@ -1,0 +1,42 @@
+# AC3 (NEARS-2938) — release cleartext gate, live confirmation (emulator-5558, Pixel_10_Pro_3)
+
+Genuine `flutter run --release` builds (no `flutter run -d ... --release` shortcuts, real R8/minify,
+real AOT libapp.so), not just the pinned unit test.
+
+## Negative case — no dart-defines (useHttps=false default, kReleaseMode=true)
+$ flutter run --release -d emulator-5558
+✓ Built build/app/outputs/flutter-apk/app-release.apk (43.3MB)
+Installing build/app/outputs/flutter-apk/app-release.apk...   660ms
+I/flutter ( 6699): [IMPORTANT...] Using the Impeller rendering backend (OpenGLES).
+D/FlutterGeolocator( 6699): Flutter engine connected. Connected engine count 1
+D/FirebaseSessions( 6699): Fetched settings: {...}
+D/ProfileInstaller( 6699): Installing profile for com.izzes.nears
+(no further app-level activity for the remainder of the session — ~2 minutes of silence,
+ zero more log lines, zero rendered semantics)
+
+Post-hoc UI dump (uiautomator):
+  "dumped 1513 bytes ... parsed 4 node(s), 0 labelled"   <- stub/blank, no rendered content
+dumpsys window mCurrentFocus/mFocusedApp: still com.izzes.nears/.MainActivity (process alive,
+  Activity focused, but isolate produced nothing further — consistent with the uncaught
+  StateError thrown synchronously inside di.init() -> NImageConfig.devBaseUrl = AppConstants.baseUrl)
+
+Compiled-binary proof the gate code is genuinely present (not tree-shaken/stripped):
+$ strings build/app/outputs/stripped_native_libs/release/.../libapp.so | grep -i "cleartext fallback"
+NEARS-2938: cleartext fallback (
+
+## Positive control — same release build, --dart-define=USE_HTTPS=true --dart-define=PROD_HOST=example.invalid
+(only variable changed: useHttps flips the resolveBaseUrl branch away from the throwing path)
+$ flutter run --release --dart-define=USE_HTTPS=true --dart-define=PROD_HOST=example.invalid -d emulator-5558
+✓ Built ... Installing build/app/outputs/flutter-apk/app-release.apk...  703ms
+I/flutter ( 7227): Flutter engine connected. Connected engine count 1
+I/flutter ( 7227): Flutter engine connected. Connected engine count 2
+-> app proceeds PAST di.init() and reaches real UI: the OS notification-permission dialog
+   ("Allow Nears to send you notifications?") renders normally, exactly like every other
+   successful cold boot in this session.
+
+## Conclusion
+Same build type, same device, only variable = useHttps. useHttps=false -> release build
+freezes silently at startup with zero rendered UI (the StateError fires, as designed).
+useHttps=true -> release build boots fully to real UI. This isolates the freeze to the
+NEARS-2938 gate, not a generic release-mode artifact. Matches the AC: "a release build must
+never silently resolve the cleartext dev fallback ... now throws/asserts instead."

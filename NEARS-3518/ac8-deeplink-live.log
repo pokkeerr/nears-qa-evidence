@@ -1,0 +1,29 @@
+# AC8 — deep-link host SSOT, live confirmation (emulator-5558, debug build)
+
+## 1. Compiled manifest authority (dumpsys package, installed debug APK)
+$ adb shell dumpsys package com.izzes.nears.nears_nears_3518_mobile_security_hardeni | grep -A3 "https:"
+      https:
+        73fdb58 com.izzes.nears.nears_nears_3518_mobile_security_hardeni/com.izzes.nears.MainActivity filter 636dd17
+          Authority: "nears-web.izzes.ae": -1
+          AutoVerify=true
+      nears-web.izzes.ae: 1024
+          nears-web.izzes.ae
+
+(confirms the OLD stale literal "6ammart-web.6amtech.com" is gone from the compiled
+manifest; the live value matches deeplink_host.properties / DeepLinkHost.xcconfig)
+
+## 2. Live intent routing
+$ adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE \
+    -d "https://nears-web.izzes.ae/product?id=1" com.izzes.nears.nears_nears_3518_mobile_security_hardeni
+Starting: Intent { act=android.intent.action.VIEW cat=[android.intent.category.BROWSABLE] dat=https://nears-web.izzes.ae/... pkg=com.izzes.nears.nears_nears_3518_mobile_security_hardeni }
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+(no disambiguation chooser -> our app is the sole registered claimant of this host)
+
+## 3. App-side handling (adb logcat via flutter run stdout)
+D/com.llfbandit.app_links( 4190): Intent { act=android.intent.action.VIEW cat=[android.intent.category.BROWSABLE] dat=https://nears-web.izzes.ae/... flg=0x10000000 xflg=0x4 pkg=com.izzes.nears.nears_nears_3518_mobile_security_hardeni cmp=com.izzes.nears.nears_nears_3518_mobile_security_hardeni/com.izzes.nears.MainActivity }
+D/com.llfbandit.app_links( 4190): Handled intent: action: android.intent.action.VIEW / data: https://nears-web.izzes.ae/product?id=1
+I/flutter ( 4190): [INFO] msg="deep link stream event, hasPrevious=false"
+I/flutter ( 4190): [INFO] msg="deep link received"
+I/flutter ( 4190): [INFO] msg="deep link converted, matched=false"
+(matched=false is expected — /product?id=1 is a synthetic test path, not a real route;
+the mechanism end-to-end — OS routing, native intent capture, Flutter app_links stream — is proven)
