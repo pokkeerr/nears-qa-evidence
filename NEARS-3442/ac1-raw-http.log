@@ -1,0 +1,30 @@
+NEARS-3442 QA — AC1 raw HTTP evidence — Fri Sep 11 05:55:18 +04 2026
+Backend: worktree Admin on 127.0.0.1:8010, DB multi_food_db_qa3442 (isolated clone of multi_food_db)
+
+=== SITE 1: GET /api/v1/coupon/apply (customer, CouponController) — expired NEARS10 ===
+{"errors":[{"code":"coupon","message":"Coupon expire"}]}
+HTTP_STATUS:422
+
+=== SITE 2: PUT /api/v1/vendor/update-order-amount (Vendor API, VendorController) — order 172, expired NEARS10 ===
+{"errors":[{"code":"coupon","message":"Coupon expire"}]}
+HTTP_STATUS:422
+(NOTE: an earlier capture in this same session transiently showed 200 because order 172s
+coupon_code had been temporarily repointed to a VALID coupon for the separate happy-path
+regression check below; state was restored to coupon_code=NEARS10 and this call re-verified.)
+
+=== SITE 3: POST vendor-panel/order/update-order-amount (Store-Panel web, OrderController) — order 172, expired NEARS10 ===
+(driven via real Chromium/Playwright session — see ac2-ac3-browser-expired-coupon.png)
+Captured response: {"status": 422, "url": "http://127.0.0.1:8010/vendor-panel/order/update-order-amount"}
+Rendered body: {"errors":[{"code":"coupon","message":"Coupon expire"}]}
+
+=== SITE 4: POST /api/v1/customer/order/get-Tax (OrderTaxService::getCouponData) — expired NEARS10 ===
+{"errors":[{"code":"coupon","message":"Coupon expire"}]}
+HTTP_STATUS:403
+
+NOTE: site 4's wire status is 403 (not 422) — confirmed via git history this is PRE-EXISTING,
+unchanged design of OrderTaxService::getCouponData, which has ALWAYS unified every coupon-failure
+branch (was 407, now 422 as the match-arm key) into an outward status_code=403 wrapper, on this
+endpoint only. This endpoint never emitted a literal 407 on the wire, so it was never in the
+Chromium-proxy-auth blast radius; what mattered here was the internal match-arm staying correct
+(the advisor's highest-risk regression surface) — verified: the expired coupon is still REJECTED
+(not silently accepted), with the correct unchanged JSON body, and a paired [FAIL] log line.

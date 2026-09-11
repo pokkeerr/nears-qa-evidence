@@ -1,0 +1,46 @@
+NEARS-3442 QA — targeted regression sweep evidence
+
+1) Non-expired coupon error paths UNCHANGED (tested at CouponController::apply, site 1,
+   which shares CouponLogic::is_valide with all 4 call sites; diff-scope confirmed via
+   git show 9e3811cbb — only the 2 literal 407->422 lines in CouponLogic.php changed,
+   1-2 line diffs in each of the 4 callers, all on the 422 match-arm only):
+   - 406 usage-limit (coupon QA3442LIMIT, limit=1, 1 prior order for user 6):
+     {"errors":[{"code":"coupon","message":"Coupon usage limit over"}]}  HTTP 406
+   - 408 customer-restricted (coupon QA3442CUST, customer_id=[999999]):
+     {"errors":[{"code":"coupon","message":"You are not eligible for this coupon"}]}  HTTP 403
+     (408 CouponLogic status intentionally maps to wire 403 at this call site — pre-existing,
+     confirmed unchanged by this diff)
+   - 404 not-found (bogus code NOSUCHCODE9999):
+     {"errors":[{"code":"coupon","message":"Invalid coupon code."}]}  HTTP 404
+   All three UNCHANGED from pre-fix behaviour (only the 422/407 arm was touched anywhere
+   in this ticket's diff).
+
+2) Valid (non-expired) coupon still applies end-to-end — order amount recalculates
+   (tested at PUT /api/v1/vendor/update-order-amount, order 172 temporarily repointed to
+   coupon NEARS2924AMT [discount_type=amount, discount=5, expire_date=2027-09-07], then
+   restored to NEARS10 afterwards):
+     Request: order_amount=50
+     Response: {"message":"Order updated successfully"}  HTTP 200
+     DB after: order_amount=45.00, coupon_discount_amount=5.00, store_discount_amount=0.00
+     (50 - 0 store discount - 5 coupon discount = 45 — correct)
+   PASS — happy path is invisible to this change, as intended.
+
+3) OrderTaxService (get-Tax) still correctly REJECTS an expired coupon rather than
+   silently accepting it (the advisor's highest-risk regression surface — a missed
+   422 match-arm would fall through to `default => null` and let an expired coupon
+   pass through as valid):
+     Response: {"errors":[{"code":"coupon","message":"Coupon expire"}]}  HTTP 403
+     Paired backend log line (Admin/storage/logs/laravel.log):
+       [2026-09-11 05:42:54] production.ERROR: [FAIL] get_calculated_tax
+       {"trace_id":"219d12426a190c74f39e58e42749968f",
+        "correlation_id":"f041d512-e72a-46d0-b269-6091a2f7d7b2",
+        "endpoint":"/api/v1/customer/order/get-Tax","http_status":403,
+        "code":"coupon","request_id":"f041d512-e72a-46d0-b269-6091a2f7d7b2"}
+   PASS — no silent-accept regression; match-arm correctly caught the new 422 sentinel.
+
+4) Adjacent surface check: Vendor Store Panel order-details page (order 172) reloaded
+   cleanly after the failed submission — title "Order Details", no JS crash, no console
+   errors besides two pre-existing/unrelated `net::ERR_CONNECTION_REFUSED` on a
+   `localhost` product-image asset (documented worktree gap: Admin/.env APP_URL=localhost
+   + no seeded storage images in a fresh worktree — CLAUDE.md "A FRESH WORKTREE..." note;
+   unrelated to this ticket, not a new regression).
