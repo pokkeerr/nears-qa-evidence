@@ -1,33 +1,21 @@
 # QA Evidence — NEARS-3450
 
-**QA PASS -- zone draw tool (DrawingManager replacement)**
+**Delta re-QA PASS: lastpolygon null-guard (35a0df5ed) — no throw pre-draw Reset/Submit on create+edit, happy-path clear intact**
 
-**10 screenshot(s).** Click any thumbnail for full resolution.
+**6 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="ac1-after-submit.png"><img src="ac1-after-submit.png" width="240"></a><br><sub>ac1 after submit</sub></td>
-<td align="center" width="33%"><a href="ac1-clear-reset-controls.png"><img src="ac1-clear-reset-controls.png" width="240"></a><br><sub>ac1 clear reset controls</sub></td>
-<td align="center" width="33%"><a href="ac1-drag-vertex.png"><img src="ac1-drag-vertex.png" width="240"></a><br><sub>ac1 drag vertex</sub></td>
+<td align="center" width="33%"><a href="step1-create-reset-before-draw.png"><img src="step1-create-reset-before-draw.png" width="240"></a><br><sub>step1 create reset before draw</sub></td>
+<td align="center" width="33%"><a href="step2-create-submit-before-draw.png"><img src="step2-create-submit-before-draw.png" width="240"></a><br><sub>step2 create submit before draw</sub></td>
+<td align="center" width="33%"><a href="step3-edit-reset-before-draw.png"><img src="step3-edit-reset-before-draw.png" width="240"></a><br><sub>step3 edit reset before draw</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="ac1-draw-preview.png"><img src="ac1-draw-preview.png" width="240"></a><br><sub>ac1 draw preview</sub></td>
-<td align="center" width="33%"><a href="ac1-zero-click-abort.png"><img src="ac1-zero-click-abort.png" width="240"></a><br><sub>ac1 zero click abort</sub></td>
-<td align="center" width="33%"><a href="ac2-edit-draw-replace-zone3.png"><img src="ac2-edit-draw-replace-zone3.png" width="240"></a><br><sub>ac2 edit draw replace zone3</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="ac2-edit-load-zone2.png"><img src="ac2-edit-load-zone2.png" width="240"></a><br><sub>ac2 edit load zone2</sub></td>
-<td align="center" width="33%"><a href="debug-after-submit.png"><img src="debug-after-submit.png" width="240"></a><br><sub>debug after submit</sub></td>
-<td align="center" width="33%"><a href="debug-mid-draw.png"><img src="debug-mid-draw.png" width="240"></a><br><sub>debug mid draw</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="regression-zone-list.png"><img src="regression-zone-list.png" width="240"></a><br><sub>regression zone list</sub></td>
+<td align="center" width="33%"><a href="step4a-after-draw.png"><img src="step4a-after-draw.png" width="240"></a><br><sub>step4a after draw</sub></td>
+<td align="center" width="33%"><a href="step4b-after-reset.png"><img src="step4b-after-reset.png" width="240"></a><br><sub>step4b after reset</sub></td>
+<td align="center" width="33%"><a href="step5-zone-list.png"><img src="step5-zone-list.png" width="240"></a><br><sub>step5 zone list</sub></td>
 </tr>
 </table>
-
-### Other artifacts
-- [`bug-marker-dblclick-headless-flake.log`](bug-marker-dblclick-headless-flake.log)
-- [`roundtrip-gate1-results.json`](roundtrip-gate1-results.json)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3450/` · public-repo scrub policy (no live secrets; verified clean).*
