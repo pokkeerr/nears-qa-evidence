@@ -1,0 +1,71 @@
+NEARS-3469 delta pass -- Priority 1, the 13-site exhaustive sweep fix (never QA'd
+before this pass). All checks live against isolated DB copy multi_food_db_qa3469b
++ php artisan serve --port=8010, admin session admin@admin.com + vendor session
+demo.store@gmail.com (store_id=1 "Nears Mart"), unless noted.
+
+=== order-invoice.blade.php (customer-facing, order #91117: 2 OrderDetail rows with
+    real variation data -- Size=Regular ; Size=Large+Toppings=Tomato) ===
+Rendered directly via `view('order-invoice', ...)->render()` in tinker (mPDF's own
+::Output() hit the sandbox's outbound-network timeout on an unrelated remote-font
+fetch and killed the php artisan serve worker -- a pre-existing mPDF/CurlHttpClient
+30s timeout unrelated to this diff, NOT a regression; rendering the underlying blade
+directly sidesteps it and is the actual code under test here since gen_mpdf() takes
+the SAME rendered HTML string).
+  RENDERED_OK, 26717 bytes, no PHP exception.
+  Variation block: "Size / Regular" and "Size / Large" + "Toppings / Tomato" present.
+  Delivery-address block: "Customer Nears" / "+971565811199" / "R989+PPW, Dhaka 1216,
+  Bangladesh" -- matches the order's real delivery_address JSON exactly.
+
+=== new-email-format-3.blade.php / new-email-format-9.blade.php (order-confirmation
+    email templates, same order #91117) ===
+Rendered directly via tinker (same PlaceOrder mailable inputs the real job builds).
+  format3: RENDERED_OK, 27367 bytes. format9: RENDERED_OK, 21713 bytes.
+  Both show "Size" / "Regular" / "Large" / "Toppings" variation lines and the
+  "Customer Nears" / phone / address delivery block, no errors.
+
+=== _conversations.blade.php (admin conversation sidebar) ===
+No message row in the dev DB was tied to a guest order, so an EXISTING message
+(id 74, conversation 47, order_id 158 -- order 158 has a real delivery_address; the
+blade here has no is_guest branch, it always reads delivery_address) was used as-is
+(no relinking needed for this one).
+  GET /admin/message/view/47/3 -> 200 JSON {"view": "<div class=\"card h-100\">..."}
+  Rendered fragment: "Delivery Address" header, "+971565811199", "Abu Dhabi - United
+  Arab Emirates" -- matches order 158's real delivery_address exactly. No error.
+
+=== Expense-report guest branch, all 3 surfaces (admin/vendor/file-export) ===
+No expenses row in the dev DB was tied to a guest order. On the isolated DB copy
+only, relinked 2 existing expenses rows to guest order #91191 (has a real
+delivery_address, contact_person_name="QA Guest"):
+  expenses.id=34 (created_by=admin) -> order_id=91191, store_id=1
+  expenses.id=35 (created_by=vendor) -> order_id=91191, store_id=1
+
+  admin:  GET /admin/report/expense-report?search=91191
+          -> 200, table row for order 91191 shows "<strong>QA Guest</strong>" (from
+             the guest-branch $customer_details['contact_person_name']). No error.
+  admin export: GET /admin/report/expense-export?search=91191&export_type=excel
+          -> real .xlsx download; unzip xl/sharedStrings.xml contains "91191" and
+             "QA Guest". No error, confirms file-exports/expense-report.blade.php.
+  vendor: (logged in as demo.store@gmail.com, store 1)
+          GET /vendor-panel/report/expense-report?search=91191
+          -> 200, "91191" and "QA Guest" both present in the rendered table. No error.
+
+=== ItemCampaign.attributes write + read round trip (campaign/item/edit.blade.php) ===
+No item_campaigns row in the dev DB had non-null attributes, and the `attributes`
+lookup table itself is empty in this dev DB (0 rows) -- so the edit form's
+attribute-checkbox UI has literally nothing to click through regardless of this fix;
+flagged as a Data DoR gap for the UI-click path specifically. The underlying
+model-level write+read cast mechanics (the actual code this ticket touched in
+CampaignController::store/update, both of which now do
+`$campaign->attributes = $request->has('attribute_id') ? $request->attribute_id : []`
+instead of `json_encode(...)`) were verified as a live round trip on ItemCampaign
+id=13 (isolated DB copy):
+  BEFORE: attributes = null
+  $campaign->attributes = [1,2,3]; $campaign->save();
+  AFTER (fresh model fetch): type=array, value=[1,2,3]
+  raw DB column value: [1,2,3]  <- single-encoded JSON, not double-encoded/quoted.
+Then re-rendered the real edit blade (admin-views.campaign.item.edit) for campaign 13
+with the SAME controller context CampaignController::edit builds
+(sub_category/category/taxVats/productWiseTax/taxVatIds):
+  GET /admin/campaign/item/edit/13 -> 200, 207038 bytes, no error markers.
+  Confirms the `@php($campaignAttributeIds = is_array(...) ? ... : json_decode(...))`
+  guard reads the now-array attributes column without a TypeError.

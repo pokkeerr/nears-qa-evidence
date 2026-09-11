@@ -1,0 +1,50 @@
+NEARS-3469 delta pass -- Priority 2, re-verify Order.delivery_address accessor fix
+(the old accessor pre-empted the cast on every read; the first QA pass's evidence
+for these 5 views was against that dead-cast behavior, not the real cast).
+
+Order #91117 (has real delivery_address JSON + 2 OrderDetail.variation rows),
+isolated DB copy multi_food_db_qa3469b, admin session admin@admin.com, all 5 views
+fetched fresh in one continuous authenticated browser session:
+
+  GET /admin/order/details/91117              -> 200, 240914 bytes, no error markers
+  GET /admin/dispatch/order/details/91117     -> 200, 231499 bytes, no error markers
+  GET /admin/transactions/order/details/91117 -> 200, 218272 bytes, no error markers
+  GET /admin/order/generate-invoice/91117     -> 200, 164318 bytes, no error markers
+  GET /admin/order/print-invoice/91117        -> 200,  16650 bytes, no error markers
+
+All 5 render "Customer Nears" / "R989+PPW, ..." (the real delivery_address fields)
+AND "Regular" / "Large" / "Toppings" (the real OrderDetail.variation data) -- grep
+confirmed presence of all 5 markers in all 5 pages. Zero occurrences of
+Whoops/TypeError/Fatal error/Uncaught across all 5.
+
+(Two earlier [FAIL] lines in this session's laravel.log at 19:00:28 -- "Attempt to
+read property store on null" on the invoice partial -- were from MY OWN first
+attempt at these two invoice routes using a base64-encoded id copied from the wrong
+route convention [HomeController::order_invoice base64-decodes; OrderController::
+generate_invoice/print_invoice take a raw numeric id]. Confirmed self-induced: the
+retry above with the correct raw numeric id 91117 is clean, and no further errors
+of any kind appear in the log for the remainder of this session.)
+
+Confirms the accessor fix (getDeliveryAddressAttribute now always decodes to array/
+null instead of returning the raw pre-mask string when unmasked) did not regress
+any of the 5 flagged views -- all render correctly against the NEW, genuinely-array
+accessor output.
+
+=== Demo/showcase masking check (found: DemoMaskable trait, shouldMask() ==
+    getEnvMode() === 'demo') ===
+Worktree .env has APP_MODE=dev (masking off by default here, matching the unmasked
+output seen in every check above). Forced demo mode for one read-only tinker check
+(SELECT only, against the shared dev DB, no writes -- safe under the DB read-only
+rule):
+  Config::set('envAppMode_conf', 'demo');
+  $order = Order::find(91117); $order->delivery_address
+  -> {"contact_person_name":"Customer Nears",
+      "contact_person_number":"+**********",
+      "contact_person_email":"c*******@nears.com",
+      "address_type":"others","address":"R989+PPW, Dhaka 1216, Bangladesh", ...}
+
+Phone and email are correctly masked (name/address untouched, as designed); the
+maskPhone/maskEmail calls now run against the guaranteed-array $address the new
+accessor always decodes first (see the code comment in Order.php), rather than
+racing a raw json_decode'd local from a possibly-still-encoded value under the old
+accessor. Masking is not leaked and not broken by this fix.

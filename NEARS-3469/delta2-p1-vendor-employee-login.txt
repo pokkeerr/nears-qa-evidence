@@ -1,0 +1,35 @@
+NEARS-3469 delta pass (post 3 fix-cycles + merge-sentinel collision) -- Priority 1
+Vendor-employee login, never QA'd before this pass.
+
+Setup: isolated DB copy (multi_food_db_qa3469b, mysqldump clone of multi_food_db)
++ php artisan serve --port=8010, so the write below never touched the shared dev DB.
+
+=== Falsifiable proof: pre-fix code path WOULD have 500'd ===
+tinker, live VendorEmployee row with a real EmployeeRole (modules cast to array):
+  $old = json_decode($emp->role->modules);
+  -> TypeError: json_decode(): Argument #1 ($json) must be of type string, array given
+
+This IS the live-auth-path bug VendorLoginController.php had before the fix: the old
+line `json_decode($vendor->role->modules)` called json_decode on a value the
+EmployeeRole cast had *already* decoded to a PHP array -- guaranteed TypeError (500)
+on every employee login, for any store_id > 0 employee (only escaped detection because
+the sole pre-existing seeded vendor_employees row is store_id=0/storeless, which exits
+via storeSubscriptionCheck's null-store guard *before* reaching this line).
+
+=== Live proof: fixed code path returns 200 with the real modules array ===
+Created (via Eloquent model save, isolated DB copy only) a real-store EmployeeRole
+(store_id=1, modules=['order','item','pos']) + VendorEmployee bound to it.
+
+POST /api/v1/auth/vendor/login  {"email":"qa3469.employee@nears.test",
+  "password":"Qa3469Pass!1","vendor_type":"employee"}
+-> HTTP 200
+-> {"token":"...","zone_wise_topic":"zone_1_store","store_id":1,
+    "role":["order","item","pos"],"module_type":"grocery"}
+
+role == the EmployeeRole.modules array exactly, no decode error, no 500. Confirms
+`$role = $vendor->role ? $vendor->role->modules : [];` (the fix) is correct.
+
+Data DoR gap noted: no seeded vendor_employees row with a real store existed anywhere
+in the dev DB prior to this test (the only pre-existing row is intentionally
+storeless, NEARS-3466 QA fixture) -- the real-store fixture above was created fresh
+for this test on the isolated copy only, per the DB read-only hard rule.

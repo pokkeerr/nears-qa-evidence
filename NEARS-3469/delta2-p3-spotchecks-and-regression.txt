@@ -1,0 +1,69 @@
+NEARS-3469 delta pass -- Priority 3 quick spot-checks (previously PASS, unaffected
+by the 3 fix cycles) + bounded regression sweep. Isolated DB copy
+multi_food_db_qa3469b unless noted, php artisan serve --port=8010.
+
+=== AC1 core: POS quick-view spot check ===
+GET /admin/pos/quick-view?product_id=84 (item with real variations data)
+-> 200, {"success":1,"view":"<div class=\"modal-header p-0\">..."}, 4439-byte
+   fragment, no Whoops/TypeError/Fatal error markers. Matches the dedicated
+   Nears3469R1QuickViewBladeCastGuardTest (still PASS, see automated section).
+
+=== AC2: AdminRole.modules round trip spot check ===
+tinker: $role = AdminRole::first(); $role->modules = ['order','store','zone'];
+$role->save(); re-fetch -> type=array, value=["order","store","zone"]. Clean
+round trip, matches the array cast.
+
+=== AC4: Store slug single-write spot check ===
+tinker with DB::enableQueryLog(): created a new Store row (name "QA3469 Spot Check
+Store 2"), no explicit slug set. Query log for the `stores` table shows exactly 2
+queries: (1) a SELECT to check slug uniqueness, (2) ONE INSERT that already
+includes the generated `slug` column value ("qa3469-spot-check-store-2") -- no
+separate UPDATE write for the slug. Confirms the single-write fix. Row deleted
+after the check (isolated DB copy).
+
+=== AC5/AC6: business-settings staleness, live via NEARS-3473's mechanism ===
+tinker, using the app's real write/read functions (Helpers::businessUpdateOrInsert
++ Helpers::get_business_settings, CACHE_DRIVER=database matching the worktree
+.env): write v1 -> read returns "v1" -> write v2 (same process) -> read returns
+"v2". No staleness. Matches Nears3469BusinessSettingsMemoTest (still PASS).
+(First attempt using a raw BusinessSetting::updateOrInsert() incorrectly showed
+staleness -- that bypasses Eloquent model events entirely and was never the
+mechanism under test; corrected to use Helpers::businessUpdateOrInsert() per the
+dedicated test's own pattern, which is what BusinessSettingsController::update()
+actually calls.)
+
+=== Automated backstop (delta pass) ===
+php artisan test --filter Nears3469  (proper per-worktree test DB
+multi_food_db_test_nears_nears_3469_model_cast_hygiene)
+  PASS Nears3469BusinessSettingsMemoTest (1 test, 1 assertion)
+  PASS Nears3469R1QuickViewBladeCastGuardTest (2 tests, 2 assertions)
+  PASS Nears3469StoreSlugSingleWriteTest (1 test)
+  Tests: 4 passed (12 assertions), 0.71s
+
+php artisan test --filter "Nears3466VendorLoginMiddlewareStoreGuardTest|
+  AdminModuleGateTest|BulkImportZoneScopeTest|Nears3239VendorViewTabScopeTest|
+  Round913ModuleMiddlewareTest|OrderPaymentFailedNullAddressTest|
+  ItemModuleFollowsStoreTest"
+  Tests: 78 passed (236 assertions), 5.10s -- every test file this diff's stat
+  touched (beyond the 3 new Nears3469-specific files) is still green.
+
+=== Bounded regression sweep (~5 adjacent admin surfaces, per QA Test Scope cap) ===
+  GET /admin/order/list/all          -> 200, no error markers
+  GET /admin/item/list                -> 200, no error markers
+  GET /admin/users/customer/list       -> 200, no error markers
+  GET /admin/store/list                -> 200, no error markers
+  GET /admin/pos                       -> 200, no error markers
+regression: clean.
+
+=== Backend log check (post-session) ===
+grep ERROR|Fatal in storage/logs/laravel.log for this session's window: exactly 2
+lines, both self-induced (see delta2-p2-accessor-fix-reverify.txt -- my own first
+attempt at generate/print-invoice used the wrong id format). Zero other errors of
+any kind for the entire delta-pass session.
+
+=== Cleanup ===
+Isolated DB copy multi_food_db_qa3469b dropped; php artisan serve --port=8010
+process killed. Shared dev DB multi_food_db was touched by exactly one read-only
+SELECT (the demo-mode masking check in delta2-p2, Config-forced in-process only,
+no writes). No lock/device teardown needed -- this ticket has no mobile device
+surface (Backend + Dashboard components only).
