@@ -1,0 +1,110 @@
+NEARS-3478 QA evidence — device-free, command+output verification only (no app/screen surface).
+Worktree: /Users/Apple/Projects/nears-NEARS-3478-docs-catalog-hygiene
+Branch: fix/NEARS-3478-docs-catalog-hygiene
+HEAD: fc9004897 (on top of 16c6fb4c8, merge-base d490caf50 with feat/userapp-reskin2)
+Run date: 2026-09-11
+
+=== AC1 (NEARS-3320): phantom delivery_module/ride_module paths removed ===
+$ grep -c 'delivery_module/\|ride_module/' nears-reference.md
+0
+
+$ grep -n 'OrderController' nears-reference.md  (relevant row)
+593:| `OrderController`     | `lib/features/order/controllers/order_controller.dart` | Active order list, accept/reject, status update |
+
+$ find DeliveryApp/lib/features/order/controllers/order_controller.dart
+DeliveryApp/lib/features/order/controllers/order_controller.dart   (hit — file exists)
+
+$ grep -A15 'DeliveryApp — Top Controllers' nears-reference.md
+RideController / TripController rows: ABSENT (confirmed gone).
+Remaining rows (AuthController/ProfileController/MyAccountController/ChatController/SplashController): unchanged.
+
+$ git diff feat/userapp-reskin2...HEAD -- nears-reference.md
+Hunk scoped to exactly 3 rows: OrderController path corrected, RideController + TripController rows deleted.
+No other row touched. CONFIRMED.
+
+=== AC2 (NEARS-3322, narrowed): 14 docs-root files catalogued in place ===
+$ git ls-files docs | grep -E '^docs/[^/]+$'
+docs/admin-routes.json, docs/catalog.json, docs/entities.json, docs/env-vars-locations.txt,
+docs/index.md, docs/mobile-api-usage-annotated.json, docs/mobile-api-usage-filtered.json,
+docs/mobile-api-usage.json, docs/mobile-to-admin-map-resolved.json,
+docs/mobile-to-admin-map-simname.json, docs/mobile-to-admin-map.json,
+docs/mobile-to-admin-summary.csv, docs/openapi-admin-full.yaml, docs/openapi-admin.yaml,
+docs/status-enums.json, docs/userapp-ux-design-prompt.txt
+-> all 14 target files present at docs/ root, unmoved. CONFIRMED.
+
+$ python3 -c "... check catalog.json domain/surface/summary for all 14 ..."
+All 14 -> OK (registered, complete entries).
+
+$ bash scripts/docs-index.sh --check
+index.md up to date.
+EXIT: 0
+
+$ bash scripts/docs-catalog-check.sh
+15 pre-existing orphans (baseline) — OK
+(none) DEAD
+(none) INCOMPLETE
+OK — catalog consistent.
+EXIT: 0
+None of the 14 target paths appear under any ORPHAN heading. CONFIRMED.
+
+$ python3 -c "... count catalog entries containing 'api-shapes' ..."
+6  (unchanged from base branch — regression clean)
+
+=== AC3 (NEARS-3334, mechanism changed): docs-catalog-check.sh wired into CI, BLOCKING ===
+$ grep -n 'continue-on-error\|| true' .github/workflows/repo-guards.yml
+(no matches, exit 1) — CONFIRMED zero non-blocking escape hatches.
+
+docs-catalog job present in .github/workflows/repo-guards.yml, runs `bash scripts/docs-catalog-check.sh`
+as its one step, under the SAME top-level `on:` block (pull_request + push, same paths: filters)
+as the docs-index job — not a separate/narrower trigger. CONFIRMED.
+
+$ python3 -c "import yaml; yaml.safe_load(open('.github/workflows/repo-guards.yml')); print('PARSE_OK')"
+PARSE_OK
+
+$ grep -n "solutions" scripts/docs-catalog-check.sh
+Present in disk_docs() exclusion regex: grep -vE '^docs/(qa-evidence|zip-archives|patches|solutions)/'
+docs/solutions/** excluded from scan entirely (not grandfathered). CONFIRMED.
+
+$ wc -l scripts/docs-catalog-orphan-baseline.txt
+15  CONFIRMED.
+
+Self-test (reproduced live, both directions):
+$ echo test > docs/design/NEARS-3478-qa-selftest.md && bash scripts/docs-catalog-check.sh
+== NEW ORPHAN == docs/design/NEARS-3478-qa-selftest.md
+FAIL — see above.
+EXIT: 1   CONFIRMED (seeded file correctly flagged as NEW ORPHAN).
+
+$ rm docs/design/NEARS-3478-qa-selftest.md && bash scripts/docs-catalog-check.sh
+OK — catalog consistent.
+EXIT: 0   CONFIRMED clean after removal. Worktree left clean (git status --short empty).
+
+=== AC4 (NEARS-3249): wrong script path fixed ===
+$ sed -n '16p' scripts/generate_openapi_from_map.py
+INPUT = ROOT / 'docs' / 'backend' / 'api-map.md'
+CONFIRMED.
+
+$ python3 scripts/generate_openapi_from_map.py
+Wrote .../docs/openapi-admin-full.yaml
+EXIT: 0, no FileNotFoundError. CONFIRMED.
+
+=== Regression sweep (bounded, command-based — no device surface) ===
+$ git diff feat/userapp-reskin2...HEAD --stat
+9 files changed: .github/workflows/repo-guards.yml, docs/catalog.json, docs/index.md,
+docs/reference/docs-taxonomy.md, docs/solutions/NEARS-3478-docs-catalog-tooling-hygiene.md,
+nears-reference.md, scripts/docs-catalog-check.sh, scripts/docs-catalog-orphan-baseline.txt,
+scripts/generate_openapi_from_map.py
+-> EXACTLY the expected 9 files, nothing else. CONFIRMED (matches expected scope).
+
+$ git log --oneline d490caf50..HEAD
+fc9004897 wip(NEARS-3478): checkpoint after 7-fix1
+16c6fb4c8 wip(NEARS-3478): checkpoint after 6
+-> confirms both commits are this branch's own work on top of the correct merge-base;
+   the wider two-dot diff base drift noted in the spawn prompt does not apply here since
+   --stat with three-dot diff was used throughout.
+
+=== Automated backstop ===
+No dedicated flutter/phpunit suite applies to a docs/tooling-only change. The scripts under
+test (docs-index.sh, docs-catalog-check.sh, generate_openapi_from_map.py) ARE the backstop and
+were exercised live above, including the self-test both-directions reproduction for AC3.
+
+VERDICT: PASS — all 4 ACs demonstrated live via command+output, regression sweep clean.
