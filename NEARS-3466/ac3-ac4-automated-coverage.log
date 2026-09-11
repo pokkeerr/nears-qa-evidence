@@ -1,0 +1,20 @@
+NEARS-3466 AC3/AC4 — live token-mint blocked by AC1's own 401 (cannot obtain a valid
+token for a store-less vendor via login, by design of the fix). Per QA instruction, no
+direct DB write was made to the shared dev DB. Automated coverage instead, run live this
+pass against the worktree's own private test DB (multi_food_db_test_nears_nears_3466_vendor_store_guard,
+DatabaseTransactions-isolated, rolled back per test):
+
+$ vendor/bin/phpunit --configuration phpunit.xml --filter Nears3466VendorLoginMiddlewareStoreGuardTest
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_3466_vendor_store_guard
+.......                                                             7 / 7 (100%)
+OK, but there were issues!
+Tests: 7, Assertions: 29, PHPUnit Deprecations: 1.
+
+Covering tests:
+- test_storeless_owner_token_on_vendor_api_route_does_not_500 (AC3) -> PASS, asserts 401
+- test_storeless_parent_employee_token_on_vendor_api_route_does_not_500 (AC4) -> PASS, asserts 401
+- test_storeless_owner_middleware_guard_logs_fail_with_request_id -> PASS, asserts [FAIL] vendor.store_missing + request_id context
+
+Broader regression check (surrounding vendor-guard security suite, same private test DB):
+$ vendor/bin/phpunit --configuration phpunit.xml --testsuite Feature --filter "VendorTokenIsValid|VendorProfileStoreScopeTest|VendorItemGlobalScopeTest|Nears3441VendorCouponModuleIdTest|VendorGuardSeedingTest"
+15 / 15 (100%) OK

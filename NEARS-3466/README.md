@@ -1,14 +1,14 @@
 # QA Evidence — NEARS-3466
 
-**QA PARTIAL PASS — AC5 live-confirmed has-store vendor login unchanged; AC1/2/3/4/6 store-less paths UNVERIFIABLE pending Tier C fixture seed, backed by 7/7 green PHPUnit**
+**PASS delta re-QA (fix-cycle 1) — AC1/AC2/AC6 live-confirmed 401 + [FAIL] log lines; AC3/AC4 automated-covered (login blocked by AC1's own fix, no shared-DB write per instruction); AC5 + partial reused from prior pass**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
 ### Other artifacts
-- [`ac3-ac4-middleware-other-branches-unchanged.log`](ac3-ac4-middleware-other-branches-unchanged.log)
-- [`ac5-login-has-store-vendor.log`](ac5-login-has-store-vendor.log)
-- [`ac6-log-pipeline-and-automated-backstop.log`](ac6-log-pipeline-and-automated-backstop.log)
-- [`regression-sweep.log`](regression-sweep.log)
+- [`ac1-login-401.log`](ac1-login-401.log)
+- [`ac2-employee-login-401.log`](ac2-employee-login-401.log)
+- [`ac3-ac4-automated-coverage.log`](ac3-ac4-automated-coverage.log)
+- [`ac6-fail-log-lines.log`](ac6-fail-log-lines.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3466/` · public-repo scrub policy (no live secrets; verified clean).*
