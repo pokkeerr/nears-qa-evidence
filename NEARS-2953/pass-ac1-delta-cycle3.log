@@ -1,0 +1,29 @@
+NEARS-2953 QA — delta re-QA, cycle 3, fix for task-bug NEARS-3500 (AC1 item guard was dead code)
+Build: f1acfd22063934185a1ecd7469c71e9f8a8d1c24 (worktree rebased onto current feat/userapp-reskin2 tip)
+Fix: Admin/app/Http/Controllers/Api/V1/Vendor/POSController.php
+  Item::find($c['item_id']) -> Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->find($c['item_id'])
+Backend: php artisan serve --port=8954 on worktree Admin/, real dev DB multi_food_db (same as prior pass).
+Vendor: john.smith@demo.com (store 4). Cross-store control: item 22 (store 5, maria.garcia@demo.com).
+
+AC1 re-verify (cross-store item leak):
+Request: POST /api/v1/vendor/pos/place-order, item_id=22 (store 5) on store-4 vendor
+BEFORE (cycle 0): 401 {"errors":[{"code":"campaign","message":"not found!"}]}
+NOW (cycle 3):    403 {"errors":[{"code":"different_stores","message":"Please select items from the same store"}]}
+Matches AC1 exactly. orders table unaffected (still exactly 2 rows: 91357, 91358) — rejection did not persist.
+
+AC7 regression re-confirm (same-store happy path, ensures withoutGlobalScope bypass didn't break normal lookup):
+Request: 2-line cart (item16 qty2+addon1 qty1, item18 qty3 no addons), paid_amount=51.92 (same computation as cycle 0)
+Response: 200 {"message":"Order placed successfully","order_id":91359,"total_ammount":51.92}
+GET /api/v1/vendor/pos/orders -> total_size:3, orders[0]: {id:91359, order_amount:51.92, order_type:"pos"}
+Confirms legitimate same-store item lookup still works correctly post-fix.
+
+BE log check (grep -F "pos/place-order" storage/logs/laravel.log): 0 matches -- clean for both requests.
+
+Automated backstop: vendor/bin/phpunit --filter
+"Nears2953PosCartGuardsTest|PosPlaceOrderReconcileTest|PosOrderListPaginationTest"
+-> OK, 17 tests, 76 assertions, 1 non-failing PHPUnit deprecation (up from 15/71 at cycle 0 —
+engineer added coverage for the fixed guard).
+
+AC2-6, AC8 not re-tested this cycle (code paths untouched by the NEARS-3500 fix) -- prior-PASS
+evidence from cycle 0 (docs/qa-evidence/NEARS-2953/pass-ac2-8-transcripts.log) reused per the
+FIX-CYCLE PACKET's delta scope.

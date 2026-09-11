@@ -1,11 +1,12 @@
 # QA Evidence — NEARS-2953
 
-**FAIL — AC1 item store-scope guard is dead code on real HTTP path (401 campaign, not 403 different_stores); AC2-AC8 confirmed live**
+**PASS (delta cycle 3) — AC1 now returns 403 different_stores as specified; AC7 regression clean; backstop 17/76 green**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
 ### Other artifacts
 - [`bug-ac1-item-guard-dead-code.log`](bug-ac1-item-guard-dead-code.log)
+- [`pass-ac1-delta-cycle3.log`](pass-ac1-delta-cycle3.log)
 - [`pass-ac2-8-transcripts.log`](pass-ac2-8-transcripts.log)
 
 ---
