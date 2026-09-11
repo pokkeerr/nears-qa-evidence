@@ -1,0 +1,29 @@
+NEARS-3482 QA — informational finding (pre-existing, NOT caused by this diff)
+
+Route: GET admin/transactions/provide-deliveryman-earnings/{id}/edit
+       (admin.transactions.provide-deliveryman-earnings.edit)
+Registered via Route::resource('provide-deliveryman-earnings', 'ProvideDMEarningController')
+in Admin/routes/admin.php:797 — UNCHANGED by this diff.
+
+Live check (2026-09-11, this QA session):
+  GET http://127.0.0.1:8001/admin/transactions/provide-deliveryman-earnings/1/edit
+  -> HTTP 200, response body: <html><head></head><body></body></html> (39 bytes, empty)
+
+Cause: ProvideDMEarningController::edit($id) is an empty stub (returns null) —
+confirmed pre-existing in this ticket's own solution doc ("ProvideDMEarningController::edit()/
+update() are empty stubs"). This stub predates NEARS-3482 and was NOT touched by it; the ticket
+only deleted deliveryman-earning-provide/{edit,view}.blade.php, which edit() never rendered in
+the first place (it returns null before reaching any view() call). Deleting the unreferenced
+blade files therefore introduced NO new breakage — the route already resolved to a blank 200,
+unchanged before and after this diff.
+
+show() (admin.transactions.provide-deliveryman-earnings.show) still renders
+admin-views.account.view (a different, still-existing view) — confirmed working, 200, title
+"Account transaction information".
+
+index() (admin.transactions.provide-deliveryman-earnings.index) confirmed working, 200, title
+"Deliverymen earning provide", renders the "Ali Hassan" seeded delivery-man row.
+
+Verdict: route still routed (as AC1 anticipated as a possible outcome) but pre-existing/out of
+scope for this ticket — not a regression this diff introduced. Logged as regression_bugs
+(non-blocking) per the AC's own instruction to flag it either way.

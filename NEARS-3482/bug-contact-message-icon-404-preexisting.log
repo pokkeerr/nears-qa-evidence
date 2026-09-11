@@ -1,0 +1,14 @@
+NEARS-3482 QA — informational finding (pre-existing, unrelated to this diff)
+
+Page: admin/users/contact/contact-list (Contacts list — neighbor of the deleted
+contacts/partials/_table.blade.php)
+
+Live console/network check (2026-09-11): page loads 200, title "Contact Messages", renders
+fine. One failed sub-resource:
+  404 http://127.0.0.1:8001/public/assets/back-end/img/message.png
+
+Confirmed pre-existing: the asset genuinely does not exist anywhere in the repo
+(`find public/assets -iname "message*.png"` = no results), and contacts/list.blade.php (the live
+page template) was NOT touched by this diff — only contacts/partials/_table.blade.php was
+deleted, and list.blade.php has zero @include references to it or to the missing asset. Cosmetic
+broken-image icon, unrelated to the blade deletions in this ticket.

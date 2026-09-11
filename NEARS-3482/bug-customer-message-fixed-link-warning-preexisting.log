@@ -1,0 +1,32 @@
+NEARS-3482 QA — regression-guard evidence for the FALSE-POSITIVE preserved view
+email-templates/customer-message.blade.php (ContactController::send_mail())
+
+Could not exercise via a live browser POST: the `contacts` table has 0 rows in this dev DB
+(read-only DB rule — QA cannot seed a row to drive ContactController::send_mail($id), which does
+Contact::findOrFail($id)). Data DoR gap, not a code defect.
+
+Substituted with a direct live render of the exact same Blade view through the real Laravel view
+compiler (php artisan tinker), passing the same $data shape the controller passes
+(['body' => ..., 'name' => ...]):
+
+  $html = view('email-templates.customer-message', $data)->render();
+  => RENDER_OK length=3809
+  => NAME_PRESENT (interpolated contact name found in output)
+  => BODY_PRESENT (interpolated message body found in output)
+
+One PHP warning surfaced during render:
+  "Trying to access array offset on null in .../4ffb3f7b48c83e8a08d71a1b8d064d58.php on line 125"
+
+Traced to source line customer-message.blade.php:125 `@if ($company_links['web_app_url_status'])`
+where $company_links = json_decode($fixed_link->value, true) and $fixed_link is
+App\Models\DataSetting::where(['key'=>'fixed_link','type'=>'admin_landing_page'])->first() — this
+row does not exist in this dev DB. Pre-existing / seed-data gap, NOT introduced by this diff:
+customer-message.blade.php is untouched (zero lines changed, confirmed via `git diff --stat` —
+the file does not appear in this ticket's diff at all, it was only spared from deletion). The
+warning is non-fatal (PHP 8 array-offset-on-null is a warning, not a TypeError; the @if evaluates
+falsy and the block is skipped) and does not affect the template's actual rendered output shown
+above.
+
+Verdict: the FALSE POSITIVE file renders successfully end-to-end through the real Blade/translate
+pipeline — confirms AC1's "1 false positive preserved" requirement. The missing DataSetting row
+is a pre-existing environment/seed gap, unrelated to this ticket.
