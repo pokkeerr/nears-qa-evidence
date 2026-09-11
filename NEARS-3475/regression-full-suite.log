@@ -1,0 +1,72 @@
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_3475_backend_hygiene_bundle
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.5.6
+Configuration: /Users/Apple/Projects/nears-NEARS-3475-backend-hygiene-bundle/Admin/phpunit.xml
+
+....DD.......................................................   61 / 2174 (  2%)
+.............................................................  122 / 2174 (  5%)
+...............................................[FAIL] OpenTelemetry export failed; Laravel logger unavailable: Monolog handler is dead (bad channel / full disk)
+[FAIL] OpenTelemetry export failed; Laravel logger unavailable: Monolog handler is dead (bad channel / full disk)
+..............  183 / 2174 (  8%)
+..............
+NEARS-3207 admin route smoke sweep: total=409 executed=361 skipped_action=15 skipped_param=33 status_distribution={"200":296,"302":16,"404":49}
+...............................................  244 / 2174 ( 11%)
+.............................................................  305 / 2174 ( 14%)
+.............................................................  366 / 2174 ( 16%)
+..........................F..................................  427 / 2174 ( 19%)
+.............................................................  488 / 2174 ( 22%)
+.............................................................  549 / 2174 ( 25%)
+.............................................................  610 / 2174 ( 28%)
+.....................F.......................................  671 / 2174 ( 30%)
+.............................................................  732 / 2174 ( 33%)
+.............................................................  793 / 2174 ( 36%)
+.............................................................  854 / 2174 ( 39%)
+.............................................................  915 / 2174 ( 42%)
+.............................................................  976 / 2174 ( 44%)
+............................................................. 1037 / 2174 ( 47%)
+............................................................. 1098 / 2174 ( 50%)
+............................................................. 1159 / 2174 ( 53%)
+............................................................. 1220 / 2174 ( 56%)
+............................................................. 1281 / 2174 ( 58%)
+............................................................. 1342 / 2174 ( 61%)
+............................................................. 1403 / 2174 ( 64%)
+............................................................. 1464 / 2174 ( 67%)
+............................................................. 1525 / 2174 ( 70%)
+............................................................. 1586 / 2174 ( 72%)
+............................................................. 1647 / 2174 ( 75%)
+............................................................. 1708 / 2174 ( 78%)
+............................................................. 1769 / 2174 ( 81%)
+............................................................. 1830 / 2174 ( 84%)
+............................................................. 1891 / 2174 ( 86%)
+............................................................. 1952 / 2174 ( 89%)
+............................................................. 2013 / 2174 ( 92%)
+.........................................S................... 2074 / 2174 ( 95%)
+............................................................. 2135 / 2174 ( 98%)
+.......................................                       2174 / 2174 (100%)
+
+Time: 09:08.407, Memory: 852.50 MB
+
+There were 2 failures:
+
+1) Tests\Feature\ConfigContractTest::test_decimal_precision_is_two_not_whole_dirhams
+NEARS-2019 (EXPECTED RED — the money defect, not a broken build): digit_after_decimal_point is not 2, so PlaceNewOrder rounds PERSISTED order money to whole dirhams — order_amount, delivery_charge, total_tax_amount, the discount fields and every order_details line price. Up to a half-dirham is added to or removed from what the customer is actually charged. THIS TEST READS THE PHPUNIT TWIN (multi_food_db_test*), NEVER multi_food_db, so it pins the SEED contract and not the live config. CORRECTING THE LIVE SETTING ALONE WILL NOT CLEAR IT — a data change never triggers a re-clone (setup_test_db.sh re-clones only on an applied-migration-signature mismatch). To go green, all three: (1) set digit_after_decimal_point to 2 via Admin -> Business Setup or a versioned seeder, never raw DML, then `php artisan cache:clear` (settings are cached rememberForever, so skipping this makes a correct fix look like it failed); (2) re-dump the corrected DB and rebuild the twin: TEST_DB_BACKUP=/path/to/dump.sql bash scripts/setup_test_db.sh ; (3) FORCE the clones to rebuild: bash scripts/setup_test_db.sh --drop-stale (or --clone <worktree_slug> per worktree). See docs/solutions/NEARS-2019-persisted-money-rounding.md.
+Failed asserting that 0 is identical to 2.
+
+/Users/Apple/Projects/nears-NEARS-3475-backend-hygiene-bundle/Admin/tests/Feature/ConfigContractTest.php:310
+
+2) Tests\Feature\HotTableFilterIndexMigrationTest::test_query_shape_uses_index_after_up_not_before with data set "orders by user_id ordered by created_at" ('SELECT * FROM orders WHERE us...MIT 10', 'orders_user_id_created_at_index', true)
+expected a table scan before up() for: SELECT * FROM orders WHERE user_id=1 ORDER BY created_at DESC LIMIT 10
+-> Limit: 10 row(s)  (cost=1.4 rows=4)
+    -> Sort row IDs: orders.created_at DESC, limit input to 10 row(s) per chunk  (cost=1.4 rows=4)
+        -> Index lookup on orders using orders_owner_idempotency_key_unique (user_id = 1)  (cost=1.4 rows=4)
+
+Failed asserting that '-> Limit: 10 row(s)  (cost=1.4 rows=4)\n
+    -> Sort row IDs: orders.created_at DESC, limit input to 10 row(s) per chunk  (cost=1.4 rows=4)\n
+        -> Index lookup on orders using orders_owner_idempotency_key_unique (user_id = 1)  (cost=1.4 rows=4)\n
+' [ASCII](length: 247) contains "Table scan" [ASCII](length: 10).
+
+/Users/Apple/Projects/nears-NEARS-3475-backend-hygiene-bundle/Admin/tests/Feature/HotTableFilterIndexMigrationTest.php:113
+
+FAILURES!
+Tests: 2174, Assertions: 16958, Failures: 2, Deprecations: 1, PHPUnit Deprecations: 1, Skipped: 1.
