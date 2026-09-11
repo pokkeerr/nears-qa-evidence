@@ -1,0 +1,69 @@
+NEARS-3477 QA — DeliveryApp CameraButtonSheetWidget (delivery_confirmation_section.dart) —
+SUPERSEDES notes-deliveryapp-picker-unreached.log. Live trigger reached and exercised.
+
+2026-09-11, emulator-5564, delivery man ali.hassan@demo.com (dm id=1, zone_id=2, no login
+blocker unlike david.miller/carlos.rodriguez).
+
+Path found (read-only DB SELECT sweep, then legitimate app-driven state changes, no raw DML):
+1. SELECT swept `orders` for any row already at order_status IN ('handover','picked_up') with
+   delivery_man_id NOT NULL: only order 91124 (dm_id=2, david.miller — login-blocked by
+   NEARS-2509). No usable existing row.
+2. Took a fresh Pending order already in a login-able DM's own store queue: order #91187
+   (store 17 "Vegan Market"/veganmarket@demo.com, zone_id=2 — matches ali.hassan's zone_id=2).
+   Walked it forward via VendorApp's own UI (legitimate app actions, same category as prior QA
+   precedent): Confirm -> Swipe to Process -> Swipe if Ready for Handover. DB after each step
+   verified via read-only SELECT (confirmed/processing/handover timestamps populated).
+3. Logged into DeliveryApp as ali.hassan. Order 91187 broadcast correctly to his Request tab
+   (unlike order 172 in the prior QA pass's attempt with a different store/zone) once a live
+   GPS fix was supplied. NOTE: `adb emu geo fix <lng> <lat>` alone did NOT move the device's
+   reported location (dumpsys location kept showing a stale 13h+ old mock fix from a prior
+   session) — required the `cmd location` test-provider injection instead:
+     appops set com.android.shell android:mock_location allow
+     cmd location providers add-test-provider gps
+     cmd location providers set-test-provider-enabled gps true
+     cmd location providers set-test-provider-location gps --location 24.453884,54.3773438
+   (zone 2 / Abu Dhabi coordinates, matching the order's own delivery_address). Without this,
+   POST /api/v1/delivery-man/accept-order returned 403 dm_out_of_zone (backend
+   DeliverymanController@accept_order zone-polygon check on lat/lng, when supplied).
+4. Accept -> order_status='handover', delivery_man_id=1 (DB-verified). Swiped "Swipe to pick up
+   order" -> order_status='picked_up' (DB-verified).
+5. Opened order #91187 details: "Completed After Delivery Picture" section (
+   DeliveryConfirmationSection, showDeliveryConfirmImage=true) rendered live — the ONE
+   DeliveryApp-specific call site of the deduped `CameraButtonSheetWidget.onPickImage`.
+6. Tapped the add-image button -> CameraButtonSheetWidget bottom sheet opened
+   ("From Camera" / "From Gallery"). Exercised BOTH:
+   - From Gallery -> Android photo picker -> selected existing photo -> Done -> new
+     Image.file thumbnail appeared in the picker row (pickPrescriptionImage(isRemove:false,
+     isCamera:false) confirmed via before/after uiautomator dump diff).
+   - From Camera -> emulator camera app -> Shutter -> Done -> a SECOND thumbnail appeared
+     (pickPrescriptionImage(isRemove:false, isCamera:true) confirmed the same way).
+   Both http/app logs clean around each action (`adb logcat -d -s flutter:I`, grepped for
+   FAIL/ERR/Exception in the surrounding window — none).
+7. isRemove:true was NOT exercised on this screen: `_buildImagePreview` in
+   delivery_confirmation_section.dart has no tap handler, and CameraButtonSheetWidget itself
+   only ever calls onPickImage(isRemove:false, ...) (confirmed by reading
+   packages/nears_shared/lib/camera_button_sheet_widget.dart — no remove affordance exists in
+   the shared widget; any isRemove:true caller is per-app UI, and DeliveryApp's own screen
+   simply never wires one). This is a pre-existing UI-surface gap on THIS screen, not
+   introduced by NEARS-3477's dedupe, and not something the dedup'd callback signature can be
+   faulted for — the callback correctly accepts and would forward isRemove:true if any caller
+   invoked it. Not filed as a bug (no regression, no AC coverage gap in the dedup itself).
+
+Evidence: deliveryapp-order91187-before-picker.png, deliveryapp-camerabuttonsheet-open.png,
+deliveryapp-after-gallery-pick.png, deliveryapp-after-camera-and-gallery-2pics.png,
+deliveryapp-order91187-after-camera-and-gallery.xml (raw uiautomator dump showing 2 distinct
+ImageView preview nodes in the picker row, positive-control proof the pick actually landed).
+
+Side effects on the seeded dev DB (via legitimate app actions only, no raw DML):
+- Order #91187 (store 17/Vegan Market, customer@nears.com): pending -> confirmed -> processing
+  -> handover -> accepted by ali.hassan -> picked_up. Left at picked_up with 2 delivery-
+  confirmation pictures attached (local device files; "Complete Delivery" was never tapped, so
+  the order was NOT marked delivered).
+- ali.hassan@demo.com's device GPS was set via the `cmd location` test provider to
+  24.453884,54.3773438 (zone 2) for the duration of this QA session only — a device-local
+  instrument, not a DB or account mutation.
+
+Net: all 3 apps' onPickImage({required isRemove, required isCamera}) call sites are now
+live-verified end-to-end. DeliveryApp: camera + gallery add paths (this pass). UserApp:
+camera + gallery + remove (prior pass). VendorApp: gallery (prior pass). Ticket-wide ac_table:
+all ACs PASS.
