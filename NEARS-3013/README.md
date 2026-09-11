@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3013
 
-**PASS - flash-sale countdown id-scope + order-poll skip verified live**
+**PASS**
 
 **6 screenshot(s).** Click any thumbnail for full resolution.
 
