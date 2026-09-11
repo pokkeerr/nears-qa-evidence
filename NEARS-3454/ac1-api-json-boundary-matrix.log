@@ -1,0 +1,45 @@
+NEARS-3454 AC1 — GET /api/v1/customer/order/payment-failed?order_id=<id>
+Live response bodies, isolated scratch backend (multi_food_db_qa3454) on 127.0.0.1:8531
+Captured before order 91358-91362 were reassigned to user 6 for UI-driven behavioural testing.
+================================================================================
+
+=== scenario=under (order_amount=50, cap=100) order_id=91357 ===
+{"cash_on_delivery":false,"digital_payment":false,"offline_payment":false,"cod_eligible":true,"order_id":91357,"payment_token":"<redacted>","order_amount":50,"partially_paid_amount":0,"order_type":"delivery","user_id":433,"zone_id":454,"payment_status":"unpaid","payment_method":"digital_payment","contact_person_number":"+9998000000"}
+HTTP_STATUS:200
+  -> maximum_cod_order_amount ABSENT (grep clean). cod_eligible=true (correct: 50 <= 100).
+
+=== scenario=atcap (order_amount=100, cap=100 — AC4 BOUNDARY) order_id=91358 ===
+{"cash_on_delivery":false,"digital_payment":false,"offline_payment":false,"cod_eligible":true,"order_id":91358,"payment_token":"<redacted>","order_amount":100,"partially_paid_amount":0,"order_type":"delivery","user_id":434,"zone_id":454,"payment_status":"unpaid","payment_method":"digital_payment","contact_person_number":"+9998000000"}
+HTTP_STATUS:200
+  -> cod_eligible=true at EXACTLY the cap (the <= fix — old strict < would have read false here).
+
+=== scenario=over (order_amount=150, cap=100) order_id=91359 ===
+{"cash_on_delivery":false,"digital_payment":false,"offline_payment":false,"cod_eligible":false,"order_id":91359,"payment_token":"<redacted>","order_amount":150,"partially_paid_amount":0,"order_type":"delivery","user_id":435,"zone_id":454,"payment_status":"unpaid","payment_method":"digital_payment","contact_person_number":"+9998000000"}
+HTTP_STATUS:200
+  -> cod_eligible=false (correct: 150 > 100).
+
+=== scenario=parcel (order_amount=99999, cap=100, order_type=parcel) order_id=91360 ===
+{"cash_on_delivery":false,"digital_payment":false,"offline_payment":false,"cod_eligible":false,"order_id":91360,"payment_token":"<redacted>","order_amount":99999,"partially_paid_amount":0,"order_type":"parcel","user_id":436,"zone_id":454,"payment_status":"unpaid","payment_method":"digital_payment","contact_person_number":"+9998000000"}
+HTTP_STATUS:200
+  -> cod_eligible=false at the SERVER (cap check alone, no parcel awareness by design).
+     The parcel override is a CLIENT-side OR in switchToCodFromPayment/bottomsheet — see UI evidence.
+
+=== scenario=nullcap (order_amount=999999, cap=NULL) order_id=91361 ===
+{"cash_on_delivery":false,"digital_payment":false,"offline_payment":false,"cod_eligible":true,"order_id":91361,"payment_token":"<redacted>","order_amount":999999,"partially_paid_amount":0,"order_type":"delivery","user_id":437,"zone_id":455,"payment_status":"unpaid","payment_method":"digital_payment","contact_person_number":"+9998000000"}
+HTTP_STATUS:200
+  -> cod_eligible=true (fail-open, no pivot row cap).
+
+=== scenario=zerocap (order_amount=999999, cap=0.0) order_id=91362 ===
+{"cash_on_delivery":false,"digital_payment":false,"offline_payment":false,"cod_eligible":true,"order_id":91362,"payment_token":"<redacted>","order_amount":999999,"partially_paid_amount":0,"order_type":"delivery","user_id":438,"zone_id":456,"payment_status":"unpaid","payment_method":"digital_payment","contact_person_number":"+9998000000"}
+HTTP_STATUS:200
+  -> cod_eligible=true (fail-open, cap=0 treated as no-cap).
+
+================================================================================
+Programmatic leak check across all 6 (payment_token/mac strings included — searched raw body):
+  under:    leak_present=False has_cod_eligible_key=True cod_eligible=True
+  atcap:    leak_present=False has_cod_eligible_key=True cod_eligible=True
+  over:     leak_present=False has_cod_eligible_key=True cod_eligible=False
+  parcel:   leak_present=False has_cod_eligible_key=True cod_eligible=False
+  nullcap:  leak_present=False has_cod_eligible_key=True cod_eligible=True
+  zerocap:  leak_present=False has_cod_eligible_key=True cod_eligible=True
+"maximum_cod_order_amount" substring: 0 occurrences across all 6 raw response bodies.
