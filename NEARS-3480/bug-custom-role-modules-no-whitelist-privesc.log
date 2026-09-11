@@ -1,0 +1,90 @@
+NEARS-3480 [8b-confirm] regression-candidate — live confirmation
+Finding: CustomRoleAddRequest/CustomRoleUpdateRequest validate `modules` as
+required|array|min:1 with NO in:/enum whitelist on `modules.*`; CustomRoleService::getAddData
+json_encode()s the array straight into admin_roles.modules. Pre-existing — files untouched by
+NEARS-3480's own diff.
+
+Environment: local dev backend (php artisan serve, 127.0.0.1:8000), db multi_food_db,
+worktree /Users/Apple/Projects/nears-NEARS-3480-dashboard-permission-formrequest,
+branch fix/NEARS-3480-dashboard-permission-formrequest, HEAD 2f4c2586b. Method: raw HTTP via
+curl with real session cookies + CSRF tokens (APP_MODE=dev pre-fills the six_captcha value into
+the login form, so the login flow could be driven headlessly). No dark-mode, no Flutter surface
+— pure Laravel Admin panel.
+
+STATIC CONFIRMATION
+- Admin/app/Http/Requests/Admin/CustomRoleAddRequest.php:37 and
+  CustomRoleUpdateRequest.php:36 — 'modules'=>'required|array|min:1', no modules.* whitelist.
+- Admin/app/Services/CustomRoleService.php:17 — 'modules' => json_encode($request['modules']),
+  no filtering.
+- Admin/app/CentralLogics/Helpers.php:2840-2859 module_permission_check($mod_name) —
+  in_array($mod_name, (array) json_decode(auth('admin')->user()->role->modules)) with no
+  cross-check against a canonical module list.
+- Admin/resources/views/admin-views/custom-role/create.blade.php — enumerated every
+  `name="modules[]" value="..."` checkbox. `custom_role`, `business_settings`,
+  `user_management`, `customer_wallet` are used as `module:<key>` middleware gates
+  (Admin/routes/admin.php, Admin/routes/admin/routes.php) but have ZERO checkbox anywhere in
+  create.blade.php or edit.blade.php — i.e. hidden/undisclosed module keys.
+- Admin/routes/admin/routes.php:296 — custom-role CRUD routes gated `middleware =>
+  ['module:custom_role']`.
+- Admin/routes/admin.php:661 — /admin/social-login/view gated `middleware =>
+  ['module:business_settings']` (a hidden key, no UI checkbox).
+
+LIVE REPRO (all via app-exposed endpoints, no raw DB writes — DB touched read-only via SELECT)
+
+1. Logged in as super admin (admin@admin.com, role_id=1) via POST /login_submit.
+2. Created custom role "NEARS-3480 QA PoC CustomRoleOnly" via POST
+   /admin/users/custom-role/create with modules[]=custom_role ONLY.
+   - grep -c 'value="custom_role"' on the rendered create.blade.php page = 0 (no checkbox
+     exists for this key anywhere in the UI).
+   - Response: HTTP 302 (success, no validation error).
+   - DB check: SELECT id,name,modules FROM admin_roles WHERE id=6;
+       -> 6 | NEARS-3480 QA PoC CustomRoleOnly | ["custom_role"]
+   CONFIRMS: an arbitrary/hidden module key with no UI checkbox is accepted and persisted.
+
+3. Created employee account qa.poc.customrole@nears-qa.test, role_id=6, via POST
+   /admin/users/employee/store (as super admin, exercising the real employee-add flow with a
+   multipart image upload — not a DB insert).
+
+4. Logged in AS THIS EMPLOYEE (role holds ONLY `custom_role` — the minimal precondition the
+   finding describes: "any admin who already holds module:custom_role permission").
+   - GET /admin/users/custom-role/create -> HTTP 200, title "Custom role", real form + role
+     table rendered (not an access-denied fallback). Confirms the hidden-key grant itself is a
+     real, working permission, not stored-but-inert.
+   - Negative control: GET /admin/users/employee (module:employee, NOT held by this role) ->
+     HTTP 302, redirected back to the referer (denied). Confirms the harness/permission gate is
+     genuinely live and distinguishing (not vacuously passing everything).
+
+5. SELF-ESCALATION: as this same narrowly-privileged employee, POST
+   /admin/users/custom-role/update/6 with modules[]=custom_role AND modules[]=business_settings.
+   - grep -c 'value="business_settings"' on the rendered edit.blade.php page (fetched as this
+     same employee, same session) = 0 (no checkbox for this key either).
+   - Response: HTTP 302 (success, no validation error).
+   - DB check: SELECT id,name,modules FROM admin_roles WHERE id=6;
+       -> 6 | NEARS-3480 QA PoC CustomRoleOnly | ["custom_role","business_settings"]
+   CONFIRMS: a role-creator holding ONLY module:custom_role can grant their own role an
+   arbitrary hidden module never exposed as a combinable checkbox.
+
+6. REAL PRIVILEGE-GRANT PROOF (bilateral, same session, same route, only the DB-held modules
+   array changed via app POSTs in between):
+   - AFTER step 5 (modules = ["custom_role","business_settings"]):
+       GET /admin/social-login/view -> HTTP 200, title "Social Login Setup". Real page served.
+   - Reverted modules back to ["custom_role"] only via a further POST
+     /admin/users/custom-role/update/6 (same app endpoint, not raw DB) as the same employee.
+     DB check confirms: modules = ["custom_role"].
+   - AFTER the revert (modules back to baseline, business_settings removed):
+       GET /admin/social-login/view -> HTTP 302, redirected to
+       /admin/users/custom-role/edit/6 (denied — no toastr-rendered page, back() bounce).
+   CONFIRMS the grant is a genuine, live, bilaterally-toggleable ACCESS CHANGE gated by the
+   injected module string — not inert stored data.
+
+CLEANUP (app-level, as super admin — not raw DML)
+- POST /admin/users/employee/delete/6 (_method=DELETE) -> 302 success.
+- POST /admin/users/custom-role/delete/6 (_method=DELETE) -> 302 success.
+- Verified via SELECT: both admins.id=6 and admin_roles.id=6 rows gone. DB left clean.
+
+VERDICT: CONFIRMED. The finding is accurate and reproduces exactly as described, with a
+stronger-than-claimed detail: the exploitable module keys are not merely "not exposed as
+checkboxes for THIS role" but are keys with NO checkbox anywhere in the create/edit views at
+all (custom_role, business_settings, user_management, customer_wallet), i.e. keys the product
+never intended to be admin-role-delegable through this UI, yet the FormRequest layer places no
+constraint preventing them.

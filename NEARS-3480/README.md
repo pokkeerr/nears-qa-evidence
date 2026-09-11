@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3480
 
-**Delta re-QA cycle 1: AC3 Flash Sales sidebar gate PASS (grocery+ecommerce, campaign-only/order+campaign/neither, active-state, Orders+Marketing regression clean)**
+**[8b-confirm] CustomRole modules[] no-whitelist privesc — CONFIRMED (pre-existing, not in NEARS-3480 diff)**
 
 **14 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -30,6 +30,9 @@
 <td align="center" width="33%"><a href="ac5-bulk-import-page.png"><img src="ac5-bulk-import-page.png" width="240"></a><br><sub>ac5 bulk import page</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`bug-custom-role-modules-no-whitelist-privesc.log`](bug-custom-role-modules-no-whitelist-privesc.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3480/` · public-repo scrub policy (no live secrets; verified clean).*
