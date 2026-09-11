@@ -1,0 +1,19 @@
+DeliveryApp — AC3/AC4: retry / connectivity-regain no-reset invariant.
+Splash mounted (stopwatch start) at config GET 09:35:03.581.
+Forced offline (airplane-mode via `adb shell cmd connectivity airplane-mode enable`):
+  09:35:03.751 [FAIL] endpoint=/api/v1/config http_status=null type=ApiFailure msg="api request threw"
+  09:35:03.757 [FAIL] endpoint=/api/v1/config http_status=1 msg="splash config fetch failed"
+UI confirmed on error screen: "Couldn't connect to the server. Please try again." + "Retry" button
+  (ui_list dump, emulator-5566).
+Restored connectivity ~18s later (airplane-mode disable) -> app's own
+Connectivity().onConnectivityChanged listener auto-invoked _route() (same function the Retry
+button's onPressed calls) before a manual tap could land:
+  09:35:21.842 [NET] GET endpoint=/api/v1/config
+  09:35:22.419 [NET] endpoint=/api/v1/config http_status=200   (elapsed since mount ~18.8s)
+  09:35:22.424 [NET] GET endpoint=/api/v1/delivery-man/profile
+  => post-(re)config routing gap = 5ms — NO fresh ~600ms/1s hold granted, confirming the
+     Stopwatch was never reset across the failed->retried config cycle.
+Caveat: the connectivity-listener's own auto-retry fired ahead of a manual "Retry" button tap in
+both attempts (expected — same trigger race on both apps). Since _retry()/onPressed both call the
+same _route() against the same never-reset _splashStopwatch field, this is code-identical coverage
+of the invariant under test, not a substitute demonstration of a different code path.

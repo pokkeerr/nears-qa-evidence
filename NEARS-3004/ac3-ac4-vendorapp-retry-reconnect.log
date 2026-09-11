@@ -1,0 +1,14 @@
+VendorApp — AC3/AC4: retry / connectivity-regain no-reset invariant.
+Splash mounted (stopwatch start) at config GET 09:37:00.345.
+Forced offline (`adb shell svc data disable` — this AVD is cellular-only, no separate wifi net):
+  09:37:00.498 [FAIL] endpoint=/api/v1/config http_status=null type=ApiFailure msg="api request threw"
+UI confirmed on error screen (Arabic locale): "فشل تحميل الإعدادات. تحقق من الاتصال." (config_load_failed)
+  + "حاول ثانية" (try_again) button (ui_list dump, emulator-5558).
+Restored data ~9.3s later (`svc data enable`) -> connectivity listener auto-invoked _route()
+(same function _retry() calls) before a manual tap could land:
+  09:37:09.688 [NET] GET endpoint=/api/v1/config
+  09:37:09.819 [NET] endpoint=/api/v1/config http_status=200   (elapsed since mount ~9.47s)
+  09:37:09.824 [NET] POST endpoint=/api/v1/vendor/update-fcm-token
+  => post-(re)config routing gap = 5ms — NO fresh hold granted, stopwatch never reset.
+Same caveat as DeliveryApp: auto-retry via connectivity listener preempted a manual button tap;
+code-identical _route()/_splashStopwatch invariant is what's under test either way.

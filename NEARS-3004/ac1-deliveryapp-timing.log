@@ -1,0 +1,17 @@
+DeliveryApp — AC1: config-done -> routing gap (adb shell am start -W cold starts)
+Run 1: TotalTime=2071ms (activity launch, first cold start incl. process warmup)
+  09:33:51.412 [NET] GET endpoint=/api/v1/config
+  09:33:52.181 [NET] endpoint=/api/v1/config http_status=200   (round-trip 769ms)
+  09:33:52.186 [NET] GET endpoint=/api/v1/delivery-man/profile (next call fired by _handleDefaultRouting)
+  => post-config routing gap = 5ms (was ~1000ms flat hold before this fix)
+
+Run 2: TotalTime=1507ms
+  09:34:05.551 [NET] GET endpoint=/api/v1/config
+  09:34:06.393 [NET] endpoint=/api/v1/config http_status=200   (round-trip 842ms)
+  09:34:06.397 [NET] GET endpoint=/api/v1/delivery-man/profile
+  => post-config routing gap = 4ms
+
+Config round-trip (769-842ms) matches the audit's own cited baseline range (0.99-1.13s order of
+magnitude, here slightly faster on localhost backend). Both runs already exceed the 600ms budget by
+the time config resolves, so remaining budget clamps to ~0 and routing fires near-instantly (4-5ms),
+vs. the old flat 1s Timer that would have held regardless.

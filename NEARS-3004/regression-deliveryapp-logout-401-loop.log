@@ -1,0 +1,26 @@
+DeliveryApp — unrelated regression candidate observed during AC7 signed-out routing check
+(NOT caused by NEARS-3004's Timer-budget change; splash_screen.dart's routing-decision code
+untouched by this diff — only the Timer duration changed).
+
+Repro: Profile > Logout > Yes (navigated to sign-in screen immediately), then force-stop + cold
+start (adb shell am start -W) shortly after.
+
+Observed: on the next cold start, isLoggedIn() still reported true (stale local flag), so
+_handleDefaultRouting() attempted the logged-in branch, hit 401s on every authenticated endpoint,
+and looped repeated POST /api/v1/delivery-man/logout calls (5x in ~1s) before the app's 401
+interceptor eventually routed to sign-in:
+
+  09:39:17.635 [NET] endpoint=/api/v1/config http_status=200
+  09:39:17.640 [NET] GET endpoint=/api/v1/delivery-man/profile
+  09:39:18.660 [NET] endpoint=/api/v1/delivery-man/profile http_status=401
+  09:39:18.669 [NET] POST endpoint=/api/v1/delivery-man/logout
+  09:39:19.524 [NET] POST endpoint=/api/v1/delivery-man/logout
+  09:39:19.527 [NET] endpoint=/api/v1/delivery-man/latest-orders http_status=401
+  09:39:19.657 [NET] POST endpoint=/api/v1/delivery-man/logout
+  09:39:19.732/.789/.856/20.606 endpoint=/api/v1/delivery-man/logout http_status=401 (x4 more)
+
+End state was correct (landed on sign-in screen), so this did not block AC7, but the repeated
+401-triggered logout calls suggest either a logout-flow race (navigating before local token clear
+completes) or the 401 interceptor firing once per failed endpoint instead of once globally. Not
+part of this ticket's blast radius (splash Timer only) — flagged as a regression candidate for the
+PO, not filed as a task_bug against NEARS-3004.
