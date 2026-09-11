@@ -1,0 +1,19 @@
+NEARS-3469 AC4 -- store slug double-write fix (single write, creating() event)
+
+POST /admin/store/add (real multipart submit via the actual Add New Vendor
++ Store form: f_name/l_name/email/phone/password/zone_id/lat-lng/
+minimum+maximum delivery time/logo+cover_photo files, name[]="QA NEARS3469
+Slug Store", lang[]=default) -> 200 {"message":"Store added successfully", ...}
+
+DB after store #1: stores.id=91125, slug="qa-nears3469-slug-store"
+  (matches Str::slug(name) exactly, single row, single write).
+
+Second submission, SAME name "QA NEARS3469 Slug Store", different
+email/phone (both unique-constrained on vendors):
+POST /admin/store/add -> 200 {"message":"Store added successfully", ...}
+
+DB after store #2: stores.id=91126, slug="qa-nears3469-slug-store-2"
+  -- correctly incremented with a "-2" suffix, NO duplicate-slug error, NO
+  double-write artifact (each store has exactly one row, one slug value).
+
+Backend log: zero [FAIL]/[ERR] entries correlated with either store creation.

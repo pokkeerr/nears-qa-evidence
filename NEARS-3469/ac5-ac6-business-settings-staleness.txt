@@ -1,0 +1,35 @@
+NEARS-3469 AC5/AC6 -- Helpers::get_business_settings() staleness fix
+(maintenance_mode toggle, two full cycles, each read via a fresh same-origin
+fetch() of /admin/business-settings/business-setup -- never page.content()
+after a client JS widget has had a chance to rewrite the checkbox's own
+attributes, which would misreport the *server's* rendered state)
+
+Cycle 1:
+  BEFORE:            raw HTML checkbox: `id="maintenance_mode" checked>`         (ON)
+  GET /admin/maintenance-mode -> {"message":"Maintenance is off."}
+  AFTER (fresh GET): raw HTML checkbox: `id="maintenance_mode" >`                (OFF, no "checked")
+  DB business_settings.maintenance_mode = 0, updated_at bumped.
+  -> read-back flipped immediately, no manual cache:clear needed.
+
+Cycle 2:
+  GET /admin/maintenance-mode -> {"message":"Maintenance is on."}
+  AFTER (fresh GET): raw HTML checkbox: `id="maintenance_mode" checked>`         (ON again)
+  DB business_settings.maintenance_mode = 1, updated_at bumped.
+  -> read-back flipped immediately again, restoring the original state.
+
+Both toggle-then-read cycles reflected the fresh DB value on the very next
+request -- no staleness observed. This is exactly the class of bug the ticket
+describes (Helpers::get_business_settings() previously serving a stale cached
+value immediately after a businessUpdateOrInsert() write).
+
+Note: a first pass of this check used a buggy substring match on the raw HTML
+(`id="maintenance_mode"` also matches inside the checkbox's own
+`data-id="maintenance_mode"` attribute) and reported a false STALE result --
+caught and corrected before drawing any conclusion; the corrected extraction
+(anchored on the checkbox's actual `id=` attribute, not any `data-id=`) is
+what's reported above.
+
+Landing Page toggle / Language add-edit / Subscription free-trial toggle
+(the AC's other suggested repeat examples) were NOT separately exercised --
+budget; the underlying mechanism (get_business_settings() freshness) is the
+same code path already proven above via maintenance_mode.

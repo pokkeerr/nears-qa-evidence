@@ -1,0 +1,79 @@
+NEARS-3469 AC1 -- live POS quick-view + add-to-cart evidence
+Backend: dedicated QA server (php artisan serve :8020) against a disposable
+clone of the seeded DB (multi_food_db_test_qa3469). Admin session: admin@admin.com.
+
+=== Item 91 "Tones Mild Chili Powder" (store 12, Fresh local, grocery module) ===
+DB source: variations = [{"type":"64g","price":100,...},{"type":"100g","price":150,...},...]
+           choice_options = [{"name":"choice_1","title":"Size","options":["64 g"," 100 g",...]}]
+
+GET /admin/pos/quick-view?product_id=91 -> 200, well-formed HTML (5471 bytes).
+  Radio group correctly rendered from the choice_options cast field:
+    <input ... id="choice_1-64 g" name="choice_1" value="64 g" checked>
+    <label for="choice_1-64 g">64 g</label>
+
+POST /admin/pos/add-to-cart  (choice_1="64 g", quantity=2)
+  -> 200 JSON: {"variations":{"type":"64g","price":100,"stock":999}, "variant":"64g",
+                "quantity":"2","price":100, "name":"Tones Mild Chili Powder", "discount":30, ...}
+  Confirms POSController::variant_price's `json_decode(json_encode($product->variations))`
+  loop correctly resolved choice "64 g" -> variation type "64g" -> price=100 (matches DB
+  exactly).
+
+POST /admin/pos/cart-items?store_id=12
+  -> numeric figures in the rendered cart: 200.00 (2 x 100 unit price), 200.00 (subtotal),
+     60.00 (30% discount), 0.00, 7.00 (tax), 147.00 (grand total).
+  Math check: 200 - 60 + 7 = 147.00 -- exact match, no rounding/shape defect.
+
+=== Item 16 "Classic Cheeseburger" (store 4, Burger Palace, food module) ===
+DB source: food_variations = Size(Regular/Large +2.50), Toppings(multi)
+           add_ons = ["2","1","3"] -> Bacon 2.00, Extra Cheese 1.50, Jalapenos 1.00
+
+GET /admin/pos/quick-view?product_id=16 -> 200, well-formed HTML (16843 bytes),
+  correctly renders "Large" variation option and "Bacon"/"Extra Cheese" addon
+  checkboxes (addon rendering reads the Item.add_ons cast array via
+  AddOn::whereIn('id', $add_ons) -- no TypeError, this is the exact blade that
+  carried the fixed Critical cast-TypeError regression).
+
+POST /admin/pos/add-to-cart (Size=Large, addons=[Bacon(2.00,x1), Extra Cheese(1.50,x1)], qty=1)
+  -> 200 JSON: {"variations":[{...,"name":"Size","values":{"label":["Large"]}}],
+                "variation_price":2.5, "price":11.49, ...}
+  8.99 (base) + 2.50 (Large) = 11.49 -- exact match.
+
+POST /admin/pos/cart-items?store_id=4
+  -> numeric figures: 11.49 (item line), 3.50 (addons: 2.00+1.50), 14.99 (11.49+3.50),
+     0.00, 0.00, 0.75 (tax), 15.74 (grand total = 14.99+0.75).
+  Exact match, no shape/rounding defect.
+
+=== Order Details / Print Invoice / Generate Invoice / Dispatch / Transactions ===
+Existing real order #91117 (order_type=delivery, canceled, has non-trivial
+OrderDetail.variation data: Size=Regular / Size=Large+Toppings, and a real
+Order.delivery_address JSON blob) -- fetched all 7 admin views live:
+
+  admin/order/details/91117              -> 200, no error markers, renders "Size"/"Large"
+  admin/order/all-details/91117          -> 200, no error markers, renders "Size"/"Large"
+  admin/order/print-invoice/91117        -> 200, no error markers, renders "Size"/"Large"
+  admin/order/generate-invoice/91117     -> 200, no error markers, renders "Size"/"Large"
+  admin/dispatch/order/details/91117     -> 200, no error markers, renders "Size"/"Large"
+  admin/dispatch/order/generate-invoice/91117 -> 200, no error markers, renders "Size"/"Large"
+  admin/transactions/order/details/91117 -> 200, no error markers, renders "Size"/"Large"
+
+All 7 pages also render the real Order.delivery_address cast content (contact
+name + free-text address string from the stored JSON) -- confirms the
+Order.delivery_address $casts entry is read correctly by every one of the
+regression-flagged views, with zero TypeError/500s.
+
+=== Item bulk export (.xlsx) ===
+GET /admin/item/export?store_id=4 -> real 288KB .xlsx download.
+Parsed with openpyxl: header row 3 has "Available Variations" / "Available Addons"
+columns. Classic Cheeseburger row:
+  Available Variations: "Size : Regular , Large , Toppings : Lettuce , Tomato , Pickles ,
+                          Grilled Onions , Fried Egg"
+  Available Addons:     "Extra Cheese - 1.50 , Bacon - 2.00 , Jalapenos - 1.00"
+Both columns contain valid, human-readable data sourced from the cast fields --
+no raw/garbled JSON, no export error.
+
+=== Backend log (storage/logs/laravel.log) ===
+Zero [FAIL]/[ERR] lines correlated with any of the above requests. (Earlier
+[FAIL] "Unknown database" lines in the log are from my own DB-setup window
+before the QA clone existed -- self-induced setup noise, not a product defect,
+timestamped 11:30 UTC before any of the above requests were made at ~15:3x+
+local.)

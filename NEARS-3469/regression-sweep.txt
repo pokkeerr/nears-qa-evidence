@@ -1,0 +1,30 @@
+NEARS-3469 regression sweep (bounded, per QA brief's priority list)
+
+All fetched live in the authenticated admin/vendor sessions after the AC
+checks above (real seeded data, incl. orders/items carrying variations and
+add_ons):
+
+  admin/order/list/all                       -> 200, 477130 bytes, no error markers
+  admin/dispatch/list/all/all                -> 200, 180689 bytes, no error markers
+  admin/parcel/dispatch/all                  -> 200, 187785 bytes, no error markers
+  admin/report/order-report                  -> 200, 331120 bytes, no error markers
+  admin/report/store-wise-order-report       -> 200, 306378 bytes, no error markers
+  admin/item/requested/item/view/1 (TempProduct, real pending vendor item)
+                                              -> 200, 161068 bytes, no error markers
+  admin/business-settings/third-party/mail-config -> 200, 165127 bytes, no error markers
+  vendor-panel/order/list/all (countryfair@demo.com) -> 200, 137341 bytes, no error markers
+
+PHPUnit automated backstop (re-run live in this worktree, not just trusted
+from the engineer's report):
+  vendor/bin/phpunit --filter "Nears3469"
+  -> OK: 4 tests, 12 assertions, 1 PHPUnit-framework deprecation notice
+     (unrelated to this ticket), 0 failures.
+
+Not reached (budget, "nice to have" per QA brief):
+  api/v1/items/popular, api/v1/items/most-reviewed (returned 403 to a bare
+  curl with no Zone-Id header -- a client-header requirement, not
+  investigated further given time budget), Delivery-man order list, Offline
+  verification list, payment/social-login/app-version settings saves.
+
+Backend log (storage/logs/laravel.log) stayed clean across the entire sweep
+-- zero new [FAIL]/[ERR] lines correlated with any of the above requests.

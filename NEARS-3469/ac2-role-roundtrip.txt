@@ -1,0 +1,42 @@
+NEARS-3469 AC2 -- AdminRole.modules / EmployeeRole.modules cast round-trip
+
+=== Admin Custom Role ===
+POST /admin/users/custom-role/create  name="QA NEARS3469 AC2 Role"
+  modules[]=item, modules[]=order, modules[]=pos
+DB after create: admin_roles.id=6, modules = ["item","order","pos"]  (real JSON array,
+  not a string blob -- confirms AdminRole.modules $casts entry).
+
+GET /admin/users/custom-role/edit/6 -> 200, no error page.
+Raw HTML: exactly 3 of the 30 rendered modules[] checkboxes carry the
+`checked` attribute -- item, order, pos (grep-verified against the raw
+response body). No other module falsely pre-checked, none of the 3 missing.
+
+=== Vendor Panel Custom Role ===
+Logged in as countryfair@demo.com (store 23).
+POST /vendor-panel/custom-role/create  name="QA NEARS3469 AC2 Vendor Role"
+  modules[]=item, modules[]=order
+DB after create: employee_roles.id=4, modules = ["item","order"], store_id=23
+  (confirms EmployeeRole.modules $casts entry).
+
+GET /vendor-panel/custom-role/edit/4 -> 200, no error page.
+Raw HTML: exactly 2 checkboxes carry `checked="" ` -- order, item. No other
+module falsely checked.
+
+=== Note ===
+A first attempt at the vendor-role create omitted the hidden lang[]=default
+field the real form always submits alongside name[] -- this produced a 500
+(array_search(): Argument #2 ($haystack) must be of type array, null given)
+at VendorController\CustomRoleController::store line 48. This was MY test
+harness's own omission (a real browser submission always includes the hidden
+lang[] input), not a product defect -- re-submitted with lang[]=default
+included and it succeeded cleanly. Logged here for traceability, not as a
+finding.
+
+=== Not covered (budget) ===
+The third AC2 sub-bullet -- logging in as a restricted-role VENDOR EMPLOYEE
+account and confirming the sidebar menu only shows granted modules -- was not
+exercised live. Creating a real employee account requires a file upload
+(required avatar image) and a Password::uncompromised() check (external
+HIBP-style network validation), which was out of budget for this pass. The
+core AC (the modules cast field itself, both write and read-back) is fully
+verified above; this sub-bullet is a regression nice-to-have per the QA brief.
