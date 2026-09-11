@@ -1,0 +1,20 @@
+$ php artisan route:list | grep -i "message/send"
+  POST  api/v1/customer/message/send       Api\V1\ConversationController@messages_store   [FIXED by this ticket]
+  POST  api/v1/delivery-man/message/send   Api\V1\DeliveryMan\ConversationController@messages_store  [separate class, untouched]
+  POST  api/v1/vendor/message/send         Api\V1\Vendor\ConversationController@messages_store       [separate class, untouched]
+
+$ git show --stat 22ba2f958 | head -8    # build commit
+ .../Controllers/Api/V1/ConversationController.php  |  67 ++++-
+ Admin/phpstan-baseline.neon                        |  42 +++-
+ .../Nears3463ConversationReceiverResolverTest.php  | 280 +++++++++++++++++++++
+ .../NEARS-3463-conversation-receiver-resolver.md   |  80 ++++++
+$ git show --stat 48b3050bf | head -8    # fix-cycle 1 commit
+ .../Controllers/Api/V1/ConversationController.php  | 11 +++++++++++
+ Admin/phpstan-baseline.neon                        | 22 ++++++++++++++--------
+ .../Nears3463ConversationReceiverResolverTest.php  | 19 +++++++++++++++++++
+
+Confirms: both this ticket's commits touch ONLY Api/V1/ConversationController.php
+(the customer-facing class) plus its own test/baseline/solution-doc -- the
+DeliveryMan\ConversationController and Vendor\ConversationController classes are
+separate files never touched by this diff. Blast radius is exactly the customer
+endpoint, as the ticket states.
