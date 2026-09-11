@@ -1,0 +1,25 @@
+Independent re-verification (worktree DB state already carried the engineer's own
+prior 83-revoked/591-expired>24h/566-valid purge run from build, so this run's
+absolute deltas are smaller — the mechanism proof below is against LIVE data,
+including a token freshly revoked mid-run via the real /auth/logout endpoint).
+
+Round 1 (existing DB drift since build):
+PRE  (before running passport:purge --hours=24):
+  access_revoked=0  access_expired_gt24h=1  access_valid=566
+  refresh_revoked=0 refresh_expired_gt24h=0 refresh_valid=0
+  authcode_revoked=0 authcode_expired_gt24h=0 authcode_valid=0
+
+$ php artisan passport:purge --hours=24
+INFO  Purged revoked items and items expired for more than 1 day.
+
+POST (after):
+  access_revoked=0  access_expired_gt24h=0  access_valid=566   <- the 1 expired row removed, 566 valid untouched
+  refresh/authcode unchanged (were already 0)
+
+Round 2 (AC3 negative-case token, revoked live via POST /api/v1/auth/logout):
+PRE-purge: oauth_access_tokens revoked=1 (the just-logged-out token)
+$ php artisan passport:purge --hours=24
+INFO  Purged revoked items and items expired for more than 1 day.
+POST-purge: oauth_access_tokens revoked=0  (freshly-revoked row swept immediately -
+             passport:purge removes ALL revoked rows regardless of age, matching
+             PurgeCommand::handle() default-both semantics cited in the commit)

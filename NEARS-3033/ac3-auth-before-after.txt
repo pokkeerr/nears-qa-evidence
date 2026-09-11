@@ -1,0 +1,15 @@
+Fresh token minted via POST /api/v1/auth/login (customer@nears.com, user id 6):
+
+1) GET /api/v1/customer/info  Bearer <fresh token>          -> HTTP 200   (pre-purge)
+2) php artisan passport:purge --hours=24 (idempotent re-run, no fatal)
+3) GET /api/v1/customer/info  Bearer <same token>            -> HTTP 200   (post-purge, valid token untouched)
+4) POST /api/v1/auth/logout   Bearer <same token>             -> HTTP 200 {"message":"Logout successful"} (revokes token)
+5) GET /api/v1/customer/info  Bearer <same, now-revoked token> -> HTTP 401 {"message":"Unauthenticated."}
+
+Paired backend failure log for step 5 (logs-first check — confirms the 401 is a
+logged failure, not silent):
+[2026-09-11 11:46:14] production.ERROR: [FAIL] The resource owner or authorization
+server denied the request. {"trace_id":"66223c8ed73c0e073f0d7114a9f89e93",
+"correlation_id":"905c1329-5796-446d-ac9c-8111bcdaf1ef",
+"type":"League\\OAuth2\\Server\\Exception\\OAuthServerException",
+"endpoint":"/api/v1/customer/info"}
