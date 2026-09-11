@@ -5,6 +5,7 @@
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
 ### Other artifacts
+- [`bug-vendorapp-orderhistory-nullcheck-crash.log`](bug-vendorapp-orderhistory-nullcheck-crash.log)
 - [`notes-deliveryapp-picker-unreached.log`](notes-deliveryapp-picker-unreached.log)
 - [`userapp-checkout-after-camera-pick-2remove.xml`](userapp-checkout-after-camera-pick-2remove.xml)
 - [`userapp-checkout-after-gallery-pick.xml`](userapp-checkout-after-gallery-pick.xml)

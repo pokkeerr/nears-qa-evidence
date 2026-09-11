@@ -1,0 +1,22 @@
+Pre-existing, NOT caused by NEARS-3477 (order_history_body_widget.dart is untouched by
+this ticket's diff — git diff d490caf50..HEAD has zero hits on this file).
+
+Observed once, live, 2026-09-11, emulator-5564, VendorApp (com.izzes.nearsvendor),
+during a logout -> re-login cycle (sara.ali@demo.com), while the previous session's
+Order History tab was still the last-rendered screen underneath the sign-in form:
+
+09-11 15:56:07.784 25847 25847 I flutter : [FAIL] framework_error library=widgets library type=_TypeError msg="Null check operator used on a null value"
+09-11 15:56:07.785 25847 25847 I flutter : [FAIL] framework_error   at #0      OrderHistoryBodyWidget.build.<anonymous closure> (package:nears_vendor/features/order/widgets/order_history_body_widget.dart:18:60)
+09-11 15:56:07.785 25847 25847 I flutter : [FAIL] framework_error   at #1      GetBuilderState.build (package:get/get_state_manager/src/simple/get_state.dart:212:26)
+09-11 15:56:07.785 25847 25847 I flutter : [FAIL] framework_error   at #2      StatefulElement.build (package:flutter/src/widgets/framework.dart:5931:27)
+...
+
+Caveat: the tap that immediately preceded this was aimed at a non-clickable decorative
+"SIGN IN" label (content-desc="SIGN IN", clickable=false) rather than the real "Sign In"
+Button — a testing-method mis-tap on my part, not a real user action. It's plausible a
+background poll/rebuild of the still-mounted (pre-logout) OrderHistoryBodyWidget fired
+with a null order list around that moment, independent of my mis-tap. Not independently
+re-reproduced this session (a clean retry with the correct "Sign In" button logged in
+without incident). Reported as a regression-candidate for triage, not a confirmed
+reproducible defect — same caution the existing nav-guide applies to VM-evaluate timing
+artifacts (NEARS-2659 addendum).
