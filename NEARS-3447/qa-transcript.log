@@ -1,0 +1,92 @@
+NEARS-3447 — translate() lang cache — live QA transcript
+Worktree: /Users/Apple/Projects/nears-NEARS-3447-translate-lang-cache
+Branch: feat/NEARS-3447-translate-lang-cache @ cb0984a981c71d7f772a79bfb33f869cfe00e192
+Base: feat/userapp-reskin2
+Date: 2026-09-11
+No device/UI surface — pure Laravel backend helper change. All evidence below is command+output
+from live PHP processes booting the worktree's own Laravel app (bootstrap/app.php), each AC3/AC5
+re-verified in its own fresh `php` process (isolated, matching the automated test's
+#[RunInSeparateProcess] discipline) after an initial combined run surfaced a same-process
+artifact from Laravel's OWN separate translator-loader cache (pre-existing, out of this
+ticket's scope — see TranslateLangCacheTest.php lines 149-155).
+
+=== Diff scope boundary (git diff --stat feat/userapp-reskin2...HEAD) ===
+ Admin/app/helpers.php                             |  18 ++-
+ Admin/tests/Feature/TranslateLangCacheTest.php    | 167 ++++++++++++++++++++++
+ docs/solutions/NEARS-3447-translate-lang-cache.md |  54 +++++++
+ 3 files changed, 237 insertions(+), 2 deletions(-)
+CONFIRMED: no lines touch Admin/app/CentralLogics/Helpers.php or
+Admin/app/Http/Controllers/Admin/LanguageController.php. NEARS-19210 NOT folded in.
+
+=== Automated backstop ===
+$ cd Admin && vendor/bin/phpunit --filter TranslateLangCacheTest
+OK, but there were issues!
+Tests: 5, Assertions: 14, PHPUnit Deprecations: 1.
+(5/5 green, 14 assertions — matches conductor's [6] report.)
+
+=== AC1 [perf] — isolated process, N=10000 ===
+N=10000 cached calls total=0.033087015151978s (3.3087015151978E-6s/call)
+N=10000 raw include() total=18.710983991623s (0.0018710983991623s/call)
+cached is faster than 50% of raw-include cost: YES -> AC1 PASS
+(565x faster than the raw repeated-include cost it replaces; flat per-call cost regardless
+of N — also independently confirmed flat between N=5000 and N=10000 in an earlier combined
+run: per-call ratio 1.00014, i.e. no scaling with call count.)
+
+=== AC2 [behav] — isolated process ===
+translate('login') = 'Login' (expect 'Login') -> AC2 PASS
+
+=== AC3 [behav] — isolated process (qa_ac3_isolated.php) ===
+first call  = 'Qa nears 3447 ac3iso 1789108992 9065' (expect same)
+mtime changed on first call: YES
+second call = 'Qa nears 3447 ac3iso 1789108992 9065'
+no second write (content identical byte-for-byte before/after 2nd call): YES
+values match expected across calls: YES -> AC3 PASS
+(worktree file restored via git checkout -- after probe; verified `git status --short` clean)
+
+=== AC4 [behav] — isolated process ===
+en:name='Name' ar:name='اسم' en:name(after switch back)='Name' -> AC4 PASS
+(also re-confirmed live over HTTP below against the real admin web app)
+
+=== AC5 / NEARS-3447-F1 fix-cycle-1 defect — isolated process (qa_ac5_isolated.php) ===
+Simulated an EXTERNAL raw file_put_contents to messages.php (mimicking LanguageController)
+for a key NOT yet in the in-process cache, after warming the cache with an unrelated call
+(mimicking a long-lived queue worker):
+translate(key) after external write = 'messages.qa_nears_3447_ac5iso_...' (Laravel's own
+  SEPARATE trans() loader cache echoing the raw key back — pre-existing, unrelated to this
+  fix, explicitly out of scope per TranslateLangCacheTest.php:149-155)
+file unchanged by translate() call (no clobber): YES
+did NOT return the auto-append placeholder: YES
+admin-authored value survives on disk: YES (disk value = 'ADMIN_AUTHORED_VALUE_69918')
+-> AC5/F1 PASS: the mtime-invalidation fix correctly detects the external write and does NOT
+   re-classify the key as missing / does NOT clobber the admin-authored value with an
+   auto-generated placeholder. (Matches the automated test's own scoped assertion shape.)
+
+=== QA Test Scope item 6 — validation./passwords./pagination./order_texts. bypass cache ===
+translate('validation.required') = 'The :attribute field is required.'
+trans('validation.required') direct = 'The :attribute field is required.'
+identical -> PASS (routes straight to trans(), never touches the new cache)
+
+=== QA Test Scope item 7 — try/catch fallback path unchanged ===
+App::setLocale('fr') (locale dir does not exist under resources/lang/) then translate('login')
+-> 'Login' (no fatal error; PHP include() warning caught via Laravel's ErrorException handler,
+   falls back to trans() inside the catch block) -> PASS
+
+=== Regression smoke — live HTTP against the real admin web app (this worktree) ===
+$ php artisan serve --host=127.0.0.1 --port=8447 (background)
+$ curl -L http://127.0.0.1:8447/admin  -> HTTP 200 (redirects to landing "/")
+  Rendered translate()-heavy landing page content: "About us", "Contact Us", "Parcel Delivery",
+  "Pharmacy", "Privacy policy", etc. No exception/Whoops markers in body.
+$ curl http://127.0.0.1:8447/lang/ar (sets locale cookie) -> HTTP 302
+$ curl -b cookies http://127.0.0.1:8447/  -> HTTP 200, rendered Arabic text e.g. "توصيل الطرود"
+  (Parcel Delivery) — confirms AC4 locale-switch behavior end-to-end over real HTTP requests,
+  not just the in-process script.
+grep "local\." storage/logs/laravel.log (post-requests) -> no matches (clean, no new errors
+  logged by either request).
+Worktree left clean afterward: ar/messages.php picked up real store-name auto-append keys
+from live DB content during the requests (ordinary translate() side effect, unrelated to this
+fix) — reverted via `git checkout --` to keep the worktree pristine for handoff.
+
+=== Verdict ===
+PASS — all 5 ACs + all QA Test Scope items demonstrated live against the worktree's own
+running Laravel process/app, in addition to the 5/5 green automated suite. No task_bugs, no
+regression_bugs found.
