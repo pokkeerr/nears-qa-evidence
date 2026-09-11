@@ -1,0 +1,21 @@
+$ curl -s -i -X PUT http://127.0.0.1:8231/api/v1/taxvat/get-calculated-tax \
+    -H "Authorization: Bearer <passport token for customer@nears.com>" \
+    -H "Accept: application/json" -d '{"totalProductAmount":100,"productIds":"[]","categoryIds":"[]","quantity":"[]"}'
+HTTP/1.1 500 Internal Server Error
+X-Request-Id: b87fa505-1b87-434c-a6d5-ba9a363ac845
+Content-Type: application/json
+
+{"message":"Something went wrong"}
+
+-> NOT a 401: the new apiGuestCheck guard did not turn away a valid authenticated caller.
+-> No 'error'/'line' keys, no raw exception text in the body (global exception renderer masks it).
+-> The 500 itself is the PRE-EXISTING, unrelated named-args bug in TaxController::getCalculateTax's
+   call into CalculateTaxService::getCalculatedTax (categoryIds/quantity/addonQuantity/addonCategoryIds
+   not declared by the service signature) — confirmed by both engineer + security reviewer during
+   build/review, untouched by this diff, zero live callers of this route exist today. Correlated in
+   storage/logs/laravel.log:
+[2026-09-11 12:11:49] production.ERROR: [FAIL] Unknown named parameter $categoryIds {"trace_id":"54781ff7c727384a8fb0d06698606582","correlation_id":"b87fa505-1b87-434c-a6d5-ba9a363ac845","type":"Error","endpoint":"/api/v1/taxvat/get-calculated-tax"}
+
+Garbage-bearer sweep (must also 401, not fall through):
+$ curl -s -i -X PUT .../get-calculated-tax -H "Authorization: Bearer not-a-real-token"
+HTTP/1.1 401 Unauthorized

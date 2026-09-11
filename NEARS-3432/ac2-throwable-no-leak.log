@@ -1,0 +1,21 @@
+Live tinker probe (DB::beginTransaction() / DB::rollBack(), no committed rows) against
+worktree HEAD 1d20a4e68, real (non-spied) Log facade:
+
+$ cat nears3432_ac2_probe2.php | php artisan tinker
+RESULT_JSON={"include":null,"totalTaxPercent":0,"totalTaxamount":0}
+ROLLED_BACK
+
+Post-rollback residue check:
+RESIDUE_COUNT=0   (SystemTaxSetup row created by the probe was never committed)
+
+storage/logs/laravel.log (grep -F "CalculateTaxService::getCalculatedTax tax calculation failed"):
+[2026-09-11 12:12:59] production.ERROR: [FAIL] CalculateTaxService::getCalculatedTax tax calculation failed {"class":"Modules\\TaxModule\\Services\\CalculateTaxService","line":1390,"tax_payer":"vendor","store_id":null}
+
+-> client-facing $result carries no 'error'/'line' keys (bare emptyTaxResult() shape); the raw
+   exception line/message is only in the server-side log, matching the fix's intent.
+
+Cross-check: automated Nears3432TaxRouteAuthLeakTest::test_throwable_inside_service_strips_error_and_line_keys
+re-run live in this worktree, independently green:
+$ vendor/bin/phpunit --configuration phpunit.xml --filter Nears3432TaxRouteAuthLeakTest
+....  4 / 4 (100%)
+OK (4 tests, 10 assertions)

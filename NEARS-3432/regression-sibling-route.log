@@ -1,0 +1,15 @@
+$ curl -s -i http://127.0.0.1:8231/api/v1/taxvat/get-taxVat-list
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[{"id":3,"name":"VAT","tax_rate":5}]
+
+-> unchanged, unauthenticated 200, as before this diff (sibling route left deliberately unguarded,
+   out of scope for this ticket).
+
+Automated backstop, full TaxModule-adjacent suite re-run live in this worktree:
+$ vendor/bin/phpunit --configuration phpunit.xml --filter "Tax"
+................................................................  64 / 64 (100%)
+OK, but there were issues!
+Tests: 64, Assertions: 294, PHPUnit Deprecations: 1.
+(deprecation is a pre-existing PHPUnit framework notice, unrelated to this diff, no failures)
