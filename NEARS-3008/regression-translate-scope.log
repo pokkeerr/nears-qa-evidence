@@ -1,0 +1,31 @@
+NEARS-3008/NEARS-3035 — bounded regression spot-check: translate()-scoped model read path
+post-migration, on the isolated DB (multi_food_db_test_nears_nears_3008_index_cluster, migrated).
+
+app()->setLocale('ar');
+Store::whereHas('translations', fn($q) => $q->where('locale','ar'))->first();
+  -> store_id=35 name=متجر الاختبار
+
+Item::whereHas('translations', fn($q) => $q->where('locale','ar'))->first();
+  -> item_id=95 name=بروكلي
+
+Both models' `translate` global scope correctly resolved Arabic-translated names post-migration
+(composite index in place, bare locale index dropped) — confirms the index-drop-and-replace on
+`translations` does not break the 30+ consuming models' normal read path.
+
+=== automated backstop (independent re-run, not the engineer's cached output) ===
+vendor/bin/phpunit --configuration phpunit.xml --filter
+  "Deliveryman|DeliveryMan|RecordLocation|IndexCluster|HotTableFilterIndex|WalletTransactionsIndex|CuisineNameLocalization|StoreDetailsCuisinePayload"
+  tests/Feature
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_3008_index_cluster
+Tests: 98, Assertions: 983, PHPUnit Deprecations: 1. OK, but there were issues (1 deprecation
+notice, no failures).
+
+=== unrelated finding investigated and ruled OUT (not filed) ===
+GET /api/v1/delivery-man/profile 500'd ("InvalidArgumentException: Syntax error" inside
+JsonResponse::setData while json_encode'ing the DeliveryMan model) when hit with a delivery_man
+row I inserted ad hoc with only a handful of columns populated (missing image/identity fields
+etc. that a real seeded row always carries). Re-tested the identical call against an existing,
+properly-seeded delivery man (id=1, "Ali Hassan") on the same isolated DB/migrated state -> 200
+OK, valid JSON. get_profile() is untouched by this diff (git blame on the touched lines traces to
+2026-03-04, long before this ticket) and the failure did not reproduce against real data -> ruled
+a test-fixture artifact of my own minimal INSERT, not a product regression. Not filed as a bug.

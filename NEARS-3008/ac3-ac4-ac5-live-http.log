@@ -1,0 +1,52 @@
+NEARS-3008 — AC3/AC4/AC5 live HTTP against booted `php artisan serve` on the isolated DB
+DB=multi_food_db_test_nears_nears_3008_index_cluster (never multi_food_db), port 8091, migrated state.
+DM row inserted directly into the isolated clone only (id=18390, auth_token=qa3008_live_...).
+
+=== first tick (valid token) ===
+POST /api/v1/delivery-man/record-location-data  Authorization: Bearer qa3008_live_...
+{"message":"Location recorded"}
+HTTP_STATUS:200
+
+=== second tick (valid token, same DM) ===
+{"message":"Location recorded"}
+HTTP_STATUS:200
+
+DB check after both ticks:
+SELECT delivery_man_id, longitude, latitude, location FROM delivery_histories WHERE delivery_man_id=18390;
+18390  54.2  24.2  QA second tick
+row count: 1
+=> create-then-update (updateOrCreate keyed on delivery_man_id) confirmed live: exactly one row,
+   holding the SECOND tick's values — AC3 create+update/idempotent-tick behavior confirmed.
+
+=== invalid token ===
+{"errors":[{"code":"token","message":"The selected token is invalid."}]}
+HTTP_STATUS:401
+
+=== missing token ===
+{"errors":[{"code":"token","message":"The token field is required."}]}
+HTTP_STATUS:401
+
+SELECT COUNT(*) FROM delivery_histories WHERE location IN ('QA invalid tick','QA missing tick');
+0
+=> AC4 confirmed live: both 401, zero writes.
+
+=== AC5 (no response-shape change) ===
+Full record_location_data() method read post-diff: only the `$dm = ...` line changed
+(now `$request['delivery_man'] ?? DeliveryMan::where(...)->first()`); the DeliveryHistory::
+updateOrCreate(...) call and the trailing `return response()->json(['message' =>
+translate('location recorded')], 200);` are byte-identical to pre-fix. Live response body
+observed above: {"message":"Location recorded"} — same single-key shape as before the change.
+
+=== AC3 query-count reduction (live spot-check via MySQL general_log, not just trusting phpunit) ===
+Enabled SET GLOBAL general_log='ON' (general_log_file=/tmp/qa3008-general.log), fired one
+authenticated tick, disabled again. grep -i "delivery_men" | grep -i "auth_token":
+
+  Prepare  select count(*) as aggregate from `delivery_men` where `auth_token` = ?
+  Execute  select count(*) as aggregate from `delivery_men` where `auth_token` = 'qa3008_live_...'
+  Prepare  select * from `delivery_men` where `auth_token` = ? limit 1
+  Execute  select * from `delivery_men` where `auth_token` = 'qa3008_live_...' limit 1
+
+Exactly 2 logical delivery_men.auth_token queries (the validator's `exists` rule + the
+DmTokenIsValid guard's own hydration query) — no third query from the controller. Matches the
+engineer's DB::getQueryLog()-based RecordLocationDataReuseTest assertion (assertSame(2, ...)),
+independently reproduced live via the MySQL general query log rather than trusted as-is.

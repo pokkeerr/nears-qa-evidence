@@ -1,0 +1,45 @@
+NEARS-3008 / NEARS-3035 — AC1+AC2 live migrate->rollback->migrate cycle
+Isolated DB: multi_food_db_test_nears_nears_3008_index_cluster (never multi_food_db)
+
+=== BEFORE migrate ===
+(delivery_men / delivery_histories: no matching index rows — expected, table had only PRIMARY/phone-unique)
+translations  1  translations_locale_index  1  locale  A  2  ...  (bare locale index present, pre-migration baseline)
+
+=== migrate ===
+2026_09_11_120000_add_indexes_to_delivery_men_and_histories ... 85.52ms DONE
+2026_09_11_130000_add_composite_index_to_translations ......... 32.39ms DONE
+
+=== AFTER migrate ===
+delivery_men  1  delivery_men_auth_token_index  1  auth_token
+delivery_men  1  delivery_men_zone_id_application_status_active_index  1  zone_id
+delivery_men  1  delivery_men_zone_id_application_status_active_index  2  application_status
+delivery_men  1  delivery_men_zone_id_application_status_active_index  3  active
+delivery_histories  1  delivery_histories_delivery_man_id_index  1  delivery_man_id
+translations  1  translations_translationable_type_id_locale_index  1  translationable_type
+translations  1  translations_translationable_type_id_locale_index  2  translationable_id
+translations  1  translations_translationable_type_id_locale_index  3  locale
+(translations_locale_index absent — replaced, as designed)
+
+=== rollback (both files) ===
+2026_09_11_130000_add_composite_index_to_translations ......... 40.62ms DONE
+2026_09_11_120000_add_indexes_to_delivery_men_and_histories ... 29.23ms DONE
+
+=== AFTER rollback ===
+(delivery_men / delivery_histories: no matching index rows — matches BEFORE state exactly)
+translations  1  translations_locale_index  1  locale  A  2  ...  (bare locale index restored exactly)
+(composite index absent — dropped by down(), as designed)
+
+=== migrate again (idempotency close of the loop) ===
+2026_09_11_120000_add_indexes_to_delivery_men_and_histories ... 75.50ms DONE
+2026_09_11_130000_add_composite_index_to_translations ......... 37.35ms DONE
+
+=== FINAL state ===
+Identical to the first AFTER-migrate snapshot above, byte-for-byte (all 3 delivery_men/
+delivery_histories indexes present with correct column order; translations composite present,
+bare locale index absent; translations_translationable_id_index untouched throughout — confirmed
+present in both BEFORE and FINAL states).
+
+No errors at any step. Confirms AC1 (delivery_men.auth_token, delivery_men(zone_id,
+application_status,active), delivery_histories.delivery_man_id indexed + idempotent) and AC2
+(translations composite index + bare locale-index removal + exact rollback restoration)
+independently, live, outside the engineer's phpunit test class.
