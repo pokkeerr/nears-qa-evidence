@@ -1,0 +1,44 @@
+NEARS-3440 QA — DB verification (read-only SELECT), backend http://127.0.0.1:8130 (worktree-local, own DB)
+
+=== AC1: admin-initiated cold-start to vendor (UserInfo 126, freshlocal@demo.com / store "Fresh local") ===
+Before: no conversation row existed for user_info_id=126 (verified via NOT EXISTS query).
+POST /admin/message/store/126 (authenticated admin session, real endpoint) -> HTTP 200
+SELECT id, sender_id, sender_type, receiver_id, receiver_type, last_message_time FROM conversations WHERE receiver_id=126 OR sender_id=126;
+  67  0  admin  126  vendor  2026-09-11 07:12:50
+=> receiver_type='vendor' (was hardcoded 'user' pre-fix). laravel.log clean (no [FAIL]/[ERR]) for this request window.
+
+=== AC3: admin reply into EXISTING vendor-initiated thread (UserInfo 112, ahmed.khan@demo.com) ===
+Existing conversation 65: sender_id=112 sender_type=vendor, receiver_id=0 receiver_type=admin (vendor-initiated, pre-existing).
+POST /admin/message/store/112 -> HTTP 200
+SELECT id, sender_id, sender_type, receiver_id, receiver_type FROM conversations WHERE sender_id=112 OR receiver_id=112;
+  47  3    customer      112  vendor
+  65  112  vendor        0    admin
+  66  112  vendor        123  delivery_man
+=> Still exactly conversation 65 reused (no new row, MAX(id) stayed 67). New message (id 120) appended to conversation_id=65.
+   laravel.log: FCM push succeeded (200) for this request, no [FAIL]/[ERR].
+
+=== Bonus: delivery_man cold-start (UserInfo 2, tt@te.com) ===
+POST /admin/message/store/2 -> HTTP 200
+  68  0  admin  2  delivery_man
+=> receiver_type='delivery_man' derived correctly.
+
+=== Bonus: customer cold-start (UserInfo 125, sophie.davis@demo.com) ===
+POST /admin/message/store/125 -> HTTP 200
+  69  0  admin  125  user
+=> receiver_type stays 'user' (no accidental rename to 'customer').
+
+=== Bonus: nonexistent UserInfo PK ===
+POST /admin/message/store/999999999 -> HTTP 404
+Body: {"errors":[{"code":"receiver","message":"Not found"}]}
+laravel.log: [FAIL] admin conversation reply: receiver UserInfo not found {"user_id_param":"999999999"} — clean 404, no 500.
+
+=== contract_impact confirm ===
+Success response shape unchanged across all calls above: {"view": "<html>..."}. Only the persisted
+DB value of conversations.receiver_type varies by branch — no new/removed/renamed JSON keys.
+
+=== Regression: Admin Messages inbox (admin/message/list) ===
+HTTP 200. Rows render for all 4 participant types touched above with resolved display names
+(Fresh local / John / Sophie Davis / tt te) — no "user_not_found" placeholders, no error.
+
+=== Regression: Admin Store (Vendor) view > Conversations tab (admin/store/view/12/conversations) ===
+HTTP 200, "Fresh local" name renders, no exception in response body or laravel.log for this request.
