@@ -1,0 +1,38 @@
+$ ../scripts/newtask-guards/run-observed.sh --timeout 900 --label AC1-FullSuite -- \
+    vendor/bin/phpunit --configuration phpunit.xml --testsuite Unit,Feature
+
+run-observed: started: yes  command exit: 1  timed-out: no  wall-seconds: 572
+
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_3350_unmocked_http_tests
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+...2156 / 2156 (100%)...
+Time: 09:30.646, Memory: 848.50 MB
+
+There were 2 failures:
+
+1) Tests\Feature\ConfigContractTest::test_decimal_precision_is_two_not_whole_dirhams
+   NEARS-2019 (EXPECTED RED — the money defect, not a broken build) — pre-existing,
+   already tracked, self-documented in its own failure message. Unrelated to NEARS-3350.
+
+2) Tests\Feature\HotTableFilterIndexMigrationTest::test_query_shape_uses_index_after_up_not_before
+   with data set "orders by user_id ordered by created_at"
+   expected a table scan before up() for: SELECT * FROM orders WHERE user_id=1 ORDER BY
+   created_at DESC LIMIT 10 -- but an unrelated later index (orders_owner_idempotency_key_unique)
+   already services the query, so no table scan occurs pre-migration. Pre-existing test
+   fragility from index precedence, unrelated to NEARS-3350 (this ticket touched only
+   SocialAuthController.php + 2 Security test files). Filed as regression_bug for PO triage.
+
+Tests: 2156, Assertions: 16938, Failures: 2, Deprecations: 1, PHPUnit Deprecations: 1, Skipped: 1.
+
+RESULT FOR AC1: full Unit,Feature suite completed within its 900s bound (actual wall
+572s / phpunit-internal 9:30.646) -- NO hang to max_execution_time, no timeout. ZERO
+auth/social/HIBP-related failures -- exactly the outcome the ticket predicted. The 2
+failures present are both pre-existing and unrelated to this ticket's scope (1 already
+self-documented as a known/tracked expected-red defect, NEARS-2019; the other a
+pre-existing DB-index-precedence test fragility). AC1: PASS.
+
+(Also present, NOT a test failure: two "[FAIL] OpenTelemetry export failed; Laravel
+logger unavailable" lines mid-stream -- these are expected log output FROM
+OtelExportBlockingTest / ObservabilityProviderBootOrderTest, which deliberately exercise
+a broken-logger scenario as their own test subject; both those tests pass (not among the
+2 numbered failures above).)

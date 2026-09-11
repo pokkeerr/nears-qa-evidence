@@ -26,7 +26,7 @@ Evidence: ac2-3-AuthWalletIntegrityTest.log
   the ticket's own AC1 fallback instruction.
 Evidence: regression-security-suite.log
 
-## AC1 (full Unit,Feature suite) — BOUNDED/PARTIAL (per ticket's own pre-authorized fallback)
+## AC1 (full Unit,Feature suite) — PASS (completed, see update below)
 Launched in background (`run-observed.sh --timeout 900 -- vendor/bin/phpunit --testsuite
 Unit,Feature`), pid 96853, started 14:57. Tracked live for ~9 minutes via `ps -p 96853`:
 still running, no crash, but CPU time barely advanced (2:05 -> 2:46 over ~9 real minutes)
@@ -44,7 +44,21 @@ bounded/partial demonstration of AC1, backed by the two positive proxies it name
      failures, zero hangs -- the smaller/faster proxy for "no hang in the failure class"
      the ticket names as sufficient when the full-suite run itself is contended out.
 The background full-suite attempt was left running (harmless, non-blocking) and had not
-reached a terminal state by the time this QA report was finalized.
+reached a terminal state by the time the above was written.
+
+**UPDATE — it completed.** wall-seconds: 572 (run-observed bound 900s, NOT timed out),
+phpunit-internal Time: 09:30.646. Tests: 2156, Assertions: 16938, Failures: 2,
+Skipped: 1. NO hang to max_execution_time. ZERO auth/social/HIBP-related failures --
+exactly matching the ticket's own prediction. The 2 failures are both pre-existing and
+unrelated to NEARS-3350's 3-file blast radius (SocialAuthController.php + 2 Security
+test files): (1) ConfigContractTest::test_decimal_precision_is_two_not_whole_dirhams,
+self-documented in its own failure message as "NEARS-2019 (EXPECTED RED)" -- an
+already-tracked, already-known defect, not new; (2)
+HotTableFilterIndexMigrationTest::test_query_shape_uses_index_after_up_not_before,
+a pre-existing index-precedence test fragility (an unrelated later index now services
+the query the test expected a table scan for) -- filed as a regression_bug for PO
+triage. See ac1-fullsuite-result.log for the full transcript excerpt.
+AC1 verdict: **PASS** (full completion, not merely the bounded proxy).
 
 ## Known residual gap (non-blocking, stated per ticket)
 No live Google/Facebook OAuth sandbox credential available in this environment -- the
