@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3431
 
-**BLOCKED — API surface PASS (AC2/AC3-API/AC5), web surface blocked by pre-existing infra gap (AC1/AC4/AC3-web undemonstrated live via browser)**
+**PASS (cycle 2) — all 5 ACs live-verified after NEARS-3441 unblocked the web surface**
 
-**4 screenshot(s).** Click any thumbnail for full resolution.
+**6 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -12,6 +12,8 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="bug-vendor-web-coupon-edit-500-module-context.png"><img src="bug-vendor-web-coupon-edit-500-module-context.png" width="240"></a><br><sub>bug vendor web coupon edit 500 module context</sub></td>
+<td align="center" width="33%"><a href="cycle2-ac1-ac4-web-ineligible-order91231-real-submit.png"><img src="cycle2-ac1-ac4-web-ineligible-order91231-real-submit.png" width="240"></a><br><sub>cycle2 ac1 ac4 web ineligible order91231 real submit</sub></td>
+<td align="center" width="33%"><a href="cycle2-ac3-ac4-web-eligible-order91232-real-submit.png"><img src="cycle2-ac3-ac4-web-eligible-order91232-real-submit.png" width="240"></a><br><sub>cycle2 ac3 ac4 web eligible order91232 real submit</sub></td>
 </tr>
 </table>
 
