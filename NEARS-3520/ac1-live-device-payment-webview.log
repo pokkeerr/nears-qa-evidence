@@ -1,0 +1,56 @@
+NEARS-3520 AC1 — live device (emulator-5556) attempt log, DeliveryApp built off
+worktree HEAD 8b00dd6d4, logged in as delivery_man td@td.com (id 5, payable
+balance 66.00 AED).
+
+Flow driven live: Dashboard -> "ادفع الآن" (Pay Now) -> My Account/Wallet ->
+"ادفع الآن" -> payment method bottom sheet -> selected each of the two
+available gateways ("Paypal", "Razor pay") in turn.
+
+Observed via app log (flutter run stdout) + `adb logcat`:
+
+1. POST /api/v1/delivery-man/make-collected-cash-payment -> http_status=200
+   (redirect_link generated: http://10.0.2.2:8000/payment/{gateway}/pay/?payment_id=<uuid>)
+2. InAppBrowser opens; the initial navigation to OUR OWN backend host loads
+   and renders successfully — NOT canceled (correct: same host as baseUrl is
+   allow-listed). No "payment webview navigation blocked" log line fired for
+   this legitimate navigation (confirms zero false-positive blocking of the
+   real payment flow — the fix does not regress the happy path).
+3. Paypal path: page rendered JSON `{"response_code":"gateways_default_204",...}`
+   — PaypalPaymentController fails closed to this generic response because
+   business_settings.paypal has null client_id/secret in this local dev DB
+   (confirmed via `SELECT value FROM business_settings WHERE key='paypal'` ->
+   {"status":"0","paypal_client_id":null,"paypal_secret":null}). No external
+   navigation to paypal.com is ever attempted — the flow terminates on our own
+   host before any redirect decision is needed.
+4. Razor Pay path: page rendered the razor-pay Blade view, which loads
+   `https://checkout.razorpay.com/v1/checkout.js` as a SUBRESOURCE (<script
+   src>, not a top-level navigation — chromium console line confirms:
+   "source: https://checkout.razorpay.com/v1/checkout.js"). This is correctly
+   NOT subject to shouldOverrideUrlLoading (that gate only fires on
+   navigation actions, not resource fetches) and is NOT blocked — expected,
+   since blocking subresource loads would break the checkout widget itself.
+   The widget then failed client-side with console error "Error creating
+   order: Error: No key passed" (business_settings.razor_pay also has null
+   razor_key/razor_secret) — again terminating without any external
+   top-level navigation, confirmed via `adb logcat` chromium CONSOLE lines.
+5. Backing out of both attempts (`_exitApp` -> "Cancel Payment") returned
+   cleanly to the My Account screen both times — no crash, 0 runtime errors
+   (`ui_errors` scanned 124-126 flutter-tag lines for the app's own pid across
+   the whole session, 0 matches).
+
+ENVIRONMENT CONSTRAINT (not a fix defect): both gateways configured/selectable
+in this local dev DB (Paypal, Razor Pay) have null sandbox credentials, and the
+DM "collect cash payment" endpoint's own `Payment::generate_link()` only ever
+returns a URL on OUR OWN backend host (`url("payment/{gateway}/pay/...")`) — a
+genuine cross-host top-level redirect (the exact scenario shouldOverrideUrlLoading's
+host-block guards against) could not be organically triggered via the real
+business flow in this environment, because no gateway integration here is wired
+with live/sandbox credentials capable of completing a checkout and redirecting
+back. This is confirmed structural (verified by reading
+PaypalPaymentController::payment()/RazorPayController::index() and the
+business_settings rows directly), not a gap introduced or left open by this
+ticket. The negative control (host-block itself firing) is instead demonstrated
+deterministically via the live re-run of payment_webview_host_allowlist_test.dart
+(ac1-unit-tests-rerun.log in this same evidence dir), which exercises the exact
+production `PaymentWebViewHostAllowlist.isAllowedHost`/`MyInAppBrowser.matchesSuccessFlag`
+static methods `shouldOverrideUrlLoading`/`_redirect` call — not a mock.

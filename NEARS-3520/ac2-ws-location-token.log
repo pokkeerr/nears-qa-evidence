@@ -1,0 +1,65 @@
+NEARS-3520 AC2 — DM private-user-location WS bearer-token hardening. Ticket text
+states this AC was ALREADY SATISFIED by the separately-merged NEARS-2935; this
+ticket's own change (profile_repository.dart) is comment-only. Verified live +
+via source, both client and server sides, on 2026-09-12.
+
+1) CLIENT — DeliveryApp/lib/features/profile/domain/repositories/profile_repository.dart
+   buildLocationUpdateFrame() (read live off worktree HEAD 8b00dd6d4):
+     {
+       'event': 'client-location-update',
+       'channel': channelName,
+       'data': {'latitude': ..., 'longitude': ..., 'location': ...},
+     }
+   No `token` field anywhere in the frame. Confirmed via `git diff` against the
+   merge-base too — this ticket only ADDED a comment above this function; the
+   shape itself is untouched, unchanged since NEARS-2935.
+
+2) SERVER — Admin/routes/channels.php: `user-location.{deliveryManId}` is a
+   PRIVATE broadcast channel gated by an ad-hoc `delivery_man_token` guard
+   (Auth::viaRequest, resolves a DeliveryMan straight off the request's Bearer
+   token via `DeliveryMan::where('auth_token', $token)->first()`), scoped
+   per-DM (`(int) $dm->id === (int) $deliveryManId`). This IS the
+   channel-auth handshake AC2 requires in place of a token-in-event-body
+   design — confirmed present and unconditional on this exact channel name.
+
+3) SERVER — Admin/app/Listeners/HandleClientMessage.php::resolveDeliverymanId()
+   derives identity ONLY from the anchored channel name
+   (`private-user-location.<digits>` after Reverb's private-prefix strip),
+   never from any client-supplied token; isGenuineChannelMember() additionally
+   confirms the sending connection is a real, currently-subscribed member of
+   that exact channel (via Reverb's own ChannelManager) before ever writing to
+   DeliveryHistory or dispatching a broadcast job — i.e. only a connection
+   that already passed step (2)'s per-DM /broadcasting/auth predicate can
+   reach this code at all.
+
+4) LIVE, this QA session — `GET /api/v1/config` on the shared dev backend
+   returns `websocket_status: 0` (WS globally disabled in this local dev DB,
+   a pre-existing environment condition unrelated to this ticket — confirmed,
+   not caused by this diff). DeliveryApp's own `_maybeSendLocation()" therefore
+   correctly falls back to the plain REST endpoint
+   (`POST /api/v1/delivery-man/record-location-data`), which we drove live and
+   confirmed both at the network layer (`http_status=200` in the app log) AND
+   server-side via direct DB read:
+
+     mysql> SELECT delivery_man_id, latitude, longitude, location, time, updated_at
+            FROM delivery_histories WHERE delivery_man_id=5 ORDER BY updated_at DESC LIMIT 1;
+     +-----------------+----------+-----------+---------------------------------+---------------------+---------------------+
+     | delivery_man_id | latitude | longitude | location                        | time                | updated_at          |
+     +-----------------+----------+-----------+---------------------------------+---------------------+---------------------+
+     |               5 | 23.818   | 90.37     | R999+5W9, Dhaka District, BD    | 2026-09-12 13:40:25  | 2026-09-12 13:40:25 |
+     +-----------------+----------+-----------+---------------------------------+---------------------+---------------------+
+   (td@td.com is delivery_man id 5; timestamp matches this QA session.)
+
+WHY WS ITSELF WAS NOT LIVE-CAPTURED THIS RUN: flipping `websocket_status` to 1
+would require mutating business_settings on the SHARED dev backend (confirmed
+via `lsof` to be served out of a DIFFERENT, concurrently-active worktree,
+nears-NEARS-3518-mobile-security-hardening) plus standing up a Reverb server —
+disproportionate and against the "never mutate the shared DB during a parallel
+run" rule for a comment-only change whose functional correctness is owned by
+the separately-merged, already-QA'd NEARS-2935. Both client and server code
+paths were independently re-read and re-confirmed on THIS run's exact worktree
+HEAD (not merely cited from memory of the earlier ticket), and the REST
+fallback confirms location tracking functions correctly end-to-end on this
+build. No `token` field exists anywhere in the client event, and the
+server-side channel-auth handshake is confirmed live-reachable-only (per
+HandleClientMessage's isGenuineChannelMember gate).

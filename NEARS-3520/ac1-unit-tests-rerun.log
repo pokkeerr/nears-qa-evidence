@@ -1,0 +1,33 @@
+NEARS-3520 AC1 — live re-run of the two new/changed security test files, on device
+worktree/branch HEAD 8b00dd6d4, executed during this QA pass (2026-09-12).
+
+Command:
+  ~/Tools/flutter/bin/flutter test test/payment_webview_host_allowlist_test.dart \
+    test/features/my_account/payment_redirect_match_test.dart
+
+Result: 15/15 passed (0 failures). Full test names below map 1:1 to the QA Test
+Scope's requested negative controls (substring-smuggling, non-http(s) schemes,
+about:blank, tel:):
+
+00:00 +0: PaymentWebViewHostAllowlist.isAllowedHost the Nears backend host is always allowed
+00:00 +1: PaymentWebViewHostAllowlist.isAllowedHost backend host match is case-insensitive
+00:00 +2: PaymentWebViewHostAllowlist.isAllowedHost a configured gateway host is allowed
+00:00 +3: PaymentWebViewHostAllowlist.isAllowedHost a host that is neither the backend nor a configured gateway is rejected
+00:00 +4: PaymentWebViewHostAllowlist.isAllowedHost a host that merely CONTAINS an allowed host is rejected (no substring match)
+00:00 +5: PaymentWebViewHostAllowlist.isAllowedHost null or empty host is rejected
+00:00 +6: PaymentWebViewHostAllowlist.isAllowedHost empty backendHost never matches (fail-closed, not wildcard)
+00:00 +7: PaymentWebViewHostAllowlist.isAllowed (Uri entry point) extracts host from a full Uri
+00:00 +8: MyInAppBrowser.matchesSuccessFlag exact /success path + matching flag on the backend origin matches
+00:00 +9: MyInAppBrowser.matchesSuccessFlag a mismatched flag value does not match
+00:00 +10: MyInAppBrowser.matchesSuccessFlag a different origin carrying the same path+flag does not match
+00:00 +11: MyInAppBrowser.matchesSuccessFlag unparsable url is rejected, not treated as a match
+00:00 +12: MyInAppBrowser.matchesSuccessFlag a non-http(s) scheme (deep link) is rejected without throwing
+00:00 +13: MyInAppBrowser.matchesSuccessFlag a tel: url is rejected without throwing
+00:00 +14: MyInAppBrowser.matchesSuccessFlag about:blank (empty host) is rejected without throwing
+00:14 +15: All tests passed!
+
+Full DeliveryApp suite (automated backstop, same run): `flutter test` -> 473 tests,
+"All tests passed!" (0 failures; the "[FAIL]" lines interleaved in the run for
+order_alarm_service_test.dart / api_client_corrupt_token_guard_test.dart are
+test-injected AppLogger.failure assertions, not real failures — the suite's
+own final tally confirms 0 failed).
