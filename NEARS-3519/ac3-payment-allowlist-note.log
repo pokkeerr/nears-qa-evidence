@@ -1,0 +1,36 @@
+=== AC3 (NEARS-806) — payment host allow-list + redirect matching ===
+
+Live (this run):
+- Logged in as vendor B, navigated My Business Plan -> Change Business Plan -> Migrate ->
+  Pay via Online (Paypal) -> Shift Subscription Plan.
+- App called POST /api/v1/vendor/business_plan (200), then opened MyInAppBrowser
+  ("payment_browser_created"), loaded the backend's own payment-mode page
+  ("payment_load_start" -> progress 10/20/100 -> "payment_load_stop"), with
+  "payment_redirect_check" firing per navigation and NOT cancelling the load -- i.e. the
+  backend's own host (== AppConstants.baseUrl origin, which the allow-list always permits) loaded
+  successfully through the new PaymentWebViewHostAllowlist gate. This is the ALLOW side of the
+  allow-list, demonstrated live: no regression, the legitimate host still loads.
+- The WebView rendered a raw JSON body `{"response_code":"gateways_default_204","message":
+  "information not found",...}` -- this dev/QA environment has no payment gateway (Paypal/Razor
+  pay) actually configured server-side, so a real end-to-end success/fail/cancel redirect
+  completion through an external gateway could not be exercised in this pool (pre-existing
+  environment limitation, unrelated to this fix).
+- Backed out via Cancel Payment; app returned cleanly to the business-plan screen.
+
+Not independently live-demonstrable in this pool: an actual spoofed/non-allow-listed host being
+served an http(s) redirect to CANCEL (would require standing up a malicious page under a
+non-allow-listed host and getting the real gateway to redirect through it -- out of scope for
+QA to fabricate).
+
+Automated backstop (this run, all PASS -- see `automated` in the QA envelope):
+- test/payment_webview_host_allowlist_test.dart (8 tests): backend host allowed, gateway host
+  allowed, case-insensitive match, a host that merely CONTAINS an allowed host is REJECTED (the
+  exact vulnerability class this AC fixes), null/empty host rejected, empty backendHost never
+  wildcard-matches.
+- test/features/payment/payment_redirect_match_test.dart (6 tests): matchesRedirectPath/
+  matchesSuccessFlag require origin match (not `.contains()`), reject a different-origin URL
+  carrying the same path+flag, reject unparsable URLs.
+
+Verdict basis: live demonstration of the ALLOW path (no regression) + unit-test-verified BLOCK
+path (the substring-spoof rejection this AC exists to fix), per the AC's own "best-effort ...
+state what you could vs couldn't demonstrate live" allowance.

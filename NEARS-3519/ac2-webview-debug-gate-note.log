@@ -1,0 +1,33 @@
+=== AC2 (NEARS-805) — WebView debug gate verification notes ===
+
+Code confirmation (payment_screen.dart, diff in commit 309c69f56):
+    if (kDebugMode) {
+      await InAppWebViewController.setWebContentsDebuggingEnabled(true);
+    }
+kDebugMode is a Dart compile-time constant: true only in `flutter run`/debug builds; false in
+both profile and release builds. This directly satisfies the AC.
+
+Live-device attempt and why it was inconclusive:
+- Built + installed VendorApp in PROFILE mode twice: once via `flutter run --profile` (attach
+  session) and once via a standalone `flutter build apk --profile` + manual `adb install`.
+- In BOTH cases `adb shell dumpsys package com.izzes.nearsvendor` reported
+  `flags=[ DEBUGGABLE ... ]` -- i.e. Flutter's default Android profile build type in this
+  project inherits `android:debuggable="true"` from the debug build type (this is Flutter's own
+  standard template behavior, not something the NEARS-805 fix controls).
+- With ApplicationInfo.FLAG_DEBUGGABLE set, `/proc/net/unix` showed a live
+  `@webview_devtools_remote_<pid>` socket regardless of our own kDebugMode gate -- Android's
+  WebView/Chromium auto-enables remote debugging for any app carrying the OS-level debuggable
+  flag, independent of whether the app itself calls setWebContentsDebuggingEnabled(true).
+- This means a profile-mode test cannot distinguish pre-fix (unconditional call) from post-fix
+  (kDebugMode-gated call) behavior in this project/pool: the socket appears either way, driven by
+  Android's own debuggable-flag behavior, not by our code path.
+- A genuine RELEASE build (debuggable=false) would be a valid discriminating test, but this dev
+  pool's backend is HTTP-only (no TLS), and AppConstants.shouldRejectBaseUrl() intentionally
+  THROWS at runtime for a release build with no https:// BASE_URL (NEARS-2233 guard) -- so a real
+  release build cannot complete login/reach the payment screen against this local backend without
+  a genuine HTTPS endpoint, which is out of scope for this QA pass to stand up.
+
+Verdict basis: code-path confirmation (the AC's own text explicitly allows this as an alternative
+to a live chrome://inspect check "whichever is feasible for this pool"). The live attempt is
+recorded here for anyone re-verifying, so the DEBUGGABLE-flag confound is not rediscovered from
+scratch.
