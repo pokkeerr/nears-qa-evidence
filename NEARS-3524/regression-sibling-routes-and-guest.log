@@ -1,0 +1,29 @@
+=== Sibling routes, same group, real bearer token (user 1) ===
+POST /api/v1/customer/order/reorder?order_id=91199  Authorization: Bearer <token>
+{"items":[{"item_id":99,...}],"unavailable":[],"store_id":1}
+HTTP_STATUS:200
+
+GET  /api/v1/customer/order/buy-it-again  Authorization: Bearer <token>
+{"total_size":0,"limit":25,"offset":1,"products":[]}
+HTTP_STATUS:200
+
+=== Guest (no bearer token) caller on a different route in the SAME apiGuestCheck group ===
+GET /api/v1/customer/order/list?guest_id=some-guest-id  (no bearer token, no valid guest token)
+{"errors":"Unauthorized"}
+HTTP_STATUS:401
+-> Expected: NEARS-1309/1311 GuestTokenGuard hardening (pre-existing, unrelated to this fix)
+   rejects a bare guest_id with no matching guest token. This route's middleware
+   (APIGuestMiddleware) was NOT touched by this change (diff is a single line on the
+   wallet-payment route only — see ac0-diff.log). Confirms guest callers on other routes
+   in the group are unaffected by adding auth:api to wallet-payment/reorder/buy-it-again.
+
+=== BE-log check (NEARS-566, [api]-scoped, endpoint-grep since X-Request-Id echo/NEARS-564
+    not yet shipped) — Admin/storage/logs/laravel.log grep -F "/api/v1/customer/order/wallet-payment" ===
+[...] production.ERROR: [FAIL] The resource owner or authorization server denied the request.
+      {"correlation_id":"a0d8701d-...","type":"League\OAuth2\Server\Exception\OAuthServerException",
+       "endpoint":"/api/v1/customer/order/wallet-payment"}
+  -> matches the AC3b garbage-token call: 401 WITH a paired [FAIL] log line (not silent). Expected.
+[...] production.WARNING: [FAIL] guest.token.rejected {"reason":"invalid_guest_id","guest_id":"some-guest-id",...}
+  -> matches the guest-route regression check above. Expected, pre-existing behavior.
+No [ERR]/[FAIL] logged for: AC2 success (200), AC3a no-token (401, no exception thrown
+  pre-controller so nothing to log), or the IDOR 404. Logs clean for those paths.

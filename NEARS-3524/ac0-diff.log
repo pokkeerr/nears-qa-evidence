@@ -1,0 +1,15 @@
+$ git show ad721431b -- Admin/routes/api/v1/api.php
+diff --git a/Admin/routes/api/v1/api.php b/Admin/routes/api/v1/api.php
+@@ -453,7 +453,7 @@
+                 Route::put('offline-payment-update', 'OrderController@update_offline_payment_info');
+                 Route::post('get-surge-price', 'OrderController@getSurgePriceAmount');
+                 Route::post('parcel-return', 'OrderController@parcelReturn');
+-                Route::post('wallet-payment', 'OrderController@walletPayment');
++                Route::post('wallet-payment', 'OrderController@walletPayment')->middleware('auth:api');
+                 Route::post('reorder', 'OrderController@reorder')->middleware('auth:api');
+                 Route::get('buy-it-again', 'OrderController@buy_it_again')->middleware('auth:api'); // NEARS-524
+                 Route::get('payment-failed', 'CustomerController@orderPaymentFailed');
+Full commit diffstat (route file + new test + task doc, no other files touched):
+ Admin/routes/api/v1/api.php                                                  |  2 +-
+ Admin/tests/Feature/Security/WalletPaymentRealTokenAuthTest.php              | 92 +++++++++++++
+ tasks/notes/NEARS-3524-wallet-payment-auth-middleware.md                     | 43 +++++++

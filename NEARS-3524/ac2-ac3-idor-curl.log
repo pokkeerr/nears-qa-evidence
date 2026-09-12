@@ -1,0 +1,36 @@
+Backend: worktree Admin/, own DB copy multi_food_db_qa_3524 (cloned from multi_food_db),
+served on http://127.0.0.1:8524. Bearer token obtained via the real login endpoint
+(POST /api/v1/auth/login, login_type=manual) for seeded user james.wilson@demo.com (user_id=1).
+
+=== AC2: valid bearer token, owner's own eligible order (id 91370, pending/unpaid, wallet_balance=500) ===
+POST /api/v1/customer/order/wallet-payment  Authorization: Bearer <real token>  order_id=91370
+{"message":"Order payment successfully"}
+HTTP_STATUS:200
+DB after: orders.id=91370 payment_status=paid order_status=confirmed payment_method=wallet
+          users.id=1 wallet_balance 500.000 -> 400.000
+
+=== AC3a: NO bearer token ===
+POST /api/v1/customer/order/wallet-payment  (no Authorization header)  order_id=91370
+{"message":"Unauthenticated."}
+HTTP_STATUS:401
+
+=== AC3b: garbage/invalid bearer token ===
+POST /api/v1/customer/order/wallet-payment  Authorization: Bearer not-a-real-token  order_id=91370
+{"message":"Unauthenticated."}
+HTTP_STATUS:401
+
+=== Security reviewer qa_point: IDOR still blocked — genuine token holder (user 1) vs
+    a DIFFERENT customer's order (id 91363, owned by user 6) ===
+POST /api/v1/customer/order/wallet-payment  Authorization: Bearer <user 1's real token>  order_id=91363
+{"errors":[{"code":"order-001","message":"Not found"}]}
+HTTP_STATUS:404
+DB after: orders.id=91363 unchanged (still unpaid/pending); users.id=6 wallet_balance unchanged (15.840)
+
+=== Informational spot-check (non-blocking, AC3 only pins status code) ===
+Garbage-token 401 body:  {"message":"Unauthenticated."}          (Authenticate:api / Laravel default shape)
+No-token 401 body:       {"message":"Unauthenticated."}          (same shape as garbage-token case)
+apiGuestCheck-style 401 (sibling route, for contrast): {"errors":"Unauthorized"}
+  -> The wallet-payment 401 body shape now DIFFERS from the old apiGuestCheck-style body
+     ({"errors":"Unauthorized"}) since the route now hits Authenticate:api directly.
+     Status code (401) is unchanged either way; AC3 only pins status code. Logged as a
+     followup, not a defect.
