@@ -1,0 +1,27 @@
+NEARS-3521 AC5 — edit-order-amount / edit-discount-amount Blade gate, verify-and-close
+
+Code check: vendor-views/order/order-view.blade.php lines 544/552 gate both pencil icons on
+`$order->prescription_order == 1 && in_array($order['order_status'], ['pending','confirmed',
+'processing','accepted'])` — unchanged condition, matches AC5's exact spec.
+
+Live positive control — order 91366 (store 3 "Organic Paradise", placed live via the customer
+prescription/place API, pending, prescription_order=1):
+  DOM query on /vendor-panel/order/details/91366 (sara.ali@demo.com session):
+    [data-target='#edit-order-amount']    count=1 visible=True
+    [data-target='#edit-discount-amount'] count=1 visible=True
+  Screenshot: ac5-positive-91366.png
+
+Live negative control #1 — order 91171 (store 9 "Organic Shop", organicshop@demo.com,
+pre-existing seed row, pending, prescription_order=0):
+    [data-target='#edit-order-amount']    count=0
+    [data-target='#edit-discount-amount'] count=0
+
+Live negative control #2 — SAME order 91366, after a genuine app-level status transition
+(POST /vendor-panel/order/status {order_status: canceled} via the vendor panel's own route,
+not a raw DB write) to order_status=canceled (prescription_order still =1):
+    [data-target='#edit-order-amount']    count=0
+    [data-target='#edit-discount-amount'] count=0
+  Screenshot: ac5-negative-status-91366.png
+
+Positive + both negative axes (prescription flag AND order_status) demonstrated live —
+behavior identical to pre-change (zero diff), as AC5 specifies.

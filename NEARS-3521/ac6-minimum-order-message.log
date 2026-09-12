@@ -1,0 +1,21 @@
+NEARS-3521 AC6 — :amount placeholder fix, live evidence
+
+Trigger: customer@nears.com added a below-minimum item (Organic Spinach, item 13, $4.00) to
+cart for store 3 "Organic Paradise" (minimum_order = 10.00 AED), then called
+POST /api/v1/customer/order/place (non-prescription — the gate is skipped for prescription
+orders per `!$is_prescription` in OrderPlacementService::placeOrderTransaction).
+
+English (default, no X-localization header):
+  HTTP 406 {"errors":[{"code":"order_time","message":"You need to order at least 10 AED"}]}
+  -> real numeric amount (10), currency code appended, no literal ":amount", not blank, not
+  doubled.
+
+Arabic (X-localization: ar header, accepted — zero localization_header_rejected log lines):
+  HTTP 406 {"errors":[{"code":"order_time","message":"You need to order at least 10 AED"}]}
+  -> same numeric interpolation succeeded under App::setLocale('ar'). The literal message
+  text is identical to English because resources/lang/ar/messages.php's
+  'you_need_to_order_at_least' key is itself an untranslated English-language placeholder
+  string (confirmed by reading the file — this is a pre-existing i18n-completeness gap in
+  the ar lang file, NOT something NEARS-3521 introduced or is in scope to fix; both ar and en
+  messages.php were touched identically by this ticket's diff, i.e. the :amount fix was
+  applied symmetrically). Filed as a followups[] note.

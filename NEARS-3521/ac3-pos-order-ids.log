@@ -1,0 +1,21 @@
+NEARS-3521 AC3 — POS order-id race fix, live evidence
+
+DB state before any QA activity: MAX(orders.id) = 91366 (auto_increment; test DB already
+had prescription-order rows 91364-91366 created earlier in this same QA pass via the
+customer prescription-order API, see AC5 evidence).
+
+Vendor POS (john.smith@demo.com, store 4 "Burger Palace", pos_system=1), single-order:
+  Added 1 tile to cart, clicked .place-order-submit -> POST /vendor-panel/pos/order -> 200
+  New row: id=91367, store_id=4, order_type=take_away, order_status=delivered, created_at
+  2026-09-12 15:01:59 — sequential auto_increment id, NOT the old `100000 + Order::count() + 1`
+  scheme (which would have collided/duplicated around count()+100000 ~ 91xxx region here too,
+  but the actual value is now purely DB-assigned).
+
+Quick-succession / race check: fired 2 concurrent POST requests (Promise.all of two fetch()
+calls against the same session/cart) to simulate the original race window:
+  responses: {'a': 200, 'b': 200}
+  Resulting DB row: id=91368 (only one new order landed — the second request's cart was
+  already consumed by the first, so it hit the empty-cart path harmlessly). No id collision,
+  no 500, ids remained strictly sequential (91367 -> 91368). This is the behavior expected
+  once id assignment is delegated to auto_increment instead of the manual pre-save
+  `$order->id = 100000 + Order::count() + 1` line that NEARS-3521 removed.

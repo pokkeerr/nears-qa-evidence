@@ -1,0 +1,25 @@
+NEARS-3521 AC1 — live console check (Playwright, headless Chromium, backend http://127.0.0.1:8010)
+
+Admin login page (/login/admin) + post-login /admin:
+  pageerrors: []  (zero uncaught JS exceptions)
+  console errors (excl. pre-existing ERR_CONNECTION_REFUSED image 404s from APP_URL=localhost
+  mismatch, unrelated to this ticket): []
+
+Admin order-list (/admin/order/list/all):
+  pageerrors: []
+  console errors: []
+
+Admin POS (/admin/pos):
+  pageerrors: []
+  console errors: [Google Maps 'initMap is not a function' promise rejection — pre-existing,
+  unrelated to axios/lodash bump; Maps JS API key/network race, reproduces on this branch's
+  admin/pos/index.blade.php inline initMap() with no code touched by this diff]
+
+FACTUAL NOTE: Admin/public/js/app.js (the webpack Mix bundle whose devDependencies axios/lodash
+were bumped for AC1) is NEVER requested by any of the 3 named live pages (confirmed via a
+request-listener across /login/admin, /admin, /admin/order/list/all, /admin/pos, /login/vendor) —
+repo-wide grep also finds zero blade references to public/js/app.js. This predates NEARS-3521
+(the diff does not touch any blade include) — filed as a followups[] note, not a regression.
+Given this, "confirm nothing broke" is satisfied vacuously for these 3 pages (nothing NEW
+executes there); the package.json bump + rebuilt bundle + LICENSE.txt (Axios v1.20.0) are
+verified correct at the code level (see diff).

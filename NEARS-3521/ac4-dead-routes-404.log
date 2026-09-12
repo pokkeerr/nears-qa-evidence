@@ -1,0 +1,14 @@
+NEARS-3521 AC4 — dead vendor-panel routes, verify-and-close (expect zero diff)
+
+Code check: Admin/routes/vendor.php 'order' group (module:order) lists only:
+  list/{status}, status-update/{id}, details/{id}, status, generate-invoice/{id},
+  add-payment-ref-code/{id}, update-order-amount, update-discount-amount, add-order-proof/{id},
+  remove-proof-image. No 'update' or 'edit-order' route names/paths exist. Inline comment above
+  the group (NEARS-3285) confirms add_to_cart/remove_from_cart/update/edit/quick_view/
+  quick_view_cart_item were already removed as dead code with no live caller.
+
+Live check (authenticated vendor session, sara.ali@demo.com):
+  GET http://127.0.0.1:8010/vendor-panel/order/update/91171      -> 404
+  GET http://127.0.0.1:8010/vendor-panel/order/edit-order/91171  -> 404
+Both 404 (Laravel's clean "not found" response), NOT 500. Confirms AC4 as already-clean /
+zero-diff, verified live.

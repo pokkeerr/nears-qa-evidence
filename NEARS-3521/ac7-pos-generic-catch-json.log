@@ -1,0 +1,23 @@
+NEARS-3521 AC7 — POS place_order ajax JSON on generic catch, live evidence
+(vendor path demonstrated fully live; admin path verified at code level only, same diff shape
+— per the AC's own "best-effort" allowance)
+
+Forced a genuine server-side exception INSIDE the try block: submitted the vendor POS
+place-order form with the hidden `amount` field overwritten to the non-numeric string
+"not-a-number" (`$request->amount - (...)` in Vendor/POSController.php:701 is PHP 8
+arithmetic on a non-numeric string -> TypeError: Unsupported operand types).
+
+Ajax submit (X-Requested-With: XMLHttpRequest):
+  HTTP 500, Content-Type: application/json
+  Body: {"errors":[{"code":"order","message":"Failed to place order"}]}
+  -> JSON, not an HTML redirect/page; generic message; no raw exception text/stack leaked.
+
+Paired backend log line (Admin/storage/logs/laravel.log):
+  [FAIL] pos_place_order {"correlation_id":"b019485c-...","endpoint":"vendor/pos/place-order",
+  "status":500,"error":"TypeError","request_id":"b019485c-..."}
+  -> PII-safe (error class only, never getMessage()/address), correlation_id present.
+
+Non-ajax submit, SAME failure condition (no X-Requested-With header):
+  fetch(..., {redirect:'manual'}) -> {status:0, type:'opaqueredirect'}
+  -> confirms a 3xx redirect response (Toastr::warning + return back()), i.e. the pre-existing
+  non-ajax behavior is UNCHANGED, exactly as AC7 specifies.
