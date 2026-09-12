@@ -1,0 +1,35 @@
+NEARS-3501 — AC1/AC2 live evidence
+Server under test: worktree fix/NEARS-3501-customrole-modules-whitelist, php artisan serve :8010
+Auth: admin@admin.com (superadmin), session cookie via /login/admin + /login_submit (dev captcha
+pre-filled per APP_MODE=dev — resources/views/auth/login.blade.php).
+
+=== CREATE path (CustomRoleAddRequest) — direct POST injecting non-whitelisted key ===
+POST http://127.0.0.1:8010/admin/users/custom-role/create
+Accept: application/json
+Body: lang[]=default&name[]=NEARS3501 AC1 Direct Inject Role&modules[]=business_settings
+
+< HTTP/1.1 422 Unprocessable Content
+< {"message":"Invalid module selected","errors":{"modules.0":["Invalid module selected"]}}
+
+DB check (read-only): SELECT COUNT(*) FROM admin_roles WHERE name='NEARS3501 AC1 Direct Inject Role';
+=> 0   (never persisted)
+
+=== UPDATE path (CustomRoleUpdateRequest) — direct POST injecting non-whitelisted key ===
+(role id=8 = "NEARS3501 QA Attacker Role", pre-existing modules=["custom_role"] — see
+poc-full-exploit-blocked.log for how it was created)
+POST http://127.0.0.1:8010/admin/users/custom-role/update/8
+Accept: application/json
+Body: lang[]=default&name[]=NEARS3501 QA Attacker Role&modules[]=business_settings
+
+< HTTP/1.1 422 Unprocessable Content
+< {"message":"Invalid module selected","errors":{"modules.0":["Invalid module selected"]}}
+
+DB check (read-only): SELECT modules FROM admin_roles WHERE id=8;
+=> ["custom_role"]   (unchanged — injection never persisted)
+
+Non-JSON form submission (same payload, no Accept:application/json header) redirects 302 back to
+the edit page and surfaces the same message via toastr:
+  edit_role_8_after.html line 1301: toastr.error('Invalid module selected', ...)
+
+Both FormRequests reject via the new `modules.*` => Rule::in(CustomRoleService::ALLOWED_MODULES)
+gate added in commit 778837029. Verdict: PASS.

@@ -1,0 +1,39 @@
+NEARS-3501 — additional regression point requested by [7] security review (pre-existing,
+OUTSIDE this ticket's fix scope; does not affect NEARS-3501's own PASS/FAIL verdict)
+
+Question: as an admin holding only module:custom_role, can they open/edit a DIFFERENT custom role
+that isn't their own (not id=1)?
+
+Static finding being confirmed live: CustomRoleUpdateRequest::authorize() returns true
+unconditionally (Admin/app/Http/Requests/Admin/CustomRoleUpdateRequest.php); the controller only
+calls CustomRoleService::roleCheck($id), which returns unauthorized ONLY for id==1
+(Admin/app/Services/CustomRoleService.php:34-41) — no ownership/scope check against the acting
+admin's own role id anywhere in the chain.
+
+Live repro (worktree FIXED server, :8010):
+Actor: employee id=7 (nears3501-poc-employee@test.local), own role = id=8, holds ONLY
+module:custom_role.
+Target: admin_roles id=5 "QA Role D Baseline Order Only" — belongs to nobody related to this
+employee, not id=1, not their own role.
+
+GET http://127.0.0.1:8010/admin/users/custom-role/edit/5
+< HTTP/1.1 200 OK
+Response body contains the FULL edit form pre-populated with role id=5's real data:
+  name="name[]" id="default_title" ... value="QA Role D Baseline Order Only"
+  name="name[]" id="en_title" ... value="QA Role D Baseline Order Only"
+(role name appears twice in the rendered form — default + en locale fields; both show role 5's
+real name, confirming the server actually loaded and returned that role's full record, not a 404
+or an empty/blocked view)
+
+CONFIRMED: true — an admin_employee holding nothing but module:custom_role CAN open/view any
+other custom role's full edit form (any id except 1), with no ownership check. This is an IDOR
+class finding on Admin\Employee\CustomRoleController's read (and, by the same unconditional
+authorize()+roleCheck() logic, presumably the update/delete paths too — not exercised here to
+avoid mutating the shared QA fixture role id=5).
+
+Scope note: this is pre-existing behavior, NOT introduced or worsened by NEARS-3501's diff (which
+only touches modules[] value validation, not authorization/ownership). Reported as a
+regression_bugs finding per the QA task brief, not a NEARS-3501 AC failure.
+
+No PoC data mutation was needed to confirm this (a GET was sufficient); role id=5 was left
+untouched.

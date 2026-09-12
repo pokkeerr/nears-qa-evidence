@@ -1,0 +1,41 @@
+NEARS-3501 — AC3 live evidence (positive control, no regression)
+Server: worktree fix/NEARS-3501-customrole-modules-whitelist, php artisan serve :8010
+Auth: admin@admin.com (superadmin)
+
+POST http://127.0.0.1:8010/admin/users/custom-role/create
+Body: lang[]=default&name[]=NEARS3501 AC3 All37 Role C
+      &modules[]=account&modules[]=addon&modules[]=advertisement&modules[]=attribute
+      &modules[]=banner&modules[]=brand&modules[]=campaign&modules[]=cashback
+      &modules[]=category&modules[]=collect_cash&modules[]=common_condition&modules[]=coupon
+      &modules[]=customer_management&modules[]=deliveryman&modules[]=disbursement
+      &modules[]=download_app&modules[]=driver&modules[]=employee&modules[]=item
+      &modules[]=module&modules[]=notification&modules[]=order&modules[]=parcel
+      &modules[]=pos&modules[]=promotion&modules[]=provide_dm_earning&modules[]=provider
+      &modules[]=rental_report&modules[]=report&modules[]=settings&modules[]=store
+      &modules[]=subscription&modules[]=trip&modules[]=unit&modules[]=vehicle
+      &modules[]=withdraw_list&modules[]=zone
+      (all 37 ALLOWED_MODULES keys, one batch, matches CustomRoleService::ALLOWED_MODULES exactly)
+
+< HTTP/1.1 302 Found
+< Location: http://127.0.0.1:8010/admin/users/custom-role/create   (success redirect)
+
+DB check (read-only):
+SELECT id, modules FROM admin_roles WHERE name='NEARS3501 AC3 All37 Role C';
+=> id=10, modules=["account","addon","advertisement","attribute","banner","brand","campaign",
+   "cashback","category","collect_cash","common_condition","coupon","customer_management",
+   "deliveryman","disbursement","download_app","driver","employee","item","module",
+   "notification","order","parcel","pos","promotion","provide_dm_earning","provider",
+   "rental_report","report","settings","store","subscription","trip","unit","vehicle",
+   "withdraw_list","zone"]  — all 37 keys persisted verbatim, none dropped/rejected.
+
+Also confirmed a single-key create (modules[]=account) in isolation: 302 + persisted
+(role id=9, "NEARS3501 AC3 Single").
+
+Cross-check: `vendor/bin/phpunit --filter Nears3501` includes
+test_allowed_modules_constant_matches_the_live_checkbox_set, which parses
+create.blade.php/edit.blade.php's live `name="modules[]" value="..."` attributes and asserts they
+equal CustomRoleService::ALLOWED_MODULES exactly (both directions) — passed (44/44 suite green,
+see automated backstop result in the QA envelope).
+
+Verdict: PASS — every one of the 37 currently-checkboxed keys still passes as a batch; no
+regression to legitimate role assignment.

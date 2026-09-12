@@ -1,0 +1,35 @@
+NEARS-3501 — required BOTH-DIRECTIONS check (epic owner instruction)
+Server: worktree fix/NEARS-3501-customrole-modules-whitelist, php artisan serve :8010
+
+=== Direction 1: account WITHOUT the exploited access is denied the gated route ===
+Actor: employee id=7 (nears3501-poc-employee@test.local), role id=8 = ONLY module:custom_role.
+GET http://127.0.0.1:8010/admin/social-login/view   (gated module:business_settings)
+< HTTP/1.1 302 Found
+< Location: http://127.0.0.1:8010/admin/users/custom-role/edit/8   (access_denied redirect)
+=> Denied, as required. (Same result already recorded in poc-full-exploit-blocked.log Step 6 —
+   repeated here because it's also the literal "without access" half of this owner instruction.)
+
+=== Direction 2: account WITH legitimate/normal access is UNAFFECTED ===
+Setup: bound a NEW employee (id=8, nears3501-legit-employee@test.local) to the PRE-EXISTING
+"QA Role D Baseline Order Only" (admin_roles id=5, modules=["order"] — one of the 37 whitelisted
+keys, a real checkbox on both blades) via the normal employee-add endpoint. No module injection
+involved in this leg at all — this is a plain, ordinary employee carrying one legitimate module.
+
+Login: GET /login/admin-employee -> POST /login_submit (role=admin_employee) -> 302 to /admin.
+
+GET http://127.0.0.1:8010/admin/order/list/all   (gated module:order, which this employee holds)
+< HTTP/1.1 200   -- normal screen works exactly as before, no regression from the whitelist fix.
+
+GET http://127.0.0.1:8010/admin/social-login/view   (gated module:business_settings, NOT held)
+< HTTP/1.1 302 Found  -- correctly denied (this employee never had it and the fix didn't change
+   that either way).
+
+GET http://127.0.0.1:8010/admin/users/custom-role/edit/8   (gated module:custom_role, NOT held)
+< HTTP/1.1 302 Found  -- correctly denied.
+
+Verdict: PASS on both directions — the fix denies the previously-exploitable path and leaves
+every legitimately-assigned module's normal screens untouched.
+
+Cleanup: employee id=8 deleted via admin/users/employee/delete/8 (app endpoint); role id=5 is a
+pre-existing shared QA fixture (NEARS-3475) and was left untouched (not created/mutated by this
+run).

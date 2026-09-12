@@ -1,0 +1,35 @@
+NEARS-3501 — AC4 live evidence (pre-existing non-whitelisted role not silently broken)
+Server: worktree fix/NEARS-3501-customrole-modules-whitelist, php artisan serve :8010
+No Stitch/DLS design reference was supplied for this security-fix ticket, so the NEARS-567
+screenshot-compare gate does not fire for this [ui] AC (no visual reference to diff against);
+verified instead via live HTTP status + content checks (functional "not silently broken" reading
+of the AC), per .claude/agents/nears-qa.md step 3b's own qualifying condition.
+
+Pre-existing role used: id=8 "NEARS3501 QA Attacker Role", modules=["custom_role"] — a real
+non-whitelisted key, created via the pre-fix code path (see poc-full-exploit-blocked.log) to
+stand in for "existing custom roles in the DB holding a non-whitelisted module key" since the dev
+DB otherwise holds none and the fix (correctly) now blocks writing new ones.
+
+GET http://127.0.0.1:8010/admin/users/custom-role/create   (list view, superadmin session)
+< HTTP/1.1 200
+grep -c "NEARS3501 QA Attacker Role"  => 1   (role visible in the list)
+grep -ic "whoops|fatal error|exception|stack trace"  => 0   (no crash/error markers)
+
+GET http://127.0.0.1:8010/admin/users/custom-role/edit/8   (superadmin session)
+< HTTP/1.1 200
+grep -ic "whoops|fatal error|exception|stack trace"  => 0   (no crash/error markers; the stale
+  "custom_role" value simply doesn't render as a checked checkbox since it isn't one of the 37
+  rendered checkboxes — expected, not a defect: the AC only requires no silent breakage, not that
+  the stale key round-trips into a UI state that was never legitimate)
+
+Also exercised by the employee bound to that same role (module:custom_role only — see
+poc-full-exploit-blocked.log): GET .../custom-role/edit/8 as that employee also returned 200.
+
+APP_DEBUG=false in this worktree's .env (matches prod posture), so no verbose PHP notices would
+surface even if one occurred; the absence of any Whoops/exception page across 3 independent GETs
+against the stale row is the live confirmation.
+
+Verdict: PASS — reads/list views over a pre-existing non-whitelisted-module role render fine, no
+migration performed, validation only fires on the next add/edit POST (confirmed separately: the
+automated test test_preexisting_stale_module_key_survives_an_unrelated_list_read passed in the
+44/44 phpunit run).
