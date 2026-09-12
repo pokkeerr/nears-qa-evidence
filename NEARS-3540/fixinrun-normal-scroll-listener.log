@@ -1,0 +1,37 @@
+Delta re-QA (fix-in-run: mounted guard, HEAD b80e26169) -- AC: normal path, listener still
+attached and functioning (guard did NOT skip registration when mounted==true)
+Device: emulator-5554, pkg com.izzes.nears.nears_nears_3540_userapp_misc_cluster
+
+Fresh app relaunch (am force-stop + monkey launch) to get a clean StoreController singleton
+(_showFavButton defaults true), then normal navigation into MediQuick Pharmacy (Abu Dhabi,
+store_id=55, prescription_order=1, prescriptionStatus business_setting=1, so the
+prescription-attachment FAB -- Semantics label "Prescription", gated by
+StoreController.showFavButton via scrollController's addListener callback -- is eligible
+to render).
+
+uiautomator dump immediately after load:
+  content-desc="Prescription" bounds="[1161,2503][1296,2638]"   <- FAB present at initial load
+
+One clean scroll-down swipe (adb shell input swipe, reveals lower items / reverse direction):
+  content-desc="Prescription" -> ABSENT immediately after the swipe, still ABSENT at +1s
+  and +3s.
+
+This is direct proof `scrollController.addListener(...)` executed on this run (the `if
+(!mounted) return;` guard added immediately above it is a no-op on this path, mounted==true)
+and its ScrollDirection.reverse branch (`changeFavVisibility()` + `hideAnimation()`) actually
+fired in response to the swipe -- had the guard incorrectly early-returned before
+registration, this toggle could never have been observed at all.
+
+Full session (~2 min, dozens of scroll gestures: hide attempts, scroll-to-top, scroll-to-
+bottom, module switches) pid-scoped grep:
+  grep -iE "\[ERR\]|\[FAIL\]|Exception|ScrollController" -> 0 matches
+No crash, no red-screen, no [FAIL] logged for the whole interactive session.
+
+Caveat (non-blocking, unrelated to the fix): re-showing the FAB on a subsequent scroll-up
+was not cleanly reproduced via synthetic `adb shell input swipe` gestures in this session
+(inconsistent results across repeated attempts -- a known category of flakiness for
+Flutter ScrollDirection detection under synthetic ADB touch injection, not a real-device
+touch). Since the mounted-guard only gates whether addListener() ever RUNS (and mounted==true
+unconditionally here), it cannot be the cause of any residual show/hide asymmetry in the
+pre-existing callback logic; logged as a followup for anyone doing real-touch QA on this
+widget, not attributed to this ticket's fix.

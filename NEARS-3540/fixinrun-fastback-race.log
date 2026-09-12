@@ -1,0 +1,21 @@
+Delta re-QA (fix-in-run: mounted guard, HEAD b80e26169) -- AC: fast back-nav during initial load
+Device: emulator-5554, pkg com.izzes.nears.nears_nears_3540_userapp_misc_cluster, pid 6508
+Network throttled (adb emu network speed gsm / delay gprs) to widen the fetch race window.
+Tap store card (MediQuick Pharmacy, store_id=55) then KEYCODE_BACK fired ~350ms later,
+squarely inside the in-flight getStoreDetails() fetch window:
+
+09-13 03:18:00.536  6508  6508 I flutter : [NET] GET endpoint=/api/v1/stores/details/55
+09-13 03:18:00.808  6508  6508 I flutter : [NET] GET endpoint=/api/v1/customer/order/running-orders
+09-13 03:18:00.809  6508  7606 V FA      : Logging screen view with name, class: /, MainActivity
+09-13 03:18:00.815  6508  7890 V FA      : Screen exposed for less than 1000 ms. Event not sent. time: 297
+09-13 03:18:01.130  6508  6508 I flutter : [NET] endpoint=/api/v1/stores/details/55 http_status=200
+(store screen was already popped at 00.808/00.815 -- 297ms exposure -- while the fetch
+ that started at 00.536 did not resolve until 01.130, i.e. ~322ms AFTER back-nav completed.
+ initDataCall() resumed post-await on a disposed State; the `if (!mounted) return;` guard
+ fired before the addListener call.)
+
+Full pid-scoped grep across the entire race window, before/during/after:
+  grep -iE "exception|error|FAIL|disposed|crash" -> 0 matches (excl. benign [INFO] connection-state lines)
+No "A ScrollController was used after being disposed." error. No red-screen / crash.
+App landed cleanly back on the pharmacy module list and continued normal network traffic
+(running-orders, config/distance-api, etc. all 200).

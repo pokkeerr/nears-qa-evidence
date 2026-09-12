@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3540
 
-**PASS - AC1 support screen render clean, AC2 epoch-guard race fix verified live**
+**delta re-QA PASS: fix-in-run mounted guard verified both directions (fast back-nav no crash; normal-path listener still functions)**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -13,6 +13,8 @@
 
 ### Other artifacts
 - [`bug-scrollcontroller-disposed-race.log`](bug-scrollcontroller-disposed-race.log)
+- [`fixinrun-fastback-race.log`](fixinrun-fastback-race.log)
+- [`fixinrun-normal-scroll-listener.log`](fixinrun-normal-scroll-listener.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3540/` · public-repo scrub policy (no live secrets; verified clean).*
