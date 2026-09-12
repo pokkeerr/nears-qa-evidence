@@ -1,0 +1,14 @@
+Pre-existing (unrelated to this ticket's diff) — UserApp/DeliveryApp secrets.properties
+was never provisioned in ANY tree on this dev machine (not even the primary repo), so
+UserApp/android/app/build.gradle.kts's resValue("string","nears_maps_api_key", ... ?: "")
+falls back to empty string, and Maps SDK fails auth at runtime:
+
+09-12 16:26:52.527  1601  3287 E Google Maps Android API: Error requesting API token. StatusCode=INVALID_ARGUMENT [CONTEXT service_id=71 ]
+09-12 16:26:52.528 26527 26956 E Google Android Maps SDK: Authorization failure.  Please see https://developers.google.com/maps/documentation/android-sdk/start for how to correctly set up the map.
+09-12 16:26:52.528 26527 26956 E Google Android Maps SDK: 	API Key: 
+
+Contrast: VendorApp's NEW secrets.properties (created locally in this worktree for AC3)
+DID resolve correctly — no Authorization failure logged for VendorApp's pid (30224) at
+its own Maps-render moment. This confirms AC3's mechanism works; the UserApp finding is
+an environment/bootstrap gap in the NEARS-2961 mechanism (pre-existing, not touched by
+this ticket's diff).

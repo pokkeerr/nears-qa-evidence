@@ -1,0 +1,14 @@
+DeliveryApp/lib/features/forgot_password/controllers/forgot_password_controller.dart
+firebaseVerifyPhoneNumber()'s verificationFailed callback shows the raw Firebase error
+via showCustomSnackBar(e.message...) with no paired AppLogger.failure(...) call (logging-
+contract NEARS-566 rule). Observed live — Firebase phone-auth failed with
+BILLING_NOT_ENABLED (an unrelated Firebase-project/env limitation, not a code defect),
+and the app surfaced a raw error toast with zero matching [FAIL]/[ERR] log line:
+
+09-12 16:45:30.199 31907 31948 E FirebaseAuth: [SmsRetrieverHelper] SMS verification code request failed: unknown status code: 17499 BILLING_NOT_ENABLED
+09-12 16:45:30.200 31907 31907 D FirebaseAuth: Invoking original failure callbacks after phone verification failure for +971565811111, error - An internal error has occurred. [ BILLING_NOT_ENABLED ]
+(ui_errors scan of pid 31907 flutter-tag lines around this window: 0 [FAIL]/[ERR] matches)
+
+Pre-existing in this file's surrounding code — NOT part of this ticket's diff hunk
+(the diff only touches the adjacent codeSent branch, wrapping Get.toNamed with
+arguments). Filed as a regression_bugs candidate for the PO, not blocking this ticket.
