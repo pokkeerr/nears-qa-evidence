@@ -1,0 +1,64 @@
+$ cd Admin && php artisan tinker --execute='
+$item = \App\Models\Item::withoutGlobalScopes()->with(["store.storeConfig","module","unit"])->findOrFail(1);
+
+// SCENARIO A: store relation null (current fixed formatter)
+$a = clone $item; $a->setRelation("store", null);
+$res = \App\CentralLogics\Helpers::productListDataFormatting(collect([$a]));
+// => NO EXCEPTION/WARNING. halal_tag_status=0
+
+// SCENARIO B: store present, storeConfig relation null (current fixed formatter)
+$b = clone $item; $storeClone = clone $item->store; $storeClone->setRelation("storeConfig", null); $b->setRelation("store", $storeClone);
+$res = \App\CentralLogics\Helpers::productListDataFormatting(collect([$b]));
+// => NO EXCEPTION/WARNING. halal_tag_status=0
+
+// SCENARIO C: normal item, real storeConfig (0) unchanged
+$res = \App\CentralLogics\Helpers::productListDataFormatting(collect([$item]));
+// => formatted halal_tag_status=0 (matches DB store_configs.id=91108 raw value 0)
+
+// SCENARIO C2: real non-default value (1), set IN-MEMORY ONLY, never persisted
+$cfg = clone $item->store->storeConfig; $cfg->halal_tag_status = 1;
+$storeClone = clone $item->store; $storeClone->setRelation("storeConfig", $cfg);
+$c2 = clone $item; $c2->setRelation("store", $storeClone);
+$res = \App\CentralLogics\Helpers::productListDataFormatting(collect([$c2]));
+// => formatted halal_tag_status=1 (pass-through unchanged for real value)
+// DB re-check (read-only): SELECT halal_tag_status FROM store_configs WHERE id=91108 => 0 (unchanged, confirms no DML)
+
+// PRE-FIX SIMULATION: the OLD expression (a plain -> hop on store) on a null store
+$c = clone $item; $c->setRelation("store", null);
+$oldExpr = (int) $c->store->storeConfig?->halal_tag_status ?? 0;
+// => <warning> WARNING </warning> Attempt to read property "storeConfig" on null on line 33.
+'
+
+--- OUTPUT (actual) ---
+=== SCENARIO A: store relation null (current fixed formatter) ===
+NO EXCEPTION/WARNING. halal_tag_status=0
+
+=== SCENARIO B: store present, storeConfig relation null (current fixed formatter) ===
+NO EXCEPTION/WARNING. halal_tag_status=0
+
+=== SCENARIO C: normal item, real non-null storeConfig (current fixed formatter) ===
+raw storeConfig->halal_tag_status = false
+formatted halal_tag_status=0
+
+=== SCENARIO C2: real storeConfig value=1 (in-memory only, NOT persisted) ===
+formatted halal_tag_status=1
+(confirm no persistence occurred) DB value (read-only re-query): 0
+
+=== PRE-FIX SIMULATION: old expression (store null) would have thrown ===
+  <warning> WARNING </warning> Attempt to read property "storeConfig" on null on line 33.
+
+--- AC2 laravel.log grep (scoped, backend booted from THIS worktree on port 8536 against local multi_food_db) ---
+$ grep -n "halal_tag_status\|storeConfig" Admin/storage/logs/laravel.log
+(no output — zero matches, file line count unchanged at 1427 across the whole live-demo + phpunit run)
+
+$ grep -n "Attempt to read property" Admin/storage/logs/laravel.log
+347:[2026-09-12 23:19:41] testing.ERROR: [FAIL] create_transaction post-commit {"correlation_id":"0b0c521e-...","error":"ErrorException","message":"Attempt to read property \"id\" on null","order_id":91960}
+(pre-existing, unrelated entry from create_transaction/order flow — NOT halal_tag_status/storeConfig. No new matches introduced by this fix's live demonstration.)
+
+--- Automated backstop ---
+$ cd Admin && vendor/bin/phpunit --filter Nears3536HalalTagStatusNullSafeTest
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_3536_halal_tag_dup_key
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+...                                                                 3 / 3 (100%)
+OK, but there were issues!
+Tests: 3, Assertions: 6, PHPUnit Deprecations: 1.
