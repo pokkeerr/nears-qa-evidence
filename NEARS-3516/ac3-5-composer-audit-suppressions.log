@@ -1,0 +1,18 @@
+$ composer audit
+Found 14 ignored security vulnerability advisories affecting 3 packages:
+ - league/commonmark (10 advisories) — Ignore reason: NEARS-2956: ... no Markdown
+   parsing in this app
+ - phpoffice/phpspreadsheet (3 advisories, CVE-2026-59931/59932/59933) — Ignore
+   reason: NEARS-2955: ... no Excel::import/reader usage in this app
+ - paragonie/sodium_compat (1 advisory, PKSA-32g2-byr9-drtw) — Ignore reason:
+   NEARS-2957: ... ext/sodium loaded natively so the pure-PHP fallback never runs
+
+$ grep -n "NEARS-2955\|NEARS-2956\|NEARS-2957" docs/reference/tech-debt.md
+121:  writer here. Full analysis: NEARS-2955.
+125:  this app. Full analysis: NEARS-2956.
+129:  vulnerable path never executes. Full analysis: NEARS-2957.
+(all 3 rationale entries present under "Composer audit — 3 documented-inert
+advisory suppressions (NEARS-3516, 2026-09-12)")
+
+$ grep -n -A2 '"audit"' Admin/composer.json   -> config.audit.ignore carries all
+14 PKSA ids with NEARS-295x rationale strings (the live suppression mechanism).

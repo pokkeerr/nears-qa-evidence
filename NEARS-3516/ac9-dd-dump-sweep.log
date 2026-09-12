@@ -1,0 +1,11 @@
+$ grep -rEn '\b(dd|dump|var_dump)\(' Admin --include='*.php' --include='*.blade.php' | grep -v -e '/vendor/' -e '/tests/'
+(zero hits)
+$ grep -rEn '\b(dd|dump|var_dump)\(' . --include='*.php' --include='*.blade.php' | grep -v -e '/vendor/' -e '/tests/' -e '/node_modules/'
+(zero hits — repo-wide, widened scope per code-review finding)
+
+Spot-check (live, worktree server 127.0.0.1:8234, admin session):
+  GET admin/order/list/all   -> 200, no exception/fatal-error/whoops marker
+  GET admin/item/list        -> 200, no exception/fatal-error/whoops marker
+  GET admin/store/list       -> 200, no exception/fatal-error/whoops marker
+  GET admin/customer/list    -> 200, no exception/fatal-error/whoops marker
+storage/logs/laravel.log: zero new lines from any of the 4 requests above.

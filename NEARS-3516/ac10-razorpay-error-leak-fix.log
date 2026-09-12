@@ -1,0 +1,27 @@
+LIVE demonstration against 127.0.0.1:8234 (this worktree, PID 81993), unauthenticated
+POST to payment/razor-pay/create-order using a real is_paid=0 payment_requests row
+(read-only SELECT, no razor_config.api_key/secret configured locally so the SDK's
+real order->create() call genuinely throws Razorpay\Api\Errors\BadRequestError):
+
+$ curl -s -X POST http://127.0.0.1:8234/payment/razor-pay/create-order \
+    -d "payment_request_id=76977475-adfe-4748-afae-bc0dc7556183&payment_amount=10.00&currency_code=AED"
+{"status":false,"message":"Unable to create payment order. Please try again."}
+  -> generic message, NEVER the raw exception text ("Please provide your api key
+     for authentication purposes" - confirmed via a direct kernel-dispatch repro
+     script that this IS the real exception message the SDK throws in this env).
+
+storage/logs/laravel.log (server-side, same request):
+[2026-09-12 14:30:47] production.ERROR: [FAIL] razorpay create-order: order mint
+failed {"trace_id":"5276eaad792a6430cd460b1795a2f09e","correlation_id":"881a4918-
+70ff-4fc4-92a3-0c1d8c1cc0a6","endpoint":"razor-pay/create-order","code":
+"razorpay_order_create_error","exception":"Please provide your api key for
+authentication purposes"}
+  -> real exception message correctly captured server-side only.
+
+Happy-path shape unchanged (static proof via diff, no live Razorpay creds
+available in this env to exercise the true success path):
+$ git diff feat/userapp-reskin2...HEAD -- Admin/app/Http/Controllers/RazorPayController.php
+  -> diff touches ONLY the catch block's response message + adds 'exception' to
+     the Log::error context; the preceding success-path response()->json([...,
+     'order_id'=>$razorpayOrder['id'], 'amount'=>..., 'currency'=>...]) block and
+     the idempotent-reuse block are untouched by this diff.

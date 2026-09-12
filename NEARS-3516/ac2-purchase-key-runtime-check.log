@@ -1,0 +1,19 @@
+$ git diff feat/userapp-reskin2...HEAD -- Admin/config/system-addons.php
+-    'purchase_key' => 'fed3e8fc-9b85-41a4-83ba-ac5084cfc7ba',   (deliveryman_app)
++    'purchase_key' => '',
+-    'purchase_key' => 'd790065c-b051-4ecd-a752-3c9409b9c4f2',   (react_web)
++    'purchase_key' => '',
+
+Post-boot re-grep (after php artisan serve + live admin login + 4 admin
+list-page hits against this worktree's server, PID 81993, cwd .../Admin/public):
+    'purchase_key' => '1',      (admin_panel — unrelated placeholder, pre-existing)
+    'purchase_key' => '',       (vendor_panel)
+    'purchase_key' => '',       (user_app)
+    'purchase_key' => '',       (vendor_app)
+    'purchase_key' => '',       (deliveryman_app)   <- still blank
+    'purchase_key' => '',       (react_web)          <- still blank
+Only 'domain' fields were runtime-rewritten (admin_panel: localhost -> 127.0.0.1:8234);
+ActivationClass::updateActivationConfig() only fires from the explicit
+activation-check/addon-activation form POST, and only ever writes purchase_key
+from the caller-supplied form field (getRequestConfig()) — never a hidden
+hardcoded secret. Confirmed via app/Traits/ActivationClass.php read + code trace.
