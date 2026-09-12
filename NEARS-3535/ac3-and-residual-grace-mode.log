@@ -1,0 +1,35 @@
+NEARS-3535 — AC3 regression + residual grace-mode evidence
+
+AC3 — same token-bearing guest, same X-Idempotency-Key, genuine retry:
+  Guest A (910000036), key 941f2858-f510-4ada-a906-67244e091717
+  1st POST /api/v1/customer/order/place (is_buy_now=1): HTTP 200, order_id=91806
+  2nd POST (identical key): HTTP 200, order_id=91806  <- SAME order_id, dedupe-hit unchanged.
+
+Authenticated (non-guest) buy-now spot check — unaffected by this change:
+  Logged in as customer@nears.com (user_id=6) via /api/v1/auth/login.
+  POST /api/v1/customer/order/place (is_buy_now=1): HTTP 200, order_id=91808, user_id=6
+  (ownerId path for $request->user branch untouched by resolveGuestOwnerKey — code inspection +
+   live 200 confirms no regression.)
+
+Residual (grace-mode visibility, config('nears.guest_token_enforcement') flipped to 'grace' via
+a per-process env override on a throwaway server instance — never written to the worktree's
+.env, config flipped back to default 'strict' immediately after this check, re-verified below):
+
+  Legacy null-token guest (id=910000038, token=NULL, inserted directly in the private QA-only
+  clone DB to simulate a pre-deploy row) placed a buy-now order under grace mode:
+    POST /api/v1/customer/order/place (is_buy_now=1, guest_id=910000038, no token) -> HTTP 200,
+    order_id=91807.
+
+  storage/logs/laravel.log:
+    [2026-09-13 00:25:42] production.WARNING: [WARN] new_place_order - buy-now dedupe keyed on
+    unverified legacy guest_id (grace mode) {"trace_id":"3a80ba9be1753d1cf5eb9274e4a51010",
+    "correlation_id":"055a40a6-eaa5-454d-95fb-dc0ca1dd677b","guest_id":"910000038",
+    "request_id":"055a40a6-eaa5-454d-95fb-dc0ca1dd677b"}
+  -> fires exactly once, only guest_id + request_id present, no token value anywhere in the line.
+  -> grep -c "grace mode" laravel.log == 1 for the whole session (never fired for the two
+     token-bearing guests A/B above).
+
+Config restored to strict + re-verified (server restarted with no override):
+  Same legacy guest (910000038) resubmitted -> HTTP 401 {"errors":"Unauthorized"}
+  storage/logs/laravel.log: [FAIL] guest.token.rejected reason=legacy_null_token_strict,
+  guest_id=910000038 — confirms strict is back in effect, dev environment not left in grace mode.

@@ -1,0 +1,37 @@
+NEARS-3535 — regression sweep evidence (contract-unchanged checks)
+
+apiGuestCheck middleware still rejects invalid guest_id/token combos with 401, same as before:
+  - wrong X-Guest-Token for a real guest_id -> HTTP 401 {"errors":"Unauthorized"}
+    ([FAIL] guest.token.rejected reason=token_mismatch)
+  - guest_id belonging to another guest ("ride" attempt, see AC1/AC2 log) -> HTTP 401
+    (reason=token_mismatch)
+  - legacy null-token guest under strict (default) -> HTTP 401 (reason=legacy_null_token_strict)
+
+place_order / prescription_place_order contract unchanged (200/403, never 500):
+  - POST /api/v1/customer/order/place with missing required fields (authenticated user) ->
+    HTTP 403 with standard validator error payload (order_type/store_id/distance/address/... )
+  - POST /api/v1/customer/order/prescription/place with missing required fields -> HTTP 403
+    with standard validator error payload (payment_method/store_id/.../order_attachment)
+
+Non-buy-now placement path untouched by the buy-now-only idempotency gate:
+  Authenticated user (id=6), same X-Idempotency-Key
+  (11111111-2222-3333-4444-555566667777) submitted twice with is_buy_now=0:
+    1st: HTTP 200, order_id=91809 (orders count 52 -> 53)
+    2nd (same key): HTTP 200, order_id=91810 (orders count 53 -> 54)
+  -> TWO distinct orders placed, confirms the buy-now gate never engages on the non-buy-now path
+     (matches BuyNowOrderIdempotencyTest::test_non_buy_now_placement_ignores_idempotency_header_and_is_never_gated).
+
+Automated backstop (this worktree):
+  cd Admin && vendor/bin/phpunit --filter BuyNowOrderIdempotencyTest
+    -> OK: Tests: 11, Assertions: 41 (0 failures) — matches engineer's report.
+  Adjacent-surface spot check: vendor/bin/phpunit --filter "GroupOrderPlacementTest|PlaceOrderQtySignTest"
+    -> OK: Tests: 15, Assertions: 69 (0 failures) — untouched adjacent order-placement surfaces green.
+
+Backend log scan (2026-09-13 00:22-00:29, the full live-QA window):
+  grep -iE ".ERROR" laravel.log (excluding "FCM API Error") -> 0 matches.
+  "FCM API Error" (status 400) fires on every order placed in this local worktree — pre-existing
+  dev-environment gap (no FCM credentials configured in Admin/.env at all, confirmed by grep),
+  unrelated to this ticket's guest_id/idempotency logic, and does not block order placement
+  (all orders still returned 200). Not filed as a regression_bug — it is an environmental
+  limitation of this local dev setup that predates and is orthogonal to NEARS-3535, and would
+  reproduce identically for ANY ticket's live QA in this worktree.

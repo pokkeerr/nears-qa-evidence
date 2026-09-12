@@ -1,0 +1,33 @@
+NEARS-3535 — AC1/AC2 live evidence
+Backend: Laravel served from worktree fix/NEARS-3535-guestid-buynow-collision
+DB: private clone multi_food_db_test_nears_3535_liveqa (cloned from multi_food_db_test twin,
+    idempotency-key migration applied), port 8010 — never the shared dev DB.
+
+Two token-bearing guests minted via POST /api/v1/auth/guest/request:
+  Guest A: guest_id=910000036, token=wVZfPkFkaiedmZELq7rz2SIV329NQqVG9iseXVcqWxxypaAqPvbmzA86sqkwRy1L
+  Guest B: guest_id=910000037, token=8vALHxlnIXhhn7ye835MYyori4alI8l5Ruqzt1Ys4IRWrMFB85Atij1vqCotejUO
+
+Both submitted POST /api/v1/customer/order/place (is_buy_now=1) with the SAME
+X-Idempotency-Key: 48dbf698-6ff9-4442-8d64-5035ac598268
+
+Guest A response: HTTP 200, order_id=91804, user_id=910000036
+Guest B response: HTTP 200, order_id=91805, user_id=910000037
+-> both succeeded independently, no spurious 409 for either (AC1).
+
+Cache lock inspection (multi_food_db_test_nears_3535_liveqa.cache table):
+  laravel_cachebuy_now_idem:guest:36f36db224550804fadcf517aa392c23c621ad51bf1c98004457f63714c1105a:48dbf698-...-_result
+  laravel_cachebuy_now_idem:guest:37e38b07ec0250f5d9f938d43bfe56a300d9f2e70c3da230e5fb0a9f21aaf6c5:48dbf698-...-_result
+
+Independently computed (python hmac/sha256, key=stored guest token, msg=guest id string):
+  hash_hmac('sha256', '910000036', tokenA) = 37e38b07ec0250f5d9f938d43bfe56a300d9f2e70c3da230e5fb0a9f21aaf6c5  (matches Guest A's cache key)
+  hash_hmac('sha256', '910000037', tokenB) = 36f36db224550804fadcf517aa392c23c621ad51bf1c98004457f63714c1105a  (matches Guest B's cache key)
+
+-> ownerId is the server-derived HMAC of (guest_id, guest's own stored token), NEVER the raw
+   client-supplied guest_id, and the two guests' ownerIds are provably distinct (AC2).
+
+Defense-in-depth / "ride the other guest's raw guest_id" attempt:
+  Guest A's token + guest_id=910000037 (Guest B's id) in the request body
+  -> HTTP 401 {"errors":"Unauthorized"} (APIGuestMiddleware/GuestTokenGuard token_mismatch,
+     logged as [FAIL] guest.token.rejected, reason=token_mismatch, guest_id=910000037)
+  -> resolveGuestOwnerKey is never even reached with a spoofed identity; middleware already
+     blocks it upstream.
