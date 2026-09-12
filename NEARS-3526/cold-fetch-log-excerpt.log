@@ -1,0 +1,32 @@
+NEARS-3526 QA — cold-fetch path evidence (getStoreDetails() always takes the
+former "else" branch now; no cache-hit shortcut exists any more).
+Device: emulator-5556, pkg com.izzes.nears.nears_nears_3526_cache_hit_branch_cleanu
+
+# 1. store_screen.dart call site (tap store "Nears Mart" from Home)
+09-12 15:35:11.904 22793 22793 I flutter : [NET] GET endpoint=/api/v1/stores/details/1
+09-12 15:35:12.454 22793 22793 I flutter : [NET] endpoint=/api/v1/stores/details/1 http_status=200
+09-12 15:35:12.458 22793 22793 I flutter : 📊 analytics: view_store {store_id: 1}
+
+# 2. cart_screen.dart call site (View Cart, primary-store zone precheck, 2-store cart)
+09-12 15:35:39.902 22793 22793 I flutter : [INFO] msg="cart restored with 2 items"
+09-12 15:35:39.902 22793 22793 I flutter : [NET] GET endpoint=/api/v1/stores/details/3
+09-12 15:35:39.960 22793 22793 I flutter : [NET] GET endpoint=/api/v1/stores/details/3
+09-12 15:35:40.043 22793 22793 I flutter : [NET] GET endpoint=/api/v1/stores/details/1
+09-12 15:35:40.721 22793 22793 I flutter : [NET] endpoint=/api/v1/stores/details/3 http_status=200
+09-12 15:35:40.722 22793 22793 I flutter : [NET] endpoint=/api/v1/stores/details/1 http_status=200
+09-12 15:35:40.722 22793 22793 I flutter : [NET] endpoint=/api/v1/stores/details/3 http_status=200
+
+# 3. checkout_controller.dart call site (Proceed to Checkout, store re-resolve)
+09-12 15:36:54.591 22793 22793 I flutter : [NET] GET endpoint=/api/v1/stores/details/3
+09-12 15:36:55.688 22793 22793 I flutter : [NET] endpoint=/api/v1/stores/details/3 http_status=200
+09-12 15:36:56.900 22793 22793 I flutter : [INFO] msg="checkout: payment method selected index=0"
+09-12 15:36:56.902 22793 22793 I flutter : [NET] GET endpoint=/api/v1/stores/details/3
+09-12 15:36:56.903 22793 22793 I flutter : [NET] GET endpoint=/api/v1/stores/details/1
+09-12 15:36:57.896 22793 22793 I flutter : [NET] endpoint=/api/v1/stores/details/1 http_status=200
+09-12 15:36:57.897 22793 22793 I flutter : [NET] endpoint=/api/v1/stores/details/3 http_status=200
+
+Every getStoreDetails() invocation across all 3 live callers took a real
+network round-trip (GET .../stores/details/<id> -> 200) — the cold-fetch path,
+exactly as the removed cache-hit branch's sibling "else" always did. No
+[FAIL]/[ERR] lines appeared in any of the three flows (ui_errors: 0 matches,
+pid-scoped, each time).
