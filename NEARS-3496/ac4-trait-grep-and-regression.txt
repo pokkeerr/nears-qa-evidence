@@ -1,0 +1,28 @@
+$ grep -rn "function actingAsSuperAdmin" Admin/tests/
+Admin/tests/Feature/Security/Nears3366FreeDeliveryCouponRemainingSitesTest.php:312:    private function actingAsSuperAdmin(): void
+Admin/tests/Feature/Security/Nears3523FreeDeliveryCouponGateAllSitesTest.php:375:    private function actingAsSuperAdmin(): void
+Admin/tests/Feature/Security/Concerns/ActingAsSuperAdmin.php:16:    protected function actingAsSuperAdmin(): Admin
+
+3 hits total: the shared trait's own definition (Concerns/ActingAsSuperAdmin.php), plus the two
+files independently verified as legitimately-separate — Nears3366FreeDeliveryCouponRemainingSitesTest.php
+and Nears3523FreeDeliveryCouponGateAllSitesTest.php, which extend Tests\TestCase directly, not
+SecurityTestCase, so they cannot `use` the trait via SecurityTestCase's own `use ActingAsSuperAdmin`.
+No SecurityTestCase-based file (including all 13 new Nears3496* files) reintroduces a private
+duplicate — the ONLY implementation reachable through the SecurityTestCase inheritance chain is
+the trait. Confirmed clean: no new duplicate.
+AC4: PASS.
+
+--- Regression sweep ---
+$ git diff --stat feat/userapp-reskin2...HEAD -- Admin/app/
+(empty output — zero production code touched, test-only change confirmed)
+
+$ grep -rln "use.*ActingAsVendor" Admin/tests/
+Admin/tests/Feature/Security/Nears3496VendorTaxReportControllerTest.php
+Admin/tests/Feature/Security/Nears3496ApiVendorUnitControllerTest.php
+Admin/tests/Feature/Security/Nears3496ApiVendorAttributeControllerTest.php
+(exactly the 3 vendor-guarded new files; confirmed via cross-grep that none of these 3 also
+pulls in ActingAsSuperAdmin — no mixed-trait class.)
+
+Public/unguarded read tests (Nears3496ApiOtherBannerControllerTest.php,
+Nears3496ApiAddonCategoryControllerTest.php) read in full: both assert module_id-scoped
+inclusion/exclusion of active vs inactive vs other-module rows — not a bare-200 check. Confirmed.
