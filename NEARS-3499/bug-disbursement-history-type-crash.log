@@ -1,0 +1,38 @@
+Device: emulator-5556, VendorApp (com.izzes.nearsvendor), pid 14272
+Vendor login: demo.store@gmail.com (store_id=1, "Nears Mart")
+Trigger: Menu -> Disbursement -> View Disbursement History
+Backend: GET /api/v1/vendor/get-disbursement-report -> http_status=200 (backend responds fine)
+
+09-12 19:28:47.253 14272 14272 I flutter : [NET] GET endpoint=/api/v1/vendor/get-disbursement-report
+09-12 19:28:47.908 14272 14272 I flutter : [NET] endpoint=/api/v1/vendor/get-disbursement-report http_status=200
+09-12 19:28:47.909 14272 14272 I flutter : ----------------FIREBASE CRASHLYTICS----------------
+09-12 19:28:47.909 14272 14272 I flutter : type 'int' is not a subtype of type 'String?'
+09-12 19:28:47.909 14272 14272 I flutter : #0      new DisbursementReportModel.fromJson (package:nears_vendor/features/disbursement/domain/models/disbursement_report_model.dart:24:5)
+09-12 19:28:47.909 14272 14272 I flutter : #1      DisbursementRepository.getDisbursementReport (package:nears_vendor/features/disbursement/domain/repositories/disbursement_repository.dart:45:64)
+09-12 19:28:47.909 14272 14272 I flutter : <asynchronous suspension>
+09-12 19:28:47.909 14272 14272 I flutter : #2      DisbursementService.getDisbursementReport (package:nears_vendor/features/disbursement/domain/services/disbursement_service.dart:32:12)
+09-12 19:28:47.909 14272 14272 I flutter : <asynchronous suspension>
+09-12 19:28:47.909 14272 14272 I flutter : #3      DisbursementController.getDisbursementReport (package:nears_vendor/features/disbursement/controllers/disbursement_controller.dart:100:63)
+09-12 19:28:47.909 14272 14272 I flutter : <asynchronous suspension>
+09-12 19:28:47.909 14272 14272 I flutter : ----------------------------------------------------
+
+ROOT CAUSE (code-level, not a seeder/data-shape defect):
+VendorApp/lib/features/disbursement/domain/models/disbursement_report_model.dart:3-4 declares
+`String? limit; String? offset;` and line 24 assigns `limit = json['limit'];` with no cast.
+Admin/app/Http/Controllers/Api/V1/Vendor/ReportController.php:83-84 (disbursement_report()) has
+ALWAYS sent `'limit' => $limit` / `'offset' => $offset` as PHP ints (explicit `(int)` cast at
+line 69-70), never strings -- this is a pre-existing client/server type contract mismatch that
+predates NEARS-3499. It was unreachable and therefore silent before this ticket, because
+business_settings.disbursement_type defaulted to 'manual' (Disbursement menu entry hidden) and
+disbursements had 0 rows DB-wide -- this exact code path (a NON-EMPTY get-disbursement-report
+response) was never exercised on a live device before NEARS-3499's fixture made it reachable.
+
+IMPACT: DisbursementController.getDisbursementReport's try/catch (or lack thereof) leaves the
+screen in a permanently blank state below the "Disbursement" app-bar title -- no rows, no status
+badges, no error message shown to the vendor. Confirmed via accessibility dump: 13 nodes total,
+only 1 labelled (the app-bar title "Disbursement"); body is empty.
+
+This blocks NEARS-3499 AC2 (3 disbursement rows w/ status badges) and, transitively, AC3
+(payment-info dialog reachable from a disbursement row) and NEARS-3486's corresponding
+"Disbursement screen (3 status badges + Not Found fallback)" sub-flow, since the row list never
+renders to tap into.

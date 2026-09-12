@@ -1,0 +1,36 @@
+Device: emulator-5556, VendorApp (com.izzes.nearsvendor), pid 14272
+Vendor login: demo.store@gmail.com (store_id=1, "Nears Mart")
+Trigger: Home -> Order -> "Ready For Handover" tab -> tap order #91369 (the NEARS-3499-seeded
+prescription order: store_id=1, order_type=take_away, order_status=handover,
+payment_method=cash_on_delivery, prescription_order=1)
+
+09-12 19:33:40.402 14272 14272 I flutter : [FAIL] framework_error library=widgets library type=_TypeError msg="Null check operator used on a null value"
+09-12 19:33:40.402 14272 14272 I flutter : [FAIL] framework_error   at #0      _OrderDetailsScreenState.build.<anonymous closure> (package:nears_vendor/features/order/screens/order_details_screen.dart:415:81)
+09-12 19:33:40.402 14272 14272 I flutter : [FAIL] framework_error   at #1      GetBuilderState.build (package:get/get_state_manager/src/simple/get_state.dart:212:26)
+09-12 19:33:40.402 14272 14272 I flutter : [FAIL] framework_error   at #2      StatefulElement.build (package:flutter/src/widgets/framework.dart:5931:27)
+... (framework rebuild frames elided)
+
+ROOT CAUSE (code-level, not a seeder/data-shape defect):
+VendorApp/lib/features/order/screens/order_details_screen.dart:415 --
+  if (order.deliveryAddress != null || (order.deliveryInstruction!.isNotEmpty || order.deliveryInstruction != null)) ...
+Operator precedence/ordering bug: the RHS force-unwraps `order.deliveryInstruction!` BEFORE the
+null check that appears later in the same clause (`order.deliveryInstruction != null`) -- so when
+deliveryAddress is null AND deliveryInstruction is null, the `!` throws instead of short-circuiting
+safely. This is a pre-existing bug in the Delivery-Info card, unrelated to prescription_order
+handling (the AC's own stated risk area) -- it fires for ANY order with an absent delivery address
+AND absent delivery instruction, which is the normal, correct shape for a take_away/self-pickup
+order (no delivery address is expected for pickup). NEARS-3499's seeded order is store_id=1,
+order_type=take_away, order_status=handover, cash_on_delivery, prescription_order=1 -- the first
+take_away order this vendor's order-detail screen has been driven against live, which is why this
+was never previously observed on device.
+
+IMPACT: the screen's GetBuilder rebuild throws during the Delivery-Info section build; verified via
+accessibility dump immediately after tap -- 12 nodes total, only the app-bar title/status text
+render ("Order #91369", "Order is Ready For Handover"); the entire body (order items, delivery
+info, billing summary, and the camera/gallery picker control this AC needs to reach) never paints.
+
+This blocks NEARS-3499 AC5 (order-detail camera/gallery picker reachable) -- the screen never
+renders far enough to expose the picker control, regardless of the prescription_order=1 /
+order_details-fetch-skip path the AC text specifically asked to confirm is clean (that specific
+skip path is NOT what crashes here -- this is an unrelated, earlier crash in the same screen's
+build method, on the Delivery-Info card).
