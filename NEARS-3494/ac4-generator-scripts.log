@@ -1,0 +1,15 @@
+== AC4: 3 generator/pipeline scripts run standalone, output confirmed at NEW path ==
+$ python3 scripts/extract_routes.py -o docs/backend/admin-routes.json
+Wrote 1300 routes to docs/backend/admin-routes.json    (pure producer)
+
+$ python3 scripts/filter_mobile_usage.py
+Wrote /Users/Apple/Projects/nears-NEARS-3494-docs-catalog-relocation/docs/apps/_shared/mobile-api-usage-filtered.json   (IN+OUT pipeline; IN = docs/apps/_shared/mobile-api-usage.json)
+
+$ python3 scripts/resolve_dynamic_constants.py
+Wrote .../docs/apps/_shared/mobile-to-admin-map-resolved.json and .../mobile-to-admin-map-resolved.md improved 0   (IN+OUT pipeline; IN = docs/apps/_shared/mobile-to-admin-map.json + docs/backend/openapi-admin-full.yaml)
+
+Post-run check: no stray docs/<oldname> files created; git status --short showed only the 4 known
+target files modified (regenerated content, non-deterministic ordering/timestamps). All 4 restored
+byte-for-byte from a pre-run backup; `git status --short` after restore = clean (no diff).
+
+Automated backstop: python3 scripts/extract_routes_test.py -> "PASS: all 9 action-shape variants parsed correctly." exit=0
