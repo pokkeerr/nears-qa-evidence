@@ -1,0 +1,21 @@
+=== Regression: guardrail read-paths ===
+Helpers.php currency_symbol() ~L1810:
+1807:    public static function currency_symbol()
+1808-    {
+1809-        if (!config('currency_symbol')) {
+1810-            $currency_symbol = Currency::where(['currency_code' => Helpers::currency_code()])->first()?->currency_symbol;
+1811-            Config::set('currency_symbol', $currency_symbol);
+1812-        } else {
+1813-            $currency_symbol = config('currency_symbol');
+
+ConfigController.php currency_symbol lookup ~L190:
+
+        $currency_symbol = Cache::rememberForever('business_settings_currency_symbol', function () {
+            return Currency::where(['currency_code' => Helpers::currency_code()])->first()->currency_symbol;
+        });
+
+Live tinker check: Helpers::currency_symbol() = 
+د.إ.‏
+
+=== Regression: route:list | grep currency (only unrelated admin.system-currency remains) ===
+  GET|HEAD        admin/system-currency admin.system_currency › Admin\SystemC…
