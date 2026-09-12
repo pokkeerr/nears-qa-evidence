@@ -1,0 +1,49 @@
+NEARS-3539 AC1 — backend-internal race, no live UI trigger. Primary evidence is
+the automated PHPUnit suite (per engineer's note); QA independently re-ran it
+in the assigned worktree.
+
+$ cd Admin && vendor/bin/phpunit --configuration phpunit.xml --filter Nears3539FcmOauthRemintLockTest
+
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_3539_backend_hygiene_cluster
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+....                                                                4 / 4 (100%)
+Time: 00:00.434, Memory: 92.50 MB
+OK, but there were issues!
+Tests: 4, Assertions: 13, PHPUnit Deprecations: 1.
+
+Tests covering AC1:
+- test_two_racers_holding_the_same_stale_token_produce_exactly_one_remint:
+  simulates 2 racers sharing the same stale token via sequential calls to
+  remintOauthTokenOnUnauthorized() against the same cache key. Winner forgets
+  + remints (Http::assertSentCount goes 1->2); loser (same stale token,
+  arriving after) reuses the winner's already-reminted token via the
+  double-checked cache read — Http::assertSentCount stays at 2 (never 3).
+  This is exactly AC1: "exactly ONE Cache::forget + ONE OAuth remint reaches
+  Google (not two independent mints)".
+- test_lock_contention_timeout_fails_closed_returns_null_no_exception:
+  confirms Cache::lock(...)->block(5,...) timeout fails closed (returns null,
+  no resend, no bubbled exception) when another holder has the lock.
+- test_send_notification_to_http_401_path_still_reminted_and_retried_end_to_end:
+  confirms the full sendNotificationToHttp() 401->remint->retry path still
+  resolves correctly through the new lock wrapper.
+
+Backend log corroboration (Admin/storage/logs/laravel.log, testing channel,
+timestamp 2026-09-13 01:33:36):
+  testing.ERROR: [FAIL] FCM 401 remint lock contention timeout {"project_id":"nears-test-project-3539-timeout"}
+This is the expected fail-closed log line from the lock-timeout test — matches
+the code's \Log::error('[FAIL] FCM 401 remint lock contention timeout', ...).
+
+Regression suite (also re-run by QA):
+$ vendor/bin/phpunit --configuration phpunit.xml --filter "Nears3011FcmHttpRetryTest|Nears2986FcmAccessTokenCacheTest|Nears2464HelpersSendNotificationPiiTest"
+....................                                                21 / 21 (100%)
+Tests: 21, Assertions: 79, PHPUnit Deprecations: 1.
+
+Caveat (stated explicitly per engineer's note and QA's own read of the test):
+these tests exercise the double-check/lock logic SEQUENTIALLY in a single
+PHP process (Laravel Cache::lock backed by phpunit's forced CACHE_DRIVER=array,
+which is an in-process store) — this proves the LOGIC ORDERING (double-checked
+cache read inside the lock) is correct, not true multi-process concurrency
+against a shared cache backend (redis/database in production). No live/manual
+concurrent-request demonstration was possible for this AC (no UI trigger, and
+genuine multi-process racing isn't practical to stage in a QA pass) — this is
+disclosed, not silently assumed away.

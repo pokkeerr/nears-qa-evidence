@@ -1,0 +1,62 @@
+NEARS-3539 AC2 (b) — live demonstration against the running admin panel
+(LanguageController::update_default_status), NOT just the automated test.
+
+Setup:
+- Backend booted from THIS worktree (fix/NEARS-3539-backend-hygiene-cluster),
+  `php artisan serve --host=127.0.0.1 --port=8010`, pointed at the shared
+  multi_food_db (this call path makes ZERO writes on the negative branch —
+  confirmed below — so it is safe on the shared dev DB without a private
+  clone).
+- Logged into the admin panel (admin@admin.com) via the Playwright-backed
+  uinav_web driver (system python3 interpreter, package installed at
+  /usr/bin/python3; the default python3 in this shell lacked the
+  playwright package).
+- No UI element exists to submit an arbitrary/unconfigured code (per the
+  ticket note) — the "live" path taken instead builds and submits a REAL
+  browser-native HTML form (method=POST, real _token from the page's
+  <meta name="csrf-token">, browser-managed session cookies) against
+  POST /admin/business-settings/language/update-default-status with
+  code=zz-nonexistent-3539 (matches no configured system_language entry).
+  This is a genuine authenticated browser request through the live running
+  app, not a raw curl/API call bypassing the browser session.
+
+Pre-state (read-only SELECT):
+  mysql> SELECT value FROM business_settings WHERE key='system_language';
+  [{"id":1,"direction":"ltr","code":"en","status":1,"default":true},
+   {"id":"ar2","code":"ar","direction":"rtl","status":0,"default":false}]
+
+Request: POST /admin/business-settings/language/update-default-status
+  code=zz-nonexistent-3539 (no configured language has this code)
+
+Result: 302 redirect back to /admin/business-settings/language (matches the
+LanguageController's `return back();` on the !$matched branch).
+
+Rendered flash toastr block on the redirected page (captured from raw page
+HTML, the exact block injected by Toastr::message() in
+resources/views/layouts/admin/app.blade.php):
+  <script type="text/javascript">toastr.error('Something went wrong','');</script>
+
+This is translate('messages.something_went_wrong') = "Something went wrong" —
+the FAILURE toast added by the NEARS-3539 fix. Crucially, the SUCCESS toast
+("Default Language Changed!") that the pre-fix code would have shown after
+silently defaulting=false-ing every entry did NOT fire.
+
+Post-state (read-only SELECT, unchanged):
+  mysql> SELECT value FROM business_settings WHERE key='system_language';
+  [{"id":1,"direction":"ltr","code":"en","status":1,"default":true},
+   {"id":"ar2","code":"ar","direction":"rtl","status":0,"default":false}]
+
+Confirms both halves of AC2(b): the existing default ("en") is preserved
+byte-for-byte unchanged, AND the response reflects failure (error toast, not
+the success toast).
+
+Backend log (Admin/storage/logs/laravel.log): no new [FAIL]/[ERR] lines from
+this request (checked immediately after, file mtime unchanged from the prior
+phpunit run) — expected: this validation-style branch mirrors the existing
+"already default" Toastr::warning branch a few lines up, neither of which is
+backed by a Log:: call in this codebase's existing pattern; this is a
+controlled business-validation response, not an unexpected system failure.
+
+Screenshot: ac2-negative-case-toast.png (page state right after the redirect,
+though the log excerpt above is the more precise/authoritative evidence since
+it captures the exact toastr call server-rendered into the page).
