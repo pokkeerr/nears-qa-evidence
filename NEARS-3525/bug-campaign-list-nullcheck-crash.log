@@ -1,0 +1,32 @@
+[NET] GET endpoint=/api/v1/vendor/get-basic-campaigns
+[NET] endpoint=/api/v1/vendor/get-basic-campaigns http_status=200
+[FAIL] framework_error library=widgets library type=_TypeError msg="Null check operator used on a null value"
+[FAIL] framework_error   at #0      CampaignWidget.build (package:nears_vendor/features/campaign/widgets/campaign_widget.dart:92:88)
+[FAIL] framework_error   at #1      StatelessElement.build (package:flutter/src/widgets/framework.dart:5889:49)
+
+Exception detail:
+The following _TypeError was thrown building CampaignWidget(dirty, ...):
+Null check operator used on a null value
+Error-causing widget: CampaignWidget (features/campaign/screens/campaign_screen.dart:53:22)
+Stack root: campaign_widget.dart:92 -> DateConverterHelper.convertDateToDate(campaignModel.availableDateStarts!)
+
+Root cause confirmed via read-only DB check: `campaigns.start_date` is NULL for every
+seeded row (ids 1,2,3 checked; item_campaigns table separately shows ids 13-17 populated
+but that is a DIFFERENT table, unrelated to this `campaigns`/`campaign_store` pair the
+basic-campaign vendor list actually reads). campaign_widget.dart:92 does not null-guard
+`campaignModel.availableDateStarts` before the `!` — so every basic campaign row throws
+while building, and the Vendor > Menu > Campaign list renders empty (title only, zero rows)
+for every vendor/store in this seed.
+
+Scope confirmation: campaign_widget.dart and the `campaigns` table are NOT touched by
+NEARS-3525's diff (36a878c30..HEAD touches only custom_image_widget.dart,
+review_card_widget.dart, campaign_details_screen.dart, store_screen.dart). This crash sits
+in the LIST row widget (CampaignWidget, campaign_screen.dart), one hop upstream of the
+DETAILS screen (CampaignDetailsScreen, campaign_details_screen.dart) NEARS-3525 actually
+edited, and is unrelated to the `placeholder:` field removal (crash trace never touches
+CustomImageWidget or Images.restaurantCover/Images.placeholder).
+
+Effect on this QA pass: blocks LIVE navigation into CampaignDetailsScreen from the vendor
+UI (every list row is unclickable/crashed before render), for every vendor account tried.
+Not filed as a task_bug against NEARS-3525 (breaks_ac: false) — filed as regression_bugs
+(pre-existing, unrelated).
