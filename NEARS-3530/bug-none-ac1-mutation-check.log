@@ -1,0 +1,17 @@
+Not a bug -- this is the AC1 mutation-check transcript (independent re-verification).
+
+1) GREEN (fix present): vendor/bin/phpunit --filter HasStorageMultiAttributeSyncTest
+   Tests: 2, Assertions: 10 -> OK
+
+2) Mutation: removed the isDirty($attr) gate in Admin/app/Traits/SyncsStorageAttributes.php
+   (loop synced every attribute unconditionally, not just the dirty one).
+
+3) RED under mutation:
+   FAILURES!
+   Tests: 2, Assertions: 8, Failures: 2
+   - sibling attribute (image) must stay byte-identical when only logo is dirty. FAILED
+     (updated_at bled from 00:00:00 -> 00:10:00 on the untouched sibling)
+   - sibling attribute (cover_image) must stay byte-identical when only profile_image is dirty. FAILED
+
+4) Restored original file via `git checkout -- app/Traits/SyncsStorageAttributes.php`,
+   re-ran: GREEN again (Tests: 2, Assertions: 10, OK).

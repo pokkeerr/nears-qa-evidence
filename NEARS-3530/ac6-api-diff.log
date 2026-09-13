@@ -1,0 +1,12 @@
+=== AC6 API response-shape/timing diff (customer-facing, Item/Store/Banner/Advertisement/ItemCampaign) ===
+OLD = feat/userapp-reskin2 primary tree port 8532; NEW = worktree port 8531; SAME multi_food_db_qa3530 DB.
+Diff method: full JSON response, keys ending _url/_urls masked (pre-existing, already-logged fresh-worktree
+zero-product-images gap NEARS-3371#20186 makes image URLs diverge; everything else compared byte-for-byte).
+
+GET /api/v1/items/latest?store_id=9&category_id=4&limit=10&offset=1  -> equal(after url-strip): True
+GET /api/v1/advertisement/list                                       -> equal(after url-strip): True
+GET /api/v1/banners?store_id=9                                       -> equal(after url-strip): True
+GET /api/v1/campaigns/item?limit=10&offset=1                         -> equal(after url-strip): True
+GET /api/v1/home/all (covers Store: popular/latest/recommended/discounted/top_rated_stores) -> equal(after url-strip): True
+
+Timing (home/all, 3 samples each): NEW ~0.277-0.284s, OLD ~0.274-0.280s -- no measurable eager-load-timing regression.

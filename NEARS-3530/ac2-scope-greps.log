@@ -1,0 +1,21 @@
+=== AC2 re-verify greps (live, this worktree) ===
+--- addGlobalScope('translate' hits ---
+Admin/app/Models/Category.php
+--- addGlobalScope('storage' hits ---
+Admin/app/Models/Advertisement.php
+Admin/app/Models/BusinessSetting.php
+Admin/app/Models/Category.php
+Admin/app/Models/DataSetting.php
+Admin/app/Models/ModuleWiseBanner.php
+Admin/app/Models/Order.php
+Admin/app/Models/ReactPromotionalBanner.php
+Admin/app/Models/Refund.php
+
+Accounted for:
+  Category.php            -- out of scope, untouched (translate+storage both active, pre-existing)
+  Advertisement.php       -- storage hit is a COMMENTED-OUT dead line (booted(), lines 137-143), left as documentation per Tier-A ratified split; not live code
+  BusinessSetting.php     -- documented bespoke exception (unconditional write, no key column); zero trait adoption (no translate scope existed either)
+  DataSetting.php         -- documented bespoke exception (unconditional write, no key column); DID adopt HasTranslations for its translate scope
+  ModuleWiseBanner.php    -- NEARS-3498 precedent bespoke, untouched (out of this ticket)
+  ReactPromotionalBanner.php -- storage hit is commented-out dead line, NEARS-3498 precedent, untouched
+  Refund.php, Order.php   -- NEARS-3498/addendum bespoke, untouched (out of this ticket)
