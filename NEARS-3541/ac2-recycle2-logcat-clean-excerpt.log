@@ -1,0 +1,21 @@
+NEARS-3541 AC2 re-QA (fix cycle 3, round 2) - clean repro logs
+
+=== Attempt 1: Home-tab-active starting state ===
+09-13 04:29:06.572 I/flutter (10705): [NET] POST endpoint=/api/v1/vendor/update-profile
+09-13 04:29:07.381 I/flutter (10705): [NET] endpoint=/api/v1/vendor/update-profile http_status=200
+09-13 04:29:07.382 I/flutter (10705): [NET] GET endpoint=/api/v1/vendor/profile
+09-13 04:29:08.381 I/flutter (10705): [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-13 04:29:08.383 V/FA      (10705): Logging screen view with name, class: /, MainActivity
+-- grep for FlutterError|hero|exception|multiple heroes|EXCEPTION over full pid 10705 buffer: 0 matches (exit 1) --
+
+=== Attempt 2: Store-tab-active starting state ===
+09-13 04:30:20.875 I/flutter (10705): [NET] POST endpoint=/api/v1/vendor/update-profile
+09-13 04:30:21.429 I/flutter (10705): [NET] endpoint=/api/v1/vendor/update-profile http_status=200
+09-13 04:30:21.430 I/flutter (10705): [NET] GET endpoint=/api/v1/vendor/profile
+09-13 04:30:22.431 I/flutter (10705): [NET] endpoint=/api/v1/vendor/profile http_status=200
+09-13 04:30:22.433 V/FA      (10705): Logging screen view with name, class: /, MainActivity
+-- grep for FlutterError|hero|exception|multiple heroes|EXCEPTION over full pid 10705 buffer: 0 matches (exit 1) --
+
+Both back-navigations completed cleanly with zero FlutterError/exception occurrences.
+Compare to round-1 repro (task-bug NEARS-3546) which reproduced "multiple heroes share the same
+tag" on this exact path, both starting states, on the pre-fix build.
