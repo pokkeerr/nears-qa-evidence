@@ -1,0 +1,66 @@
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_3568_controller_strict_sites
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.5.6
+Configuration: /Users/Apple/Projects/nears-NEARS-3568-controller-strict-sites-ratchet/Admin/phpunit.xml
+
+.............................................................   61 / 2586 (  2%)
+.............................................................  122 / 2586 (  4%)
+............................................................[FAIL] OpenTelemetry export failed; Laravel logger unavailable: Monolog handler is dead (bad channel / full disk)
+[FAIL] OpenTelemetry export failed; Laravel logger unavailable: Monolog handler is dead (bad channel / full disk)
+.  183 / 2586 (  7%)
+...................................
+NEARS-3207 admin route smoke sweep: total=399 executed=359 skipped_action=7 skipped_param=33 status_distribution={"200":296,"302":14,"404":49}
+..........................  244 / 2586 (  9%)
+.............................................................  305 / 2586 ( 11%)
+.............................................................  366 / 2586 ( 14%)
+........................................................F....  427 / 2586 ( 16%)
+.............................................................  488 / 2586 ( 18%)
+.............................................................  549 / 2586 ( 21%)
+.............................................................  610 / 2586 ( 23%)
+.............................................................  671 / 2586 ( 25%)
+.............................................................  732 / 2586 ( 28%)
+.............................................................  793 / 2586 ( 30%)
+.............................................................  854 / 2586 ( 33%)
+.............................................................  915 / 2586 ( 35%)
+.............................................................  976 / 2586 ( 37%)
+............................................................. 1037 / 2586 ( 40%)
+............................................................. 1098 / 2586 ( 42%)
+............................................................. 1159 / 2586 ( 44%)
+............................................................. 1220 / 2586 ( 47%)
+............................................................. 1281 / 2586 ( 49%)
+............................................................. 1342 / 2586 ( 51%)
+............................................................. 1403 / 2586 ( 54%)
+............................................................. 1464 / 2586 ( 56%)
+............................................................. 1525 / 2586 ( 58%)
+............................................................. 1586 / 2586 ( 61%)
+............................................................. 1647 / 2586 ( 63%)
+............................................................. 1708 / 2586 ( 66%)
+............................................................. 1769 / 2586 ( 68%)
+............................................................. 1830 / 2586 ( 70%)
+............................................................. 1891 / 2586 ( 73%)
+............................................................. 1952 / 2586 ( 75%)
+............................................................. 2013 / 2586 ( 77%)
+............................................................. 2074 / 2586 ( 80%)
+............................................................. 2135 / 2586 ( 82%)
+............................................................. 2196 / 2586 ( 84%)
+............................................................. 2257 / 2586 ( 87%)
+............................................................. 2318 / 2586 ( 89%)
+............................................................. 2379 / 2586 ( 91%)
+............................................................. 2440 / 2586 ( 94%)
+...................S......................................... 2501 / 2586 ( 96%)
+............................................................. 2562 / 2586 ( 99%)
+........................                                      2586 / 2586 (100%)
+
+Time: 07:31.299, Memory: 924.50 MB
+
+There was 1 failure:
+
+1) Tests\Feature\ConfigContractTest::test_decimal_precision_is_two_not_whole_dirhams
+NEARS-2019 (EXPECTED RED — the money defect, not a broken build): digit_after_decimal_point is not 2, so PlaceNewOrder rounds PERSISTED order money to whole dirhams — order_amount, delivery_charge, total_tax_amount, the discount fields and every order_details line price. Up to a half-dirham is added to or removed from what the customer is actually charged. THIS TEST READS THE PHPUNIT TWIN (multi_food_db_test*), NEVER multi_food_db, so it pins the SEED contract and not the live config. CORRECTING THE LIVE SETTING ALONE WILL NOT CLEAR IT — a data change never triggers a re-clone (setup_test_db.sh re-clones only on an applied-migration-signature mismatch). To go green, all three: (1) set digit_after_decimal_point to 2 via Admin -> Business Setup or a versioned seeder, never raw DML, then `php artisan cache:clear` (settings are cached rememberForever, so skipping this makes a correct fix look like it failed); (2) re-dump the corrected DB and rebuild the twin: TEST_DB_BACKUP=/path/to/dump.sql bash scripts/setup_test_db.sh ; (3) FORCE the clones to rebuild: bash scripts/setup_test_db.sh --drop-stale (or --clone <worktree_slug> per worktree). See docs/solutions/NEARS-2019-persisted-money-rounding.md.
+Failed asserting that 0 is identical to 2.
+
+/Users/Apple/Projects/nears-NEARS-3568-controller-strict-sites-ratchet/Admin/tests/Feature/ConfigContractTest.php:310
+
+FAILURES!
+Tests: 2586, Assertions: 17853, Failures: 1, PHPUnit Deprecations: 1, Skipped: 1.
