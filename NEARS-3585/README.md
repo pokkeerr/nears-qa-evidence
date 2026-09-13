@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3585
 
-**Grocery module home — H1-H8 UI/UX findings (owner: file them all)**
+**Human QA — Grocery module home**
 
-**19 screenshot(s).** Click any thumbnail for full resolution.
+**40 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -17,6 +17,21 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="p4-10-after-add.png"><img src="p4-10-after-add.png" width="240"></a><br><sub>p4 10 after add</sub></td>
+<td align="center" width="33%"><a href="p4-20-available-near-you.png"><img src="p4-20-available-near-you.png" width="240"></a><br><sub>p4 20 available near you</sub></td>
+<td align="center" width="33%"><a href="p4-30-trending.png"><img src="p4-30-trending.png" width="240"></a><br><sub>p4 30 trending</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="p4-40-stores.png"><img src="p4-40-stores.png" width="240"></a><br><sub>p4 40 stores</sub></td>
+<td align="center" width="33%"><a href="p4-50-loggedin-top.png"><img src="p4-50-loggedin-top.png" width="240"></a><br><sub>p4 50 loggedin top</sub></td>
+<td align="center" width="33%"><a href="p4-51-reorder-usuals.png"><img src="p4-51-reorder-usuals.png" width="240"></a><br><sub>p4 51 reorder usuals</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="p4-A1-A5-available-near-you-tags-closed-new__crop.png"><img src="p4-A1-A5-available-near-you-tags-closed-new__crop.png" width="240"></a><br><sub>p4 A1 A5 available near you tags closed new crop</sub></td>
+<td align="center" width="33%"><a href="p4-A1-A5-available-near-you-tags-closed-new__full.png"><img src="p4-A1-A5-available-near-you-tags-closed-new__full.png" width="240"></a><br><sub>p4 A1 A5 available near you tags closed new full</sub></td>
+<td align="center" width="33%"><a href="p4-A1-closed-store-in-available__crop.png"><img src="p4-A1-closed-store-in-available__crop.png" width="240"></a><br><sub>p4 A1 closed store in available crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="p4-A1-closed-store-in-available__full.png"><img src="p4-A1-closed-store-in-available__full.png" width="240"></a><br><sub>p4 A1 closed store in available full</sub></td>
 <td align="center" width="33%"><a href="p4-H1-module-tabs-left-aligned__crop.png"><img src="p4-H1-module-tabs-left-aligned__crop.png" width="240"></a><br><sub>p4 H1 module tabs left aligned crop</sub></td>
 <td align="center" width="33%"><a href="p4-H1-module-tabs-left-aligned__full.png"><img src="p4-H1-module-tabs-left-aligned__full.png" width="240"></a><br><sub>p4 H1 module tabs left aligned full</sub></td>
 </tr>
@@ -37,6 +52,26 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="p4-H8-two-basket-icons__full.png"><img src="p4-H8-two-basket-icons__full.png" width="240"></a><br><sub>p4 H8 two basket icons full</sub></td>
+<td align="center" width="33%"><a href="p4-N1-N3-N4-trending-card-gaps-badge-heart__crop.png"><img src="p4-N1-N3-N4-trending-card-gaps-badge-heart__crop.png" width="240"></a><br><sub>p4 N1 N3 N4 trending card gaps badge heart crop</sub></td>
+<td align="center" width="33%"><a href="p4-N1-N3-N4-trending-card-gaps-badge-heart__full.png"><img src="p4-N1-N3-N4-trending-card-gaps-badge-heart__full.png" width="240"></a><br><sub>p4 N1 N3 N4 trending card gaps badge heart full</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="p4-N5-duplicate-product-a__crop.png"><img src="p4-N5-duplicate-product-a__crop.png" width="240"></a><br><sub>p4 N5 duplicate product a crop</sub></td>
+<td align="center" width="33%"><a href="p4-N5-duplicate-product-a__full.png"><img src="p4-N5-duplicate-product-a__full.png" width="240"></a><br><sub>p4 N5 duplicate product a full</sub></td>
+<td align="center" width="33%"><a href="p4-N5-duplicate-product-b__crop.png"><img src="p4-N5-duplicate-product-b__crop.png" width="240"></a><br><sub>p4 N5 duplicate product b crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="p4-N5-duplicate-product-b__full.png"><img src="p4-N5-duplicate-product-b__full.png" width="240"></a><br><sub>p4 N5 duplicate product b full</sub></td>
+<td align="center" width="33%"><a href="p4-R1-reorder-rail-big-card-truncated-store__crop.png"><img src="p4-R1-reorder-rail-big-card-truncated-store__crop.png" width="240"></a><br><sub>p4 R1 reorder rail big card truncated store crop</sub></td>
+<td align="center" width="33%"><a href="p4-R1-reorder-rail-big-card-truncated-store__full.png"><img src="p4-R1-reorder-rail-big-card-truncated-store__full.png" width="240"></a><br><sub>p4 R1 reorder rail big card truncated store full</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="p4-R3-R4-active-orders-greeting-order__crop.png"><img src="p4-R3-R4-active-orders-greeting-order__crop.png" width="240"></a><br><sub>p4 R3 R4 active orders greeting order crop</sub></td>
+<td align="center" width="33%"><a href="p4-R3-R4-active-orders-greeting-order__full.png"><img src="p4-R3-R4-active-orders-greeting-order__full.png" width="240"></a><br><sub>p4 R3 R4 active orders greeting order full</sub></td>
+<td align="center" width="33%"><a href="p4-S1-S6-stores-section__crop.png"><img src="p4-S1-S6-stores-section__crop.png" width="240"></a><br><sub>p4 S1 S6 stores section crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="p4-S1-S6-stores-section__full.png"><img src="p4-S1-S6-stores-section__full.png" width="240"></a><br><sub>p4 S1 S6 stores section full</sub></td>
 </tr>
 </table>
 
