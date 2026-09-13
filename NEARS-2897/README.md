@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-2897
 
-**cycle1 delta re-QA PASS: AC1+AC2 live-confirmed via deep-link past pre-existing module_config cache bug (cycle-0-documented, unrelated)**
+**cycle2 PASS: delta re-QA confirms AC1/AC2 module9 active_stores_count=2 unchanged; storage-file fix mechanism confirmed in source; phpunit 11/11**
 
 **4 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -19,6 +19,7 @@
 - [`bug-ac1-popularstoreview-selfhides-shop-home.log`](bug-ac1-popularstoreview-selfhides-shop-home.log)
 - [`bug-ac1-popularstoreview-selfhides-shop-home.xml`](bug-ac1-popularstoreview-selfhides-shop-home.xml)
 - [`bug-stale-module-config-cache-crash.log`](bug-stale-module-config-cache-crash.log)
+- [`cycle2-delta-confirm.log`](cycle2-delta-confirm.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-2897/` · public-repo scrub policy (no live secrets; verified clean).*

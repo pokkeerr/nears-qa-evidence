@@ -1,0 +1,22 @@
+NEARS-2897 cycle 2 -- forced delta re-QA (fix-in-run predicate confirmation)
+Fix under confirmation: anchor-tracking JSON moved off modules.description onto storage/app/ (Storage:: get/put/delete calls confirmed present in database/seeders/Nears2897ShopModuleStoreRecommendedSeeder.php, lines 178/413/417/424).
+Backend booted fresh from own worktree, own port (8091), read-only against shared multi_food_db (no DML this cycle).
+Backend: /Users/Apple/Projects/nears-NEARS-2897-shop-module-recommended-seed/Admin/public @ 2d8225c21
+
+Live API check -- GET /api/v1/module with header zoneId: [1] (module 9's own zone; default zone is id=2 and does not carry module 9, confirmed via module_zone table read):
+  module_name: NEARS-2897 Shop (Ecommerce)
+  active_stores_count: 2
+  open_now_stores_count: 2
+  stores_count: 2
+  description length: 456 (still carries the OLD leaked ANCHOR_STATE JSON -- KNOWN ACCEPTED RESIDUAL per conductor decision, not a new finding; head: "NEARS-2897 QA fixture ... | ANCHOR_STATE:{...")
+
+DB read-only cross-check -- stores WHERE module_id=9:
+  91116  NEARS-2897 Shop Fixture Store   status=1 active=1 zone_id=1
+  91125  NEARS-2897 Shop Fixture Store 2 status=1 active=1 zone_id=1
+  (both fixture stores present + active -- matches cycle-1's "2nd active store" fix; store list unchanged, count=2)
+
+laravel.log scoped grep for /api/v1/module during this check: only benign [WARN] zone-resolution lines (zone_id source=query), no [ERR]/[FAIL] for the module endpoint. (Unrelated [FAIL] lines present later in the tail are from the phpunit run's own "testing" log channel/DB, timestamped after this check, not from this live API check.)
+
+Automated backstop:
+  cd Admin && vendor/bin/phpunit --filter Nears2897ShopModuleStoreRecommendedSeederTest
+  OK (11 tests, 30 assertions) -- matches conductor's independently-confirmed 11/11 result.
