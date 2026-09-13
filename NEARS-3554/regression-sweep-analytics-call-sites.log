@@ -1,0 +1,21 @@
+=== Regression sweep: AnalyticsService call sites exercised on normal (google-services.json present) boot ===
+
+-- 1. logLogin (auth_controller.dart) -- logout + re-login as Ali Hassan --
+102:V/FA      (31986): Logging screen view with name, class: /sign-in, MainActivity
+191:I/flutter (31986): [NET] POST endpoint=/api/v1/auth/delivery-man/login
+192:I/flutter (31986): [NET] endpoint=/api/v1/auth/delivery-man/login http_status=200
+
+-- 2. logShiftOnline/logShiftOffline (profile_controller.dart) -- toggle Online Status switch --
+Tapped Online Status switch; blocked by legit business rule (active order in progress), dialog:
+  لا يمكنك الانتقال إلى وضع غير متصل / لا يمكنك عدم الاتصال بالإنترنت الآن لأن لديك طلبًا نشطًا
+  ("You cannot go offline now because you have an active order") -- no crash, UI responsive, call site reached.
+
+-- 3. logTabSelected (dashboard_screen.dart) -- Home <-> Profile tab navigation, multiple times --
+55:V/FA      (31986): Logging screen view with name, class: /splash, MainActivity
+65:V/FA      (31986): Logging screen view with name, class: /, MainActivity
+102:V/FA      (31986): Logging screen view with name, class: /sign-in, MainActivity
+202:V/FA      (31986): Logging screen view with name, class: /, MainActivity
+
+No [FAIL]/[ERR]/E-flutter/core-no-app lines during this sweep (see full grep below):
+98:I/flutter (31986): [FAIL] endpoint=null http_status=null type=LocationRecordFailure msg="location record failed: TimeoutException"
+253:I/flutter (31986): [FAIL] endpoint=null http_status=null type=LocationRecordFailure msg="location record failed: TimeoutException"
