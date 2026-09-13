@@ -1,0 +1,19 @@
+NEARS-3555 AC3 live repro — VendorApp (Android emulator-5554, via scripts/qa-run.sh)
+Setup: VendorApp/android/app/google-services.json removed (mv'd to .bak); same
+conditional-plugin-application mechanism as UserApp (build.gradle.kts:10-13).
+
+`scripts/qa-run.sh --root <worktree> VendorApp emulator-5554` console output:
+I/flutter ( 4731): [FAIL] endpoint=null http_status=null type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+I/flutter ( 4731): Type: owner
+
+Count check: grep -c "type=FirebaseInitFailure" -> 1 (exactly one line)
+
+App continued to boot to the login screen normally after the failure (no crash,
+firebaseReady=false, fail-safe intact) — "Type: owner" is the next screen's own
+log line, confirming forward progress past the failed Firebase init.
+
+Baseline (config present) run immediately before this one: 0 hits for
+"FirebaseInitFailure" in the full console output — confirms no over-logging on
+the success path.
+
+google-services.json restored immediately after this test (mv back from .bak).

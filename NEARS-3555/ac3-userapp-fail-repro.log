@@ -1,0 +1,22 @@
+NEARS-3555 AC3 live repro — UserApp (Android emulator-5554)
+Setup: UserApp/android/app/google-services.json removed (mv'd to .bak) so the
+google-services Gradle plugin does not apply (build.gradle.kts:10-13 conditional
+on file existence) -> Firebase.initializeApp() genuinely fails at runtime with no
+generated FirebaseApp config.
+
+`flutter run -d emulator-5554` console output (grep -n type=FirebaseInitFailure):
+216:I/flutter ( 4309): [FAIL] endpoint=null http_status=null type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+
+Count check: grep -c "type=FirebaseInitFailure" -> 1 (exactly one line, no over-logging)
+
+App continued to boot normally after the failure (fail-safe intact):
+I/flutter ( 4309): [INFO] msg="route: building splash route, hasData=false"
+I/flutter ( 4309): [INFO] msg="route: navigating to splash screen"
+I/flutter ( 4309): [INFO] msg="splash: location prefetch initiated"
+-> no crash, no red screen, normal splash navigation with firebaseReady=false.
+
+Baseline (config present, before removal) grep for FirebaseInitFailure/Firebase
+init lines: 0 hits — confirms no spurious [FAIL] on the success path (no
+over-logging in the normal-boot control).
+
+google-services.json restored immediately after this test (mv back from .bak).

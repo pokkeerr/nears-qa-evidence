@@ -1,0 +1,34 @@
+NEARS-3555 AC3 live repro — DeliveryApp (Android emulator-5554, via scripts/qa-run.sh)
+Setup: DeliveryApp/android/app/google-services.json removed (mv'd to .bak); same
+conditional-plugin-application mechanism as the other two apps
+(build.gradle.kts:10-13).
+
+`scripts/qa-run.sh --root <worktree> DeliveryApp emulator-5554` console output:
+I/flutter ( 5555): [FAIL] endpoint=null http_status=null type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+
+Count check: grep -c "type=FirebaseInitFailure" -> 1 (exactly one line)
+
+App continued past the failure normally (NET/config-fetch attempts followed,
+no crash, no red screen, firebaseReady=false, fail-safe intact):
+I/flutter ( 5555): [NET] GET endpoint=/api/v1/config
+I/flutter ( 5555): [FAIL] endpoint=/api/v1/config http_status=null type=ApiFailure msg="api request threw" correlation_id=3847531e-8023-45c1-8479-80b05cae4909
+(the ApiFailure line is the SEPARATE, pre-existing splash config-fetch failure —
+expected since no backend is running for this client-only ticket; unrelated to
+the Firebase-init catch arms under test.)
+
+Baseline (config present) run immediately before this one: 0 hits for
+"FirebaseInitFailure" — confirms no over-logging on the success path.
+
+Regression item 3 (duplicate-app path never logs) and items 4-5 (PII-safe
+reason string; no over-logging on the duplicate-app early-return-true branch)
+were verified by DIRECT STATIC READ of the landed diff (55e23e852), not a live
+repro: triggering a genuine `duplicate-app` FirebaseException requires calling
+Firebase.initializeApp() a second time in-process, which is not naturally
+reachable from a normal boot without instrumenting/modifying app code — QA does
+not edit product code. Confirmed structurally in all 3 apps' main.dart:
+`if (e.code == 'duplicate-app') { return true; }` returns BEFORE any
+AppLogger.failure(...) call in every arm, and the one AppLogger.failure(...)
+call site per arm passes `'firebase init failed (${e.runtimeType})'` — never
+`e.message`/`e.toString()`/the raw caught object — matching the PII allow-list.
+
+google-services.json restored immediately after this test (mv back from .bak).
