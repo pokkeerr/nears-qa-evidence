@@ -1,0 +1,24 @@
+NEARS-3527 — security-reviewer qa_point: spot-check one legitimately-gated
+module (wallet) via direct URL, employee who does/doesn't have it.
+
+Fixtures created on the disposable QA clone (store_id=35, vendor_id=26):
+  - EmployeeRole id=12 "QA-NoWallet-Role", modules=["order"]  (no wallet)
+  - VendorEmployee id=12 qa.nowallet.3527@nears.com  -> employee_role_id=12
+  - VendorEmployee id=13 qa.withwallet.3527@nears.com -> employee_role_id=10
+    (role id=10 is the AC6 all-27-keys role, which includes "wallet")
+
+Both logged in via /login/vendor-employee, role=vendor_employee, same curl
+cookie-jar technique as the owner login.
+
+GET /vendor-panel/wallet as qa.nowallet.3527@nears.com (role has NO 'wallet'):
+-> HTTP 302 (redirected back by ModulePermissionMiddleware)
+-> Following the redirect: toastr.error('Access denied')
+
+GET /vendor-panel/wallet as qa.withwallet.3527@nears.com (role HAS 'wallet'):
+-> HTTP 200 (page rendered, "wallet" appears 26x in the response body)
+
+This confirms the middleware gate `module:wallet` is live and actually reads
+EmployeeRole.modules — i.e. the modules[] array is a REAL privilege boundary,
+which is exactly why this ticket's server-side whitelist on that array's
+CONTENTS matters (an unguarded write path would let an employee escalate into
+gates like this one).

@@ -1,0 +1,28 @@
+NEARS-3527 — AC8: pre-existing EmployeeRole rows left untouched, no migration ran
+
+Migration check:
+  git diff --stat feat/userapp-reskin2 -- Admin/database/migrations/
+  -> empty output: zero migration files added/changed by this ticket's diff.
+
+Row-level check (read-only SELECTs against the disposable QA clone
+multi_food_db_test_qa3527, seeded identically to the shared phpunit twin):
+
+BEFORE any QA action this run:
+  SELECT COUNT(*) FROM employee_roles; -> 2
+  (ids 1 "QA Manager A" store_id=19 modules=["order","item"],
+       2 "QA Manager B" store_id=21 modules=["order","item"])
+
+AFTER the full QA run (baseline PoC + both-direction + positive-control +
+regression sweep, 3 new rows created by QA itself: ids 10, 11, 12):
+  SELECT id,name,store_id,modules,updated_at FROM employee_roles WHERE id IN (1,2);
+  -> id=1: name="QA Manager A" store_id=19 modules=["order","item"] updated_at=2026-07-03 00:44:53
+  -> id=2: name="QA Manager B" store_id=21 modules=["order","item"] updated_at=2026-07-03 00:44:53
+  (identical to BEFORE, including updated_at timestamps unchanged from the
+   original seed time — neither row was read, mutated, or its updated_at
+   touched by anything this run did, including the cross-store scoping
+   regression attempt against id=1, which was correctly rejected before
+   reaching ->save() — see regression-store-id-scoping.log).
+
+Net: no pre-existing row was modified; the only new rows are QA's own
+create()/update() test fixtures (ids 10-12), and the disposable clone itself
+was dropped at the end of the run.

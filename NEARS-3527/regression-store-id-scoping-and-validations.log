@@ -1,0 +1,55 @@
+NEARS-3527 — Regression sweep: store_id scoping + pre-existing modules.required /
+name-uniqueness validation, unaffected by this ticket's fix.
+
+=== store_id scoping (cross-store) ===
+Logged in as ts@ts.com (store_id=35). role id=1 belongs to store_id=19 (a
+different vendor's role, pre-existing fixture).
+
+GET /vendor-panel/custom-role/edit/1
+-> HTTP 500 (Illuminate\View\ViewException, "Trying to access array offset on
+   null" in vendor-views/custom-role/edit.blade.php)
+-> No role name/modules from store 19 leaked in the response body.
+-> Backend log (production.ERROR, [FAIL], see excerpt below) confirms the
+   controller's existing scope
+   `EmployeeRole::where('store_id',Helpers::get_store_id())->where(['id'=>$id])->first(...)`
+   returned null (correctly excluded, since store_id 19 != 35) and the BLADE
+   (not this ticket's code) then dereferences $role['name'] unconditionally.
+
+  [2026-09-13 04:59:47] production.ERROR: [FAIL] Trying to access array offset
+  on null (View: .../vendor-views/custom-role/edit.blade.php)
+  {"trace_id":"208ed614a6d55b271575cc8113a7a4c8",
+   "correlation_id":"90a619a6-691e-4d16-87a2-28da611ec496",
+   "type":"Illuminate\\View\\ViewException",
+   "endpoint":"/vendor-panel/custom-role/edit/1"}
+
+POST /vendor-panel/custom-role/update/1 (name[]=HACKED-CROSS-STORE, modules[]=order)
+-> HTTP 419 (no CSRF token could be scraped from the 500 page above)
+-> DB: SELECT * FROM employee_roles WHERE id=1; -> UNCHANGED
+   (name still "QA Manager A", store_id still 19, modules still ["order","item"])
+
+VERDICT on the substantive regression check ("a vendor cannot touch another
+store's custom role via this endpoint"): PASS — store_id scoping is intact,
+zero leak, zero mutation. The 500-vs-clean-404 UI/error-surface quality gap is
+PRE-EXISTING (the `edit()` method's null-handling is untouched by this
+ticket's diff — the diff touches only store()/update()'s validation rules)
+and is filed separately as a regression_bug, non-blocking for this ticket.
+
+=== modules.required (empty array) — store() ===
+POST /vendor-panel/custom-role/create, name[]=QA-Empty-Modules, NO modules[] field
+-> HTTP 302 back to create form
+-> toastr.error('Please select atleast one module')
+-> Behavior unchanged from pre-fix (this rule already existed;
+   Rule::in() is additive on top of it, never replacing it).
+
+=== name uniqueness (scoped by store_id) — store() ===
+POST /vendor-panel/custom-role/create, name[]=QA-Pos-Store-27-Updated (already
+taken by role id=10, same store), modules[]=order
+-> HTTP 302 back to create form
+-> toastr.error('The name has already been taken.')  (Laravel's default unique
+   message — store()'s custom $messages array has no name.unique override,
+   unlike update()'s; this is pre-existing, unrelated to this ticket)
+-> DB: SELECT COUNT(*) FROM employee_roles WHERE name='QA-Pos-Store-27-Updated';
+   -> 1 (no duplicate created)
+
+=== wallet-module spot-check (security-reviewer qa_point) ===
+See wallet-spot-check.log for the full both-directions live demonstration.

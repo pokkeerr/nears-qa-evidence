@@ -1,0 +1,35 @@
+Regression bug (pre-existing, NOT introduced by NEARS-3527's fix):
+CustomRoleController::edit() 500s instead of a graceful 404 when the
+requested role id belongs to a DIFFERENT store than the logged-in vendor.
+
+Repro: as vendor ts@ts.com (store_id=35), GET
+/vendor-panel/custom-role/edit/1 where role id=1 belongs to store_id=19.
+
+`EmployeeRole::where('store_id',Helpers::get_store_id())->where(['id'=>$id])
+->first(['id','name','modules'])` correctly returns null (store scoping is
+NOT broken — no cross-store data is exposed or mutated), but
+vendor-views/custom-role/edit.blade.php then dereferences `$role['name']`
+unconditionally, producing an unhandled null-array-offset ViewException.
+
+Live backend log line (Admin/storage/logs/laravel.log, this worktree's own
+QA-session server, PII-safe):
+
+  [2026-09-13 04:59:47] production.ERROR: [FAIL] Trying to access array offset
+  on null (View: /Users/Apple/Projects/nears-NEARS-3527-vendorapp-customrole-modules-whitelist/Admin/resources/views/vendor-views/custom-role/edit.blade.php)
+  {"trace_id":"208ed614a6d55b271575cc8113a7a4c8",
+   "correlation_id":"90a619a6-691e-4d16-87a2-28da611ec496",
+   "type":"Illuminate\\View\\ViewException",
+   "endpoint":"/vendor-panel/custom-role/edit/1"}
+
+Scope note: the diff for this ticket touches ONLY store()'s and update()'s
+inline validate() rules — edit()'s null-handling and the blade are byte-
+identical before and after this fix. Confirmed as pre-existing, unrelated to
+this ticket's own scope (which explicitly excludes "any other Vendor/
+Store-Panel controller" changes). Filed as a regression_bug, non-blocking for
+this ticket's PASS verdict.
+
+Suggested fix (for whoever picks this up): guard edit() with
+`abort_if(!$role, 404)` (or an equivalent `optional($role)`/`$role?->name`
+null-safe access in the blade) before rendering — the SAME shape of fix as
+would be needed for a well-behaved 404 anywhere else this
+`where('store_id',...)->first()` pattern is used unguarded.

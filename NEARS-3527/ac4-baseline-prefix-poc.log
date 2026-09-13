@@ -1,0 +1,46 @@
+NEARS-3527 — AC4: live-reproduce PRE-FIX unguarded behavior (baseline PoC)
+
+Approach used: live in-place code swap on the SAME running Store-Panel instance
+(booted from this ticket's own worktree, DB isolated to a disposable clone
+multi_food_db_test_qa3527). Standing up a second full app instance for the base
+branch was judged unnecessary overhead given the diff is a single file; instead:
+
+  1. Confirmed exact diff between feat/userapp-reskin2 (pre-fix) and this
+     worktree's HEAD (post-fix) for the one changed file:
+       git show feat/userapp-reskin2:Admin/app/Http/Controllers/Vendor/CustomRoleController.php
+       diff <that> Admin/app/Http/Controllers/Vendor/CustomRoleController.php
+     Diff is exactly: + ALLOWED_MODULES const, + Rule::in(...) on modules.* in
+     both store() and update(), + 'modules.*.in' message — nothing else.
+  2. Backed up the post-fix file, overwrote the live worktree file with the
+     git-show'd PRE-FIX content, cleared config/route/view cache.
+  3. Logged in as vendor ts@ts.com (store 35) via /login/vendor.
+  4. POSTed to /vendor-panel/custom-role/create with:
+       name[]=QA-PREFIX-BASELINE-POC
+       modules[]=order
+       modules[]=admin_only_key      <- NOT one of the 27 real checkbox values,
+                                          never rendered anywhere in create.blade.php
+  5. Result: HTTP 302 (success — no validation error), and the row WAS persisted:
+
+     SELECT id,name,modules,store_id FROM multi_food_db_test_qa3527.employee_roles
+       WHERE name='QA-PREFIX-BASELINE-POC';
+     -> id=11 name=QA-PREFIX-BASELINE-POC modules=["order","admin_only_key"] store_id=35
+
+     This is the live-reproduced vulnerability: a modules[] value that is not one
+     of the 27 legitimate checkboxed keys is accepted and written verbatim to
+     EmployeeRole.modules on the CURRENT (pre-fix) code, exactly matching the
+     ticket's own evidence block (raw assignment, no whitelist).
+
+  6. Immediately restored the post-fix file (cp back from backup), verified
+     `git status --short` on the controller file was clean (byte-identical to
+     the committed post-fix version), cleared caches again.
+  7. Re-ran the IDENTICAL POST (fresh CSRF token, name=QA-POSTFIX-REVERIFY) against
+     the restored post-fix code: HTTP 302 back to the create form, toastr
+     'Invalid module selected', and NO row was created for that name — see
+     ac5-negative-store.log for the full negative-case evidence.
+
+Net: the pre-fix vulnerability was reproduced LIVE (not just code-read) as its
+own artifact (row id=11, still present in the disposable clone for inspection),
+and the fix's rejection of the identical payload was independently re-confirmed
+immediately after restoring the real code. The disposable DB clone
+(multi_food_db_test_qa3527) was dropped at the end of this QA run; row id=11's
+content is preserved verbatim in this log file.

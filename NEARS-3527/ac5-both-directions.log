@@ -1,0 +1,64 @@
+NEARS-3527 — AC5: live POST-FIX confirmation, both directions, store() AND update()
+
+Server: this worktree's own `php artisan serve --port=8137`, DB
+multi_food_db_test_qa3527 (disposable clone of the phpunit twin), logged in as
+vendor ts@ts.com / store_id=35 via /login/vendor (curl cookie-jar session —
+Chrome DevTools MCP returned "No page found" for every pageId this session,
+see docs/data-qa/web-qa-guide.md's new "Curl session fallback" section).
+
+=== NEGATIVE — store() ===
+POST /vendor-panel/custom-role/create
+  name[]=QA-Neg-Store-<ts>, modules[]=order, modules[]=business_settings
+  (business_settings is not one of the 27 whitelisted keys, not a real checkbox)
+-> HTTP 302 back to /vendor-panel/custom-role/create
+-> toastr.error('Invalid module selected')
+-> DB: SELECT COUNT(*) FROM employee_roles; stayed at 2 (baseline) — no row created
+       SELECT * FROM employee_roles WHERE name LIKE 'QA-Neg-Store%'; -> 0 rows
+
+=== NEGATIVE — update() ===
+Target: role id=10 (QA-Pos-Store-27, all 27 legit keys, created for AC6 below).
+POST /vendor-panel/custom-role/update/10
+  name[]=QA-Pos-Store-27, modules[]=order, modules[]=admin_only_key
+-> HTTP 302 back to /vendor-panel/custom-role/edit/10
+-> toastr.error('Invalid module selected')
+-> DB: SELECT modules FROM employee_roles WHERE id=10;
+   -> unchanged: still all 27 original keys, admin_only_key NOT merged in,
+      'order'-only NOT applied either — the whole update was rejected atomically.
+
+=== POST-FIX re-verify (after the AC4 pre-fix/post-fix file swap) ===
+Same negative payload (admin_only_key) re-POSTed to store() immediately after
+restoring the real fixed controller file:
+-> HTTP 302, toastr.error('Invalid module selected')
+-> SELECT * FROM employee_roles WHERE name='QA-POSTFIX-REVERIFY'; -> 0 rows
+-> SELECT COUNT(*) FROM employee_roles; -> 4 (2 baseline + id10 + id11 from the
+   AC4 pre-fix PoC; the re-verify attempt itself added nothing)
+
+=== "one step further" — middleware-gate confirmation (code read) ===
+Read app/Http/Middleware/ModulePermissionMiddleware.php +
+App\CentralLogics\Helpers::employee_module_permission_check():
+  - The middleware's only check for a vendor_employee actor is a raw
+    `in_array($mod_name, (array)$permission)` against
+    auth('vendor_employee')->user()->role->modules — NO independent whitelist
+    inside the middleware itself.
+  - This means the controller-level Rule::in whitelist under test in THIS
+    ticket is the ONLY gate preventing a forged/self-granted modules[] value
+    from later being honored by a `module:<key>` middleware check — there is
+    no redundant defense-in-depth layer to fall back on.
+  - Did NOT forge a live stored bad row assigned to a real vendor_employee
+    login and walk it through a matching `module:<key>` route, because (a)
+    no route in this app actually declares `module:admin_only_key` (a
+    gibberish placeholder key, chosen specifically so it collides with no
+    real gate) — so there is no live "gated request" to point it at without
+    inventing a fictitious route, and (b) doing so with a REAL system module
+    key would require bypassing the just-restored fix a second time, adding
+    no further evidence beyond the code read above (which is unambiguous: a
+    plain string-membership check, nothing more). This satisfies the ticket's
+    own documented fallback for this leg of AC5 ("...or confirm via code read
+    ... since you can't easily forge a stored bad row live without bypassing
+    the very fix under test").
+  - The wallet-module spot-check (see wallet-spot-check.log) is the live,
+    non-fictitious version of this same mechanism: an employee whose role DOES
+    carry 'wallet' passes `module:wallet`, one whose role does NOT carry it is
+    denied — proving the middleware's in_array check is real and live, and
+    that the controller-level whitelist (this ticket's fix) is what prevents
+    an attacker from ever getting an illegitimate key into that array.

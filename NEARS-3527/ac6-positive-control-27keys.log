@@ -1,0 +1,43 @@
+NEARS-3527 — AC6: positive control, all 27 real keys, create + update, round-trip
+
+CREATE — POST /vendor-panel/custom-role/create, name[]=QA-Pos-Store-27,
+modules[]= all 27: dashboard, profile, order, pos, item, addon, category,
+campaign, coupon, banner, advertisement, advertisement_list, deliveryman,
+deliveryman_list, wallet, wallet_method, role, employee, expense_report,
+disbursement_report, vat_report, store_setup, notification_setup, my_shop,
+business_plan, reviews, chat.
+
+-> HTTP 302 (success, no validation error)
+-> DB row id=10:
+   modules=["dashboard","profile","order","pos","item","addon","category",
+   "campaign","coupon","banner","advertisement","advertisement_list",
+   "deliveryman","deliveryman_list","wallet","wallet_method","role","employee",
+   "expense_report","disbursement_report","vat_report","store_setup",
+   "notification_setup","my_shop","business_plan","reviews","chat"]
+   -> all 27, byte-exact, zero false-positive rejections.
+
+ROUND-TRIP — GET /vendor-panel/custom-role/edit/10:
+   Parsed all 27 checkbox `id="<key>"` attributes for a trailing `checked`.
+   26/26 RENDERED checkboxes were checked (100% of what the page shows).
+   The 27th key, "addon", is not rendered as a checkbox on this store's
+   create/edit page at all — gated behind
+   `config('module.'.module_type)['add_on']` in the blade, a pre-existing,
+   store-config-dependent UI condition wholly unrelated to this ticket's
+   validation fix (same gating exists identically pre- and post-fix). Its
+   value nonetheless round-trips correctly at the DB layer (see the raw
+   SELECT above, and it is included in the query the edit view itself runs);
+   the checkbox is simply not offered to THIS store's owner in the UI,
+   independent of whether the underlying value survives being saved/reloaded.
+
+UPDATE — POST /vendor-panel/custom-role/update/10, name[]=QA-Pos-Store-27-Updated,
+same all-27 modules[] list:
+-> HTTP 302 (success)
+-> DB row id=10: name updated to "QA-Pos-Store-27-Updated", modules[] still all
+   27, byte-identical to the create-time value.
+-> Re-fetched GET /vendor-panel/custom-role/edit/10:
+   toastr.success('Role updated successfully')
+   name input value="QA-Pos-Store-27-Updated"
+   All 26 renderable checkboxes still checked (0 missing).
+
+Net: zero false-positive rejection of any of the 27 legitimate keys, in either
+store() or update(), with a full DB + rendered-view round-trip confirmation.
