@@ -1,0 +1,89 @@
+NEARS-3552 QA evidence log — 2026-09-13
+Worktree: /Users/Apple/Projects/nears-NEARS-3552-userapp-misc-cluster2-batch2
+Backend: /Users/Apple/Projects/nears-NEARS-3552-userapp-misc-cluster2-batch2 @ 719e39226 (own php artisan serve --port=8552)
+
+=== Pre-flight: backend-freshness-check.sh 8552 ===
+[backend-freshness-check] :8552 -> pid 22409 -> cwd /Users/Apple/Projects/nears-NEARS-3552-userapp-misc-cluster2-batch2
+  branch: feat/NEARS-3552-userapp-misc-cluster2-batch2
+  head:   719e39226 (719e3922655ca555058a64b6469de0b36ded3972)
+  behind 'feat/userapp-reskin2': 6 commit(s)
+  ticket: NEARS-3552 — no ledger entry found — treated as PASS
+-- PASS: /Users/Apple/Projects/nears-NEARS-3552-userapp-misc-cluster2-batch2 @ 719e39226 (ticket NEARS-3552, status: unknown) --
+exit=0
+
+=== AC1 — Nears3552ModuleIconFixtureSeederTest (isolated per-worktree test DB) ===
+$ vendor/bin/phpunit --configuration phpunit.xml --filter Nears3552ModuleIconFixtureSeederTest
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_3552_userapp_misc_cluster2_b
+OK, but there were issues!
+Tests: 8, Assertions: 18, PHPUnit Deprecations: 1.
+(8/8 green — DB run against private per-worktree test DB, NEVER the shared multi_food_db.
+ Seeder code-reviewed: assertAllowedDatabase() hard-refuses any DB other than an explicit
+ NEARS_SEED_ALLOW_DB match; down() matches by exact icon-filename VALUE it wrote, not
+ identity-only, per active review lesson seeder-down-value-match-not-identity-match.)
+AC1 remains UNVERIFIABLE for the live "module picker shows real icon" demonstration —
+the shared multi_food_db has NOT been seeded (Tier C owner-only, pending post-merge
+Blocked park per conductor instruction). Not run against shared DB by this QA pass.
+
+=== AC2 — userapp-navigation-guide.md §5.9 citation check ===
+File: docs/apps/userapp/userapp-navigation-guide.md lines 2256-2264 (pre-existing on
+base feat/userapp-reskin2, NOT touched by this ticket's diff — confirmed via
+`git diff --stat feat/userapp-reskin2...HEAD -- docs/` showing only the new solution doc).
+All 3 named screens documented with a specific, distinct reason each:
+  - order_successful_screen.dart: COD/Offline routes straight to OrderTrackingScreen
+    (NEARS-517); digital-gateway 204s (NEARS-2664); deep-link host-match gap (unset
+    dart-define) — verified live via adb am start, matched=false.
+  - subscription_success_or_failed_screen.dart: entry point gated by
+    refEarningEnabled||dmReg||storeReg, all false in current business_settings —
+    whole card absent from Profile screen.
+  - order_banner_view_widget.dart: order_details_screen.dart's _showStatusHero() sets
+    hideBanner=true for every non-terminal status; the one exception branch (parcel
+    pendingOrderDetails) is unreachable because parcel creation is removed (§5.8) and
+    no live pending parcel order exists in seed data — checked live across 5 seeded
+    orders (#91150,#91356,#91159,#91174,#158).
+Dated "verified NEARS-3443 QA, 2026-09-12, emulator-5556" — one day before this
+ticket's grooming (comment 20005), consistent with the ticket's own description.
+
+=== AC3 — store_details_malformed_body_test.dart ===
+$ ~/Tools/flutter/bin/flutter test test/features/store/store_details_malformed_body_test.dart
+00:00 +12: All tests passed!  (12/12, matches ticket-cited line :199)
+
+Adjacent regression sweep (api_client + store_repository test files), all green:
+$ ~/Tools/flutter/bin/flutter test test/api_client_request_id_test.dart \
+  test/features/store/store_repository_error_flags_test.dart \
+  test/features/store/store_repository_cache_zone_key_test.dart \
+  test/features/store/store_repository_group_delivery_address_test.dart \
+  test/features/store/store_repository_zone_scoped_header_test.dart \
+  test/api/api_client_non_json_2xx_seam_test.dart
+00:01 +63: All tests passed!
+
+Live-equivalence note: a live device repro of the NEW fallback branch (non-UUID
+echoed x-request-id -> falls back to mintedRequestId) is not practical against the
+real backend — SetRequestId middleware (Admin/app/Http/Middleware/SetRequestId.php)
+either accepts a strictly-valid client-supplied UUID v4 or mints its own valid UUID
+v4; it structurally cannot echo a malformed id. Confirmed live:
+  $ curl -s -D - "http://127.0.0.1:8552/api/v1/stores/details/999999999"
+  X-Request-Id: 1124d7ae-c925-4cf7-ab14-98908728e6f8   (valid UUID v4, always)
+  HTTP/1.1 404 Not Found  {"errors":[{"code":"store_not_found",...}]}
+Backend log correlation join confirmed clean:
+  $ grep -F "stores/details" Admin/storage/logs/laravel.log | tail -1
+  [2026-09-13 15:50:35] production.ERROR: [FAIL] store details not found
+    {"trace_id":"...","correlation_id":"1124d7ae-c925-4cf7-ab14-98908728e6f8",
+     "endpoint":"/api/v1/stores/details/{id}","status":404,"code":"store_not_found"}
+  correlation_id == the X-Request-Id echoed to the curl client above. Clean, no
+  unrelated errors in the surrounding log tail.
+Static trace confirming the mock technique matches real wiring: api_client.dart's
+handleResponse() (called unconditionally regardless of handleError) rebuilds
+response0.request from the REAL http.Request object's headers, which is exactly
+where withRequestId() injected the minted X-Request-Id before dispatch — so
+store_repository.dart's `response.request?.headers[ApiClient.requestIdHeader]`
+read in the malformed-200 branch reads a real, live-wired value, not a
+test-only fabrication. The automated test is therefore the live-equivalent
+evidence for this repository-layer, no-UI-surface fix, matching the ticket's own
+AC3 text ("verified via ... test:199").
+
+=== Automated backstop ===
+Admin: vendor/bin/phpunit --filter Nears3552ModuleIconFixtureSeederTest -> 8/8 PASS
+UserApp: flutter test test/features/store/store_details_malformed_body_test.dart -> 12/12 PASS
+UserApp regression sweep (6 adjacent files) -> 63/63 PASS
+
+No task_bugs, no regression_bugs found this run.
