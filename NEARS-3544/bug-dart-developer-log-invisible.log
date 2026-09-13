@@ -1,0 +1,34 @@
+=== NEARS-3544 task_bug: dart:developer log() diagnostic invisible to logcat/flutter-run console ===
+
+AC2 asks to confirm the NEW debug-mode diagnostic line fires:
+  log('AnalyticsService: FirebaseAnalytics.instance unresolvable: $e');  // analytics_service.dart:59
+  log('AnalyticsService.$label failed: $e');                            // analytics_service.dart:129
+
+Both use dart:developer's log() (imported line 2: import 'dart:developer';).
+This file's OWN doc comment (lines 151-155, on why _mirror uses debugPrint instead)
+already documents that dart:developer log() does NOT echo to stdout/logcat -- only to
+the VM service Logging stream -- which is exactly the NEARS-262 defect this same file
+fixed for the debug mirror. The NEW NEARS-3544 catch blocks re-introduce that same
+anti-pattern instead of reusing debugPrint/AppLogger.
+
+Empirical confirmation (this QA run, emulator-5554, suffixed boot, 2194-line full logcat
+capture + flutter run's own stdout, both saved as ac2-full-boot-logcat.log /
+flutter-run-suffixed2.log):
+  grep -F 'AnalyticsService: FirebaseAnalytics.instance unresolvable' -> 0 hits in EITHER channel
+
+Mechanistic proof the catch WAS reached anyway (so this is an observability gap, not a
+functional defect -- AC1/AC2's core behaviour is verified independently):
+  1. W/FirebaseApp: 'Default FirebaseApp failed to initialize because no default options
+     were found' (native layer confirms zero [DEFAULT] app this boot)
+  2. logAppOpen()'s _mirror fires (📊 analytics: app_open {}) immediately followed
+     synchronously by _safe(), which reads _analytics before any await
+  3. Zero E/flutter, zero [core/no-app], zero uncaught FlutterError across the whole
+     2194-line capture -> the throw was necessarily caught internally
+
+Impact: Low severity, non-blocking to this ticket's core fix (app does not hang, no
+unhandled exception). But the diagnostic added specifically to help a future QA/dev
+distinguish 'silently swallowed by design' from 'never reached' is itself unobservable
+via the standard QA channel (adb logcat / flutter run stdout), defeating its own purpose.
+
+Suggested fix: swap both log(...) calls (lines 59, 129) to debugPrint(...) or
+AppLogger.failure/.warn, matching the file's own NEARS-262 precedent for _mirror.
