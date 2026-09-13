@@ -1,0 +1,102 @@
+AC1 FAIL — PopularStoreView (and RecommendedStoreView) never render on the Shop
+(ecommerce, module id=9) home screen with the seeder's current fixture, because
+module 9 has EXACTLY 1 active store and both rails self-suppress on that count.
+
+Code (live-read from this worktree, unchanged by NEARS-2897):
+
+  UserApp/lib/features/splash/controllers/module_controller.dart:210
+    bool get isCurrentModuleSingleStore => module?.activeStoresCount == 1;
+
+  UserApp/lib/features/home/widgets/views/popular_store_view.dart:24-26
+    if (Get.find<ModuleController>().isCurrentModuleSingleStore) {
+      return const SizedBox.shrink();
+    }
+
+  UserApp/lib/features/home/widgets/views/recommended_store_view.dart:37-39
+    if (Get.find<ModuleController>().isCurrentModuleSingleStore) {
+      return const SizedBox.shrink();
+    }
+
+Live backend confirmation (module 9's own active_stores_count, via the exact
+endpoint UserApp calls):
+
+  curl -s "http://127.0.0.1:8010/api/v1/module" -H 'zoneId: [1]'
+  -> id=9 "NEARS-2897 Shop (Ecommerce)" module_type=ecommerce
+     slug=nears-2897-shop-module active_stores_count=1
+
+  1 == 1 -> isCurrentModuleSingleStore is TRUE for module 9 in zone 1 ->
+  BOTH PopularStoreView and RecommendedStoreView return SizedBox.shrink()
+  on the Shop module home screen. Neither rail, nor its "See All"/"View All"
+  CTA, is ever in the render tree there.
+
+Live device confirmation (emulator-5556, logged in as customer@nears.com,
+deep-linked into the ecommerce module home via
+`adb shell am start -a android.intent.action.VIEW
+ -d "https://6ammart-web.6amtech.com/?module=nears-2897-shop-module"`):
+
+  accessibility dump (bug-ac1-popularstoreview-selfhides-shop-home.xml) shows
+  "Active Orders" -> "Your neighborhood store"/"Order now for free
+  delivery"/"Shop Now" (banner) -> "Brands" + "See All" (BrandsViewWidget,
+  which sits BELOW both PopularStoreView and RecommendedStoreView in
+  shop_home_screen.dart's Column) -> generic "Stores"/"1 stores near you"
+  filter row.
+
+  No "Popular Stores" / "Featured Stores" section title, no store card, no
+  "See All" tied to either rail, anywhere in the dump. Since shop_home_screen
+  is a plain Column (not a lazy Sliver list), BrandsViewWidget rendering
+  proves the scroll region already passed the two self-hidden rails' slot —
+  they are not merely off-screen, they emit zero-height widgets.
+
+Root cause: the seeder (Nears2897ShopModuleStoreRecommendedSeeder) creates
+exactly ONE store in the new ecommerce module (id=91116, "NEARS-2897 Shop
+Fixture Store") — which is precisely the count that trips the pre-existing
+NEARS-481 single-store suppression gate. AC1 literally requires
+"navigating UserApp to the shop module's home screen renders PopularStoreView
+live" — with a single-store module this can never be true regardless of how
+many times the seeder is re-run, because the gate is `activeStoresCount==1`,
+not "zero stores".
+
+CONSOLIDATED FINDING (supersedes the AC2-still-passable note below): grepped
+the whole UserApp tree —
+
+  grep -rn "PopularStoreView(\|RecommendedStoreView(" lib/ --include="*.dart"
+  -> UserApp/lib/features/home/screens/modules/shop_home_screen.dart:47,52
+     (the only two call sites in the entire app)
+
+Neither widget is referenced anywhere in grocery_home_screen.dart,
+food_home_screen.dart, pharmacy_home_screen.dart, or home_screen.dart itself
+— confirmed live too: scrolled the full Grocery module home (customer@nears.com,
+zone 1, module 1, 6 active stores) end to end and it shows Flash Sale /
+"Available Near You" (available_near_you_view.dart, a DIFFERENT widget) / "See
+All" CTAs tied to those — never a "Popular Stores" or "Featured Stores"
+section. So PopularStoreView/RecommendedStoreView are ONLY EVER reachable via
+the ecommerce (Shop) module home — there is no grocery/food/pharmacy fallback
+render path for either widget, regardless of those modules' own
+is_recommended data.
+
+This means the compiled QA Test Scope's item 4 ("RecommendedStoreView renders
+live on the ecommerce module AND on >=1 of grocery/food/pharmacy") describes a
+path that cannot exist in this codebase — scope drafting error, not a code
+defect — and, more importantly, means the anchor-store is_recommended flips on
+stores 1/4/7 (grocery/food/pharmacy) are INERT for AC2's "renders live"
+half: their `recommended_stores` API responses are correct (verified
+total_size=1 for each, live), but no screen in the app will ever display that
+data through RecommendedStoreView, because that widget only mounts on
+shop_home_screen.dart.
+
+ROOT CAUSE (single, covers both AC1 and AC2's "renders live" halves): the
+seeder creates exactly ONE store in module 9. Since shop_home_screen.dart is
+the ONLY place either widget is instantiated, and module 9 is
+single-store-gated (`activeStoresCount==1` -> SizedBox.shrink() for BOTH
+widgets), PopularStoreView and RecommendedStoreView are BOTH permanently
+invisible anywhere in the live app with the current fixture — independent of
+any is_recommended flag, on module 9's own store or on any anchor store.
+
+FIX DIRECTION: the seeder needs >=2 active stores in the ecommerce module
+(zone 1) — at least one of them additionally is_recommended=1 for
+RecommendedStoreView's own data-side condition — before either AC1 or AC2 can
+ever be demonstrated live through normal navigation. The API-response half of
+AC2 (recommended_stores.total_size>0, read via a read-only SELECT-equivalent
+against the endpoint) is separately and fully satisfied today for all four
+modules (9/1/2/3) — only the "renders live on a screen" half is blocked, and
+only reachable via module 9.
