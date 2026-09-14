@@ -1,0 +1,41 @@
+diff --git a/.gitleaks.toml b/.gitleaks.toml
+index aa79327d5..fa0b7a028 100644
+--- a/.gitleaks.toml
++++ b/.gitleaks.toml
+@@ -200,6 +200,13 @@ paths = [
+   '''Admin/tests/Feature/CustomerSearchLogTest\.php''',
+   '''Admin/tests/Feature/GlobalSearchTest\.php''',
+   '''Admin/tests/Feature/GuestCartMergeEnumerationTest\.php''',
++  '''Admin/tests/Feature/HelpersSettingsCacheInvalidationTest\.php''',
++  '''Admin/tests/Feature/LoginControllerSessionLocalGuardTest\.php''',
++  '''Admin/tests/Feature/NEARS2996ConfigCacheClusterTest\.php''',
++  '''Admin/tests/Feature/Nears3383VendorAdminReceiverIdTest\.php''',
++  '''Admin/tests/Feature/Nears3469BusinessSettingsMemoTest\.php''',
++  '''Admin/tests/Feature/Nears3475AdminRoleQaFixtureSeederTest\.php''',
++  '''Admin/tests/Feature/Nears3539FcmOauthRemintLockTest\.php''',
+   '''Admin/tests/Feature/Round923MiscLowsTest\.php''',
+   '''Admin/tests/Feature/SearchStoresZoneScopingTest\.php''',
+   '''Admin/tests/Feature/Security/DeliveryManIdentityFieldsHiddenTest\.php''',
+@@ -209,9 +216,11 @@ paths = [
+   '''Admin/tests/Feature/Security/ItemCampaignReviewsGuardTest\.php''',
+   '''Admin/tests/Feature/Security/ItemDetailsReviewsCustomerPiiTest\.php''',
+   '''Admin/tests/Feature/Security/Nears1329VendorEmployeeStoreGuardTest\.php''',
++  '''Admin/tests/Feature/Security/Nears357PasswordResetEnumerationTest\.php''',
+   '''Admin/tests/Feature/Security/Nears702GetStoreDataNullGuardTest\.php''',
+   '''Admin/tests/Feature/Security/OrderCustomerPiiTest\.php''',
+   '''Admin/tests/Feature/Security/OrderDeliveryManPiiTest\.php''',
++  '''Admin/tests/Feature/Security/Round742MoneyConcurrencyTest\.php''',
+   '''Admin/tests/Feature/UnifiedSearchTest\.php''',
+   '''Admin/tests/Unit/Helpers/GetBusinessSettingsParityTest\.php''',
+   '''Admin/tests/Unit/ProjectActorRelationHelperTest\.php''',
+@@ -234,3 +243,10 @@ commits = ["58d06c0d6279ac437f713557ad62ac4b4cd33a0c"]
+ paths = ['''^Admin/storage/framework/phpstan/cache/''']
+ targetRules = ["generic-api-key"]
+ condition = "AND"
++
++[[allowlists]]
++description = "NEARS-3607: docs/platform/vendorapp-maps-key-posture.md carried the already-known NEARS-245 Maps key literal in full when added by 309c69f56 (NEARS-3519, 2026-09-12); current content is redacted to a fingerprint (see docs/platform/sec-i-runbook.md Part 1 for the full value) but full-history scanning still surfaces that one historical commit; pinned to it, same mechanism as NEARS-3573 above"
++commits = ["309c69f56c6e0e9081917010e52d0ba61c1b79b4"]
++paths = ['''^docs/platform/vendorapp-maps-key-posture\.md$''']
++targetRules = ["nears-google-firebase-api-key", "gcp-api-key"]
++condition = "AND"
