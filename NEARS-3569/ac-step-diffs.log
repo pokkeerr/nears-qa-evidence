@@ -1,0 +1,17 @@
+$ diff <(base "Upload release APK" step block) <(head "Upload release APK" step block)
+UPLOAD STEP IDENTICAL
+
+$ diff <(base "Report CI failure to Jira" step block) <(head "Report CI failure to Jira" step block)
+JIRA STEP IDENTICAL
+
+$ diff <(base "Checkout"..."flutter pub get" block) <(head same block)
+CHECKOUT/FLUTTER-SETUP/INSTALL-DEPS IDENTICAL
+
+$ evidence_ticket mapping:
+  UserApp     -> NEARS-3570
+  VendorApp   -> NEARS-3571
+  DeliveryApp -> NEARS-3569
+(matches AC requirement -- not swapped)
+
+$ python3 -c "import yaml; yaml.safe_load(open('.github/workflows/apk-size.yml'))"
+YAML VALID
