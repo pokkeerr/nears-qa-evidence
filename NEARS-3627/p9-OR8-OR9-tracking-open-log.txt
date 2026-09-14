@@ -1,0 +1,20 @@
+OR8/OR9 evidence — app log (flutter tag, pid-scoped) around opening order #91365 tracking, 2026-09-14 ~19:15 device time:
+19:15:00.107  6233  6233 I flutter : [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+19:15:07.111  6233  6233 I flutter : [NET] GET endpoint=/api/v1/customer/order/running-orders
+19:15:07.676  6233  6233 I flutter : [NET] endpoint=/api/v1/customer/order/running-orders http_status=200
+19:15:34.640  6233  6233 I flutter : [NET] GET endpoint=/api/v1/customer/order/running-orders
+19:15:35.199  6233  6233 I flutter : [NET] endpoint=/api/v1/customer/order/running-orders http_status=200
+19:15:41.698  6233  6233 I flutter : GetPositionFailure
+19:15:41.710  6233  6233 I flutter : [FAIL] endpoint=null http_status=null type=GetPositionFailure msg="location: getPosition threw (TimeoutException) — falling back to default position"
+19:15:41.710  6233  6233 I flutter : [NET] GET endpoint=/api/v1/config/geocode-api
+19:15:41.711  6233  6233 I flutter : [NET] GET endpoint=/api/v1/config/get-zone-id
+19:15:42.694  6233  6233 I flutter : [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+19:15:43.142  6233  6233 I flutter : [NET] endpoint=/api/v1/config/geocode-api http_status=200
+19:15:43.144  6233  6233 I flutter : [NET] GET endpoint=/api/v1/customer/order/track
+19:15:44.143  6233  6233 I flutter : [NET] endpoint=/api/v1/customer/order/track http_status=200
+19:15:44.143  6233  6233 I flutter : [NET] GET endpoint=/api/v1/customer/order/track
+19:15:45.143  6233  6233 I flutter : [NET] endpoint=/api/v1/customer/order/track http_status=200
+19:15:54.145  6233  6233 I flutter : [NET] GET endpoint=/api/v1/customer/order/track
+19:15:55.144  6233  6233 I flutter : [NET] endpoint=/api/v1/customer/order/track http_status=200
+
+Read: opening tracking triggers a device GPS fetch that times out (GetPositionFailure, 19:15:41.698) -> get-zone-id + geocode (return 19:15:43.142); only THEN is /customer/order/track first requested (19:15:43.144) — the tracking fetch is gated behind an unneeded location lookup (consistent with the ~4 s blank screen, OR7). The first track response (19:15:44.143) is immediately followed by a second identical request in the same millisecond (redundant back-to-back fetch). Subsequent requests every ~10 s (19:15:54.145) are the normal polling.
