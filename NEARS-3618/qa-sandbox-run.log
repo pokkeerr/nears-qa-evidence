@@ -1,0 +1,131 @@
+NEARS-3618 — QA independent sandbox verification
+=================================================
+Diff under test: feat/userapp-reskin2..HEAD (abc416702) -- .github/workflows/backend-static.yml
+  1 file changed, 5 insertions(+), 1 deletion(-) -- confirmed via `git diff --stat`, no other
+  file in the ticket's diff. CI-config-only change, no device surface.
+
+Method: extracted the REAL `run:` text of the "Determine changed PHP files under Admin/" step
+verbatim via `python3 -c "import yaml; ..."` for BOTH the fixed file and the pre-fix
+(feat/userapp-reskin2) file, then executed each against hand-built throwaway git repos under
+/tmp (never committed), with GNU sed (`gnu-sed` via brew, PATH-shadowed as `sed`) to match the
+ubuntu-latest runner's GNU sed semantics for the `sed -i 's#^Admin/##'` line (BSD sed on macOS
+is not compatible with that invocation).
+
+Extracted run: block (fixed):
+------------------------------
+set -euo pipefail
+base_sha=""
+if [ "$EVENT_NAME" = "pull_request" ]; then
+  if [ -n "$EVENT_BEFORE" ] && git cat-file -e "$EVENT_BEFORE" 2>/dev/null; then
+    base_sha="$EVENT_BEFORE"
+  elif git fetch --no-tags --depth=100 origin "$BASE_REF"; then
+    base_sha="$(git merge-base "origin/$BASE_REF" HEAD || echo '')"
+  fi
+else
+  base_sha="$EVENT_BEFORE"
+  if [ -z "$base_sha" ] || ! git cat-file -e "$base_sha" 2>/dev/null; then
+    base_sha="$(git rev-parse HEAD~1 2>/dev/null || echo '')"
+  fi
+fi
+if [ -z "$base_sha" ]; then
+  : > changed_admin_php_files.txt
+else
+  git diff --name-only --diff-filter=ACMR "$base_sha...HEAD" -- 'Admin/*.php' > changed_admin_php_files.txt
+fi
+sed -i 's#^Admin/##' changed_admin_php_files.txt
+echo "count=$(wc -l < changed_admin_php_files.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+Sandbox topology (git repos, throwaway, under scratchpad):
+  origin_repo/origin.git (bare "origin" remote):
+    development: DEV_OLD_TIP "dev: initial" (Admin/Stale1.php, Admin/Stale2.php)
+               -> DEV_NEW_TIP "dev: unrelated later change" (Admin/DevOnlyLater.php)
+               -- development moves FORWARD after the feature branch forks (the
+               "stale relative to development" condition in AC1).
+  pr_repo (cloned from origin.git, feature/long-lived branched off DEV_OLD_TIP):
+    DEV_OLD_TIP
+      -> "feature: old debt commit 1 (weeks ago)"  Admin/OldFeatureDebt1.php
+      -> "feature: old debt commit 2 (weeks ago)"  Admin/OldFeatureDebt2.php   <- EVENT_BEFORE tip
+      -> "feature: PR-only commit (this push)"     Admin/NewChange1.php       <- HEAD
+
+=== AC1 -- stale long-lived branch, PR-only files only ===
+Scenario: EVENT_NAME=pull_request, BASE_REF=development, EVENT_BEFORE=<the "old debt commit 2"
+sha, i.e. the PR's prior tip before this synchronize push>.
+
+RED -- pre-fix script, same repo state, same env (proves the bug is real before proving the fix):
+  changed_admin_php_files.txt:
+    NewChange1.php
+    OldFeatureDebt1.php
+    OldFeatureDebt2.php
+  count=3   <-- reports 2 unrelated pre-existing-debt files that are NOT part of this push.
+
+GREEN -- fixed script, identical repo state, identical env:
+  changed_admin_php_files.txt:
+    NewChange1.php
+  count=1   <-- ONLY the PR-only file. OldFeatureDebt1/2.php, Stale1/2.php, DevOnlyLater.php
+                (development's own later commit) are all correctly excluded.
+
+VERDICT: AC1 PASS.
+
+=== AC2 -- push-event diff-base path unchanged ===
+Scenario A (valid EVENT_BEFORE = parent of HEAD): EVENT_NAME=push, BASE_REF=development,
+  EVENT_BEFORE=<parent sha>.
+Scenario B (invalid EVENT_BEFORE = GH Actions' all-zero new-branch sentinel
+  "0000000000000000000000000000000000000000"): same EVENT_NAME/BASE_REF.
+
+Ran BOTH scenarios against the FIXED script and the PRE-FIX script and diffed the resulting
+changed_admin_php_files.txt + GITHUB_OUTPUT byte-for-byte:
+  Scenario A: `diff push_valid_fixed_files.txt push_valid_prefix_files.txt`   -> FILES IDENTICAL
+              `diff push_valid_fixed_output.txt push_valid_prefix_output.txt` -> GITHUB_OUTPUT IDENTICAL
+              content: NewChange1.php
+  Scenario B: `diff push_invalid_fixed_files.txt push_invalid_prefix_files.txt`   -> FILES IDENTICAL
+              `diff push_invalid_fixed_output.txt push_invalid_prefix_output.txt` -> GITHUB_OUTPUT IDENTICAL
+              content: NewChange1.php (correctly fell back to HEAD~1 in both versions)
+
+VERDICT: AC2 PASS -- push path is byte-identical pre-fix vs fixed, on both a valid and an
+invalid EVENT_BEFORE.
+
+=== AC3 -- unresolvable base_sha falls through to empty, never whole-tree ===
+Scenario: EVENT_NAME=pull_request, EVENT_BEFORE="" (empty), BASE_REF="nonexistent-branch-xyz"
+  (does not exist on the "origin" remote -> `git fetch` fails).
+
+stderr from the fetch attempt: "fatal: couldn't find remote ref nonexistent-branch-xyz"
+script exit code: 0 (the fetch failure is inside an `if`, so `set -e` does not abort the step)
+changed_admin_php_files.txt: 0 lines (empty file)
+GITHUB_OUTPUT: count=0
+
+VERDICT: AC3 PASS -- falls through to the empty-list no-op path, never a whole-tree fallback.
+
+=== AC6 (regression spot-check) -- PR-opened/reopened fallback (EVENT_BEFORE empty, valid
+    BASE_REF) still returns the full merge-base divergence set (expected, not a regression) ===
+Scenario: EVENT_NAME=pull_request, EVENT_BEFORE="", BASE_REF=development (valid, resolvable).
+  changed_admin_php_files.txt:
+    NewChange1.php
+    OldFeatureDebt1.php
+    OldFeatureDebt2.php
+  count=3  -- identical to the AC1 pre-fix ("RED") result, as expected: this is the legitimate
+             merge-base-divergence path (no EVENT_BEFORE to prefer), unchanged by the fix and
+             still correct for a freshly-opened/reopened PR.
+
+=== Regression sweep -- rest of backend-static.yml ===
+`git diff --stat feat/userapp-reskin2..HEAD` = 1 file changed, 5 insertions(+), 1 deletion(-),
+confirming NO other step in the workflow was touched:
+  - Checkout, Prepare CI log capture dir: untouched.
+  - Controller strict-sites ratchet guard: untouched (separate step, no dependency on `changed`).
+  - Set up PHP / Install Composer dependencies: untouched.
+  - Pint (formatting check, changed files only): untouched -- still gated on
+    `steps.changed.outputs.count == "0"` skip branch; count plumbing unaffected structurally
+    (verified count= output format identical across all scenarios above).
+  - PHPStan (larastan, level 5, baselined): untouched, no dependency on `changed` step outputs.
+  - Report CI failure to Jira: untouched.
+
+=== YAML sanity check ===
+`python3 -c "import yaml; yaml.safe_load(open('.github/workflows/backend-static.yml'))"` ->
+parsed cleanly, all 9 step names enumerated with no error.
+
+=== Environment notes ===
+- macOS BSD sed is NOT compatible with the script's `sed -i 's#^Admin/##'` invocation (requires
+  a backup-extension arg); GNU sed (`brew install gnu-sed`, PATH-shadowed via
+  `/opt/homebrew/opt/gnu-sed/libexec/gnubin`) was used to faithfully match the ubuntu-latest
+  runner's sed behavior for every scenario above.
+- All git repos are throwaway, built fresh under the session scratchpad, never committed to the
+  nears repo or pushed anywhere.

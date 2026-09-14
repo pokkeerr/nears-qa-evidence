@@ -1,0 +1,62 @@
+=== NEARS-3618 QA sandbox harness log ===
+Diff verified: feat/userapp-reskin2..HEAD touches ONLY .github/workflows/backend-static.yml (1 file, 5 insertions, 1 deletion)
+
+--- Extracted run: block (fixed, id=changed) ---
+set -euo pipefail
+base_sha=""
+if [ "$EVENT_NAME" = "pull_request" ]; then
+  # NEARS-3618: prefer the small PR-tip diff (EVENT_BEFORE, set on
+  # `synchronize`) over merge-base-with-stale-development; fall through below.
+  if [ -n "$EVENT_BEFORE" ] && git cat-file -e "$EVENT_BEFORE" 2>/dev/null; then
+    base_sha="$EVENT_BEFORE"
+  elif git fetch --no-tags --depth=100 origin "$BASE_REF"; then
+    base_sha="$(git merge-base "origin/$BASE_REF" HEAD || echo '')"
+  fi
+else
+  base_sha="$EVENT_BEFORE"
+  if [ -z "$base_sha" ] || ! git cat-file -e "$base_sha" 2>/dev/null; then
+    base_sha="$(git rev-parse HEAD~1 2>/dev/null || echo '')"
+  fi
+fi
+
+# NEARS-3082 fix-cycle 3 (code-reviewer, MUST-fix): an unresolvable
+# base_sha (orphan-history edge case) must fall through to an EMPTY
+# list -> the count==0 no-op skip below, never a whole-tree fallback
+# -- the latter would defeat Option C by re-exposing all pre-existing
+# Pint debt on exactly the edge case this scoping exists to avoid.
+if [ -z "$base_sha" ]; then
+  : > changed_admin_php_files.txt
+else
+  git diff --name-only --diff-filter=ACMR "$base_sha...HEAD" -- 'Admin/*.php' > changed_admin_php_files.txt
+fi
+
+sed -i 's#^Admin/##' changed_admin_php_files.txt
+echo "count=$(wc -l < changed_admin_php_files.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+--- Extracted run: block (pre-fix, id=changed) ---
+set -euo pipefail
+base_sha=""
+if [ "$EVENT_NAME" = "pull_request" ]; then
+  if git fetch --no-tags --depth=100 origin "$BASE_REF"; then
+    base_sha="$(git merge-base "origin/$BASE_REF" HEAD || echo '')"
+  fi
+else
+  base_sha="$EVENT_BEFORE"
+  if [ -z "$base_sha" ] || ! git cat-file -e "$base_sha" 2>/dev/null; then
+    base_sha="$(git rev-parse HEAD~1 2>/dev/null || echo '')"
+  fi
+fi
+
+# NEARS-3082 fix-cycle 3 (code-reviewer, MUST-fix): an unresolvable
+# base_sha (orphan-history edge case) must fall through to an EMPTY
+# list -> the count==0 no-op skip below, never a whole-tree fallback
+# -- the latter would defeat Option C by re-exposing all pre-existing
+# Pint debt on exactly the edge case this scoping exists to avoid.
+if [ -z "$base_sha" ]; then
+  : > changed_admin_php_files.txt
+else
+  git diff --name-only --diff-filter=ACMR "$base_sha...HEAD" -- 'Admin/*.php' > changed_admin_php_files.txt
+fi
+
+sed -i 's#^Admin/##' changed_admin_php_files.txt
+echo "count=$(wc -l < changed_admin_php_files.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
