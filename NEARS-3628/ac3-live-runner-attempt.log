@@ -1,0 +1,79 @@
+NEARS-3628 AC3 — live self-hosted runner trigger attempt
+Repo: pokkeerr/nears (private). Auth: cached GitHub OAuth credential from
+`git credential fill` (no gh CLI installed in this env — confirmed
+`command not found`). Token used for GitHub REST API calls, never printed
+here or in the Jira comment.
+
+Timeline (all times UTC, 2026-09-14):
+16:05:53  git push origin feat/NEARS-3628-golden-macos-selfhosted (branch pushed, contains
+          only the golden-macos-ci.yml runs-on/timeout-minutes change, HEAD c954e6900)
+16:05:58  POST /repos/pokkeerr/nears/pulls -> PR #39 opened
+          head=feat/NEARS-3628-golden-macos-selfhosted base=feat/userapp-reskin2
+          (pull_request trigger's `paths:` filter includes golden-macos-ci.yml,
+          so this fires the workflow without touching the push-trigger's
+          hardcoded `branches: [feat/userapp-reskin2]` filter)
+16:06:01  Workflow run created: id=34866456371 name="Golden CI (macOS)"
+          event=pull_request head_branch=feat/NEARS-3628-golden-macos-selfhosted
+          status=queued job "golden" runs-on(requested)=self-hosted
+
+Runner registration/health confirmed via GET /repos/pokkeerr/nears/actions/runners:
+  id=21 name=nears-macos-runner os=macOS status=online busy=true
+  labels=[self-hosted, macOS, ARM64]
+  ==> confirms ticket's premise: the owner's self-hosted macOS runner IS
+      registered and Active (ARM64 Apple Silicon Mac).
+
+Confirmed the runner had ALREADY executed real jobs earlier today (proof the
+self-hosted path genuinely works, not just registered-but-idle):
+  run 34861568709 "DLS CI"          completed success  updated 15:43:35Z
+  run 34861568698 "VendorApp CI"    completed success  updated 15:51:46Z
+  run 34861568673 "APK Size Budget Gate" completed success updated 15:46:50Z
+  run 34861568660 "DeliveryApp CI"  completed success  updated 15:42:33Z
+  run 34861581036 "DeliveryApp CI"  completed success  updated 15:50:46Z
+  run 34861580883 "UserApp CI"      completed success  updated 15:56:03Z
+  run 34861580909 "Secrets Scan"    completed success  updated 15:49:30Z
+
+Context (not this ticket's defect, pre-existing on the base branch, still
+runs-on: macos-latest there since our diff hasn't merged): two prior
+"Golden CI (macOS)" runs on feat/userapp-reskin2 (34861568658, 34861580675)
+both completed with conclusion=failure and ZERO steps recorded (job
+labels=['macos-latest'], no steps array at all) — i.e. failed before ever
+starting, consistent with the GitHub-hosted macOS billing-block this whole
+ticket exists to fix. Recorded as background context, not a new finding.
+
+STALL OBSERVED — our own triggered run (34866456371) never left `queued`:
+  16:11:40Z  run 34861581146 "Backend Static Analysis" (unrelated run, same
+             branch feat/userapp-reskin2, pre-dates our PR) transitions to
+             completed/cancelled. Its "Set up PHP" step shows started_at
+             15:56:15Z, completed_at(cancelled) 16:11:30Z — i.e. it hung on
+             that step for ~15 minutes before something cancelled it.
+  16:11:40Z .. 16:20:27Z (9 continuous polls, ~9 minutes): runner
+             nears-macos-runner reports status=online busy=true, but
+             GET .../actions/runs?status=in_progress returns ZERO runs, and
+             GET .../actions/runs?status=queued stays pinned at
+             total_count=10 the entire window — no job anywhere in the
+             repo advances, including ones queued since 15:21.
+  Two separate poll loops (10 x 15s, then 40 x 15s = ~12.5 min combined)
+  against run 34866456371 alone: every single poll returned
+  status=queued conclusion=None. Never once observed in_progress or
+  completed.
+
+Interpretation: the runner is genuinely registered/Active and DID execute
+several real self-hosted jobs earlier this session — this is not a
+"no access" or "never configured" situation. But at QA time the single
+self-hosted runner process appears WEDGED (reports busy, picks up no new
+work) following the forced cancellation of an unrelated job's hung step.
+This is an infrastructure condition on the owner's physical runner host,
+which this QA agent has no SSH/host access to remediate.
+
+Result: AC3 NOT satisfied within this QA window. A real run was
+successfully triggered and is live/queued (PR #39, run 34866456371) against
+the self-hosted runner target, but it did not execute far enough to produce
+a golden pass/fail verdict. Recorded as AC3 = UNVERIFIABLE (BLOCKED), not a
+FAIL of the 2-line diff itself, and not the "no gh/no access" residual shape
+NEARS-3624 hit — a materially different, worse condition (an apparently
+wedged runner) that should be looked at by the owner before relying on this
+runner for merge-gating CI.
+
+PR #39 left OPEN (not merged, not closed) so the run can be re-observed once
+the runner recovers, or drained by the owner. It performs zero non-workflow
+changes (single-file diff, matches the ticket's committed change exactly).

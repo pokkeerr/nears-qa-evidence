@@ -1,0 +1,62 @@
+name: Golden CI (macOS)
+
+# NEARS-3305: golden tests moved off the ubuntu-latest jobs (userapp-ci.yml,
+# dls-ci.yml) onto a real macOS runner after NEARS-3083's "Linux matches the
+# macOS-generated baselines via the block-glyph font" premise was empirically
+# refuted (real pixel diffs reproduced on Linux against both packages' goldens).
+#
+# Cost note (advisor-product, mandatory — not a fabricated total): the ubuntu
+# golden step this replaces historically ran ~3 minutes; that is an estimate
+# carried over from Linux and NOT separately measured on macOS, which may run
+# slower or faster. macOS GitHub-hosted runners bill at a real minutes
+# multiplier over Linux — check the GitHub Actions billing page for the
+# current macOS-vs-Linux minute multiplier rather than trusting a number
+# hardcoded here. Multiply that per-run cost by actual push-to-integration-
+# branch frequency to get a real recurring cost; this needs real Actions
+# usage data to close and is intentionally left open rather than guessed.
+on:
+  pull_request:
+    paths:
+      - 'UserApp/**'
+      - 'packages/nears_dls/**'
+      - '.github/workflows/userapp-ci.yml'
+      - '.github/workflows/dls-ci.yml'
+      - '.github/workflows/golden-macos-ci.yml'
+  push:
+    # NOT the repo's blanket `branches: ['**']` pattern (NEARS-2828) used by the
+    # cheap ubuntu jobs — that pattern is too broad for an expensive macOS runner.
+    # HARDCODES the current integration branch name. This repo's integration
+    # branch has rotated before (init-storybook -> rebrand -> userapp-reskin ->
+    # userapp-reskin2) and WILL rotate again — update this on the next rotation
+    # or the push trigger silently stops firing (the pull_request trigger above
+    # is unaffected either way).
+    branches: [feat/userapp-reskin2]
+    paths:
+      - 'UserApp/**'
+      - 'packages/nears_dls/**'
+      - '.github/workflows/userapp-ci.yml'
+      - '.github/workflows/dls-ci.yml'
+      - '.github/workflows/golden-macos-ci.yml'
+
+concurrency:
+  group: golden-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  golden:
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.41.9'
+
+      # NEARS-1906: discovers every golden harness across the repo and runs its
+      # own `flutter pub get` per discovered package root — no separate install step.
+      - name: Golden tests (cross-package coverage guard, blocking)
+        run: scripts/dls-golden-guard.sh
