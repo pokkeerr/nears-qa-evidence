@@ -1,0 +1,32 @@
+$ flutter test test/features/dashboard/dashboard_fab_hero_collision_test.dart
++0: shipped fix shape (Visibility, stable Hero element) has zero collisions
++1: old null-toggle shape still collides even with an explicit heroTag (negative control)
++2: dashboard_screen.dart real source uses Visibility (not a null-toggle) + explicit heroTag
++3: All tests passed!
+
+$ flutter test test/features/store/store_fab_herotag_hygiene_test.dart
++0: store_screen.dart add-item FAB uses a distinct, non-generic heroTag
++1: all_items_screen.dart add-item FAB uses a distinct, non-generic heroTag
++2: store_screen.dart and all_items_screen.dart FAB heroTags are distinct from each other
++3: All tests passed!
+
+$ flutter test test/main_logappopen_unawaited_test.dart   (BEFORE mutation)
++0: fireAppOpenAnalytics is genuinely fire-and-forget: it resolves before logAppOpen()'s future does, not after
++1: All tests passed!
+
+--- QA independent mutation check ---
+Edited lib/main.dart: fireAppOpenAnalytics() body
+  unawaited(Get.find<AnalyticsService>().logAppOpen());
+  -> await Get.find<AnalyticsService>().logAppOpen();
+
+$ flutter test test/main_logappopen_unawaited_test.dart   (AFTER mutation)
++0: fireAppOpenAnalytics is genuinely fire-and-forget: it resolves before logAppOpen()'s future does, not after [E]
+  TimeoutException after 0:00:00.500000: Future not completed
+  dart:async  _startMicrotaskLoop
+Some tests failed.   <-- confirms the test is falsifiable, not vacuous
+
+Reverted lib/main.dart to original (unawaited). git diff lib/main.dart => clean.
+
+$ flutter test test/main_logappopen_unawaited_test.dart   (AFTER revert)
++0: fireAppOpenAnalytics is genuinely fire-and-forget: it resolves before logAppOpen()'s future does, not after
++1: All tests passed!
