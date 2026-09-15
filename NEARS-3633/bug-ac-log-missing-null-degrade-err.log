@@ -1,0 +1,35 @@
+AC-LOG gap: no [ERR] logging exists for a missing/null price or name
+null-degrade on a card, despite this being one of the three AC-LOG failure
+paths this ticket's QA brief explicitly names as required verification
+("missing price/name null-degrade -> [ERR]").
+
+Evidence (worktree /Users/Apple/Projects/nears-NEARS-3633-card-convergence,
+commit ce7827934):
+
+1. NItemCard's `price` prop is a non-nullable `required String`
+   (packages/nears_dls/lib/components/nitemcard/n_item_card.dart:101) -- the
+   DLS component itself has no null-price case to log.
+
+2. The call-site wrapper silently defaults instead of logging:
+   UserApp/lib/common/widgets/card_design/item_card.dart:157
+     name: item.name ?? '',
+   -- no AppLogger.error/.failure call anywhere near this line or in the
+   surrounding price-mapping code (PriceConverter.convertPrice(startingPrice, ...)).
+
+3. Confirmed no such logging exists anywhere in the card wrapper files:
+   $ grep -rn "ERR\]\|AppLogger.error" UserApp/lib/common/widgets/card_design/*.dart
+     -- 0 matches --
+   $ grep -rn "AppLogger" packages/nears_dls/lib/components/nitemcard/n_item_card.dart \
+                          packages/nears_dls/lib/components/nstorecard/n_store_card.dart
+     -- 0 matches --
+
+4. Not reproducible live with current seed data (schema/seed has no null
+   name/price rows):
+   $ mysql -u root multi_food_db -N -B -e \
+       "SELECT id, name, price FROM items WHERE name IS NULL OR name='' OR price IS NULL LIMIT 5;"
+     -- 0 rows --
+   so this is a code-review-catchable static gap, not a live-reproducible
+   defect with the current DB -- but it is a real gap against the project's
+   own logging-contract mandate ("every NEW failure/catch path is logged --
+   never swallowed") and against this ticket's own explicitly stated
+   AC-LOG requirement.

@@ -1,0 +1,27 @@
+AC3 gap: NStoreCard has ZERO golden test coverage (no golden file exists for
+ANY NStoreCard state, including the two new NEARS-3633 variants: closed-
+consolidation and popularItems).
+
+Evidence (read-only static check, run against worktree
+/Users/Apple/Projects/nears-NEARS-3633-card-convergence, commit ce7827934):
+
+$ find packages/nears_dls/test/golden -type f -name "*.dart"
+  ... (29 files listed, e.g. n_item_card_golden_test.dart, n_badge_golden_test.dart, ...)
+  -- no n_store_card_golden_test.dart present --
+
+$ grep -rn "matchesGoldenFile\|goldenFileComparator" packages/nears_dls/test/components/n_store_card_test.dart
+  -- 0 matches --
+
+By contrast, NItemCard(compact) DOES have full golden coverage:
+packages/nears_dls/test/golden/n_item_card_golden_test.dart lines 295-342+,
+fileName 'n_item_card_compact', EN+AR x 1.0x+1.3x variants, backed by
+packages/nears_dls/test/golden/goldens/ci/n_item_card_compact.png.
+
+NStoreCard's closed-consolidation and popularItems variants ARE covered by
+widget/behavioral tests (packages/nears_dls/test/components/n_store_card_test.dart,
+groups "NEARS-3633 closed-state consolidation" and "NEARS-3633 popularItems
+(thumbnail strip)", all passing), and by catalog.yaml entries and storybook
+use-cases (widgetbook/lib/components/n_store_card_stories.dart). Only the
+GOLDEN (pixel-regression) layer is missing, which is one of the three things
+AC3 explicitly requires ("Catalog entry + storybook use-case + golden exist
+for every new variant/slot").
