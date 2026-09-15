@@ -1,0 +1,51 @@
+NEARS-3650 AC1/AC3 independent static spot-check (QA, not re-trusting TL/build/review counts blindly)
+Worktree: /Users/Apple/Projects/nears-NEARS-3650-macos-runner-concurrency
+Checkpoint: f538a4841ad4fdda5c94057542b5dc81da1f4da2 (confirmed HEAD)
+
+=== AC1: 14 job-level concurrency blocks, 11 files ===
+$ grep -rn "group: nears-macos-runner" .github/workflows/*.yml | wc -l
+      14
+$ grep -rln "group: nears-macos-runner" .github/workflows/*.yml | wc -l
+      11
+$ grep -rn "queue: max" .github/workflows/*.yml | wc -l
+      14
+
+Placement check — every self-hosted runs-on: line immediately followed by the new block, correct
+job-level (not step-level) YAML indentation (6-space nested keys under a 4-space concurrency: sibling
+of the 4-space runs-on:), for all 14 occurrences: CONFIRMED (see full per-file dump in QA session).
+Non-self-hosted job (backend-isolation-ci.yml runs-on: ubuntu-latest) correctly received ZERO
+job-level concurrency block — confirmed not present.
+
+YAML validity: python3 yaml.safe_load() on all 11 touched files -> all OK, no parse errors.
+
+No cancel-in-progress key was added alongside any new job-level block (commit claims none needed):
+$ grep -n "nears-macos-runner" -A3 .github/workflows/*.yml | grep -i cancel
+(zero matches — confirmed)
+
+=== AC3: full diff base..HEAD is EXACTLY the 42 insertions, 0 deletions ===
+$ git diff feat/userapp-reskin2...HEAD --stat
+ .github/workflows/analyze-info-ratchet.yml | 3 +++
+ .github/workflows/apk-size.yml             | 3 +++
+ .github/workflows/backend-static.yml       | 3 +++
+ .github/workflows/deliveryapp-ci.yml       | 3 +++
+ .github/workflows/deps-audit.yml           | 6 ++++++
+ .github/workflows/dls-ci.yml               | 6 ++++++
+ .github/workflows/golden-macos-ci.yml      | 3 +++
+ .github/workflows/repo-guards.yml          | 6 ++++++
+ .github/workflows/secrets-scan.yml         | 3 +++
+ .github/workflows/userapp-ci.yml           | 3 +++
+ .github/workflows/vendorapp-ci.yml         | 3 +++
+ 11 files changed, 42 insertions(+)
+
+=== AC3 spot-check: pre-existing workflow-level concurrency blocks (3+ files, byte-for-byte) ===
+analyze-info-ratchet.yml: group: analyze-info-ratchet-${{ github.ref }}, cancel-in-progress: true — unchanged (not in diff hunk at all)
+golden-macos-ci.yml:      group: golden-macos-${{ github.ref }}, cancel-in-progress: true — unchanged (not in diff hunk at all)
+deps-audit.yml:           group: deps-audit-${{ github.ref }}, cancel-in-progress: true — unchanged (not in diff hunk at all)
+repo-guards.yml:          group: repo-guards-${{ github.ref }}, cancel-in-progress: true — unchanged (not in diff hunk at all)
+
+$ grep -rln "cancel-in-progress: true" .github/workflows/*.yml | wc -l
+      11
+(11 files, 1 occurrence each — matches TL/build/review's prior claim, independently reproduced)
+
+VERDICT: AC1 and AC3 independently CONFIRMED — 14/14 job-level blocks correct, 11/11 workflow-level
+blocks untouched, diff scope = exactly the claimed 42 insertions / 0 deletions, no other file touched.

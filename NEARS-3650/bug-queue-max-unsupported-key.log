@@ -1,0 +1,34 @@
+NEARS-3650 task_bug evidence: `queue: max` is not a documented GitHub Actions concurrency key
+
+GitHub Actions' `concurrency:` block (workflow-level AND job-level) supports exactly two keys:
+  group: <string>
+  cancel-in-progress: <boolean | expression>
+There is no `queue` key in GitHub's schema. This ticket's 14 new job-level blocks all read:
+  concurrency:
+    group: nears-macos-runner
+    queue: max
+
+Behavioral check performed this QA pass:
+- All 11 touched workflow files remain `state: active` per GET /repos/pokkeerr/nears/actions/workflows
+  (an invalid/rejected workflow file would show as invalid and never produce runs) — so GitHub tolerates
+  the unrecognized `queue` key as inert extra YAML rather than failing the file.
+- Live-triggered runs (this QA pass, PR #40) DID correctly serialize on the shared runner and DID NOT
+  cancel any queued job (0/33 tracked jobs showed conclusion=cancelled) — i.e. the desired AC2 behavior
+  is achieved in practice.
+- The mechanism that actually produces this is the OMISSION of `cancel-in-progress` at the job level,
+  which defaults to `false` (queue-and-wait) rather than any effect of `queue: max`, which GitHub's
+  concurrency implementation does not recognize.
+
+Risk: the commit message states "no cancel-in-progress per queue:max incompatibility" — i.e. the author
+believed `queue: max` was itself an active serialization mode incompatible with cancel-in-progress. It is
+not; it is inert. A future maintainer who notices the (apparently pointless) `queue: max` key and "cleans
+it up" by adding `cancel-in-progress: true` (a very plausible drive-by refactor) would silently flip the
+behavior to cancel-on-collision, defeating this entire ticket's purpose, with no test/CI signal to catch it
+(GitHub does not validate concurrency semantics, only YAML shape).
+
+Recommendation: either remove the non-functional `queue: max` key and rely explicitly on documented default
+`cancel-in-progress: false`-by-omission with a comment explaining why, or make cancel-in-progress: false
+explicit so the intent survives a future edit.
+
+Severity: Medium (latent footgun, not a current functional break — breaks_ac: false, AC2 passes live as
+demonstrated in ac2-live-queue-timeline.log).

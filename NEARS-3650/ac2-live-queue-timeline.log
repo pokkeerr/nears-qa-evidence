@@ -1,0 +1,62 @@
+NEARS-3650 AC2 live verification — GitHub Actions API polling timeline
+Repo: pokkeerr/nears (private). PR #40: feat/NEARS-3650-macos-runner-concurrency -> feat/userapp-reskin2
+Runner pre-check: GET /repos/pokkeerr/nears/actions/runners -> nears-macos-runner status=online busy=false (before trigger)
+
+Trigger: git push of the branch (push event, branches:['**']/[feat/userapp-reskin2] paths) + PR open (pull_request event)
+fired 19 workflow runs nearly simultaneously (08:14:38-08:14:43 UTC) across 10 distinct workflow files, all
+containing self-hosted jobs sharing the new job-level `concurrency: {group: nears-macos-runner, queue: max}` block:
+  UserApp CI, VendorApp CI, DeliveryApp CI, DLS CI (2 jobs), Golden CI (macOS), Repo Guards (2 jobs),
+  Secrets Scan, Analyze-Info Ratchet Guard, APK Size Budget Gate (3-matrix), Dependency Audit Gate (4-matrix)
+Total tracked jobs across these runs: 33.
+
+Poll 1 (~08:14:44 UTC, immediately after trigger):
+  runner busy=True
+  Repo Guards/docs-index -> in_progress (first job to land on the runner)
+  ALL other 32 jobs -> status=pending, conclusion=None (queued behind the running job, same concurrency group)
+
+Poll 2 (12:19:06 local / after docs-index+docs-catalog completed):
+  in_progress: [104305056794 "analyze-and-test" (DeliveryApp CI push)]
+  pending: 30, completed: 2 (docs-index, docs-catalog — both success)
+
+Poll 3 (12:20:16 local):
+  104305056794 (DeliveryApp CI) -> completed success
+  in_progress: [104305056838 "analyze-and-test" (UserApp CI push, DIFFERENT workflow file)]
+  pending: 29, completed: 3
+
+Poll 4 (later):
+  in_progress: [Secrets Scan / gitleaks (push)]
+  simultaneously PENDING (same snapshot, cross-workflow, still visible + not cancelled):
+    Golden CI (macOS)/golden, Analyze-Info Ratchet Guard/ratchet-guard, DLS CI/widgetbook,
+    DLS CI/nears-dls, APK Size Budget Gate (x3 matrix legs), Repo Guards/docs-catalog+docs-index (PR run),
+    Dependency Audit Gate (x8 across 2 runs), VendorApp CI/analyze-and-test, UserApp CI/analyze-and-test (PR run),
+    DeliveryApp CI/analyze-and-test (PR run)
+
+Final aggregate poll across all 19 runs / 33 jobs (this QA pass, not run to full completion — cost-bounded):
+  Counter: {('pending', None): 28, ('completed', 'success'): 4, ('in_progress', None): 1}
+  cancelled jobs: [] (ZERO — confirms AC2's "not cancelled" requirement)
+
+CONCLUSION (AC2): exactly one self-hosted job runs at a time across ALL 10 concurrently-triggered
+workflow files; every other job — including jobs from workflow files DIFFERENT from the one currently
+running — sits in a visible, API-queryable "pending" state (never "cancelled", never silently invisible)
+until the runner frees up, then the next queued job starts. This is the queue:max/group behavior the AC
+requires, observed live, not statically inferred.
+
+CAVEAT / FINDING (see task_bugs in QA envelope): GitHub Actions' documented `concurrency:` schema supports
+only `group` and `cancel-in-progress` — there is no `queue` key. `queue: max` is very likely a silently-
+ignored/unsupported property (the workflow files still parsed and ran successfully with it present, so it
+is not a hard validation error, but it is not a recognized concurrency mode either). The observed
+serialize-and-wait (never cancel) behavior is fully explained by the job-level block's `cancel-in-progress`
+being OMITTED, which defaults to `false` — i.e. the desired behavior works, but via the default, not via
+"queue: max" doing anything. Flagged because a future maintainer could "fix" the apparently-dead `queue: max`
+key by adding an explicit `cancel-in-progress: true`, which would silently flip the behavior to
+cancel-on-collision and defeat the ticket's whole purpose.
+
+Evidence channel used: GitHub REST + GraphQL API (api.github.com/repos/pokkeerr/nears/actions/*,
+api.github.com/graphql) via the cached osxkeychain credential — the AC's sanctioned "UI/API" channel.
+The GitHub web Actions UI itself was NOT reachable this pass: the shared chrome-devtools-mcp browser
+profile (/Users/Apple/.cache/chrome-devtools-mcp/chrome-profile) was held by another live, concurrent
+session for the full duration of this QA pass (multiple long-lived chrome-devtools-mcp/Chrome processes
+observed via `ps aux`, one from earlier the same day) — per project git-safety/concurrent-session rules
+this QA pass did not kill another session's browser to force access. API evidence is explicitly permitted
+by the AC text ("GitHub Actions UI/API") and is the definitive, machine-checkable form of the same signal
+the UI banner renders (the same status/conclusion fields drive both).
