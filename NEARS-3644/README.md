@@ -1,10 +1,15 @@
 # QA Evidence — NEARS-3644
 
-**FAIL - AB4 analytics module_id gap (Search/Store), AB3 missing back on Support screen, AB4 Search idle deliver-to regression**
+**Delta re-QA (fix cycle 1 of QA, cap 2): AB3/AB4/AC-ANALYTICS fixes verified live — PASS**
 
-**7 screenshot(s).** Click any thumbnail for full resolution.
+**10 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
+<tr>
+<td align="center" width="33%"><a href="AB3-support-back-affordance.png"><img src="AB3-support-back-affordance.png" width="240"></a><br><sub>AB3 support back affordance</sub></td>
+<td align="center" width="33%"><a href="AB4-search-idle-no-delivertoline.png"><img src="AB4-search-idle-no-delivertoline.png" width="240"></a><br><sub>AB4 search idle no delivertoline</sub></td>
+<td align="center" width="33%"><a href="AB4-search-results-delivertoline.png"><img src="AB4-search-results-delivertoline.png" width="240"></a><br><sub>AB4 search results delivertoline</sub></td>
+</tr>
 <tr>
 <td align="center" width="33%"><a href="ac-home-ar-rtl.png"><img src="ac-home-ar-rtl.png" width="240"></a><br><sub>ac home ar rtl</sub></td>
 <td align="center" width="33%"><a href="ac-home-en-ltr.png"><img src="ac-home-en-ltr.png" width="240"></a><br><sub>ac home en ltr</sub></td>
@@ -27,6 +32,7 @@
 - [`bug-analytics-search-missing-moduleid.log`](bug-analytics-search-missing-moduleid.log)
 - [`bug-analytics-store-missing-moduleid.log`](bug-analytics-store-missing-moduleid.log)
 - [`bug-support-screen-missing-back-dump.xml`](bug-support-screen-missing-back-dump.xml)
+- [`fix-cycle2-analytics-moduleid-confirmed.log`](fix-cycle2-analytics-moduleid-confirmed.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3644/` · public-repo scrub policy (no live secrets; verified clean).*
