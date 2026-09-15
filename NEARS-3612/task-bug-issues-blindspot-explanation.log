@@ -1,0 +1,45 @@
+FINDING: check_ledger_done_merge_sha() (scripts/newtask-guards/audit-crosscheck.sh:832-859)
+only scans TOP-LEVEL keys of tasks/.atlassian-sync.json via `jq '[to_entries[] | ...]'` run
+against the file root. The ledger actually holds entries in TWO disjoint locations:
+
+  - top-level flat keys: 569 entries (335 status==Done)
+  - nested under .issues: 2697 entries (1592 status==Done) <-- INVISIBLE to this check
+
+Proof (run from worktree root):
+  $ jq -r '[to_entries[] | select((.value|type=="object") and .value.status=="Done")] | length' tasks/.atlassian-sync.json
+  335
+  $ jq -r '.issues | [to_entries[] | select((.value|type=="object") and .value.status=="Done")] | length' tasks/.atlassian-sync.json
+  1592
+  $ jq -r '.issues | [to_entries[] | select((.value|type=="object") and .value.status=="Done" and (.value.merge_sha == null))] | length' tasks/.atlassian-sync.json
+  1409   <- Done rows missing merge_sha, invisible to the new guard
+
+Critically: the row this ticket exists to repair, srcid-nears3207-bucket-c-live-500s
+(NEARS-3353), and the 3 hardcoded exemption rows (srcid-aud-perf-05/06/07 / NEARS-2984-2986)
+all live INSIDE .issues (grep -c each == 1, only inside .issues, never at top level; see
+line numbers 84, 984, 990, 996, all between the "issues": { opener at line 71 and its
+closer at line ~15878). So:
+
+  - The code's own comment claims "this one is not scoped to THIS run's own
+    tasks/runs/<KEY>.json — it walks the whole ledger every invocation" (line 823-824).
+    This is false: it walks only 17% of the ledger's status-bearing entries (569 of
+    3266 total keyed records).
+  - Live invocation confirms zero WARN lines mention NEARS-3353, bucket-c-live-500s,
+    or aud-perf-05/06/07 (see bug-issues-nested-blindspot-live-run.log) -- but that is
+    because those rows are structurally unreachable by the scan, not because the
+    exemption logic was exercised and correctly matched them. The self-test fixture
+    (audit-crosscheck.sh:2309-2369) only ever constructs a FLAT fixture ledger, so it
+    never exercises the real nested shape either -- a green self-test that does not
+    prove the guard covers the ledger shape the ticket's own AC1 row lives in.
+  - Net effect: this guard would NOT have caught NEARS-3353's original failure mode
+    (a Done row silently missing merge_sha) had it existed before NEARS-3353 shipped,
+    because that row lives in the exact section (.issues) the guard cannot see. The
+    guard also silently misses 1409 other pre-existing Done/no-merge_sha rows beyond
+    the ~205 it reports, understating the true count by ~7x and giving false confidence
+    that "the whole ledger" was checked.
+
+This clears breaks_ac:true for AC2, whose stated purpose is exactly this scan across
+"the live ledger". Fix direction (for the engineer, not prescribed here): scan needs to
+walk .issues nested entries too (e.g. `(.issues // {}) + (to_entries-derived flat map)`
+or a jq expression that recurses into both known containers), and the self-test fixture
+needs a nested-.issues shape as a regression case so this blind spot can't reappear
+silently.

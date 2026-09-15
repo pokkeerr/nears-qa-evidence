@@ -1,0 +1,318 @@
+== audit-crosscheck self-test (NEARS-1214: path-traversal in artifacts[]) ==
+-- fixture: traversal entry + normal in-repo entry --
+  FAIL  artifact escapes repo root (path traversal — NEARS-1214): ../../../../../../../../etc/hosts
+  PASS  artifact on disk: /Users/Apple/Projects/nears-NEARS-3612-ledger-integrity-NEARS-SELFTEST-84443-1558/artifact.txt
+  PASS  artifact on disk: /tmp/claude-84443-nears2012selftest/scratchpad/artifact.txt
+  FAIL  artifact escapes repo root (path traversal — NEARS-1214): /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T/tmp.KFAeGvVQAa/artifact.txt
+  PASS  artifact on disk: scripts/newtask-guards/audit-crosscheck.sh
+-- assertions --
+  PASS: traversal entry rejected — not auto-PASSed (or WARNed).
+  PASS: normal in-repo artifact still PASSes (no regression).
+  PASS: legit sibling-worktree artifact PASSes (NEARS-1308 allow-arm).
+  PASS: session-scratchpad artifact PASSes (NEARS-2012 allow-arm).
+  PASS: non-scratchpad external artifact still rejected as traversal (no new bypass).
+-- fixture: missing run file (NEARS-2252) --
+run file not found: /Users/Apple/Projects/nears-NEARS-3612-ledger-integrity/tasks/runs/NEARS-SELFTEST-MISSING-84443-32175.json
+  PASS: missing run file exits 2 (matches documented Exit contract).
+  PASS: missing run file message contains 'run file not found:'.
+-- fixture: [9b] merge_sha shape (NEARS-3140 / NEARS-3041) --
+  PASS  merge_sha resolves: 49b9e2bcad732608ab772284843fa6427a8c5a7a
+  PASS  merge_sha has a second parent (merge commit)
+  PASS  merge_sha reachable from base base
+  PASS  merge_sha second parent is the recorded branch tip: 75d8f928c9552508ba75914ed96e6e92cc60c999
+  PASS: genuine merge (second parent == branch tip) PASSes with 0 FAILs.
+  PASS  merge_sha resolves: 4fe6279a57a788730236540b9a85fc2b0000fb12
+  PASS  merge_sha has a second parent (merge commit)
+  PASS  merge_sha reachable from base base
+  FAIL  merge_sha second parent is not the recorded branch tip (NEARS-3041 shape): 4fe6279a57a788730236540b9a85fc2b0000fb12^2=e06e00c92c79500f49f23225b1ce0df8eb9f5689, tip=75d8f928c9552508ba75914ed96e6e92cc60c999
+  PASS: NEARS-3041 shape (pre-existing base tip as merge_sha) FAILs on second-parent identity.
+  INFO  merge check: no merge_sha recorded
+  PASS: absent merge_sha without a MERGED claim is INFO only.
+  FAIL  merge check: [9b] MERGED claimed, no merge_sha recorded (NEARS-3140)
+  PASS: MERGED claimed with no merge_sha/merge_commit FAILs.
+  PASS  merge_sha resolves: 52e8d93fa797954055307f2eb53d35e6bcb5dcd1
+  PASS  merge_sha has a second parent (merge commit)
+  PASS  merge_sha reachable from base base
+  WARN  legacy multi-merge shape: recorded tip landed via a later merge (merge_sha 52e8d93fa797954055307f2eb53d35e6bcb5dcd1, tip 5c6e482b9e782ffb66e1d76f42ddf8e85630d947)
+  PASS: legacy multi-merge shape (tip landed via a later merge) WARNs with 0 FAILs.
+  PASS  merge_sha resolves: 4aa57a62b251eb7e6e2f447c6790a89ae64f9755
+  PASS  merge_sha has a second parent (merge commit)
+  PASS  merge_sha reachable from base base
+  FAIL  recorded tip carries commits base never received (tip fff6b6435178dc5eeb59b2850762aee84437c23e not reachable from base base)
+  PASS: tip with commits base never received FAILs with the base-never-received message (not the generic one).
+  PASS  merge_sha resolves: 49b9e2bcad732608ab772284843fa6427a8c5a7a
+  PASS  merge_sha has a second parent (merge commit)
+  INFO  merge check: base recorded as sha and no base_branch; reachability checked against repo HEAD (base)
+  PASS  merge_sha descends from recorded cut sha: 4fe6279a57a788730236540b9a85fc2b0000fb12
+  PASS  merge_sha reachable from repo HEAD (base)
+  PASS  merge_sha second parent is the recorded branch tip: 75d8f928c9552508ba75914ed96e6e92cc60c999
+  PASS: base recorded as the cut sha (no base_branch) PASSes via the repo-HEAD fallback with 0 FAILs.
+  PASS  merge_sha resolves: 49b9e2bcad732608ab772284843fa6427a8c5a7a
+  PASS  merge_sha has a second parent (merge commit)
+  INFO  merge check: base recorded as sha; integration ref from base_branch: base
+  PASS  merge_sha descends from recorded cut sha: 4fe6279a57a788730236540b9a85fc2b0000fb12
+  PASS  merge_sha reachable from base_branch base
+  PASS  merge_sha second parent is the recorded branch tip: 75d8f928c9552508ba75914ed96e6e92cc60c999
+  PASS: base recorded as the cut sha with base_branch PASSes via base_branch with 0 FAILs.
+  PASS  merge_sha resolves: 49b9e2bcad732608ab772284843fa6427a8c5a7a
+  PASS  merge_sha has a second parent (merge commit)
+  INFO  merge check: base recorded as sha and no base_branch; reachability checked against repo HEAD (base)
+  FAIL  merge_sha does not descend from the recorded cut sha fff6b6435178dc5eeb59b2850762aee84437c23e: 49b9e2bcad732608ab772284843fa6427a8c5a7a
+  PASS: base recorded as a sha that merge_sha does not descend from FAILs on cut-sha descent.
+  PASS  merge_sha resolves: 49b9e2bcad732608ab772284843fa6427a8c5a7a (legacy merge_commit)
+  PASS  merge_sha has a second parent (merge commit) (legacy merge_commit)
+  PASS  merge_sha reachable from base base (legacy merge_commit)
+  PASS  merge_sha second parent is the recorded branch tip: 75d8f928c9552508ba75914ed96e6e92cc60c999 (legacy merge_commit)
+  PASS: legacy merge_commit-only genuine merge PASSes (mirrors A) with the tag on every line, 0 FAILs.
+  PASS  merge_sha resolves: 4fe6279a57a788730236540b9a85fc2b0000fb12 (legacy merge_commit)
+  PASS  merge_sha has a second parent (merge commit) (legacy merge_commit)
+  PASS  merge_sha reachable from base base (legacy merge_commit)
+  FAIL  merge_sha second parent is not the recorded branch tip (NEARS-3041 shape): 4fe6279a57a788730236540b9a85fc2b0000fb12^2=e06e00c92c79500f49f23225b1ce0df8eb9f5689, tip=75d8f928c9552508ba75914ed96e6e92cc60c999 (legacy merge_commit)
+  PASS: legacy merge_commit-only NEARS-3041 shape FAILs on second-parent identity, tagged (mirrors B).
+  FAIL  merge check: MERGED claimed, legacy merge_commit is not a sha: merge(NEARS-2768) on feat/userapp-reskin2 (legacy merge_commit)
+  PASS: legacy merge_commit as unresolving prose with MERGED verdict FAILs (condition 2a).
+  PASS  merge_sha resolves: 75d8f928c9552508ba75914ed96e6e92cc60c999 (legacy merge_commit)
+  WARN  legacy fast-forward landing (1 parent) — verified reachable, not a merge commit (legacy merge_commit)
+  PASS: legacy 1-parent merge_commit matching tip + reachable WARNs (condition 2b), 0 FAILs.
+  WARN  merge_sha and legacy merge_commit disagree: 49b9e2bcad732608ab772284843fa6427a8c5a7a vs 4fe6279a57a788730236540b9a85fc2b0000fb12
+  PASS  merge_sha resolves: 49b9e2bcad732608ab772284843fa6427a8c5a7a
+  PASS  merge_sha has a second parent (merge commit)
+  PASS  merge_sha reachable from base base
+  PASS  merge_sha second parent is the recorded branch tip: 75d8f928c9552508ba75914ed96e6e92cc60c999
+  PASS: merge_sha + differing legacy merge_commit WARNs naming both values, runs the merge_sha path untagged (matches merge-A's PASS set), 0 FAILs.
+-- assertion: (legacy merge_commit) tag present in I-L, absent in A-H/M (zero regression) --
+  PASS: tag present in I/J/K/L, absent in A/B/C/C2/D/E/F/G/H/M (no merge_sha-path regression).
+-- fixture: phases{} completeness + top-level phase records (NEARS-3146) --
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 11 10 3
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 12 key(s) are in the closed list (NEARS-3165)
+  PASS: complete full-lane run PASSes with 0 FAILs; legal top-level keys never named.
+  FAIL  phases{} missing REQUIRED phase id(s) for lane full: 9b (NEARS-3146)
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 11 key(s) are in the closed list (NEARS-3165)
+  PASS: full lane missing phases["9b"] FAILs naming 9b (AC4).
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 11 10 3
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  FAIL  forbidden top-level phase record key(s): phase11_closeout (NEARS-3146 — belong in phases{})
+  PASS  phases{} key vocabulary: all 12 key(s) are in the closed list (NEARS-3165)
+  PASS: top-level phase11_closeout FAILs by name even with phases{} complete (AC5).
+  PASS  phases{} carries every REQUIRED id for lane tooling: 1 2 6 8 7 9b 11
+  INFO  phases{} absent INFO-tier id(s) for lane tooling: 2b 10 (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 7 key(s) are in the closed list (NEARS-3165)
+  PASS: tooling lane PASSes on its own required set without 9/10.
+  WARN  phases{} audit: lane not recorded/unrecognised (<none>) — required-phase set not assertable; 9/9b/11 presence reported as INFO only (NEARS-3146)
+  INFO  phases{} 9/9b/11 presence (not asserted, lane unknown): present=[none] absent=[9 9b 11]
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 3 key(s) are in the closed list (NEARS-3165)
+  PASS: lane null WARNs (not assertable) with 0 FAILs; 9/9b/11 presence is INFO.
+  FAIL  lane value is not one of the enum values (micro|express|tooling|no-runtime|full|zero-code|zero-code-close): 'tbd' (NEARS-3186)
+  WARN  phases{} audit: lane not recorded/unrecognised (tbd) — required-phase set not assertable; 9/9b/11 presence reported as INFO only (NEARS-3146)
+  INFO  phases{} 9/9b/11 presence (not asserted, lane unknown): present=[none] absent=[9 9b 11]
+  FAIL  forbidden top-level phase record key(s): merge (NEARS-3146 — belong in phases{})
+  PASS  phases{} key vocabulary: all 3 key(s) are in the closed list (NEARS-3165)
+  PASS: top-level merge FAILs by name under an unrecognised lane (key check independent of lane); bad lane enum also FAILs by name (NEARS-3186).
+  INFO  phases{} [11] not yet recordable — --closing (this call IS [11] item 3, NEARS-3146)
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 10 3
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 11 key(s) are in the closed list (NEARS-3165)
+  PASS: --closing makes an absent phases["11"] INFO with 0 FAILs.
+  PASS: without --closing the same file FAILs on the missing 11.
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 11 10 3
+  WARN  phases{} record has neither a verdict nor skipped:true: 9 (NEARS-3146)
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 12 key(s) are in the closed list (NEARS-3165)
+  PASS: phases["9"] without verdict/skipped WARNs, not FAILs.
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 11 10 3
+  FAIL  phases{} record is not a JSON object: 9b(string) (NEARS-3146)
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 12 key(s) are in the closed list (NEARS-3165)
+  PASS: phases["9b"] as a string FAILs on shape (not reported as missing).
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 11 10 3
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  FAIL  forbidden top-level phase record key(s): phase_10_references step9b_close (NEARS-3146 — belong in phases{})
+  PASS  phases{} key vocabulary: all 12 key(s) are in the closed list (NEARS-3165)
+  PASS: ^phases?_?[0-9] / ^step_?[0-9] shapes FAIL by name; phase_reached/final_status untouched.
+  FAIL  phases{} missing REQUIRED phase id(s) for lane express: 10 (NEARS-3146)
+  INFO  phases{} absent INFO-tier id(s) for lane express: 2b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 8 key(s) are in the closed list (NEARS-3165)
+  PASS: express lane without a phases["10"] record (either shape) FAILs naming 10 only — phases["3"] absent is NOT a FAIL on express.
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 11 10 3
+  WARN  phases{} missing WARN-tier phase id(s) for lane full: 5 — present or an explicit skip record expected (NEARS-3146)
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 11 key(s) are in the closed list (NEARS-3165)
+  PASS: full lane missing 5 alone WARNs (not FAILs).
+  FAIL  lane value is not one of the enum values (micro|express|tooling|no-runtime|full|zero-code|zero-code-close): 'full (reconciliation-first)' (NEARS-3186)
+  WARN  phases{} audit: lane not recorded/unrecognised (full (reconciliation-first)) — required-phase set not assertable; 9/9b/11 presence reported as INFO only (NEARS-3146)
+  INFO  phases{} 9/9b/11 presence (not asserted, lane unknown): present=[9 9b 11] absent=[none]
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 11 key(s) are in the closed list (NEARS-3165)
+  PASS: free-text lane value FAILs naming the literal, never silently normalised to 'full' (NEARS-3186).
+  INFO  phases{} audit: lane is a terminal no-build value (zero-code) — no phase-id set is required or asserted (NEARS-3379-CR-1)
+  INFO  phases{} 9/9b/11 presence (not asserted, lane unknown): present=[none] absent=[none]
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  INFO  phases{} key vocabulary: 0 keys recorded — nothing to check
+  PASS: lane:zero-code is a legal enum value, INFO-only, 0 FAIL (NEARS-3379-CR-1).
+  INFO  phases{} audit: lane is a terminal no-build value (zero-code-close) — no phase-id set is required or asserted (NEARS-3379-CR-1)
+  INFO  phases{} 9/9b/11 presence (not asserted, lane unknown): present=[none] absent=[none]
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  INFO  phases{} key vocabulary: 0 keys recorded — nothing to check
+  PASS: lane:zero-code-close is a legal enum value, INFO-only, 0 FAIL (NEARS-3379-CR-1).
+  FAIL  phases{} missing REQUIRED phase id(s) for lane full: 3 (NEARS-3146)
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 11 key(s) are in the closed list (NEARS-3165)
+  PASS: full lane without a phases["3"] record (either shape) FAILs naming 3 (AUD-WF-08).
+  FAIL  phases{} missing REQUIRED phase id(s) for lane full: 10 (NEARS-3146)
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 11 key(s) are in the closed list (NEARS-3165)
+  PASS: full lane missing 10 alone still FAILs naming 10 (regression pin, unaffected by the [3] move).
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 11 10 3
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 12 key(s) are in the closed list (NEARS-3165)
+  PASS: phases["3"] skip shape ({phase, skipped:true, skip_reason}) satisfies the full-lane required tier.
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 11 10 3
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 12 key(s) are in the closed list (NEARS-3165)
+  PASS: phases["3"] ran shape (roll-up phase/verdict + per-role sub-key) satisfies required tier, no spurious noverdict WARN.
+  FAIL  phases{} missing REQUIRED phase id(s) for lane full: 3 (NEARS-3146)
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  FAIL  phases{} key(s) outside the closed vocabulary (NEARS-3165): 3a — belongs in trail[]/decisions[], never phases{}
+  PASS: legacy phases{} key "3a" (no "3" key) is NOT silently accepted — FAILs naming 3 missing AND 3a outside the closed vocabulary.
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 11 10 3
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  FAIL  phases{} key(s) outside the closed vocabulary (NEARS-3165): 9_dod_note 9a_precheck — belongs in trail[]/decisions[], never phases{}
+  PASS: bare-string ad-hoc phases{} keys (9a_precheck, 9_dod_note) FAIL naming both (NEARS-3165).
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 11 10 3
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 15 key(s) are in the closed list (NEARS-3165)
+  PASS: 8b, 8b-fix1, 6-fix2 (fix-cycle suffix shape) all accepted as legal vocabulary members (NEARS-3165).
+  PASS  phases{} carries every REQUIRED id for lane full: 1 2 6 7 8 9 9b 11 10 3
+  INFO  phases{} absent INFO-tier id(s) for lane full: 2b 4 8b (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 12 key(s) are in the closed list (NEARS-3165)
+  PASS: top-level qa{}/review{} (siblings of phases{}) never read as phases{} keys — closed-key check stays clean (NEARS-3399, AC4).
+-- fixture: Done-gate vs qa.ac_table[] consistency (NEARS-3513e) --
+  PASS  Done-gate vs qa.ac_table[]: phases["11"].verdict DONE with 2 ac_table[] row(s), none FAIL/UNVERIFIABLE
+  PASS: DONE + all-PASS ac_table[] -> 0 FAIL (control).
+  FAIL  Done-gate vs qa.ac_table[]: phases["11"].verdict is DONE but qa.ac_table[] carries a FAIL/UNVERIFIABLE row: AC2, AC3 (nears-qa.md hard rule)
+  PASS: DONE + FAIL/UNVERIFIABLE ac_table[] rows -> FAIL naming AC2, AC3.
+  INFO  Done-gate vs qa.ac_table[]: phases["11"].verdict is not DONE (BLOCKED) — nothing to assert
+  PASS: non-DONE phases["11"].verdict -> nothing asserted even with a FAIL row present (control).
+-- fixture: log.jsonl phase-VALUE vocabulary (NEARS-3513j) --
+  PASS  log.jsonl phase-vocabulary check: all 2 log.jsonl line(s) for key NEARS-LPV-OK carry a phase value inside the closed vocabulary
+  PASS: all-legal log.jsonl phase values -> PASS, unrelated key's bogus value never crosses over (field-equality, never substring).
+  FAIL  log.jsonl phase-vocabulary check: log.jsonl phase value(s) for key NEARS-LPV-BAD outside the closed vocabulary (NEARS-3513j): 9_dod_note
+  PASS: out-of-vocabulary log.jsonl phase value -> FAIL naming 9_dod_note.
+  PASS  log.jsonl phase-vocabulary check: all 2 log.jsonl line(s) for key NEARS-LPV-RUNTOTAL carry a phase value inside the closed vocabulary
+  PASS: 'run-total' summary line never flagged as out-of-vocabulary (NEARS-3513 fix-in-run regression pin).
+  PASS  phases{} carries every REQUIRED id for lane micro: m1 m2 m3 t m4 m5
+  INFO  phases{} absent INFO-tier id(s) for lane micro: 2b 10 (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 8 key(s) are in the closed list (NEARS-3165)
+  FAIL  micro-lane phases{} key(s) outside {m1,m2,m3,m4,m5,t} (NEARS-3164): 1 2
+  PASS: micro-lane numeric-substitute keys (1, 2) FAIL naming both, alongside an otherwise-complete micro set (NEARS-3164).
+  PASS  phases{} carries every REQUIRED id for lane micro: m1 m2 m3 t m4 m5
+  INFO  phases{} absent INFO-tier id(s) for lane micro: 2b 10 (conditional / no recording rule — nothing asserted)
+  PASS  no top-level phase record keys (phases{} is the only phase map)
+  PASS  phases{} key vocabulary: all 6 key(s) are in the closed list (NEARS-3165)
+  PASS: a clean micro-lane run (m1-m5/t only) PASSes with 0 FAIL (NEARS-3164 regression pin).
+run file not found: /Users/Apple/Projects/nears-NEARS-3612-ledger-integrity/tasks/runs/NEARS-SELFTEST-MISSING-84443-19174.json
+  PASS: --closing parses as a flag (missing-run-file path names the KEY, exit 2).
+run file not found: /Users/Apple/Projects/nears-NEARS-3612-ledger-integrity/tasks/runs/NEARS-SELFTEST-MISSING-84443-31002.json
+  PASS: trailing --closing parses as a flag (missing-run-file path names the KEY, exit 2).
+-- fixture: log-total run-total line check (AUD-WF-09 / NEARS-3148) --
+  FAIL  log-total: NO run-total line for key NEARS-LOGTOTAL-SELFTEST-84443 in log-a.jsonl (AUD-WF-09) — DO THE WRITE YOURSELF (new-task.md §[11] item 8b)
+  PASS: missing run-total line FAILs (no closing) naming the key (AC1).
+  INFO  log-total: no run-total line yet for key NEARS-LOGTOTAL-SELFTEST-84443 — expected before [11] item 5/token-tally.sh has run; the real gate is a FLAGLESS re-run of this script after the close-out executor returns (AUD-WF-09, NEARS-3148)
+  PASS: --closing demotes the missing run-total line to INFO with 0 FAILs (AC1-closing).
+  PASS  log-total line found for key NEARS-LOGTOTAL-SELFTEST-84443: wall_s=1234
+  PASS: valid run-total line PASSes without closing (AC2).
+  PASS  log-total line found for key NEARS-LOGTOTAL-SELFTEST-84443: wall_s=1234
+  PASS: valid run-total line PASSes with closing too (AC2).
+  PASS  log-total line found for key NEARS-LOGTOTAL-SELFTEST-84443: wall_s=999
+  PASS: malformed row elsewhere in the file does not block the real match (not a whole-file jq parse).
+  FAIL  log-total: NO run-total line for key NEARS-3148 in log-e.jsonl (AUD-WF-09) — DO THE WRITE YOURSELF (new-task.md §[11] item 8b)
+  PASS: a line matching on .related_to (not .key) does not satisfy the NEARS-3148 check (field equality on .key, not a substring/other-field match).
+  PASS  log-total line found for key NEARS-LOGTOTAL-SELFTEST-84443: wall_s=555
+  INFO  log-total line present but tokens:null for key NEARS-LOGTOTAL-SELFTEST-84443 (honest null, not a gap)
+  PASS: tokens:null (NEARS-2877 shape) PASSes with an INFO note, not a FAIL.
+-- fixture: log.jsonl per-phase coverage (NEARS-3162) --
+  FAIL  log.jsonl per-phase coverage: phases{} id(s) with NO matching log.jsonl line for key NEARS-PHASECOV-SELFTEST-84443 (NEARS-3162): 7
+  PASS: a phases{} id with no matching log.jsonl line FAILs naming it, the covered one is not named (NEARS-3162).
+  PASS  log.jsonl per-phase coverage: all 2 phases{} id(s) for key NEARS-PHASECOV-SELFTEST-84443 have a matching log.jsonl line (NEARS-3162)
+  PASS: every phases{} id with a matching log.jsonl line PASSes cleanly (NEARS-3162).
+  FAIL  log.jsonl per-phase coverage: phases{} id(s) with NO matching log.jsonl line for key NEARS-PHASECOV-SELFTEST-84443 (NEARS-3162): 7
+  PASS: a line matching by .related_to (not .key) does not satisfy coverage (field equality, NEARS-3162).
+  INFO  log.jsonl per-phase coverage: phases{} empty/absent — nothing to check
+  PASS: empty phases{} is INFO, not asserted either way (NEARS-3162).
+  WARN  log.jsonl per-phase coverage: phases{} id(s) with NO matching log.jsonl line for key NEARS-PHASECOV-SELFTEST-84443 (NEARS-3162): 7 — pre-cutover run file (started_epoch=1700000000 < 1788805401), the rule was prose-only when this run started (NEARS-3379-CR-2)
+  PASS: a pre-cutover run file's coverage gap WARNs naming the offender, never a silent pass, never a FAIL (NEARS-3379-CR-2).
+  FAIL  log.jsonl per-phase coverage: phases{} id(s) with NO matching log.jsonl line for key NEARS-PHASECOV-SELFTEST-84443 (NEARS-3162): 7
+  PASS: a post-cutover run file's coverage gap still hard-FAILs, unchanged (NEARS-3379-CR-2).
+-- fixture: corpus-wide run-file parse sweep (NEARS-3196) --
+  WARN  corpus sweep: sibling run file UNPARSEABLE (not this run's own, not blocking): /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T/tmp.qcXj7WpnHR/corpus-fixture/tasks/runs/NEARS-CS-SIBLING-BAD.json — UNPARSEABLE: /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T/tmp.qcXj7WpnHR/corpus-fixture/tasks/runs/NEARS-CS-SIBLING-BAD.json exists but failed to parse: jq: parse error: Unfinished JSON term at EOF at line 1, column 29
+  INFO  corpus sweep: 1 corrupt file(s) total in the corpus: NEARS-CS-SIBLING-BAD
+  PASS: corrupt sibling named as WARN (not FAIL) when it isn't the closing run's own file.
+  FAIL  corpus sweep: closing run's own file is UNPARSEABLE: /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T/tmp.qcXj7WpnHR/corpus-fixture/tasks/runs/NEARS-CS-SIBLING-BAD.json — UNPARSEABLE: /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T/tmp.qcXj7WpnHR/corpus-fixture/tasks/runs/NEARS-CS-SIBLING-BAD.json exists but failed to parse: jq: parse error: Unfinished JSON term at EOF at line 1, column 29 (NEARS-3196)
+  INFO  corpus sweep: 1 corrupt file(s) total in the corpus: NEARS-CS-SIBLING-BAD
+  PASS: the closing run's own corrupt file hard-FAILs, named (NEARS-3196).
+  PASS  corpus sweep: every tasks/runs/*.json file parses cleanly (NEARS-3196)
+  PASS: an all-clean corpus PASSes with 0 FAIL/0 WARN.
+-- fixture: owner-ask token audit (NEARS-3307) --
+  FAIL  duplicate-key check: /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T/tmp.HOJV9IxJG1/tasks/runs/NEARS-DK-DUP.json — duplicate key(s): findings_log (last duplicate wins under every parser) — a grep hit is not a read-back (NEARS-3377 log line)
+  PASS: duplicate key FAILs naming the key (last-wins shadowing, NEARS-3377 log line).
+  PASS  duplicate-key check: no duplicate keys in NEARS-DK-CLEAN.json
+  PASS: clean run file passes the duplicate-key check (control).
+  PASS  owner-ask token audit: 1 owner-facing decisions[] entries all carry ask_token or tier==C
+  PASS: compliant tier-C + token entry -> 0 WARN, 0 FAIL (fixture a).
+  WARN  owner-ask token audit: 1 of 1 owner-facing decisions[] entries carry neither ask_token nor tier==C (NEARS-3307) — qid(s): q-oat-b
+  PASS: missing token + no tier-C -> exactly 1 WARN, 0 FAIL, names the qid (fixture b).
+  INFO  owner-ask token audit: 0 decisions[] entries carry why_owner — nothing to assert (pre-NEARS-3307 run file, or no owner-facing ask this run)
+  PASS: pre-NEARS-3307 run file (no why_owner at all) -> INFO only, never a finding (fixture c, AC3 non-retroactivity).
+  WARN  owner-ask token audit: 1 of 2 owner-facing decisions[] entries carry neither ask_token nor tier==C (NEARS-3307) — qid(s): q-oat-d-bad
+  PASS: mixed compliant/non-compliant file isolates exactly the bad entry, 1 WARN, 0 FAIL (fixture d).
+-- fixture: followups[] drain audit — disposition vocabulary (NEARS-3360) --
+  PASS  followups[] drain audit: all drainable-type followups[] accounted for in followups_audit[].
+  PASS: (i) five-disposition post-cutover file -> PASS (1 PASS / 0 FAIL / 0 WARN).
+  FAIL  followups[] drain audit: undrained or mis-dispositioned followup(s) found (NEARS-2834 / NEARS-3360)
+    FAIL  followup-drain-check: 1 drainable-type followup(s) with no matching followups_audit[] record, or a record outside the disposition vocabulary:
+            6:0 (regression-candidate)
+  PASS: (ii) undrained regression-candidate -> FAIL naming 6:0 (regression-candidate) (0 PASS / 1 FAIL / 0 WARN).
+  FAIL  followups[] drain audit: undrained or mis-dispositioned followup(s) found (NEARS-2834 / NEARS-3360)
+    FAIL  followup-drain-check: 1 drainable-type followup(s) with no matching followups_audit[] record, or a record outside the disposition vocabulary:
+            6:0 (disposition: bogus)
+  PASS: (iii) unknown disposition -> FAIL naming 6:0 (disposition: bogus) (0 PASS / 1 FAIL / 0 WARN).
+  WARN  followups[] drain audit: legacy disposition(s) on a post-cutover run file — migrate to the new vocabulary (NEARS-3360)
+    WARN  followup-drain-check: 1 legacy disposition(s) on a post-cutover run file — migrate to the new vocabulary (fixed-in-run|logged|ticketed|clustered|non-drain-reason):
+            6:0 (disposition: drained-to-ticket)
+  PASS: (iv) legacy value post-cutover -> WARN migrate (0 PASS / 0 FAIL / 1 WARN).
+  PASS  followups[] drain audit: all drainable-type followups[] accounted for in followups_audit[].
+  PASS: (v) pre-cutover legacy file -> PASS, no WARN (1 PASS / 0 FAIL / 0 WARN).
+  FAIL  followups[] drain audit: undrained or mis-dispositioned followup(s) found (NEARS-2834 / NEARS-3360)
+    FAIL  followup-drain-check: 1 drainable-type followup(s) with no matching followups_audit[] record, or a record outside the disposition vocabulary:
+            6:0 (disposition: non-drain-reason) — not valid for a drainable finding (a duplicate of a logged line carries ref = the log key)
+  PASS: (vi) non-drain-reason on a drainable finding -> FAIL (0 PASS / 1 FAIL / 0 WARN).
+  PASS  followups[] drain audit: all drainable-type followups[] accounted for in followups_audit[].
+  PASS: (vii) non-drain-reason on an INFO-only type -> PASS (1 PASS / 0 FAIL / 0 WARN).
+-- fixture: ledger Done/merge_sha audit (NEARS-3612) --
+  WARN  ledger Done row missing merge_sha (NEARS-3612): srcid-offender-no-merge-sha
+  PASS: non-exempt Done row missing merge_sha WARNs and names the exact srcid.
+  PASS: the 3 exemption srcids (aud-perf-05/06/07) do NOT warn.
+  PASS: Done row WITH merge_sha does not warn.
+  PASS: ledger Done/merge_sha audit never FAILs (WARN-only by design).
+  PASS: exactly 1 WARN produced (only the true non-exempt offender).
+== self-test PASS ==
