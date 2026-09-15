@@ -2,7 +2,7 @@
 
 **Human QA — Auth & first launch: 9.5s cold start, blocking GPS spinner, inconsistent auth screens**
 
-**14 screenshot(s).** Click any thumbnail for full resolution.
+**17 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -14,6 +14,11 @@
 <td align="center" width="33%"><a href="p36-12-signup.png"><img src="p36-12-signup.png" width="240"></a><br><sub>p36 12 signup</sub></td>
 <td align="center" width="33%"><a href="p36-14-language.png"><img src="p36-14-language.png" width="240"></a><br><sub>p36 14 language</sub></td>
 <td align="center" width="33%"><a href="p36-20-cold-1s.png"><img src="p36-20-cold-1s.png" width="240"></a><br><sub>p36 20 cold 1s</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="p39-offline-01-offline-toast.png"><img src="p39-offline-01-offline-toast.png" width="240"></a><br><sub>p39 offline 01 offline toast</sub></td>
+<td align="center" width="33%"><a href="p39-offline-02-offline-home.png"><img src="p39-offline-02-offline-home.png" width="240"></a><br><sub>p39 offline 02 offline home</sub></td>
+<td align="center" width="33%"><a href="p39-offline-03-offline-coldstart.png"><img src="p39-offline-03-offline-coldstart.png" width="240"></a><br><sub>p39 offline 03 offline coldstart</sub></td>
 </tr>
 <tr>
 <td align="center" width="33%"><a href="splash-contact.png"><img src="splash-contact.png" width="240"></a><br><sub>splash contact</sub></td>
