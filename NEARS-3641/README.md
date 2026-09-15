@@ -2,7 +2,7 @@
 
 **Human QA page 20 — My Address: redesign gate + GPS fallback wrong-country save + 6 findings**
 
-**11 screenshot(s).** Click any thumbnail for full resolution.
+**12 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -23,6 +23,7 @@
 <tr>
 <td align="center" width="33%"><a href="p20-overview-add-address__full.png"><img src="p20-overview-add-address__full.png" width="240"></a><br><sub>p20 overview add address full</sub></td>
 <td align="center" width="33%"><a href="p20-overview-my-address__full.png"><img src="p20-overview-my-address__full.png" width="240"></a><br><sub>p20 overview my address full</sub></td>
+<td align="center" width="33%"><a href="p38-edit-01-edit-address.png"><img src="p38-edit-01-edit-address.png" width="240"></a><br><sub>p38 edit 01 edit address</sub></td>
 </tr>
 </table>
 
