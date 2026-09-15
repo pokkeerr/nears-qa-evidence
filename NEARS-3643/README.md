@@ -2,7 +2,7 @@
 
 **Help & Support + Chat with Nears — missing back button, generic inbox, misleading AI promo, placeholder contact config**
 
-**10 screenshot(s).** Click any thumbnail for full resolution.
+**11 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -22,6 +22,7 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="p21-overview-talk-to-nears__full.png"><img src="p21-overview-talk-to-nears__full.png" width="240"></a><br><sub>p21 overview talk to nears full</sub></td>
+<td align="center" width="33%"><a href="p32-chat-01-chat-thread.png"><img src="p32-chat-01-chat-thread.png" width="240"></a><br><sub>p32 chat 01 chat thread</sub></td>
 </tr>
 </table>
 
