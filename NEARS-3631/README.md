@@ -2,7 +2,7 @@
 
 **Human QA — Search (idle, results, filter): UI/UX findings (14)**
 
-**27 screenshot(s).** Click any thumbnail for full resolution.
+**29 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -49,6 +49,10 @@
 <td align="center" width="33%"><a href="p11-SR8-store-card-no-rating-closed-on-image__full.png"><img src="p11-SR8-store-card-no-rating-closed-on-image__full.png" width="240"></a><br><sub>p11 SR8 store card no rating closed on image full</sub></td>
 <td align="center" width="33%"><a href="p11-SR9-filter-sheet-slider-0pct-stars__crop.png"><img src="p11-SR9-filter-sheet-slider-0pct-stars__crop.png" width="240"></a><br><sub>p11 SR9 filter sheet slider 0pct stars crop</sub></td>
 <td align="center" width="33%"><a href="p11-SR9-filter-sheet-slider-0pct-stars__full.png"><img src="p11-SR9-filter-sheet-slider-0pct-stars__full.png" width="240"></a><br><sub>p11 SR9 filter sheet slider 0pct stars full</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="p37-global-01-global-idle.png"><img src="p37-global-01-global-idle.png" width="240"></a><br><sub>p37 global 01 global idle</sub></td>
+<td align="center" width="33%"><a href="p37-global-03-global-results.png"><img src="p37-global-03-global-results.png" width="240"></a><br><sub>p37 global 03 global results</sub></td>
 </tr>
 </table>
 
