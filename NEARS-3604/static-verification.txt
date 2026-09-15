@@ -1,0 +1,59 @@
+NEARS-3604 QA static verification — device-free ticket (pure CI YAML text change)
+Base: feat/userapp-reskin2   HEAD: 8683ad3a7
+
+=== diff-scope guard: only authorized paths changed ===
+.github/workflows/apk-size.yml
+.github/workflows/backend-static.yml
+
+=== AC1/AC2: deprecated interpolation absent from run: blocks, present only in env: ===
+113:          BUDGET_MB: ${{ matrix.budget_mb }}
+113:          CHANGED_COUNT: ${{ steps.changed.outputs.count }}
+
+=== AC3: YAML validity (python yaml.safe_load) ===
+.github/workflows/apk-size.yml VALID YAML
+.github/workflows/backend-static.yml VALID YAML
+
+=== full targeted diff ===
+diff --git a/.github/workflows/apk-size.yml b/.github/workflows/apk-size.yml
+index 9ec3bf5e1..f23e3e34e 100644
+--- a/.github/workflows/apk-size.yml
++++ b/.github/workflows/apk-size.yml
+@@ -106,11 +106,16 @@ jobs:
+         id: size-gate
+         if: steps.check-signing.outputs.has_key == 'true'
+         working-directory: ${{ matrix.app }}
++        env:
++          # NEARS-3604: keep matrix context values out of the run: script text
++          # (see gha-context-expr-interpolated-into-run-shell) by passing them
++          # through env instead of inlining ${{ ... }}.
++          BUDGET_MB: ${{ matrix.budget_mb }}
+         run: |
+           set -eo pipefail
+           python3 "$GITHUB_WORKSPACE/scripts/apk-size-check.py" \
+             build/app/outputs/flutter-apk/app-release.apk \
+-            ${{ matrix.budget_mb }} 2>&1 | tee /tmp/ci-logs/size-gate.log
++            "$BUDGET_MB" 2>&1 | tee /tmp/ci-logs/size-gate.log
+           exit ${PIPESTATUS[0]}
+ 
+       - name: Annotate known signing-key gap
+diff --git a/.github/workflows/backend-static.yml b/.github/workflows/backend-static.yml
+index d6da52910..d283ca9b6 100644
+--- a/.github/workflows/backend-static.yml
++++ b/.github/workflows/backend-static.yml
+@@ -106,10 +106,15 @@ jobs:
+       - name: Pint (formatting check, changed files only)
+         id: pint
+         working-directory: Admin
++        env:
++          # NEARS-3604: keep step-output context values out of the run: script
++          # text (see gha-context-expr-interpolated-into-run-shell) by passing
++          # them through env instead of inlining ${{ ... }}.
++          CHANGED_COUNT: ${{ steps.changed.outputs.count }}
+         run: |
+           set -eo pipefail
+           {
+-            if [ "${{ steps.changed.outputs.count }}" = "0" ]; then
++            if [ "$CHANGED_COUNT" = "0" ]; then
+               echo "No changed PHP files under Admin/ in this push/PR -- skipping Pint."
+             else
+               xargs -d '\n' -a ../changed_admin_php_files.txt -- vendor/bin/pint --test
