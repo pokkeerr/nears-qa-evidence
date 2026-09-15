@@ -2,9 +2,14 @@
 
 **Human QA page 6 — Product details sheet: 11 UI/UX findings (PD6 withdrawn)**
 
-**25 screenshot(s).** Click any thumbnail for full resolution.
+**28 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
+<tr>
+<td align="center" width="33%"><a href="p35-gallery-00-product-sheet.png"><img src="p35-gallery-00-product-sheet.png" width="240"></a><br><sub>p35 gallery 00 product sheet</sub></td>
+<td align="center" width="33%"><a href="p35-gallery-01-gallery.png"><img src="p35-gallery-01-gallery.png" width="240"></a><br><sub>p35 gallery 01 gallery</sub></td>
+<td align="center" width="33%"><a href="p35-gallery-02-gallery-swiped.png"><img src="p35-gallery-02-gallery-swiped.png" width="240"></a><br><sub>p35 gallery 02 gallery swiped</sub></td>
+</tr>
 <tr>
 <td align="center" width="33%"><a href="p6-01.png"><img src="p6-01.png" width="240"></a><br><sub>p6 01</sub></td>
 <td align="center" width="33%"><a href="p6-04-after-midnight.png"><img src="p6-04-after-midnight.png" width="240"></a><br><sub>p6 04 after midnight</sub></td>
