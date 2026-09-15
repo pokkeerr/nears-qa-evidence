@@ -2,9 +2,14 @@
 
 **Human QA — Store page (Fresh local): 13 UI/UX findings, SP7 misleading-state**
 
-**23 screenshot(s).** Click any thumbnail for full resolution.
+**26 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
+<tr>
+<td align="center" width="33%"><a href="p37-store-20-instore-idle.png"><img src="p37-store-20-instore-idle.png" width="240"></a><br><sub>p37 store 20 instore idle</sub></td>
+<td align="center" width="33%"><a href="p37-store-21-instore-milk.png"><img src="p37-store-21-instore-milk.png" width="240"></a><br><sub>p37 store 21 instore milk</sub></td>
+<td align="center" width="33%"><a href="p37-store-30-store-reviews.png"><img src="p37-store-30-store-reviews.png" width="240"></a><br><sub>p37 store 30 store reviews</sub></td>
+</tr>
 <tr>
 <td align="center" width="33%"><a href="p5-01.png"><img src="p5-01.png" width="240"></a><br><sub>p5 01</sub></td>
 <td align="center" width="33%"><a href="p5-02.png"><img src="p5-02.png" width="240"></a><br><sub>p5 02</sub></td>
