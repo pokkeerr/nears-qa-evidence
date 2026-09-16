@@ -1,0 +1,6 @@
+Repro: switched to Food & Restaurant, force-stopped com.izzes.nears, relaunched (adb shell am start).
+09-17 02:26:35.662 25477 25477 I flutter : analytics: app_open {}
+09-17 02:26:36.870 25477 25477 I flutter : analytics: sectors_shown {sectors_count: 3, zone_id: 2}
+09-17 02:26:36.870 25477 25477 I flutter : analytics: module_restored {module_id: 2, zone_id: 2, module: food, source: last_used, modules_available: 3, screen: home, section: module_tabs}
+
+module_restored now fires on the resolver's own restoredModuleHome fast path (source=last_used), exactly the previously-silent returning-user cold-open. App landed correctly on Food & Restaurant home, 0 picker frames, no crash (only the unrelated pre-existing GetPositionFailure fallback log). QA-3 confirmed fixed live. Also pinned by the new automated test: destination_resolver_test.dart "NEARS-3584 QA-3: fires module_restored (source=last_used) on this PRE-EXISTING (NEARS-1551) restore tier".

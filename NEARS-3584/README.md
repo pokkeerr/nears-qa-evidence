@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3584
 
-**QA: 4 task_bugs found, ACs 1-3,8,9 demonstrated live with findings; AC4,5,6,7 constrained by environment issues**
+**Fix-cycle 2 delta re-QA: PASS - all 4 fixes confirmed live, AC4 still unverifiable (tooling)**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -14,10 +14,15 @@
 
 ### Other artifacts
 - [`ac3-empty-state-dump.xml`](ac3-empty-state-dump.xml)
+- [`ac4-still-unverifiable-cycle2.log`](ac4-still-unverifiable-cycle2.log)
 - [`bug-global-search-opened-missing-context.log`](bug-global-search-opened-missing-context.log)
 - [`bug-module-restored-missing-at-restored-tier.log`](bug-module-restored-missing-at-restored-tier.log)
 - [`bug-raw-circularprogressindicator-not-dls.log`](bug-raw-circularprogressindicator-not-dls.log)
 - [`bug-setstate-during-build.log`](bug-setstate-during-build.log)
+- [`fix-cycle2-qa1-clean.log`](fix-cycle2-qa1-clean.log)
+- [`fix-cycle2-qa2-clean.log`](fix-cycle2-qa2-clean.log)
+- [`fix-cycle2-qa3-clean.log`](fix-cycle2-qa3-clean.log)
+- [`fix-cycle2-qa4-code-and-test.log`](fix-cycle2-qa4-code-and-test.log)
 - [`progress.md`](progress.md)
 
 ---

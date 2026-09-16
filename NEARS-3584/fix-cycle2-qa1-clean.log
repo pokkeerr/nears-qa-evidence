@@ -1,0 +1,7 @@
+Fix-cycle 2 delta re-QA. Reproduced the EXACT scenario that triggered the setState()/markNeedsBuild() FlutterError 2/2 times in cycle 1 (a multi-module zone-2 location commit via T2's cache-hit path): search "Sheikh Zayed Grand Mosque" -> nudge map -> Pick Location.
+
+09-17 02:25:46.870 24391 24391 I flutter : [INFO] msg="location: inZone=true"
+09-17 02:25:48.138 24391 24391 I flutter : analytics: sectors_shown {sectors_count: 3, zone_id: 2}
+09-17 02:25:48.152 24391 24391 I flutter : analytics: module_restored {module_id: 1, zone_id: 2, module: grocery, source: most_stores, modules_available: 3, screen: home, section: module_tabs}
+
+ui_errors: 0 match(es) across 50 flutter-tag lines for this pid — clean. No setState()/markNeedsBuild()/UncaughtAsyncError anywhere. QA-1 (Future<void>.microtask deferral in _reuseZoneResponse) confirmed fixed live.
