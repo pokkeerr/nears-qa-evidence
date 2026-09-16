@@ -1,0 +1,15 @@
+UserApp/lib/features/home/widgets/module_view.dart, new code introduced by this ticket (comment "NEARS-3584 AC1/T3"):
+
+    if ((widget.moduleController.moduleList?.length ?? 0) > 1 &&
+        widget.moduleController.defaultModuleSelectInFlight) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.only(top: 50),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+This is a raw Flutter Material widget with no NearsTokens color/sizing, used for the new "default module select in flight" loading state (T3's single continuous loading treatment). packages/nears_dls/lib/elements/spinner/n_spinner.dart's own doc comment: "Owns brand loading style in one place so no call site hand-rolls a CircularProgressIndicator." DLS-first rule (ticket header, HIGH/owner rule): "do not hard-code colours, spacing, radii or text styles" and AC-DLS: "no hard-coded style values." This new call site does exactly what NSpinner exists to prevent.
+
+Observed live during the Abu Dhabi zone-2, no-history, "most_stores" default-select transition (2+ modules, defaultModuleSelectInFlight briefly true) — code path confirmed reached via the accompanying module_restored{source:most_stores} log line firing immediately after.

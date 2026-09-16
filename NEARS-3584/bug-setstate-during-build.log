@@ -1,0 +1,10 @@
+09-17 01:33:43.140 16176 16176 I flutter : [FAIL] endpoint=null http_status=null type=UncaughtAsyncError msg="uncaught async error (FlutterError)"
+09-17 01:33:43.140 16176 16176 I flutter : The following exception was thrown uncaught async error (FlutterError):
+09-17 01:33:43.140 16176 16176 I flutter : setState() or markNeedsBuild() called during build.
+09-17 01:33:43.140 16176 16176 I flutter :   GetBuilder<LocationController>
+09-17 01:33:43.140 16176 16176 I flutter :   Container (currently building)
+09-17 01:33:43.141 16176 16176 I flutter : #6      GetxController.update (package:get/get_state_manager/src/simple/get_controllers.dart:22:7)
+09-17 01:33:43.141 16176 16176 I flutter : #7      LocationController._applyZoneEffects (package:nears/features/location/controllers/location_controller.dart:697:5)
+09-17 01:33:43.141 16176 16176 I flutter : #8      LocationController._reuseZoneResponse (package:nears/features/location/controllers/location_controller.dart:614:11)
+09-17 01:33:43.141 16176 16176 I flutter : #9      LocationController.getZone (package:nears/features/location/controllers/location_controller.dart:...)
+Reproduced twice, identically, on two separate location-commit-to-home transitions (01:33:43 and 01:35:... on the Abu Dhabi zone-2 pick-map commit and again on the zone-2 re-pick). Root cause: NEARS-3584 T2's new short-TTL coordinate cache (_reuseZoneResponse) resolves synchronously (no real network await) when a cache hit occurs, so when getZone() is invoked from a widget's initState()/build (e.g. home_screen.dart's non-consumeBootZoneFresh fallback getZone call), the whole _reuseZoneResponse -> _applyZoneEffects -> GetxController.update() chain executes synchronously within the same build phase that triggered it, producing a Flutter "setState() or markNeedsBuild() called during build" FlutterError. Before T2, every getZone call went through _fetchZone which always awaited a real network call, naturally deferring the update() past the current frame.

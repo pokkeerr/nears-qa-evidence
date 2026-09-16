@@ -1,0 +1,6 @@
+Live capture, module home (Grocery & Food, zone_id=2), tapped "Search all categories":
+09-17 01:34:28.138 16176 16176 I flutter : 📊 analytics: global_search_opened {zone_id: 2}
+
+Ticket's own Analytics rule (b) for `global_search_opened`: "Add screen=home, section=app_bar_search, source=home_search, which were implicitly picker before." None of screen/section/source are present in the fired event.
+
+Code: UserApp/lib/helper/analytics_service.dart:489 logGlobalSearchOpened({int? zoneId}) only accepts zoneId; UserApp/lib/features/global_search/widgets/global_search_entry_widget.dart:26-29 only ever passes zoneId. Neither was updated by this diff despite the widget itself being successfully relocated onto module home (P1b).
