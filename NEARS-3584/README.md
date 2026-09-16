@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3584
 
-**Fix-cycle 2 delta re-QA: PASS - all 4 fixes confirmed live, AC4 still unverifiable (tooling)**
+**Fix-cycle 3 (AC4): PASS - single-store hero + store_auto_opened confirmed live via documented recipe**
 
-**3 screenshot(s).** Click any thumbnail for full resolution.
+**4 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -10,10 +10,14 @@
 <td align="center" width="33%"><a href="02-cross-module-search-results.png"><img src="02-cross-module-search-results.png" width="240"></a><br><sub>cross module search results</sub></td>
 <td align="center" width="33%"><a href="08-login-suggestion-sheet.png"><img src="08-login-suggestion-sheet.png" width="240"></a><br><sub>login suggestion sheet</sub></td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="ac4-single-store-hero.png"><img src="ac4-single-store-hero.png" width="240"></a><br><sub>ac4 single store hero</sub></td>
+</tr>
 </table>
 
 ### Other artifacts
 - [`ac3-empty-state-dump.xml`](ac3-empty-state-dump.xml)
+- [`ac4-fix-cycle3-confirmed.log`](ac4-fix-cycle3-confirmed.log)
 - [`ac4-still-unverifiable-cycle2.log`](ac4-still-unverifiable-cycle2.log)
 - [`bug-global-search-opened-missing-context.log`](bug-global-search-opened-missing-context.log)
 - [`bug-module-restored-missing-at-restored-tier.log`](bug-module-restored-missing-at-restored-tier.log)

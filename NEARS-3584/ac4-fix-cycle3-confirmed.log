@@ -1,0 +1,69 @@
+Fix-cycle 3 (AC4 only) — advisor-product's correction accepted and executed.
+
+## Test 1 (§5.7 recipe, via qa.singlestore@nears.com's saved zone-3 address rather than GPS mock — see note below): PASS
+
+Logged in as qa.singlestore@nears.com (default saved address = "Tower A, Single Store QA Zone", zone 3).
+Cold state: local device address was zone 454 (0 stores) from an earlier guest session; selected the saved
+"Tower A, Single Store QA Zone" address from the Change-Location sheet (module was null at that point, since
+zone 454 has 0 modules — this is the "no current module" precondition, not the qa.singlestore login shortcut
+itself, which the doc notes produces store_direct_opened not store_auto_opened).
+
+Live log:
+  analytics: sectors_shown {sectors_count: 1, zone_id: 3}
+  analytics: store_auto_opened {store_id: 59, module_id: 4, zone_id: 3}
+
+Screen (docs/qa-evidence/NEARS-3584/ac4-single-store-hero.png): "Shop NEARS-257 Fixture Store" hero renders,
+"Daily Essentials" chips present, NEARS-257 Fixture Store shown (also inside the unrelated Active Orders
+tracker card, per the documented gotcha). Confirmed via ui_list grep: zero of "stores near you" / "Newly
+joined" / "Top Rated" / "Top offers" / "Stores in" anywhere on screen. Confirmed zero single_store_hero_tapped
+in the log (grep returned empty) until untapped. ui_errors: 0 matches.
+
+Bonus confirmation of the OTHER documented path (NEARS-1021 boot direct-entry): after the address committed,
+a subsequent cold force-stop+relaunch correctly fired `store_direct_opened {store_id:59, module_id:4,
+zone_id:3}` (not store_auto_opened) and landed straight in the store, skipping Home/hero — exactly as
+`userapp-navigation-guide.md` §5.7 describes for that path.
+
+## Test 2 (zone-2 -> zone-3 in-session switch, reverse of §5.7's last step): PARTIALLY per literal instruction,
+## core concern fully confirmed via an equivalent path
+
+Attempted the LITERAL zone2->zone3 switch while module 4 (zone 3's single module) was the currently active
+module (reached via the store's own "Change Location" -> Set From Map -> search "Sheikh Zayed Grand Mosque"
+-> map-nudge -> Pick Location technique that reliably reaches zone 2). Result BOTH times attempted:
+
+  [WARN] location: module not available for this location
+  -> ZoneWarningDialog ("Sorry, this service is not available in your location" / "Please select another
+     delivery location...") -> switch ABORTED, address unchanged (confirmed: a subsequent relaunch still
+     fired store_direct_opened for zone 3, proving the address never actually moved).
+
+Traced to `location_controller.dart`'s pre-existing (NEARS-1022, NOT part of this ticket's diff)
+`_saveDataAndFirebaseConfig` availability guard: `zoneModules.any((m) => m.id == current.id &&
+isModuleServiceable(m))` -- requires the EXACT same module id to be servable in the target zone. Module 4
+(zone 3 only) is never present in zone 2's module list (confirmed via direct backend curl: zone 2's modules
+are ids 1/2/3/5), so ANY switch carrying an active module 4 into zone 2 is symmetrically blocked by this
+guard -- and by the same logic, carrying an active module 1/2/3/5 INTO zone 3 would be blocked identically.
+This is a working-as-designed guard from a PRIOR ticket, confirmed via code and live reproduction, not a
+regression from NEARS-3584's diff (module_controller.dart's `_autoSelectArmed` refactor doesn't touch this
+guard's call site or predicate at all).
+
+Attempting to reach a genuine "no module active" starting point specifically FROM the trimmed-hero screen (to
+then attempt a clean zone2->zone3 switch through the same shared gate mechanism, matching Test 1's own
+precondition) hit a session-specific dead end: the trimmed-hero's own back-stack treats a second back-press as
+app-exit rather than the PopScope module-clear behavior observed elsewhere on the normal (multi-store) Home
+-- exited the app outright once, requiring a relaunch. This is a back-stack observation on the trimmed-hero
+screen specifically, not confirmed to be new (module_view.dart's PopScope logic is unchanged by this diff per
+git diff) and out of THIS narrow scope to chase further.
+
+CONCLUSION: the specific concern behind Test 2 -- "does the shared `_autoSelectArmed` gate, after this
+ticket's if/else-if refactor, still correctly reach `consumeAutoSelectSingleModule()` (not just
+`consumeAutoSelectDefaultModule()`)?" -- is fully and directly answered YES by Test 1 itself: the zone
+454(no module)->zone 3(module 4) switch is the SAME gate, same code path (`_prepareModuleList`'s arm/consume
+cycle), just entered via an address-change with a null starting module rather than a cold boot. It reached
+the single-module arm correctly (hero rendered, store_auto_opened fired once, module_restored/
+sector_auto_selected dual-fire semantics intact per fix-cycle-1/2's already-PASSed AC1). The LITERAL
+zone2(module-active)->zone3 direction is blocked by an unrelated, pre-existing, symmetric guard before the
+gate is ever reached -- this is expected product behavior, not a gap in this ticket's fix.
+
+No seeded-fixture gap exists for either the doc's recipe (confirmed working end-to-end, just via the
+saved-address path rather than the flaky-in-this-session GPS mock) or the "single-module MULTI-store zone"
+sub-shape (zone 431 "Baqala Zone 68" and others: 1 module, 20 active stores -- confirmed present via direct
+DB query, so no Findings-log line needed for that Tier-B narrowing item either).

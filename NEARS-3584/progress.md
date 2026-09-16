@@ -13,3 +13,9 @@
 AC4 UNVERIFIABLE (GPS-mock tooling reliability issue this session, code confirms unchanged).
 Posted Jira comment 20817. Evidence published: https://github.com/pokkeerr/nears-qa-evidence/tree/main/NEARS-3584
 Teardown complete: app uninstalled, backend stopped, lock released.
+
+## Fix-cycle 2 delta re-QA: PASS
+All 4 task_bugs (QA-1 through QA-4) confirmed FIXED live. AC4 remains UNVERIFIABLE (tooling gap, not a defect) despite a much more thorough retry this cycle (discovered a reliable Places-search+map-nudge technique that worked for zone 2 but zone 3's synthetic bbox has no matching real-world landmark).
+Automated backstop: 117/117 passed.
+Posted Jira comment 20818. Evidence published.
+Teardown complete: app uninstalled, backend stopped, lock released.
