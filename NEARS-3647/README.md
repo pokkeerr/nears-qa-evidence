@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3647
 
-**FAIL - vendor registration journey: crash on submit (VR9 draft-resume gap), broken step-progress label, missing Logo/Cover inline error, wrong error copy on 2 fields, Cancel-labeled-Back on duration picker**
+**Delta re-QA cycle 1: PASS - all 6 re-tested items fixed + 3 analytics events confirmed + 1 new Medium task_bug (pre-existing setState/Future logging noise)**
 
-**11 screenshot(s).** Click any thumbnail for full resolution.
+**16 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -23,10 +23,20 @@
 <tr>
 <td align="center" width="33%"><a href="p25-VR7-delivery-time__crop.png"><img src="p25-VR7-delivery-time__crop.png" width="240"></a><br><sub>p25 VR7 delivery time crop</sub></td>
 <td align="center" width="33%"><a href="p26-VR9-leave-confirm-copy__crop.png"><img src="p26-VR9-leave-confirm-copy__crop.png" width="240"></a><br><sub>p26 VR9 leave confirm copy crop</sub></td>
+<td align="center" width="33%"><a href="vr3-logocover-inline-error.png"><img src="vr3-logocover-inline-error.png" width="240"></a><br><sub>vr3 logocover inline error</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="vr6-store-under-review-handoff.png"><img src="vr6-store-under-review-handoff.png" width="240"></a><br><sub>vr6 store under review handoff</sub></td>
+<td align="center" width="33%"><a href="vr7-duration-picker-distinct-errors.png"><img src="vr7-duration-picker-distinct-errors.png" width="240"></a><br><sub>vr7 duration picker distinct errors</sub></td>
+<td align="center" width="33%"><a href="vr9-popscope-systemback-leaveconfirm.png"><img src="vr9-popscope-systemback-leaveconfirm.png" width="240"></a><br><sub>vr9 popscope systemback leaveconfirm</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="vr9-submit-graceful-failure-no-crash.png"><img src="vr9-submit-graceful-failure-no-crash.png" width="240"></a><br><sub>vr9 submit graceful failure no crash</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
+- [`bug-logocover-setstate-future.log`](bug-logocover-setstate-future.log)
 - [`bug-submit-crash-null-check.log`](bug-submit-crash-null-check.log)
 - [`bug-vr0-step-progress-literal-template.xml`](bug-vr0-step-progress-literal-template.xml)
 
