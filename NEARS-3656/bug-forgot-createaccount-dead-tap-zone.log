@@ -1,0 +1,37 @@
+NEARS-3656 QA finding — "Forgot Password?" / "Create Account" links on Sign-In are visually
+present, accessibility-exposed with plausible bounds, but a real touch at the exact reported
+center produces NO effect: zero navigation, zero Flutter-tag log activity at all (touch does not
+even reach the Flutter engine's gesture arena for that frame).
+
+Reproduced on emulator-5556 (unsuffixed control boot, Firebase configured, pid 27932), fresh
+Sign-In screen reached via Profile > Login, 6+ independent repro attempts:
+- uiautomator-reported bounds: "Forgot Password?" [60,1425][563,1456], "Create Account"
+  [837,1425][1284,1456] (see bug-forgot-createaccount-dead-tap-zone.xml, positive control: the
+  SAME dump's "Sign In" node [60,1233][1284,1389] tapped normally and triggered field validation
+  in the same session, proving the touch/adb pipeline itself is live).
+- `adb shell input tap <center>` at (311,1440) and (1060,1440): logcat -d --pid=27932 shows ZERO
+  new "flutter" tag lines after the tap (see bug-forgot-createaccount-dead-tap-zone.png), vs.
+  "Sign In"/"Continue as Guest"/"Show password" taps in the identical screen which all produced
+  immediate, correct effects.
+- Retried at 6 different y-offsets within/around the reported band (1400-1470) and via
+  `input swipe <same-point> 150ms` — no effect at any of them.
+- POSITIVE CONTROL that isolates "hit-test geometry" from "broken callback": keyboard-focus
+  traversal (`adb shell input keyevent TAB` x6 + ENTER) DID successfully activate "Create
+  Account" and navigated to Sign-Up (and TAB x5 + ENTER activated "Forgot Password?" and
+  navigated to Forgot-Password) -- so the onPressed callbacks themselves are wired correctly;
+  this is purely a raw-pointer hit-test / semantics-bounds mismatch for this one OverflowBar row.
+
+Root-cause note (not independently proven, flagged for the engineer): the OWNING widget for
+these two buttons, UserApp/lib/features/auth/widgets/sign_in/manual_login_widget.dart, is
+UNCHANGED by this ticket's diff (git diff 55d5867b8..713788275 -- that file returns empty). The
+WRAPPING screen, sign_in_screen.dart, DID change the outer Padding in the same commit range --
+fix-cycle 2 (d2fdbf6a5, "UX1 44dp legal-link tap target via advisor-dls Option B") explicitly
+removed the Column's bottom padding and trimmed top padding to reclaim vertical space for the
+legal links' enlarged ConstrainedBox(tapMin) below this row. That is the same ticket, the same
+screen, the same vertical region -- plausible enough to flag as this ticket's own regression
+rather than pre-existing, but not confirmed by reverting the padding change and re-testing (out
+of QA's write scope / time budget this pass).
+
+Impact: any SIGHTED, TOUCH-only user cannot reach Sign-Up or Forgot-Password from Sign-In's
+inline links at default text scale (1.0x) -- only a TalkBack/keyboard-focus user can. Continue as
+Guest, Sign In, and the Profile > Login entry point to Sign-In itself are all unaffected.

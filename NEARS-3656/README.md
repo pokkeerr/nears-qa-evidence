@@ -1,40 +1,40 @@
 # QA Evidence — NEARS-3656
 
-**Human QA — Auth & first launch: 9.5s cold start, blocking GPS spinner, inconsistent auth screens**
+**FAIL — 2/5 new analytics events unwired (login_viewed, auth_error_shown), Forgot Password/Create Account raw-touch dead zone; SPL1/SPL2/AU2/AU3/AU4/AU5 core behaviors verified**
 
-**17 screenshot(s).** Click any thumbnail for full resolution.
+**11 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="p36-01-after-logout.png"><img src="p36-01-after-logout.png" width="240"></a><br><sub>p36 01 after logout</sub></td>
-<td align="center" width="33%"><a href="p36-10-sign-in.png"><img src="p36-10-sign-in.png" width="240"></a><br><sub>p36 10 sign in</sub></td>
-<td align="center" width="33%"><a href="p36-11-forgot.png"><img src="p36-11-forgot.png" width="240"></a><br><sub>p36 11 forgot</sub></td>
+<td align="center" width="33%"><a href="au2-sign-in-ar-rtl.png"><img src="au2-sign-in-ar-rtl.png" width="240"></a><br><sub>au2 sign in ar rtl</sub></td>
+<td align="center" width="33%"><a href="au2-sign-in-en.png"><img src="au2-sign-in-en.png" width="240"></a><br><sub>au2 sign in en</sub></td>
+<td align="center" width="33%"><a href="au2-sign-up-en.png"><img src="au2-sign-up-en.png" width="240"></a><br><sub>au2 sign up en</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="p36-12-signup.png"><img src="p36-12-signup.png" width="240"></a><br><sub>p36 12 signup</sub></td>
-<td align="center" width="33%"><a href="p36-14-language.png"><img src="p36-14-language.png" width="240"></a><br><sub>p36 14 language</sub></td>
-<td align="center" width="33%"><a href="p36-20-cold-1s.png"><img src="p36-20-cold-1s.png" width="240"></a><br><sub>p36 20 cold 1s</sub></td>
+<td align="center" width="33%"><a href="au4-sign-up-disabled-button.png"><img src="au4-sign-up-disabled-button.png" width="240"></a><br><sub>au4 sign up disabled button</sub></td>
+<td align="center" width="33%"><a href="au5-forgot-pass-phone.png"><img src="au5-forgot-pass-phone.png" width="240"></a><br><sub>au5 forgot pass phone</sub></td>
+<td align="center" width="33%"><a href="bug-auth-error-shown-not-fired.png"><img src="bug-auth-error-shown-not-fired.png" width="240"></a><br><sub>bug auth error shown not fired</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="p39-offline-01-offline-toast.png"><img src="p39-offline-01-offline-toast.png" width="240"></a><br><sub>p39 offline 01 offline toast</sub></td>
-<td align="center" width="33%"><a href="p39-offline-02-offline-home.png"><img src="p39-offline-02-offline-home.png" width="240"></a><br><sub>p39 offline 02 offline home</sub></td>
-<td align="center" width="33%"><a href="p39-offline-03-offline-coldstart.png"><img src="p39-offline-03-offline-coldstart.png" width="240"></a><br><sub>p39 offline 03 offline coldstart</sub></td>
+<td align="center" width="33%"><a href="bug-forgot-createaccount-dead-tap-zone.png"><img src="bug-forgot-createaccount-dead-tap-zone.png" width="240"></a><br><sub>bug forgot createaccount dead tap zone</sub></td>
+<td align="center" width="33%"><a href="spl1-spl2-checking-state.png"><img src="spl1-spl2-checking-state.png" width="240"></a><br><sub>spl1 spl2 checking state</sub></td>
+<td align="center" width="33%"><a href="spl1-spl2-resolved-pick-location.png"><img src="spl1-spl2-resolved-pick-location.png" width="240"></a><br><sub>spl1 spl2 resolved pick location</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="splash-contact.png"><img src="splash-contact.png" width="240"></a><br><sub>splash contact</sub></td>
-<td align="center" width="33%"><a href="splash-f_01.png"><img src="splash-f_01.png" width="240"></a><br><sub>splash f 01</sub></td>
-<td align="center" width="33%"><a href="splash-f_03.png"><img src="splash-f_03.png" width="240"></a><br><sub>splash f 03</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="splash-f_07.png"><img src="splash-f_07.png" width="240"></a><br><sub>splash f 07</sub></td>
-<td align="center" width="33%"><a href="splash-f_08.png"><img src="splash-f_08.png" width="240"></a><br><sub>splash f 08</sub></td>
-<td align="center" width="33%"><a href="splash-f_12.png"><img src="splash-f_12.png" width="240"></a><br><sub>splash f 12</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="splash-f_20.png"><img src="splash-f_20.png" width="240"></a><br><sub>splash f 20</sub></td>
-<td align="center" width="33%"><a href="splash-f_21.png"><img src="splash-f_21.png" width="240"></a><br><sub>splash f 21</sub></td>
+<td align="center" width="33%"><a href="spl4-flutter-splash-2.png"><img src="spl4-flutter-splash-2.png" width="240"></a><br><sub>spl4 flutter splash 2</sub></td>
+<td align="center" width="33%"><a href="spl4-flutter-splash.png"><img src="spl4-flutter-splash.png" width="240"></a><br><sub>spl4 flutter splash</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`au3-sign-in-dump.xml`](au3-sign-in-dump.xml)
+- [`au4-sign-up-dump.xml`](au4-sign-up-dump.xml)
+- [`au5-forgot-pass-dump.xml`](au5-forgot-pass-dump.xml)
+- [`bug-auth-error-shown-not-fired.log`](bug-auth-error-shown-not-fired.log)
+- [`bug-forgot-createaccount-dead-tap-zone.log`](bug-forgot-createaccount-dead-tap-zone.log)
+- [`bug-forgot-createaccount-dead-tap-zone.xml`](bug-forgot-createaccount-dead-tap-zone.xml)
+- [`bug-login-viewed-auth-error-shown-unwired.log`](bug-login-viewed-auth-error-shown-unwired.log)
+- [`fresh-signin-dump.xml`](fresh-signin-dump.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3656/` · public-repo scrub policy (no live secrets; verified clean).*

@@ -1,0 +1,35 @@
+NEARS-3656 QA finding — 2 of 5 new AC-ANALYTICS events are defined + unit-tested but never called from app code.
+
+Static evidence (grep, worktree HEAD 713788275):
+$ grep -rn "logLoginViewed" UserApp/lib/ UserApp/test/
+UserApp/lib/helper/analytics_service.dart:782:  Future<void> logLoginViewed({required String source}) {
+UserApp/test/helper/analytics_service_test.dart:536:    test('logLoginViewed carries source', () async {
+UserApp/test/helper/analytics_service_test.dart:537:      await capturing.logLoginViewed(source: 'checkout');
+-- zero call sites outside analytics_service.dart's own definition and its unit test.
+
+$ grep -rn "logAuthErrorShown" UserApp/lib/ UserApp/test/
+UserApp/lib/helper/analytics_service.dart:809:  Future<void> logAuthErrorShown({
+UserApp/test/helper/analytics_service_test.dart:554:    test('logAuthErrorShown carries screen + error_code, never a raw message', () async {
+UserApp/test/helper/analytics_service_test.dart:555:      await capturing.logAuthErrorShown(screen: 'sign_in', errorCode: 'invalid_credentials');
+-- zero call sites outside analytics_service.dart's own definition and its unit test.
+
+Live confirmation (emulator-5556, unsuffixed control boot, pid 27932):
+1. Navigated fresh to Sign-In screen (Profile > Login) — no `login_viewed` mirror line appeared
+   in logcat despite the screen mounting and rendering fully (confirmed via ui_list + screenshot).
+2. Submitted Sign-In with customer@nears.com / wrongpassword123 (real backend, real 401):
+   [NET] POST endpoint=/api/v1/auth/login
+   [NET] endpoint=/api/v1/auth/login http_status=401
+   [FAIL] endpoint=/api/v1/auth/login http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=87949650-42f0-4621-b757-b03d82459d43
+   -- the "User credential does not match" error panel rendered ("Try Again" CTA), and the [FAIL]
+      AppLogger line correctly fired (AC-LOG satisfied for this path) -- but NO
+      `📊 analytics: auth_error_shown {...}` mirror line appeared anywhere in the surrounding log,
+      confirming the event genuinely never fires on the exact trigger scenario the AC names
+      ("sign-in/sign-up error").
+
+Contrast: the other 3 new events (`cold_start_completed`, `forgot_password_requested`,
+`continue_as_guest`) DO have live call sites and were independently observed firing correctly
+this same session (see au5 evidence + splash evidence).
+
+AC-ANALYTICS requires all 5 new events to fire with documented properties; 2 of 5
+(`login_viewed`, `auth_error_shown`) are unreachable dead code -- a green unit-test
+suite masking a real "never wired to the caller" defect.
