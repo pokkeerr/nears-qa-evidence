@@ -1,0 +1,19 @@
+Pre-existing, unrelated test/prod drift (NOT part of NEARS-3643's diff):
+
+UserApp/test/features/menu/menu_screen_reskin_test.dart
+  "tapping About Us routes to RouteHelper.html" — FAILS on baa56c41f (this ticket's HEAD)
+
+Expected: '/html-page'
+  Actual: '/html-page?source=profile'
+
+Root cause: menu_screen.dart's About Us row (traced to NEARS-1713, unconditional entry point)
+already navigates with `?source=profile` in the live code:
+  _MenuRow(Symbols.info, 'about_us'.tr, () => Get.toNamed('${RouteHelper.html}?source=profile'))
+This looks like it was added by a sibling ticket (source=profile query params correlate with
+NEARS-3648's legal-page analytics work seen elsewhere in menu_screen.dart) without updating this
+one pre-existing test assertion. `git diff 340374a2d..baa56c41f` for this test file shows NO
+"About Us" changes from NEARS-3643's own fix cycles — the assertion predates this ticket.
+
+Command: cd UserApp && ~/Tools/flutter/bin/flutter test test/features/menu/menu_screen_reskin_test.dart
+Result: 1 failure / ~40 tests in this file (all NEARS-3643-relevant assertions, incl. "exactly ONE
+Help entry renders" and "tapping Help & Support routes to RouteHelper.support", PASS).

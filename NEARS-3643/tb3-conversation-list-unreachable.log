@@ -1,0 +1,33 @@
+TB3 re-verification note — the avatar/role-label fix (chat_controller.dart resolveConversationParty
++ conversation_screen.dart AdminSupportAvatarWidget gating) lives entirely inside
+lib/features/chat/screens/conversation_screen.dart (ConversationScreen, the multi-conversation
+LIST — rows with avatar+role-label). This screen has ZERO live UI navigation entry points in the
+current build:
+
+  grep -rn "getConversationRoute" UserApp/lib/
+    -> only lib/helper/route_helper.dart:455 (the static definer itself)
+       — no Get.toNamed/Get.to caller anywhere in lib/.
+
+Confirmed intentional: menu_screen.dart's _buildSupportGroup carries the explicit comment
+"NEARS-3643 (HS0/TN2, fix-cycle 2): merges the former 'Talk to Nears!' + 'Help & Support' entries
+into one Help Centre row ... support_screen.dart is now the single place that surfaces order-help,
+FAQs, and the direct 'Chat with Nears' row" — i.e. the ONLY caller of getConversationRoute() that
+ever existed (the old "Talk to Nears!" menu row) was deliberately removed by this very fix, exactly
+per TB1's own AC (kill the generic-inbox routing). Every other in-app chat entry point
+(order_tracking_screen.dart, order_info_widget.dart, support_reason_bottom_sheet.dart,
+support_screen.dart, notification_helper.dart) routes straight to a specific ChatScreen thread via
+getChatRoute(...), never through the list — consistent app-wide design, not an oversight isolated
+to this ticket.
+
+chat_screen.dart's OWN app-bar (the screen "Chat with Nears" actually opens) does NOT use
+isAdminPlaceholder/AdminSupportAvatarWidget at all — its avatar is a plain NImage/_receiverImageUrl
+with a generic guest-icon placeholder, unrelated to TB3's fix.
+
+Live verification performed instead: opened the REAL, non-empty-state, backend-returned Nears
+admin conversation via Help & Support -> "Chat with Nears" (chat_opened {target: nears_admin,
+source: help_centre} fired; real message history incl. order refs NEARS-1927/NEARS-2870 rendered;
+clean logs). This confirms the admin thread itself is reached directly and correctly. The specific
+navy/white icon-badge avatar + no-role-label rendering (chat_controller.dart:669-676's
+isAdminSentinel(type,id) gate, conversation_screen.dart:382/479) could NOT be exercised live
+because its host screen is unreachable — verified by static code read only (small, mechanical,
+directly legible diff), not a live demonstration. Reported as UNVERIFIABLE, not PASS, not FAIL.

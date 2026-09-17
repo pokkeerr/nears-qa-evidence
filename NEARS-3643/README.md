@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3643
 
-**QA FAIL: HS0/TN1/TN2 unfixed on primary bottom-nav Profile screen (menu_screen.dart); AC-ANALYTICS missing context block on all 6 events; TN3 avatar/role-label not hidden for real admin conversations**
+**Delta re-QA PASS (fix-cycle 4, HEAD baa56c41f) — TB1/TB2 PASS, TB3 unverifiable (dead-code reachability), RB1/RB2 PASS**
 
-**20 screenshot(s).** Click any thumbnail for full resolution.
+**22 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -38,11 +38,18 @@
 <tr>
 <td align="center" width="33%"><a href="p21-overview-talk-to-nears__full.png"><img src="p21-overview-talk-to-nears__full.png" width="240"></a><br><sub>p21 overview talk to nears full</sub></td>
 <td align="center" width="33%"><a href="p32-chat-01-chat-thread.png"><img src="p32-chat-01-chat-thread.png" width="240"></a><br><sub>p32 chat 01 chat thread</sub></td>
+<td align="center" width="33%"><a href="rb1-broken-image-icon.png"><img src="rb1-broken-image-icon.png" width="240"></a><br><sub>rb1 broken image icon</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="rb1-valid-image-loaded.png"><img src="rb1-valid-image-loaded.png" width="240"></a><br><sub>rb1 valid image loaded</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
+- [`bug-about-us-route-test-stale-source-param.log`](bug-about-us-route-test-stale-source-param.log)
 - [`bug-analytics-missing-context-block.log`](bug-analytics-missing-context-block.log)
+- [`followup-firebase-uninitialized-aborts-async-chains.log`](followup-firebase-uninitialized-aborts-async-chains.log)
+- [`tb3-conversation-list-unreachable.log`](tb3-conversation-list-unreachable.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3643/` · public-repo scrub policy (no live secrets; verified clean).*

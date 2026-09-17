@@ -1,0 +1,42 @@
+Unrelated environment/pre-existing finding (NOT caused by NEARS-3643's diff; location_controller.dart
+and auth_controller.dart/auth_repository.dart are untouched by this ticket):
+
+Firebase.initializeApp() fails for this worktree's suffixed package id
+(com.izzes.nears.nears_nears_3643_help_chat_redesign) — logged every boot as:
+  [FAIL] type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+
+Because main.dart's telemetry-setup try/catch wraps the PlatformDispatcher.instance.onError
+wiring itself, that Firebase failure causes the wiring to be skipped entirely, so a SUBSEQUENT
+synchronous throw from any bare (unawaited) `FirebaseMessaging.instance` call is never routed
+through the app's own handleUncaughtAsyncError/AppLogger pipeline — it surfaces only as a raw
+VM-level "Unhandled Exception" print.
+
+Two concrete call sites hit live during this QA run:
+1. LocationController._saveDataAndFirebaseConfig -> LocationService.configureFirebaseMessaging
+   (location_service.dart:151) — a bare (non-awaited) call. Because it's a synchronous throw
+   inside an async function body with no try/catch, execution of the REST of
+   _saveDataAndFirebaseConfig aborts: AddressHelper.saveUserAddressInSharedPref(address) and
+   HomeController.loadData(true)/routeToDestination(...) never run. Net effect: picking a NEW
+   location as a guest (via Search Location or Use current location -> Pick Location) silently
+   never completes/navigates — the user is stuck on pick_map_screen with no error toast, no
+   AppLogger line reaching the app's own failure pipeline (only the raw VM print).
+2. AuthRepository.updateToken (auth_repository.dart:256), reached via
+   AuthService.login -> AuthController.login -> AuthController.validateAndLogin ->
+   SignInView._login. AuthController.login's own try/catch DOES catch+rethrow (sets
+   _errorMessage, calls update()), but validateAndLogin's `await login(...)` is unguarded, so
+   the exception propagates further and becomes another unhandled top-level Future error.
+   Because AuthRepository.saveUserToken(...) runs (and succeeds) BEFORE the crashing
+   updateToken() call, the auth token IS actually persisted — so a subsequent app relaunch
+   (am start, no reinstall) DOES land the user logged in, masking the crash's effect on this
+   particular path. clearSharedPrefGuestId() never runs, though.
+
+Workaround used to complete this QA run (read-only on the DB, no product code touched): wrote a
+minimal valid AddressModel JSON directly into SharedPreferences (flutter.6ammart_user_address,
+zone 1 "Main Service Zone") via `run-as ... shared_prefs/FlutterSharedPreferences.xml`, so splash
+routing (route_helper.dart:1462, address-present skips AccessLocationScreen) reached Home without
+re-entering the crashing code path.
+
+Recommend: wrap configureFirebaseMessaging's call site (or the function itself) in try/catch (it
+already has zero test coverage for the Firebase-absent case), same treatment other Firebase call
+sites in this codebase already get. Filed as a non-blocking regression-candidate followup, not a
+NEARS-3643 task_bug — the touched files are unrelated to this ticket's diff.
