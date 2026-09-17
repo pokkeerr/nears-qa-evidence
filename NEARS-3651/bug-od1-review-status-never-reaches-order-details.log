@@ -1,0 +1,57 @@
+NEARS-3651 OD1 — root cause + live reproduction, 2026-09-17, emulator-5558
+
+BACKEND IS CORRECT (verified via `php artisan tinker`, read-only, replicating the exact
+track_order() controller code path for order #91131, user_id 6):
+
+  delivery_man_id: 2
+  review_status: complete
+  reviews count: 1
+  -> array_key_exists('review_status', $arr) === true, value === 'complete'
+
+FRONTEND NEVER SEES IT on the primary "tap an order card from My Orders" entry path:
+
+1. `get_order_list` (Admin/app/Http/Controllers/Api/V1/OrderController.php:343-395) —
+   the endpoint backing the My Orders list — never sets `review_status` on its per-order
+   array (only `track_order`, a DIFFERENT endpoint, does, at line 143).
+
+2. `order_details_screen.dart`'s `_loadData()` (line ~132-138) calls:
+     Get.find<OrderController>().trackOrder(orderId, reload ? null : widget.orderModel, false, ...)
+   When arriving via a tapped My-Orders card, `widget.orderModel` is NON-NULL (the
+   list-sourced model, missing review_status) and `reload` is false, so `trackOrder()`
+   (order_controller.dart:522-553) takes the `orderModel != null` branch:
+     _trackModel = orderModel;   // <-- NO API CALL. track_order's fix never reached.
+
+3. The 10s polling `timerTrackOrder()` (order_controller.dart:556-599) DOES hit the
+   correctly-fixed `track_order` API and gets `review_status: 'complete'` back — but its
+   NEARS-3037 "did anything change" diff only compares `orderStatus` and
+   `deliveryMan.{lat,lng,available}` — NOT `reviewStatus` — so on a static delivered
+   order (#91131: no live courier movement, orderStatus stays 'delivered') `changed`
+   evaluates false and `_trackModel` is NEVER updated. The correct polled data is
+   fetched and silently discarded, forever.
+
+LIVE REPRODUCTION (device emulator-5558, user_id 6, order #91131 — already has item
+review id 215 rating 4 + courier review id 7 rating 5):
+
+  - Order Details still shows the "Rate & Review" secondary CTA (not a rating read-back).
+  - Tapping it opens the merged RR1/RR2 form EMPTY (0/5 stars both item and courier) —
+    see bug-od1-review-form-opens-empty-91131.png.
+  - Filling 5/5 both and tapping Submit reproduces the ORIGINAL ticket complaint exactly:
+
+09-17 22:36:05.070  5174  5174 I flutter : [FAIL] endpoint=/api/v1/items/reviews/submit http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=ff4b8159-bca8-43ab-a305-ef4020a13153
+09-17 22:36:05.071  5174  5174 I flutter : [FAIL] endpoint=/api/v1/items/reviews/submit http_status=null type=ApiFailure msg="review: item submit failed"
+09-17 22:36:05.155  5174  5174 I flutter : [FAIL] endpoint=/api/v1/delivery-man/reviews/submit http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=38281894-dadd-4c96-a115-8306071ba1e5
+09-17 22:36:05.155  5174  5174 I flutter : [FAIL] endpoint=/api/v1/delivery-man/reviews/submit http_status=null type=ApiFailure msg="review: courier submit failed"
+09-17 22:36:05.156  5174  5174 I flutter : [ERR] msg="error snackbar shown"
+
+  - DB verified unchanged before/after (SELECT COUNT(*) FROM reviews WHERE order_id=91131
+    stayed 1; d_m_reviews stayed 1) — no mutation, safe repro.
+
+SECONDARY CONFIRMATION — analytics: `review_blocked_already_submitted` (meant to fire
+from `order_details_screen.dart`'s `_buildRatingCard` when `order.reviewStatus ==
+'complete'`) never fires on this same path, because `alreadyRated` can never be true
+given the above — checked via `adb logcat -s FA-SVC:V` across the whole session, zero
+occurrences of this event name.
+
+Logging/analytics for the review-submit 403 itself IS correct (paired [FAIL] lines,
+PII-safe, correlation_id present) — the defect is upstream of the log, in
+review_status never reaching the widget, not in the logging contract.

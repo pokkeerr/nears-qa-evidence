@@ -1,0 +1,28 @@
+NEARS-3651 OD7 (second half) — cancellation reason still contradicts payment state,
+live-verified on order #91174, emulator-5558, 2026-09-17.
+
+AC text: "...and the cancellation reason reads as a clear, non-contradictory sentence —
+demonstrated live, EN+AR."
+
+unavailable_item_note half of OD7 IS fixed (verified live, EN+AR — see
+od3-od4-od6-od7-cancelled-91174.png and the AR screenshot in the QA session: "إذا كان
+العنصر غير متوفر: سنتصل بك لإيجاد بدائل أو معالجة استرجاع الأموال").
+
+The cancellation-reason half is NOT addressed. DB (read-only SELECT):
+
+  mysql> SELECT id, payment_method, cancellation_reason FROM orders WHERE id=91174;
+  id      payment_method    cancellation_reason
+  91174   offline_payment   Digital payment issue
+
+Order Details screen (order_info_widget.dart:454-509) renders `order.cancellationReason`
+verbatim with no rewrite/template — confirmed live:
+
+  Payment Method: Offline Payment
+  Cancellation Note: Digital payment issue
+
+This is the EXACT contradiction the ticket itself named as the OD7 finding ("a
+cancellation note that contradicts the payment state (seeded)") — still present,
+byte-for-byte, in the built app. No code change touches `cancellation_reason` rendering
+or the seeded string (confirmed via `git diff` on order_info_widget.dart and no seeder
+touching `orders.cancellation_reason`). Not a live-DB-write fix (out of QA scope to
+correct), but the AC's second half is not demonstrated as fixed.

@@ -1,0 +1,18 @@
+NEARS-3651 OD6 (non-blocking residual) — courier Call/Chat still shown on a
+refund_requested order, live-observed order #91132, emulator-5558, 2026-09-17.
+
+AC's literal demonstrated case ("a delivered order... hides courier Call/Chat once the
+order is closed") is CORRECTLY fixed — verified live on delivered order #91131: no
+Call/Chat icons next to "Delivery Partner Details / David Miller 5.0(1)".
+
+Code gate (order_info_widget.dart ~1237-1242, mirrored ~1520-1524 for store
+call/chat): excludes orderStatus in {'delivered','failed','canceled','refunded'}. It
+does NOT exclude 'refund_requested' — live-observed on #91132 (status
+refund_requested, courier already delivered the order, refund now pending): "Delivery
+Partner Details / D D / 0.0" WITH Call + Chat icons both present and tappable.
+
+Judgment call, not a clear-cut AC violation: 'refund_requested' is arguably still
+"open" (unresolved), and a customer might legitimately want to reach the courier during
+a refund dispute — the AC's own worked example is specifically about a DELIVERED order,
+which is correctly fixed. Logged as a Low-severity, non-blocking follow-up rather than
+a breaks_ac finding.
