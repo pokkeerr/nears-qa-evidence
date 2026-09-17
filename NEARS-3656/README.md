@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3656
 
-**FAIL — 2/5 new analytics events unwired (login_viewed, auth_error_shown), Forgot Password/Create Account raw-touch dead zone; SPL1/SPL2/AU2/AU3/AU4/AU5 core behaviors verified**
+**Followup confirmation: 1.3x tap-target dip functional but persists beyond 1 frame; 3-button-nav footer NOT edge-flush**
 
-**11 screenshot(s).** Click any thumbnail for full resolution.
+**12 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -17,10 +17,11 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="bug-forgot-createaccount-dead-tap-zone.png"><img src="bug-forgot-createaccount-dead-tap-zone.png" width="240"></a><br><sub>bug forgot createaccount dead tap zone</sub></td>
+<td align="center" width="33%"><a href="followup-1p3x-sign-in-dip.png"><img src="followup-1p3x-sign-in-dip.png" width="240"></a><br><sub>followup 1p3x sign in dip</sub></td>
 <td align="center" width="33%"><a href="spl1-spl2-checking-state.png"><img src="spl1-spl2-checking-state.png" width="240"></a><br><sub>spl1 spl2 checking state</sub></td>
-<td align="center" width="33%"><a href="spl1-spl2-resolved-pick-location.png"><img src="spl1-spl2-resolved-pick-location.png" width="240"></a><br><sub>spl1 spl2 resolved pick location</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="spl1-spl2-resolved-pick-location.png"><img src="spl1-spl2-resolved-pick-location.png" width="240"></a><br><sub>spl1 spl2 resolved pick location</sub></td>
 <td align="center" width="33%"><a href="spl4-flutter-splash-2.png"><img src="spl4-flutter-splash-2.png" width="240"></a><br><sub>spl4 flutter splash 2</sub></td>
 <td align="center" width="33%"><a href="spl4-flutter-splash.png"><img src="spl4-flutter-splash.png" width="240"></a><br><sub>spl4 flutter splash</sub></td>
 </tr>
@@ -34,6 +35,8 @@
 - [`bug-forgot-createaccount-dead-tap-zone.log`](bug-forgot-createaccount-dead-tap-zone.log)
 - [`bug-forgot-createaccount-dead-tap-zone.xml`](bug-forgot-createaccount-dead-tap-zone.xml)
 - [`bug-login-viewed-auth-error-shown-unwired.log`](bug-login-viewed-auth-error-shown-unwired.log)
+- [`followup-1p3x-and-3button-nav-confirmation.log`](followup-1p3x-and-3button-nav-confirmation.log)
+- [`followup-1p3x-sign-in-dump.xml`](followup-1p3x-sign-in-dump.xml)
 - [`fresh-signin-dump.xml`](fresh-signin-dump.xml)
 
 ---

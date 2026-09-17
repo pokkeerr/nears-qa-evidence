@@ -1,0 +1,29 @@
+NEARS-3656 QA — confirmation of the two "known accepted followups" per the QA Test Scope,
+on a real device (emulator-5554, unsuffixed control boot, font_scale=1.3, 3-button nav
+via `cmd overlay enable com.android.internal.systemui.navbar.threebutton` +
+`cmd overlay disable ...gestural`, both set BEFORE app launch per the wm-resize gotcha).
+
+(1) Sign-In button tap-target dip at 1.3x text scale:
+    - Confirmed the dip is real on a live device: "Sign In" semantics rect height drops to
+      13px (bounds [60,1413][1284,1426]) vs 156px at 1.0x scale (bounds [60,1233][1284,1389]
+      captured earlier this session).
+    - Re-dumped 3x over ~3s (t=0, t=1s, t=3s after settle) -- height stayed 13px each time,
+      i.e. this did NOT visibly "self-recover" within that window on this device, slightly at
+      odds with the accepted-followup's "self-recovering single-frame" framing.
+    - HOWEVER: functionally harmless -- `adb shell input tap` at the reported (collapsed)
+      center DID register correctly (triggered the "Enter email address or phone number"
+      field-validation state), so a real user CAN still tap it successfully at that exact
+      spot. No dropped/missed tap observed.
+    - Per the grooming decision, this stays a non-blocking followup, not reopened as a
+      task_bug -- flagging the recovery-timing nuance for engineering's awareness only.
+
+(2) 3-button-nav footer edge-flush check:
+    - NOT edge-flush. Lowest content element (Privacy Policy link, bottom y=1984) sits 864px
+      above the 3-button nav bar's own top edge (system nav region measured [0,2848][1344,2992]
+      in the same accessibility dump) -- ample clearance, no edge-flush observed.
+    - (Separately: overall vertical whitespace looked LARGER than expected at 1.3x, plausibly
+      a side-effect of (1)'s button-height collapse shrinking the form's total height under
+      `mainAxisSize: MainAxisSize.min` -- informational only, not scored.)
+
+See followup-1p3x-sign-in-dip.png for the visual state; followup-1p3x-sign-in-dump.xml for the
+raw accessibility dump backing both measurements above.
