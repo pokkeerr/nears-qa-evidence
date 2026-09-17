@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3643
 
-**Delta re-QA PASS (fix-cycle 4, HEAD baa56c41f) — TB1/TB2 PASS, TB3 unverifiable (dead-code reachability), RB1/RB2 PASS**
+**PASS — final delta re-QA: TN1 Messages entry restored, TB3 admin avatar/role-label verified**
 
-**22 screenshot(s).** Click any thumbnail for full resolution.
+**23 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -42,6 +42,7 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="rb1-valid-image-loaded.png"><img src="rb1-valid-image-loaded.png" width="240"></a><br><sub>rb1 valid image loaded</sub></td>
+<td align="center" width="33%"><a href="tn1-tb3-conversation-list.png"><img src="tn1-tb3-conversation-list.png" width="240"></a><br><sub>tn1 tb3 conversation list</sub></td>
 </tr>
 </table>
 
