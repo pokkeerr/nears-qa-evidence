@@ -1,0 +1,38 @@
+NEARS-3656 delta re-QA (fix-cycle 4, worktree HEAD fe0dbdc37) — auth_error_shown NOW FIRES
+(NEARS-3669's original defect confirmed fixed), but its `error_code` property is
+systematically wrong for EVERY real API failure.
+
+Repro 1 — Sign-In, real 401 (customer@nears.com / wrong password), emulator-5554,
+unsuffixed control boot, pid 23458:
+  [NET] endpoint=/api/v1/auth/login http_status=401
+  [FAIL] endpoint=/api/v1/auth/login http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=713d191e-ba82-4268-ac9b-ed03e5993f52
+  📊 analytics: auth_error_shown {screen: sign_in, error_code: network_error}
+  -- expected error_code per authErrorCodeFor(401) = 'invalid_credentials', got 'network_error'.
+
+Repro 2 — Sign-Up, real 403 from backend (customer@nears.com already registered),
+same session, pid 23458:
+  [FAIL] endpoint=/api/v1/auth/sign-up http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=e529cbfe-0270-4161-81f6-c23dd3f1816c
+  [FAIL] endpoint=/api/v1/auth/sign-up http_status=null type=ApiFailure msg="sign-up request failed"
+  📊 analytics: auth_error_shown {screen: sign_up, error_code: network_error}
+  -- expected error_code per authErrorCodeFor(403) = 'request_failed' (else branch,
+     403 is neither 401/422 nor >=500), got 'network_error'.
+
+Root cause (code inspection, UserApp/lib/features/auth/domain/services/auth_service.dart):
+every AuthService failure branch (login:44, register:30, otpLogin:65,
+loginWithSocialMedia:83, otp-verify:107) constructs `ResponseModel(false,
+response.statusText)` -- the real `response.statusCode` it just read one line above
+(to decide the `if (response.statusCode == 200)` branch) is NEVER threaded into the
+ResponseModel it returns on failure. So `ResponseModel.statusCode` is ALWAYS null on
+every auth failure, and NEARS-3669's new `authErrorCodeFor(status.statusCode)` --
+correctly wired at the auth_controller.dart call sites this fix cycle added -- always
+receives null and always returns the null-branch value 'network_error', regardless of
+whether the real failure was a 401, 403, 422, or 500.
+
+This file (auth_service.dart) was NOT touched by fix-cycle 4's diff (git diff
+713788275..fe0dbdc37 -- UserApp/lib/features/auth/domain/services/auth_service.dart
+is empty) -- the classification helper + its call sites are correct in isolation, but
+the ticket's own new AC-ANALYTICS feature (accurate error_code so product can
+distinguish invalid-credentials from server errors from network drops) does not
+actually work end-to-end because the pre-existing data source it depends on was never
+populated. Confirmed via 2 independent real-backend failures (401 and 403) both
+reporting the same wrong 'network_error' value.
