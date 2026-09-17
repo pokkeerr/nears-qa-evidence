@@ -1,0 +1,34 @@
+NEARS-3640 QA — regression_bug (pre-existing, unrelated to this ticket's diff, byte-identical code)
+Device: emulator-5556
+
+`ProfileRepository.updateProfile()`'s failure branch (else, non-200) reads
+`response.body['verification_on']` unconditionally. On a genuine transport/socket failure (e.g.
+device offline), `apiClient.postMultipartData(..., handleError: false)` returns a `Response` whose
+`.body` is `null`, so indexing it throws `NoSuchMethodError: The method '[]' was called on null`,
+uncaught, before a `ResponseModel` is ever returned to the controller.
+
+Confirmed BYTE-IDENTICAL between base branch `feat/human-qa-uiux` and this ticket's branch
+(`git show feat/human-qa-uiux:UserApp/lib/features/profile/domain/repositories/profile_repository.dart`
+vs current — the `if (response.statusCode == 200) {...} else { ...response.body['verification_on']...
+}` block is unchanged; NEARS-3640 only added a `correlationId` field alongside it). Not introduced
+by this ticket.
+
+Repro logcat (device offline via `adb shell svc data disable` + `svc wifi disable`):
+  10:23:11.281 [INFO] msg="multipart POST endpoint=/api/v1/customer/update-profile"
+  10:23:11.283 [FAIL] endpoint=/api/v1/customer/update-profile http_status=null type=ApiFailure
+    transport_error=socket msg="api request threw" correlation_id=bbefe760-2783-4792-ae19-216cbc00db30
+  10:23:11.284 [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception:
+    NoSuchMethodError: The method '[]' was called on null.
+    Receiver: null
+    Tried calling: []("verification_on")
+    #1 ProfileRepository.updateProfile (profile_repository.dart:46:50)
+    #3 ProfileController.updateUserInfo (profile_controller.dart:148:35)
+    #4 _UpdateProfileScreenState._updateProfile (update_profile_screen.dart:1143:7)
+
+Downstream consequence directly affecting THIS ticket's own new code: because this exception is
+never caught, `ProfileController.updateUserInfo()`'s `_isLoading = false; update();` tail never
+runs, permanently disabling the redesigned Save button for the rest of the app session (see the
+sibling task_bug `bug-save-permanently-stuck-loading.log`). Filed here as a regression_bug (root
+cause pre-existing/unrelated); its downstream effect on the Save button is filed separately as a
+task_bug because the NEW isLoading-gated Save button is this ticket's own construct and has no
+try/finally protecting it regardless of which upstream call throws.

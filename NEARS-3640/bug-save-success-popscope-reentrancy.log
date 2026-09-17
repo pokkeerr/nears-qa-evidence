@@ -1,0 +1,56 @@
+NEARS-3640 QA — live-reproduced task_bug
+Device: emulator-5556, package com.izzes.nears.nears_nears_3640_edit_profile_redesign, pid 18617
+Repro: Edit Profile -> avatar sheet -> Remove Photo (staged) -> tap Update (real save, safe no-op
+round trip since seeded account already had no photo) -> server returns 200 -> app throws an
+uncaught Flutter framework assertion while popping the screen. App still lands on Home
+(both Get.back() calls execute) but the exception is real, uncaught, and reproducible every time
+this exact path (PopScope + a controller-initiated double Get.back() on save success) is taken.
+
+Full logcat excerpt (flutter tag, pid-scoped):
+
+09-17 10:18:03.713 18617 18617 I flutter : [INFO] msg="multipart POST endpoint=/api/v1/customer/update-profile"
+09-17 10:18:04.617 18617 18617 I flutter : [NET] endpoint=/api/v1/customer/update-profile http_status=200
+09-17 10:18:04.618 18617 18617 I flutter : 📊 analytics: profile_updated {fields_changed_count: 1, fields: photo, screen: edit_profile, source: profile}
+09-17 10:18:04.618 18617 18617 I flutter : [NET] GET endpoint=/api/v1/customer/info
+09-17 10:18:05.617 18617 18617 I flutter : [NET] endpoint=/api/v1/customer/info http_status=200
+09-17 10:18:05.621 18617 18617 I flutter : [NET] GET endpoint=/api/v1/customer/order/running-orders
+09-17 10:18:05.629 18617 18617 E flutter : [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: 'package:flutter/src/widgets/navigator.dart': Failed assertion: line 5591 pos 12: '!_debugLocked': is not true.
+09-17 10:18:05.629 18617 18617 E flutter : #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:67:4)
+09-17 10:18:05.629 18617 18617 E flutter : #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:49:5)
+09-17 10:18:05.629 18617 18617 E flutter : #2      NavigatorState.pop (package:flutter/src/widgets/navigator.dart:5591:12)
+09-17 10:18:05.629 18617 18617 E flutter : #3      Navigator.pop (package:flutter/src/widgets/navigator.dart:2777:27)
+09-17 10:18:05.629 18617 18617 E flutter : #4      _UpdateProfileScreenState._handleBack (package:nears/features/profile/screens/update_profile_screen.dart:137:17)
+09-17 10:18:05.629 18617 18617 E flutter : #5      _UpdateProfileScreenState.build.<anonymous closure> (package:nears/features/profile/screens/update_profile_screen.dart:213:57)
+09-17 10:18:05.629 18617 18617 E flutter : #6      PopScope._callPopInvoked (package:flutter/src/widgets/pop_scope.dart:146:30)
+09-17 10:18:05.629 18617 18617 E flutter : #7      _PopScopeState.onPopInvokedWithResult (package:flutter/src/widgets/pop_scope.dart:181:12)
+09-17 10:18:05.629 18617 18617 E flutter : #8      ModalRoute.onPopInvokedWithResult (package:flutter/src/widgets/routes.dart:2050:16)
+09-17 10:18:05.629 18617 18617 E flutter : #9      _RouteEntry.handlePop (package:flutter/src/widgets/navigator.dart:3327:11)
+09-17 10:18:05.629 18617 18617 E flutter : #10     NavigatorState._flushHistoryUpdates (package:flutter/src/widgets/navigator.dart:4467:22)
+09-17 10:18:05.629 18617 18617 E flutter : #11     NavigatorState.pop (package:flutter/src/widgets/navigator.dart:5611:7)
+09-17 10:18:05.629 18617 18617 E flutter : #12     GetNavigation.back (package:get/get_navigation/src/extension_navigation.dart:842:34)
+09-17 10:18:05.629 18617 18617 E flutter : #13     ProfileController._updateProfileResponseHandle (package:nears/features/profile/controllers/profile_controller.dart:215:13)
+09-17 10:18:05.629 18617 18617 E flutter : <asynchronous suspension>
+
+Mechanism (read at source, both cited lines are new/changed by this ticket):
+- update_profile_screen.dart:211-213 wraps the screen in `PopScope(canPop:false,
+  onPopInvokedWithResult: (didPop, result) async => _handleBack(context))`.
+- update_profile_screen.dart:127-159 `_handleBack` guards re-entry with a `_popping` bool, but
+  ONLY for calls that go through `_handleBack` itself (AppBar back tap, hardware back). It does
+  NOT know about a pop initiated any other way.
+- profile_controller.dart:214-217, on a successful non-desktop save, calls `Get.back(); Get.back();`
+  directly (bypassing `_handleBack`/`_popping` entirely) to leave Edit Profile AND its own dialog
+  parent. The FIRST `Get.back()` -> `NavigatorState.pop` for the Edit Profile route, which (being
+  wrapped in PopScope) synchronously re-enters via `onPopInvokedWithResult` -> `_handleBack`, whose
+  `_popping` flag is still false (this pop was never routed through `_handleBack`), so `_handleBack`
+  evaluates isDirty()==false (fields already match post-getUserInfo()) and calls
+  `Navigator.pop(context)` a SECOND time — while the navigator is still mid-pop from the first call
+  (`_debugLocked==true`), tripping the framework's own re-entrancy assertion.
+- Net effect this run: the app still lands on Home (both pops complete), so no user-visible stuck
+  state was observed live — but every real, non-desktop Save from a clean-after-reload state throws
+  this uncaught exception, which is a real Crashlytics-worthy assertion failure in production
+  (recorded once for a non-debug build), not a display-only crash.
+
+breaks_ac: true — EP2 (Save success -> exit) and the same-ticket PopScope hardware-back gate this
+QA was specifically asked to verify are the ones producing this reentrancy; the fix-cycle's own
+"_popping" comment explicitly reasoned about ONE re-entry path (repeated _handleBack calls) and did
+not cover this second one (a pop initiated by the controller directly).
