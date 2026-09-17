@@ -1,0 +1,18 @@
+# TB2 re-QA (fix-cycle 2, HEAD 40c10e5aa) — forced save failure (backend killed mid-request),
+# Save button re-enabled (not stranded), retry succeeds once backend restored.
+09-17 11:13:53.039 26355 26355 I flutter : [INFO] msg="multipart POST endpoint=/api/v1/customer/update-profile"
+09-17 11:13:53.410 26355 26355 I flutter : [FAIL] endpoint=/api/v1/customer/update-profile http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=912cf20c-bc82-4e7b-ae8a-551fcad3156a
+09-17 11:13:53.412 26355 26355 E flutter : [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: NoSuchMethodError: The method '[]' was called on null.
+09-17 11:13:53.412 26355 26355 E flutter : Tried calling: []("verification_on")
+09-17 11:13:53.412 26355 26355 E flutter : #1      ProfileRepository.updateProfile (package:nears/features/profile/domain/repositories/profile_repository.dart:46:50)
+# ^ pre-existing regression_bug (byte-identical to base, already filed cycle-0 comment 20859,
+#   Finding 2) — NOT this ticket's defect. What TB2 verifies is that despite this thrown
+#   exception propagating through ProfileController.updateUserInfo()'s new try/finally, _isLoading
+#   still resets. Confirmed via uiautomator dump (tb2-update-enabled-after-failure-dump.xml):
+#   content-desc="Update" ... clickable="true" enabled="true" immediately after the failure.
+#
+# Retry after restarting the backend:
+09-17 11:14:26.896 26355 26355 I flutter : [INFO] msg="multipart POST endpoint=/api/v1/customer/update-profile"
+09-17 11:14:27.627 26355 26355 I flutter : [NET] endpoint=/api/v1/customer/update-profile http_status=200
+09-17 11:14:27.628 26355 26355 I flutter : 📊 analytics: profile_updated {fields_changed_count: 1, fields: name, screen: edit_profile, source: profile}
+# App landed cleanly on Home again (same TB1 clean-pop shape) -- retry succeeded.
