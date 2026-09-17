@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3645
 
-**QA pass 2026-09-17 — device emulator-5556**
+**fix-cycle 1 delta re-QA: PASS — AC-ANALYTICS card_expanded remount fix confirmed live, tb2/tb3 confirmed fixed, new tb4 (qty-floor-to-zero) found**
 
-**6 screenshot(s).** Click any thumbnail for full resolution.
+**7 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -14,6 +14,9 @@
 <td align="center" width="33%"><a href="MS3-MS5-RTL-arabic-expanded.png"><img src="MS3-MS5-RTL-arabic-expanded.png" width="240"></a><br><sub>MS3 MS5 RTL arabic expanded</sub></td>
 <td align="center" width="33%"><a href="MS4-cross-zone-guard.png"><img src="MS4-cross-zone-guard.png" width="240"></a><br><sub>MS4 cross zone guard</sub></td>
 <td align="center" width="33%"><a href="MS6-empty-state.png"><img src="MS6-empty-state.png" width="240"></a><br><sub>MS6 empty state</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="bug-nitemcard-qty-floor-zero.png"><img src="bug-nitemcard-qty-floor-zero.png" width="240"></a><br><sub>bug nitemcard qty floor zero</sub></td>
 </tr>
 </table>
 
