@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3647
 
-**Delta re-QA cycle 1: PASS - all 6 re-tested items fixed + 3 analytics events confirmed + 1 new Medium task_bug (pre-existing setState/Future logging noise)**
+**delta re-QA fix-cycle: VR2 live-demonstrated via mock-location + VM-eval instrument fallback; regression spot-checks clean**
 
-**16 screenshot(s).** Click any thumbnail for full resolution.
+**19 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -23,6 +23,11 @@
 <tr>
 <td align="center" width="33%"><a href="p25-VR7-delivery-time__crop.png"><img src="p25-VR7-delivery-time__crop.png" width="240"></a><br><sub>p25 VR7 delivery time crop</sub></td>
 <td align="center" width="33%"><a href="p26-VR9-leave-confirm-copy__crop.png"><img src="p26-VR9-leave-confirm-copy__crop.png" width="240"></a><br><sub>p26 VR9 leave confirm copy crop</sub></td>
+<td align="center" width="33%"><a href="vr2-manual-pin-accepted.png"><img src="vr2-manual-pin-accepted.png" width="240"></a><br><sub>vr2 manual pin accepted</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="vr2-manual-pin-rejected-toast.png"><img src="vr2-manual-pin-rejected-toast.png" width="240"></a><br><sub>vr2 manual pin rejected toast</sub></td>
+<td align="center" width="33%"><a href="vr2-no-zone-found.png"><img src="vr2-no-zone-found.png" width="240"></a><br><sub>vr2 no zone found</sub></td>
 <td align="center" width="33%"><a href="vr3-logocover-inline-error.png"><img src="vr3-logocover-inline-error.png" width="240"></a><br><sub>vr3 logocover inline error</sub></td>
 </tr>
 <tr>
@@ -39,6 +44,7 @@
 - [`bug-logocover-setstate-future.log`](bug-logocover-setstate-future.log)
 - [`bug-submit-crash-null-check.log`](bug-submit-crash-null-check.log)
 - [`bug-vr0-step-progress-literal-template.xml`](bug-vr0-step-progress-literal-template.xml)
+- [`vr2-submit-backend-log-correlation.log`](vr2-submit-backend-log-correlation.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3647/` · public-repo scrub policy (no live secrets; verified clean).*
