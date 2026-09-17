@@ -1,0 +1,23 @@
+I/flutter (26897): [NET] POST endpoint=/api/v1/auth/sign-up
+I/flutter (26897): [NET] endpoint=/api/v1/auth/sign-up http_status=403
+I/flutter (26897): [FAIL] endpoint=/api/v1/auth/sign-up http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=154754a0-d7e6-48c8-9167-9da6ffa4374e
+I/flutter (26897): [FAIL] endpoint=/api/v1/auth/sign-up http_status=null type=ApiFailure msg="sign-up request failed"
+I/flutter (26897): 📊 analytics: auth_error_shown {screen: sign_up, error_code: request_failed}
+
+--- separately captured (401 repro, same session) ---
+[NET] POST endpoint=/api/v1/auth/login
+[NET] endpoint=/api/v1/auth/login http_status=401
+[FAIL] endpoint=/api/v1/auth/login http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=1c9e652e-eac6-4b13-84a1-f3b20cc8909b
+analytics: auth_error_shown {screen: sign_in, error_code: invalid_credentials}
+
+NEARS-3656 delta re-QA cycle 2 (fix-cycle 5, worktree HEAD 41bde6113) — confirms both
+NEARS-3672 repros now report correct error_code:
+  - real 401 on Sign-In (customer@nears.com / wrong password) -> error_code: invalid_credentials (correct)
+  - real 403 on Sign-Up (customer@nears.com already registered, server message "The
+    email has already been taken.") -> error_code: request_failed
+Sanity check on the 403 bucket (per conductor's flagged clarification): the actual
+server rejection is a duplicate-account/validation rejection, NOT an invalid-credentials
+case (nothing about a password mismatch) -- 'request_failed' (the generic else-bucket)
+reads sensibly and does not mischaracterize it as invalid_credentials/server_error/
+network_error. Not a defect -- the conductor's own read (403 sign-up validation should
+NOT map to invalid_credentials) is correct.
