@@ -1,31 +1,38 @@
 # QA Evidence — NEARS-3651
 
-**FAIL - OD1 review-status regression live-reproduced; OD7 cancellation-reason gap; AC-ANALYTICS property deviations. OD2/OD3/OD4/OD5/OD8/OS/RR1/RR2/RF2/RF3/AC-DLS/AC-SHARED confirmed PASS live. RF1 UNVERIFIABLE (owner-gated seed).**
+**Delta re-QA cycle 1 PASS — OD1 + AC-ANALYTICS fixed, OD2 regression clean**
 
-**8 screenshot(s).** Click any thumbnail for full resolution.
+**14 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="bug-od1-403-already-submitted-91131.png"><img src="bug-od1-403-already-submitted-91131.png" width="240"></a><br><sub>bug od1 403 already submitted 91131</sub></td>
-<td align="center" width="33%"><a href="bug-od1-review-form-opens-empty-91131.png"><img src="bug-od1-review-form-opens-empty-91131.png" width="240"></a><br><sub>bug od1 review form opens empty 91131</sub></td>
-<td align="center" width="33%"><a href="od2-refund-stepper-no-null-91132.png"><img src="od2-refund-stepper-no-null-91132.png" width="240"></a><br><sub>od2 refund stepper no null 91132</sub></td>
+<td align="center" width="33%"><a href="delta-od1-91131-rating-readback.png"><img src="delta-od1-91131-rating-readback.png" width="240"></a><br><sub>delta od1 91131 rating readback</sub></td>
+<td align="center" width="33%"><a href="delta-od2-91132-refund-regression.png"><img src="delta-od2-91132-refund-regression.png" width="240"></a><br><sub>delta od2 91132 refund regression</sub></td>
+<td align="center" width="33%"><a href="p30-01-cancelled-details.png"><img src="p30-01-cancelled-details.png" width="240"></a><br><sub>p30 01 cancelled details</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="od3-od4-od6-od7-cancelled-91174.png"><img src="od3-od4-od6-od7-cancelled-91174.png" width="240"></a><br><sub>od3 od4 od6 od7 cancelled 91174</sub></td>
-<td align="center" width="33%"><a href="od4-cancel-and-reorder-stacked-91365.png"><img src="od4-cancel-and-reorder-stacked-91365.png" width="240"></a><br><sub>od4 cancel and reorder stacked 91365</sub></td>
-<td align="center" width="33%"><a href="od8-keep-replace-prompt-91132.png"><img src="od8-keep-replace-prompt-91132.png" width="240"></a><br><sub>od8 keep replace prompt 91132</sub></td>
+<td align="center" width="33%"><a href="p30-02-cancelled-scrolled.png"><img src="p30-02-cancelled-scrolled.png" width="240"></a><br><sub>p30 02 cancelled scrolled</sub></td>
+<td align="center" width="33%"><a href="p30-03-cancelled-scrolled.png"><img src="p30-03-cancelled-scrolled.png" width="240"></a><br><sub>p30 03 cancelled scrolled</sub></td>
+<td align="center" width="33%"><a href="p30-10-hub-delivered-row.png"><img src="p30-10-hub-delivered-row.png" width="240"></a><br><sub>p30 10 hub delivered row</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="os-cart-summary-rows.png"><img src="os-cart-summary-rows.png" width="240"></a><br><sub>os cart summary rows</sub></td>
-<td align="center" width="33%"><a href="rf1-rf2-rf3-refund-form-91131.png"><img src="rf1-rf2-rf3-refund-form-91131.png" width="240"></a><br><sub>rf1 rf2 rf3 refund form 91131</sub></td>
+<td align="center" width="33%"><a href="p30-11-delivered-details.png"><img src="p30-11-delivered-details.png" width="240"></a><br><sub>p30 11 delivered details</sub></td>
+<td align="center" width="33%"><a href="p30-12-delivered-scrolled.png"><img src="p30-12-delivered-scrolled.png" width="240"></a><br><sub>p30 12 delivered scrolled</sub></td>
+<td align="center" width="33%"><a href="p30-13-delivered-scrolled.png"><img src="p30-13-delivered-scrolled.png" width="240"></a><br><sub>p30 13 delivered scrolled</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="p30-20-review.png"><img src="p30-20-review.png" width="240"></a><br><sub>p30 20 review</sub></td>
+<td align="center" width="33%"><a href="p30-21-refund.png"><img src="p30-21-refund.png" width="240"></a><br><sub>p30 21 refund</sub></td>
+<td align="center" width="33%"><a href="p30-30-refund-requested.png"><img src="p30-30-refund-requested.png" width="240"></a><br><sub>p30 30 refund requested</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="p30-31-refund-scrolled.png"><img src="p30-31-refund-scrolled.png" width="240"></a><br><sub>p30 31 refund scrolled</sub></td>
+<td align="center" width="33%"><a href="p30-32-refund-scrolled.png"><img src="p30-32-refund-scrolled.png" width="240"></a><br><sub>p30 32 refund scrolled</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
-- [`bug-analytics-property-deviation.log`](bug-analytics-property-deviation.log)
-- [`bug-od1-review-status-never-reaches-order-details.log`](bug-od1-review-status-never-reaches-order-details.log)
-- [`bug-od7-cancellation-reason-still-contradictory.log`](bug-od7-cancellation-reason-still-contradictory.log)
-- [`followup-od6-courier-call-chat-refund-requested.log`](followup-od6-courier-call-chat-refund-requested.log)
+- [`delta-ac-analytics-events.log`](delta-ac-analytics-events.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3651/` · public-repo scrub policy (no live secrets; verified clean).*
