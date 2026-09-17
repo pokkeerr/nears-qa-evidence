@@ -1,19 +1,18 @@
 # QA Evidence — NEARS-3655
 
-**QA FAIL — F1/F2/F3 unadopted, Composite AC false, F5 dead-end, F6 partial**
+**Delta re-QA PASS: F1/F3 (widgetbook), F5/F6/AC-ANALYTICS/AC-LOG (My Orders live) + RTL date-range fix**
 
-**6 screenshot(s).** Click any thumbnail for full resolution.
+**5 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="bug-composite-stock-rangeslider-store-filter.png"><img src="bug-composite-stock-rangeslider-store-filter.png" width="240"></a><br><sub>bug composite stock rangeslider store filter</sub></td>
-<td align="center" width="33%"><a href="bug-f5-empty-result-no-clear-affordance.png"><img src="bug-f5-empty-result-no-clear-affordance.png" width="240"></a><br><sub>bug f5 empty result no clear affordance</sub></td>
-<td align="center" width="33%"><a href="bug-rtl-date-chip-not-localized.png"><img src="bug-rtl-date-chip-not-localized.png" width="240"></a><br><sub>bug rtl date chip not localized</sub></td>
+<td align="center" width="33%"><a href="ac-f1-widgetbook-all-six-sections.png"><img src="ac-f1-widgetbook-all-six-sections.png" width="240"></a><br><sub>ac f1 widgetbook all six sections</sub></td>
+<td align="center" width="33%"><a href="ac-f3-widgetbook-1-filter.png"><img src="ac-f3-widgetbook-1-filter.png" width="240"></a><br><sub>ac f3 widgetbook 1 filter</sub></td>
+<td align="center" width="33%"><a href="ac-f6-toggle-off-no-chips.png"><img src="ac-f6-toggle-off-no-chips.png" width="240"></a><br><sub>ac f6 toggle off no chips</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="f1-datesheet-single-handle.png"><img src="f1-datesheet-single-handle.png" width="240"></a><br><sub>f1 datesheet single handle</sub></td>
-<td align="center" width="33%"><a href="f2-simplified-chip-gallery.png"><img src="f2-simplified-chip-gallery.png" width="240"></a><br><sub>f2 simplified chip gallery</sub></td>
-<td align="center" width="33%"><a href="f4-module-switcher-food-filtered.png"><img src="f4-module-switcher-food-filtered.png" width="240"></a><br><sub>f4 module switcher food filtered</sub></td>
+<td align="center" width="33%"><a href="ac-rtl-date-range-chip.png"><img src="ac-rtl-date-range-chip.png" width="240"></a><br><sub>ac rtl date range chip</sub></td>
+<td align="center" width="33%"><a href="bug-f6-modulconfig-index0-toggle-on-still-no-chips.png"><img src="bug-f6-modulconfig-index0-toggle-on-still-no-chips.png" width="240"></a><br><sub>bug f6 modulconfig index0 toggle on still no chips</sub></td>
 </tr>
 </table>
 
