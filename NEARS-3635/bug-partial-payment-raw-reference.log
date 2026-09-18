@@ -1,0 +1,23 @@
+Pre-existing, unrelated-to-this-diff gap found while code-reviewing history_item_widget.dart's
+_title() switch (git diff 89dc6d294..4fefe8df0 confirms the `partial_payment` case line was NOT
+touched by this ticket):
+
+  case 'partial_payment':
+    return '${'spend_on_order'.tr} # ${t.reference}';
+
+Unlike 'order_place'/'order_refund' (both fixed/added by this ticket via `_orderNumericId(t.reference)`),
+`partial_payment` still interpolates the RAW `t.reference` string directly into the title. DB evidence
+(read-only SELECT, multi_food_db.wallet_transactions): a real partial_payment row exists (user_id=1,
+reference='172', a bare numeric string that happens to read fine today), but `order_place` rows in the
+same table also carry non-numeric-suffixed references (e.g. user_id=3, reference=
+'nears411-wallet-order-place') for which `_orderNumericId`'s trailing-digit regex has NO match and
+falls back to returning the raw reference verbatim — so the same raw-reference leak this ticket's W1
+AC explicitly says must never happen ("no raw reference is rendered as a history-row title for any
+transaction type") is still reachable for `partial_payment` (always) and for `order_place`/
+`order_refund` (whenever the seed reference doesn't end in a digit run).
+
+Not reachable on the ticket's assigned seeded account (customer@nears.com / users.id 6 only has
+add_fund / add_fund_by_admin rows in wallet_transactions) — not demonstrated live in this QA pass,
+established via code + read-only DB query only.
+
+File: UserApp/lib/common/widgets/history_item_widget.dart:84 (_title(), 'partial_payment' case)

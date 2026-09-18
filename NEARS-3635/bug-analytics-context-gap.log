@@ -1,0 +1,27 @@
+Live debug-analytics-mirror lines captured on emulator-5562 (customer@nears.com, com.izzes.nears pid 17933):
+
+09-18 21:55:24.698 17933 17933 I flutter : 📊 analytics: wallet_filter_changed {filter_type: CashBack, screen: wallet, section: history_filter}
+09-18 21:55:47.526 17933 17933 I flutter : 📊 analytics: view_promotion {promotion_id: 1, screen: wallet, section: bonus_banner}
+09-18 21:55:58.434 17933 17933 I flutter : 📊 analytics: select_promotion {promotion_id: 1, screen: wallet, section: bonus_banner}
+09-18 21:56:26.556 17933 17933 I flutter : 📊 analytics: wallet_add_funds_started {payment_method: paypal, screen: wallet}
+
+Jira NEARS-3635 AC-ANALYTICS table (verbatim) requires:
+  wallet_filter_changed: filter=all|order|loyalty_point|add_fund|referrer|cashback (CashBack normalised
+    to lowercase "cashback"), screen=wallet, section=wallet_history
+  view_promotion:  promotion_id=campaign_id, creative_slot=wallet_banner, index (1-based slide),
+    promotion_count, screen=wallet
+  select_promotion: promotion_id=campaign_id, creative_slot=wallet_banner, index, screen=wallet,
+    section=wallet_banner
+  wallet_add_funds_started: screen=wallet, section=wallet_balance|wallet_banner,
+    source=profile_stat_card|profile_menu|checkout, has_bonus (0|1), campaign_id (when from banner)
+
+Gap (code: UserApp/lib/helper/analytics_service.dart logWalletFilterChanged/logViewPromotion/
+logSelectPromotion/logWalletAddFundsStarted):
+  - wallet_filter_changed sends `filter_type` (not `filter`), raw `CashBack` (not normalised
+    `cashback`), and `section: history_filter` (not `wallet_history`).
+  - view_promotion / select_promotion are missing `creative_slot`, `index`, `promotion_count`
+    entirely, and send `section: bonus_banner` (not `wallet_banner`).
+  - wallet_add_funds_started is missing `section`, `source`, `has_bonus`, `campaign_id` entirely.
+
+All 4 events DO fire (never silently absent), but none carries the full documented context block —
+AC-ANALYTICS explicitly requires "the full context block ... with the documented values".

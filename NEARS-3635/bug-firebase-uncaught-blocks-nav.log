@@ -1,0 +1,40 @@
+Pre-existing, unrelated-to-this-ticket defect found while establishing the QA session (emulator-5562,
+worktree missing android/app/google-services.json — gitignored, per the documented NEARS-795 gap):
+
+09-18 21:46:49.594 16854 16854 I flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="FCM registration id fetch failed"
+09-18 21:46:49.595 16854 16854 E flutter : [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+09-18 21:46:49.595 16854 16854 E flutter : #0      MethodChannelFirebase.app (package:firebase_core_platform_interface/src/method_channel/method_channel_firebase.dart:190:5)
+09-18 21:46:49.595 16854 16854 E flutter : #1      Firebase.app (package:firebase_core/src/firebase.dart:92:41)
+09-18 21:46:49.595 16854 16854 E flutter : #2      FirebaseMessaging.instance (package:firebase_messaging/src/messaging.dart:32:47)
+09-18 21:46:49.595 16854 16854 E flutter : #3      AuthRepository.updateToken (package:nears/features/auth/domain/repositories/auth_repository.dart:256:25)
+09-18 21:46:49.595 16854 16854 E flutter : #6      AuthController.login (package:nears/features/auth/controllers/auth_controller.dart:116:37)
+09-18 21:46:49.595 16854 16854 E flutter : #8      _SignInViewState._login (package:nears/features/auth/widgets/sign_in/sign_in_view.dart:241:29)
+
+Also observed identically inside LocationController._saveDataAndFirebaseConfig ->
+LocationController.autoNavigate (location_controller.dart:1133/991/926) — same unguarded
+FirebaseMessaging.instance access, same uncaught exception.
+
+Effect: login (`/api/v1/auth/login` returns http_status=200) and the first-run "pick location"
+save-and-navigate flow both SUCCEED at the network layer but the containing async function then
+throws UNCAUGHT (no try/catch around the FirebaseMessaging.instance call in either call site), so
+the screen never navigates — the user is stuck re-tapping Sign In / Pick Location with no visible
+error, no toast, no [FAIL] log naming the real cause (only the FCM sub-failure logs; the parent
+throw is unhandled and silently aborts the containing async chain).
+
+Root cause: AuthRepository.updateToken (line ~256) and
+LocationController._saveDataAndFirebaseConfig (line ~1133) both call
+Get.find<...>() -> FirebaseMessaging.instance / configureFirebaseMessaging with NO try/catch,
+unlike the codebase's own convention elsewhere (e.g. ModuleController.getZoneModules's try/catch
+two lines above the same call site) of treating a Firebase/FCM failure as non-fatal and degrading
+gracefully.
+
+Files (NOT touched by NEARS-3635's diff):
+  UserApp/lib/features/auth/domain/repositories/auth_repository.dart:256
+  UserApp/lib/features/location/controllers/location_controller.dart:1133
+
+Reproduced on: any environment where Firebase fails to initialize (this worktree's gitignored
+google-services.json; equally reachable in production if Firebase/Google Play Services is
+unavailable at runtime for any reason).
+
+Workaround used to complete this QA run: copied google-services.json from the primary tree and
+relaunched UNSUFFIXED (com.izzes.nears) so Firebase actually initializes — see envelope drift[].

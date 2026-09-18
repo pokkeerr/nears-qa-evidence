@@ -13,6 +13,9 @@
 </table>
 
 ### Other artifacts
+- [`bug-analytics-context-gap.log`](bug-analytics-context-gap.log)
+- [`bug-firebase-uncaught-blocks-nav.log`](bug-firebase-uncaught-blocks-nav.log)
+- [`bug-partial-payment-raw-reference.log`](bug-partial-payment-raw-reference.log)
 - [`bug-w5-double-semantics-dump.xml`](bug-w5-double-semantics-dump.xml)
 
 ---
