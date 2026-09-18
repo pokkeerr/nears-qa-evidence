@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3589
 
-**Delta re-QA fix-cycle 2: BK1 improved but still FAIL (33dp>16dp), BK6/BK7/BK2-a11y/48dp-tap/analytics all PASS, AC-DLS Widgetbook use-case unreachable (build_runner not regenerated)**
+**Delta re-QA fix-cycle 2: progress.md finalized**
 
 **60 screenshot(s).** Click any thumbnail for full resolution.
 
