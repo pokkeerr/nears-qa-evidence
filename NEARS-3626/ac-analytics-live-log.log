@@ -1,0 +1,29 @@
+# AC-ANALYTICS live proof -- debug analytics log lines (AnalyticsService's own
+# "📊 analytics: <event> <params>" print, UserApp/lib/helper/analytics_service.dart:172),
+# captured via `adb logcat` on emulator-5554,
+# package com.izzes.nears.nears_nears_3626_order_confirm_sheet.
+#
+# NOTE: FirebaseAnalytics.instance itself is unreachable in this dev/worktree environment
+# (google-services.json is gitignored and only registers the base "com.izzes.nears" package,
+# see regression-google-services-json-missing-in-worktree.log for the full root cause and the
+# local, non-committed workaround used to unblock this QA run: a second `client[]` entry was
+# added to a LOCAL COPY of google-services.json for this worktree's suffixed package id, purely
+# to let Firebase.initializeApp() succeed so FirebaseMessaging.instance stopped throwing
+# uncaught on the location/login paths -- NOT a product code change, not committed).
+# AnalyticsService's own debug print line is the sanctioned local verify-live channel and is
+# independent of whether the underlying FirebaseAnalytics.logEvent call itself would succeed --
+# same instrument used by every UserApp QA session per docs/apps/userapp navigation guide.
+
+09-18 08:10:56.309 20908 20908 I flutter : 📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 1, screen: checkout, section: place_order}
+09-18 08:10:56.323 20908 20908 I flutter : 📊 analytics: screen_view {screen_name: order_confirm_sheet, source: checkout}
+09-18 08:10:57.089 20908 20908 I flutter : 📊 analytics: order_confirm_sheet_shown {store_count: 1, item_count: 1, value: 7.0115, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+09-18 08:11:51.238 20908 20908 I flutter : 📊 analytics: order_confirm_edited {field: general, screen: order_confirm_sheet, section: footer_cta}
+09-18 08:12:18.519 20908 20908 I flutter : 📊 analytics: order_confirm_optout_set {enabled: 1, screen: order_confirm_sheet, section: preferences}
+09-18 08:12:34.832 20908 20908 I flutter : 📊 analytics: order_confirm_dismissed {method: barrier, price_changed: 0, screen: order_confirm_sheet}
+
+# order_confirm_confirmed and the purchase/group_order_placed `source` param require actually
+# completing an order (forbidden by this ticket's own sanctioned QA method) -- rely on the
+# reviewed unit/widget-test evidence instead:
+#   UserApp/test/features/checkout/confirm_order_sheet_widget_test.dart:
+#     "Confirm tapped fires order_confirm_confirmed and dispatches onConfirm exactly once"
+#   (re-run live by this QA pass: PASSED, see automated backstop section of the QA comment)

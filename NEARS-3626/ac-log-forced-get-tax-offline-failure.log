@@ -1,0 +1,27 @@
+# AC-LOG live proof — get-Tax revalidation failure forced by disabling wifi+data
+# (svc wifi disable; svc data disable) at the moment "Place Order" was tapped.
+# Device: emulator-5554, package com.izzes.nears.nears_nears_3626_order_confirm_sheet
+# Timestamp: 2026-09-18 08:14:35
+
+09-18 08:14:35.622 22840 22840 I flutter : 📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 1, screen: checkout, section: place_order}
+09-18 08:14:35.623 22840 22840 I flutter : [NET] POST endpoint=/api/v1/customer/order/get-Tax
+09-18 08:14:35.632 22840 22840 I flutter : 📊 analytics: screen_view {screen_name: order_confirm_sheet, source: checkout}
+09-18 08:14:35.652 22840 22840 I flutter : The following exception was thrown api request threw:
+09-18 08:14:35.652 22840 22840 I flutter : ApiFailure(status: 0, kind: socket)
+09-18 08:14:35.652 22840 22840 I flutter : #3      ApiClient._send (package:nears/api/api_client.dart:830:24)
+09-18 08:14:35.652 22840 22840 I flutter : #4      CheckoutRepository.getOrderTax (package:nears/features/checkout/domain/repositories/checkout_repository.dart:134:25)
+09-18 08:14:35.652 22840 22840 I flutter : #5      CheckoutService.getOrderTax (package:nears/features/checkout/domain/services/checkout_service.dart:137:12)
+09-18 08:14:35.652 22840 22840 I flutter : #6      PricingSummaryController.revalidateForConfirmSheet (package:nears/features/checkout/controllers/pricing_summary_controller.dart:916:33)
+09-18 08:14:35.652 22840 22840 I flutter : #7      ConfirmOrderSheetController.revalidate (package:nears/features/checkout/controllers/confirm_order_sheet_controller.dart:113:40)
+09-18 08:14:35.653 22840 22840 I flutter : [FAIL] endpoint=/api/v1/customer/order/get-Tax http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=7657066b-89ea-494b-a0fc-30c59147e602
+09-18 08:14:35.653 22840 22840 I flutter : The following exception was thrown checkout: confirm-sheet revalidation failed:
+09-18 08:14:35.653 22840 22840 I flutter : ApiFailure(status: 1)
+09-18 08:14:35.654 22840 22840 I flutter : [FAIL] endpoint=/api/v1/customer/order/get-Tax http_status=1 type=ApiFailure msg="checkout: confirm-sheet revalidation failed"
+09-18 08:14:35.655 22840 22840 I flutter : 📊 analytics: order_confirm_sheet_shown {store_count: 1, item_count: 1, value: 7.01, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+
+# Observed: PII-safe [FAIL] lines (endpoint path only, correlation_id present, no body/token),
+# paired AppLogger.failure per the logging contract. Sheet degraded gracefully to the
+# checkout-displayed fallback total (screenshot: ac-log-offline-degraded-fallback-state.png),
+# Confirm stayed enabled (no stockError, validating=false) -- correct per
+# ConfirmOrderSheetController._hasFreshSuccess / displayTotal fallback logic. No crash, no
+# red screen. Sheet was then safely dismissed via "Back to checkout" (never Confirm).
