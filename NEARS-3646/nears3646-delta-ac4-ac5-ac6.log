@@ -1,0 +1,16 @@
+# NEARS-3646 delta re-QA (fix-cycle 1) — AC4/AC5/AC6
+
+AC4 (photo hint copy, no raw technical string): Photo step hint text rendered live =
+  "Make sure your face is clearly visible and well-lit"
+  (was "JPG, JPEG, PNG Less Than 1MB (Ratio 1:1)" pre-fix)
+
+AC5 (client-side photo size/type validation): pushed a 2MB PNG to the device gallery,
+picked it as the Photo-step image:
+  [ERR] msg="delivery partner registration: photo rejected — file too large"
+Screen returned to the empty upload state (rejected client-side, never sent to the server).
+Code confirms a paired user-facing showCustomSnackBar('please_upload_lower_size_file'.tr).
+
+AC6 (distinct inline error vs step title): tapped Continue on Photo step with no photo:
+  Title:  "Upload delivery partner image"
+  Error:  "Please upload your photo"
+Distinct strings confirmed live (was byte-identical pre-fix).

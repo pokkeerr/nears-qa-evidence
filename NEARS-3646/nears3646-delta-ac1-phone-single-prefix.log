@@ -1,0 +1,18 @@
+# NEARS-3646 delta re-QA (fix-cycle 1) — AC1 flagship phone double-prefix fix
+# Fresh full submit through the live 8-step journey, worktree backend :8646, own DB.
+
+Account phone (users.id=6, already E.164): +971565811199
+
+Client log (worktree UserApp, emulator-5554):
+I/flutter ( 5869): [INFO] msg="multipart POST endpoint=/api/v1/auth/delivery-man/store"
+I/flutter ( 5869): [NET] endpoint=/api/v1/auth/delivery-man/store http_status=200
+I/flutter ( 5869): 📊 analytics: dm_registration_submitted {zone_id: 1, vehicle_id: 2, identity_type: passport, screen: dm_registration}
+
+DB after submit (read-only SELECT):
+mysql> SELECT id,email,phone FROM delivery_men WHERE email='dp-qa-3646-recheck@nears.com';
+22	dp-qa-3646-recheck@nears.com	+971565811199
+
+Contrast — the OLD pre-fix row from the prior QA cycle (id 21, untouched, left as historical evidence):
+21	customer@nears.com	+971+971565811199
+
+Result: country code appears exactly ONCE in the freshly submitted row (id 22). Bug confirmed fixed.

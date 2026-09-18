@@ -1,0 +1,18 @@
+# NEARS-3646 delta re-QA (fix-cycle 1) — AC2 analytics property + resume/started fix
+
+1) source=profile, screen=dm_registration on started/step_completed/validation_error:
+📊 analytics: dm_registration_started {source: profile, screen: dm_registration}
+📊 analytics: dm_registration_step_completed {step: intro, step_index: 0, screen: dm_registration}
+📊 analytics: dm_registration_step_completed {step: details, step_index: 1, screen: dm_registration}
+📊 analytics: registration_validation_error {field: required_field, step: photo, screen: dm_registration}
+
+2) dm_registration_submitted now carries screen:
+📊 analytics: dm_registration_submitted {zone_id: 1, vehicle_id: 2, identity_type: passport, screen: dm_registration}
+
+3) Resume vs fresh-open — the exact double-fire bug from cycle 1, re-tested live:
+   a) FRESH entry (no draft) — fired Started only:
+      📊 analytics: dm_registration_started {source: profile, screen: dm_registration}
+   b) Exited via Save Draft, re-entered "Join as a Delivery Partner" — fired Resumed ONLY, no accompanying Started:
+      📊 analytics: dm_registration_resumed {step: 0}
+      (confirmed via full log line-number diff — no dm_registration_started line appears
+      between the resumed-entry navigation and the next step_completed)

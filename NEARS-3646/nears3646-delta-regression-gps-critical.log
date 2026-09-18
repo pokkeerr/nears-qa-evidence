@@ -1,0 +1,14 @@
+# NEARS-3646 delta re-QA — regression spot-check of the prior cycle's flagship Critical fix
+# (DP3: GPS-off never silently auto-selects a zone; manual pick rejected without real location)
+
+With GPS/test-provider location NOT freshly set (getPosition timeout), entering the Area step:
+  [FAIL] type=GetPositionFailure msg="location: getPosition threw (TimeoutException) — falling back to default position"
+  [ERR] msg="delivery partner registration: device location unavailable (GPS fallback) — never deriving/confirming a zone from the config-default location"
+  UI: "No zone found at this location. Try a different spot or pick your zone manually."
+  -> never a silent default-zone auto-select.
+
+Manually picked "Main Service Zone" from the searchable list with no real device location:
+  UI: "That location isn't inside your selected zone. Try dropping the pin again."
+  Selection stays null (rejected).
+
+Both directions match cycle-1's PASS behavior exactly — flagship Critical fix still holds.

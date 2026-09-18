@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3646
 
-**FAIL — DP3 critical GPS fix CONFIRMED working; DP0 journey/prefill/resume CONFIRMED; task_bugs: phone double-country-code corruption on submit, analytics property mismatches vs documented spec, 5/6 events undocumented in analytics-events.md, photo hint copy not fixed per design spec, no client-side photo size/type validation**
+**Delta re-QA fix-cycle 1 PASS — all 6 findings verified fixed live**
 
 **7 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -25,6 +25,10 @@
 - [`bug-analytics-property-mismatch.log`](bug-analytics-property-mismatch.log)
 - [`bug-phone-double-country-code.log`](bug-phone-double-country-code.log)
 - [`bug-photo-no-client-validation.log`](bug-photo-no-client-validation.log)
+- [`nears3646-delta-ac1-phone-single-prefix.log`](nears3646-delta-ac1-phone-single-prefix.log)
+- [`nears3646-delta-ac2-analytics.log`](nears3646-delta-ac2-analytics.log)
+- [`nears3646-delta-ac4-ac5-ac6.log`](nears3646-delta-ac4-ac5-ac6.log)
+- [`nears3646-delta-regression-gps-critical.log`](nears3646-delta-regression-gps-critical.log)
 - [`regression-password-strength-bar-untranslated.log`](regression-password-strength-bar-untranslated.log)
 
 ---
