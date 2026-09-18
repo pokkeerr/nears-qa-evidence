@@ -1,0 +1,16 @@
+# CK7 AC violated: "Section order should be Items -> Delivery (address + instructions) ->
+# Payment -> Offers (collapsed) -> Tip (collapsed) -> Summary."
+#
+# Live-observed order (screenshots p8-01-checkout-top.png, p8-02-checkout-mid.png,
+# p8-03-checkout-lower.png, in sequence): Items -> Delivery(address card only) -> Payment ->
+# Offers(coupon row) -> Tip(chips) -> [Additional note / delivery-instruction chips] -> Summary.
+# The merged CK4 instruction field renders AFTER Tip, immediately before Order Summary — NOT
+# grouped with the address card under "Delivery" as CK7 specifies.
+#
+# Code-confirmed intentional relocation (UserApp/lib/features/checkout/widgets/top_section.dart:233-237):
+#   // NEARS-3625 (CK4): the standalone "Add More Delivery Instruction" block removed from here
+#   // — merged into NoteAndPrescriptionSection's single "additional_note" field
+#   // (bottom_section.dart) as a quick-add chip row ...
+# bottom_section.dart places NoteAndPrescriptionSection AFTER DeliveryManTipsSection and before
+# the Order Summary bill — i.e. CK4's fix relocated the instructions field into the "Summary"
+# region, breaking CK7's explicit "Delivery (address + instructions)" grouping in the same diff.

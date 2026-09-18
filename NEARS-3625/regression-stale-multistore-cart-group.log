@@ -1,0 +1,11 @@
+# Pre-existing (not caused by NEARS-3625's diff): this account's checkout consistently computes
+# a 7-store "group" (Fresh supermarket, Fresh local, Abu Nadia Grocery, Daily Fresh Market,
+# Nears Mart, Test Store, Fast Market) with extra items (All Purpose Cleaner, Rice 5kg,
+# Sparkling Water, Sunflower Oil 1L) that do NOT appear on the live Basket screen (which shows
+# only 2 stores / 3 items: Dish Soap 500ml, Honey 500g, Whole Milk 1L) — reproduced across a full
+# app cold-restart (am force-stop + am start), so this is persisted, not merely in-memory GetX
+# controller state. Possibly relevant to the CK8 Place-Order-never-enables Critical finding
+# (bug-ck8-place-order-never-enables.log) if one of the phantom stores' pricing never resolves.
+# Also observed one cart line ("Sparkling Water") silently disappear between two checkout
+# re-renders with no user action against it. Flagging as a data/cache-layer regression candidate,
+# out of this ticket's scope (Checkout screen UI/UX + analytics + logging), for separate triage.

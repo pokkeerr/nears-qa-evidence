@@ -1,0 +1,20 @@
+# CK2 AC violated: "ETA text never shows seconds-level precision" — literal AC text.
+# Live-observed on the checkout screen's CK11 per-store delivery rows (2026-09-18, emulator-5554):
+Fast Market, 0.00 AED, ~16 min 45 sec
+Test Store, 0.00 AED, ~17 min 31 sec
+
+# Code confirms this is BY DESIGN, scoped only to >=60min (UserApp/lib/helper/delivery_eta_helper.dart:100-125):
+#   if (totalSeconds >= 3600) { ... suppress seconds ... }   // CK2 fix, >=60min only
+#   else if (totalSeconds < 60) return '~$s sec';
+#   else if (s == 0) return '~$m min';
+#   else return '~$m min $s sec';                             // <-- still emits seconds, sub-60min
+#
+# Unit test explicitly PINS the sub-60min "show seconds" behavior as correct
+# (UserApp/test/helper/delivery_eta_helper_test.dart:60-61):
+#   test('minute + seconds -> "~M min S sec"', () {
+#     expect(DeliveryEtaHelper.etaLabel(980), '~16 min 20 sec');
+#   });
+#
+# The literal AC ("never shows seconds-level precision") is violated for any sub-60-minute ETA —
+# which is exactly the range most single/nearby-store deliveries in this hyper-local product fall
+# into (the ticket's own repro was a 2.5h MULTI-store outlier; the fix was scoped to that case only).

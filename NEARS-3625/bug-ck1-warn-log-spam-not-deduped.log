@@ -1,0 +1,10 @@
+# Logging-contract violation (ticket's own Logging rule #4, HIGH): "dedupe logs on polled or
+# rebuilt surfaces." CK1's new AppLogger.warn for a store dropped from the map preview
+# (missing coordinates) fires on EVERY rebuild of the map-preview widget, not once per state change.
+#
+# Captured after clearing logcat and performing ~5s of unrelated interaction (opening the coupon
+# sheet, typing an invalid code):
+#   $ adb logcat -d | grep -ac "map preview dropped store"
+#   30
+# (10 rebuild bursts x 3 stores, all within the same ~5s window — same 3 store ids repeated
+# every burst: 4047, 37, 1)

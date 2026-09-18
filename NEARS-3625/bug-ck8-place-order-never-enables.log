@@ -1,0 +1,51 @@
+# CK8 CRITICAL: Place Order remains permanently disabled — checkout cannot be completed
+# Reproduced TWICE: (1) messy 7-store basket, (2) fresh cold-start app relaunch + clean
+# 2-store basket (Fresh supermarket "Dish Soap 500ml" + Fresh local "Whole Milk 1L"/"Honey 500g").
+# Device emulator-5554, account customer@nears.com, zone_id=2 (Abu Dhabi).
+
+## Poll of Place Order's `enabled` attribute (uiautomator dump) after fresh cold-start + Proceed to Checkout:
+04:28:40.3 iter1: enabled="false"
+04:28:44.3 iter2: enabled="false"
+... (10 polls, ~1.5s apart) ...
+04:29:12.3 iter10: enabled="false"   <-- 32s after tap, still disabled
+
+## All 4 pricing endpoints returned 200 well before the last poll, zero [FAIL]/[ERR] in the whole session:
+09-18 04:28:33.800 [NET] endpoint=/api/v1/config/delivery-quote http_status=200
+09-18 04:28:33.801 [NET] endpoint=/api/v1/vehicle/extra_charge http_status=200
+09-18 04:28:34.133 [NET] endpoint=/api/v1/cashback/getCashback http_status=200
+09-18 04:28:38.847 [NET] endpoint=/api/v1/customer/order/get-Tax http_status=200  (x7, all 200)
+09-18 04:28:40.697 [NET] endpoint=/api/v1/cashback/getCashback http_status=200
+# grep -a "flutter" | grep -aE "\[FAIL\]|\[ERR\]"  ->  ZERO matches in this session
+
+## Direct proof the internal gate itself (not just the rendered UI) is stuck, via a live tap on the
+## disabled button (safe — GestureDetector wraps the disabled NButton specifically to observe this,
+## per checkout_screen.dart:1173-1184; no order is submitted):
+09-18 04:33:27.757  [WARN] msg="checkout: map preview dropped store 4047 — missing coordinates"
+09-18 04:33:28.714  [WARN] msg="checkout: place order tap blocked — pricing not settled (tax/delivery-quote)"
+09-18 04:33:28.715  analytics: place_order_tapped {pricing_settled: 0, store_count: 7, screen: checkout, section: place_order}
+# This tap happened MINUTES after all 4 pricing endpoints had returned 200 with zero errors —
+# pricing_settled reads 0 at the moment of tap, proving the internal
+# PricingSummaryController flags (isOrderTaxSettling / isDeliveryQuotePending / isDeliveryQuoteFailed)
+# never clear, not merely a stale-render/GetBuilder-scoping display issue.
+
+## Code path (read, not asserted from a grep count):
+# checkout_screen.dart:1100-1107
+#   pricingSettled = !isOrderTaxSettling && !isDeliveryQuotePending && !isDeliveryQuoteFailed
+#   canPlaceOrder  = acceptTerms(true) && !isOutOfZone && !(multiStore && groupHasUnresolvedGates) && pricingSettled
+# groupHasUnresolvedGates ruled out: placeOrderController.validateGroupOrder() is never invoked from
+#   any screen in lib/ (grep confirms only its own declaration + the service passthrough reference it),
+#   so _groupValidation stays null -> groupHasUnresolvedGates is false throughout.
+# acceptTerms defaults true (place_order_controller.dart:106) — not the blocker (CK13 removed the
+#   checkbox correctly; acceptTerms was already hardcoded true, unaffected).
+# => the stuck flag is one of isOrderTaxSettling/isDeliveryQuotePending/isDeliveryQuoteFailed, and it
+#    plausibly correlates with CK10's still-open duplicate-dispatch defect on the SAME two endpoints
+#    (get-Tax fired 7x, delivery-quote 4x, at identical timestamps — see bug-ck10-duplicate-requests.log)
+#    racing the settle-flag's set/clear sequence, though the exact interleaving was not instrumented
+#    live (no Dart VM eval tool available in this session).
+
+## NOTE on basket composition: this same account's checkout persistently shows a 7-store "group"
+## (Fresh supermarket, Fresh local, Abu Nadia Grocery, Daily Fresh Market, Nears Mart, Test Store,
+## Fast Market) regardless of what the live Basket screen currently displays (which showed only
+## 2 stores/3 items at the time) — this looks like STALE/pre-existing local cart-group cache
+## contamination unrelated to this ticket's code (filed separately as a regression_bug) but is
+## flagged here because it may be contributing to (or masking the true trigger of) this hang.

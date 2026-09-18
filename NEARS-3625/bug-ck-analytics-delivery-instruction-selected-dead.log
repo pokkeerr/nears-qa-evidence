@@ -1,0 +1,20 @@
+# AC-ANALYTICS violated: `delivery_instruction_selected` is unreachable / dead code post-CK4 merge.
+#
+# Live: tapping a preset instruction chip ("Leave at concierge") on the checkout screen appended
+# text into the Additional-note field (confirmed visually — see p8-06-note-typed.png, field reads
+# "Leave at conciergeQA..."), but NO delivery_instruction_selected event (nor any other analytics
+# event) appeared in a full logcat scan around the tap:
+#   $ adb logcat -d | grep -a "delivery_instruction_selected"   -> zero matches
+#
+# Code trace:
+#  - The ONLY call site that fires delivery_instruction_selected is
+#    AddressDeliveryOptionController.setInstruction (address_delivery_option_controller.dart:286-304),
+#    invoked ONLY from delivery_instraction_bottom_sheet_widget.dart:82.
+#  - The chip actually visible on checkout (note_prescription_section.dart:87 `_hintChip`) calls
+#    `_appendNote(label)` (line 16-21) — appends text to noteController, calls
+#    checkoutController.update(['checkout_coordinator']); it never touches setInstruction / the
+#    analytics service for this event.
+#  - `delivery_instraction_bottom_sheet_widget.dart` has ZERO importers/callers anywhere else in
+#    lib/ ($ grep -rln "DeliveryInstractionBottomSheet\|delivery_instraction_bottom_sheet" lib/
+#    returns only its own file) — it is dead code, orphaned by CK4's merge, which also leaves
+#    AC-SHARED's "migrated local components are deleted" unmet for this file.
