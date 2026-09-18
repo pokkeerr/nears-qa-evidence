@@ -1,0 +1,42 @@
+NEARS-3646 QA — analytics events fire, but with property VALUES that don't match the ticket's
+own documented table (AC-ANALYTICS requires "the documented values").
+
+Ticket's documented table:
+  dm_registration_started         | source=profile, screen=dm_registration
+  dm_registration_step_completed  | step, step_index, screen=dm_registration
+  dm_registration_submitted       | zone_id, vehicle_id, identity_type, screen=dm_registration
+
+Live debug-log capture (adb logcat, app's own analytics debug mirror):
+
+  📊 analytics: dm_registration_started {source: menu, screen: delivery_partner_registration}
+  📊 analytics: dm_registration_step_completed {step: intro, step_index: 0, screen: delivery_partner_registration}
+  📊 analytics: dm_registration_step_completed {step: details, step_index: 1, screen: delivery_partner_registration}
+  📊 analytics: registration_validation_error {field: required_field, step: photo, screen: delivery_partner_registration}
+  📊 analytics: dm_registration_submitted {zone_id: 1, vehicle_id: 2, identity_type: passport}
+
+Mismatches:
+  1. source: 'menu' shipped vs 'profile' documented (dm_registration_started).
+  2. screen: 'delivery_partner_registration' shipped vs 'dm_registration' documented — on EVERY
+     event (started, step_completed, validation_error). Single root cause: the screen id literal
+     hardcoded at each Get.find<AnalyticsService>().logEvent(...) call site in
+     delivery_partner_registration_journey_screen.dart / deliveryman_registration_controller.dart
+     never matches the spec's 'dm_registration' value.
+  3. dm_registration_submitted is MISSING the `screen` property entirely (present in the doc's
+     column list, absent from the actual parameters map at
+     deliveryman_registration_controller.dart:775-782).
+  4. field: 'required_field' (a generic placeholder) shipped for registration_validation_error,
+     rather than identifying which field failed — loses signal beyond the `step` value.
+
+Separately observed (funnel-quality issue, not a literal property-value mismatch):
+  dm_registration_started fires on EVERY entry into the screen, including a RESUME — observed
+  firing back-to-back with dm_registration_resumed on the same initState:
+    📊 analytics: dm_registration_resumed {step: 2}
+    📊 analytics: dm_registration_started {source: menu, screen: delivery_partner_registration}
+  The ticket's own stated success metric is
+  "dm_registration_submitted ÷ dm_registration_started" — an unconditional started-fire on every
+  resume inflates that denominator on every kill/relaunch mid-journey, undercounting the true
+  funnel completion rate.
+
+Severity: Medium/High — AC-ANALYTICS explicitly requires "documented values"; none of the 3
+dm_registration_* events observed carry the documented screen id, one is missing a documented
+property outright, and the funnel metric the ticket itself defines is measurably wrong as shipped.

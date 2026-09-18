@@ -1,0 +1,28 @@
+NEARS-3646 QA — 5 of the 6 ticket-specified analytics events are NOT listed in
+docs/platform/analytics-events.md (AC-ANALYTICS requires "... and is listed in
+docs/platform/analytics-events.md").
+
+grep of the doc's headings (docs/platform/analytics-events.md):
+  ## NEARS-3647 — Vendor registration: step-by-step journey
+  ### `vendor_registration_started`
+  ### `vendor_registration_step_completed`
+  ### `vendor_map_pin_set`
+  ### `registration_validation_error`   <- shared with NEARS-3647, documented
+  ### `vendor_registration_submitted`
+  ### `vendor_registration_failed`
+  ### `vendor_store_panel_handoff`
+  ### `vendor_draft_saved` / `vendor_draft_resumed`
+
+No section exists anywhere in the file for:
+  dm_registration_started
+  dm_registration_step_completed
+  dm_registration_submitted
+  dm_registration_failed
+  dm_registration_resumed
+
+All 5 are real, defined events (UserApp/lib/util/analytics_events.dart:367-384) and DO fire live
+(confirmed via debug analytics log in this same QA pass) — they are simply undocumented in the
+one file the ticket's own AC names.
+
+Severity: Medium — a straightforward doc gap, but it is itself a literal, named AC requirement
+("... and is listed in docs/platform/analytics-events.md"), so it is not optional polish.

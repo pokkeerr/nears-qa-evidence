@@ -1,0 +1,32 @@
+NEARS-3646 QA — Photo step has no client-side size/type validation, so AC-LOG's own listed
+failure path ("photo upload failing (size/type rejected, network)") has no way to be reached for
+the size/type half.
+
+Code (UserApp/lib/features/auth/controllers/deliveryman_registration_controller.dart:128-143,
+pickIdentityFrontImage/pickIdentityBackImage similarly at line ~464):
+
+  void pickDmImage(bool isLogo, bool isRemove) async {
+    if (isRemove) { ... } else {
+      if (isLogo) {
+        _pickedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+      } else {
+        XFile? xFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+        if (xFile != null) { _pickedIdentities.add(xFile); }
+      }
+      update();
+    }
+  }
+
+No file-size check, no MIME/extension check, anywhere in the pick path — whatever
+ImagePicker().pickImage() returns is accepted unconditionally and forwarded to the multipart
+submit. The visible hint text ("JPG, JPEG, PNG Less Than 1MB (Ratio 1:1)" / dp_photo_hint) is
+purely decorative copy; nothing enforces it client-side, and there is no corresponding
+AppLogger.warn/error call for a rejected file because no rejection ever happens on this path.
+
+The only way a real "photo upload failure" can occur is a NETWORK/SERVER failure at final
+submit time (already covered by the separate, already-logged
+'delivery_partner_registration_submit_failed' path) — the size/type half of the AC-LOG line is,
+as shipped, unreachable.
+
+Severity: Medium — AC-LOG names this failure path explicitly; as built it can only ever be
+exercised for the network half, never the size/type half.

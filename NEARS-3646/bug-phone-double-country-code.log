@@ -1,0 +1,32 @@
+NEARS-3646 QA — phone number double-prefixed with country code on real submit
+
+Repro: seeded customer users.id=6 (customer@nears.com), phone on account = +971565811199
+(shown correctly, single-prefixed, on the Details step's prefilled field and the Review step).
+Completed the full 8-step journey and submitted (zone=Main Service Zone id 1, vehicle=Baik id 2,
+identity=passport 784199012345678, password set, terms accepted).
+
+DB after successful submit (delivery_men.id = 21, application_status = pending):
+
+  mysql> SELECT id, f_name, l_name, phone, email, vehicle_id, zone_id, application_status
+         FROM delivery_men WHERE email='customer@nears.com';
+  21  Customer  NearsQA2  +971+971565811199  customer@nears.com  2  1  pending
+
+Expected: +971565811199 (matches the account's own phone, unchanged).
+Actual:   +971+971565811199 — the country dial code is prepended TWICE.
+
+Root cause (delivery_partner_registration_journey_screen.dart):
+  - line 129: `_phoneController.text = userInfo.phone ?? '';` — prefills with the ACCOUNT's phone,
+    which is already a full E.164 string (+971565811199), not a bare local number.
+  - line 283: `phone: _phoneController.text.trim()` passes that full string forward.
+  - line 286: `countryDialCode: _countryDialCode ?? ''` is ALSO passed separately.
+  - deliveryman_registration_controller.dart line 310 (shared submit path):
+    `String numberWithCountryCode = countryDialCode + phone;` — concatenates the dial code onto
+    a phone string that already carries it, producing a corrupted, invalid phone number on the
+    delivery-man application record.
+
+Impact: a real (not synthetic) data-integrity defect on every prefilled submission — this is the
+common case, since prefill from the logged-in account is exactly what DP0 requires. A corrupted
+phone number would break SMS/approval notifications to the delivery partner later.
+
+Severity: High. Breaks the practical value of DP0's own "pre-fills ... phone ... from the logged-in
+account" AC — the prefill displays correctly but does not survive to submission.
