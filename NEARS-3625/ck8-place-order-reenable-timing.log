@@ -1,0 +1,32 @@
+CK8 re-verify (fix cycle 2) — Place Order re-enable timing, normal (non-error) run
+Device: emulator-5558, package com.izzes.nears.nears_nears_3625_checkout_uiux
+Backend: /Users/Apple/Projects/nears-NEARS-3625-checkout-uiux/Admin @ f8c4daaf4 (own php artisan serve --port=8625)
+Basket: 7-store group (Fresh supermarket, Fresh local, Abu Nadia Grocery, Daily Fresh Market, Nears Mart, Test Store, Fast Market)
+Method: uiautomator dump of content-desc="Place Order" (NButton's own Semantics node re-supplies `enabled`; the wrapping
+GestureDetector tap-catcher used only in the disabled branch has no Semantics of its own, so the reported `enabled`
+flag reflects NButton's real onPressed-derived state, not a fixed catcher-always-true artifact) at fixed intervals
+from the instant "Proceed to Checkout" was tapped.
+
+t=+3.01s  enabled="false"
+t=+5.97s  enabled="false"
+t=+8.92s  enabled="true"
+t=+11.96s enabled="true"
+t=+14.92s enabled="true"
+t=+17.95s enabled="true"
+t=+20.90s enabled="true"
+t=+23.91s enabled="true"
+
+Result: Place Order starts disabled, transitions to enabled once pricing settles (~9s in, matching the group
+tax/delivery-quote round-trip observed in ck10-network-trace.log), and STAYS enabled through +24s — no
+stuck-disabled hang (the NEARS-3687/cycle-4 symptom) and no flap back to disabled. Re-confirmed on a SECOND
+fresh cold app-restart later in the session (uiautomator dump post-settle showed enabled="true" again).
+
+Logs during the whole disable->enable window (adb logcat, flutter tag, pid-scoped): ZERO [FAIL]/[ERR] lines.
+Only WARN lines were the expected once-per-store "checkout: map preview dropped store <id> — missing
+coordinates" (CK1, see ck1-log-dedup.log) — no error path was taken while the gate flipped.
+
+Backend-error-path (fails-open) bonus check: NOT exercised this pass (no built-in fault-injection available in
+this environment without code changes) — the ticket marks this a bonus, not a must-have; the try/catch/finally
+wrapping in _runPrepareGroupDeliveryData (pricing_summary_controller.dart:1212-1303) sets _groupTaxSettled=true
+in the `finally` block unconditionally, which is the structural guarantee that a fetch exception cannot leave
+the gate stuck — confirmed by code reading, not by a live fault injection.

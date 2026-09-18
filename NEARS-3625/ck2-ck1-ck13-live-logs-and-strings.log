@@ -1,0 +1,52 @@
+CK2 re-verify (fix cycle 2) — sub-60min ETA suppression, live per-store rows (7-store basket)
+Fresh cold session, checkout Fee Breakdown rows (uiautomator dump, x-sorted):
+  "Test Store, 0.00 AED, ~18 min"
+  "Fast Market, 0.00 AED, ~17 min"
+Both are SUB-60-MINUTE ETAs and show NO seconds — this is the exact reported regression from fix-cycle-1
+("~16 min 45 sec" / "~17 min 31 sec" on these same two rows) now rendering as clean "~18 min" / "~17 min".
+Re-confirmed on a second fresh navigation in the same session: "~17 min" (Fast Market) / "~18 min" (Test
+Store) again. Also confirmed the >=60min tier is unaffected: "Fresh local, 0.00 AED, ~2 h 1 min" /
+"Fresh supermarket, 0.00 AED, ~2 h 19 min" (unchanged from before, correct).
+Code: UserApp/lib/helper/delivery_eta_helper.dart etaLabel() rounds to the nearest whole minute
+unconditionally below the 3600s tier (removed the old >=60min-only gate) — automated backstop
+test/helper/delivery_eta_helper_test.dart pins this exact case ("must render as '~17 min'", was
+"~16 min 45 sec") and passes (41/41 in that file).
+
+CK1 re-verify (fix cycle 2) — missing-coordinate warn log dedup
+adb logcat (flutter tag, pid-scoped), first checkout-open of the session:
+  [WARN] msg="checkout: map preview dropped store 13 — missing coordinates"
+  [WARN] msg="checkout: map preview dropped store 12 — missing coordinates"
+  [WARN] msg="checkout: map preview dropped store 4047 — missing coordinates"
+  [WARN] msg="checkout: map preview dropped store 37 — missing coordinates"
+  [WARN] msg="checkout: map preview dropped store 1 — missing coordinates"
+  [WARN] msg="checkout: map preview dropped store 35 — missing coordinates"
+  [WARN] msg="checkout: map preview dropped store 21 — missing coordinates"
+  -> each store id appears EXACTLY ONCE despite ~24s of continuous GetBuilder rebuilds while
+     Place Order transitioned disabled->enabled (see ck8 evidence).
+Second measurement: cleared logcat (`adb logcat -c`), then tapped a preset delivery-instruction chip
+("Avoid Calling Phone") which fires checkoutController.update(['checkout_coordinator']) — a fresh rebuild.
+Post-tap grep for "missing coordinates" -> ZERO lines. The warn does not re-fire on a later rebuild within
+the same checkout session, confirming the session-scoped `Set<int> _warnedMissingCoordsStoreIds` latch
+(checkout_screen.dart:123, :1322) is working live, not just by code inspection.
+
+CK13 re-verify (fix cycle 2) — consent copy exact string
+Live rendered text (uiautomator dump, concatenated across adjacent nodes at the same row):
+  "By placing this order, you agree to our " + "Privacy Policy" + ", " + "Terms & Conditions" + ", and " +
+  "Refund Policy" + "."
+  => "By placing this order, you agree to our Privacy Policy, Terms & Conditions, and Refund Policy."
+Matches the required Oxford-comma wording exactly (previously rendered "...Terms & Conditions and Refund
+Policy." with no comma before "and"). Links (Privacy Policy / Terms & Conditions / Refund Policy) are still
+distinct tappable TapGestureRecognizer spans (condition_check_box.dart) — no checkbox present (by design,
+Option A implied consent).
+
+Analytics dead-code fix re-verify (fix cycle 2) — delivery_instruction_selected
+Tapped preset chip "Avoid Calling Phone" in the Delivery section's merged Additional Note field. Captured
+BOTH the app's own analytics-service log line and the underlying Firebase Analytics service log:
+  I/flutter: analytics: delivery_instruction_selected {preset_id: avoid_calling_phone, selected: 1,
+             screen: checkout, section: delivery}
+  V/FA-SVC : Logging event: origin=app,name=delivery_instruction_selected,
+             params=Bundle[{preset_id=avoid_calling_phone, screen=checkout, ga_screen_class(_sc)=MainActivity,
+             ga_screen(_sn)=/checkout, selected=1, section=delivery}]
+PII-safe (preset id + booleans/ids only, no free text/PII). Confirms address_delivery_option_controller.dart
+setInstruction()'s new AnalyticsService.logDeliveryInstructionSelected() call is reachable from the UI (it
+previously had zero callers reaching it after the CK4 merge).

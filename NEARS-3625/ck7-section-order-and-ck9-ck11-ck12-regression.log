@@ -1,0 +1,48 @@
+CK7 re-verify (fix cycle 2) — section order, live y-position dump (uiautomator, sorted by on-screen y)
+Delivery (incl. merged instructions), y=373-697:
+  "Additional note" (373), "Deliver to front door" (487, preset chip), "Deliver to the reception desk" (592),
+  "Avoid Calling Phone" / "Come with no sound" (697)
+TimeSlot "Change" control, y=1192 (schedule-change toggle, between Delivery and Payment)
+Payment, y=1222: "Choose Payment Method"
+Offers (collapsed), y=1597: "Apply coupon or promo code"
+Tip, y=1876: "Delivery Partner Tips"
+Summary, y=2392: "Order Summary"
+-> confirmed live order: Delivery(incl. instructions) -> Payment -> Offers -> Tip -> Summary, with Items
+above (per-store item cards + Review Items header render earlier in the scroll, before Delivery). The
+merged instructions field ("Additional note") is INSIDE the Delivery section and well before Payment/Tip —
+this is the exact regression from cycle-1 (instructions previously rendered AFTER Tips) now fixed.
+Code cross-check: UserApp/lib/features/checkout/widgets/top_section.dart renders
+DeliverySection -> NoteAndPrescriptionSection -> TimeSlotSection -> [Payment section] unconditionally
+(not data-dependent), matching the live capture.
+
+CK9 regression re-verify (money reconciliation), 7-store basket (bigger than the 2-store canonical fixture,
+same controller code that was rewritten across cycles 4-5):
+  Subtotal            894.60 AED
+  Discount            -82.15 AED
+  VAT                 +40.62 AED
+  Delivery Fees (Σ)     0.00 AED  (all 7 per-store rows individually 0.00 — free delivery on this basket)
+  Total Amount        853.07 AED
+  Check: 894.60 - 82.15 + 40.62 + 0.00 = 853.07  -> EXACT match, no drift after the cycles 4-5 rewrite.
+  ("You got 0.34 AED additional discount" banner is a separate promotional line, not part of this sum —
+  unchanged from cycle-1's PASS finding.)
+
+CK11 regression re-verify (per-store fee/ETA rows, not marketing lines):
+  Fee Breakdown rows rendered: Fresh supermarket 0.00 AED, Fresh local 0.00 AED (~2h1min/~2h19min ETA),
+  Abu Nadia Grocery 0.00 AED (—), Daily Fresh Market 0.00 AED (—), Nears Mart 0.00 AED (—),
+  Test Store 0.00 AED (~18 min), Fast Market 0.00 AED (~17 min).
+  All 7 rows are real per-store computed values (some "—" where the store's coordinates didn't resolve —
+  matches the CK1 missing-coordinates warns for the same 5 store ids: 1,4047,21,35,37 partially resolved via
+  a different cache than the map-preview one), not the old static marketing copy. Matches cycle-1's PASS.
+
+CK12 re-verify — zero-value Delivery Fees row hidden for take_away:
+  Code-review only (secondary evidence, per task instructions) — bottom_section.dart:281-298 gates the whole
+  Delivery Fees/Fee-Breakdown block behind
+  `(takeAway || (isGuestLoggedIn && guestAddress == null)) ? SizedBox() : <row>`.
+  LIVE test of the take_away branch itself is environmentally blocked in this build: UserApp's
+  CheckoutController.initCheckoutData() force-sets `_orderType = 'delivery'` on every checkout entry,
+  setOrderType() has zero call sites, and there is no in-app take_away picker (documented pre-existing gap,
+  NEARS-1812, unrelated to this ticket) — the take_away path cannot be reached through the UI at all in this
+  environment. The reachable branch (delivery order, logged-in, real address) correctly SHOWS the
+  Delivery Fees row even at 0.00 (see CK9/CK11 evidence above: 7x "0.00 AED" rows all visible) — i.e. the
+  live-reachable half of the gate behaves as expected (0.00 on an actual delivery order is real "free
+  delivery", not something that should be hidden), and the take_away half is verified by code reading only.

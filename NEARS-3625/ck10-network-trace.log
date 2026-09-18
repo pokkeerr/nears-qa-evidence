@@ -1,0 +1,75 @@
+CK10 re-verify (fix cycle 2) — checkout-open network trace, fresh cold app-restart
+Capture: sudo tcpdump -i lo0 -tttt -A -s 2048 'tcp port 8625' (10.0.2.2:8625 from the emulator routes to host
+loopback via QEMU slirp), from app force-stop through ~20s past "Proceed to Checkout".
+Basket: 7-store group (same as CK8 evidence).
+
+Per-endpoint counts and burst shape (the 4 endpoints named in the QA Test Scope):
+
+1. POST /api/v1/config/delivery-quote — 4 calls, ALL within 0.6ms of each other (05:47:02.842461,
+   .842642, .842875, .843039). ONE burst for the whole session (no second batch at any later point in the
+   ~20s capture) = one dispatch per resolvable store, exactly matching prepareGroupDeliveryData's
+   Future.wait over 4 resolvable stores. PASS — no duplicate-timestamp pair across bursts.
+
+2. POST /api/v1/customer/order/get-Tax — 7 calls, ALL within 4.8ms of each other (05:47:03.131682 through
+   .136147). ONE burst, matching Future.wait over the 7 stores in _computeGroupAddedTax. No second batch
+   anywhere else in the capture. PASS.
+
+3. GET /api/v1/cashback/getCashback — 2 calls total: amount=0.0 at 05:46:59.790811 (before pricing settled)
+   and amount=811.45 at 05:47:04.800756 (~5s apart, after pricing settled, DIFFERENT amount param) — a
+   legitimate "refetch once the real order amount is known" pattern, not a duplicate-timestamp pair.
+
+4. GET /api/v1/vehicle/extra_charge — 5 calls: one early call at 05:46:58.902061 (distance=9.647) BEFORE the
+   group's own distance-api round-trip (05:46:59.934xxx) even started, then 4 more at 05:47:00.502908
+   (distance=9.647, same value as the early one — but 1.6s LATER, not a millisecond-adjacent duplicate),
+   05:47:01.037877 (0.956), 05:47:01.554796 (8.262), 05:47:02.588669 (6.872). The early 9.647 call is the
+   documented, PRE-EXISTING "StoreController.getStoreDetails auto-fires [a single-store distance/extra-charge
+   quote] on every checkout open" path (pricing_summary_controller.dart:210-217 comment) — a DIFFERENT call
+   site than the two this cycle's fix targeted (placeGroupOrder's prepareGroupDeliveryData bypass, and
+   calculateCheckoutPricing's missing multi-store bail), already deduped against ITSELF via
+   getDistanceInKM's _pendingDistanceKey/_pendingDistanceFuture guard, and out of this ticket's fix scope.
+   No two extra_charge calls share a near-identical (sub-second) timestamp — the closest pair is 1.6s apart.
+
+Verdict: no duplicate-timestamp pairs on any of the 4 named endpoints, on a fresh cold-restart. The
+cycle-1 FAIL signature ("4x delivery-quote and 7x get-Tax at IDENTICAL MILLISECOND timestamps" — i.e. TWO
+full bursts of 4 and 7 respectively) does not reproduce: each endpoint fires exactly ONE burst of the
+expected per-store cardinality (4 or 7), never two.
+
+Full raw request-line list (chronological, GET/POST + path only):
+2026-09-18 05:46:53.680747 GET /api/v1/stores/details/13
+2026-09-18 05:46:53.744795 GET /api/v1/stores/details/13
+2026-09-18 05:46:53.750422 GET /api/v1/stores/details/12
+2026-09-18 05:46:53.874185 GET /api/v1/items/suggested?recommended=1&store_id=13&offset=1&limit=50
+2026-09-18 05:46:53.874543 GET /api/v1/stores/details/4047
+2026-09-18 05:46:53.879051 GET /api/v1/stores/details/37
+2026-09-18 05:46:53.943918 GET /api/v1/stores/details/1
+2026-09-18 05:46:53.944378 GET /api/v1/stores/details/35
+2026-09-18 05:46:53.957485 GET /api/v1/stores/details/21
+2026-09-18 05:46:58.126989 GET /api/v1/coupon/list
+2026-09-18 05:46:58.127522 GET /api/v1/offline_payment_method_list
+2026-09-18 05:46:58.128082 GET /api/v1/stores/details/13
+2026-09-18 05:46:58.128466 GET /api/v1/most-tips
+2026-09-18 05:46:58.429977 POST /api/v1/customer/order/get-surge-price
+2026-09-18 05:46:58.430432 GET /api/v1/config/distance-api?origin_lat=24.453884&origin_lng=54.3773438&destination_lat=24.39&destination_lng=54.39&mode=WALK
+2026-09-18 05:46:58.902061 GET /api/v1/vehicle/extra_charge?distance=9.647
+2026-09-18 05:46:59.291224..305 GET /api/v1/stores/details/{13,12,4047,37,1,35,21}
+2026-09-18 05:46:59.790811 GET /api/v1/cashback/getCashback?amount=0.0
+2026-09-18 05:46:59.934357 GET /api/v1/config/distance-api?origin_lat=24.39&origin_lng=54.39&destination_lat=24.453884&destination_lng=54.3773438&mode=WALK
+2026-09-18 05:46:59.934554 GET /api/v1/config/distance-api?origin_lat=24.46&origin_lng=54.38&destination_lat=24.453884&destination_lng=54.3773438&mode=WALK
+2026-09-18 05:46:59.934814 GET /api/v1/config/distance-api?origin_lat=24.42592617984733&origin_lng=54.44503639871109&destination_lat=24.453884&destination_lng=54.3773438&mode=WALK
+2026-09-18 05:46:59.935002 GET /api/v1/config/distance-api?origin_lat=24.425&origin_lng=54.365&destination_lat=24.453884&destination_lng=54.3773438&mode=WALK
+2026-09-18 05:47:00.502908 GET /api/v1/vehicle/extra_charge?distance=9.647
+2026-09-18 05:47:01.037877 GET /api/v1/vehicle/extra_charge?distance=0.956
+2026-09-18 05:47:01.554796 GET /api/v1/vehicle/extra_charge?distance=8.262
+2026-09-18 05:47:02.588669 GET /api/v1/vehicle/extra_charge?distance=6.872
+2026-09-18 05:47:02.842461 POST /api/v1/config/delivery-quote
+2026-09-18 05:47:02.842642 POST /api/v1/config/delivery-quote
+2026-09-18 05:47:02.842875 POST /api/v1/config/delivery-quote
+2026-09-18 05:47:02.843039 POST /api/v1/config/delivery-quote
+2026-09-18 05:47:03.131682 POST /api/v1/customer/order/get-Tax
+2026-09-18 05:47:03.132034 POST /api/v1/customer/order/get-Tax
+2026-09-18 05:47:03.132260 POST /api/v1/customer/order/get-Tax
+2026-09-18 05:47:03.132460 POST /api/v1/customer/order/get-Tax
+2026-09-18 05:47:03.135396 POST /api/v1/customer/order/get-Tax
+2026-09-18 05:47:03.135691 POST /api/v1/customer/order/get-Tax
+2026-09-18 05:47:03.136147 POST /api/v1/customer/order/get-Tax
+2026-09-18 05:47:04.800756 GET /api/v1/cashback/getCashback?amount=811.45
