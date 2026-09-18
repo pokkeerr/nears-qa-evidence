@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3589
 
-**QA FAIL — BK1/BK6/BK7 AC violations found live, BK2/BK3/BK5/BK8/BK9/BK10 pass; see comment for full table**
+**Delta re-QA fix-cycle 2: BK1 improved but still FAIL (33dp>16dp), BK6/BK7/BK2-a11y/48dp-tap/analytics all PASS, AC-DLS Widgetbook use-case unreachable (build_runner not regenerated)**
 
-**51 screenshot(s).** Click any thumbnail for full resolution.
+**60 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -23,10 +23,25 @@
 <tr>
 <td align="center" width="33%"><a href="bug-bk1-cta-nav-gap.png"><img src="bug-bk1-cta-nav-gap.png" width="240"></a><br><sub>bug bk1 cta nav gap</sub></td>
 <td align="center" width="33%"><a href="bug-bk2-tap-target-44dp.png"><img src="bug-bk2-tap-target-44dp.png" width="240"></a><br><sub>bug bk2 tap target 44dp</sub></td>
-<td align="center" width="33%"><a href="bug-bk6-substitution-below-fold.png"><img src="bug-bk6-substitution-below-fold.png" width="240"></a><br><sub>bug bk6 substitution below fold</sub></td>
+<td align="center" width="33%"><a href="bug-bk3-widgetbook-outlined-ring-unreachable.png"><img src="bug-bk3-widgetbook-outlined-ring-unreachable.png" width="240"></a><br><sub>bug bk3 widgetbook outlined ring unreachable</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="bug-bk6-substitution-below-fold.png"><img src="bug-bk6-substitution-below-fold.png" width="240"></a><br><sub>bug bk6 substitution below fold</sub></td>
 <td align="center" width="33%"><a href="bug-bk7-discount-row-unfixed-mobile.png"><img src="bug-bk7-discount-row-unfixed-mobile.png" width="240"></a><br><sub>bug bk7 discount row unfixed mobile</sub></td>
+<td align="center" width="33%"><a href="delta-acdls-widgetbook-outlined-ring.png"><img src="delta-acdls-widgetbook-outlined-ring.png" width="240"></a><br><sub>delta acdls widgetbook outlined ring</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-bk1-tabmode-cta-gap.png"><img src="delta-bk1-tabmode-cta-gap.png" width="240"></a><br><sub>delta bk1 tabmode cta gap</sub></td>
+<td align="center" width="33%"><a href="delta-bk2-undo-independent-node.png"><img src="delta-bk2-undo-independent-node.png" width="240"></a><br><sub>delta bk2 undo independent node</sub></td>
+<td align="center" width="33%"><a href="delta-bk2bk3-narrow-1.3x-textscale.png"><img src="delta-bk2bk3-narrow-1.3x-textscale.png" width="240"></a><br><sub>delta bk2bk3 narrow 1.3x textscale</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-bk2bk3-narrow-360dp.png"><img src="delta-bk2bk3-narrow-360dp.png" width="240"></a><br><sub>delta bk2bk3 narrow 360dp</sub></td>
+<td align="center" width="33%"><a href="delta-bk2bk3-rtl-narrow-1.3x.png"><img src="delta-bk2bk3-rtl-narrow-1.3x.png" width="240"></a><br><sub>delta bk2bk3 rtl narrow 1.3x</sub></td>
+<td align="center" width="33%"><a href="delta-bk6-basket-initial.png"><img src="delta-bk6-basket-initial.png" width="240"></a><br><sub>delta bk6 basket initial</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-bk7-discount-row-mobile.png"><img src="delta-bk7-discount-row-mobile.png" width="240"></a><br><sub>delta bk7 discount row mobile</sub></td>
 <td align="center" width="33%"><a href="p7-01.png"><img src="p7-01.png" width="240"></a><br><sub>p7 01</sub></td>
 <td align="center" width="33%"><a href="p7-02.png"><img src="p7-02.png" width="240"></a><br><sub>p7 02</sub></td>
 </tr>
@@ -94,6 +109,9 @@
 
 ### Other artifacts
 - [`bug-bk2-undo-a11y-merge-dump.xml`](bug-bk2-undo-a11y-merge-dump.xml)
+- [`bug-bk3-widgetbook-outlined-ring-unreachable.log`](bug-bk3-widgetbook-outlined-ring-unreachable.log)
+- [`delta-bk2-undo-a11y-dump.xml`](delta-bk2-undo-a11y-dump.xml)
+- [`p7-remove-label-evidence.txt`](p7-remove-label-evidence.txt)
 - [`progress.md`](progress.md)
 
 ---

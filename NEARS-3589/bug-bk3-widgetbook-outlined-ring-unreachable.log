@@ -1,0 +1,37 @@
+=== git log for widgetbook/lib/main.directories.g.dart (last touch, unrelated ticket) ===
+0c1c2ae6c feat(NEARS-3637): loyalty points frontend fixes (LP1-LP8) + NTransactionRow/NStepList DLS promotion
+
+=== grep 'niconbutton' registrations in main.directories.g.dart (only Gallery/Playground/Square present; 'Outlined Ring' absent) ===
+1311-        name: 'icon_button',
+1312-        children: [
+1313-          _widgetbook.WidgetbookComponent(
+1314:            name: 'NIconButton',
+1315-            useCases: [
+1316-              _widgetbook.WidgetbookUseCase(
+1317-                name: 'Gallery',
+1318-                builder: _nears_widgetbook_elements_n_icon_button_stories
+1319-                    .buildNIconButtonGallery,
+1320-              ),
+1321-              _widgetbook.WidgetbookUseCase(
+1322-                name: 'Playground',
+1323-                builder: _nears_widgetbook_elements_n_icon_button_stories
+1324-                    .buildNIconButtonPlayground,
+1325-              ),
+1326-              _widgetbook.WidgetbookUseCase(
+1327-                name: 'Square',
+1328-                builder: _nears_widgetbook_elements_n_icon_button_stories
+1329-                    .buildNIconButtonSquare,
+1330-              ),
+1331-            ],
+1332-          ),
+1333-        ],
+1334-      ),
+
+=== source has the new UseCase annotation (added this fix cycle, never regenerated into the tree above) ===
+102:@widgetbook.UseCase(name: 'Outlined Ring', type: NIconButton)
+
+=== live positive control: existing 'square' use-case resolves cleanly, no Welcome fallback ===
+web_find ... 'square' -> NOT FOUND: Welcome to Widgetbook (i.e. real story rendered)
+
+=== live negative: 'outlined-ring' deep link falls back to the Welcome screen (NEARS-1535-documented silent-fallback trap) ===
+web_find ... 'outlined-ring' -> FOUND 'Welcome to Widgetbook' @ x=524.76 y=308 (i.e. use-case never rendered)
