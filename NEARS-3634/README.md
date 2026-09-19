@@ -1,33 +1,17 @@
 # QA Evidence — NEARS-3634
 
-**Favourites (Items/Stores) — 11 UI/UX findings, FV0 High (local cards not DLS)**
+**FAIL — task_bug FV6 (store Undo restores a blank card), a11y gap FV1 (missing backLabel); other 9 findings PASS**
 
-**14 screenshot(s).** Click any thumbnail for full resolution.
+**4 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="p13-01-favourites.png"><img src="p13-01-favourites.png" width="240"></a><br><sub>p13 01 favourites</sub></td>
-<td align="center" width="33%"><a href="p13-03-favourites-stores.png"><img src="p13-03-favourites-stores.png" width="240"></a><br><sub>p13 03 favourites stores</sub></td>
-<td align="center" width="33%"><a href="p13-FV1-no-back-button__crop.png"><img src="p13-FV1-no-back-button__crop.png" width="240"></a><br><sub>p13 FV1 no back button crop</sub></td>
+<td align="center" width="33%"><a href="bug-store-undo-blank-card.png"><img src="bug-store-undo-blank-card.png" width="240"></a><br><sub>bug store undo blank card</sub></td>
+<td align="center" width="33%"><a href="empty-state.png"><img src="empty-state.png" width="240"></a><br><sub>empty state</sub></td>
+<td align="center" width="33%"><a href="items-tab.png"><img src="items-tab.png" width="240"></a><br><sub>items tab</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="p13-FV1-no-back-button__full.png"><img src="p13-FV1-no-back-button__full.png" width="240"></a><br><sub>p13 FV1 no back button full</sub></td>
-<td align="center" width="33%"><a href="p13-FV2-item-stores-segment-labels__crop.png"><img src="p13-FV2-item-stores-segment-labels__crop.png" width="240"></a><br><sub>p13 FV2 item stores segment labels crop</sub></td>
-<td align="center" width="33%"><a href="p13-FV2-item-stores-segment-labels__full.png"><img src="p13-FV2-item-stores-segment-labels__full.png" width="240"></a><br><sub>p13 FV2 item stores segment labels full</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p13-FV3-reference-card-store-name-stepper-not-covering__crop.png"><img src="p13-FV3-reference-card-store-name-stepper-not-covering__crop.png" width="240"></a><br><sub>p13 FV3 reference card store name stepper not covering crop</sub></td>
-<td align="center" width="33%"><a href="p13-FV3-reference-card-store-name-stepper-not-covering__full.png"><img src="p13-FV3-reference-card-store-name-stepper-not-covering__full.png" width="240"></a><br><sub>p13 FV3 reference card store name stepper not covering full</sub></td>
-<td align="center" width="33%"><a href="p13-FV4-diagonal-ribbon-decimal__crop.png"><img src="p13-FV4-diagonal-ribbon-decimal__crop.png" width="240"></a><br><sub>p13 FV4 diagonal ribbon decimal crop</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p13-FV4-diagonal-ribbon-decimal__full.png"><img src="p13-FV4-diagonal-ribbon-decimal__full.png" width="240"></a><br><sub>p13 FV4 diagonal ribbon decimal full</sub></td>
-<td align="center" width="33%"><a href="p13-FV7-big-banner-store-cards__crop.png"><img src="p13-FV7-big-banner-store-cards__crop.png" width="240"></a><br><sub>p13 FV7 big banner store cards crop</sub></td>
-<td align="center" width="33%"><a href="p13-FV7-big-banner-store-cards__full.png"><img src="p13-FV7-big-banner-store-cards__full.png" width="240"></a><br><sub>p13 FV7 big banner store cards full</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p13-FV8-closed-double-signal__crop.png"><img src="p13-FV8-closed-double-signal__crop.png" width="240"></a><br><sub>p13 FV8 closed double signal crop</sub></td>
-<td align="center" width="33%"><a href="p13-FV8-closed-double-signal__full.png"><img src="p13-FV8-closed-double-signal__full.png" width="240"></a><br><sub>p13 FV8 closed double signal full</sub></td>
+<td align="center" width="33%"><a href="stores-tab.png"><img src="stores-tab.png" width="240"></a><br><sub>stores tab</sub></td>
 </tr>
 </table>
 
