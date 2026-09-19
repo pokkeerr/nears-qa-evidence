@@ -1,0 +1,30 @@
+NEARS-3639 / NEARS-3700 — cycle-2 delta re-QA (sha cf5695a09, emulator-5556,
+logged-in sophie.davis@demo.com). Live logcat excerpt (flutter + FA-SVC tags),
+Settings > Language flow, confirming the "before" locale capture fix
+(_manageLanguageFunctionality now reads localeBefore prior to opening the
+sheet).
+
+EN -> AR (tapped Language row, selected AR, tapped Update):
+  09-20 00:31:17.414 flutter: 📊 analytics: language_changed {language_code: ar, screen: settings, section: appearance, source: settings}
+  09-20 00:31:17.414 flutter: [EVT] name=language_changed params=[language_code, screen, section, source]
+  09-20 00:31:17.447 FA-SVC : Logging event: origin=app,name=language_changed,params=Bundle[{screen=settings, source=settings, language_code=ar, ..., section=appearance}]
+
+AR -> EN (tapped لغة row, selected English, tapped تحديث):
+  09-20 00:32:00.069 flutter: 📊 analytics: language_changed {language_code: en, screen: settings, section: appearance, source: settings}
+  09-20 00:32:00.069 flutter: [EVT] name=language_changed params=[language_code, screen, section, source]
+  09-20 00:32:00.092 FA-SVC : Logging event: origin=app,name=language_changed,params=Bundle[{screen=settings, source=settings, language_code=en, ..., section=appearance}]
+
+Negative control — opened Language sheet, took NO action, dismissed via
+hardware back (adb shell input keyevent 4):
+  logcat window covering the dismiss shows settings_row_tapped + screen_view
+  (language_sheet) only — NO language_changed line, before or after. Grep for
+  "language_changed" across the whole capture for this window returns 0
+  matches (verified: `adb logcat -d | grep -E "language_changed|\[FAIL\]|\[ERR\]"`
+  printed nothing).
+
+Flutter-tagged [FAIL]/[ERR] check across the whole session (all 3 language
+actions + notification-row toggling): `adb logcat -d | grep "flutter" | grep -E
+"\[FAIL\]|\[ERR\]"` → 0 lines. Logs clean.
+
+AC-ANALYTICS: CONFIRMED — fires on both real changes with the correct
+language_code, screen, section, source; does not fire on a no-op dismiss.

@@ -1,0 +1,86 @@
+NEARS-3639 / NEARS-3701 — cycle-2 delta re-QA (sha cf5695a09, emulator-5556,
+English locale, live device, logged-in as sophie.davis@demo.com).
+
+CLAIM UNDER TEST (fix-cycle packet): "Re-run the SAME live a11y dump ... confirm
+exactly ONE node per row now (not two)."
+
+RESULT: NOT CONFIRMED. Order-updates / Offers-promotions rows still expose TWO
+distinct, independently-focusable accessibility nodes at identical bounds — the
+specific ROOT CAUSE changed, the симптом (2 nodes) did not.
+
+Evidence file: docs/qa-evidence/NEARS-3639/NEARS-3701-settings-a11y-dump.xml
+(live uiautomator dump, pulled this run, both rows checked=true — a second dump
+after toggling Offers off is in the run notes, confirming toggled/checked state
+correctly flips on the OUTER node only).
+
+Extract, "Order updates" row (bounds [96,1001][1248,1193]):
+
+<node class="android.widget.Switch" content-desc="Order updates, switch"
+      checkable="true" checked="true" clickable="true" focusable="true"
+      bounds="[96,1001][1248,1193]">
+  <node class="android.view.View" content-desc="Order updates"
+        checkable="false" clickable="true" focusable="true"
+        bounds="[96,1001][1248,1193]" />
+</node>
+
+Same shape for "Offers & promotions" (bounds [96,1194][1248,1386]).
+
+WHAT IS FIXED (verified, do not re-litigate): the cycle-1 defect was the
+trailing NSwitch's own baked `Semantics(toggled:)` node competing with the row
+(cycle-1 evidence: bug-order-updates-row-doubled-a11y-node.log — a NESTED
+`android.widget.Switch` class node, itself checkable=true/checked=true, one
+level BELOW an intermediate View). That inner Switch-classed duplicate is GONE.
+`_switchTrailing()`'s `ExcludeSemantics(child: switchWidget)` (n_settings_tile.dart,
+NEARS-3701 comment) removed it, and `toggled: _trailingSwitchValue` on the OUTER
+`Semantics(container:true, explicitChildNodes:true, ...)` now correctly carries
+the real on/off state — confirmed live: toggling "Offers & promotions" off via
+its row tap flips the OUTER node's `checked` from `true` to `false` and back
+when toggled again (re-dumped both times), single source of truth. Widget test
+`setting_page_notification_split_test.dart` "...merge into exactly one toggled
+semantics node..." also reflects this correctly — but note its predicate is
+narrower than the AC: it walks the tree and asserts exactly one node carries
+`SemanticsData.flagsCollection.isToggled != null`, which is now true (1 toggled
+node), but it does NOT count total nodes with a label/action under the row —
+so it cannot see the second, non-toggled node below. Green here does not mean
+"1 node total".
+
+WHAT IS STILL BROKEN: a SECOND node persists, now sourced differently. Root
+cause (packages/nears_dls/lib/elements/settings_tile/n_settings_tile.dart,
+buildContent()): the row's own `InkWell(onTap: onTap, ...)` is used bare, with
+no `excludeFromSemantics` param passed. Per Flutter's own
+`ink_well.dart` (~line 1401), InkWell always wraps its child in its own
+`Semantics(onTap: simulateTap)` node (no `container:true` on that node). Under
+the OUTER `explicitChildNodes: true` boundary added by this ticket, that
+InkWell node can no longer merge upward, so it survives as its own explicit
+child — and since it has no container boundary of its own, it in turn absorbs
+the (non-excluded) label Text underneath it, producing the plain-label,
+non-checkable "Order updates" node seen above, at the SAME bounds as the whole
+row (the InkWell fills the row).
+
+This is exactly the shape THIS SAME DESIGN SYSTEM already solved elsewhere:
+`NSurfaceCard.excludeInkSemantics` (packages/nears_dls/lib/elements/surface_card/
+n_surface_card.dart:57,78,208) forwards straight to the native
+`InkWell(excludeFromSemantics: ...)` parameter, and is already wired at every
+other row-with-a-merged-semantic-label call site in this DLS:
+  - n_active_order_banner.dart:70  excludeInkSemantics: onTap != null && semanticLabel != null
+  - n_item_card.dart:323,347,511   (same predicate)
+  - n_reorder_shortcut_card.dart:185
+NSettingsTile's own `InkWell` in buildContent() is the ONLY row-shaped element
+in this file set that never received the equivalent treatment — it builds a
+bare `InkWell` directly rather than routing through NSurfaceCard, so there is
+no existing prop to flip; the fix is either (a) pass
+`excludeFromSemantics: semanticLabel != null` directly on that InkWell
+(mirrors the NActiveOrderBanner predicate exactly), or (b) rebuild the row on
+NSurfaceCard and use `excludeInkSemantics` for parity with the rest of the DLS.
+
+Positive control (proves the instrument/dump was live, not empty): the same
+dump's "About Us" row (index 9, no semanticLabel set — setting_page.dart passes
+none for that row) is a SINGLE self-closing node, content-desc="About Us",
+clickable=true, no nested children — confirms rows WITHOUT the
+container+explicitChildNodes wrapper merge cleanly into exactly one node by
+Flutter's default semantics behavior, and that this uiautomator dump correctly
+distinguishes 1-node rows from 2-node rows in the same screen, same dump.
+
+Net: NEARS-3701 AC ("exactly one node per row") is not yet met. Recommend one
+more fix-cycle: add `excludeFromSemantics: semanticLabel != null` (or route via
+NSurfaceCard) to NSettingsTile's InkWell.

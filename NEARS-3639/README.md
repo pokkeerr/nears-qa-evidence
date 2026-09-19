@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3639
 
-**FAIL — 2 task_bugs (language_changed analytics event never fires; Order-updates/Offers rows a11y doubled node), all other ACs demonstrated live PASS**
+**cycle-2 delta re-QA: AC-ANALYTICS PASS, NEARS-3701 still FAIL (2 a11y nodes persist, different root cause)**
 
 **17 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -37,12 +37,16 @@
 </table>
 
 ### Other artifacts
+- [`AC-ANALYTICS-language-changed-cycle2.log`](AC-ANALYTICS-language-changed-cycle2.log)
+- [`NEARS-3701-offers-toggled-false-a11y-dump.xml`](NEARS-3701-offers-toggled-false-a11y-dump.xml)
+- [`NEARS-3701-settings-a11y-dump.xml`](NEARS-3701-settings-a11y-dump.xml)
 - [`RTL-settings-a11y-dump.xml`](RTL-settings-a11y-dump.xml)
 - [`ST1-SEC1-after-relaunch-a11y-dump.xml`](ST1-SEC1-after-relaunch-a11y-dump.xml)
 - [`ST1-SEC3-fresh-install-server-sync-a11y-dump.xml`](ST1-SEC3-fresh-install-server-sync-a11y-dump.xml)
 - [`ST2-secondcoldboot-still-system-a11y-dump.xml`](ST2-secondcoldboot-still-system-a11y-dump.xml)
 - [`bug-language-changed-event-never-fires.log`](bug-language-changed-event-never-fires.log)
 - [`bug-order-updates-row-doubled-a11y-node.log`](bug-order-updates-row-doubled-a11y-node.log)
+- [`bug-order-updates-row-still-two-a11y-nodes-cycle2.log`](bug-order-updates-row-still-two-a11y-nodes-cycle2.log)
 - [`settings-page-a11y-dump.xml`](settings-page-a11y-dump.xml)
 
 ---
