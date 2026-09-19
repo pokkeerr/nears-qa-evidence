@@ -1,0 +1,30 @@
+Pre-existing, unrelated-to-NEARS-3649 defect found incidentally during this QA pass.
+Reproduced on TWO pool devices (emulator-5558=Pixel_10_Pro_3, no Google account; emulator-5554=Pixel_10_Pro, Google account nears.izzes@gmail.com signed in) -- account presence is NOT the variable; every worktree UserApp build lacks a matching google-services.json client entry (NEARS-1808 applicationIdSuffix vs NEARS-795's base-package-only json), so Firebase.initializeApp() always throws PlatformException at boot in a worktree.
+
+--- login blocked (emulator-5554, 2026-09-20 02:xx) ---
+I/flutter: [FAIL] endpoint=null http_status=null type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+E/flutter: [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+E/flutter: #0      MethodChannelFirebase.app (package:firebase_core_platform_interface/src/method_channel/method_channel_firebase.dart:190:5)
+E/flutter: #1      Firebase.app (package:firebase_core/src/firebase.dart:92:41)
+E/flutter: #2      FirebaseMessaging.instance (package:firebase_messaging/src/messaging.dart:32:47)
+E/flutter: #3      AuthRepository.updateToken (package:nears/features/auth/domain/repositories/auth_repository.dart:256:25)
+E/flutter: #4      AuthService._updateHeaderFunctionality (package:nears/features/auth/domain/services/auth_service.dart:55:7)
+E/flutter: #5      AuthService.login (package:nears/features/auth/domain/services/auth_service.dart:44:7)
+E/flutter: #6      AuthController.login (package:nears/features/auth/controllers/auth_controller.dart:116:37)
+E/flutter: #7      AuthController.validateAndLogin (package:nears/features/auth/controllers/auth_controller.dart:640:28)
+E/flutter: #8      _SignInViewState._login (package:nears/features/auth/widgets/sign_in/sign_in_view.dart:241:29)
+-- effect: POST /api/v1/auth/login returns 200 and the token is durably stored (ApiClient.storeToken already ran before this throw), but the exception is never caught anywhere in this call chain, so validateAndLogin() never returns and _login() never navigates off Sign-In. No error toast, no [FAIL] surfaced to the user -- looks exactly like a dead Sign In button.
+
+--- logout blocked (emulator-5554, same session) ---
+E/flutter: [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+E/flutter: #2      FirebaseMessaging.instance (package:firebase_messaging/src/messaging.dart:32:47)
+E/flutter: #3      AuthRepository.updateToken (package:nears/features/auth/domain/repositories/auth_repository.dart:256:25)
+E/flutter: #4      AuthService.updateToken (package:nears/features/auth/domain/services/auth_service.dart:122:31)
+E/flutter: #5      AuthController.updateToken (package:nears/features/auth/controllers/auth_controller.dart:363:5)
+-- effect: the "Are you sure you want to log out?" dialog's Yes button never dismisses/navigates; repeated taps just re-show the same dialog.
+
+Root cause (both symptoms): AuthRepository.updateToken() (auth_repository.dart) calls FirebaseMessaging.instance directly with no try/catch -- a real end-user whose device has Firebase transiently unavailable (not just this QA sandbox) would hit the identical silent lockout on login AND logout.
+
+Workaround used to continue this QA pass: `adb shell am force-stop <pkg> && adb shell am start -n <pkg>/com.izzes.nears.MainActivity` (cold process restart) re-reads the already-persisted token on the splash "already logged in" check and lands on Home, bypassing the stuck Sign-In screen. No equivalent workaround exists for logout in an affected environment; `pm clear` was used instead.
+
+Files: UserApp/lib/features/auth/domain/repositories/auth_repository.dart (updateToken), UserApp/lib/features/auth/controllers/auth_controller.dart (login/validateAndLogin/updateToken), UserApp/lib/features/auth/widgets/sign_in/sign_in_view.dart (_login) -- none touched by NEARS-3649's diff.
