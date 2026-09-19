@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3583
 
-**FAIL (cycle 0): 1 breaks-AC finding (AC1 tile/auth-failure with map created still blank); all other ACs PASS; UserApp Android emulator-5554**
+**cycle1 re-QA PASS: TB2/TB3 fixes verified live, item 3 critical search-recovery confirmed**
 
-**24 screenshot(s).** Click any thumbnail for full resolution.
+**29 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -45,10 +45,24 @@
 <td align="center" width="33%"><a href="bug-back-from-cold-rationale-dead-end-loading.png"><img src="bug-back-from-cold-rationale-dead-end-loading.png" width="240"></a><br><sub>bug back from cold rationale dead end loading</sub></td>
 <td align="center" width="33%"><a href="bug-back-from-cold-start-dead-end-loading.png"><img src="bug-back-from-cold-start-dead-end-loading.png" width="240"></a><br><sub>bug back from cold start dead end loading</sub></td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="re1-failure-card-normal-size.png"><img src="re1-failure-card-normal-size.png" width="240"></a><br><sub>re1 failure card normal size</sub></td>
+<td align="center" width="33%"><a href="re2-WRONGDENSITY-ignore.png"><img src="re2-WRONGDENSITY-ignore.png" width="240"></a><br><sub>re2 WRONGDENSITY ignore</sub></td>
+<td align="center" width="33%"><a href="re2b-WRONGDENSITY-ignore.png"><img src="re2b-WRONGDENSITY-ignore.png" width="240"></a><br><sub>re2b WRONGDENSITY ignore</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="re2d-320x480-real-density.png"><img src="re2d-320x480-real-density.png" width="240"></a><br><sub>re2d 320x480 real density</sub></td>
+<td align="center" width="33%"><a href="re2e-320x200-shortheight.png"><img src="re2e-320x200-shortheight.png" width="240"></a><br><sub>re2e 320x200 shortheight</sub></td>
+</tr>
 </table>
 
 ### Other artifacts
 - [`app-events-and-nonsuccess-logs.log`](app-events-and-nonsuccess-logs.log)
+- [`re1-pre-kill-cta-state.xml`](re1-pre-kill-cta-state.xml)
+- [`re2c-320x480-real-dump.xml`](re2c-320x480-real-dump.xml)
+- [`re2f-320x480-scrolled-no-overlap-dump.xml`](re2f-320x480-scrolled-no-overlap-dump.xml)
+- [`re3-abudhabi-cta-enabled-dump.xml`](re3-abudhabi-cta-enabled-dump.xml)
+- [`re3-search-select-dump.xml`](re3-search-select-dump.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3583/` · public-repo scrub policy (no live secrets; verified clean).*
