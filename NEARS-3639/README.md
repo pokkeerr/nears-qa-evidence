@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3639
 
-**cycle3 FINAL: NEARS-3701 a11y fix CONFIRMED (single node/row, activatable, toggled state correct)**
+**PASS - fix-cycle5 focus reachability confirmed live (TAB+ENTER + touch), 4318fe031, emulator-5556**
 
 **17 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -38,6 +38,13 @@
 
 ### Other artifacts
 - [`AC-ANALYTICS-language-changed-cycle2.log`](AC-ANALYTICS-language-changed-cycle2.log)
+- [`NEARS-3639-cycle4-CONFIRMED-FIXED.log`](NEARS-3639-cycle4-CONFIRMED-FIXED.log)
+- [`NEARS-3639-cycle4-enter-activated-confirm-sheet.xml`](NEARS-3639-cycle4-enter-activated-confirm-sheet.xml)
+- [`NEARS-3639-cycle4-final-state-restored.xml`](NEARS-3639-cycle4-final-state-restored.xml)
+- [`NEARS-3639-cycle4-focus-a11y-dump.xml`](NEARS-3639-cycle4-focus-a11y-dump.xml)
+- [`NEARS-3639-cycle4-tab1-back-focused.xml`](NEARS-3639-cycle4-tab1-back-focused.xml)
+- [`NEARS-3639-cycle4-tab4-orderupdates-focused.xml`](NEARS-3639-cycle4-tab4-orderupdates-focused.xml)
+- [`NEARS-3639-cycle4-tab5-offers-focused.xml`](NEARS-3639-cycle4-tab5-offers-focused.xml)
 - [`NEARS-3701-after-offers-toggle-cycle3.xml`](NEARS-3701-after-offers-toggle-cycle3.xml)
 - [`NEARS-3701-after-orders-toggle-cycle3.xml`](NEARS-3701-after-orders-toggle-cycle3.xml)
 - [`NEARS-3701-cycle3-CONFIRMED-FIXED.log`](NEARS-3701-cycle3-CONFIRMED-FIXED.log)

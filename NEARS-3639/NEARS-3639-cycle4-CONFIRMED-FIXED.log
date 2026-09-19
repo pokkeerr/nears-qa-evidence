@@ -1,0 +1,137 @@
+NEARS-3639 — fix-cycle 4 (FINAL, delta re-QA). Scope: ONLY the NEARS-2628
+focus-reachability fix from fix-cycle 5 (NFocusHolder + FocusableActionDetector
++ re-supplied focusable/focused/onFocus + ExcludeFocus).
+
+sha 4318fe031, emulator-5556, English locale, live device.
+Backend: /Users/Apple/Projects/nears-NEARS-3639-settings-dls-notification-split
+@ 4318fe031 (own php artisan serve on :8639, backend-freshness-check PASS —
+cwd matches worktree, HEAD matches).
+
+CLAIM UNDER TEST: fix-cycle 5 re-supplies focusable/onFocus on the merged
+Semantics node (dropped by fix-cycle 4's ExcludeSemantics-only fix) without
+re-opening the NEARS-3701 "second a11y node" leak, and without breaking
+plain touch-tap activation.
+
+RESULT: CONFIRMED FIXED. All 3 requested checks pass, on-device, this cycle.
+
+── (1) Real keyboard/switch-access focus traversal (not just a static dump) ─
+Used `adb shell input keyevent 61` (TAB) to drive Flutter's real Focus/
+Actions system (documented technique, userapp-navigation-guide.md NEARS-3656
+"keyboard-focus TAB+ENTER" section) — genuinely different code path from
+raw pointer hit-testing. Single-stepped 8 TABs from a fresh Settings-screen
+entry, dumping uiautomator's live accessibility tree after each step and
+grepping for the `focused="true"` accessibility-focused node (excluding the
+window-level FrameLayout, which is always "focused" as the host View and is
+not the signal):
+
+  TAB 1: Back button
+  TAB 2: Appearance row
+  TAB 3: Language row
+  TAB 4: "Order updates, switch"   <- target row, focusable="true" focused="true"
+  TAB 5: "Offers and promotions, switch" <- target row, focusable="true" focused="true"
+  TAB 6: Terms & Conditions
+  TAB 7: Privacy Policy
+  TAB 8: About Us
+
+Both target rows are reached in visual top-to-bottom order, exactly where a
+keyboard/switch-access user would expect them. Evidence:
+  NEARS-3639-cycle4-tab1-back-focused.xml
+  NEARS-3639-cycle4-tab4-orderupdates-focused.xml
+  NEARS-3639-cycle4-tab5-offers-focused.xml
+
+Structural confirmation (static dump, both rows, no keyboard interaction
+yet — NEARS-3639-cycle4-focus-a11y-dump.xml): both merged nodes carry
+`focusable="true" focused="false"` on the outer Semantics boundary, matching
+the fix's `focusable: enabled` / `focused: enabled ? focused : null` logic.
+
+── (2) ENTER activates the focused row exactly like a real tap ─────────────
+With focus parked on "Order updates, switch" (TAB x4 from a fresh entry),
+pressed `adb shell input keyevent 66` (ENTER). Result: the SAME
+"Turn off order updates?" confirm bottom sheet opened as a real tap would
+(row was ON, so onTap goes through the confirm-gate branch) —
+NEARS-3639-cycle4-enter-activated-confirm-sheet.xml. Corroborated in the
+app's own flutter-tag log:
+  📊 analytics: screen_view {screen: notification_confirm_sheet, source: settings}
+This proves the re-supplied `onFocus: focusNode.requestFocus` + the
+`FocusableActionDetector`'s `activateActions(...)` wiring resolves to the
+SAME real handler a tap does, not a dead/cosmetic focus ring. Cancelled with
+"No" — state unchanged (checked="true" retained), confirming this
+Sub-claim's flip-back to keep the account's real notification prefs intact.
+
+── (3) Plain touch-tap activation — zero behavior change for a mouse/touch user ─
+Offers & promotions: tapped via `ui_tap "Offers and promotions, switch"
+--exact` -> checked="true"->"false", fired
+`📊 analytics: notification_pref_changed {channel: promotions, enabled: 0,
+screen: settings, section: notifications, source: settings}`. Tapped again
+-> checked back to "true" (state restored), same analytics event with
+enabled: 1 implied by symmetry (channel: promotions).
+Order updates: tapped via `ui_tap "Order updates, switch" --exact` (row was
+ON) -> opened the SAME "Turn off order updates?" confirm sheet as cycle 3's
+PASS and as this cycle's ENTER-driven activation above -> cancelled with
+"No" -> checked="true" retained (state restored,
+NEARS-3639-cycle4-final-state-restored.xml).
+Zero difference from cycle-3's documented touch behavior — confirms this
+fix-cycle introduced no regression to the mouse/touch path.
+
+── Benign companion a11y child (expected, not a regression) ────────────────
+The live a11y dump shows ONE extra child node under each row's merged
+Switch node this cycle (absent in cycle-3's dump): an empty
+`android.view.View`, `content-desc=""`, `clickable="false"`,
+`focusable="false"`. This matches — and is independently CONFIRMED live,
+not just trusted from the unit test — the engineer's own documented
+tradeoff in n_settings_tile.dart's inline comment and the updated
+n_settings_tile_test.dart predicate (NModuleSwitcher precedent): a
+`FocusableActionDetector` internally wraps `Shortcuts` -> its own
+`Focus(includeSemantics: true)`, which `includeFocusSemantics: false` never
+reaches — an SDK-internal artifact, not the InkWell-leak class of bug
+NEARS-3701 fixed. It carries no label and no tap action on either row (live-
+verified, both dumps above), so no assistive-technology user would ever
+land on it as a meaningful stop — NEARS-3701's actual AC ("no second node
+that absorbs the label or the tap action") still holds; only the raw node
+COUNT changed, which the engineer's updated test correctly re-scoped to
+content rather than a strict count. Not filed as a bug; noted here for the
+record since a raw count-only re-check would have looked like a regression
+without this context.
+
+── Logs ──────────────────────────────────────────────────────────────────
+Flutter-tag log across the whole sequence: 0 unexpected `[ERR]`/`[FAIL]`
+(only the known pre-existing, unrelated `E/com.facebook.GraphResponse`
+OAuth-app-deleted noise, which is present on every UserApp boot on this
+pool regardless of ticket).
+Backend `laravel.log`: 0 new errors during this session's window
+(2026-09-20 01:3x-01:4x) other than known pre-existing/unrelated OpenTelemetry
+OTLP-collector-unreachable noise (localhost:5080 not running in this QA
+environment — a standing, ticket-unrelated environmental gap) and stale
+`testing`-environment phpunit validation-error lines from 09-17/09-19 (a
+different Laravel environment, not this run's `production` dev-serve
+window).
+
+── Automated backstop ───────────────────────────────────────────────────────
+`packages/nears_dls/test/elements/n_settings_tile_test.dart`: 26/26 pass,
+including the 2 NEW fix-cycle-5 tests ("the outer Semantics node is
+focusable when the row is enabled" / "...NOT focusable when the row is
+disabled").
+Full `packages/nears_dls` suite: 1863/1863 pass, no regressions.
+`UserApp/test/features/profile/setting_page_notification_split_test.dart`:
+8/8 pass, no regressions.
+
+── Environment note ─────────────────────────────────────────────────────────
+Same "unsuffixed control boot" recipe as cycle 3 (this worktree's suffixed
+install has no google-services.json, and a suffixed cold-start crashes
+synchronously in LocationController._saveDataAndFirebaseConfig on the first
+address-confirm — documented gotcha, userapp-navigation-guide.md NEARS-3656).
+Landed on an EXISTING logged-in session (Sophie Davis, saved address, past
+the location gate) reusing the base `com.izzes.nears` APK left installed by
+cycle 3's run; rebuilt+reinstalled it fresh against THIS cycle's code
+(4318fe031) via a bypassed `flutter run` (not qa-run.sh) so the fix under
+test was actually the code exercised. Copied google-services.json removed
+after the run. This run's OWN qa-run.sh-installed suffixed package
+(`com.izzes.nears.nears_nears_3639_settings_dls_notificati`) was uninstalled
+at teardown per NEARS-2668; the shared unsuffixed `com.izzes.nears` was
+force-stopped but left installed (same as cycle 3, not this run's package to
+remove).
+
+NET: the NEARS-2628 focus-reachability fix (fix-cycle 5) IS confirmed live,
+on-device, both rows, both a keyboard/switch-access path (TAB+ENTER) and a
+plain touch-tap path, with zero regression to either. This was the LAST open
+item on NEARS-3639.
