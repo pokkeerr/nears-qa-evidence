@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3649
 
-**Delta QA (fix cycle 2): forgot-current-password link — FAIL, right-align bug**
+**PASS (fix cycle 3 delta): forgot-password link right-aligned EN + mirrored-left AR/RTL, per-pin regression test green**
 
-**12 screenshot(s).** Click any thumbnail for full resolution.
+**14 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -16,12 +16,16 @@
 <td align="center" width="33%"><a href="cp4-landscape-ar-scroll-reachable.png"><img src="cp4-landscape-ar-scroll-reachable.png" width="240"></a><br><sub>cp4 landscape ar scroll reachable</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="delta-cp-forgot-link-ar-cycle3.png"><img src="delta-cp-forgot-link-ar-cycle3.png" width="240"></a><br><sub>delta cp forgot link ar cycle3</sub></td>
 <td align="center" width="33%"><a href="delta-cp-forgot-link-ar.png"><img src="delta-cp-forgot-link-ar.png" width="240"></a><br><sub>delta cp forgot link ar</sub></td>
-<td align="center" width="33%"><a href="delta-cp-forgot-link-en.png"><img src="delta-cp-forgot-link-en.png" width="240"></a><br><sub>delta cp forgot link en</sub></td>
-<td align="center" width="33%"><a href="p29-CP1-only-new-confirm-no-current-password__crop.png"><img src="p29-CP1-only-new-confirm-no-current-password__crop.png" width="240"></a><br><sub>p29 CP1 only new confirm no current password crop</sub></td>
+<td align="center" width="33%"><a href="delta-cp-forgot-link-en-cycle3.png"><img src="delta-cp-forgot-link-en-cycle3.png" width="240"></a><br><sub>delta cp forgot link en cycle3</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="delta-cp-forgot-link-en.png"><img src="delta-cp-forgot-link-en.png" width="240"></a><br><sub>delta cp forgot link en</sub></td>
+<td align="center" width="33%"><a href="p29-CP1-only-new-confirm-no-current-password__crop.png"><img src="p29-CP1-only-new-confirm-no-current-password__crop.png" width="240"></a><br><sub>p29 CP1 only new confirm no current password crop</sub></td>
 <td align="center" width="33%"><a href="p29-CP3-strength-bar-rule-text__crop.png"><img src="p29-CP3-strength-bar-rule-text__crop.png" width="240"></a><br><sub>p29 CP3 strength bar rule text crop</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="p29-CP4-bottom-pinned-button__crop.png"><img src="p29-CP4-bottom-pinned-button__crop.png" width="240"></a><br><sub>p29 CP4 bottom pinned button crop</sub></td>
 <td align="center" width="33%"><a href="p29-CP4-empty-top-hero-duplicate-title__crop.png"><img src="p29-CP4-empty-top-hero-duplicate-title__crop.png" width="240"></a><br><sub>p29 CP4 empty top hero duplicate title crop</sub></td>
 </tr>
@@ -30,6 +34,9 @@
 ### Other artifacts
 - [`bug-firebase-unguarded-login-block.log`](bug-firebase-unguarded-login-block.log)
 - [`bug-forgot-link-not-right-aligned.log`](bug-forgot-link-not-right-aligned.log)
+- [`geometry-cycle3-forgot-link.log`](geometry-cycle3-forgot-link.log)
+- [`nears3649-cycle3-ar-dump.xml`](nears3649-cycle3-ar-dump.xml)
+- [`nears3649-cycle3-en-dump.xml`](nears3649-cycle3-en-dump.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3649/` · public-repo scrub policy (no live secrets; verified clean).*

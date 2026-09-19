@@ -1,0 +1,27 @@
+NEARS-3649 delta QA (fix cycle 3) — geometry check via uiautomator dump
+Device: emulator-5554, worktree /Users/Apple/Projects/nears-NEARS-3649-change-password @ d7bbc5c44
+
+=== EN (screen: new_pass_screen, Change Password mode) ===
+EditText "Current password" field bounds: [60,525][1284,669]
+NButton "Forgot your current password?" bounds:  [497,669][1284,801]
+  -> right edge 1284 == field's right edge 1284 (flush, "end"-aligned == physically RIGHT under LTR)
+  -> left edge 497 (NOT 60) -> button does NOT span the field's full width -> NOT centered under the row
+
+Prior FAIL (cycle 2, comment 21197) for comparison:
+  Button bounds were [60,669][1284,801] -- L/R edges identical to the field's own L/R edges
+  (fullWidth:true), which visually centers the label in the middle of the full-width row.
+
+=== AR / RTL (same screen, language switched via Settings -> Language -> العربية -> تحديث) ===
+EditText "Current password" field bounds: [60,531][1284,675]
+NButton "هل نسيت كلمة المرور الحالية؟" bounds: [60,675][653,807]
+  -> left edge 60 == field's left edge 60 (flush, "end"-aligned == physically LEFT under RTL,
+     the correct mirrored behaviour of Align(alignment: AlignmentDirectional.centerEnd, ...)
+     in packages/nears_dls/lib/components/npasswordformfields/n_password_form_fields.dart)
+  -> right edge 653 (NOT 1284) -> button does NOT span the field's full width -> NOT centered
+
+Conclusion: in both locales the link is flush against the field's trailing ("end") edge and
+shrink-wraps to its own content width -- not centered, not full-width. This is the expected,
+direction-aware behaviour of AlignmentDirectional.centerEnd once fullWidth:false stopped the
+inner NButton from filling (and re-centering itself inside) the whole row.
+
+Raw uiautomator XML dumps saved alongside this file for reproducibility.
