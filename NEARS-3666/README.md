@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3666
 
-**PASS — VendorApp Menu null-modulePermission guard verified: RED crash reproduced pre-fix, GREEN loading-state+single-failure-log+happy-path unchanged post-fix**
+**PASS — VendorApp Menu null-modulePermission guard verified (RED->GREEN); pre-existing out-of-scope store_screen.dart crash independently reproduced and logged for traceability**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -16,6 +16,7 @@
 - [`ac1-GREEN-loading-placeholder-dump.xml`](ac1-GREEN-loading-placeholder-dump.xml)
 - [`ac1-RED-crash.log`](ac1-RED-crash.log)
 - [`ac3-GREEN-single-failure-log.log`](ac3-GREEN-single-failure-log.log)
+- [`bug-store-screen-preexisting-nullcheck.log`](bug-store-screen-preexisting-nullcheck.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3666/` · public-repo scrub policy (no live secrets; verified clean).*

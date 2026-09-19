@@ -1,0 +1,14 @@
+Observed live during NEARS-3666 QA (2026-09-19, emulator-5554, VendorApp fix build bdc466ac3),
+while modulePermission was null (login race) and the Store tab was opened / an order-details
+navigation re-triggered its initState:
+
+09-19 17:09:03.791 23752 23752 I flutter : [FAIL] framework_error library=widgets library type=_TypeError msg="Null check operator used on a null value"
+09-19 17:09:03.791 23752 23752 I flutter : [FAIL] framework_error   at #0      _StoreScreenState.initState (package:nears_vendor/features/store/screens/store_screen.dart:49:94)
+09-19 17:09:03.791 23752 23752 I flutter : [FAIL] framework_error   at #1      StatefulElement._firstBuild (package:flutter/src/widgets/framework.dart:5950:55)
+09-19 17:09:03.791 23752 23752 I flutter : [FAIL] framework_error   at #2      ComponentElement.mount (package:flutter/src/widgets/framework.dart:5793:5)
+
+Out of scope per NEARS-3666's own ticket text ("do NOT flag or attempt to fix
+store_screen.dart's own pre-existing dead null-guard... already recorded in this run's
+[6] followups"). Logged here for traceability only, per the QA agent instruction to
+report any independently-reproduced instance of an already-known out-of-scope defect
+as a regression_bugs[] finding without fixing it. Does not affect this ticket's verdict.
