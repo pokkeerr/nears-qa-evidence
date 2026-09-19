@@ -1,0 +1,30 @@
+[NEARS-3586 QA — regression_bug evidence, unrelated to this ticket's scope]
+Device: emulator-5554, UserApp debug build, backend :8140 (own worktree)
+Repro: Sign In screen -> valid creds (customer@nears.com/123456789) -> Sign In tapped twice (known keyboard-cover trap)
+
+I/flutter ( 3909): [NET] POST endpoint=/api/v1/auth/login
+I/flutter ( 3909): [NET] endpoint=/api/v1/auth/login http_status=200
+I/flutter ( 3909): [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="FCM registration id fetch failed"
+E/flutter ( 3909): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+E/flutter ( 3909): #0      MethodChannelFirebase.app (package:firebase_core_platform_interface/src/method_channel/method_channel_firebase.dart:190:5)
+E/flutter ( 3909): #1      Firebase.app (package:firebase_core/src/firebase.dart:92:41)
+E/flutter ( 3909): #2      FirebaseMessaging.instance (package:firebase_messaging/src/messaging.dart:32:47)
+E/flutter ( 3909): #3      AuthRepository.updateToken (package:nears/features/auth/domain/repositories/auth_repository.dart:256:25)
+E/flutter ( 3909): #4      AuthService._updateHeaderFunctionality (package:nears/features/auth/domain/services/auth_service.dart:55:7)
+E/flutter ( 3909): #5      AuthService.login (package:nears/features/auth/domain/services/auth_service.dart:44:7)
+E/flutter ( 3909): #6      AuthController.login (package:nears/features/auth/controllers/auth_controller.dart:116:37)
+E/flutter ( 3909): #7      AuthController.validateAndLogin (package:nears/features/auth/controllers/auth_controller.dart:640:28)
+E/flutter ( 3909): #8      _SignInViewState._login (package:nears/features/auth/widgets/sign_in/sign_in_view.dart:241:29)
+
+Observed effect: backend accepted login (HTTP 200) but the UI never navigated off
+the Sign In screen -- the unhandled exception in the FCM post-login step
+(AuthRepository.updateToken, unguarded FirebaseMessaging.instance call when no
+Firebase App is initialized in this debug/emulator build) appears to abort the
+post-login navigation before it runs. Reproduced twice (two separate 200 login
+POSTs from the double-tap-through-keyboard sequence), same result both times.
+
+Not in NEARS-3586's blast radius (auth_controller.dart / auth_service.dart /
+auth_repository.dart, not n_store_card.dart / store_model.dart / item_view.dart /
+store_controller.dart). Logged as a pre-existing regression-candidate, non-blocking
+to this ticket's verdict. Continued QA as guest (guest flow unaffected, already
+reached home + Stores list with popular items fine).
