@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3583
 
-**cycle1 re-QA PASS: TB2/TB3 fixes verified live, item 3 critical search-recovery confirmed**
+**DELTA RE-QA cycle 2 PASS: UX-3583-4 Scrollbar fix on _buildMapError verified live at real 320x480 density**
 
 **29 screenshot(s).** Click any thumbnail for full resolution.
 
