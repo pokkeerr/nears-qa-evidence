@@ -1,0 +1,45 @@
+NEARS-3649 delta QA (fix cycle 2) — "Forgot your current password?" link renders
+CENTERED, not right-aligned, contradicting the approved mockup (Jira comment
+21169: "right-aligned directly under the Current Password field") and AC1 of
+this delta QA task.
+
+uiautomator dump (emulator-5554, EN locale) — the actual clickable Button node
+for the link occupies the FULL row width, not a hugged/compact width:
+
+  class=android.widget.Button bounds=[60,669][1284,801] width=1224
+  (Current password field bounds=[60,525][1284,669] — same left/right edges
+  as the link's row, confirming the link's clickable area spans the entire
+  field width rather than hugging its label at the end.)
+
+Root cause (packages/nears_dls/lib/components/npasswordformfields/n_password_form_fields.dart:153-162):
+
+    if (current.forgotPasswordLabel != null)
+      Align(
+        alignment: AlignmentDirectional.centerEnd,
+        child: NButton(
+          text: current.forgotPasswordLabel!,
+          variant: NVariant.tertiary,
+          size: NSize.sm,
+          onPressed: current.onForgotPassword,
+        ),
+      ),
+
+`NButton.fullWidth` defaults to `true` (n_button.dart:118) and is NOT
+overridden here. `NButton`'s tertiary-variant render (`_buildTertiary`,
+n_button.dart:558-568) sizes its Container to `double.infinity` whenever
+`fullWidth` is true, which fills the entire width offered by the outer
+`Align` — nullifying `AlignmentDirectional.centerEnd` — and then internally
+centers its label text (`Alignment.center`, n_button.dart:565). The result is
+a full-width, visually CENTERED link instead of a right-aligned one.
+
+The sibling "Need help? Contact Support" button in the SAME file (line
+215-221) passes `fullWidth: false` explicitly and correctly hugs/right-hand-
+positions its label — the "Forgot your current password?" call site is
+missing that same flag.
+
+Reproduces identically under Arabic/RTL (screenshot
+delta-cp-forgot-link-ar.png) — the link is centered there too, confirming
+this is a structural `fullWidth` defect, not a directionality-specific one.
+
+Fix: add `fullWidth: false` to the NButton call at n_password_form_fields.dart:156-161
+(matching the contactSupportLabel button's existing precedent).
