@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3636
 
-**8-fix5 final delta re-QA: R1,R2,R4,R5,R6,R7,R8 PASS; R3 UNVERIFIABLE (sha d7a093f83)**
+**8-fix5b: R3a/R3b PASS via LEAD1 (prescription, store 55) and LEAD2 (campaign, item 17/store 49)**
 
-**34 screenshot(s).** Click any thumbnail for full resolution.
+**42 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -62,6 +62,18 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="f5-r8-shimmer-ar-1.3x-offline-b.png"><img src="f5-r8-shimmer-ar-1.3x-offline-b.png" width="240"></a><br><sub>f5 r8 shimmer ar 1.3x offline b</sub></td>
+<td align="center" width="33%"><a href="f5b-lead1-final-checkout-no-coupon-after-prescription.png"><img src="f5b-lead1-final-checkout-no-coupon-after-prescription.png" width="240"></a><br><sub>f5b lead1 final checkout no coupon after prescription</sub></td>
+<td align="center" width="33%"><a href="f5b-lead1-mediquick-store-prescription-fab.png"><img src="f5b-lead1-mediquick-store-prescription-fab.png" width="240"></a><br><sub>f5b lead1 mediquick store prescription fab</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="f5b-lead1-prescription-checkout-no-coupon-section.png"><img src="f5b-lead1-prescription-checkout-no-coupon-section.png" width="240"></a><br><sub>f5b lead1 prescription checkout no coupon section</sub></td>
+<td align="center" width="33%"><a href="f5b-lead2-campaign-bottom-sheet-order-now.png"><img src="f5b-lead2-campaign-bottom-sheet-order-now.png" width="240"></a><br><sub>f5b lead2 campaign bottom sheet order now</sub></td>
+<td align="center" width="33%"><a href="f5b-lead2-campaign-checkout-no-coupon-section.png"><img src="f5b-lead2-campaign-checkout-no-coupon-section.png" width="240"></a><br><sub>f5b lead2 campaign checkout no coupon section</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="f5b-lead2-final-checkout-no-coupon-after-campaign.png"><img src="f5b-lead2-final-checkout-no-coupon-after-campaign.png" width="240"></a><br><sub>f5b lead2 final checkout no coupon after campaign</sub></td>
+<td align="center" width="33%"><a href="f5b-lead2-final-checkout-scrolled.png"><img src="f5b-lead2-final-checkout-scrolled.png" width="240"></a><br><sub>f5b lead2 final checkout scrolled</sub></td>
+<td align="center" width="33%"><a href="f5b-lead2-food-home-justforyou.png"><img src="f5b-lead2-food-home-justforyou.png" width="240"></a><br><sub>f5b lead2 food home justforyou</sub></td>
 </tr>
 </table>
 
@@ -91,6 +103,9 @@
 - [`f5-r8-en-1.3x-bottom-dump.xml`](f5-r8-en-1.3x-bottom-dump.xml)
 - [`f5-r8-en-1.3x-top-dump.xml`](f5-r8-en-1.3x-top-dump.xml)
 - [`f5-r8-shimmer-ar-1.3x-live-dump.xml`](f5-r8-shimmer-ar-1.3x-live-dump.xml)
+- [`f5b-lead1-final-checkout-dump.xml`](f5b-lead1-final-checkout-dump.xml)
+- [`f5b-lead2-campaign-checkout-dump.xml`](f5b-lead2-campaign-checkout-dump.xml)
+- [`f5b-lead2-final-checkout-dump.xml`](f5b-lead2-final-checkout-dump.xml)
 - [`progress.md`](progress.md)
 
 ---
