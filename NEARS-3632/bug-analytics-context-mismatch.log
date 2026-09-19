@@ -1,0 +1,40 @@
+# CT9/CT0 AC-ANALYTICS: screen/section context values diverge from the ticket's own documented table
+
+## module_switched (CT9) — from Categories app bar
+Logging event: origin=app,name=module_switched,params=Bundle[{to_module=Pharmacy, screen=home,
+source=categories_app_bar, from_module=Grocery & Food, position=2, from_module_id=1, to_module_id=3,
+section=module_tabs}]
+
+Documented (ticket AC-ANALYTICS table): screen=categories, section=app_bar
+Actual: screen=home, section=module_tabs
+Root cause: ModuleController.switchModule() (module_controller.dart ~line 1176-1180) hardcodes
+'screen': 'home', 'section': 'module_tabs' unconditionally; only `source` was made call-site
+configurable.
+
+## select_item (CT0/CT10)
+analytics: select_item {item_id: 49166, screen: category_screen, item_list_id: category_items,
+item_list_name: category_items, index: 0, store_id: 3291, category_id: 8}
+
+Documented: screen=categories, item_list_id=category_grid
+Actual: screen=category_screen, item_list_id=category_items
+Root cause: category_screen.dart:472-476 (NEARS-3632's own new code, CT0 fix-cycle 1) constructs
+  AnalyticsContext(screen: 'category_screen', section: 'category_items', position: index + 1)
+instead of the ticket's own documented screen=categories / section=category_grid values.
+
+## store_line_tapped (CT0, new event)
+Logging event: origin=app,name=store_line_tapped,params=Bundle[{item_list_name=category_items,
+item_list_id=category_items, screen=category_screen, index=0, store_id=3291, item_id=49166}]
+
+Documented: screen=categories, section=category_grid
+Actual: screen=category_screen, section missing entirely (item_list_id/name substituted instead)
+
+## view_store (fired after store_line_tapped)
+Logging event: origin=app,name=view_store,params=Bundle[{ga_screen(_sn)=/store/, store_id=3291}]
+
+Documented: view_store lands with source=store_line
+Actual: no `source` key at all in the fired params.
+
+Correctly-matching events for comparison (screen=categories as documented):
+- category_selected (both rail + subcategory_chips triggers)
+- view_item_list
+- offers_rail_selected

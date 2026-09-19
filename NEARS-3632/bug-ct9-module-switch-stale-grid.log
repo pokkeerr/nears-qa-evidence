@@ -1,0 +1,25 @@
+# CT9: switching module from the Categories app bar does NOT reload the category item grid
+
+Repro: on Categories tab (Grocery & Food module, Dairy & Eggs selected, grid showing Bin Salem
+Grocery / Shanklish Market / Baqala Lamat Al Taj / Abu Nadia Grocery Cream Cheese cards), tap
+"Pharmacy" in the app-bar module switcher.
+
+Observed:
+- Category RAIL correctly reloads to Pharmacy categories (Personal Care, First Aid, Vitamins &
+  Supplements, Cold & Flu, Pain Relief) -- see bug-ct9-module-switch-stale-grid.png.
+- Category GRID does NOT reload -- same Grocery/Dairy & Eggs "Cream Cheese" cards remain visible
+  underneath the now-Pharmacy category rail.
+- adb logcat during the switch shows NO /api/v1/categories/childes/* or /api/v1/categories/items/*
+  request fired after the module switch -- only a generic Home-module refresh batch fires
+  (campaigns, banners, flash-sales, items/popular, items/basic, items/recommended, stores/get-stores).
+
+module_switched itself fires correctly (from_module=Grocery & Food, to_module=Pharmacy,
+from_module_id=1, to_module_id=3, source=categories_app_bar) -- see bug-analytics-context-mismatch.log
+for its own screen/section defect.
+
+Confirmed NOT a cold-start issue: force-stop + relaunch (module persisted as Pharmacy) lands
+Categories correctly on Pharmacy items (Lip Balm, Hand Sanitizer, Family Health Pharmacy, Green
+Cross Pharmacy) -- the INITIAL load binds to the current module fine. Only the LIVE in-place
+switch fails to refetch the Categories screen's own state.
+
+AC violated: CT9 "categories reload per module" -- the grid half of "categories" does not.
