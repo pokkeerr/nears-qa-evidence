@@ -1,0 +1,11 @@
+NEARS-3634 delta re-QA (8b-fix1) — Analytics: view_store_list screen=favourites
+
+Trigger 1: fresh Favourites screen entrance (Profile -> Favourite), Stores tab:
+analytics: view_item_list {item_list_id: favourite_items, item_list_name: favourite_items, item_count: 1, screen: favourites}
+analytics: view_store_list {item_list_id: favourite_stores, item_list_name: favourite_stores, count: 2, screen: favourites}
+
+Trigger 2: explicit pull-to-refresh on the Stores tab itself (RefreshIndicator -> getFavouriteList()):
+analytics: view_store_list {item_list_id: favourite_stores, item_list_name: favourite_stores, count: 2, screen: favourites}
+
+Both carry screen=favourites (previously missing entirely per phase-8 QA FAIL). Sibling call site
+(all_store_screen.dart) unaffected — screen param is optional/additive, no signature break.

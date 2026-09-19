@@ -1,0 +1,31 @@
+NEARS-3634 delta re-QA (8b-fix1) — FV6 store-side Undo restore, clean run (NEARS600 Offers QA Store, store_id=4117)
+
+App console (emulator-5556, UserApp pid 16997):
+[NET] DELETE endpoint=/api/v1/customer/wish-list/remove
+[NET] endpoint=/api/v1/customer/wish-list/remove http_status=200
+analytics: favourite_removed {item_id: 4117, is_store: 1, screen: favourites, item_list_id: favourite_stores, item_list_name: favourite_stores, source: favourites, index: 1}
+[NET] POST endpoint=/api/v1/customer/wish-list/add
+[NET] endpoint=/api/v1/customer/wish-list/add http_status=200
+analytics: favourite_restored {item_id: 4117, is_store: 1, screen: favourites, item_list_id: favourite_stores, item_list_name: favourite_stores, source: favourites, index: 1}
+
+Post-restore ui_list dump (immediate, no manual refresh):
+NEARS600 Offers QA Store
+30-40
+Fresh local
+2-3 hours
+
+DB ground truth (read-only SELECT):
+mysql> SELECT id, store_id, created_at FROM wishlists WHERE user_id=6 AND store_id=4117 ORDER BY id DESC LIMIT 3;
+id | store_id | created_at
+53 | 4117     | 2026-09-19 08:35:31   <- fresh row from this exact restore, correct store_id
+
+Item-side Undo (unchanged, still correct) — Dish Soap 500ml, item_id=215:
+[NET] DELETE endpoint=/api/v1/customer/wish-list/remove -> 200
+analytics: favourite_removed {item_id: 215, is_store: 0, ...}
+[NET] POST endpoint=/api/v1/customer/wish-list/add -> 200
+analytics: favourite_restored {item_id: 215, is_store: 0, ...}
+Post-restore ui_list: "Dish Soap 500ml / FRESH SUPERMARKET / bottle / 6.68 AED / 8.05 AED" (real data, matches pre-removal state).
+
+No [FAIL]/[ERR]/FlutterError lines in either flow (only pre-existing unrelated noise: Facebook GraphResponse SDK-deleted-app errors, GoogleApiManager sandbox warnings — both environment noise, unrelated to this ticket).
+
+QA note: an earlier attempt in this same session (Eco Market, store_id=19) produced a misleading "Fresh local" render — root-caused to the QA driver's own Undo tap missing the 3s snackbar window (adb screenshot/dump round-trip too slow), NOT an app defect: logcat confirms zero POST /wish-list/add call was ever sent for that attempt, and the DB shows no new row for store_id=19 — the render simply reverted to the two untouched pre-existing favourites (Fresh local id=12, NEARS600 id=4117) because the optimistic remove's UI state was never followed by a real restore. Re-run with a tap-timing fix (single-shot dump+tap, <1s) on both a store and an item confirmed the fix works correctly.
