@@ -1,0 +1,55 @@
+NEARS-3639 a11y finding (review-cycle QA point, ux-1 re-check): Order-updates /
+Offers-promotions rows still expose TWO accessibility nodes at identical bounds,
+not one.
+
+Source: docs/qa-evidence/NEARS-3639/settings-page-a11y-dump.xml (live uiautomator
+dump, emulator-5556, English locale, Settings screen).
+
+Extract for the "Order updates" row (bounds [96,1001][1248,1193]):
+
+<node class="android.widget.Button" content-desc="Order updates, switch"
+      focusable="true" clickable="true" bounds="[96,1001][1248,1193]">
+  <node class="android.view.View" content-desc="" focusable="true" clickable="false"
+        bounds="[96,1001][1248,1193]">
+    <node class="android.widget.Switch" content-desc="Order updates"
+          checkable="true" checked="true" clickable="true" focusable="true"
+          bounds="[96,1001][1248,1193]" />
+  </node>
+</node>
+
+Same shape for "Offers & promotions" (bounds [96,1194][1248,1386]).
+
+Root cause (packages/nears_dls/lib/elements/settings_tile/n_settings_tile.dart):
+the row wraps itself in `Semantics(container: true, explicitChildNodes: true,
+label: semanticLabel, ...)`. Per this repo's own active review lesson
+`dls-semantics-missing-container-boundary`: "only a configuration with
+explicitChildNodes:false can absorb another [SemanticsNode]" -- i.e.
+explicitChildNodes:true structurally PREVENTS the child NSwitch from merging
+into the parent's node. The child Switch therefore remains its own,
+separately-focusable AccessibilityNodeInfo, alongside the parent Button node
+that carries the intended "Order updates, switch" label. On Android this is
+the standard "row Button wraps its own focusable Switch" a11y anti-pattern:
+without excluding the inner Switch from the a11y tree (or exposing
+checked-state on the OUTER node instead and excluding the switch), TalkBack's
+linear (swipe) navigation is expected to stop on BOTH nodes -- once on the row
+as a generic labeled button, once on the nested Switch with its on/off state
+-- which is the doubled announcement ux-1 set out to fix, not a single control.
+
+What I could NOT establish with 100% certainty: an actual TalkBack speech
+transcript proving 2 stops (vs 1). ADB's synthetic `input tap` bypasses
+TalkBack's touch-exploration gesture layer and instead ACTIVATES the control
+directly (verified live -- a tap while TalkBack was bound opened the
+notification_confirm_sheet immediately, see run notes), so a live "swipe
+next/previous" traversal count could not be captured with this toolset in
+this session. The structural evidence above (2 distinct focusable
+AccessibilityNodeInfo objects at identical bounds, plus the codebase's own
+documented explicitChildNodes contract) is the live-device signal this QA
+pass could obtain.
+
+Suggested fix shape (standard Android pattern, matches this DLS's own
+NIconButton/NActiveOrderBanner precedents): either (a) wrap the trailing
+NSwitch in ExcludeSemantics and expose `toggled:`/`checked` on the OUTER
+Semantics wrapper instead, so exactly one node carries both the label and the
+state, or (b) drop explicitChildNodes and re-derive a merged label without
+relying on Flutter's implicit Text-node concatenation (which is what
+explicitChildNodes was added to avoid).

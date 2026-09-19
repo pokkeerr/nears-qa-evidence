@@ -1,0 +1,33 @@
+NEARS-3639 AC-ANALYTICS finding: `language_changed` event never fires from Settings.
+
+Repro (done twice, both directions, both reproduced the absence):
+1. Settings > Language row tapped -> settings_row_tapped {row: language, ...} fires (OK)
+2. Sheet opens -> screen_view {screen: language_sheet, source: settings} fires (OK)
+3. Tap a DIFFERENT language card (fromBottomSheet:true) -> LanguageCardWidget's onTap
+   (language_card_widget.dart, pre-existing, unchanged by this ticket) immediately
+   calls localizationController.setLanguage(...) as a live preview -- the WHOLE
+   sheet (title/subtitle/Update label) visibly re-renders in the new language
+   before Update is ever tapped. Confirmed live: UI actually switched EN<->AR
+   both times (screenshots + ui_list dumps below).
+4. Tap Update -> sheet closes -> setting_page.dart's
+   _manageLanguageFunctionality().then() callback runs:
+     final localeBefore = localizationController.locale;   // already the NEW
+                                                             // locale, because
+                                                             // step 3 already
+                                                             // applied it
+     localizationController.setLanguage(getCacheLocaleFromSharedPref())...
+       .then((_) { if (localizationController.locale != localeBefore) { ... } })
+   localeBefore is captured AFTER the live-preview already flipped it, so the
+   inequality check is a structural no-op -- language_changed can never fire
+   from this call site as written.
+5. Result: EN->AR and AR->EN both switch the app language correctly, but NO
+   `language_changed` event is emitted either time.
+
+Log excerpt (full raw capture around the AR->EN leg, `adb logcat -v time "flutter:I" "*:S"`):
+09-19 23:47:18.035 I/flutter ( 9392): analytics: settings_row_tapped {row: language, screen: settings, section: appearance, position: 1}
+09-19 23:47:18.035 I/flutter ( 9392): analytics: screen_view {screen: language_sheet, source: settings}
+[... UI genuinely switches back to English (confirmed via ui_list dump), no language_changed line ever appears in the full capture ...]
+
+Evidence: overview screenshots ST3-ST4-language-sheet-arabic-selected-update-enabled.png
+(same directory) show the sheet already rendering in Arabic before Update is tapped,
+which is the mechanism that races the before/after comparison.
