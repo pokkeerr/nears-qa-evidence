@@ -1,57 +1,44 @@
 # QA Evidence — NEARS-3636
 
-**PASS — cycle 2 decisive re-QA, C3+C4+shimmer all confirmed**
+**8-fix4 C8 delta: tag live+correct, EN 1.3x tag truncated (FAIL)**
 
-**25 screenshot(s).** Click any thumbnail for full resolution.
+**13 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="bug-c4-coupon-not-persisted-checkout.png"><img src="bug-c4-coupon-not-persisted-checkout.png" width="240"></a><br><sub>bug c4 coupon not persisted checkout</sub></td>
-<td align="center" width="33%"><a href="c-shimmer-1.3x-ar.png"><img src="c-shimmer-1.3x-ar.png" width="240"></a><br><sub>c shimmer 1.3x ar</sub></td>
-<td align="center" width="33%"><a href="c3-coupons-1.0x-ar.png"><img src="c3-coupons-1.0x-ar.png" width="240"></a><br><sub>c3 coupons 1.0x ar</sub></td>
+<td align="center" width="33%"><a href="bug-c8-expiry-tag-truncated-en-1.3x.png"><img src="bug-c8-expiry-tag-truncated-en-1.3x.png" width="240"></a><br><sub>bug c8 expiry tag truncated en 1.3x</sub></td>
+<td align="center" width="33%"><a href="bug-checkout-coupon-not-carried-over.png"><img src="bug-checkout-coupon-not-carried-over.png" width="240"></a><br><sub>bug checkout coupon not carried over</sub></td>
+<td align="center" width="33%"><a href="bug-nticketcard-overflow.png"><img src="bug-nticketcard-overflow.png" width="240"></a><br><sub>bug nticketcard overflow</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="c3-coupons-1.0x-en.png"><img src="c3-coupons-1.0x-en.png" width="240"></a><br><sub>c3 coupons 1.0x en</sub></td>
-<td align="center" width="33%"><a href="c3-coupons-1.3x-ar.png"><img src="c3-coupons-1.3x-ar.png" width="240"></a><br><sub>c3 coupons 1.3x ar</sub></td>
-<td align="center" width="33%"><a href="c3-coupons-1.3x-en.png"><img src="c3-coupons-1.3x-en.png" width="240"></a><br><sub>c3 coupons 1.3x en</sub></td>
+<td align="center" width="33%"><a href="c8-ar-1.0x.png"><img src="c8-ar-1.0x.png" width="240"></a><br><sub>c8 ar 1.0x</sub></td>
+<td align="center" width="33%"><a href="c8-ar-1.3x.png"><img src="c8-ar-1.3x.png" width="240"></a><br><sub>c8 ar 1.3x</sub></td>
+<td align="center" width="33%"><a href="c8-composite-EXP-card-4states.png"><img src="c8-composite-EXP-card-4states.png" width="240"></a><br><sub>c8 composite EXP card 4states</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="c4-checkout-coupon-applied.png"><img src="c4-checkout-coupon-applied.png" width="240"></a><br><sub>c4 checkout coupon applied</sub></td>
-<td align="center" width="33%"><a href="c4-second-entry-coupon-cleared.png"><img src="c4-second-entry-coupon-cleared.png" width="240"></a><br><sub>c4 second entry coupon cleared</sub></td>
-<td align="center" width="33%"><a href="c4-stale-checkout-sheet-coupon-cleared.png"><img src="c4-stale-checkout-sheet-coupon-cleared.png" width="240"></a><br><sub>c4 stale checkout sheet coupon cleared</sub></td>
+<td align="center" width="33%"><a href="c8-en-1.0x.png"><img src="c8-en-1.0x.png" width="240"></a><br><sub>c8 en 1.0x</sub></td>
+<td align="center" width="33%"><a href="c8-en-1.3x-recheck.png"><img src="c8-en-1.3x-recheck.png" width="240"></a><br><sub>c8 en 1.3x recheck</sub></td>
+<td align="center" width="33%"><a href="c8-en-1.3x.png"><img src="c8-en-1.3x.png" width="240"></a><br><sub>c8 en 1.3x</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="p15-01-coupons.png"><img src="p15-01-coupons.png" width="240"></a><br><sub>p15 01 coupons</sub></td>
-<td align="center" width="33%"><a href="p15-02-coupons-scrolled.png"><img src="p15-02-coupons-scrolled.png" width="240"></a><br><sub>p15 02 coupons scrolled</sub></td>
-<td align="center" width="33%"><a href="p15-C1-C2-free-truncated-on-all-store__crop.png"><img src="p15-C1-C2-free-truncated-on-all-store__crop.png" width="240"></a><br><sub>p15 C1 C2 free truncated on all store crop</sub></td>
+<td align="center" width="33%"><a href="checkout-discount.png"><img src="checkout-discount.png" width="240"></a><br><sub>checkout discount</sub></td>
+<td align="center" width="33%"><a href="coupons-ar-1.0x.png"><img src="coupons-ar-1.0x.png" width="240"></a><br><sub>coupons ar 1.0x</sub></td>
+<td align="center" width="33%"><a href="coupons-en-1.0x.png"><img src="coupons-en-1.0x.png" width="240"></a><br><sub>coupons en 1.0x</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="p15-C1-C2-free-truncated-on-all-store__full.png"><img src="p15-C1-C2-free-truncated-on-all-store__full.png" width="240"></a><br><sub>p15 C1 C2 free truncated on all store full</sub></td>
-<td align="center" width="33%"><a href="p15-C3-tall-coupon-card__crop.png"><img src="p15-C3-tall-coupon-card__crop.png" width="240"></a><br><sub>p15 C3 tall coupon card crop</sub></td>
-<td align="center" width="33%"><a href="p15-C3-tall-coupon-card__full.png"><img src="p15-C3-tall-coupon-card__full.png" width="240"></a><br><sub>p15 C3 tall coupon card full</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p15-C4-copy-only-action-have-a-code__crop.png"><img src="p15-C4-copy-only-action-have-a-code__crop.png" width="240"></a><br><sub>p15 C4 copy only action have a code crop</sub></td>
-<td align="center" width="33%"><a href="p15-C4-copy-only-action-have-a-code__full.png"><img src="p15-C4-copy-only-action-have-a-code__full.png" width="240"></a><br><sub>p15 C4 copy only action have a code full</sub></td>
-<td align="center" width="33%"><a href="p15-C5-campaign-name-title-dup-code__crop.png"><img src="p15-C5-campaign-name-title-dup-code__crop.png" width="240"></a><br><sub>p15 C5 campaign name title dup code crop</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p15-C5-campaign-name-title-dup-code__full.png"><img src="p15-C5-campaign-name-title-dup-code__full.png" width="240"></a><br><sub>p15 C5 campaign name title dup code full</sub></td>
-<td align="center" width="33%"><a href="p15-C6-min-500-no-eligibility-cue__crop.png"><img src="p15-C6-min-500-no-eligibility-cue__crop.png" width="240"></a><br><sub>p15 C6 min 500 no eligibility cue crop</sub></td>
-<td align="center" width="33%"><a href="p15-C6-min-500-no-eligibility-cue__full.png"><img src="p15-C6-min-500-no-eligibility-cue__full.png" width="240"></a><br><sub>p15 C6 min 500 no eligibility cue full</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p15-C7-appbar-coupon-singular-basket-icon__crop.png"><img src="p15-C7-appbar-coupon-singular-basket-icon__crop.png" width="240"></a><br><sub>p15 C7 appbar coupon singular basket icon crop</sub></td>
-<td align="center" width="33%"><a href="p15-C7-appbar-coupon-singular-basket-icon__full.png"><img src="p15-C7-appbar-coupon-singular-basket-icon__full.png" width="240"></a><br><sub>p15 C7 appbar coupon singular basket icon full</sub></td>
-<td align="center" width="33%"><a href="p15-C9-5AED-no-space__crop.png"><img src="p15-C9-5AED-no-space__crop.png" width="240"></a><br><sub>p15 C9 5AED no space crop</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p15-C9-5AED-no-space__full.png"><img src="p15-C9-5AED-no-space__full.png" width="240"></a><br><sub>p15 C9 5AED no space full</sub></td>
+<td align="center" width="33%"><a href="coupons-en-1.3x.png"><img src="coupons-en-1.3x.png" width="240"></a><br><sub>coupons en 1.3x</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
-- [`bug-c4-coupon-not-persisted-checkout.log`](bug-c4-coupon-not-persisted-checkout.log)
+- [`c8-api-raw-expire-date.log`](c8-api-raw-expire-date.log)
+- [`c8-ar-1.0x-dump.xml`](c8-ar-1.0x-dump.xml)
+- [`c8-ar-1.0x-top-dump.xml`](c8-ar-1.0x-top-dump.xml)
+- [`c8-ar-1.3x-dump.xml`](c8-ar-1.3x-dump.xml)
+- [`c8-en-1.0x-bottom-dump.xml`](c8-en-1.0x-bottom-dump.xml)
+- [`c8-en-1.0x-top-dump.xml`](c8-en-1.0x-top-dump.xml)
+- [`c8-en-1.3x-recheck-dump.xml`](c8-en-1.3x-recheck-dump.xml)
+- [`progress.md`](progress.md)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3636/` · public-repo scrub policy (no live secrets; verified clean).*
