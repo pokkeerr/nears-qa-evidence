@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3639
 
-**cycle-2 delta re-QA: AC-ANALYTICS PASS, NEARS-3701 still FAIL (2 a11y nodes persist, different root cause)**
+**cycle3 FINAL: NEARS-3701 a11y fix CONFIRMED (single node/row, activatable, toggled state correct)**
 
 **17 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -38,7 +38,11 @@
 
 ### Other artifacts
 - [`AC-ANALYTICS-language-changed-cycle2.log`](AC-ANALYTICS-language-changed-cycle2.log)
+- [`NEARS-3701-after-offers-toggle-cycle3.xml`](NEARS-3701-after-offers-toggle-cycle3.xml)
+- [`NEARS-3701-after-orders-toggle-cycle3.xml`](NEARS-3701-after-orders-toggle-cycle3.xml)
+- [`NEARS-3701-cycle3-CONFIRMED-FIXED.log`](NEARS-3701-cycle3-CONFIRMED-FIXED.log)
 - [`NEARS-3701-offers-toggled-false-a11y-dump.xml`](NEARS-3701-offers-toggled-false-a11y-dump.xml)
+- [`NEARS-3701-settings-a11y-dump-cycle3.xml`](NEARS-3701-settings-a11y-dump-cycle3.xml)
 - [`NEARS-3701-settings-a11y-dump.xml`](NEARS-3701-settings-a11y-dump.xml)
 - [`RTL-settings-a11y-dump.xml`](RTL-settings-a11y-dump.xml)
 - [`ST1-SEC1-after-relaunch-a11y-dump.xml`](ST1-SEC1-after-relaunch-a11y-dump.xml)

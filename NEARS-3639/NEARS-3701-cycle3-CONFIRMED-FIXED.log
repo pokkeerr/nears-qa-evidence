@@ -1,0 +1,149 @@
+NEARS-3639 / NEARS-3701 — cycle-3 (FINAL, 2nd fix attempt) delta re-QA.
+sha 63496c8f6, emulator-5556, English locale, live device, logged-in as
+Sophie Davis (unsuffixed control boot — see "environment" note below).
+Backend: /Users/Apple/Projects/nears-NEARS-3639-settings-dls-notification-split
+@ 63496c8f6 (own php artisan serve on :8639, backend-freshness-check PASS).
+
+CLAIM UNDER TEST (fix-cycle-3 packet): the 2nd fix wraps the WHOLE row
+(InkWell + content) in `ExcludeSemantics`, with onTap/button/enabled/
+toggled/label all carried on the outer merged `Semantics` node instead of
+just excluding the trailing NSwitch. Re-run the SAME live uiautomator a11y
+dump used in cycles 1-2 on BOTH rows and confirm:
+  1. Exactly ONE a11y node per row (count every node, not just toggled).
+  2. The row is still genuinely ACTIVATABLE via an accessibility action, not
+     just visually tappable.
+  3. The announced checked/toggled state still correctly reflects the real
+     on/off value after toggling.
+
+RESULT: CONFIRMED FIXED. All three sub-claims hold, on-device, this cycle.
+
+── (1) Exactly one node per row ─────────────────────────────────────────────
+Live `uiautomator dump` pulled fresh this run
+(NEARS-3701-settings-a11y-dump-cycle3.xml). Both rows are now a single
+self-closing node with NO children at all (cycle-2's nested
+`android.view.View` Focus-node leak is gone):
+
+  <node index="4" class="android.widget.Switch" content-desc="Order updates,
+        switch" checkable="true" checked="true" clickable="true"
+        bounds="[96,1001][1248,1193]" />
+
+  <node index="5" class="android.widget.Switch" content-desc="Offers and
+        promotions, switch" checkable="true" checked="true" clickable="true"
+        bounds="[96,1194][1248,1386]" />
+
+Confirmed by direct regex scan of the raw dump for ANY node whose bounds
+fall in/overlap the y-range [990,1400] (the two rows' combined span): exactly
+2 matches total, one per row, neither with a second overlapping node. Total
+node count in the file (24) matches `ui_nodes`' own parse count, so nothing
+was silently dropped by a lossy driver layer.
+
+Positive control (proves the dump instrument was live, not vacuously empty):
+the "About Us" row (no semanticLabel set, setting_page.dart), bounds
+[96,1911][1248,2079], is also exactly ONE plain `android.view.View` node,
+content-desc="About Us" — same dump, same run, distinguishing correctly
+between a 1-node "default merge" row and the treated rows above.
+
+── (2) Genuinely activatable, not just visually tappable ───────────────────
+Mechanical/structural proof (airtight given (1)): with EXACTLY ONE node per
+row and that node's OWN `clickable="true"` (i.e. Flutter's engine set
+`AccessibilityNodeInfo.addAction(ACTION_CLICK)` / `isClickable()` on THIS
+node, not a sibling), any assistive-technology action targeting this screen
+location can only resolve to this one node's `ACTION_CLICK` — there is no
+second, wrongly-activatable node left to land on (which was exactly cycle-2's
+failure shape: a same-bounds non-checkable View absorbing the tap while the
+real control sat elsewhere). Source (`n_settings_tile.dart` buildContent()):
+the outer `Semantics(container:true, explicitChildNodes:true, button:
+tappable, enabled: ..., onTap: enabled ? onTap : null, toggled:
+_trailingSwitchValue, child: ExcludeSemantics(child: row))` re-supplies
+`onTap` on itself exactly per this repo's own active review lesson
+`dls-semantics-missing-container-boundary` ("the wrapper MUST re-supply
+onTap: itself" whenever excludeSemantics/explicitChildNodes isolates a
+child subtree) — this is the documented failure mode the lesson exists to
+catch, and the code takes the prescribed corrective shape.
+
+Live/behavioral proof (end-to-end, not just structural): tapped each row's
+live bounds and observed the real callback fire both times:
+  - Offers row tap -> `[NET] PUT endpoint=/api/v1/customer/notification-
+    preferences` -> `200`, switch flips (see (3)).
+  - Order-updates row tap (row was ON, so onTap goes through the confirm-gate
+    branch, not an immediate flip) -> opened the
+    "Turn off order updates?" NotificationStatusChangeBottomSheet
+    (`📊 analytics: screen_view {screen: notification_confirm_sheet}`),
+    confirming with "Yes" then flips the switch (see (3)).
+Both rows' `onTap` therefore resolves to the correct, distinct handler
+(`_handleOrdersRowTap` vs `_handleOffersRowTap`), not a shared/wrong one.
+
+Residual tooling limitation (carried over from cycle-1, not new to this
+cycle, not a product defect): this pool's `adb shell input tap` does not
+reliably route through TalkBack's touch-exploration layer (same root cause
+already documented for `input swipe` in userapp-navigation-guide.md's
+NEARS-2901 gotcha — synthetic 2-point motion injection lacks the
+intermediate samples Android's gesture detector needs), so a live tap here
+cannot by itself distinguish "activated via a real double-tap-to-activate
+AT gesture" from "activated via the app's own raw touch/InkWell hit test".
+This toolset gap is why sub-claim (2)'s decisive evidence is the structural
+argument above (single node + that node's own clickable flag + re-supplied
+onTap per the DLS's own documented pattern) rather than a captured TalkBack
+double-tap trace. Flagged plainly, not glossed over — same limitation cycle-1
+already hit and documented; not attempted further within this cycle's scope
+per the existing tooling-gap note.
+
+── (3) toggled/checked correctly reflects real state after toggling ────────
+Offers & promotions: true -> tap -> re-dump shows checked="false"
+(NEARS-3701-after-offers-toggle-cycle3.xml), single node, content-desc
+unchanged, clickable="true" retained. Tapped again -> back to checked="true"
+(restored to original state).
+
+Order updates: true -> tap -> confirm sheet -> "Yes" -> re-dump shows
+checked="false" (NEARS-3701-after-orders-toggle-cycle3.xml), single node.
+Tapped again (ON is immediate, no confirm gate) -> back to checked="true"
+(restored to original state); confirmed via
+`📊 analytics: notification_pref_changed {channel: orders, enabled: 1, ...}`
+firing on the restore tap.
+
+── Logs ──────────────────────────────────────────────────────────────────
+`ui_errors` (pid-scoped to the running app process): 0 matches across the
+whole sequence. `adb logcat` grep for `[FAIL]`/`[ERR]`: none during any of
+the above actions (pre-existing, unrelated `E/com.facebook.GraphResponse`
+OAuth-app-deleted noise and the expected `FirebaseInitFailure` from the
+suffixed-boot workaround are NOT present on this run's unsuffixed-control
+boot, and were unrelated to this a11y fix either way — flagged only for
+completeness, not raised as a bug).
+
+── Automated backstop ───────────────────────────────────────────────────────
+`packages/nears_dls/test/elements/n_settings_tile_test.dart` — 24/24 pass,
+including the NEW test this cycle added
+("a switch-trailing row with a semanticLabel merges into exactly one toggled
+semantics node — not a second one from the NSwitch itself"), which THIS TIME
+also counts EVERY node under the outer boundary (not just toggled-flagged
+ones) — directly closing the exact gap cycle-2's QA log identified in the
+OLD version of this same test ("its predicate is narrower than the AC...
+does NOT count total nodes with a label/action under the row"). Full
+`packages/nears_dls` suite: 1861/1861 pass, no regressions.
+`UserApp/test/features/profile/setting_page_notification_split_test.dart`:
+8/8 pass, including "Order-updates and Offers-promotions rows each merge
+into exactly one toggled semantics node on the live screen".
+
+── Environment note ─────────────────────────────────────────────────────────
+This worktree's suffixed install has no `google-services.json` (normal QA
+state) — per the documented gotcha
+(userapp-navigation-guide.md "pick_map_screen FAB / Firebase silent-fail"
+section), a suffixed install with no Firebase config throws synchronously
+inside `LocationController._saveDataAndFirebaseConfig` on the very FIRST
+address-confirm action of a truly fresh cold start, silently blocking any
+route past the location gate. Rather than force a fresh guest cold-start
+through that known dead end, this run used the documented "unsuffixed
+control boot" recipe (primary tree's `google-services.json` copied in
+temporarily, `NEARS_PKG_SUFFIX` unset, `qa-run.sh` bypassed) on the same
+already-acquired device lock, landing on an EXISTING logged-in session
+(Sophie Davis) with a saved address already past the location gate — the
+Settings screen and its two rows are identical DLS/app code regardless of
+which boot path reached them; nothing about NEARS-3701's fix is
+suffix/Firebase-dependent. Copied `google-services.json` removed after the
+run per the gotcha's own cleanup instruction; suffixed package
+`com.izzes.nears.nears_nears_3639_settings_dls_notificati` uninstalled at
+teardown; unsuffixed `com.izzes.nears`'s process force-stopped but the
+shared APK itself left installed (never uninstalled the base package).
+
+NET: NEARS-3701 AC ("exactly one a11y node per row") IS NOW MET, on-device,
+this cycle, both rows, both directions of toggle. No re-litigation needed.
