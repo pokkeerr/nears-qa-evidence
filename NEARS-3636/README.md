@@ -1,112 +1,70 @@
 # QA Evidence — NEARS-3636
 
-**8-fix5b: R3a/R3b PASS via LEAD1 (prescription, store 55) and LEAD2 (campaign, item 17/store 49)**
+**FAIL — C3 fix-cycle 3 (8-fix7): >=5 cards demonstrated live EN+AR 1.0x on real device insets, but a NEW reproducible RenderFlex overflow (3.0px, n_ticket_card.dart:213) hits any coupon carrying the eligibility/expiry row in AR/RTL at 1.0x — caused directly by the 126dp height floor. Last authorized cycle; parking again.**
 
-**42 screenshot(s).** Click any thumbnail for full resolution.
+**31 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="bug-c8-expiry-tag-truncated-en-1.3x.png"><img src="bug-c8-expiry-tag-truncated-en-1.3x.png" width="240"></a><br><sub>bug c8 expiry tag truncated en 1.3x</sub></td>
-<td align="center" width="33%"><a href="bug-checkout-coupon-not-carried-over.png"><img src="bug-checkout-coupon-not-carried-over.png" width="240"></a><br><sub>bug checkout coupon not carried over</sub></td>
-<td align="center" width="33%"><a href="bug-nticketcard-overflow.png"><img src="bug-nticketcard-overflow.png" width="240"></a><br><sub>bug nticketcard overflow</sub></td>
+<td align="center" width="33%"><a href="bug-c3-ar-1.0x-expiry-card-overflow.png"><img src="bug-c3-ar-1.0x-expiry-card-overflow.png" width="240"></a><br><sub>bug c3 ar 1.0x expiry card overflow</sub></td>
+<td align="center" width="33%"><a href="bug-c3-ar-1.0x-renderflex-overflow.png"><img src="bug-c3-ar-1.0x-renderflex-overflow.png" width="240"></a><br><sub>bug c3 ar 1.0x renderflex overflow</sub></td>
+<td align="center" width="33%"><a href="bug-c4-coupon-not-persisted-checkout.png"><img src="bug-c4-coupon-not-persisted-checkout.png" width="240"></a><br><sub>bug c4 coupon not persisted checkout</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="c8-ar-1.0x.png"><img src="c8-ar-1.0x.png" width="240"></a><br><sub>c8 ar 1.0x</sub></td>
-<td align="center" width="33%"><a href="c8-ar-1.3x.png"><img src="c8-ar-1.3x.png" width="240"></a><br><sub>c8 ar 1.3x</sub></td>
-<td align="center" width="33%"><a href="c8-composite-EXP-card-4states.png"><img src="c8-composite-EXP-card-4states.png" width="240"></a><br><sub>c8 composite EXP card 4states</sub></td>
+<td align="center" width="33%"><a href="c-shimmer-1.3x-ar.png"><img src="c-shimmer-1.3x-ar.png" width="240"></a><br><sub>c shimmer 1.3x ar</sub></td>
+<td align="center" width="33%"><a href="c3-coupons-1.0x-ar.png"><img src="c3-coupons-1.0x-ar.png" width="240"></a><br><sub>c3 coupons 1.0x ar</sub></td>
+<td align="center" width="33%"><a href="c3-coupons-1.0x-en.png"><img src="c3-coupons-1.0x-en.png" width="240"></a><br><sub>c3 coupons 1.0x en</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="c8-en-1.0x.png"><img src="c8-en-1.0x.png" width="240"></a><br><sub>c8 en 1.0x</sub></td>
-<td align="center" width="33%"><a href="c8-en-1.3x-recheck.png"><img src="c8-en-1.3x-recheck.png" width="240"></a><br><sub>c8 en 1.3x recheck</sub></td>
-<td align="center" width="33%"><a href="c8-en-1.3x.png"><img src="c8-en-1.3x.png" width="240"></a><br><sub>c8 en 1.3x</sub></td>
+<td align="center" width="33%"><a href="c3-coupons-1.3x-ar.png"><img src="c3-coupons-1.3x-ar.png" width="240"></a><br><sub>c3 coupons 1.3x ar</sub></td>
+<td align="center" width="33%"><a href="c3-coupons-1.3x-en.png"><img src="c3-coupons-1.3x-en.png" width="240"></a><br><sub>c3 coupons 1.3x en</sub></td>
+<td align="center" width="33%"><a href="c4-checkout-coupon-applied.png"><img src="c4-checkout-coupon-applied.png" width="240"></a><br><sub>c4 checkout coupon applied</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="checkout-discount.png"><img src="checkout-discount.png" width="240"></a><br><sub>checkout discount</sub></td>
-<td align="center" width="33%"><a href="coupons-ar-1.0x.png"><img src="coupons-ar-1.0x.png" width="240"></a><br><sub>coupons ar 1.0x</sub></td>
-<td align="center" width="33%"><a href="coupons-en-1.0x.png"><img src="coupons-en-1.0x.png" width="240"></a><br><sub>coupons en 1.0x</sub></td>
+<td align="center" width="33%"><a href="c4-second-entry-coupon-cleared.png"><img src="c4-second-entry-coupon-cleared.png" width="240"></a><br><sub>c4 second entry coupon cleared</sub></td>
+<td align="center" width="33%"><a href="c4-stale-checkout-sheet-coupon-cleared.png"><img src="c4-stale-checkout-sheet-coupon-cleared.png" width="240"></a><br><sub>c4 stale checkout sheet coupon cleared</sub></td>
+<td align="center" width="33%"><a href="coupon-c3-ar-1.0x.png"><img src="coupon-c3-ar-1.0x.png" width="240"></a><br><sub>coupon c3 ar 1.0x</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="coupons-en-1.3x.png"><img src="coupons-en-1.3x.png" width="240"></a><br><sub>coupons en 1.3x</sub></td>
-<td align="center" width="33%"><a href="f5-r1-checkout-coupon-applied.png"><img src="f5-r1-checkout-coupon-applied.png" width="240"></a><br><sub>f5 r1 checkout coupon applied</sub></td>
-<td align="center" width="33%"><a href="f5-r1-checkout-top.png"><img src="f5-r1-checkout-top.png" width="240"></a><br><sub>f5 r1 checkout top</sub></td>
+<td align="center" width="33%"><a href="coupon-c3-ar-1.3x.png"><img src="coupon-c3-ar-1.3x.png" width="240"></a><br><sub>coupon c3 ar 1.3x</sub></td>
+<td align="center" width="33%"><a href="coupon-c3-en-1.0x.png"><img src="coupon-c3-en-1.0x.png" width="240"></a><br><sub>coupon c3 en 1.0x</sub></td>
+<td align="center" width="33%"><a href="coupon-c3-en-1.3x.png"><img src="coupon-c3-en-1.3x.png" width="240"></a><br><sub>coupon c3 en 1.3x</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="f5-r1-coupons-page-single-store.png"><img src="f5-r1-coupons-page-single-store.png" width="240"></a><br><sub>f5 r1 coupons page single store</sub></td>
-<td align="center" width="33%"><a href="f5-r2a-qty-edit-above-min-checkout-no-coupon.png"><img src="f5-r2a-qty-edit-above-min-checkout-no-coupon.png" width="240"></a><br><sub>f5 r2a qty edit above min checkout no coupon</sub></td>
-<td align="center" width="33%"><a href="f5-r2b-qty-edit-below-min-checkout-no-coupon.png"><img src="f5-r2b-qty-edit-below-min-checkout-no-coupon.png" width="240"></a><br><sub>f5 r2b qty edit below min checkout no coupon</sub></td>
+<td align="center" width="33%"><a href="p15-01-coupons.png"><img src="p15-01-coupons.png" width="240"></a><br><sub>p15 01 coupons</sub></td>
+<td align="center" width="33%"><a href="p15-02-coupons-scrolled.png"><img src="p15-02-coupons-scrolled.png" width="240"></a><br><sub>p15 02 coupons scrolled</sub></td>
+<td align="center" width="33%"><a href="p15-C1-C2-free-truncated-on-all-store__crop.png"><img src="p15-C1-C2-free-truncated-on-all-store__crop.png" width="240"></a><br><sub>p15 C1 C2 free truncated on all store crop</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="f5-r2c-positive-control-no-edit-coupon-survives.png"><img src="f5-r2c-positive-control-no-edit-coupon-survives.png" width="240"></a><br><sub>f5 r2c positive control no edit coupon survives</sub></td>
-<td align="center" width="33%"><a href="f5-r4-after-logout-login-checkout-no-coupon.png"><img src="f5-r4-after-logout-login-checkout-no-coupon.png" width="240"></a><br><sub>f5 r4 after logout login checkout no coupon</sub></td>
-<td align="center" width="33%"><a href="f5-r5-ar-1.0x-bottom.png"><img src="f5-r5-ar-1.0x-bottom.png" width="240"></a><br><sub>f5 r5 ar 1.0x bottom</sub></td>
+<td align="center" width="33%"><a href="p15-C1-C2-free-truncated-on-all-store__full.png"><img src="p15-C1-C2-free-truncated-on-all-store__full.png" width="240"></a><br><sub>p15 C1 C2 free truncated on all store full</sub></td>
+<td align="center" width="33%"><a href="p15-C3-tall-coupon-card__crop.png"><img src="p15-C3-tall-coupon-card__crop.png" width="240"></a><br><sub>p15 C3 tall coupon card crop</sub></td>
+<td align="center" width="33%"><a href="p15-C3-tall-coupon-card__full.png"><img src="p15-C3-tall-coupon-card__full.png" width="240"></a><br><sub>p15 C3 tall coupon card full</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="f5-r5-ar-1.0x-top.png"><img src="f5-r5-ar-1.0x-top.png" width="240"></a><br><sub>f5 r5 ar 1.0x top</sub></td>
-<td align="center" width="33%"><a href="f5-r5-en-1.0x.png"><img src="f5-r5-en-1.0x.png" width="240"></a><br><sub>f5 r5 en 1.0x</sub></td>
-<td align="center" width="33%"><a href="f5-r6-day21-1000-bottom.png"><img src="f5-r6-day21-1000-bottom.png" width="240"></a><br><sub>f5 r6 day21 1000 bottom</sub></td>
+<td align="center" width="33%"><a href="p15-C4-copy-only-action-have-a-code__crop.png"><img src="p15-C4-copy-only-action-have-a-code__crop.png" width="240"></a><br><sub>p15 C4 copy only action have a code crop</sub></td>
+<td align="center" width="33%"><a href="p15-C4-copy-only-action-have-a-code__full.png"><img src="p15-C4-copy-only-action-have-a-code__full.png" width="240"></a><br><sub>p15 C4 copy only action have a code full</sub></td>
+<td align="center" width="33%"><a href="p15-C5-campaign-name-title-dup-code__crop.png"><img src="p15-C5-campaign-name-title-dup-code__crop.png" width="240"></a><br><sub>p15 C5 campaign name title dup code crop</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="f5-r6-day21-1000-top.png"><img src="f5-r6-day21-1000-top.png" width="240"></a><br><sub>f5 r6 day21 1000 top</sub></td>
-<td align="center" width="33%"><a href="f5-r6-day22-0005-bottom.png"><img src="f5-r6-day22-0005-bottom.png" width="240"></a><br><sub>f5 r6 day22 0005 bottom</sub></td>
-<td align="center" width="33%"><a href="f5-r7-himin-eligibility-en.png"><img src="f5-r7-himin-eligibility-en.png" width="240"></a><br><sub>f5 r7 himin eligibility en</sub></td>
+<td align="center" width="33%"><a href="p15-C5-campaign-name-title-dup-code__full.png"><img src="p15-C5-campaign-name-title-dup-code__full.png" width="240"></a><br><sub>p15 C5 campaign name title dup code full</sub></td>
+<td align="center" width="33%"><a href="p15-C6-min-500-no-eligibility-cue__crop.png"><img src="p15-C6-min-500-no-eligibility-cue__crop.png" width="240"></a><br><sub>p15 C6 min 500 no eligibility cue crop</sub></td>
+<td align="center" width="33%"><a href="p15-C6-min-500-no-eligibility-cue__full.png"><img src="p15-C6-min-500-no-eligibility-cue__full.png" width="240"></a><br><sub>p15 C6 min 500 no eligibility cue full</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="f5-r8-ar-1.3x-bottom.png"><img src="f5-r8-ar-1.3x-bottom.png" width="240"></a><br><sub>f5 r8 ar 1.3x bottom</sub></td>
-<td align="center" width="33%"><a href="f5-r8-ar-1.3x-top.png"><img src="f5-r8-ar-1.3x-top.png" width="240"></a><br><sub>f5 r8 ar 1.3x top</sub></td>
-<td align="center" width="33%"><a href="f5-r8-en-1.3x-bottom.png"><img src="f5-r8-en-1.3x-bottom.png" width="240"></a><br><sub>f5 r8 en 1.3x bottom</sub></td>
+<td align="center" width="33%"><a href="p15-C7-appbar-coupon-singular-basket-icon__crop.png"><img src="p15-C7-appbar-coupon-singular-basket-icon__crop.png" width="240"></a><br><sub>p15 C7 appbar coupon singular basket icon crop</sub></td>
+<td align="center" width="33%"><a href="p15-C7-appbar-coupon-singular-basket-icon__full.png"><img src="p15-C7-appbar-coupon-singular-basket-icon__full.png" width="240"></a><br><sub>p15 C7 appbar coupon singular basket icon full</sub></td>
+<td align="center" width="33%"><a href="p15-C9-5AED-no-space__crop.png"><img src="p15-C9-5AED-no-space__crop.png" width="240"></a><br><sub>p15 C9 5AED no space crop</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="f5-r8-en-1.3x-top.png"><img src="f5-r8-en-1.3x-top.png" width="240"></a><br><sub>f5 r8 en 1.3x top</sub></td>
-<td align="center" width="33%"><a href="f5-r8-error-retry-ar-1.3x.png"><img src="f5-r8-error-retry-ar-1.3x.png" width="240"></a><br><sub>f5 r8 error retry ar 1.3x</sub></td>
-<td align="center" width="33%"><a href="f5-r8-shimmer-ar-1.3x-live.png"><img src="f5-r8-shimmer-ar-1.3x-live.png" width="240"></a><br><sub>f5 r8 shimmer ar 1.3x live</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="f5-r8-shimmer-ar-1.3x-offline-b.png"><img src="f5-r8-shimmer-ar-1.3x-offline-b.png" width="240"></a><br><sub>f5 r8 shimmer ar 1.3x offline b</sub></td>
-<td align="center" width="33%"><a href="f5b-lead1-final-checkout-no-coupon-after-prescription.png"><img src="f5b-lead1-final-checkout-no-coupon-after-prescription.png" width="240"></a><br><sub>f5b lead1 final checkout no coupon after prescription</sub></td>
-<td align="center" width="33%"><a href="f5b-lead1-mediquick-store-prescription-fab.png"><img src="f5b-lead1-mediquick-store-prescription-fab.png" width="240"></a><br><sub>f5b lead1 mediquick store prescription fab</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="f5b-lead1-prescription-checkout-no-coupon-section.png"><img src="f5b-lead1-prescription-checkout-no-coupon-section.png" width="240"></a><br><sub>f5b lead1 prescription checkout no coupon section</sub></td>
-<td align="center" width="33%"><a href="f5b-lead2-campaign-bottom-sheet-order-now.png"><img src="f5b-lead2-campaign-bottom-sheet-order-now.png" width="240"></a><br><sub>f5b lead2 campaign bottom sheet order now</sub></td>
-<td align="center" width="33%"><a href="f5b-lead2-campaign-checkout-no-coupon-section.png"><img src="f5b-lead2-campaign-checkout-no-coupon-section.png" width="240"></a><br><sub>f5b lead2 campaign checkout no coupon section</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="f5b-lead2-final-checkout-no-coupon-after-campaign.png"><img src="f5b-lead2-final-checkout-no-coupon-after-campaign.png" width="240"></a><br><sub>f5b lead2 final checkout no coupon after campaign</sub></td>
-<td align="center" width="33%"><a href="f5b-lead2-final-checkout-scrolled.png"><img src="f5b-lead2-final-checkout-scrolled.png" width="240"></a><br><sub>f5b lead2 final checkout scrolled</sub></td>
-<td align="center" width="33%"><a href="f5b-lead2-food-home-justforyou.png"><img src="f5b-lead2-food-home-justforyou.png" width="240"></a><br><sub>f5b lead2 food home justforyou</sub></td>
+<td align="center" width="33%"><a href="p15-C9-5AED-no-space__full.png"><img src="p15-C9-5AED-no-space__full.png" width="240"></a><br><sub>p15 C9 5AED no space full</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
-- [`bug-checkout-get-tax-403-retry-loop-stale-server-cart.log`](bug-checkout-get-tax-403-retry-loop-stale-server-cart.log)
-- [`bug-view-promotion-fires-off-page.log`](bug-view-promotion-fires-off-page.log)
-- [`c8-api-raw-expire-date.log`](c8-api-raw-expire-date.log)
-- [`c8-ar-1.0x-dump.xml`](c8-ar-1.0x-dump.xml)
-- [`c8-ar-1.0x-top-dump.xml`](c8-ar-1.0x-top-dump.xml)
-- [`c8-ar-1.3x-dump.xml`](c8-ar-1.3x-dump.xml)
-- [`c8-en-1.0x-bottom-dump.xml`](c8-en-1.0x-bottom-dump.xml)
-- [`c8-en-1.0x-top-dump.xml`](c8-en-1.0x-top-dump.xml)
-- [`c8-en-1.3x-recheck-dump.xml`](c8-en-1.3x-recheck-dump.xml)
-- [`f5-analytics-and-log-audit.log`](f5-analytics-and-log-audit.log)
-- [`f5-r1-checkout-dump.xml`](f5-r1-checkout-dump.xml)
-- [`f5-r5-ar-1.0x-bottom-dump.xml`](f5-r5-ar-1.0x-bottom-dump.xml)
-- [`f5-r5-ar-1.0x-top-dump.xml`](f5-r5-ar-1.0x-top-dump.xml)
-- [`f5-r5-en-1.0x-bottom-dump.xml`](f5-r5-en-1.0x-bottom-dump.xml)
-- [`f5-r6-day21-1000-bottom-dump.xml`](f5-r6-day21-1000-bottom-dump.xml)
-- [`f5-r6-day21-1000-top-dump.xml`](f5-r6-day21-1000-top-dump.xml)
-- [`f5-r6-day22-0005-bottom-dump.xml`](f5-r6-day22-0005-bottom-dump.xml)
-- [`f5-r6-day22-0005-top-dump.xml`](f5-r6-day22-0005-top-dump.xml)
-- [`f5-r7-himin-eligibility-dump.xml`](f5-r7-himin-eligibility-dump.xml)
-- [`f5-r8-ar-1.3x-bottom-dump.xml`](f5-r8-ar-1.3x-bottom-dump.xml)
-- [`f5-r8-ar-1.3x-top-dump.xml`](f5-r8-ar-1.3x-top-dump.xml)
-- [`f5-r8-delay-proxy.py`](f5-r8-delay-proxy.py)
-- [`f5-r8-en-1.3x-bottom-dump.xml`](f5-r8-en-1.3x-bottom-dump.xml)
-- [`f5-r8-en-1.3x-top-dump.xml`](f5-r8-en-1.3x-top-dump.xml)
-- [`f5-r8-shimmer-ar-1.3x-live-dump.xml`](f5-r8-shimmer-ar-1.3x-live-dump.xml)
-- [`f5b-lead1-final-checkout-dump.xml`](f5b-lead1-final-checkout-dump.xml)
-- [`f5b-lead2-campaign-checkout-dump.xml`](f5b-lead2-campaign-checkout-dump.xml)
-- [`f5b-lead2-final-checkout-dump.xml`](f5b-lead2-final-checkout-dump.xml)
-- [`progress.md`](progress.md)
+- [`bug-c3-ar-1.0x-renderflex-overflow.log`](bug-c3-ar-1.0x-renderflex-overflow.log)
+- [`bug-c4-coupon-not-persisted-checkout.log`](bug-c4-coupon-not-persisted-checkout.log)
+- [`coupon-c3-ar-1.0x-a11ydump.xml`](coupon-c3-ar-1.0x-a11ydump.xml)
+- [`coupon-c3-en-1.0x-a11ydump.xml`](coupon-c3-en-1.0x-a11ydump.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3636/` · public-repo scrub policy (no live secrets; verified clean).*
