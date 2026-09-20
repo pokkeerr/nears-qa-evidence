@@ -1,0 +1,51 @@
+Pre-existing regression (unrelated to NEARS-3630, environment-level Firebase
+misconfig — same root cause family as the already-documented
+bug-logout-firebase-failure.log from the fix-cycle 1 full QA pass).
+
+Observed during delta re-QA fix-cycle 2, attempting to log in as
+james.wilson@demo.com (a real-photo seeded account) to regression-check the
+photo-path of MenuProfileHeaderCard live: AuthController.login() ->
+AuthService.login() -> AuthService._updateHeaderFunctionality() ->
+AuthRepository.updateToken() calls FirebaseMessaging.instance, which throws
+because Firebase is not initialized in this dev environment
+([core/no-app] No Firebase App '[DEFAULT]' has been created). The exception
+IS logged via a paired AppLogger failure line (FcmTokenFetchFailure, PII-safe,
+satisfies the logging contract's "no silent failure" rule) but then escapes
+uncaught past that point, aborting the remainder of AuthController.login()'s
+work for that call. Effects observed:
+  - 1st and 2nd Sign In taps: login appeared to no-op (POST /api/v1/auth/login
+    returned 200, but the app never navigated off the sign-in screen).
+  - 3rd Sign In tap: navigation to Home succeeded, but the SAME exception
+    fired ~3s later, apparently having interrupted whatever step populates
+    ProfileController.userInfoModel for this session — the merged Profile
+    screen (menu_screen.dart, both entry points) was left in a permanent
+    isLoading=true skeleton state (grey avatar, no name, no stat cards),
+    per menu_screen.dart's `isLoading: isLoggedIn && !hasError &&
+    profileController.userInfoModel == null` — never resolved even ~30s
+    later.
+  - Edit Profile (update_profile_screen.dart) for the SAME account loaded
+    correctly (own independent data path) and rendered the name "James
+    Wilson" plus an attempted-photo state (image icon placeholder, since
+    the actual seed image file does not exist on disk in this dev
+    environment per NEARS-1092 — a separate, already-documented worktree
+    limitation) rather than initials, confirming update_profile_screen.dart's
+    `!userInfoModel.hasNoPhoto` gate correctly took the photo branch for a
+    real-photo account.
+
+Live logcat excerpt (emulator-5556, pid 11032):
+09-20 18:02:33.606 11032 11032 I flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="FCM registration id fetch failed"
+09-20 18:02:33.606 11032 11032 E flutter : [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+09-20 18:02:33.606 11032 11032 E flutter : #3      AuthRepository.updateToken (package:nears/features/auth/domain/repositories/auth_repository.dart:321:27)
+09-20 18:02:33.606 11032 11032 E flutter : #4      AuthService._updateHeaderFunctionality (package:nears/features/auth/domain/services/auth_service.dart:55:7)
+09-20 18:02:33.606 11032 11032 E flutter : #5      AuthService.login (package:nears/features/auth/domain/services/auth_service.dart:44:7)
+09-20 18:02:33.606 11032 11032 E flutter : #6      AuthController.login (package:nears/features/auth/controllers/auth_controller.dart:116:37)
+
+Not caused by NEARS-3630: auth_repository.dart / auth_service.dart /
+auth_controller.dart are byte-unchanged by this ticket's commit range (last
+touched by NEARS-3639/3656/3477/3103, none of which are this ticket). Filed
+as a regression_bug (pre-existing, environment-config-caused, Firebase not
+provisioned in this dev environment), does not affect this ticket's
+PASS/FAIL verdict. Worked around for the QA point itself by relying on the
+automated widget-test coverage (menu_screen_reskin_test.dart's QA-1 group,
+2/2 passing) for the real-photo gating confirmation, per this delta re-QA's
+own escape-hatch instruction.
