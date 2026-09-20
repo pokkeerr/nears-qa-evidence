@@ -1,0 +1,18 @@
+Pre-existing regression (unrelated to NEARS-3630, environment-level):
+tapping Logout -> Yes on the merged Profile screen throws inside
+MenuController.logout() -> AuthController.socialLogout() ->
+FacebookAuth.instance.logOut() because the local dev Firebase/Facebook
+app config is invalid ("Application has been deleted", observed at app
+boot as a FirebaseInitFailure/OAuthException). Session is NOT cleared;
+the confirm dialog stays open with isProcessing reset to false.
+
+Live logcat excerpt (emulator-5554, pid 17147):
+09-20 17:20:36.851 17147 17147 I flutter : [FAIL] endpoint=null http_status=null type=LogoutFailure msg="logout confirm failed (FirebaseException)"
+
+This IS the AC-LOG-required failure log line (LogoutFailure sentinel,
+PII-safe, no raw exception forwarded) -- MenuController.logout() and its
+catch handler are byte-unchanged by this ticket's diff (git diff HEAD~2 HEAD
+shows only the added AppLogger.event(...logout...) call on the SUCCESS path,
+never touching the catch block or logout()'s body). Filed as a
+regression_bug (pre-existing, environment-config-caused), not a task_bug of
+this ticket, and does not affect this ticket's PASS/FAIL verdict.
