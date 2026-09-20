@@ -1,0 +1,82 @@
+.....................F....................................... 1586 / 2715 ( 58%)
+............................................................. 1647 / 2715 ( 60%)
+............................................................. 1708 / 2715 ( 62%)
+............................................................. 1769 / 2715 ( 65%)
+............................................................. 1830 / 2715 ( 67%)
+...............F............................................. 1891 / 2715 ( 69%)
+............................................................. 1952 / 2715 ( 71%)
+............................................................. 2013 / 2715 ( 74%)
+............................................................. 2074 / 2715 ( 76%)
+............................................................. 2135 / 2715 ( 78%)
+............................................................. 2196 / 2715 ( 80%)
+............................................................. 2257 / 2715 ( 83%)
+............................................................. 2318 / 2715 ( 85%)
+............................................................. 2379 / 2715 ( 87%)
+............................................................. 2440 / 2715 ( 89%)
+............................................................. 2501 / 2715 ( 92%)
+............................................................. 2562 / 2715 ( 94%)
+....................S........................................ 2623 / 2715 ( 96%)
+............................................................. 2684 / 2715 ( 98%)
+...............................                               2715 / 2715 (100%)
+
+Time: 07:13.739, Memory: 943.00 MB
+
+There were 6 failures:
+
+1) Tests\Feature\ConfigContractTest::test_decimal_precision_is_two_not_whole_dirhams
+NEARS-2019 (EXPECTED RED — the money defect, not a broken build): digit_after_decimal_point is not 2, so PlaceNewOrder rounds PERSISTED order money to whole dirhams — order_amount, delivery_charge, total_tax_amount, the discount fields and every order_details line price. Up to a half-dirham is added to or removed from what the customer is actually charged. THIS TEST READS THE PHPUNIT TWIN (multi_food_db_test*), NEVER multi_food_db, so it pins the SEED contract and not the live config. CORRECTING THE LIVE SETTING ALONE WILL NOT CLEAR IT — a data change never triggers a re-clone (setup_test_db.sh re-clones only on an applied-migration-signature mismatch). To go green, all three: (1) set digit_after_decimal_point to 2 via Admin -> Business Setup or a versioned seeder, never raw DML, then `php artisan cache:clear` (settings are cached rememberForever, so skipping this makes a correct fix look like it failed); (2) re-dump the corrected DB and rebuild the twin: TEST_DB_BACKUP=/path/to/dump.sql bash scripts/setup_test_db.sh ; (3) FORCE the clones to rebuild: bash scripts/setup_test_db.sh --drop-stale (or --clone <worktree_slug> per worktree). See docs/solutions/NEARS-2019-persisted-money-rounding.md.
+Failed asserting that 0 is identical to 2.
+
+/Users/Apple/Projects/nears-NEARS-3704-search-popular-items/Admin/tests/Feature/ConfigContractTest.php:310
+
+2) Tests\Feature\ItemModuleFollowsStoreTest::test_bulk_import_insert_persists_the_stores_module_not_the_csv_or_ui_module
+bulk import persisted no row
+Failed asserting that null is not null.
+
+/Users/Apple/Projects/nears-NEARS-3704-search-popular-items/Admin/tests/Feature/ItemModuleFollowsStoreTest.php:296
+
+3) Tests\Feature\ItemModuleFollowsStoreTest::test_bulk_import_update_branch_repairs_module_id_instead_of_corrupting_an_existing_row
+the update branch did not run
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'NEARS-1132 bulk updated'
++'NEARS-1132 bulk update seed'
+
+/Users/Apple/Projects/nears-NEARS-3704-search-popular-items/Admin/tests/Feature/ItemModuleFollowsStoreTest.php:332
+
+4) Tests\Feature\ModuleIdDriftGuardTest::test_the_database_as_ci_finds_it_carries_no_module_id_drift
+module-id drift present in multi_food_db_test_nears_nears_3704_search_popular_items — invariant B, scalar category_id — item ids: 9001696496. Run: php artisan migrate (2026_07_12_101500_fix_item_module_id_store_drift).
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 9001696496,
++]
+
+/Users/Apple/Projects/nears-NEARS-3704-search-popular-items/Admin/tests/Feature/ModuleIdDriftGuardTest.php:24
+
+5) Tests\Feature\Security\BulkImportZoneScopeTest::test_an_in_zone_admin_updating_only_its_own_zones_items_still_succeeds
+the gate over-blocked a legitimate in-zone update
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'NEARS-1203 in-zone updated'
++'NEARS-1203 in-zone seed'
+
+/Users/Apple/Projects/nears-NEARS-3704-search-popular-items/Admin/tests/Feature/Security/BulkImportZoneScopeTest.php:224
+
+6) Tests\Feature\Security\Nears2927ItemDescriptionXssTest::test_admin_bulk_import_update_sanitizes_description
+Legit formatting must survive admin bulk-import.
+Failed asserting that 'seed' [ASCII](length: 4) contains "<b>bold</b>" [ASCII](length: 11).
+
+/Users/Apple/Projects/nears-NEARS-3704-search-popular-items/Admin/tests/Feature/Security/Nears2927ItemDescriptionXssTest.php:427
+
+FAILURES!
+Tests: 2715, Assertions: 18406, Failures: 6, PHPUnit Deprecations: 1, Skipped: 1.
+
+[exited with code 0]
