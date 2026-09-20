@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3588
 
-**R2 exit-gate re-QA: checks 1-4 all PASS**
+**Scoped delta re-QA PASS — merge-sentinel combined-code check (sheetSource/ctx call sites)**
 
-**86 screenshot(s).** Click any thumbnail for full resolution.
+**89 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -148,6 +148,11 @@
 <tr>
 <td align="center" width="33%"><a href="r2-exitgate-check4-sweep-max-1.3x-en.png"><img src="r2-exitgate-check4-sweep-max-1.3x-en.png" width="240"></a><br><sub>r2 exitgate check4 sweep max 1.3x en</sub></td>
 <td align="center" width="33%"><a href="r2-exitgate-item197-mozzarella-no-showmore-1.3x-en.png"><img src="r2-exitgate-item197-mozzarella-no-showmore-1.3x-en.png" width="240"></a><br><sub>r2 exitgate item197 mozzarella no showmore 1.3x en</sub></td>
+<td align="center" width="33%"><a href="scoped-fav-empty-state.png"><img src="scoped-fav-empty-state.png" width="240"></a><br><sub>scoped fav empty state</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="scoped-fav-items-populated.png"><img src="scoped-fav-items-populated.png" width="240"></a><br><sub>scoped fav items populated</sub></td>
+<td align="center" width="33%"><a href="scoped-nav-check1.png"><img src="scoped-nav-check1.png" width="240"></a><br><sub>scoped nav check1</sub></td>
 </tr>
 </table>
 
