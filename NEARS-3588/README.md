@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3588
 
-**Mechanism-confirmation pass (entry gate, R2): both advisor-flutter repro checks CONFIRMED — Check1 SliverGeometry layoutExtent>paintExtent assertion fired; Check2 stale-reveal duplicate name+price bar confirmed, persists after re-collapse, no crash**
+**R2 exit-gate re-QA: checks 1-4 all PASS**
 
-**77 screenshot(s).** Click any thumbnail for full resolution.
+**86 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -133,6 +133,21 @@
 <tr>
 <td align="center" width="33%"><a href="pd4-recon-item94-scale1.3.png"><img src="pd4-recon-item94-scale1.3.png" width="240"></a><br><sub>pd4 recon item94 scale1.3</sub></td>
 <td align="center" width="33%"><a href="pd4-tight-zoom.png"><img src="pd4-tight-zoom.png" width="240"></a><br><sub>pd4 tight zoom</sub></td>
+<td align="center" width="33%"><a href="r2-exitgate-check1-transition-1.3x-en.png"><img src="r2-exitgate-check1-transition-1.3x-en.png" width="240"></a><br><sub>r2 exitgate check1 transition 1.3x en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r2-exitgate-check2-deepscroll-1.0x-en.png"><img src="r2-exitgate-check2-deepscroll-1.0x-en.png" width="240"></a><br><sub>r2 exitgate check2 deepscroll 1.0x en</sub></td>
+<td align="center" width="33%"><a href="r2-exitgate-check2-recollapsed-1.0x-en.png"><img src="r2-exitgate-check2-recollapsed-1.0x-en.png" width="240"></a><br><sub>r2 exitgate check2 recollapsed 1.0x en</sub></td>
+<td align="center" width="33%"><a href="r2-exitgate-check3-item94-recollapse-1.3x-en.png"><img src="r2-exitgate-check3-item94-recollapse-1.3x-en.png" width="240"></a><br><sub>r2 exitgate check3 item94 recollapse 1.3x en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r2-exitgate-check4-sweep-max-1.0x-ar.png"><img src="r2-exitgate-check4-sweep-max-1.0x-ar.png" width="240"></a><br><sub>r2 exitgate check4 sweep max 1.0x ar</sub></td>
+<td align="center" width="33%"><a href="r2-exitgate-check4-sweep-max-1.0x-en.png"><img src="r2-exitgate-check4-sweep-max-1.0x-en.png" width="240"></a><br><sub>r2 exitgate check4 sweep max 1.0x en</sub></td>
+<td align="center" width="33%"><a href="r2-exitgate-check4-sweep-max-1.3x-ar.png"><img src="r2-exitgate-check4-sweep-max-1.3x-ar.png" width="240"></a><br><sub>r2 exitgate check4 sweep max 1.3x ar</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r2-exitgate-check4-sweep-max-1.3x-en.png"><img src="r2-exitgate-check4-sweep-max-1.3x-en.png" width="240"></a><br><sub>r2 exitgate check4 sweep max 1.3x en</sub></td>
+<td align="center" width="33%"><a href="r2-exitgate-item197-mozzarella-no-showmore-1.3x-en.png"><img src="r2-exitgate-item197-mozzarella-no-showmore-1.3x-en.png" width="240"></a><br><sub>r2 exitgate item197 mozzarella no showmore 1.3x en</sub></td>
 </tr>
 </table>
 
