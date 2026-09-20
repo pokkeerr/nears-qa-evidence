@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3636
 
-**FAIL — C3 fix-cycle 3 (8-fix7): >=5 cards demonstrated live EN+AR 1.0x on real device insets, but a NEW reproducible RenderFlex overflow (3.0px, n_ticket_card.dart:213) hits any coupon carrying the eligibility/expiry row in AR/RTL at 1.0x — caused directly by the 126dp height floor. Last authorized cycle; parking again.**
+**PASS — 8-fix9 (2nd exception cycle): AR/RTL overflow gone (2dp gap trim inside shared card budget), EN+AR both >=5 full cards at 1.0x (126dp), 1.15x/1.3x AR clean (139dp/152dp), EN untouched**
 
-**31 screenshot(s).** Click any thumbnail for full resolution.
+**37 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -29,6 +29,16 @@
 <td align="center" width="33%"><a href="coupon-c3-ar-1.3x.png"><img src="coupon-c3-ar-1.3x.png" width="240"></a><br><sub>coupon c3 ar 1.3x</sub></td>
 <td align="center" width="33%"><a href="coupon-c3-en-1.0x.png"><img src="coupon-c3-en-1.0x.png" width="240"></a><br><sub>coupon c3 en 1.0x</sub></td>
 <td align="center" width="33%"><a href="coupon-c3-en-1.3x.png"><img src="coupon-c3-en-1.3x.png" width="240"></a><br><sub>coupon c3 en 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="coupons_ar_1.0_exp_card.png"><img src="coupons_ar_1.0_exp_card.png" width="240"></a><br><sub>coupons ar 1.0 exp card</sub></td>
+<td align="center" width="33%"><a href="coupons_ar_13_exp.png"><img src="coupons_ar_13_exp.png" width="240"></a><br><sub>coupons ar 13 exp</sub></td>
+<td align="center" width="33%"><a href="coupons_ar_shimmer.png"><img src="coupons_ar_shimmer.png" width="240"></a><br><sub>coupons ar shimmer</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="coupons_ar_shimmer2.png"><img src="coupons_ar_shimmer2.png" width="240"></a><br><sub>coupons ar shimmer2</sub></td>
+<td align="center" width="33%"><a href="coupons_ar_shimmer_frame.png"><img src="coupons_ar_shimmer_frame.png" width="240"></a><br><sub>coupons ar shimmer frame</sub></td>
+<td align="center" width="33%"><a href="coupons_en_1.0_final.png"><img src="coupons_en_1.0_final.png" width="240"></a><br><sub>coupons en 1.0 final</sub></td>
 </tr>
 <tr>
 <td align="center" width="33%"><a href="p15-01-coupons.png"><img src="p15-01-coupons.png" width="240"></a><br><sub>p15 01 coupons</sub></td>
@@ -65,6 +75,12 @@
 - [`bug-c4-coupon-not-persisted-checkout.log`](bug-c4-coupon-not-persisted-checkout.log)
 - [`coupon-c3-ar-1.0x-a11ydump.xml`](coupon-c3-ar-1.0x-a11ydump.xml)
 - [`coupon-c3-en-1.0x-a11ydump.xml`](coupon-c3-en-1.0x-a11ydump.xml)
+- [`coupons_ar_1.0.xml`](coupons_ar_1.0.xml)
+- [`coupons_ar_115.xml`](coupons_ar_115.xml)
+- [`coupons_ar_13.xml`](coupons_ar_13.xml)
+- [`coupons_ar_scroll.xml`](coupons_ar_scroll.xml)
+- [`coupons_en_1.0.xml`](coupons_en_1.0.xml)
+- [`coupons_en_scroll.xml`](coupons_en_scroll.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3636/` · public-repo scrub policy (no live secrets; verified clean).*
