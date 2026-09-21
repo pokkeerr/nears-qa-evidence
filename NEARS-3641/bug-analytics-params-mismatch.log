@@ -1,0 +1,32 @@
+NEARS-3641 QA — AC-ANALYTICS FAIL: fired event properties do not match the ticket's own
+documented value list, with no "Narrowings" sign-off recorded (contrast
+docs/platform/analytics-events.md's NEARS-3583 section immediately above the NEARS-3641
+section, which DOES carry an explicit "Narrowings / not built (Tier B, advisor-product
+[2b])" callout — NEARS-3641's section has no equivalent).
+
+Live-captured (logcat, this session, emulator-5554):
+  📊 analytics: address_saved {screen: add_address, section: save_cta, source: nav_bar}
+  📊 analytics: address_add_started {screen: add_address, section: entry, source: nav_bar}
+  📊 analytics: duplicate_address_blocked {screen: add_address, section: save_cta}
+  📊 analytics: address_deleted {screen: edit_address, section: delete_cta}
+
+Ticket's own AC-ANALYTICS table (Jira NEARS-3641 description) specifies:
+  address_saved      -> address_type, has_tower (0/1), zone_id, location_source, screen=add_address
+  address_deleted    -> address_id, position, screen=my_address
+  address_add_started -> screen=my_address/checkout/address_sheet, source
+
+Observed vs spec:
+  - address_saved: MISSING address_type, has_tower, zone_id, location_source entirely.
+    These matter concretely — the ticket's own "Success metric" ("share of addresses
+    saved outside the user's current zone at save time -> ~0") is uncomputable without
+    zone_id on this event.
+  - address_deleted: MISSING address_id and position; screen value is "edit_address",
+    not the spec'd "my_address".
+  - address_add_started: screen value is "add_address", not one of the spec'd enum
+    (my_address/checkout/address_sheet).
+
+Source confirms this is the INTENDED, built shape (not a runtime bug) —
+UserApp/lib/util/analytics_events.dart:1101-1136 doc-comments describe exactly the
+observed (simplified) params, and docs/platform/analytics-events.md's own NEARS-3641
+section documents the same simplified shape — diverging from the Jira ticket's
+AC-ANALYTICS table with no recorded Tier-B narrowing decision.

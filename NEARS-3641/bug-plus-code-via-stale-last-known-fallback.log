@@ -1,0 +1,22 @@
+NEARS-3641 QA — AC3 FAIL evidence (raw Plus Code via a LEGITIMATE AD1 fallback rung, not just admin-default)
+
+Repro: Add New Address screen, real GPS getCurrentPosition() TimeoutException (organic,
+not staged) -> AD1 ladder correctly chose "stale last-known GPS fix" (NOT admin default):
+
+09-21 19:07:14.285 8879 8879 I flutter : [FAIL] endpoint=null http_status=null type=GetPositionFailure msg="location: getPosition threw (TimeoutException) — trying the AD1 fallback ladder"
+09-21 19:07:14.285 8879 8879 I flutter : [INFO] msg="location: fallback ladder -> stale last-known GPS fix"
+09-21 19:07:14.286 8879 8879 I flutter : [INFO] msg="location: getCurrentLocation resolved via fallback rung=staleLastKnown"
+09-21 19:07:14.286 8879 8879 I flutter : 📊 analytics: location_fallback_used {screen: add_address, section: location_fallback, step: staleLastKnown}
+
+Resulting "Delivery Address *" field (see attached screenshot):
+  "99RQ+2X Abu Dhabi - United Arab Emirates"
+
+Root cause (LocationRepository.getAddressFromGeocode, location_repository.dart:18-29):
+the app takes body['results'][0]['formatted_address'] VERBATIM from the geocode-api
+response with no guard against a Plus-Code-shaped result. AD1 successfully avoids the
+OLD bug's specific repro (admin-default Dhaka coordinate) by trying more rungs first, but
+ANY rung (including the correct, intended "stale last-known" rung) that resolves to a
+coordinate Google's Geocoding API can't match to a POI/street still renders a raw Plus
+Code — literally reproducing the shape flagged as the bug in the ticket's own "before"
+evidence ("Q9Q4+726, Dhaka, Bangladesh"). AC3 ("never a raw Plus Code") is not actually
+enforced by any code path; it only stopped reproducing via the OLD specific repro.

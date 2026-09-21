@@ -1,0 +1,30 @@
+NEARS-3641 QA — Delivery Address DISPLAY can desync from the coordinates actually used
+for save / duplicate-check (High — data integrity / trust).
+
+Repro:
+1. Add New Address screen resolves + DISPLAYS "Delivery Address *" = "99RQ+2X Abu Dhabi -
+   United Arab Emirates" (confirmed via ui_list immediately before Save).
+2. Label = Home (default). Tapped "Save Address".
+3. Dedupe dialog fires: "You already saved this address" / "9 Av 2, Dhaka 1216,
+   Bangladesh" — i.e. matched against customer_addresses id 53 (23.81800004046164,
+   90.36599814891815), which is ~4,900 km from the DISPLAYED Abu Dhabi text/coordinate
+   (24.39, 54.39). Geolocator.distanceBetween() cannot return <20m for two points that
+   far apart, so the candidate lat/lng actually passed into
+   AddressController.findDuplicateAddress() at save-time was NOT the displayed Abu Dhabi
+   position — it was a Dhaka-area coordinate.
+
+Root cause: AddressController.validateAndSaveAddress (address_controller.dart:458-459)
+builds the saved/checked AddressModel from `locationController.position` (a GLOBAL
+LocationController-singleton field), NOT from the widget's own displayed
+`_addressController.text` / the position that produced it. These two can genuinely
+diverge — the visible Delivery Address text is not a reliable preview of what will
+actually be saved or checked for duplicates. This is the same class of defect AD1 was
+built to close (wrong-location saved with no visible warning), now resurfacing one layer
+deeper: even when the UI *looks* correct, the coordinate behind it may not be.
+
+Cancelled the dialog (tapped Cancel) — no duplicate row was inserted. DB row count
+verified via read-only SELECT before/after (9 -> 9, no mutation from this specific
+repro step). Confirmed evidence via before/after `customer_addresses` row 62 (a
+DIFFERENT, deliberate positive-control save at the same session) showing the save path
+genuinely persists locationController.position verbatim:
+  id=62, address="99RQ+2X Abu Dhabi - United Arab Emirates", latitude=24.39, longitude=54.39
