@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3641
 
-**cycle-3: AD9 targeted re-verdict FAIL**
+**cycle-4 delta re-QA: AD9 PASS (TB6 fix verified — loading gate + failure-card sizing)**
 
-**31 screenshot(s).** Click any thumbnail for full resolution.
+**40 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -27,6 +27,21 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="cyc3-AD9-pickmap-recovered-after-gms-reenabled.png"><img src="cyc3-AD9-pickmap-recovered-after-gms-reenabled.png" width="240"></a><br><sub>cyc3 AD9 pickmap recovered after gms reenabled</sub></td>
+<td align="center" width="33%"><a href="cyc4-AD9-addaddress-failed-fullcard.png"><img src="cyc4-AD9-addaddress-failed-fullcard.png" width="240"></a><br><sub>cyc4 AD9 addaddress failed fullcard</sub></td>
+<td align="center" width="33%"><a href="cyc4-AD9-addaddress-loading-gated.png"><img src="cyc4-AD9-addaddress-loading-gated.png" width="240"></a><br><sub>cyc4 AD9 addaddress loading gated</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cyc4-AD9-pickmap-failed-compare.png"><img src="cyc4-AD9-pickmap-failed-compare.png" width="240"></a><br><sub>cyc4 AD9 pickmap failed compare</sub></td>
+<td align="center" width="33%"><a href="cyc4-AD9-pickmap-loading-compare.png"><img src="cyc4-AD9-pickmap-loading-compare.png" width="240"></a><br><sub>cyc4 AD9 pickmap loading compare</sub></td>
+<td align="center" width="33%"><a href="cyc4-AD9-recovered-gms-enabled.png"><img src="cyc4-AD9-recovered-gms-enabled.png" width="240"></a><br><sub>cyc4 AD9 recovered gms enabled</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cyc4-AD9-retry-rearm-loading.png"><img src="cyc4-AD9-retry-rearm-loading.png" width="240"></a><br><sub>cyc4 AD9 retry rearm loading</sub></td>
+<td align="center" width="33%"><a href="cyc4-AD9-retry-rearm-refailed.png"><img src="cyc4-AD9-retry-rearm-refailed.png" width="240"></a><br><sub>cyc4 AD9 retry rearm refailed</sub></td>
+<td align="center" width="33%"><a href="cyc4-confirm-location-state.png"><img src="cyc4-confirm-location-state.png" width="240"></a><br><sub>cyc4 confirm location state</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cyc4-confirm-tap2.png"><img src="cyc4-confirm-tap2.png" width="240"></a><br><sub>cyc4 confirm tap2</sub></td>
 <td align="center" width="33%"><a href="p20-AD0-contact-details__crop.png"><img src="p20-AD0-contact-details__crop.png" width="240"></a><br><sub>p20 AD0 contact details crop</sub></td>
 <td align="center" width="33%"><a href="p20-AD0-header__crop.png"><img src="p20-AD0-header__crop.png" width="240"></a><br><sub>p20 AD0 header crop</sub></td>
 </tr>
