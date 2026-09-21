@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3709
 
-**FAIL delta re-QA cycle1: AC6 still fails (new cause - cuisine-tag collision nulls closedMatchLabel); AC7/AC2 sanity clean at 15 stores**
+**FAIL — AC6 fix-cycle 2: Indian filter's own open match (store 49) blocks the closed-match note from ever mounting**
 
 **4 screenshot(s).** Click any thumbnail for full resolution.
 
