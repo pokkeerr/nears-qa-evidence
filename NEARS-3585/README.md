@@ -1,153 +1,65 @@
 # QA Evidence — NEARS-3585
 
-**Delta re-QA (fix1 label-correction pass): FH6 confirmed data-issue not code / FH7 PASS / FH8 PASS / FH9 PASS / FH10 PASS / A3 FAIL (pharmacy home missing badge wiring) / S5 FAIL (unbuilt gap) / PH3 PASS / A4-api PASS (11/11 phpunit)**
+**PASS - R3/R3a/R3d card height <=120dp confirmed on-device, EN+AR, 1.0x+1.3x (fix-cycle 4, commit b491e976b)**
 
-**81 screenshot(s).** Click any thumbnail for full resolution.
+**32 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="bn1-banner-a1-available-near-you.png"><img src="bn1-banner-a1-available-near-you.png" width="240"></a><br><sub>bn1 banner a1 available near you</sub></td>
-<td align="center" width="33%"><a href="bug-a3-pharmacy-home-missing-new-badge.png"><img src="bug-a3-pharmacy-home-missing-new-badge.png" width="240"></a><br><sub>bug a3 pharmacy home missing new badge</sub></td>
-<td align="center" width="33%"><a href="bug-a4-delivery-time-mixed-units.png"><img src="bug-a4-delivery-time-mixed-units.png" width="240"></a><br><sub>bug a4 delivery time mixed units</sub></td>
+<td align="center" width="33%"><a href="dm-ar-1.0x.png"><img src="dm-ar-1.0x.png" width="240"></a><br><sub>dm ar 1.0x</sub></td>
+<td align="center" width="33%"><a href="dm-ar-1.3x-final.png"><img src="dm-ar-1.3x-final.png" width="240"></a><br><sub>dm ar 1.3x final</sub></td>
+<td align="center" width="33%"><a href="dm-ar-1.3x-final2.png"><img src="dm-ar-1.3x-final2.png" width="240"></a><br><sub>dm ar 1.3x final2</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="bug-foodhome-itemcard-uppercase-brandline.png"><img src="bug-foodhome-itemcard-uppercase-brandline.png" width="240"></a><br><sub>bug foodhome itemcard uppercase brandline</sub></td>
-<td align="center" width="33%"><a href="bug-r3a-card-height-accepted.png"><img src="bug-r3a-card-height-accepted.png" width="240"></a><br><sub>bug r3a card height accepted</sub></td>
-<td align="center" width="33%"><a href="bug-r3a-card-height-processing.png"><img src="bug-r3a-card-height-processing.png" width="240"></a><br><sub>bug r3a card height processing</sub></td>
+<td align="center" width="33%"><a href="dm-ar-1.3x-final3.png"><img src="dm-ar-1.3x-final3.png" width="240"></a><br><sub>dm ar 1.3x final3</sub></td>
+<td align="center" width="33%"><a href="dm-ar-1.3x-final4.png"><img src="dm-ar-1.3x-final4.png" width="240"></a><br><sub>dm ar 1.3x final4</sub></td>
+<td align="center" width="33%"><a href="dm-ar-1.3x-probe.png"><img src="dm-ar-1.3x-probe.png" width="240"></a><br><sub>dm ar 1.3x probe</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="fh10-category-chips.png"><img src="fh10-category-chips.png" width="240"></a><br><sub>fh10 category chips</sub></td>
-<td align="center" width="33%"><a href="fh10-search-filter-chips.png"><img src="fh10-search-filter-chips.png" width="240"></a><br><sub>fh10 search filter chips</sub></td>
-<td align="center" width="33%"><a href="fh7-cuisine-empty-state.png"><img src="fh7-cuisine-empty-state.png" width="240"></a><br><sub>fh7 cuisine empty state</sub></td>
+<td align="center" width="33%"><a href="dm-ar-1.3x-v2.png"><img src="dm-ar-1.3x-v2.png" width="240"></a><br><sub>dm ar 1.3x v2</sub></td>
+<td align="center" width="33%"><a href="dm-ar-1.3x-v3.png"><img src="dm-ar-1.3x-v3.png" width="240"></a><br><sub>dm ar 1.3x v3</sub></td>
+<td align="center" width="33%"><a href="dm-ar-1.3x-v4.png"><img src="dm-ar-1.3x-v4.png" width="240"></a><br><sub>dm ar 1.3x v4</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="fh8-top-rated-hidden.png"><img src="fh8-top-rated-hidden.png" width="240"></a><br><sub>fh8 top rated hidden</sub></td>
-<td align="center" width="33%"><a href="fh9-delivery-type-sheet.png"><img src="fh9-delivery-type-sheet.png" width="240"></a><br><sub>fh9 delivery type sheet</sub></td>
-<td align="center" width="33%"><a href="fix1-food-home-n1-sentencecase-fh3-heading.png"><img src="fix1-food-home-n1-sentencecase-fh3-heading.png" width="240"></a><br><sub>fix1 food home n1 sentencecase fh3 heading</sub></td>
+<td align="center" width="33%"><a href="dm-ar-1.3x.png"><img src="dm-ar-1.3x.png" width="240"></a><br><sub>dm ar 1.3x</sub></td>
+<td align="center" width="33%"><a href="dm-en-1.0x.png"><img src="dm-en-1.0x.png" width="240"></a><br><sub>dm en 1.0x</sub></td>
+<td align="center" width="33%"><a href="dm-en-1.3x.png"><img src="dm-en-1.3x.png" width="240"></a><br><sub>dm en 1.3x</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="fix1-grocery-home-top.png"><img src="fix1-grocery-home-top.png" width="240"></a><br><sub>fix1 grocery home top</sub></td>
-<td align="center" width="33%"><a href="h1-grocery-home-top.png"><img src="h1-grocery-home-top.png" width="240"></a><br><sub>h1 grocery home top</sub></td>
-<td align="center" width="33%"><a href="h3-flash-sale-enddate.png"><img src="h3-flash-sale-enddate.png" width="240"></a><br><sub>h3 flash sale enddate</sub></td>
+<td align="center" width="33%"><a href="home-en-1.0x.png"><img src="home-en-1.0x.png" width="240"></a><br><sub>home en 1.0x</sub></td>
+<td align="center" width="33%"><a href="pending-ar-1.3x.png"><img src="pending-ar-1.3x.png" width="240"></a><br><sub>pending ar 1.3x</sub></td>
+<td align="center" width="33%"><a href="pending-en-1.3x-b.png"><img src="pending-en-1.3x-b.png" width="240"></a><br><sub>pending en 1.3x b</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="p27-01-food-home.png"><img src="p27-01-food-home.png" width="240"></a><br><sub>p27 01 food home</sub></td>
-<td align="center" width="33%"><a href="p27-03-scrolled.png"><img src="p27-03-scrolled.png" width="240"></a><br><sub>p27 03 scrolled</sub></td>
-<td align="center" width="33%"><a href="p27-05-scrolled.png"><img src="p27-05-scrolled.png" width="240"></a><br><sub>p27 05 scrolled</sub></td>
+<td align="center" width="33%"><a href="pending-en-1.3x.png"><img src="pending-en-1.3x.png" width="240"></a><br><sub>pending en 1.3x</sub></td>
+<td align="center" width="33%"><a href="precall.png"><img src="precall.png" width="240"></a><br><sub>precall</sub></td>
+<td align="center" width="33%"><a href="probe-91356.png"><img src="probe-91356.png" width="240"></a><br><sub>probe 91356</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="p27-07-scrolled.png"><img src="p27-07-scrolled.png" width="240"></a><br><sub>p27 07 scrolled</sub></td>
-<td align="center" width="33%"><a href="p27-11-cuisine-american.png"><img src="p27-11-cuisine-american.png" width="240"></a><br><sub>p27 11 cuisine american</sub></td>
-<td align="center" width="33%"><a href="p27-13-restaurants-all.png"><img src="p27-13-restaurants-all.png" width="240"></a><br><sub>p27 13 restaurants all</sub></td>
+<td align="center" width="33%"><a href="probe-91356b.png"><img src="probe-91356b.png" width="240"></a><br><sub>probe 91356b</sub></td>
+<td align="center" width="33%"><a href="probe-91370.png"><img src="probe-91370.png" width="240"></a><br><sub>probe 91370</sub></td>
+<td align="center" width="33%"><a href="probe-91371.png"><img src="probe-91371.png" width="240"></a><br><sub>probe 91371</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="p27-15-filter-sheet.png"><img src="p27-15-filter-sheet.png" width="240"></a><br><sub>p27 15 filter sheet</sub></td>
-<td align="center" width="33%"><a href="p28-01-pharmacy-home.png"><img src="p28-01-pharmacy-home.png" width="240"></a><br><sub>p28 01 pharmacy home</sub></td>
-<td align="center" width="33%"><a href="p28-02-pharmacy-top.png"><img src="p28-02-pharmacy-top.png" width="240"></a><br><sub>p28 02 pharmacy top</sub></td>
+<td align="center" width="33%"><a href="probe-91371b.png"><img src="probe-91371b.png" width="240"></a><br><sub>probe 91371b</sub></td>
+<td align="center" width="33%"><a href="probe2.png"><img src="probe2.png" width="240"></a><br><sub>probe2</sub></td>
+<td align="center" width="33%"><a href="scale-check.png"><img src="scale-check.png" width="240"></a><br><sub>scale check</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="p28-03-scrolled.png"><img src="p28-03-scrolled.png" width="240"></a><br><sub>p28 03 scrolled</sub></td>
-<td align="center" width="33%"><a href="p28-10-prescription-sheet.png"><img src="p28-10-prescription-sheet.png" width="240"></a><br><sub>p28 10 prescription sheet</sub></td>
-<td align="center" width="33%"><a href="p28-11-open24h.png"><img src="p28-11-open24h.png" width="240"></a><br><sub>p28 11 open24h</sub></td>
+<td align="center" width="33%"><a href="thumb-ar-1.0x.png"><img src="thumb-ar-1.0x.png" width="240"></a><br><sub>thumb ar 1.0x</sub></td>
+<td align="center" width="33%"><a href="thumb-ar-1.3x.png"><img src="thumb-ar-1.3x.png" width="240"></a><br><sub>thumb ar 1.3x</sub></td>
+<td align="center" width="33%"><a href="thumb-en-1.3x-2.png"><img src="thumb-en-1.3x-2.png" width="240"></a><br><sub>thumb en 1.3x 2</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="p33-00-banner-before.png"><img src="p33-00-banner-before.png" width="240"></a><br><sub>p33 00 banner before</sub></td>
-<td align="center" width="33%"><a href="p33-01-banner-target.png"><img src="p33-01-banner-target.png" width="240"></a><br><sub>p33 01 banner target</sub></td>
-<td align="center" width="33%"><a href="p4-01.png"><img src="p4-01.png" width="240"></a><br><sub>p4 01</sub></td>
+<td align="center" width="33%"><a href="thumb-en-1.3x-3.png"><img src="thumb-en-1.3x-3.png" width="240"></a><br><sub>thumb en 1.3x 3</sub></td>
+<td align="center" width="33%"><a href="thumb-en-1.3x-probe.png"><img src="thumb-en-1.3x-probe.png" width="240"></a><br><sub>thumb en 1.3x probe</sub></td>
+<td align="center" width="33%"><a href="thumb-en-1.3x.png"><img src="thumb-en-1.3x.png" width="240"></a><br><sub>thumb en 1.3x</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="p4-02.png"><img src="p4-02.png" width="240"></a><br><sub>p4 02</sub></td>
-<td align="center" width="33%"><a href="p4-03.png"><img src="p4-03.png" width="240"></a><br><sub>p4 03</sub></td>
-<td align="center" width="33%"><a href="p4-04.png"><img src="p4-04.png" width="240"></a><br><sub>p4 04</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-05.png"><img src="p4-05.png" width="240"></a><br><sub>p4 05</sub></td>
-<td align="center" width="33%"><a href="p4-06.png"><img src="p4-06.png" width="240"></a><br><sub>p4 06</sub></td>
-<td align="center" width="33%"><a href="p4-10-after-add.png"><img src="p4-10-after-add.png" width="240"></a><br><sub>p4 10 after add</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-20-available-near-you.png"><img src="p4-20-available-near-you.png" width="240"></a><br><sub>p4 20 available near you</sub></td>
-<td align="center" width="33%"><a href="p4-30-trending.png"><img src="p4-30-trending.png" width="240"></a><br><sub>p4 30 trending</sub></td>
-<td align="center" width="33%"><a href="p4-40-stores.png"><img src="p4-40-stores.png" width="240"></a><br><sub>p4 40 stores</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-50-loggedin-top.png"><img src="p4-50-loggedin-top.png" width="240"></a><br><sub>p4 50 loggedin top</sub></td>
-<td align="center" width="33%"><a href="p4-51-reorder-usuals.png"><img src="p4-51-reorder-usuals.png" width="240"></a><br><sub>p4 51 reorder usuals</sub></td>
-<td align="center" width="33%"><a href="p4-60-active-orders.png"><img src="p4-60-active-orders.png" width="240"></a><br><sub>p4 60 active orders</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-A1-A5-available-near-you-tags-closed-new__crop.png"><img src="p4-A1-A5-available-near-you-tags-closed-new__crop.png" width="240"></a><br><sub>p4 A1 A5 available near you tags closed new crop</sub></td>
-<td align="center" width="33%"><a href="p4-A1-A5-available-near-you-tags-closed-new__full.png"><img src="p4-A1-A5-available-near-you-tags-closed-new__full.png" width="240"></a><br><sub>p4 A1 A5 available near you tags closed new full</sub></td>
-<td align="center" width="33%"><a href="p4-A1-closed-store-in-available__crop.png"><img src="p4-A1-closed-store-in-available__crop.png" width="240"></a><br><sub>p4 A1 closed store in available crop</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-A1-closed-store-in-available__full.png"><img src="p4-A1-closed-store-in-available__full.png" width="240"></a><br><sub>p4 A1 closed store in available full</sub></td>
-<td align="center" width="33%"><a href="p4-H1-module-tabs-left-aligned__crop.png"><img src="p4-H1-module-tabs-left-aligned__crop.png" width="240"></a><br><sub>p4 H1 module tabs left aligned crop</sub></td>
-<td align="center" width="33%"><a href="p4-H1-module-tabs-left-aligned__full.png"><img src="p4-H1-module-tabs-left-aligned__full.png" width="240"></a><br><sub>p4 H1 module tabs left aligned full</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-H3-countdown-120-days__crop.png"><img src="p4-H3-countdown-120-days__crop.png" width="240"></a><br><sub>p4 H3 countdown 120 days crop</sub></td>
-<td align="center" width="33%"><a href="p4-H3-countdown-120-days__full.png"><img src="p4-H3-countdown-120-days__full.png" width="240"></a><br><sub>p4 H3 countdown 120 days full</sub></td>
-<td align="center" width="33%"><a href="p4-H4-see-all-mint-contrast__crop.png"><img src="p4-H4-see-all-mint-contrast__crop.png" width="240"></a><br><sub>p4 H4 see all mint contrast crop</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-H4-see-all-mint-contrast__full.png"><img src="p4-H4-see-all-mint-contrast__full.png" width="240"></a><br><sub>p4 H4 see all mint contrast full</sub></td>
-<td align="center" width="33%"><a href="p4-H5-card-stepper-overlaps-price__crop.png"><img src="p4-H5-card-stepper-overlaps-price__crop.png" width="240"></a><br><sub>p4 H5 card stepper overlaps price crop</sub></td>
-<td align="center" width="33%"><a href="p4-H5-card-stepper-overlaps-price__full.png"><img src="p4-H5-card-stepper-overlaps-price__full.png" width="240"></a><br><sub>p4 H5 card stepper overlaps price full</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-H6-H7-categories-mixed-icons__crop.png"><img src="p4-H6-H7-categories-mixed-icons__crop.png" width="240"></a><br><sub>p4 H6 H7 categories mixed icons crop</sub></td>
-<td align="center" width="33%"><a href="p4-H6-H7-categories-mixed-icons__full.png"><img src="p4-H6-H7-categories-mixed-icons__full.png" width="240"></a><br><sub>p4 H6 H7 categories mixed icons full</sub></td>
-<td align="center" width="33%"><a href="p4-H8-two-basket-icons__crop.png"><img src="p4-H8-two-basket-icons__crop.png" width="240"></a><br><sub>p4 H8 two basket icons crop</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-H8-two-basket-icons__full.png"><img src="p4-H8-two-basket-icons__full.png" width="240"></a><br><sub>p4 H8 two basket icons full</sub></td>
-<td align="center" width="33%"><a href="p4-N1-N3-N4-trending-card-gaps-badge-heart__crop.png"><img src="p4-N1-N3-N4-trending-card-gaps-badge-heart__crop.png" width="240"></a><br><sub>p4 N1 N3 N4 trending card gaps badge heart crop</sub></td>
-<td align="center" width="33%"><a href="p4-N1-N3-N4-trending-card-gaps-badge-heart__full.png"><img src="p4-N1-N3-N4-trending-card-gaps-badge-heart__full.png" width="240"></a><br><sub>p4 N1 N3 N4 trending card gaps badge heart full</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-N5-duplicate-product-a__crop.png"><img src="p4-N5-duplicate-product-a__crop.png" width="240"></a><br><sub>p4 N5 duplicate product a crop</sub></td>
-<td align="center" width="33%"><a href="p4-N5-duplicate-product-a__full.png"><img src="p4-N5-duplicate-product-a__full.png" width="240"></a><br><sub>p4 N5 duplicate product a full</sub></td>
-<td align="center" width="33%"><a href="p4-N5-duplicate-product-b__crop.png"><img src="p4-N5-duplicate-product-b__crop.png" width="240"></a><br><sub>p4 N5 duplicate product b crop</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-N5-duplicate-product-b__full.png"><img src="p4-N5-duplicate-product-b__full.png" width="240"></a><br><sub>p4 N5 duplicate product b full</sub></td>
-<td align="center" width="33%"><a href="p4-R1-reorder-rail-big-card-truncated-store__crop.png"><img src="p4-R1-reorder-rail-big-card-truncated-store__crop.png" width="240"></a><br><sub>p4 R1 reorder rail big card truncated store crop</sub></td>
-<td align="center" width="33%"><a href="p4-R1-reorder-rail-big-card-truncated-store__full.png"><img src="p4-R1-reorder-rail-big-card-truncated-store__full.png" width="240"></a><br><sub>p4 R1 reorder rail big card truncated store full</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-R3-R4-active-orders-greeting-order__crop.png"><img src="p4-R3-R4-active-orders-greeting-order__crop.png" width="240"></a><br><sub>p4 R3 R4 active orders greeting order crop</sub></td>
-<td align="center" width="33%"><a href="p4-R3-R4-active-orders-greeting-order__full.png"><img src="p4-R3-R4-active-orders-greeting-order__full.png" width="240"></a><br><sub>p4 R3 R4 active orders greeting order full</sub></td>
-<td align="center" width="33%"><a href="p4-R3a-R3e-active-order-card-whitespace-chip-pending__crop.png"><img src="p4-R3a-R3e-active-order-card-whitespace-chip-pending__crop.png" width="240"></a><br><sub>p4 R3a R3e active order card whitespace chip pending crop</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-R3a-R3e-active-order-card-whitespace-chip-pending__full.png"><img src="p4-R3a-R3e-active-order-card-whitespace-chip-pending__full.png" width="240"></a><br><sub>p4 R3a R3e active order card whitespace chip pending full</sub></td>
-<td align="center" width="33%"><a href="p4-R3b-R3c-chip-hides-name-pending-says-waiting-courier__crop.png"><img src="p4-R3b-R3c-chip-hides-name-pending-says-waiting-courier__crop.png" width="240"></a><br><sub>p4 R3b R3c chip hides name pending says waiting courier crop</sub></td>
-<td align="center" width="33%"><a href="p4-R3b-R3c-chip-hides-name-pending-says-waiting-courier__full.png"><img src="p4-R3b-R3c-chip-hides-name-pending-says-waiting-courier__full.png" width="240"></a><br><sub>p4 R3b R3c chip hides name pending says waiting courier full</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="p4-S1-S6-stores-section__crop.png"><img src="p4-S1-S6-stores-section__crop.png" width="240"></a><br><sub>p4 S1 S6 stores section crop</sub></td>
-<td align="center" width="33%"><a href="p4-S1-S6-stores-section__full.png"><img src="p4-S1-S6-stores-section__full.png" width="240"></a><br><sub>p4 S1 S6 stores section full</sub></td>
-<td align="center" width="33%"><a href="ph1-ph6-prescription-cta-search-hint.png"><img src="ph1-ph6-prescription-cta-search-hint.png" width="240"></a><br><sub>ph1 ph6 prescription cta search hint</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="ph3-choose-pharmacy-sheet.png"><img src="ph3-choose-pharmacy-sheet.png" width="240"></a><br><sub>ph3 choose pharmacy sheet</sub></td>
-<td align="center" width="33%"><a href="ph4-open24h-chip-visible.png"><img src="ph4-open24h-chip-visible.png" width="240"></a><br><sub>ph4 open24h chip visible</sub></td>
-<td align="center" width="33%"><a href="ph4-open24h-tapped.png"><img src="ph4-open24h-tapped.png" width="240"></a><br><sub>ph4 open24h tapped</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="r2-fixcycle2-module-switch-network.png"><img src="r2-fixcycle2-module-switch-network.png" width="240"></a><br><sub>r2 fixcycle2 module switch network</sub></td>
-<td align="center" width="33%"><a href="regression-order-tracking-hub-legacy-card.png"><img src="regression-order-tracking-hub-legacy-card.png" width="240"></a><br><sub>regression order tracking hub legacy card</sub></td>
-<td align="center" width="33%"><a href="s2-closed-now-divider.png"><img src="s2-closed-now-divider.png" width="240"></a><br><sub>s2 closed now divider</sub></td>
+<td align="center" width="33%"><a href="tracking-hub-ar.png"><img src="tracking-hub-ar.png" width="240"></a><br><sub>tracking hub ar</sub></td>
+<td align="center" width="33%"><a href="tracking-hub-legacy.png"><img src="tracking-hub-legacy.png" width="240"></a><br><sub>tracking hub legacy</sub></td>
 </tr>
 </table>
-
-### Other artifacts
-- [`a3-pharmacy-home-dump.xml`](a3-pharmacy-home-dump.xml)
-- [`bug-automated-test-failures.log`](bug-automated-test-failures.log)
-- [`bug-r2-buyitagain-double-fire-on-module-revisit.log`](bug-r2-buyitagain-double-fire-on-module-revisit.log)
-- [`r2-fixcycle2-network-log.txt`](r2-fixcycle2-network-log.txt)
-- [`regression-nitemcard-1.3x-overflow.log`](regression-nitemcard-1.3x-overflow.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3585/` · public-repo scrub policy (no live secrets; verified clean).*
