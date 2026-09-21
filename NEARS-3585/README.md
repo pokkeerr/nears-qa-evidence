@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3585
 
-**fix-cycle 1 delta re-QA: R2 still FAILs (double-fire on module revisit), 5/6 items PASS**
+**R2 fix-cycle 2 re-QA PASS -- buy-it-again exactly once per module load, post-login + pull-to-refresh unregressed**
 
-**73 screenshot(s).** Click any thumbnail for full resolution.
+**74 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -123,9 +123,10 @@
 <tr>
 <td align="center" width="33%"><a href="ph4-open24h-chip-visible.png"><img src="ph4-open24h-chip-visible.png" width="240"></a><br><sub>ph4 open24h chip visible</sub></td>
 <td align="center" width="33%"><a href="ph4-open24h-tapped.png"><img src="ph4-open24h-tapped.png" width="240"></a><br><sub>ph4 open24h tapped</sub></td>
-<td align="center" width="33%"><a href="regression-order-tracking-hub-legacy-card.png"><img src="regression-order-tracking-hub-legacy-card.png" width="240"></a><br><sub>regression order tracking hub legacy card</sub></td>
+<td align="center" width="33%"><a href="r2-fixcycle2-module-switch-network.png"><img src="r2-fixcycle2-module-switch-network.png" width="240"></a><br><sub>r2 fixcycle2 module switch network</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="regression-order-tracking-hub-legacy-card.png"><img src="regression-order-tracking-hub-legacy-card.png" width="240"></a><br><sub>regression order tracking hub legacy card</sub></td>
 <td align="center" width="33%"><a href="s2-closed-now-divider.png"><img src="s2-closed-now-divider.png" width="240"></a><br><sub>s2 closed now divider</sub></td>
 </tr>
 </table>
@@ -133,6 +134,7 @@
 ### Other artifacts
 - [`bug-automated-test-failures.log`](bug-automated-test-failures.log)
 - [`bug-r2-buyitagain-double-fire-on-module-revisit.log`](bug-r2-buyitagain-double-fire-on-module-revisit.log)
+- [`r2-fixcycle2-network-log.txt`](r2-fixcycle2-network-log.txt)
 - [`regression-nitemcard-1.3x-overflow.log`](regression-nitemcard-1.3x-overflow.log)
 
 ---

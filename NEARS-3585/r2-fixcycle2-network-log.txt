@@ -1,0 +1,42 @@
+NEARS-3585 R2 fix-cycle 2 -- live network log excerpt (emulator-5558, worktree tip b9e6c37e4)
+Sequence: login (customer@nears.com) -> Grocery cold-open -> switch Restaurant(Food) ->
+switch back Grocery -> switch Pharmacy -> switch back Restaurant(Food) -> pull-to-refresh
+on Food home.
+
+Call #1 (post-login direct trigger, AuthController.resolveBuyItAgain(reload:true)):
+I/flutter (27933): [NET] GET endpoint=/api/v1/customer/order/buy-it-again
+I/flutter (27933): [NET] endpoint=/api/v1/customer/order/buy-it-again http_status=200
+
+Call #2 (module switch: Grocery -> Restaurant/Food):
+I/flutter (27933): [NET] GET endpoint=/api/v1/customer/order/buy-it-again
+I/flutter (27933): [NET] endpoint=/api/v1/customer/order/buy-it-again http_status=200
+
+Call #3 (module switch: Food -> Grocery, i.e. revisit):
+I/flutter (27933): [NET] GET endpoint=/api/v1/customer/order/buy-it-again
+I/flutter (27933): [NET] endpoint=/api/v1/customer/order/buy-it-again http_status=200
+
+Call #4 (module switch: Grocery -> Pharmacy):
+I/flutter (27933): [NET] GET endpoint=/api/v1/customer/order/buy-it-again
+I/flutter (27933): [NET] endpoint=/api/v1/customer/order/buy-it-again http_status=200
+
+Call #5 (module switch: Pharmacy -> Restaurant/Food, second revisit):
+I/flutter (27933): [NET] GET endpoint=/api/v1/customer/order/buy-it-again
+I/flutter (27933): [NET] endpoint=/api/v1/customer/order/buy-it-again http_status=200
+
+Calls #6+#7 (pull-to-refresh on Food home -- direct refreshHomeData() trigger,
+resolveBuyItAgain(reload:true) called from BOTH the cache settle and the network
+settle of getStoreList; this call site was NOT touched by the fix-cycle-2 diff and
+is a pre-existing, by-design double-fire per the NEARS-524/CR-3 comment -- confirms
+behavior (b): pull-to-refresh is NOT permanently suppressed):
+I/flutter (27933): [NET] GET endpoint=/api/v1/customer/order/buy-it-again
+I/flutter (27933): [NET] endpoint=/api/v1/customer/order/buy-it-again http_status=200
+I/flutter (27933): [NET] GET endpoint=/api/v1/customer/order/buy-it-again
+I/flutter (27933): [NET] endpoint=/api/v1/customer/order/buy-it-again http_status=200
+
+RESULT: exactly 1 buy-it-again call per home-screen LOAD (5 loads = 5 calls, calls
+#1-#5), never 2+ per load, never accumulating across revisits (module B then back to
+module A still 1, not 2). Zero [ERR]/[FAIL] log lines anywhere in the test window
+(post-login through pull-to-refresh) -- confirmed via `ui_errors` (6 pre-existing
+[FAIL] lines all predate login: FirebaseInitFailure, KilledLaunchNotificationFailure,
+FcmTokenFetchFailure x1, GetPositionFailure x2, FcmTopicConfigFailure -- all
+environment/emulator artifacts unrelated to R2).
