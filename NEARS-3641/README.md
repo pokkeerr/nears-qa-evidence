@@ -1,13 +1,18 @@
 # QA Evidence — NEARS-3641
 
-**FAIL — 5 task_bugs (2 High/High/High/Medium/Medium): NAddressCard blank a11y semantics at 4/5 call sites, raw Plus Code via legit AD1 fallback rung, address display/save coordinate desync, analytics param mismatch, 2 broken pre-existing tests in delivery_section.dart**
+**PASS (cycle-2 delta) — TB1-TB5 re-verified live on emulator-5554, all fixes confirmed**
 
-**20 screenshot(s).** Click any thumbnail for full resolution.
+**23 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
 <td align="center" width="33%"><a href="bug-naddresscard-blank-semantics.png"><img src="bug-naddresscard-blank-semantics.png" width="240"></a><br><sub>bug naddresscard blank semantics</sub></td>
 <td align="center" width="33%"><a href="bug-plus-code-via-stale-last-known-fallback.png"><img src="bug-plus-code-via-stale-last-known-fallback.png" width="240"></a><br><sub>bug plus code via stale last known fallback</sub></td>
+<td align="center" width="33%"><a href="cyc2-TB1-access-location-list-fixed.png"><img src="cyc2-TB1-access-location-list-fixed.png" width="240"></a><br><sub>cyc2 TB1 access location list fixed</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cyc2-TB2-staleLastKnown-real-address.png"><img src="cyc2-TB2-staleLastKnown-real-address.png" width="240"></a><br><sub>cyc2 TB2 staleLastKnown real address</sub></td>
+<td align="center" width="33%"><a href="cyc2-TB5-checkout-thumb-pencil.png"><img src="cyc2-TB5-checkout-thumb-pencil.png" width="240"></a><br><sub>cyc2 TB5 checkout thumb pencil</sub></td>
 <td align="center" width="33%"><a href="p20-AD0-contact-details__crop.png"><img src="p20-AD0-contact-details__crop.png" width="240"></a><br><sub>p20 AD0 contact details crop</sub></td>
 </tr>
 <tr>
@@ -47,6 +52,16 @@
 - [`bug-delivery-section-broken-tests.log`](bug-delivery-section-broken-tests.log)
 - [`bug-naddresscard-blank-semantics-dump.xml`](bug-naddresscard-blank-semantics-dump.xml)
 - [`bug-plus-code-via-stale-last-known-fallback.log`](bug-plus-code-via-stale-last-known-fallback.log)
+- [`cyc2-TB2-staleLastKnown-log.log`](cyc2-TB2-staleLastKnown-log.log)
+- [`cyc2-TB3-position-desync-fixed.log`](cyc2-TB3-position-desync-fixed.log)
+- [`cyc2-TB4-analytics-full-params.log`](cyc2-TB4-analytics-full-params.log)
+- [`cyc2-a11y-access-location-list-dump.xml`](cyc2-a11y-access-location-list-dump.xml)
+- [`cyc2-a11y-checkout-changesheet-dump.xml`](cyc2-a11y-checkout-changesheet-dump.xml)
+- [`cyc2-a11y-checkout-desktop-collapsed-strip-dump.xml`](cyc2-a11y-checkout-desktop-collapsed-strip-dump.xml)
+- [`cyc2-a11y-checkout-summary-dump.xml`](cyc2-a11y-checkout-summary-dump.xml)
+- [`cyc2-a11y-myaddress-dump.xml`](cyc2-a11y-myaddress-dump.xml)
+- [`cyc2-a11y-tb3-dedupe-dump.xml`](cyc2-a11y-tb3-dedupe-dump.xml)
+- [`regression-candidate-cart-item-widget-overflow.log`](regression-candidate-cart-item-widget-overflow.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3641/` · public-repo scrub policy (no live secrets; verified clean).*
