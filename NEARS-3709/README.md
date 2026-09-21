@@ -1,23 +1,21 @@
 # QA Evidence — NEARS-3709
 
-**FAIL — AC6 fix-cycle 2: Indian filter's own open match (store 49) blocks the closed-match note from ever mounting**
+**Delta re-QA AC6 PASS — commit 0ad7d1375, fixture 91142/47 American cuisine**
 
-**4 screenshot(s).** Click any thumbnail for full resolution.
+**3 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="ac1-ac2-merged-stores-list.png"><img src="ac1-ac2-merged-stores-list.png" width="240"></a><br><sub>ac1 ac2 merged stores list</sub></td>
-<td align="center" width="33%"><a href="ac6-closed-match-note-gap.png"><img src="ac6-closed-match-note-gap.png" width="240"></a><br><sub>ac6 closed match note gap</sub></td>
-<td align="center" width="33%"><a href="ac6-fix1-still-no-opens-at.png"><img src="ac6-fix1-still-no-opens-at.png" width="240"></a><br><sub>ac6 fix1 still no opens at</sub></td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="ac7-ac2-sanity-15total-fastest-page2.png"><img src="ac7-ac2-sanity-15total-fastest-page2.png" width="240"></a><br><sub>ac7 ac2 sanity 15total fastest page2</sub></td>
+<td align="center" width="33%"><a href="ac6-fix2-american-isolated-closed-no-label.png"><img src="ac6-fix2-american-isolated-closed-no-label.png" width="240"></a><br><sub>ac6 fix2 american isolated closed no label</sub></td>
+<td align="center" width="33%"><a href="ac6-fix2-indian-open-match-no-note.png"><img src="ac6-fix2-indian-open-match-no-note.png" width="240"></a><br><sub>ac6 fix2 indian open match no note</sub></td>
+<td align="center" width="33%"><a href="ac6-fix3-american-closed-match.png"><img src="ac6-fix3-american-closed-match.png" width="240"></a><br><sub>ac6 fix3 american closed match</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
-- [`ac6-fix1-a11y-dump.xml`](ac6-fix1-a11y-dump.xml)
-- [`ac7-fastest-page-order.log`](ac7-fastest-page-order.log)
+- [`ac6-fix2-american-a11y-dump.xml`](ac6-fix2-american-a11y-dump.xml)
+- [`ac6-fix2-indian-a11y-dump.xml`](ac6-fix2-indian-a11y-dump.xml)
+- [`ac6-fix3-american-a11y-dump.xml`](ac6-fix3-american-a11y-dump.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3709/` · public-repo scrub policy (no live secrets; verified clean).*
