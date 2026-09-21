@@ -1,18 +1,28 @@
 # QA Evidence — NEARS-3585
 
-**R2 fix-cycle 2 re-QA PASS -- buy-it-again exactly once per module load, post-login + pull-to-refresh unregressed**
+**Delta re-QA (fix1 label-correction pass): FH6 confirmed data-issue not code / FH7 PASS / FH8 PASS / FH9 PASS / FH10 PASS / A3 FAIL (pharmacy home missing badge wiring) / S5 FAIL (unbuilt gap) / PH3 PASS / A4-api PASS (11/11 phpunit)**
 
-**74 screenshot(s).** Click any thumbnail for full resolution.
+**81 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
 <td align="center" width="33%"><a href="bn1-banner-a1-available-near-you.png"><img src="bn1-banner-a1-available-near-you.png" width="240"></a><br><sub>bn1 banner a1 available near you</sub></td>
+<td align="center" width="33%"><a href="bug-a3-pharmacy-home-missing-new-badge.png"><img src="bug-a3-pharmacy-home-missing-new-badge.png" width="240"></a><br><sub>bug a3 pharmacy home missing new badge</sub></td>
 <td align="center" width="33%"><a href="bug-a4-delivery-time-mixed-units.png"><img src="bug-a4-delivery-time-mixed-units.png" width="240"></a><br><sub>bug a4 delivery time mixed units</sub></td>
-<td align="center" width="33%"><a href="bug-foodhome-itemcard-uppercase-brandline.png"><img src="bug-foodhome-itemcard-uppercase-brandline.png" width="240"></a><br><sub>bug foodhome itemcard uppercase brandline</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="bug-foodhome-itemcard-uppercase-brandline.png"><img src="bug-foodhome-itemcard-uppercase-brandline.png" width="240"></a><br><sub>bug foodhome itemcard uppercase brandline</sub></td>
 <td align="center" width="33%"><a href="bug-r3a-card-height-accepted.png"><img src="bug-r3a-card-height-accepted.png" width="240"></a><br><sub>bug r3a card height accepted</sub></td>
 <td align="center" width="33%"><a href="bug-r3a-card-height-processing.png"><img src="bug-r3a-card-height-processing.png" width="240"></a><br><sub>bug r3a card height processing</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fh10-category-chips.png"><img src="fh10-category-chips.png" width="240"></a><br><sub>fh10 category chips</sub></td>
+<td align="center" width="33%"><a href="fh10-search-filter-chips.png"><img src="fh10-search-filter-chips.png" width="240"></a><br><sub>fh10 search filter chips</sub></td>
+<td align="center" width="33%"><a href="fh7-cuisine-empty-state.png"><img src="fh7-cuisine-empty-state.png" width="240"></a><br><sub>fh7 cuisine empty state</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fh8-top-rated-hidden.png"><img src="fh8-top-rated-hidden.png" width="240"></a><br><sub>fh8 top rated hidden</sub></td>
+<td align="center" width="33%"><a href="fh9-delivery-type-sheet.png"><img src="fh9-delivery-type-sheet.png" width="240"></a><br><sub>fh9 delivery type sheet</sub></td>
 <td align="center" width="33%"><a href="fix1-food-home-n1-sentencecase-fh3-heading.png"><img src="fix1-food-home-n1-sentencecase-fh3-heading.png" width="240"></a><br><sub>fix1 food home n1 sentencecase fh3 heading</sub></td>
 </tr>
 <tr>
@@ -121,17 +131,19 @@
 <td align="center" width="33%"><a href="ph1-ph6-prescription-cta-search-hint.png"><img src="ph1-ph6-prescription-cta-search-hint.png" width="240"></a><br><sub>ph1 ph6 prescription cta search hint</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ph3-choose-pharmacy-sheet.png"><img src="ph3-choose-pharmacy-sheet.png" width="240"></a><br><sub>ph3 choose pharmacy sheet</sub></td>
 <td align="center" width="33%"><a href="ph4-open24h-chip-visible.png"><img src="ph4-open24h-chip-visible.png" width="240"></a><br><sub>ph4 open24h chip visible</sub></td>
 <td align="center" width="33%"><a href="ph4-open24h-tapped.png"><img src="ph4-open24h-tapped.png" width="240"></a><br><sub>ph4 open24h tapped</sub></td>
-<td align="center" width="33%"><a href="r2-fixcycle2-module-switch-network.png"><img src="r2-fixcycle2-module-switch-network.png" width="240"></a><br><sub>r2 fixcycle2 module switch network</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="r2-fixcycle2-module-switch-network.png"><img src="r2-fixcycle2-module-switch-network.png" width="240"></a><br><sub>r2 fixcycle2 module switch network</sub></td>
 <td align="center" width="33%"><a href="regression-order-tracking-hub-legacy-card.png"><img src="regression-order-tracking-hub-legacy-card.png" width="240"></a><br><sub>regression order tracking hub legacy card</sub></td>
 <td align="center" width="33%"><a href="s2-closed-now-divider.png"><img src="s2-closed-now-divider.png" width="240"></a><br><sub>s2 closed now divider</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
+- [`a3-pharmacy-home-dump.xml`](a3-pharmacy-home-dump.xml)
 - [`bug-automated-test-failures.log`](bug-automated-test-failures.log)
 - [`bug-r2-buyitagain-double-fire-on-module-revisit.log`](bug-r2-buyitagain-double-fire-on-module-revisit.log)
 - [`r2-fixcycle2-network-log.txt`](r2-fixcycle2-network-log.txt)
