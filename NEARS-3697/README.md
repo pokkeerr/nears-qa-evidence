@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3697
 
-**FAIL — AC1-4 pass live; page-level loading skeleton (search_result_widget.dart:100 + global_search_skeleton_list.dart) still shimmers popular-items thumbnails at 28dp vs 32dp real content, live pixel-measured (74px vs 84px @ 2.625px/dp)**
+**Delta re-QA cycle 1 PASS — NEARS-3697-B1 fix confirmed live: both page-level loading skeletons now measure 96px=32dp (was 74px=28dp), pixel-verified on a fresh device+backend at HEAD 5f1849bcc**
 
-**6 screenshot(s).** Click any thumbnail for full resolution.
+**10 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -12,7 +12,15 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="ac2-global-search-stores-thumbnails.png"><img src="ac2-global-search-stores-thumbnails.png" width="240"></a><br><sub>ac2 global search stores thumbnails</sub></td>
+<td align="center" width="33%"><a href="delta-global-loading-skeleton-check.png"><img src="delta-global-loading-skeleton-check.png" width="240"></a><br><sub>delta global loading skeleton check</sub></td>
+<td align="center" width="33%"><a href="delta-global-loading-skeleton-check2.png"><img src="delta-global-loading-skeleton-check2.png" width="240"></a><br><sub>delta global loading skeleton check2</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-global-loading-skeleton-check3.png"><img src="delta-global-loading-skeleton-check3.png" width="240"></a><br><sub>delta global loading skeleton check3</sub></td>
+<td align="center" width="33%"><a href="delta-loading-skeleton-check.png"><img src="delta-loading-skeleton-check.png" width="240"></a><br><sub>delta loading skeleton check</sub></td>
 <td align="center" width="33%"><a href="regression-favourites-no-thumbnails.png"><img src="regression-favourites-no-thumbnails.png" width="240"></a><br><sub>regression favourites no thumbnails</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="regression-loading-skeleton-32dp.png"><img src="regression-loading-skeleton-32dp.png" width="240"></a><br><sub>regression loading skeleton 32dp</sub></td>
 </tr>
 </table>
