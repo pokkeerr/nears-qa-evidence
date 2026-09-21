@@ -1,0 +1,51 @@
+NEARS-3697 QA finding — page-level loading skeleton does not mirror the new 32dp popular-items thumbnail size (28dp -> 32dp shimmer-to-content jump reproduces live)
+
+Device: emulator-5554 (NEARS_2424_QA AVD), UserApp worktree package com.izzes.nears.nears_nears_3697_search_topseller_thumbn
+Screens: Search results ("Stores" tab) and (by source-code parity) Global Search sectioned results.
+
+--- Live pixel measurement ---
+Density derived from the row skeleton's own 64dp avatar box:
+  regression-loading-skeleton-32dp.png, y=1368: gray box edges (63,231) -> width 168px
+  168px / 64dp = 2.625 px/dp
+
+Skeleton popular-items row (regression-loading-skeleton-32dp.png, y=1440, 4th skeleton card,
+`SearchResultWidget._buildScrollableBody`'s `merged == null` in-flight state,
+`const NStoreCard(name: '', layout: NStoreCardLayout.row, isLoading: true)` at
+UserApp/lib/features/search/widgets/search_result_widget.dart:100):
+  3 gray tile segments measured: (262,336)=74px, (346,420)=74px, (430,500+)=~74px
+  74px / 2.625 px/dp = 28.2dp  (== the OLD/default 28dp, NOT the new 32dp)
+
+Real content popular-items row (ac1-search-stores-thumbnails.png, y=915, Burger Palace card,
+rendered via SearchStoreCardWidget -> NStoreCard(popularItemsSize: 32)):
+  3 colorful thumbnail segments measured: (262,346)=84px, (357,441)=84px, (451,535)=84px
+  84px / 2.625 px/dp = 32.0dp  (== the new 32dp, as intended)
+
+--- Conclusion ---
+Skeleton tile = 74px (~28dp) vs real content tile = 84px (~32dp) at the identical on-screen
+density -> a genuine, live-reproduced 10px (~4dp) size jump between the loading shimmer and the
+resolved content on first page load. This is exactly the "28dp-shimmer-to-32dp-content jump" the
+ticket brief calls out as the owner-mandated fix ("device-verify the actual visual since this was
+explicitly flagged as a real risk before the owner approved the fix").
+
+--- Root cause (source read) ---
+`NStoreCard._compactPopularItemsSkeletonRow()` (packages/nears_dls/lib/components/nstorecard/n_store_card.dart)
+correctly reads `popularItemsSize ?? 28` and IS wired correctly when a caller supplies the prop —
+proven by the passing golden/unit tests, which exercise the component directly.
+
+But the PAGE-LEVEL "results still loading" skeletons for both of the 2 new call sites construct a
+bare `NStoreCard(..., isLoading: true)` with NO `popularItemsSize` argument, so they silently take
+the `?? 28` fallback:
+  - UserApp/lib/features/search/widgets/search_result_widget.dart:100
+      `const NStoreCard(name: '', layout: NStoreCardLayout.row, isLoading: true)`
+      (the `merged == null` whole-page in-flight skeleton, shown before tabs even resolve)
+  - UserApp/lib/features/global_search/widgets/global_search_skeleton_list.dart
+      `_GlobalSectionSkeleton`'s store-row skeleton itemBuilder:
+      `const NStoreCard(name: '', layout: NStoreCardLayout.row, isLoading: true)`
+
+`git diff feat/human-qa-uiux...HEAD` confirms BOTH sites are untouched by this ticket (zero diff on
+global_search_skeleton_list.dart; search_result_widget.dart's only change is the unrelated
+`showPopularItemsPreview: true` addition to the REAL SearchStoreCardWidget call further down the
+file, not to this page-level skeleton).
+
+Fix: pass `popularItemsSize: 32` at both skeleton call sites above (mirroring the real content's
+value exactly the way `SearchStoreCardWidget` already does for its own real/isLoading=false card).
