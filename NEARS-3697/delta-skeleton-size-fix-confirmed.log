@@ -1,0 +1,44 @@
+NEARS-3697 delta re-QA (cycle 1) — NEARS-3697-B1 fix confirmation, live pixel measurement
+
+Device: emulator-5556 (fresh boot, AVD Pixel_10_Pro_2), UserApp worktree package
+com.izzes.nears.nears_nears_3697_search_topseller_thumbn (uninstalled at teardown).
+Backend: own php artisan serve --port=8021 from this run's own worktree, HEAD 5f1849bcc
+(backend-freshness-check.sh 8021 PASS).
+Screen density derived from the row skeleton's own 64dp avatar box: 192px/64dp = 3.0px/dp
+(clean ratio on this device, vs 2.625px/dp on the original run's device — expected, different
+AVD/screen density; the delta re-QA re-derives density fresh each time rather than reusing the
+original run's constant).
+
+--- Search results page-level skeleton (search_result_widget.dart:100) ---
+File: delta-loading-skeleton-check.png (card 4, fully visible — card 5 in the same shot is
+partially obscured by the keyboard and gives a misleading truncated reading; card 4 is the
+reliable measurement).
+Square edges (x): (300,396) width=96px; also (408,504) and (516,612), 3 equal 96px tiles with
+12px (~4dp = space1) gaps between them, matching NOverflowMediaRow's real layout math exactly.
+Square edges (y): white->gray at 1612, gray->white at 1708 => height = 96px.
+96px / 3.0px/dp = 32.0dp exactly. BEFORE the fix (original run) this measured 74px (~28dp) on a
+2.625px/dp device — genuinely fixed, not a density-measurement artifact (both width AND height
+independently confirm 96px == 96px, i.e. a true square at the new size).
+
+--- Global Search page-level skeleton (global_search_skeleton_list.dart, both store-row instances) ---
+File: delta-global-loading-skeleton-check3.png ("cream" query, 3-module cross-section, 2
+sections rendered, each with its own store-row skeleton pair per _kSkeletonStoreRows=2).
+Card4 (box y=1552-1742) square: x-edges (300,396)/(408,504)/(516,612)=96px each; y-edges
+1684->1780 = 96px. Card5 (box y=1864-2054) square: identical x-edges; y-edges also 96px
+(measured explicitly). Both of the 2 skeleton store rows now measure 96px=32.0dp exactly.
+
+--- Light spot-check (no regression from the 2-line-plus-comment fix) ---
+Search results real content (Burger Palace, Stores tab): card bounds height 384px vs
+Favourites' identical store's card bounds height 264px => 120px delta = 40dp (32dp row +
+8dp/space2 gap) at 3.0px/dp -- the row is still present and correctly sized on the REAL
+(non-skeleton) card, and Favourites is still exactly card-height-shorter (no row, no gap),
+matching the original run's finding on the new device/density. Global Search real content
+(delta-global-loading-skeleton-check2.png) shows Fresh Mart Grocery / Daily Fresh Market both
+rendering 3 thumbnails + "+2" chip, same shape as the original PASS.
+
+--- Conclusion ---
+NEARS-3697-B1 fix (popularItemsSize: 32 added to both page-level loading-skeleton call sites)
+is confirmed correct and complete via live, independently-derived pixel measurement on a fresh
+device + fresh backend at the new HEAD. No 28dp-shimmer-to-32dp-content jump remains on either
+of the 2 new call sites. No regression observed in AC1/AC2 real-content rendering or the
+Favourites non-regression.

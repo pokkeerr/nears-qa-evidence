@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3697
 
-**Delta re-QA cycle 1 PASS — NEARS-3697-B1 fix confirmed live: both page-level loading skeletons now measure 96px=32dp (was 74px=28dp), pixel-verified on a fresh device+backend at HEAD 5f1849bcc**
+**Delta re-QA cycle 1 PASS (final)**
 
 **10 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -27,6 +27,7 @@
 
 ### Other artifacts
 - [`bug-skeleton-size-mismatch.log`](bug-skeleton-size-mismatch.log)
+- [`delta-skeleton-size-fix-confirmed.log`](delta-skeleton-size-fix-confirmed.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3697/` · public-repo scrub policy (no live secrets; verified clean).*
