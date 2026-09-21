@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3585
 
-**PASS - R3/R3a/R3d card height <=120dp confirmed on-device, EN+AR, 1.0x+1.3x (fix-cycle 4, commit b491e976b)**
+**fix-cycle 4 [9a] semantic re-verify: PASS — on-the-way redesigned card <=120dp EN/AR 1.3x confirmed, no onCancel/ETA crowding possible on rail (running_order_rail.dart passes no onCancel), NEARS-3696 cancel affordance non-regressed on tracking hub**
 
-**32 screenshot(s).** Click any thumbnail for full resolution.
+**35 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -24,6 +24,11 @@
 <td align="center" width="33%"><a href="dm-ar-1.3x.png"><img src="dm-ar-1.3x.png" width="240"></a><br><sub>dm ar 1.3x</sub></td>
 <td align="center" width="33%"><a href="dm-en-1.0x.png"><img src="dm-en-1.0x.png" width="240"></a><br><sub>dm en 1.0x</sub></td>
 <td align="center" width="33%"><a href="dm-en-1.3x.png"><img src="dm-en-1.3x.png" width="240"></a><br><sub>dm en 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix3-rail-dm-ar-1.3x.png"><img src="fix3-rail-dm-ar-1.3x.png" width="240"></a><br><sub>fix3 rail dm ar 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix3-rail-dm-en-1.3x.png"><img src="fix3-rail-dm-en-1.3x.png" width="240"></a><br><sub>fix3 rail dm en 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix3-tracking-hub-ali-hassan.png"><img src="fix3-tracking-hub-ali-hassan.png" width="240"></a><br><sub>fix3 tracking hub ali hassan</sub></td>
 </tr>
 <tr>
 <td align="center" width="33%"><a href="home-en-1.0x.png"><img src="home-en-1.0x.png" width="240"></a><br><sub>home en 1.0x</sub></td>
