@@ -1,0 +1,35 @@
+NEARS-3711 AC8 delta re-check — 📊 analytics debug-mirror capture (worktree-safe instrument,
+independent of the Firebase transport per AnalyticsService._mirror / analytics_service.dart:169).
+Device: emulator-5556. App: UserApp (nears_nears_3711_pharmacy_home_store_mer package suffix).
+Backend: own php artisan serve --port=8711 from this worktree, --dart-define API_HOST=10.0.2.2:8711.
+Flow: guest -> Home (zone 1) -> tap "Pharmacy" module tile -> merged Stores list renders -> scroll
+to store cards -> tap "CarePlus Pharmacy" card.
+
+Impressions (list render, 6 pharmacy stores, store_id 7/42-46):
+I/flutter (14299): 📊 analytics: view_item_list {item_list_id: store_card_popular_items, item_list_name: store_card_popular_items, item_count: 5, screen: home, store_id: 7, section: stores_list, position: 1}
+I/flutter (14299): 📊 analytics: view_item_list {item_list_id: store_card_popular_items, item_list_name: store_card_popular_items, item_count: 5, screen: home, store_id: 42, section: stores_list, position: 2}
+I/flutter (14299): 📊 analytics: view_item_list {item_list_id: store_card_popular_items, item_list_name: store_card_popular_items, item_count: 5, screen: home, store_id: 43, section: stores_list, position: 3}
+I/flutter (14299): 📊 analytics: view_item_list {item_list_id: store_card_popular_items, item_list_name: store_card_popular_items, item_count: 5, screen: home, store_id: 44, section: stores_list, position: 4}
+I/flutter (14299): 📊 analytics: view_item_list {item_list_id: store_card_popular_items, item_list_name: store_card_popular_items, item_count: 5, screen: home, store_id: 45, section: stores_list, position: 5}
+I/flutter (14299): 📊 analytics: view_item_list {item_list_id: store_card_popular_items, item_list_name: store_card_popular_items, item_count: 5, screen: home, store_id: 46, section: stores_list, position: 6}
+I/flutter (14299): 📊 analytics: view_store_list {item_list_id: stores_list, item_list_name: stores_list, count: 6, screen: home, with_popular_items_count: 6}
+
+Select (card tap, store_id 42 = CarePlus Pharmacy):
+I/flutter (14299): 📊 analytics: select_store {store_id: 42, screen: home, item_list_id: stores_list, item_list_name: stores_list, source: store_card, index: 1, has_popular_items: 1, is_open: 1, popular_item_count: 15}
+I/flutter (14299): 📊 analytics: view_store {store_id: 42, screen: home, item_list_id: stores_list, item_list_name: stores_list, source: store_card, index: 1, has_popular_items: 1, is_open: 1}
+
+Full-session sweep: 30 📊 analytics: lines captured this session, grep -i "pharmacy_nearby" against
+all of them -> 0 matches (exit 1, not found). No event anywhere in this AC's flow carries the old
+`pharmacy_nearby` list id — every pharmacy-card impression/select uses `stores_list` /
+`item_list_id: stores_list`, identical to NEARS-3709's precedent for Food cards.
+
+Logs-first check (scoped to this AC's action): grep [FAIL]/[ERR] in the same capture window shows
+only the pre-existing, unrelated worktree Firebase-init-failure chain (FirebaseInitFailure /
+KilledLaunchNotificationFailure / FcmTokenFetchFailure / FcmTopicConfigFailure) — none tied to the
+stores_list/select_store/view_store_list calls. Clean for this AC.
+
+Static cross-check (source read, both isFood and isPharmacy branches of the Stores list widget in
+UserApp/lib/features/home/screens/home_screen.dart use the SAME analyticsContextOverride:
+section: 'stores_list' — lines ~683 and ~837) and UserApp/lib/features/store/controllers/
+store_controller.dart:_logStoreListAnalytics (~677-704) fires listId/section 'stores_list'
+unconditionally for every module, confirming this is not a one-off runtime accident.

@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3711
 
-**PASS — Pharmacy home store-list merge, all 8 ACs demonstrated live**
+**AC8 delta re-check PASS — stores_list analytics confirmed via debug-mirror, no pharmacy_nearby**
 
 **11 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -25,6 +25,9 @@
 <td align="center" width="33%"><a href="regression-rtl-no-overflow.png"><img src="regression-rtl-no-overflow.png" width="240"></a><br><sub>regression rtl no overflow</sub></td>
 </tr>
 </table>
+
+### Other artifacts
+- [`ac8-analytics-stores-list.log`](ac8-analytics-stores-list.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3711/` · public-repo scrub policy (no live secrets; verified clean).*
