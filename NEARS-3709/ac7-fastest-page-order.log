@@ -1,0 +1,39 @@
+NEARS-3709 AC7 — "Fastest" store_type live backend order (zone 2, module 2, limit=12)
+
+$ curl -s "http://127.0.0.1:8010/api/v1/stores/get-stores/all?store_type=fastest&offset=1&limit=12" -H "zoneId: [2]" -H "moduleId: 2"
+page 1 (offset=1):
+91133 NEARS-3709 QA Restaurant 1   10-20 min
+91141 NEARS-3709 QA Restaurant 9   10-20 min
+49    Spice Route Kitchen           15-25 min
+91134 NEARS-3709 QA Restaurant 2   15-25 min
+51    Golden Wok                    20-40 min
+91135 NEARS-3709 QA Restaurant 3   20-40 min
+91136 NEARS-3709 QA Restaurant 4   25-35 min
+50    Noodle Bar                    30-45 min
+91137 NEARS-3709 QA Restaurant 5   30-45 min
+91138 NEARS-3709 QA Restaurant 6   35-50 min
+91139 NEARS-3709 QA Restaurant 7   40-55 min
+52    Mediterranean Bites           45-60 min
+
+page 2 (offset=2):
+91140 NEARS-3709 QA Restaurant 8   45-60 min
+47    The Grill House (active=0)   20-40 (unparsed, open=0 -> sorted last regardless)
+total 14
+
+Ascending by min_delivery_time confirmed across the page-1/page-2 boundary;
+matches live UI order captured via ui_list after tapping "Fastest" and
+scrolling to trigger the page-2 auto-load (uiautomator dumps
+uinav-c20a307a.../uinav-9fba3891...).
+
+FINDING (task_bug, low severity, breaks_ac:false): StoreLogic::get_stores'
+new `fastest` branch (~line 217) omits the `orderBy('id')` tie-break that
+the sibling `nearest`/`top_rated` branches in the SAME file carry (with an
+explicit NEARS-628-class comment: "id tie-break: equal averages/same-tower
+stores are common — without it offset pagination can duplicate/drop rows
+across pages"). Repro of the risk (not observed as an actual duplicate/drop
+here only because the seeded QA data's ties (10,10 / 15,15 / 20,20 / 30,30 /
+45,45 min) happen not to straddle the limit=12 page boundary — verified
+stable across 3 repeated curl calls above, position 12 = the sole min-35
+store). Recommend adding `->orderBy('id')` to the `fastest` `->when()` clause
+to match the established pattern and remove the latent risk for other data
+shapes.
