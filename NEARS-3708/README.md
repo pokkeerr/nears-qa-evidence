@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3708
 
-**PASS (delta re-QA) — AC3/4/5 fixed, closed/closing-soon behavior intact, HEAD 81397ebec**
+**AC-NULLSAFE live fixture check — closed chip renders, not zero, HEAD 81397ebec**
 
-**12 screenshot(s).** Click any thumbnail for full resolution.
+**15 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -18,6 +18,11 @@
 <tr>
 <td align="center" width="33%"><a href="ac3-ac4-closed-stores.png"><img src="ac3-ac4-closed-stores.png" width="240"></a><br><sub>ac3 ac4 closed stores</sub></td>
 <td align="center" width="33%"><a href="bug-ac3-open-store-shows-status-chip.png"><img src="bug-ac3-open-store-shows-status-chip.png" width="240"></a><br><sub>bug ac3 open store shows status chip</sub></td>
+<td align="center" width="33%"><a href="rerun-ac-nullsafe-live-fixture-2.png"><img src="rerun-ac-nullsafe-live-fixture-2.png" width="240"></a><br><sub>rerun ac nullsafe live fixture 2</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="rerun-ac-nullsafe-live-fixture.png"><img src="rerun-ac-nullsafe-live-fixture.png" width="240"></a><br><sub>rerun ac nullsafe live fixture</sub></td>
+<td align="center" width="33%"><a href="rerun-ac-nullsafe-store-detail-noerror.png"><img src="rerun-ac-nullsafe-store-detail-noerror.png" width="240"></a><br><sub>rerun ac nullsafe store detail noerror</sub></td>
 <td align="center" width="33%"><a href="rerun-ac3-allstores-openstore-zerochip.png"><img src="rerun-ac3-allstores-openstore-zerochip.png" width="240"></a><br><sub>rerun ac3 allstores openstore zerochip</sub></td>
 </tr>
 <tr>
