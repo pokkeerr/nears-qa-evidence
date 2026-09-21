@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3641
 
-**PASS (cycle-2 delta) — TB1-TB5 re-verified live on emulator-5554, all fixes confirmed**
+**cycle-3: AD9 targeted re-verdict FAIL - loading/error/retry treatment NOT identical between Add Address and Pick Location**
 
-**23 screenshot(s).** Click any thumbnail for full resolution.
+**29 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -13,6 +13,16 @@
 <tr>
 <td align="center" width="33%"><a href="cyc2-TB2-staleLastKnown-real-address.png"><img src="cyc2-TB2-staleLastKnown-real-address.png" width="240"></a><br><sub>cyc2 TB2 staleLastKnown real address</sub></td>
 <td align="center" width="33%"><a href="cyc2-TB5-checkout-thumb-pencil.png"><img src="cyc2-TB5-checkout-thumb-pencil.png" width="240"></a><br><sub>cyc2 TB5 checkout thumb pencil</sub></td>
+<td align="center" width="33%"><a href="cyc3-AD9-addaddress-failed-initial-view-icononly.png"><img src="cyc3-AD9-addaddress-failed-initial-view-icononly.png" width="240"></a><br><sub>cyc3 AD9 addaddress failed initial view icononly</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cyc3-AD9-addaddress-failed-scrolled-to-retry.png"><img src="cyc3-AD9-addaddress-failed-scrolled-to-retry.png" width="240"></a><br><sub>cyc3 AD9 addaddress failed scrolled to retry</sub></td>
+<td align="center" width="33%"><a href="cyc3-AD9-addaddress-loading-pin-fab-over-skeleton.png"><img src="cyc3-AD9-addaddress-loading-pin-fab-over-skeleton.png" width="240"></a><br><sub>cyc3 AD9 addaddress loading pin fab over skeleton</sub></td>
+<td align="center" width="33%"><a href="cyc3-AD9-pickmap-failed-full-card-visible.png"><img src="cyc3-AD9-pickmap-failed-full-card-visible.png" width="240"></a><br><sub>cyc3 AD9 pickmap failed full card visible</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cyc3-AD9-pickmap-loading-clean-skeleton.png"><img src="cyc3-AD9-pickmap-loading-clean-skeleton.png" width="240"></a><br><sub>cyc3 AD9 pickmap loading clean skeleton</sub></td>
+<td align="center" width="33%"><a href="cyc3-AD9-pickmap-recovered-after-gms-reenabled.png"><img src="cyc3-AD9-pickmap-recovered-after-gms-reenabled.png" width="240"></a><br><sub>cyc3 AD9 pickmap recovered after gms reenabled</sub></td>
 <td align="center" width="33%"><a href="p20-AD0-contact-details__crop.png"><img src="p20-AD0-contact-details__crop.png" width="240"></a><br><sub>p20 AD0 contact details crop</sub></td>
 </tr>
 <tr>
@@ -61,6 +71,7 @@
 - [`cyc2-a11y-checkout-summary-dump.xml`](cyc2-a11y-checkout-summary-dump.xml)
 - [`cyc2-a11y-myaddress-dump.xml`](cyc2-a11y-myaddress-dump.xml)
 - [`cyc2-a11y-tb3-dedupe-dump.xml`](cyc2-a11y-tb3-dedupe-dump.xml)
+- [`cyc3-AD9-watchdog-retry-log.log`](cyc3-AD9-watchdog-retry-log.log)
 - [`regression-candidate-cart-item-widget-overflow.log`](regression-candidate-cart-item-widget-overflow.log)
 
 ---
