@@ -1,7 +1,5 @@
 # QA Evidence — NEARS-3721
 
-**NEARS-3721 QA c2 final delta — PASS (AC12 copy proven; map + VendorApp env-UNVERIFIABLE)**
-
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
@@ -25,6 +23,7 @@
 - [`bug-tab-reuse-overmatch.log`](bug-tab-reuse-overmatch.log)
 - [`c1`](c1)
 - [`c2`](c2)
+- [`c3`](c3)
 - [`close-session.test.out`](close-session.test.out)
 - [`progress.md`](progress.md)
 - [`ready-table-boot2.md`](ready-table-boot2.md)

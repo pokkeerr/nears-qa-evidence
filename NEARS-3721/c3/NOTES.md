@@ -1,0 +1,1 @@
+Conductor live re-verify 2026-09-22: boot1 VendorApp emulator slow-boot DOWN under host RAM pressure (~248MB free, 6 qemu); boot2 reuse ⇒ 19 UP 0 DOWN; teardown 16 stopped/1 kept/0 refused; peer snapshot diff empty.
