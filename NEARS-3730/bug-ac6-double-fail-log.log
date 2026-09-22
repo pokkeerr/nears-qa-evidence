@@ -1,0 +1,44 @@
+NEARS-3730 AC6 — double [FAIL] log line on a genuine (non-transport-exception) get-zone-id
+zone-check failure, observed live via a QA-only reverse proxy forcing a clean HTTP 500 on
+exactly one candidate's /api/v1/config/get-zone-id call (query "Burj Khalifa", worktree backend
+127.0.0.1:8730 behind proxy, all other candidates unaffected/200 or genuinely 404 out-of-zone).
+
+Proxy-side (confirms exactly ONE forced failure, isolated):
+[proxy] "GET /api/v1/config/get-zone-id?lat=25.077913199999998&lng=55.1317205 HTTP/1.1" 500 -
+[proxy] FORCED 500 for /api/v1/config/get-zone-id?lat=25.077913199999998&lng=55.1317205
+
+Device logcat (adb -s emulator-5560 logcat -d | grep " flutter :" | grep -E "\[FAIL\]"),
+same millisecond, TWO lines for the ONE forced failure:
+09-23 00:22:55.575  8981  8981 I flutter : [FAIL] endpoint=/api/v1/config/get-zone-id http_status=500 type=ApiFailure msg="unhandled api response"
+09-23 00:22:55.576  8981  8981 I flutter : [FAIL] endpoint=/api/v1/config/get-zone-id http_status=500 type=ApiFailure msg="pick-map suggestion zone-check failed"
+
+Root cause (code read, UserApp/lib/features/location/domain/repositories/location_repository.dart
+lines 73-88 vs UserApp/lib/features/location/controllers/location_controller.dart lines
+~1620-1637): both `location_repository.getZone()`'s PRE-EXISTING generic re-log ("unhandled api
+response", fires whenever response.statusCode is not 200/403/404/1) and the NEW
+`_isSuggestionOutOfZone()`'s own "distinguishable line for THIS feature's own channel"
+(same predicate: `zone.status != null && zone.status != 1`) fire unconditionally on the
+identical condition. Neither call site checks whether the other already logged.
+
+AC6(b) literal text: "forcing one candidate's zone-check to fail ... emits exactly one
+client-side AppLogger.failure(...) [FAIL] line". Observed: 2 lines for this one candidate.
+
+Baseline (AC6a, clean run, no forced failure, query "Abu Dhabi" mixed in/out-of-zone,
+all candidates resolve normally) — confirmed 0 new [FAIL] lines from the zone-check path
+(only pre-existing, unrelated Firebase-init/FCM noise present, same on every launch this
+session, independent of this ticket):
+09-23 00:13:05.988 [FAIL] type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+09-23 00:13:09.345 [FAIL] type=KilledLaunchNotificationFailure msg="killed-launch getInitialMessage failed (FirebaseException)"
+09-23 00:13:53.435 [FAIL] type=FcmTokenFetchFailure msg="FCM registration id fetch failed"
+
+Note: the existing unit test
+(test/features/location/location_controller_suggestion_zone_filter_test.dart, "a non-403/404
+getZone failure fails open AND logs a distinguishable AppLogger.failure") mocks
+LocationServiceInterface.getZone directly and therefore never exercises
+location_repository.getZone's own pre-existing log line — it asserts hasLength(1) against only
+the NEW line and cannot see this double-log, which is why it was not caught before live QA.
+
+For contrast, a getLatLng/place-api-details failure (AC5/AC12 path) correctly produces exactly
+ONE line (no new log added by this ticket on that branch — only the pre-existing generic
+ApiChecker/api_client infra logs once):
+09-23 00:20:31.139 [FAIL] endpoint=/api/v1/config/place-api-details http_status=500 type=ApiFailure msg="api request failed"
