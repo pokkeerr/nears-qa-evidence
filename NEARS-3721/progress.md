@@ -17,3 +17,10 @@
 - AC9 PASS: live store tab present, admin opened fresh on /login/admin; bootB reused all 4; replay path-boundary correct.
 - TB3 PASS: launch [FAIL] lines once each (UserApp 2/2, DeliveryApp 9/9).
 - Snapshot: 12/12 identical, zero delta. No leftovers. Self-test 158/158.
+
+# Cycle 2 (HEAD da5614f41) — final delta
+- AC12 PASS: secrets:UserApp copied (mode 600, cmp identical, 239B, gitignored, git status clean, no tmp leftover); Vendor/Delivery WARN absent-in-primary; key-prefix hits 0 in boot output/state.tsv/watch.log (positive control 1).
+- AC12 purpose: map tiles blank -> Maps SDK 'Authorization failure' for com.izzes.nears.nears_nears_3721_live_boot (key delivered, package/cert restriction) -> UNVERIFIABLE (owner Cloud Console).
+- stderr fix PASS: 0 'No such file' lines.
+- AC1/AC8 VendorApp still DOWN: Pixel_10_Pro=657MB; reclaim reverted by quickboot snapshot (-no-snapshot-save) -> UNVERIFIABLE(env) + task bug on the hint.
+- Snapshot 12/12 identical; teardown 14/0/1/0; package uninstalled.

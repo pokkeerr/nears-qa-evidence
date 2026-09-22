@@ -1,0 +1,12 @@
+# Low-disk hint ineffective on quickboot AVDs: boot loads default_boot, launches with -no-snapshot-save, so a runtime reclaim is discarded on exit
+## launch line (boot-session.sh@da5614f41):
+501:  spawn "$HOME" "$STATE_DIR/$S.log" "$EMULATOR" -avd "$avd" -port "$port" -no-snapshot-save
+## emulator-5566 (Pixel_10_Pro) log:
+INFO         | Loading snapshot 'default_boot'...
+INFO         | Successfully loaded snapshot 'default_boot' using 1447 ms
+INFO         | Saving snapshot 'default_boot' using 0 ms
+## snapshot mtime: Sep 20 00:35:36 2026
+## coordinator reported owner-approved uninstall 666->942MB; this boot read:
+Pixel_10_Pro=657MB
+## hint the DOWN row gives:
+reclaim space in one by hand (read-only survey: source scripts/qa-lock-guard.sh; qa_disk_reclaim <serial>) and re-run. Boot never wipes or uninstalls. 
