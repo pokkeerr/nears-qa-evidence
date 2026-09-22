@@ -9,3 +9,11 @@
 - AC10 PASS file-read. AC11 PASS close-session.test 95/95 (+ control pairs).
 - Self-tests: boot-session.test 132/132, close-session.test 95/95.
 - Snapshot: all NEARS-3720 pids/pgids/lstart + :8000 loop identical, except the peer's own UserApp relaunch (55201 -> 67790, log in the peer's own scratchpad). No QA-3721 leftovers.
+
+# Cycle 1 (HEAD d115570e7) — delta
+- AC1 PASS*: bootA 16 UP incl monitor/reverb/queue on auto-detected php 8.5, 4 tabs; VendorApp DOWN names NEARS_2411_QA=567MB Pixel_10_Pro=657MB NEARS_2414_QA=612MB + reclaim hint -> UNVERIFIABLE(env).
+- AC2 PASS: bootB every UP row reused, same pid/lstart, process counts identical; low-disk VendorApp retried (followup). bootC with 5564 at 743MB (own 150MB filler) keeps app:DeliveryApp started+UP; teardown stopped it.
+- AC8 PASS*: 5568/5564 new, ppid 1; 5560/5562/5566 low-disk boots stopped by stop_fresh; VendorApp env.
+- AC9 PASS: live store tab present, admin opened fresh on /login/admin; bootB reused all 4; replay path-boundary correct.
+- TB3 PASS: launch [FAIL] lines once each (UserApp 2/2, DeliveryApp 9/9).
+- Snapshot: 12/12 identical, zero delta. No leftovers. Self-test 158/158.

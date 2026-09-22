@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3721
 
-**NEARS-3721 QA c0 — FAIL (AC2 re-run drops live app row; AC9 tab reuse over-match)**
+**NEARS-3721 QA c1 delta — PASS (VendorApp env-UNVERIFIABLE)**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -23,6 +23,7 @@
 - [`boot3.out`](boot3.out)
 - [`bug-rerun-drops-app-row.log`](bug-rerun-drops-app-row.log)
 - [`bug-tab-reuse-overmatch.log`](bug-tab-reuse-overmatch.log)
+- [`c1`](c1)
 - [`close-session.test.out`](close-session.test.out)
 - [`progress.md`](progress.md)
 - [`ready-table-boot2.md`](ready-table-boot2.md)
