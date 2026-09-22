@@ -1,0 +1,112 @@
+== clean fixture: every gate PASS, --root copies invoked
+  ok   clean exits 0 (exit 0)
+  ok   clean: PASS rows-terminal
+  ok   clean: PASS suite-security
+  ok   clean: PASS contract-docs
+  ok   clean: PASS docs-catalog
+  ok   clean: PASS citation-resolve
+  ok   clean: PASS citation-content
+  ok   clean: PASS dls-catalog
+  ok   clean: PASS secrets
+  ok   clean: PASS smart-commit
+  ok   clean: PASS scope
+  ok   clean: PASS ledger
+  ok   clean: validity line
+  ok   clean: no FAIL line
+  ok   delegated to --root copy: docs-catalog-check
+  ok   delegated to --root copy: doc-citation-resolve
+  ok   delegated to --root copy: doc-citation-content
+  ok   delegated to --root copy: dls-catalog-gate
+  ok   delegated to --root copy: smart-commit-lint
+  ok   delegated to --root copy: json-dupkey-check
+  ok   citation-resolve got --staged --root
+  ok   citation-content got --staged --root
+  ok   dls-catalog got --staged --root
+  ok   no contract row ⇒ no --expect-nonempty
+== rows-terminal
+  ok   row left building ⇒ non-zero (exit 1)
+  ok   row left building ⇒ FAIL rows-terminal
+  ok   empty ticket ⇒ non-zero (exit 1)
+  ok   empty ticket ⇒ FAIL rows-terminal
+  ok   fresh template ⇒ non-zero (exit 1)
+  ok   fresh template: header parses, 0 rows ⇒ FAIL rows-terminal
+  ok   fresh template ⇒ FAIL suite-security (todo placeholders)
+  ok   fresh template: legend comment never reads as a value
+== rows-terminal: per-row review record (NEARS-3721 AC10)
+  ok   pass without rev: ⇒ non-zero (exit 1)
+  ok   pass without rev: ⇒ FAIL rows-terminal, named
+  ok   empty rev: marker ⇒ FAIL rows-terminal
+  ok   prev: substring is not a review record ⇒ FAIL rows-terminal
+  ok   abbrev: substring is not a review record ⇒ FAIL rows-terminal
+  ok   rev:2 fixed, 1 logged + a dropped row without rev ⇒ exit 0 (exit 0)
+  ok   review record present ⇒ PASS rows-terminal
+== suite-security
+  ok   Admin/ changed + security n/a ⇒ non-zero (exit 1)
+  ok   Admin/ changed + security n/a ⇒ FAIL suite-security
+  ok   Admin/ changed + security pass ⇒ PASS suite-security
+== contract-docs (+ citation --expect-nonempty)
+  ok   contract row with changed doc ⇒ exit 0 (exit 0)
+  ok   contract row with changed doc ⇒ PASS contract-docs
+  ok   contract row ⇒ citation-resolve --expect-nonempty
+  ok   contract row ⇒ citation-content --expect-nonempty
+  ok   contract row + citation exit 4 ⇒ non-zero (exit 1)
+  ok   contract row + citation exit 4 ⇒ FAIL citation-resolve
+  ok   contract doc unchanged ⇒ non-zero (exit 1)
+  ok   contract doc unchanged ⇒ FAIL contract-docs
+  ok   contract cell blank ⇒ non-zero (exit 1)
+  ok   contract cell blank ⇒ FAIL contract-docs
+== docs-catalog
+  ok   docs-catalog exit 1 ⇒ non-zero (exit 1)
+  ok   docs-catalog exit 1 ⇒ FAIL docs-catalog
+  ok   docs-catalog absent at --root ⇒ non-zero (exit 1)
+  ok   docs-catalog absent at --root ⇒ FAIL (no sibling fallback)
+== citation-resolve / citation-content
+  ok   citation-resolve exit 1 ⇒ non-zero (exit 1)
+  ok   citation-resolve exit 1 ⇒ FAIL
+  ok   citation-content exit 2 ⇒ non-zero (exit 1)
+  ok   citation-content exit 2 ⇒ FAIL
+  ok   no contract row + citation exit 4 ⇒ exit 0 (exit 0)
+  ok   no contract row + exit 4 ⇒ SKIP citation-resolve
+  ok   no contract row + exit 4 ⇒ SKIP citation-content
+  ok   SKIPs are not counted as asserted
+== dls-catalog
+  ok   dls-catalog exit 1 ⇒ non-zero (exit 1)
+  ok   dls-catalog exit 1 ⇒ FAIL
+  ok   dls-catalog exit 4 ⇒ exit 0 (exit 0)
+  ok   dls-catalog exit 4 ⇒ SKIP dls-catalog
+== secrets
+  ok   gitleaks: AWS-key-shaped string ⇒ non-zero (exit 1)
+  ok   gitleaks: AWS-key-shaped string ⇒ FAIL secrets
+  ok   gitleaks output is redacted
+  ok   precondition: gitleaks absent from stripped PATH
+  ok   gitleaks absent + new file ⇒ non-zero (exit 1)
+  ok   gitleaks absent + new file ⇒ FAIL secrets (not SKIP)
+  ok   gitleaks absent + no new file ⇒ SKIP secrets
+  ok   .env new path ⇒ non-zero (exit 1)
+  ok   .env new path ⇒ FAIL secrets (denylist)
+  ok   force-added ignored path ⇒ non-zero (exit 1)
+  ok   force-added ignored path ⇒ FAIL secrets
+== smart-commit (real engine)
+  ok   #close in message ⇒ non-zero (exit 1)
+  ok   #close in message ⇒ FAIL smart-commit
+  ok   empty message ⇒ non-zero (exit 1)
+  ok   empty message (engine exit 4) ⇒ FAIL smart-commit
+== scope
+  ok   unnamed staged path ⇒ non-zero (exit 1)
+  ok   unnamed staged path ⇒ FAIL scope
+  ok   path named by a trailing-slash dir ⇒ PASS scope
+== ledger
+  ok   foreign ledger row ⇒ non-zero (exit 1)
+  ok   foreign ledger row ⇒ FAIL ledger
+  ok   foreign ledger row is named
+  ok   removed ledger row ⇒ non-zero (exit 1)
+  ok   removed ledger row ⇒ FAIL ledger
+  ok   duplicate ledger key ⇒ non-zero (exit 1)
+  ok   duplicate ledger key (real json-dupkey-check) ⇒ FAIL ledger
+  ok   json-dupkey-check's own verdict is shown
+== usage
+  ok   missing required args ⇒ usage exit 2 (exit 2)
+
+assertions: 95 executed, 95 expected, 0 failed
+PASS close-session.test: 95/95 assertions
+exit=0

@@ -1,0 +1,17 @@
+# NEARS-3721 tab-reuse over-match — functions extracted verbatim from boot-session.sh@f9236e153
+normu() { printf '%s' "$1" | sed 's#//localhost#//127.0.0.1#; s#/*$##'; }
+tab_open() { # <url> [alt-prefix...]
+  local t nt u
+  while IFS= read -r t; do
+    nt="$(normu "$t")"
+    for u in "$@"; do [ -n "$u" ] || continue; case "$nt" in "$(normu "$u")"*) return 0 ;; esac; done
+  done <"$TMP/tabs"
+  return 1
+}
+
+# live: curl -sL /admin effective URL (this is what boot stores as eff.admin-panel)
+200 http://127.0.0.1:8000/
+tabs=[http://127.0.0.1:8000/login/vendor] -> tab:admin REUSED
+tabs=[http://127.0.0.1:8000/vendor-panel/dashboard] -> tab:admin REUSED
+tabs=[https://example.org/] -> tab:admin would-open
+tabs=[http://127.0.0.1:8000/admin] -> tab:admin REUSED

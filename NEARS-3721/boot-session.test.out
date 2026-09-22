@@ -1,0 +1,146 @@
+== 1. cold boot: every surface started once, 3 distinct emulators, all UP
+  ok   cold boot exits 0 (exit 0)
+  ok   cold: backend UP
+  ok   cold: admin-panel UP
+  ok   cold: store-panel UP
+  ok   cold: emulator:UserApp UP
+  ok   cold: emulator:VendorApp UP
+  ok   cold: emulator:DeliveryApp UP
+  ok   cold: app:UserApp UP
+  ok   cold: app:VendorApp UP
+  ok   cold: app:DeliveryApp UP
+  ok   cold: widgetbook UP
+  ok   cold: monitor UP
+  ok   cold: monitor-reverb UP
+  ok   cold: monitor-queue UP
+  ok   cold: tab:admin UP
+  ok   cold: tab:store UP
+  ok   cold: tab:widgetbook UP
+  ok   cold: tab:monitor UP
+  ok   cold: watchers UP
+  ok   cold: PASS line
+  ok   cold: validity line
+  ok   cold: no DOWN line
+  ok   cold: 3 distinct serials (3)
+  ok   cold: every booted emulator has ppid=1 (detached) (3)
+  ok   cold: 3 emulator boots (3)
+  ok   cold: 3 app builds (3)
+  ok   cold: 1 backend serve (1)
+  ok   cold: monitor serve+reverb+queue (4)
+  ok   cold: 1 widgetbook web-server on 8090 (1)
+  ok   cold: 3 adb reverse tcp:80 tcp:8000 (3)
+  ok   cold: 4 tabs opened in the background (4)
+  ok   cold: builds sequential (no build started while the previous app was not up) (0)
+  ok   cold: UserApp carries the per-worktree package suffix
+  ok   cold: state records the 3 emulators as started (3)
+  ok   cold: backend loop runs in its own process group (pid == pgid: 66086=66086)
+  ok   watcher: app [FAIL] line lands in watch.log
+  ok   watcher: non-error app line is filtered out
+  ok   watcher: backend Exception line lands in watch.log
+== 2. re-run: zero start calls, rows reused, teardown ownership kept
+  ok   re-run exits 0 (exit 0)
+  ok   re-run: zero START calls (0)
+  ok   re-run: own processes read as reused
+  ok   re-run: all 4 tabs reused, none reopened (4)
+  ok   re-run: state still owns all 17 started rows (17)
+  ok   re-run: PASS
+== 3. AppleScript denied: tabs are OPENED-UNCONFIRMED, not UP and not DOWN
+  ok   denied exits 0 (a warning, not DOWN) (exit 0)
+  ok   denied: 4 OPENED-UNCONFIRMED rows (4)
+  ok   denied: READY tally
+  ok   denied: PASS names the unconfirmed tabs
+  ok   denied: no tab is DOWN
+== 4. teardown: only started rows, apps before emulators, idempotent
+  ok   teardown exits 0 (exit 0)
+  ok   teardown: tally
+  ok   teardown: every recorded pid is dead
+  ok   teardown: apps via qa-run-stop.sh (3)
+  ok   teardown: emulators via adb emu kill (3)
+  ok   teardown: apps stopped before their emulators
+  ok   teardown: state file removed
+  ok   second teardown exits 0 (exit 0)
+  ok   second teardown: nothing to stop
+== 5. foreign-held serial skipped, free serial reused, mixed teardown
+  ok   foreign: exits 0 (exit 0)
+  ok   foreign: 5554 skipped, naming the other tree
+  ok   foreign: free 5570 reused for UserApp
+  ok   foreign: no adb reverse on the foreign serial (0)
+  ok   foreign: nothing started on the foreign serial
+  ok   foreign: only 2 emulators booted (2)
+  ok   foreign: state marks 5570 reused (1)
+  ok   mixed teardown with an lstart mismatch exits 1 (exit 1)
+  ok   mixed teardown: lstart mismatch refused
+  ok   mixed teardown: refused widgetbook still alive
+  ok   mixed teardown: reused emulator kept
+  ok   mixed teardown: reused 5570 never emu-killed (0)
+  ok   repeat teardown still refuses (exit 1)
+  ok   repeat teardown: nothing else left to stop
+  ok   teardown after the identity matches exits 0 (exit 0)
+  ok   teardown after match: widgetbook stopped by group
+  ok   teardown after match: widgetbook dead
+== 6. hanging adb is bounded; app launches refused
+  ok   wedge: boot returned within 120s (25 s)
+  ok   wedge: wedged serial reported with its bound
+  ok   wedge: app launch refused naming the serial
+  ok   wedge: no qa-run.sh launched (0)
+  ok   wedge: exits 1 (exit 1)
+  ok   wedge: FAIL names exactly the refused apps
+  ok   wedge: teardown exits 0 (exit 0)
+== 7. start 'succeeds' but the re-probe stays DOWN (backend, monitor, widgetbook, emulators)
+  ok   down: exits 1 (exit 1)
+  ok   down: backend named
+  ok   down: widgetbook named
+  ok   down: monitor named
+  ok   down: monitor-reverb named
+  ok   down: monitor-queue named
+  ok   down: emulator:UserApp named
+  ok   down: emulator:VendorApp named
+  ok   down: emulator:DeliveryApp named
+  ok   down: backend start issued at least once
+  ok   down: 3 emulator starts issued (3)
+  ok   down: widgetbook start issued (1)
+  ok   down: no tab opened for a non-200 url (0)
+  ok   down: tab row says why
+  ok   down: FAIL line leads with backend
+  ok   down re-run: the backend loop is not started twice
+  ok   down re-run: no second loop start
+  ok   down re-run: exits 1 (exit 1)
+  ok   down: teardown exits 0 (exit 0)
+  ok   down: backend loop stopped by process group
+== 8. apps + widgetbook DOWN after start, monitor assets missing, tab gating per url
+  ok   apps: exits 1 (exit 1)
+  ok   apps: app:UserApp named
+  ok   apps: app:VendorApp named
+  ok   apps: app:DeliveryApp named
+  ok   apps: DOWN says the launcher exited
+  ok   apps: the 3 builds were issued (3)
+  ok   apps: monitor DOWN on missing assets
+  ok   apps: monitor hint, never builds
+  ok   apps: no monitor process started without assets (0)
+  ok   apps: npm never invoked (0)
+  ok   apps: admin tab opened after its 200
+  ok   apps: widgetbook tab not opened
+  ok   apps: no open call for the widgetbook url (0)
+  ok   apps: emulators still UP
+  ok   apps: teardown exits 0 (exit 0)
+== 9. static: banned commands (each pattern proven against a positive first)
+  ok   ban instrument fires on a positive: (adb|\$ADB"?)( -s [^ ]+)? root
+  ok   boot-session.sh is free of: (adb|\$ADB"?)( -s [^ ]+)? root
+  ok   ban instrument fires on a positive: shell +"?date
+  ok   boot-session.sh is free of: shell +"?date
+  ok   ban instrument fires on a positive: (^|[;&|(]) *flutter 
+  ok   boot-session.sh is free of: (^|[;&|(]) *flutter 
+  ok   ban instrument fires on a positive: flutter devices
+  ok   boot-session.sh is free of: flutter devices
+  ok   ban instrument fires on a positive: (pkill|killall|pgrep)
+  ok   boot-session.sh is free of: (pkill|killall|pgrep)
+  ok   ban instrument fires on a positive: [^"]\$\{[A-Za-z_]+\[@\]\}
+  ok   boot-session.sh is free of: [^"]\$\{[A-Za-z_]+\[@\]\}
+  ok   shebang is #!/usr/bin/env bash
+== 10. usage
+  ok   missing --session ⇒ usage exit 2 (exit 2)
+  ok   usage text shown
+
+assertions: 132 executed, 132 expected, 0 failed
+PASS boot-session.test: 132/132 assertions
+exit=0

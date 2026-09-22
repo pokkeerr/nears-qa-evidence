@@ -1,0 +1,11 @@
+# NEARS-3721 QA [8] cycle 0 — progress (light-mode n/a; workflow tooling)
+- AC1 FAIL/partial: backend, /admin, /login/vendor, widgetbook :8090, watchers 6/6, tabs admin/store/widgetbook UP. UserApp + DeliveryApp UP on 5560/5564 (boot2). UNVERIFIABLE (env): monitor x3 + tab:monitor (host PATH php 8.2.33 < nears-monitor platform req >=8.4.1); emulator/app VendorApp (every free AVD /data < 800MB floor; reclaim cannot touch com.izzes.*).
+- AC2 FAIL: boot3 re-run - no second backend/emulator/app/widgetbook/watchers (counts equal pre/post) BUT app:UserApp dropped from state.tsv while its pid 91184 was alive (bug-rerun-drops-app-row.log).
+- AC3 PASS: self-test + live widgetbook kill -> --status exit 1 names widgetbook.
+- AC4 PASS live (teardown1: 11 stopped/3 gone/1 kept/0 refused; teardown2: 10/4/1/0) - backend loop KEPT both times. Caveat: the AC2 bug makes a dropped row un-teardown-able.
+- AC5 PASS file-read. AC6 PASS diff. AC7 PASS (static bans in self-test + code read; wedged bounded case in self-test).
+- AC8 PARTIAL: 3 NEW distinct serials 5560/5562/5564 each ppid=1, none of 5554/5556/5558; only 2/3 apps UP (VendorApp disk env).
+- AC9 FAIL: tab reuse over-match (bug-tab-reuse-overmatch.log). 3/4 tabs opened after 200; monitor tab correctly gated.
+- AC10 PASS file-read. AC11 PASS close-session.test 95/95 (+ control pairs).
+- Self-tests: boot-session.test 132/132, close-session.test 95/95.
+- Snapshot: all NEARS-3720 pids/pgids/lstart + :8000 loop identical, except the peer's own UserApp relaunch (55201 -> 67790, log in the peer's own scratchpad). No QA-3721 leftovers.
