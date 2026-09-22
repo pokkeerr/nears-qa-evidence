@@ -1,0 +1,51 @@
+NEARS-3730 delta re-QA (fix_cycle 1) — AC6 re-verification after TB1 fix (commit cff0bf308)
+Device: emulator-5560. Backend: QA-only reverse proxy on :8010 forwarding to worktree's own
+`php artisan serve` on :8011 (127.0.0.1), forcing a clean HTTP 500 on exactly the Burj Khalifa
+candidate's /api/v1/config/get-zone-id call (lat=25.197197&lng=55.274376399999994), all other
+candidates (including other Burj Khalifa sub-results and the Abu Dhabi mixed query) passed
+through untouched.
+
+AC6(a) baseline — normal operation, BEFORE the proxy's forced-failure path was even engaged
+(query "Abu Dhabi", all 5 candidates resolve 200/404, zero transport errors):
+  [NET] endpoint=/api/v1/config/get-zone-id http_status=404
+  [INFO] msg="get-zone-id: no zone / out of zone — prompting location picker"
+  [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+  [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+-> ZERO new [FAIL] lines emitted for this path (only pre-existing, unrelated Firebase-init/FCM
+   [FAIL] noise present at app boot, same every launch this worktree, not ticket-caused —
+   see docs/apps/userapp/userapp-navigation-guide.md NEARS-3649 update).
+
+AC6(b) — forced non-403/404 failure, repeated 4 independent times across the session (each a
+fresh "Burj Khalifa" query re-typed, each debounce-settled fanout hitting the same forced-500
+candidate exactly once):
+  proxy side (grep "FORCED 500" /tmp/qa_proxy2.log): 4 occurrences, e.g.
+    [proxy] FORCED 500 for /api/v1/config/get-zone-id?lat=25.197197&lng=55.274376399999994
+  device logcat side (grep '\[FAIL\].*http_status=500' — captured from the qa-run.sh launch log,
+  equivalent to `adb -s emulator-5560 logcat -d`), 4 occurrences, ONE per forced 500 (was 2 each
+  before the TB1 fix):
+    I/flutter: [FAIL] endpoint=/api/v1/config/get-zone-id http_status=500 type=ApiFailure msg="unhandled api response"
+    I/flutter: [FAIL] endpoint=/api/v1/config/get-zone-id http_status=500 type=ApiFailure msg="unhandled api response"
+    I/flutter: [FAIL] endpoint=/api/v1/config/get-zone-id http_status=500 type=ApiFailure msg="unhandled api response"
+    I/flutter: [FAIL] endpoint=/api/v1/config/get-zone-id http_status=500 type=ApiFailure msg="unhandled api response"
+  4 forced failures : 4 [FAIL] lines = exactly 1:1 ratio. Confirmed via TB1 fix (deleted the
+  controller's own duplicate AppLogger.failure call in _isSuggestionOutOfZone; location_repository
+  .getZone's pre-existing generic re-log is now the sole log line for this failure class).
+
+Bonus corroboration (unplanned, same session): an incidental upstream-connectivity blip
+(worktree's own :8011 `php artisan serve` process died mid-session, unrelated to this ticket —
+QA harness issue, recovered by restarting it) produced 3 genuine HTTP 502s from the proxy's own
+error path; each ALSO produced exactly ONE [FAIL] line (http_status=502), never two — consistent
+behavior across two different non-403/404 failure shapes (500 and 502), reinforcing the fix
+generalizes to "any genuine non-1/403/404 status", not just the specific 500 case originally
+repro'd in fix_cycle 0.
+
+AC11 state-isolation spot check (same session): the pick-map screen's own CTA/status label
+(content-desc "Checking availability…" — this pin's own camera-idle zone check never resolved in
+this session, an environment condition: no location permission granted, no manual map drag
+performed, so the ONLY get-zone-id calls that ever fired in the whole logcat capture are the
+suggestion-probe ones enumerated above) stayed byte-identical before and after dozens of
+suggestion-probe get-zone-id calls spanning 200/404/500 responses. If the probe path leaked
+into the stateful LocationController.getZone()/_applyZoneEffects wrapper (the corruption AC11
+guards against), at least one of these real, varied-status probe responses would have flipped
+this label away from its static initial value — it never did. Screenshot:
+docs/qa-evidence/NEARS-3730/ac11-mainscreen-unaffected-postprobe.png.
