@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3743
 
-**PASS — NEARS-3743 cache-deadlock retry: red baseline reproduced (1x500 + 11 deadlock ERROR lines), fix absorbed 10 deadlocks across 23285 requests with zero 5xx**
+**PASS — NEARS-3743 (appendix: full envelope tail, OTel rate analysis, reusable repro recipe)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
