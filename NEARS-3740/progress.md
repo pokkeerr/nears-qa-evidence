@@ -5,3 +5,10 @@
 - AC3 FAIL — no zero tile pill and no stores_could_not_load in 6 switch runs, BUT the food (module 2) and grocery (module 1) home store-list header shows "0 total" / "0 إجمالي" above the loading shimmer while the post-switch store fetch is in flight (all fetches 200). Evidence: bug-food-home-zero-total-during-reload.{png,log}, bug-grocery-home-zero-total-during-reload-rtl.png, ac3-watcher.log
 - Regression: warm-cache failed refresh keeps tiles, no error band PASS (live); single-module zone not producible live (overlapping seed zones) -> widget tests l.398/l.829; header extent -> widget test l.785; RTL Arabic render after switch PASS (live).
 - Found: grid stuck shimmer no Retry on cold-start module fetch failure (pre-existing); get-stores 500 MySQL cache deadlock (pre-existing, env); food module header copy "Restaurants"->"Stores" after language switch (pre-existing).
+
+## Cycle 1 (delta re-QA) — emulator-5560 (NEARS_2424_QA), UserApp @ 4a01fc77f (TB1/NEARS-3741 fix), zone 400, modules grocery=1 / food=2 / shop=9
+- AC1 PASS: carried from cycle 0; the fix does not touch this surface.
+- AC2 PASS: carried from cycle 0; the fix does not touch this surface.
+- AC3 PASS: 8 valid runs, zero flags. Grocery EN->AR RTL: 19 samples with no count, then "22 إجمالي". Grocery AR->EN: 16 samples with no count, then "22 total" (bounds identical). Food AR->EN x2: 21 and 19 samples with no count, then "15 total". Food EN->AR RTL: 19 samples with no count, then "15 إجمالي". Grid EN->AR and AR->EN: tiles keep their true counts (22/15/22/3), no zero pill, no could-not-load. Pull-to-refresh keeps the true "15 total". Header height stable (title-to-chip distance 107/108px, same during and after). Evidence: c1-ac3-watcher.log, c1-ac3-food-during-reload-*.png
+- Sweep: Popular chip reload shows no count, then "15 total". Shop module: "3 open · 3 total", which matches the grid tile's 3. Title renders in every state.
+- Backstop: flutter test test/features/home 424/424; all_store_filter_widget_zero_total_test 8/8.

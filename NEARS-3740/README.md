@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3740
 
-**FAIL — AC1 PASS, AC2 PASS, AC3 FAIL (false '0 total' store count during post-language-switch reload)**
+**NEARS-3740 [8] cycle 1 delta — PASS (AC3 + TB1/NEARS-3741 verified live)**
 
-**8 screenshot(s).** Click any thumbnail for full resolution.
+**10 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -18,6 +18,10 @@
 <tr>
 <td align="center" width="33%"><a href="bug-grid-stuck-shimmer-no-retry.png"><img src="bug-grid-stuck-shimmer-no-retry.png" width="240"></a><br><sub>bug grid stuck shimmer no retry</sub></td>
 <td align="center" width="33%"><a href="bug-grocery-home-zero-total-during-reload-rtl.png"><img src="bug-grocery-home-zero-total-during-reload-rtl.png" width="240"></a><br><sub>bug grocery home zero total during reload rtl</sub></td>
+<td align="center" width="33%"><a href="c1-ac3-food-during-reload-ar-to-en.png"><img src="c1-ac3-food-during-reload-ar-to-en.png" width="240"></a><br><sub>c1 ac3 food during reload ar to en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c1-ac3-food-during-reload-en-to-ar-rtl.png"><img src="c1-ac3-food-during-reload-en-to-ar-rtl.png" width="240"></a><br><sub>c1 ac3 food during reload en to ar rtl</sub></td>
 </tr>
 </table>
 
@@ -29,6 +33,7 @@
 - [`bug-get-stores-500-cache-deadlock.log`](bug-get-stores-500-cache-deadlock.log)
 - [`bug-grid-stuck-shimmer-no-retry-dump.xml`](bug-grid-stuck-shimmer-no-retry-dump.xml)
 - [`bug-grid-stuck-shimmer-no-retry.log`](bug-grid-stuck-shimmer-no-retry.log)
+- [`c1-ac3-watcher.log`](c1-ac3-watcher.log)
 - [`progress.md`](progress.md)
 
 ---
