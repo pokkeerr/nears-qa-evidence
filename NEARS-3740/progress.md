@@ -1,0 +1,7 @@
+# NEARS-3740 QA [8] progress — emulator-5560 (NEARS_2424_QA), UserApp @ 07d4f8e77
+
+- AC1 PASS — live no-cache failed state (zone change 400->1 with /api/v1/module 503 via own fault proxy): 1 [ERR] at entry; 10 scroll rebuilds -> 0 new; failed Retry -> exactly +1; successful Retry -> +0. Remount after tab round-trip logs once (PageView disposes HomeScreen; element-lifecycle latch by design). Widget test l.546 green. Evidence: ac1-ac2-logcat.log
+- AC2 PASS — "Something went wrong" + Retry row in header; Retry -> new GET /api/v1/module (503 -> row stays + 1 ERR; 200 after 6s delay -> loading row then Grocery/Restaurant/Pharmacy/Shop tiles). Evidence: ac2-*.png, ac1-ac2-logcat.log
+- AC3 FAIL — no zero tile pill and no stores_could_not_load in 6 switch runs, BUT the food (module 2) and grocery (module 1) home store-list header shows "0 total" / "0 إجمالي" above the loading shimmer while the post-switch store fetch is in flight (all fetches 200). Evidence: bug-food-home-zero-total-during-reload.{png,log}, bug-grocery-home-zero-total-during-reload-rtl.png, ac3-watcher.log
+- Regression: warm-cache failed refresh keeps tiles, no error band PASS (live); single-module zone not producible live (overlapping seed zones) -> widget tests l.398/l.829; header extent -> widget test l.785; RTL Arabic render after switch PASS (live).
+- Found: grid stuck shimmer no Retry on cold-start module fetch failure (pre-existing); get-stores 500 MySQL cache deadlock (pre-existing, env); food module header copy "Restaurants"->"Stores" after language switch (pre-existing).
