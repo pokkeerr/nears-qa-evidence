@@ -1,0 +1,9 @@
+# AC7(c) POSITIVE CONTROL — genuine application error, SAME grep shape
+# GET /api/v1/stores/details/999999999 -> 404, correlation id: a56774ec-a212-4b5f-9d0c-191f17b2c9be
+
+[2026-09-25 00:57:37] production.ERROR: [FAIL] store details not found {"trace_id":"2303864d655f32bd488b9fba4ca7d5e9","correlation_id":"a56774ec-a212-4b5f-9d0c-191f17b2c9be","endpoint":"/api/v1/stores/details/{id}","status":404,"code":"store_not_found"} 
+[2026-09-25 00:57:37] production.WARNING: [WARN] OTel export circuit breaker closed -> open (signal=logs) {"trace_id":"2303864d655f32bd488b9fba4ca7d5e9","correlation_id":"a56774ec-a212-4b5f-9d0c-191f17b2c9be","signal":"logs","from":"closed","to":"open","consecutive_failures":3} 
+[2026-09-25 00:57:37] production.WARNING: [WARN] OpenTelemetry export failed (telemetry batch dropped): Export failure {"trace_id":"2303864d655f32bd488b9fba4ca7d5e9","correlation_id":"a56774ec-a212-4b5f-9d0c-191f17b2c9be","suppressed_since_last":0,"source":"OpenTelemetry\\Contrib\\Otlp\\LogsExporter","signal":"logs","otlp_endpoint":"localhost:5080/api/default","error_type":"GuzzleHttp\\Exception\\ConnectException","error_message":"cURL error 7: Failed to connect to localhost:5080 after 0 ms: Could not connect to server (see https://curl.se/libcurl/c/libcurl-errors.html) for http://localhost:5080/api/default/v1/logs"} 
+
+# production.ERROR count = 1  (must be >=1)
+# NOTE: in this SAME request the app error is ERROR while both exporter lines are WARNING.

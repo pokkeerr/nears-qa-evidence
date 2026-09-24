@@ -1,0 +1,25 @@
+# REGRESSION SWEEP — NEARS-3749
+
+## 1. per-signal throttle (NEARS-1089 bug-A): metrics AND traces each get their own line, now at warning
+"suppressed_since_last":0
+"signal":"metrics"
+"suppressed_since_last":0
+"signal":"traces"
+-> 2 distinct signals, both production.WARNING. PASS
+
+## 2. CircuitBreakerOpenException root cause still produces NO line at all (NEARS-2228)
+correlation id 0f721832-c363-420c-bd34-f390720a6699 (3 requests made while breaker OPEN, fixed code):
+total laravel.log lines for that id = 0   (must be 0) PASS
+
+## 3. breaker's own OPEN transition still logs once at production.WARNING (telemetry-down stays discoverable)
+[2026-09-25 00:57:08] production.WARNING: [WARN] OTel export circuit breaker closed -> open (signal=metrics) {"trace_id":"1fbe38e513fcee37b4
+[2026-09-25 00:57:08] production.WARNING: [WARN] OTel export circuit breaker closed -> open (signal=traces) {"trace_id":"1fbe38e513fcee37b46
+[2026-09-25 00:57:37] production.WARNING: [WARN] OTel export circuit breaker closed -> open (signal=logs) {"trace_id":"2303864d655f32bd488b9
+-> production.WARNING count = 3, production.ERROR count = 0. PASS
+
+## 4. DISCOVERABILITY CHANGE (expected, documented in the ticket)
+grep -F '[FAIL]' scoped to collector-down request fef82644-f0e4-4f13-b123-371e15c75930  -> 0 hits (no longer surfaces collector-down)
+grep -F 'OpenTelemetry export failed' same request      -> 2 hits (tag-agnostic recipe still works)
+
+## 5. automated backstop
+cd Admin && vendor/bin/phpunit --filter OtelExportBlockingTest -> OK, 18 tests / 54 assertions
