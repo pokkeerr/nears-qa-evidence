@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3749
 
-**PASS — NEARS-3749 OTel export severity: collector-down demoted to WARNING, misconfiguration still ERROR/[FAIL]**
+**PASS (delta cycle 2) — ops alert re-armed: fires on real collector-down lines that the pre-fix pattern missed**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -9,6 +9,7 @@
 - [`ac1-base-control-defect-visible.log`](ac1-base-control-defect-visible.log)
 - [`ac2-positive-control-app-error.log`](ac2-positive-control-app-error.log)
 - [`ac3-rejecting-collector-still-fails-loud.log`](ac3-rejecting-collector-still-fails-loud.log)
+- [`delta-cycle2-ops-alert-rearm.log`](delta-cycle2-ops-alert-rearm.log)
 - [`regression-sweep.log`](regression-sweep.log)
 
 ---

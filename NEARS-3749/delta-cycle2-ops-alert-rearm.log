@@ -1,0 +1,32 @@
+# NEARS-3749 delta re-QA (cycle 2) — ops alert re-arm verification, tip 7e366c288
+
+## MATCH literals extracted programmatically from the COMMITTED blobs
+OLD (1cb7bea64): [[FAIL] OpenTelemetry export failed]
+NEW (7e366c288): [OpenTelemetry export failed]
+
+## Assertion, against REAL captured log lines (not a synthetic fixture)
+Source: Admin/storage/logs/laravel-structured.log — the file the alert actually scans by default.
+Isolated real collector-down lines (tag [WARN]):       12
+
+REAL SCRIPT run end-to-end, DRY_RUN=1, THRESHOLD=1, NEARS_OPS_WEBHOOK_URL unset (no POST made):
+  OLD script on collector-down-only log -> SILENT, never reached threshold (0 matches). Alert was disarmed.
+  NEW script on the SAME log            -> FIRES, count=12.
+  NEW script on 200 real non-exporter lines (negative control) -> SILENT (0 matches). Not over-matching.
+
+Whole real structured log, 24h window: OLD counted 5 (only the [FAIL] misconfiguration lines
+from the AC3 rejecting-collector run); NEW counted 17 (those 5 plus the 12 collector-down [WARN] lines).
+
+## Archived AC1/AC2 capture (docs/qa-evidence/NEARS-3749/ac1-ac2-collector-unreachable.log)
+  grep -F 'OpenTelemetry export failed'  -> 2
+  grep -F '[FAIL] OpenTelemetry export failed'  -> 0
+
+## PRE-EXISTING defect found while verifying (NOT introduced by NEARS-3749)
+The script's header asserts 'Laravel app.timezone=UTC, so Monolog writes UTC timestamps' and
+compares log timestamps against a UTC-computed window boundary as fixed-width strings.
+Observed runtime: config('app.timezone')=UTC BUT date_default_timezone_get()=Asia/Dubai, and the
+log files carry local +04:00 stamps:
+"timestamp":"2026-09-25T00:56:42.986679+04:00"
+  laravel.log form: [2026-09-24 18:30:14]
+  UTC at that moment was 4h earlier. The window filter therefore treats lines as 'recent' for up to
+  ~4h past the intended window -> biases toward stale/false alerts, NOT toward missed ones.
+  Window/TZ logic was untouched by this ticket (diff covers only MATCH + payload text + header).
