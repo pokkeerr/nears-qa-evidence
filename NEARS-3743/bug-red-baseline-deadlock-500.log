@@ -1,0 +1,12 @@
+# NEARS-3743 RED BASELINE — unpatched feat/human-qa-uiux @ 385df54ed (primary tree, :8744)
+# Repro: 20 rounds x 8 waves x 32 concurrent GET /api/v1/stores/get-stores/all,
+#        with 8x 'php artisan cache:clear' interleaved INTO each round (flush vs insert-ignore).
+# Result: 5120 requests -> 1x HTTP 500.
+
+## HTTP 500 response
+request: round 2 / wave 1 / conc 22
+X-Request-Id: 4f5f3f37-87b5-49e9-9711-57df0b12a456
+body: {"message":"Something went wrong"}
+
+## Correlated laravel.log line (Admin/storage/logs/laravel.log, primary tree)
+[2026-09-24 15:10:53] production.ERROR: [FAIL] SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: multi_food_db, SQL: insert ignore into `cache` (`key`, `value`, `expiration`) values (laravel_cache887427d1c0b6e3d1d3ff8eb5a3b77317, i:0;, 1790248313)) {"trace_id":"98c15d297fc42a04302593e9d664471b","correlation_id":"4f5f3f37-87b5-49e9-9711-57df0b12a456","type":"Illuminate\\Database\\QueryException","endpoint":"/api/v1/stores/get-stores/all"} 

@@ -1,0 +1,31 @@
+# NEARS-3743 — instrument validation (both traps handled before any result was trusted)
+
+## TRAP 1 — 'PHP_CLI_SERVER_WORKERS=4 php artisan serve' DOES NOT WORK ON THIS HOST
+Measured, not assumed. With artisan serve at PHP_CLI_SERVER_WORKERS=4:
+  PARALLEL_8_WALL=1.165s   SERIAL_8_WALL=1.179s   -> requests SERIALISED, zero overlap
+  ps showed ONE 'php -S' process, no forked children.
+Root cause: Illuminate/Foundation/Console/ServeCommand.php line 100 reads the var via
+env() BEFORE the subprocess env is built, and it did not resolve here.
+FALLBACK USED (works): run the built-in server directly, which DOES fork:
+  cd <worktree>/Admin/public && PHP_CLI_SERVER_WORKERS=32 php -S 127.0.0.1:<port> ../server.php
+  -> 32 forked children in ps; PARALLEL_8_WALL=0.733s vs SERIAL_8_WALL=1.825s (2.5x overlap)
+
+## The fix is actually loaded on one tree and absent on the other
+fix worktree  : Cache::getStore() => App\Cache\DeadlockRetryingDatabaseStore
+primary tree  : Cache::getStore() => Illuminate\Cache\DatabaseStore
+
+## The endpoint really does write the limiter counters (positive control)
+After 'artisan cache:clear' + ONE GET /api/v1/stores/get-stores/all, the cache table held:
+  laravel_cache9f4563f327dc70d317580383179debc2        (v1-total bucket)
+  laravel_cache9f4563f327dc70d317580383179debc2:timer
+  laravel_cache887427d1c0b6e3d1d3ff8eb5a3b77317        (v1-blanket bucket)
+  laravel_cache887427d1c0b6e3d1d3ff8eb5a3b77317:timer
+Route is inside routes/api/v1/api.php's top-level group carrying throttle:v1-total +
+throttle:v1-blanket. cache/cache_locks are InnoDB; innodb_deadlock_detect=1;
+transaction_isolation=REPEATABLE-READ; innodb_lock_wait_timeout=50.
+
+## TRAP 2 — a uniform cold burst NEVER reproduces the defect (so it would have faked a PASS)
+Unpatched baseline, 10000 requests (40 cold-cache bursts, n=250 c=32): 0 non-2xx, 0 deadlocks.
+Patched fix,       10000 requests (identical shape):                   0 non-2xx, 0 deadlocks.
+Both green -> proves nothing. The amplifier that DOES reproduce it is interleaving the
+cache FLUSH with the load (DELETE FROM cache racing insert-ignore), not a cold start.

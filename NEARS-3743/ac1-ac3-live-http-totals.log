@@ -1,0 +1,32 @@
+# NEARS-3743 AC1 / AC3 — live HTTP totals, fix branch a385e2217 vs unpatched 385df54ed
+
+## AC1 — every caller gets 200
+FIX (:8743, fix/NEARS-3743-ratelimiter-cache-deadlock @ a385e2217)
+  cold-burst suite   40 bursts x n=250 c=32 = 10000 requests -> 10000 x 2xx, 0 non-2xx
+  flush-storm suite  40 rounds x 8 waves x 32 = 10240 requests -> 10240 x 200 (exact per-request codes)
+  login-under-load   15 rounds x 200 store reqs = 3000 requests -> 0 non-2xx
+                     + 45 concurrent successful logins -> 45 x 200
+  TOTAL 23285 live requests, ZERO 5xx.
+
+BASELINE (:8744, feat/human-qa-uiux @ 385df54ed, stock Illuminate\Cache\DatabaseStore)
+  cold-burst suite   10000 requests -> 0 non-2xx (defect does NOT show on a cold burst)
+  flush-storm (ab)   5000 requests  -> 9 non-2xx / 10 deadlock ERROR lines
+  flush-storm (curl) 5120 requests  -> 1 x HTTP 500, X-Request-Id 4f5f3f37-87b5-49e9-9711-57df0b12a456
+                                       body {"message":"Something went wrong"}
+
+## AC3 — laravel.log, byte-offset-scoped to each run, matched by ERROR-LINE SHAPE
+Predicate used: a production.ERROR line whose payload is a QueryException on the cache table
+(SQLSTATE[40001] ... 1213 Deadlock ... insert ignore into `cache`). NOT a substring grep for
+'deadlock' -- the AC2 [WARN] line deliberately contains that word and would fake a FAIL.
+
+  BASELINE positive control (REQUIRED): 11 such ERROR lines across the two storms. PRESENT.
+  FIX flush-storm delta      : 0 such ERROR lines (only 1588 pre-existing OTel-export [FAIL] lines)
+  FIX login-under-load delta : 0 such ERROR lines
+  FIX retries-exhausted [FAIL]: 0
+
+## Pre-existing unrelated noise present on BOTH branches (not a regression of this fix)
+production.ERROR: [FAIL] OpenTelemetry export failed (telemetry batch dropped) --
+cURL error 7 connecting to localhost:5080 (OpenObserve is not running on this host).
+Because SetRequestId shares log context, these lines DO carry a correlation_id, so a literal
+read of AC3 ('no ERROR correlated to a captured X-Request-Id') would fail on both branches.
+Scoped to the cache/deadlock error shape, AC3 passes on the fix and fails on the baseline.

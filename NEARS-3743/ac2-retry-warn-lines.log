@@ -1,0 +1,25 @@
+# NEARS-3743 AC2 — [WARN] cache write deadlock retried (fix branch, live HTTP load)
+# Source: <worktree>/Admin/storage/logs/laravel.log, byte-offset-scoped to the QA windows.
+# 10 real 1213 deadlocks were absorbed; ZERO surfaced as an ERROR or a 5xx.
+
+## Run A — fix-storm (40 rounds x 8 waves x 32 concurrent = 10240 requests): 1 retry
+[2026-09-24 15:13:35] production.WARNING: [WARN] cache write deadlock retried {"trace_id":"859bc2411a8f038db6c3eb2858b6606b","correlation_id":"63622a55-45df-4af3-ba4c-9d2fd2a249b4","method":"add","attempt":1,"max_attempts":3,"sqlstate":"40001","errno":1213,"cache_keys":["9f4563f327dc70d317580383179debc2"]} 
+
+## Run B — login-under-load (15 rounds x [3 logins + 200 store reqs c=32 + 7 flushes]): 9 retries
+[2026-09-24 15:18:54] production.WARNING: [WARN] cache write deadlock retried {"trace_id":"762c06fe19b74f015ba15c5407a62177","correlation_id":"cf511409-be5e-4a8c-a837-0d717def001e","method":"add","attempt":1,"max_attempts":3,"sqlstate":"40001","errno":1213,"cache_keys":["9f4563f327dc70d317580383179debc2"]} 
+[2026-09-24 15:18:54] production.WARNING: [WARN] cache write deadlock retried {"trace_id":"219f3a95ea2dc2e1a176a9644c7259b4","correlation_id":"30f9bc69-11c1-4a4b-9d1d-8f3d160bc683","method":"add","attempt":1,"max_attempts":3,"sqlstate":"40001","errno":1213,"cache_keys":["9f4563f327dc70d317580383179debc2"]} 
+[2026-09-24 15:18:54] production.WARNING: [WARN] cache write deadlock retried {"trace_id":"d3392448a8c4a152215f49ef2c8d4bfa","correlation_id":"594812e4-081b-4bc5-9cfd-0daa318e5ce1","method":"add","attempt":1,"max_attempts":3,"sqlstate":"40001","errno":1213,"cache_keys":["9f4563f327dc70d317580383179debc2"]} 
+[2026-09-24 15:19:01] production.WARNING: [WARN] cache write deadlock retried {"trace_id":"736b3d8174cde4c2f40ae27699fb8808","correlation_id":"2f85cff5-7485-4184-acfe-c24bd12442ab","method":"add","attempt":1,"max_attempts":3,"sqlstate":"40001","errno":1213,"cache_keys":["9f4563f327dc70d317580383179debc2"]} 
+[2026-09-24 15:19:01] production.WARNING: [WARN] cache write deadlock retried {"trace_id":"bb80949b023b65856f8980d7336da264","correlation_id":"efc05851-6d01-4f91-a36b-492c0c26e960","method":"add","attempt":1,"max_attempts":3,"sqlstate":"40001","errno":1213,"cache_keys":["9f4563f327dc70d317580383179debc2"]} 
+[2026-09-24 15:19:01] production.WARNING: [WARN] cache write deadlock retried {"trace_id":"5da40dd198931972d79ea22410958d98","correlation_id":"d9182962-116f-4ef1-ad48-fe46ca52a68b","method":"add","attempt":1,"max_attempts":3,"sqlstate":"40001","errno":1213,"cache_keys":["9f4563f327dc70d317580383179debc2"]} 
+[2026-09-24 15:19:01] production.WARNING: [WARN] cache write deadlock retried {"trace_id":"fece9b2610994f70e7df5422c8c4bf09","correlation_id":"26ce84ed-1394-4045-abf4-f0b02257a0e2","method":"add","attempt":1,"max_attempts":3,"sqlstate":"40001","errno":1213,"cache_keys":["9f4563f327dc70d317580383179debc2"]} 
+[2026-09-24 15:19:35] production.WARNING: [WARN] cache write deadlock retried {"trace_id":"23083ff806c789140736b9e70e5b0a15","correlation_id":"f7d07cd1-ba9c-46ae-965e-04870b83fa23","method":"add","attempt":1,"max_attempts":3,"sqlstate":"40001","errno":1213,"cache_keys":["9f4563f327dc70d317580383179debc2"]} 
+[2026-09-24 15:19:35] production.WARNING: [WARN] cache write deadlock retried {"trace_id":"d4f8d35a2dfda36dec50429d7c6dd701","correlation_id":"288aa4bc-bccf-476e-8bd9-e1d0c67fb744","method":"add","attempt":1,"max_attempts":3,"sqlstate":"40001","errno":1213,"cache_keys":["9f4563f327dc70d317580383179debc2"]} 
+
+## Correlation proof — the request that hit the Run A deadlock still returned 200
+correlation_id 63622a55-45df-4af3-ba4c-9d2fd2a249b4 -> request fix-storm/4-1-7 -> HTTP/1.1 200 OK
+
+## AC2 predicate check
+cache_keys IS an array: yes  -> ["9f4563f327dc70d317580383179debc2"] (the v1-total limiter bucket)
+method: add | attempt: 1 | max_attempts: 3 | sqlstate: "40001" | errno: 1213
+retries-exhausted [FAIL] lines across both runs: 0
