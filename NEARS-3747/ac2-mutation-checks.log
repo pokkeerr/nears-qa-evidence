@@ -1,0 +1,25 @@
+NEARS-3747 AC2 — mutation checks RE-RUN by QA (not spot-checked). Tree proven clean after each.
+
+[M1] zone gate OVER-BLOCK: ItemController.php:1589 -> `$foreign_ids = $existing_ids;`
+ landed-check: "            $foreign_ids = $existing_ids; // QA-MUTATION-OVERBLOCK"
+ result: RED
+  BulkImportZoneScopeTest::test_an_in_zone_admin_updating_only_its_own_zones_items_still_succeeds
+  "the gate over-blocked a legitimate in-zone update"
+  -'NEARS-1203 in-zone updated' / +'NEARS-1203 in-zone seed'   (BulkImportZoneScopeTest.php:228)
+ restore: git diff --stat empty.
+
+[M2] XSS sanitiser NEUTERED: ItemController.php:1421 and :1549 -> identity assignment
+ landed-check: both lines carry // QA-MUTATION-XSS
+ result: RED
+  Nears2927ItemDescriptionXssTest::test_admin_bulk_import_update_sanitizes_description
+  "Failed asserting that '<img src=x onerror="alert(document.cookie)">...' does not contain "onerror""
+  (Nears2927ItemDescriptionXssTest.php:433 — the onerror assertion, a true kill)
+ restore: git diff --stat empty.
+
+[M3] zone gate PERMISSIVE (wording-nuance control): :1589 -> `$foreign_ids = [];`
+ result: the AC2-named test STAYS GREEN (correct — it asserts the gate does not OVER-block),
+ while ::test_a_mixed_batch_carrying_foreign_ids_writes_nothing_at_all FAILS and the
+ attribution test ERRORS (Mockery, BulkImportZoneScopeTest.php:200). 11 tests / 1 error / 1 failure.
+ restore: git status --porcelain empty.
+
+Conclusion: AC2's named test is killed only by the over-block direction; both directions were exercised.

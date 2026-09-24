@@ -1,0 +1,29 @@
+NEARS-3747 AC3 — LIVE admin web bulk-import upload, before/after, port 8031
+Backend: /Users/Apple/Projects/nears-NEARS-3747-bulk-import-noop/Admin @ 9e9f1b42c (booted by QA from the worktree; DB multi_food_db)
+Auth: admin@admin.com via /login/admin (users_test_data.md). Route: POST /admin/item/bulk-import (admin.item.*)
+Upload shape: genuine multipart, client filename products.csv, extension-less php tmp realpath.
+
+=== PRE-FIX (Admin/app/Http/Controllers/Admin/ItemController.php + BulkImportDataRequest.php reverted to feat/human-qa-uiux) ===
+1-data-row CSV  -> HTTP 302 -> toastr.error('The products file must be a file of type: xlsx, xls, csv.')   [blocked at validation]
+2-data-row CSV  -> HTTP 302 -> toastr.error('You have uploaded a wrong format file')                        [FastExcel IOException, degraded]
+items count before/after both runs: 14991 -> 14991 (zero rows written)
+
+=== POST-FIX (HEAD 9e9f1b42c) ===
+1-data-row CSV  -> HTTP 302 -> toastr.success('Product imported successfully')
+persisted: multi_food_db.items id=91151 name='NEARS-3747 QA web upload row' store_id=1 module_id=1 price=10.00 created_at=2026-09-24 17:56:58
+
+=== POST-FIX, unsupported extension (.xls) ===
+-> HTTP 302 -> toastr.error('You have uploaded a wrong format file'), items 14991 -> 14991 (no write)
+laravel.log:
+[2026-09-24 17:59:19] production.ERROR: [FAIL] admin bulk-import parse failed {"trace_id":"e44b0a96300789914e4b298d3a36612f","correlation_id":"d9f282e9-2736-4726-9a85-09b359b79d05","extension":"xls","error":"Exception","message":"unsupported bulk-import extension"}
+
+=== POST-FIX security control, live ===
+evil.php (application/x-php)                 -> toastr.error('The products file field must have one of the following extensions: csv, xlsx, xls.')
+PHP bytes under a .csv filename (text/csv)   -> toastr.error('The products file field must have one of the following extensions: csv, xlsx, xls.')
+   (Laravel validateExtensions -> shouldBlockPhpUpload fires before the extension list; second layer = the mimetypes list)
+items unchanged at 14991 for both.
+
+=== Cleanup (AC/scope item 6) ===
+orphaned <php-tmp-path>.<ext> siblings in sys_get_temp_dir(): 0 (glob php*.csv -> no matches)
+
+VERDICT: production WAS affected, totally, and is now fixed. Not twin-only.
