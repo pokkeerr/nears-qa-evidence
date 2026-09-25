@@ -1,0 +1,46 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:nears_dls/nears_dls.dart';
+
+// Mirrors location_search_dialog_widget.dart's TypeAheadField builder, old (NInput) vs new (NSearchField).
+Widget dialog({required bool useNew, required List<String> selected, required List<String> patterns}) {
+  return MaterialApp(home: Scaffold(body: TypeAheadField<String>(
+    hideOnEmpty: true,
+    builder: (context, controller, focusNode) => useNew
+        ? NSearchField(controller: controller, textInputAction: TextInputAction.search, focusNode: focusNode, autofocus: true,
+            textCapitalization: TextCapitalization.words, keyboardType: TextInputType.streetAddress, hint: 'Search location', leadingIcon: null)
+        : NInput(controller: controller, textInputAction: TextInputAction.search, focusNode: focusNode, autofocus: true,
+            textCapitalization: TextCapitalization.words, keyboardType: TextInputType.streetAddress, hint: 'Search location', variant: NVariant.primary),
+    suggestionsCallback: (p) async { patterns.add(p); return ['$p Tower A', '$p Tower B']; },
+    itemBuilder: (context, s) => ListTile(title: Text(s)),
+    onSelected: selected.add,
+  )));
+}
+
+void main() {
+  for (final useNew in [false, true]) {
+    testWidgets('typeahead flow ${useNew ? "NSearchField" : "NInput(base)"}', (t) async {
+      final sel = <String>[]; final pats = <String>[];
+      await t.pumpWidget(dialog(useNew: useNew, selected: sel, patterns: pats));
+      await t.pumpAndSettle();
+      final ef = find.byType(EditableText);
+      expect(ef, findsOneWidget);
+      final et = t.widget<EditableText>(ef);
+      expect(et.focusNode.hasFocus, isTrue, reason: 'autofocus via TypeAhead focusNode');
+      expect(et.textInputAction, TextInputAction.search);
+      expect(et.keyboardType, TextInputType.streetAddress);
+      expect(et.textCapitalization, TextCapitalization.words);
+      await t.enterText(ef, 'Dubai');
+      await t.pump(const Duration(milliseconds: 400));
+      await t.pumpAndSettle();
+      expect(find.text('Dubai Tower B'), findsOneWidget);
+      await t.tap(find.text('Dubai Tower B'));
+      await t.pumpAndSettle();
+      // ignore: avoid_print
+      print('TYPEAHEAD ${useNew ? "new" : "base"} patterns=$pats selected=$sel');
+      expect(sel, ['Dubai Tower B']);
+    });
+  }
+}
