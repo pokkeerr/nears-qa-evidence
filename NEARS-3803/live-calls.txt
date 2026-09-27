@@ -1,0 +1,15 @@
+# NEARS-3803 live rejection calls — backend /Users/Apple/Projects/nears-NEARS-3803-store-active-gate @ f7194dd96 on 127.0.0.1:8063, DB multi_food_db (SELECT-only; counts = orders/order_groups/max(orders.id)/order_details)
+## a_group_validate  X-Request-Id=3f48d7ad-67e9-4a37-8a1b-787ea7574fcf
+body: {"valid":false,"stores":[{"store_id":9,"store_name":"Organic Shop","pass":false,"reason":"store_closed","message":"Store is closed at order time"},{"store_id":35,"store_name":"Test Store","pass":false,"reason":"store_closed","message":"Store is closed at order time"}]}
+## b_single_place  X-Request-Id=2f061a5b-5466-486a-92c1-e3a7cb3d5ebf
+body: {"errors":[{"code":"order_time","message":"Store is closed at order time"}]}
+## b2_prescription_place  X-Request-Id=af2dcacb-74ae-419b-ba57-23570eb4bb12
+body: {"errors":[{"code":"order_time","message":"Store is closed at order time"}]}
+## c_group_place  X-Request-Id=5409cbe3-d213-47b3-ade5-62ef0a5d5e23
+body: {"errors":[{"code":"group_gate","reason":"store_closed","store_id":9,"store_name":"Organic Shop","message":"Store is closed at order time"}],"group_placed":false}
+## d_future_schedule  X-Request-Id=4fefce2f-3300-414b-a4b8-d0d139471d3d
+body: {"errors":[{"code":"order_time","message":"Store is closed at order time"}]}
+## e_posctl_active_closed  X-Request-Id=03342b0c-56f4-47ba-b6ee-8b5e995f815e
+body: {"errors":[{"code":"order_time","message":"Store is closed at order time"}]}
+
+counts before=162/13/91394/175 after(every call)=162/13/91394/175
