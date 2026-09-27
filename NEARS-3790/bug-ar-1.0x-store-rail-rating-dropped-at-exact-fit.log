@@ -1,0 +1,19 @@
+NEARS-3790 re-QA #2 (fix 1b1edbbd1) — emulator-5564, UserApp from worktree, own backend :8093
+Store "Recommended For You" rail, Spice Route Kitchen (Abu Dhabi), cell 150x240, info column tight h=90.0dp.
+Layout read from the live render tree (VM service evaluate over RenderParagraph / debugDumpRenderTree), full precision.
+
+AR 1.0x, 2-line names (Chicago Style Cheese, Deep Dish Pepperoni, Spicy Jalapeno Burger, Thin Crust Margherita):
+  name   h=42.0 (2 lines x 21.0)   y=667 -> 709
+  gap    4.0  (Column spacing 4.0)
+  price  h=29.0 ('د.إ.‏ 40.50', NotoSansArabic fallback)   y=713 -> 742
+  column bottom 757  -> trailing band 15.0dp ; band + gaps = 15.0 + 4.0 = 19.0dp
+  rating row (NRating, from 1-line AR cards Pepperoni Pizza/Chef Salad): h=19.0dp
+  => rating DROPPED. 2 lines + rating + price with gaps 0 = 42 + 19 + 29 = 90.0 == column 90.0 (exact fit, 0dp margin)
+  => leftover 19.0dp is NOT below the rating height 19.0dp. Drop comes from NItemCard._nameFitSlack = 1dp
+     (nameFull = measured + 1 -> 91 > 90).
+  pixel check (measure.py): AR trailing blank below price ink 21.3dp vs EN 8.3dp.
+
+EN 1.0x same cards: name 42 + gap 1 + rating 19 + gap 1 + price 26 = 89 <= 90 -> rating kept (trail 8.3dp).
+AR price row 29.0 vs EN 26.0 = +3.0dp (meets the >=3dp clause); leftover clause fails by equality (19.0 vs 19.0).
+
+Logs during these ACs: no NItemCard [FAIL]/[ERR]/overflow. Only n_appbar.dart:1136 17px overflow at 1.3x (pre-existing, not in diff).

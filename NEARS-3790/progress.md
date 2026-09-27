@@ -25,3 +25,17 @@
 - Regression re-sweep: Flash Sale 176x290 (grocery EN1.0/1.3/AR1.0/1.3, food EN1.3/AR1.3), Best Reviewed/Most Popular 176/160x270 (EN1.0/1.3, AR1.3), Store grid 209x273 (EN1.0/1.3, AR1.3), Item View-All 201x325 (EN1.0/1.3): values match cycle 0, no band above name, one trailing gap, no overflow. PASS
 - Logs: no NItemCard overflow at any site/scale/locale. One pre-existing overflow: n_appbar.dart:1136 Column 17px at 1.3x on store screen (not in diff) -> bug-store-appbar-overflow-17px-1.3x.log. Login 500 at first attempt = my backend missing oauth keys (env, fixed; correlation_id join app<->laravel.log verified).
 - Backstop: packages/nears_dls flutter test 2497 pass / 2 known n_store_card_sentence_case_badges fails.
+
+# Cycle 2 delta re-QA — emulator-5564, UserApp built from worktree @1b1edbbd1 (qa-run.sh, API_HOST=10.0.2.2:8093), own backend :8093 cwd=nears-NEARS-3790-itemcard-grid-spacing @1b1edbbd1, guest then customer@nears.com (read-only)
+- New instrument: rt_eval.py — VM-service evaluate over live RenderParagraphs (full-precision h/y/maxLines/didExceedMaxLines); pixels via measure.py/cards.py as before.
+- Store rail 150x240 Spice Route (food):
+  - EN1.0: 4 two-line cards keep rating: 42+1+19+1+26=89/90, trail 8.3dp. PASS
+  - AR1.0: same 4 cards: 2 whole lines, rating DROPPED. name 42 + gap 4 + price 29 = 75/90 -> band 15 + gap 4 = 19.0 == rating 19.0. Exact fit (42+19+29=90) lost to _nameFitSlack 1dp. AR price 29 vs EN 26 (+3.0). Pixel trail 21.3 vs EN 8.3. FAIL (strict: leftover not below rating height) -> bug-ar-1.0x-store-rail-rating-dropped-at-exact-fit.{png,log}
+  - AR1.3: 1 whole line (27, ellipsized) + rating back (24) + price 38 = 89/90, gaps 0, trail 9.0dp; 2 lines impossible (54+38=92>90). PASS (cycle-1 29dp band gone)
+  - EN1.3: 2 whole lines (54) + price 34, rating dropped, band 1. Chicago Style Cheese (discounted): 1 line + stacked strike (19) + price — whole line, no band. PASS (see followup)
+- Store rail 150x240 Test Store (grocery): AR1.0 Fresh Cream 250ml 2 lines + unit + price trail 7.3 PASS; AR1.3 Fresh Cream/Croissants 1 whole line + unit back + price, trail 9.0 PASS; EN1.0/1.3 match (EN1.3 Fresh Cream 2 lines, unit dropped, band 1). PASS
+- Reorder 160x260: EN1.3 stacked ORGANIC, whole lines (Orange Juice/Organic Bananas 2 lines; Low Fat Milk/Tomato 1 line), unit dropped on organic; AR1.3 stacked عضوي at start edge, whole lines. No overflow. PASS
+- Regression: Flash Sale 176x290 EN1.0 (lead 7.4/2.7, trail 95.3/74.3 = cycle 0) + AR1.3 (Dish Soap, Navel Oranges beside badge 2 lines) PASS; Store grid 209x273 EN1.0 (trail 40.7 = cycle 0) PASS; 2-col item grid 201x325 AR1.3 PASS; Best Reviewed 176x270 EN1.0 bold PASS.
+- Bold text (secure font_weight_adjustment=300, fw=w700 confirmed): store rail EN1.0 identical to non-bold (2 lines + rating); EN1.3 Spicy Jalapeno 2 lines ex=true (3rd line ellipsized), no 1-line name except discounted Chicago (strike kept). PASS
+- Logs: no NItemCard [FAIL]/[ERR]/overflow. n_appbar.dart:1136 17px @1.3x pre-existing. Env [FAIL]s: Firebase init/FCM (suffixed pkg), GetPosition timeout (mock GPS).
+- Backstop: packages/nears_dls test/components/n_item_card*_test.dart 307/307 pass.
