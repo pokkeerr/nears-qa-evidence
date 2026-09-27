@@ -1,0 +1,11 @@
+# NEARS-3791 QA progress (fix_cycle 0)
+Device: emulator-5568 (AVD nears_qa_wave56, 1080x2340 @ wm density 480 => 360x780dp), unsuffixed control boot of worktree 3ff2d9f56. Backend: /Users/Apple/Projects/nears-NEARS-3791-reorder-rail @ 3ff2d9f56 :8091. Account customer@nears.com, zone Abu Dhabi.
+- AC6 PASS: flutter test item_that_you_love_card_width_test.dart => +4 ~2 (2 organic cases SKIP "pending NEARS-3790").
+- AC1 PASS: render tree (VM service debugDumpRenderTree) Grocery "Reorder your usuals": viewport 360.0, rail SizedBox 360x260, cell Container 160.0x260.0 (x4), inner card 150x260; a11y bounds 480x780px = 160x260dp. Non-organic Orange Juice 1L. EN, font_scale 1.0. logs clean.
+- AC3 PASS: Orange Juice 1L name paragraph 105.5x21 in maxw 130 (1 line, maxLines 2, no ellipsis triggered), unit 'kg' 12x15 visible, price 87.1x26; no OVERFLOWING in cell. logs clean.
+- AC4 PASS: font_scale 1.3 (render tree textScaler linear 1.3x): cell still 160x260, Orange Juice name 130x45 (wraps "Orange Juice"/"1L" at word boundary, no ellipsis), kg 15.5x19 visible, price 113.8x34; 0 OVERFLOWING. logs clean.
+- AC5 PASS: AR via Get.updateLocale(ar,SA) over VM service ws: textDirection rtl, viewport axisDirection left, first card at x 555-1035px (mirrored start inset), cells 160x260, 0 OVERFLOWING; shot shows heart/+ mirrored, text right-aligned. logs clean.
+- AC2 PASS: shimmer captured by render-tree dump 50ms after Get.find<ItemController>().getBuyItAgain(null, reload:true) under `adb emu network delay 4000`. Shimmer: cell Container 160x260, rail Padding 360x285, section Column 360x328, home Column 2449.4 == loaded (identical) -> no height jump. Skeleton flex children 156 : 104 (=6:4) == loaded card image/meta 156 : 104. Shot ac2-shimmer-grocery-rail.png. logs clean.
+- REGRESSION forShop: 0 diff hunks in forShop branches (loaded swiper + shimmer NSkeleton Swiper); live shop home renders clean (0 OVERFLOWING), recommendedItemList=0 in seed (0 recommended ecommerce items in DB) -> swiper not populatable live.
+- Food home "Buy It Again": buyItAgainList=[] for customer@nears.com (no delivered Food orders in DB for any user) -> rail hidden correctly, 0 OVERFLOWING; mount not populatable live.
+- Backstop: flutter analyze clean; flutter test test/features/home +462 ~2 all passed.
