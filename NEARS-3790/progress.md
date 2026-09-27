@@ -1,0 +1,12 @@
+# NEARS-3790 QA progress (cycle 0) — emulator-5564, build from worktree @26fd004a0
+- EN 1.0x: Flash Sale 176x290 (grocery+pharmacy+food), Best Reviewed 176, Most Popular 160, JFY 176, Trending 2-col 202x325, Item View-All 2-col 201x325, Category grid 209x273, Store grid 209x273, Store Recommended 150x240 — top-aligned, lead<=9.7dp, interior ink gaps<=17dp, one trailing gap below price. PASS
+- Category storeSlot row: 24-36dp ink gap before name (44dp tap band) — intentional per UX/conductor; noted.
+- EN 1.3x: all above sites clean, Flash 176 organic STACKS (badge x=10.7dp start edge, name full width); 209 cells badge beside, name avail 95.7dp.
+- Reorder rail 116x190 EN 1.3x: organic badge side-by-side, name collapsed to 0 width, RenderFlex overflowed 7.9px (n_item_card.dart:1226) — FAIL AC5
+- Reorder rail 116x190 EN 1.0x: stacked badge, 2nd name line clipped mid-glyph under price — FAIL AC5
+- Badge/name widths (hseg.py, navy-pill scan): Flash 176 EN1.0 beside, name avail 78dp; EN1.3 STACKED at start edge x=10.7dp; AR1.0 beside (RTL end edge x=13.3-61), name avail ~101dp; AR1.3 beside, name avail ~95dp. Category/Store 209: EN1.3 name avail 95.7dp; AR1.3 badge at left (end) x=10.3-66.7.
+- AR stacked-badge right-edge (start) pixel check: NOT reachable on device — AR label 'عضوي' is short enough that 160-176/209 cells never stack, and the 116 rail's height gate keeps it beside. Covered only by golden n_item_card_rtl.
+- Reorder rail AR1.0 + AR1.3: badge beside, name squeezed to ~25-34dp -> 1-char line 'ي', 'Fa...' — FAIL AC5 (no overflow log in AR: label narrower).
+- Add control: 114 card/add pairs checked, add button bottom >= 8.0dp above image bottom everywhere — never overlaps badge/name/price.
+- Logs: only overflow = n_item_card.dart:1226 Row @ Reorder rail EN1.3x (7.9px). Firebase init [FAIL] lines at launch are env (suffixed package), unrelated.
+- Backstop: 13 n_item_card component test files 222/222 pass; NItemCard goldens 14/14 pass (pinned SDK 3.41.9). The 116x190 harness case runs at 1.0x only.
