@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3773
 
-**NEARS-3773 QA [8] PASS — 11 NSearchField mounts, before/after**
+**fix-cycle 1 delta: PASS — TB1 single magnifier EN+AR, mount 6 AC4/7/8/9 demonstrated with local flag flip**
 
-**59 screenshot(s).** Click any thumbnail for full resolution.
+**65 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -22,38 +22,43 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="ac4-m5-voice-sheet-after.png"><img src="ac4-m5-voice-sheet-after.png" width="240"></a><br><sub>ac4 m5 voice sheet after</sub></td>
+<td align="center" width="33%"><a href="ac4-m6-crossstore-results-after.png"><img src="ac4-m6-crossstore-results-after.png" width="240"></a><br><sub>ac4 m6 crossstore results after</sub></td>
+<td align="center" width="33%"><a href="ac4-m6-crossstore-results-before.png"><img src="ac4-m6-crossstore-results-before.png" width="240"></a><br><sub>ac4 m6 crossstore results before</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="ac4-m7-results-after.png"><img src="ac4-m7-results-after.png" width="240"></a><br><sub>ac4 m7 results after</sub></td>
 <td align="center" width="33%"><a href="ac4-m7-typed-after.png"><img src="ac4-m7-typed-after.png" width="240"></a><br><sub>ac4 m7 typed after</sub></td>
+<td align="center" width="33%"><a href="ac4-m7-typed-before.png"><img src="ac4-m7-typed-before.png" width="240"></a><br><sub>ac4 m7 typed before</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="ac4-m7-typed-before.png"><img src="ac4-m7-typed-before.png" width="240"></a><br><sub>ac4 m7 typed before</sub></td>
 <td align="center" width="33%"><a href="ac4-m8-results-after.png"><img src="ac4-m8-results-after.png" width="240"></a><br><sub>ac4 m8 results after</sub></td>
 <td align="center" width="33%"><a href="ac4-m8-results-before.png"><img src="ac4-m8-results-before.png" width="240"></a><br><sub>ac4 m8 results before</sub></td>
+<td align="center" width="33%"><a href="ac5-m9-chat-filtered-after.png"><img src="ac5-m9-chat-filtered-after.png" width="240"></a><br><sub>ac5 m9 chat filtered after</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="ac5-m9-chat-filtered-after.png"><img src="ac5-m9-chat-filtered-after.png" width="240"></a><br><sub>ac5 m9 chat filtered after</sub></td>
 <td align="center" width="33%"><a href="ac5-m9-chat-filtered-before.png"><img src="ac5-m9-chat-filtered-before.png" width="240"></a><br><sub>ac5 m9 chat filtered before</sub></td>
 <td align="center" width="33%"><a href="ac6-m10-pickmap-desktop-typeahead-after.png"><img src="ac6-m10-pickmap-desktop-typeahead-after.png" width="240"></a><br><sub>ac6 m10 pickmap desktop typeahead after</sub></td>
+<td align="center" width="33%"><a href="ac6-m10-pickmap-desktop-typeahead-before.png"><img src="ac6-m10-pickmap-desktop-typeahead-before.png" width="240"></a><br><sub>ac6 m10 pickmap desktop typeahead before</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="ac6-m10-pickmap-desktop-typeahead-before.png"><img src="ac6-m10-pickmap-desktop-typeahead-before.png" width="240"></a><br><sub>ac6 m10 pickmap desktop typeahead before</sub></td>
 <td align="center" width="33%"><a href="ac6-pickmap-overlay-typeahead-after.png"><img src="ac6-pickmap-overlay-typeahead-after.png" width="240"></a><br><sub>ac6 pickmap overlay typeahead after</sub></td>
 <td align="center" width="33%"><a href="ac6-pickmap-overlay-typeahead-before.png"><img src="ac6-pickmap-overlay-typeahead-before.png" width="240"></a><br><sub>ac6 pickmap overlay typeahead before</sub></td>
+<td align="center" width="33%"><a href="ac8-ar13-after-composite.png"><img src="ac8-ar13-after-composite.png" width="240"></a><br><sub>ac8 ar13 after composite</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="ac8-ar13-after-composite.png"><img src="ac8-ar13-after-composite.png" width="240"></a><br><sub>ac8 ar13 after composite</sub></td>
 <td align="center" width="33%"><a href="ac8-desktop-home-ar13-after.png"><img src="ac8-desktop-home-ar13-after.png" width="240"></a><br><sub>ac8 desktop home ar13 after</sub></td>
 <td align="center" width="33%"><a href="ac8-desktop-home-ar13-before.png"><img src="ac8-desktop-home-ar13-before.png" width="240"></a><br><sub>ac8 desktop home ar13 before</sub></td>
+<td align="center" width="33%"><a href="ac8-m1-modulehome-ar13-after.png"><img src="ac8-m1-modulehome-ar13-after.png" width="240"></a><br><sub>ac8 m1 modulehome ar13 after</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="ac8-m1-modulehome-ar13-after.png"><img src="ac8-m1-modulehome-ar13-after.png" width="240"></a><br><sub>ac8 m1 modulehome ar13 after</sub></td>
 <td align="center" width="33%"><a href="ac8-m1-modulehome-ar13-before.png"><img src="ac8-m1-modulehome-ar13-before.png" width="240"></a><br><sub>ac8 m1 modulehome ar13 before</sub></td>
 <td align="center" width="33%"><a href="ac8-m11-pickmap-overlay-ar13-after.png"><img src="ac8-m11-pickmap-overlay-ar13-after.png" width="240"></a><br><sub>ac8 m11 pickmap overlay ar13 after</sub></td>
+<td align="center" width="33%"><a href="ac8-m11-pickmap-typeahead-ar13-after.png"><img src="ac8-m11-pickmap-typeahead-ar13-after.png" width="240"></a><br><sub>ac8 m11 pickmap typeahead ar13 after</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="ac8-m11-pickmap-typeahead-ar13-after.png"><img src="ac8-m11-pickmap-typeahead-ar13-after.png" width="240"></a><br><sub>ac8 m11 pickmap typeahead ar13 after</sub></td>
 <td align="center" width="33%"><a href="ac8-m5-search-navy-ar13-after.png"><img src="ac8-m5-search-navy-ar13-after.png" width="240"></a><br><sub>ac8 m5 search navy ar13 after</sub></td>
 <td align="center" width="33%"><a href="ac8-m5-typed-ar13-after.png"><img src="ac8-m5-typed-ar13-after.png" width="240"></a><br><sub>ac8 m5 typed ar13 after</sub></td>
+<td align="center" width="33%"><a href="ac8-m6-crossstore-ar13-after.png"><img src="ac8-m6-crossstore-ar13-after.png" width="240"></a><br><sub>ac8 m6 crossstore ar13 after</sub></td>
 </tr>
 <tr>
 <td align="center" width="33%"><a href="ac8-m7-globalsearch-ar13-after.png"><img src="ac8-m7-globalsearch-ar13-after.png" width="240"></a><br><sub>ac8 m7 globalsearch ar13 after</sub></td>
@@ -83,26 +88,31 @@
 <tr>
 <td align="center" width="33%"><a href="ac9-m5-search-navy-idle-after.png"><img src="ac9-m5-search-navy-idle-after.png" width="240"></a><br><sub>ac9 m5 search navy idle after</sub></td>
 <td align="center" width="33%"><a href="ac9-m5-search-navy-idle-before.png"><img src="ac9-m5-search-navy-idle-before.png" width="240"></a><br><sub>ac9 m5 search navy idle before</sub></td>
-<td align="center" width="33%"><a href="ac9-m7-globalsearch-idle-after.png"><img src="ac9-m7-globalsearch-idle-after.png" width="240"></a><br><sub>ac9 m7 globalsearch idle after</sub></td>
+<td align="center" width="33%"><a href="ac9-m6-crossstore-before-after-composite.png"><img src="ac9-m6-crossstore-before-after-composite.png" width="240"></a><br><sub>ac9 m6 crossstore before after composite</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ac9-m7-globalsearch-idle-after.png"><img src="ac9-m7-globalsearch-idle-after.png" width="240"></a><br><sub>ac9 m7 globalsearch idle after</sub></td>
 <td align="center" width="33%"><a href="ac9-m7-globalsearch-idle-before.png"><img src="ac9-m7-globalsearch-idle-before.png" width="240"></a><br><sub>ac9 m7 globalsearch idle before</sub></td>
 <td align="center" width="33%"><a href="ac9-m8-itemviewall-after.png"><img src="ac9-m8-itemviewall-after.png" width="240"></a><br><sub>ac9 m8 itemviewall after</sub></td>
-<td align="center" width="33%"><a href="ac9-m8-itemviewall-before.png"><img src="ac9-m8-itemviewall-before.png" width="240"></a><br><sub>ac9 m8 itemviewall before</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ac9-m8-itemviewall-before.png"><img src="ac9-m8-itemviewall-before.png" width="240"></a><br><sub>ac9 m8 itemviewall before</sub></td>
 <td align="center" width="33%"><a href="ac9-m9-chat-after.png"><img src="ac9-m9-chat-after.png" width="240"></a><br><sub>ac9 m9 chat after</sub></td>
 <td align="center" width="33%"><a href="ac9-m9-chat-before.png"><img src="ac9-m9-chat-before.png" width="240"></a><br><sub>ac9 m9 chat before</sub></td>
-<td align="center" width="33%"><a href="ac9-pickmap-overlay-after.png"><img src="ac9-pickmap-overlay-after.png" width="240"></a><br><sub>ac9 pickmap overlay after</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ac9-pickmap-overlay-after.png"><img src="ac9-pickmap-overlay-after.png" width="240"></a><br><sub>ac9 pickmap overlay after</sub></td>
 <td align="center" width="33%"><a href="ac9-pickmap-overlay-filled-before.png"><img src="ac9-pickmap-overlay-filled-before.png" width="240"></a><br><sub>ac9 pickmap overlay filled before</sub></td>
 <td align="center" width="33%"><a href="ac9-pickmap-overlay-idle-before.png"><img src="ac9-pickmap-overlay-idle-before.png" width="240"></a><br><sub>ac9 pickmap overlay idle before</sub></td>
-<td align="center" width="33%"><a href="ac9-pickmap-overlay-selected-before.png"><img src="ac9-pickmap-overlay-selected-before.png" width="240"></a><br><sub>ac9 pickmap overlay selected before</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ac9-pickmap-overlay-selected-before.png"><img src="ac9-pickmap-overlay-selected-before.png" width="240"></a><br><sub>ac9 pickmap overlay selected before</sub></td>
 <td align="center" width="33%"><a href="bug-chat-double-search-glyph.png"><img src="bug-chat-double-search-glyph.png" width="240"></a><br><sub>bug chat double search glyph</sub></td>
 <td align="center" width="33%"><a href="pickmap-overlay-selected-after.png"><img src="pickmap-overlay-selected-after.png" width="240"></a><br><sub>pickmap overlay selected after</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="tb1-m9-chat-single-magnifier-ar13-after.png"><img src="tb1-m9-chat-single-magnifier-ar13-after.png" width="240"></a><br><sub>tb1 m9 chat single magnifier ar13 after</sub></td>
+<td align="center" width="33%"><a href="tb1-m9-chat-single-magnifier-en-after.png"><img src="tb1-m9-chat-single-magnifier-en-after.png" width="240"></a><br><sub>tb1 m9 chat single magnifier en after</sub></td>
 </tr>
 </table>
 
@@ -118,11 +128,17 @@
 - [`a11y-after-m4-desktop-search.xml`](a11y-after-m4-desktop-search.xml)
 - [`a11y-after-m5-ar13.xml`](a11y-after-m5-ar13.xml)
 - [`a11y-after-m5-search-navy.xml`](a11y-after-m5-search-navy.xml)
+- [`a11y-after-m6-ar13.xml`](a11y-after-m6-ar13.xml)
+- [`a11y-after-m6-charfilter.xml`](a11y-after-m6-charfilter.xml)
+- [`a11y-after-m6-crossstore.xml`](a11y-after-m6-crossstore.xml)
+- [`a11y-after-m6-results.xml`](a11y-after-m6-results.xml)
 - [`a11y-after-m7-ar13.xml`](a11y-after-m7-ar13.xml)
 - [`a11y-after-m7-globalsearch.xml`](a11y-after-m7-globalsearch.xml)
 - [`a11y-after-m8-ar13.xml`](a11y-after-m8-ar13.xml)
 - [`a11y-after-m8-itemviewall.xml`](a11y-after-m8-itemviewall.xml)
 - [`a11y-after-m9-ar13.xml`](a11y-after-m9-ar13.xml)
+- [`a11y-after-m9-chat-fix1-ar13.xml`](a11y-after-m9-chat-fix1-ar13.xml)
+- [`a11y-after-m9-chat-fix1-en.xml`](a11y-after-m9-chat-fix1-en.xml)
 - [`a11y-after-m9-chat.xml`](a11y-after-m9-chat.xml)
 - [`a11y-after-pickmap-overlay.xml`](a11y-after-pickmap-overlay.xml)
 - [`a11y-before-home-nomodule.xml`](a11y-before-home-nomodule.xml)
@@ -133,6 +149,7 @@
 - [`a11y-before-m3-categories.xml`](a11y-before-m3-categories.xml)
 - [`a11y-before-m4-desktop-search.xml`](a11y-before-m4-desktop-search.xml)
 - [`a11y-before-m5-search-navy.xml`](a11y-before-m5-search-navy.xml)
+- [`a11y-before-m6-crossstore.xml`](a11y-before-m6-crossstore.xml)
 - [`a11y-before-m7.xml`](a11y-before-m7.xml)
 - [`a11y-before-m8-itemviewall.xml`](a11y-before-m8-itemviewall.xml)
 - [`a11y-before-m9-chat.xml`](a11y-before-m9-chat.xml)
