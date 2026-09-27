@@ -39,3 +39,13 @@
 - Bold text (secure font_weight_adjustment=300, fw=w700 confirmed): store rail EN1.0 identical to non-bold (2 lines + rating); EN1.3 Spicy Jalapeno 2 lines ex=true (3rd line ellipsized), no 1-line name except discounted Chicago (strike kept). PASS
 - Logs: no NItemCard [FAIL]/[ERR]/overflow. n_appbar.dart:1136 17px @1.3x pre-existing. Env [FAIL]s: Firebase init/FCM (suffixed pkg), GetPosition timeout (mock GPS).
 - Backstop: packages/nears_dls test/components/n_item_card*_test.dart 307/307 pass.
+
+# Cycle 3 forced delta re-QA (R3-1 memoization, 8e1aaf660) — emulator-5564, UserApp from worktree @8e1aaf660 (qa-run.sh, API_HOST=10.0.2.2:8093), own backend :8093 cwd=nears-NEARS-3790-itemcard-grid-spacing @8e1aaf660, customer@nears.com (read-only)
+- Flash Sale 176x290 grocery EN1.0: pixel lead 7.7/2.7, trail 95.3/74.3, rows [13,14]/[18,12,14] = cycle 0/2. RT: Dish Soap 1 line 21 + gap 4 + price 26; Navel Oranges 2 lines 42 beside ORGANIC + gap 4 + price 26. PASS (identical)
+- Store rail 150x240 Spice Route EN1.0 (control): Chicago/Deep Dish/Spicy Jalapeno/Thin Crust = 42 (ml2) + rating @+46 + price 26 @+63 = 89.0; pixel trail 8.3 = cycle 2. PASS
+- Store rail AR1.0: same 4 cards = 42 + gap 4 + price 29 = 75.0, rating dropped (owner-accepted "3790 A"); Chicago pixel trail 21.3 = cycle 2; 1-line cards keep rating (21 + rating + 29). Identical.
+- Store rail AR1.3: same 4 cards = 1 line 27 (ml1, exceeded) + rating row 24 + price 38 = 89.0, gaps 0, pixel trail 9.0 = cycle 2. Identical.
+- Reorder 160x260 AR1.3: عضوي stacked at start edge (pill x82-140dp = cycle 1), Orange Juice 1L / Organic Bananas 2 whole lines (54), Low Fat Milk / Tomato 1 ellipsized line (27/29), broccoli stacked; no clipping, no overflow. Matches cycle 2 description.
+- Logs: no overflow / [ERR] / NItemCard failure at any state (n_appbar 1.3x overflow not seen this run). Env [FAIL]s: Firebase/FCM (suffixed pkg).
+- Out-of-diff: after Logout, Search -> /api/v1/search/unified 403 (ModuleCheck, module cleared; paired [FAIL] logged); then 'use current location' with no GPS fix -> ANR + system_server soft-restart (emulator env; recovered with geo fix) -> bug-logout-current-location-anr.log
+- Backstop: packages/nears_dls n_item_card*_test.dart 308/308; NItemCard goldens 14/14.

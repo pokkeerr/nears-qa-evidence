@@ -1,0 +1,19 @@
+NEARS-3790 cycle 3 (8e1aaf660) — emulator-5564. OUT-OF-DIFF observation, not caused by NItemCard.
+Repro: logged-in customer -> Profile -> Logout -> guest Settings -> Language -> Arabic -> Search tab (403 ModuleCheck, module cleared by logout, paired [FAIL] logged) -> Home 'Service not available in this area' -> 'تغيير الموقع' (change location) -> 'استخدم الموقع الحالي' (use current location) -> app hangs; uiautomator null root; VM service getVM unresponsive; ANR after BACK.
+
+1556:I/flutter ( 8734): [NET] endpoint=/api/v1/search/unified http_status=403
+1557:I/flutter ( 8734): [FAIL] endpoint=/api/v1/search/unified http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=5ce85a64-d8ac-4456-9c65-c312f8ecbe94
+1558:I/flutter ( 8734): [FAIL] endpoint=/api/v1/search/unified http_status=403 type=ApiFailure msg="unified search request failed"
+1582:I/flutter ( 8734): [NET] endpoint=/api/v1/search/unified http_status=403
+1583:I/flutter ( 8734): [FAIL] endpoint=/api/v1/search/unified http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=8ad05af0-2158-4765-bc2c-6bd52bdd3a9f
+1584:I/flutter ( 8734): [FAIL] endpoint=/api/v1/search/unified http_status=403 type=ApiFailure msg="unified search request failed"
+1653:I/flutter ( 8734): 📊 analytics: change_location_tapped {zone_id: 0, screen: home, section: empty_state, source: out_of_zone}
+1654:I/flutter ( 8734): [INFO] msg="location: current-location flow isDesktop=false width=448.0"
+
+09-28 02:55:39.969   640 14988 E ActivityManager: ANR in com.izzes.nears.nears_nears_3790_itemcard_grid_spacing (com.izzes.nears.nears_nears_3790_itemcard_grid_spacing/com.izzes.nears.MainActivity)
+09-28 02:55:39.969   640 14988 E ActivityManager: PID: 8734
+09-28 02:55:39.969   640 14988 E ActivityManager: Reason: Input dispatching timed out (5b2d873 com.izzes.nears.nears_nears_3790_itemcard_grid_spacing/com.izzes.nears.MainActivity is not responding. Waited 5000ms for KeyEvent).
+09-28 02:55:39.969   640 14988 E ActivityManager: Parent: com.izzes.nears.nears_nears_3790_itemcard_grid_spacing/com.izzes.nears.MainActivity
+09-28 02:55:39.969   640 14988 E ActivityManager: ErrorId: 9670fd58-2583-460e-add6-fd6095039af9
+
+Maps SDK (policy_maps_core_dynamite) repeated 'Timed out' warnings in the same window (emulator Play-services env).

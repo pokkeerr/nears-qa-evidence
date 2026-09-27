@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3790
 
-**cycle 2 re-QA: FAIL AC5 AR1.0 store rail rating dropped at exact fit (19.0 vs 19.0)**
+**cycle 3 R3-1 memoization 8e1aaf660: PASS, identical layouts**
 
 **9 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -25,6 +25,7 @@
 ### Other artifacts
 - [`addchk.py`](addchk.py)
 - [`bug-ar-1.0x-store-rail-rating-dropped-at-exact-fit.log`](bug-ar-1.0x-store-rail-rating-dropped-at-exact-fit.log)
+- [`bug-logout-current-location-anr.log`](bug-logout-current-location-anr.log)
 - [`bug-reorder-rail-organic-name-collapsed-overflow-1.3x.log`](bug-reorder-rail-organic-name-collapsed-overflow-1.3x.log)
 - [`bug-store-appbar-overflow-17px-1.3x.log`](bug-store-appbar-overflow-17px-1.3x.log)
 - [`cards.py`](cards.py)
