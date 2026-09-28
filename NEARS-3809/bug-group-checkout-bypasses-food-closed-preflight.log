@@ -1,0 +1,26 @@
+NEARS-3809 fix-cycle-1 QA (emulator-5570, UserApp built from c4ca95028, backend :8319 on private snapshot nears3809_qa_snap, clock pinned 2026-09-28 03:00 Asia/Dubai)
+Cart: user 6 existing basket = Burger Palace (store 4, food, opens 10:00) + Pizza Heaven (store 5, food, opens 11:00), both schedule_order=1, both closed-now.
+
+OBSERVED (live):
+- Checkout renders the inline notice "Store closed · opens at 10:00 · advance ordering unavailable"; no Preference Time section (correct).
+- Tap Place Order -> app log:
+    I/flutter: analytics: place_order_tapped {pricing_settled: 1, store_count: 2, screen: checkout, section: place_order}
+    I/flutter: analytics: screen_view {screen_name: order_confirm_sheet, source: checkout}
+    I/flutter: analytics: order_confirm_sheet_shown {store_count: 2, item_count: 4, ...}
+  -> NO snackbar (restaurant_is_closed/store_is_closed), NO "[WARN] checkout: place order blocked — food store <id> closed now" line.
+  -> Confirm sheet offers "Confirm & place order" (dump: ac8-c1-confirm-sheet-multistore-a11y.xml). NOT tapped (owner no-POST rule); backed out via "Back to checkout".
+- Server log: no request on the tap; snapshot orders count/max unchanged (162 / 91394).
+
+CODE PATH (why): UserApp/lib/features/checkout/controllers/place_order_controller.dart
+  placeOrderFromCheckout():
+    if (storeId == null && isMultiStoreCart(cartList)) {
+      return placeGroupOrderFromCheckout(...);        // line ~997 — returns BEFORE the chain below
+    }
+    ...
+    } else if (_checkout.isFoodStoreClosedNow) {       // line 1159 — NEARS-3809 gate, single-store chain only
+  placeGroupOrderFromCheckout() (lines 635-~855) has no isFoodStoreClosedNow check; schedule_at resolves null
+  (effectiveScheduleOrder=false), so Confirm -> group POST /order/place (immediate).
+
+SERVER BACKSTOP (prior cycle probe, resp-xg-group-place-food.json):
+  {"errors":[{"code":"group_gate","reason":"store_closed","store_id":4,...,"message":"Store is closed at order time"}],"group_placed":false}
+  -> no order is created; the gap is the missing client pre-empt (snackbar + WARN, no POST) on the multi-store path.

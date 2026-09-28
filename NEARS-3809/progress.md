@@ -13,3 +13,10 @@
 - 03:00 (pinned) carts 951 (items.id 14 Organic Almond Milk) for user 6: campaign quick-add model mix-up (pre-existing bug). Removed via remove-item 951.
 - incidental app writes: oauth token (API + app login), users.cm_firebase_token for user 6 overwritten by emulator-5560 login (live session device may stop receiving pushes for customer@nears.com until it re-logs in).
 - orders max id 91394 unchanged across the whole run; order_groups count 13 unchanged.
+## fix_cycle 1 (delta AC8 only) — code c4ca95028, emulator-5570 (5560 held by NEARS-3799; spare 5572 LOW DISK 459MB), backend :8319 on PRIVATE snapshot nears3809_qa_snap (SELECT DATABASE() verified in-process before any app request), pin 03:00 +04 verified via /__qa_probe
+- AC8 slot/notice PASS: user 6 existing basket (stores 4+5 food, closed) now loads (3808 fix); checkout shows "Store closed · opens at 10:00 · advance ordering unavailable", no Preference Time section (dump ac8-c1-checkout-food-closed-a11y.xml, positive control = notice node)
+- AC8 Place Order FAIL (compiled scope): multi-store basket -> Place Order opens confirm sheet (group flow), no snackbar, no [WARN]; group path lacks isFoodStoreClosedNow gate -> Confirm would POST (not tapped). Server group_gate 403 backstops. bug-group-checkout-bypasses-food-closed-preflight.log
+- AC8 RTL PASS: ar notice "المتجر مغلق · يفتح في 10:00 · الطلب المسبق غير متاح", bounds mirror EN exactly (EN text-start x=155, AR text-end x=925=1080-155)
+- Control 12:00 PASS: Preference Time section + Today/Tomorrow slots 13:00-23:00, no notice (instrument validated on a positive). Closed-grocery control SKIPPED: no closed-grocery cart (store 59 open 00:00-23:59)
+- Backstop: phpunit filter 21/21 OK (69 assertions); flutter test 5 files 50/50 pass
+- DB writes to multi_food_db by this run: none (mysqldump read only; all app traffic on :8319 -> snapshot)
