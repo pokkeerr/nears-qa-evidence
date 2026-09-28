@@ -17,3 +17,15 @@ DB backup: /private/tmp/claude-501/-Users-Apple-Projects-nears/19315c20-7616-495
 | Sweep update_payment_method | PASS | 91404 (header1, store58, 377.58) -> PUT payment-method COD -> 203, row unchanged | clean |
 | Sweep group place | PASS | group 3f64a660 children 91406 (store58) module 3, 91407 (store35) module 1 | clean |
 | Regression candidate parcel | CONFIRMED | 91405 parcel COD 1005 > module-5 cap 1000 placed with header 10 | silent (no log) |
+
+# NEARS-3830 QA [8] cycle 1 (delta) — progress checkpoint
+
+Backend: /Users/Apple/Projects/nears-NEARS-3830-module-from-store/Admin @ 7614e1cf2 (:8330, DB multi_food_db_nears3830_qa proven over HTTP, freshness-check PASS)
+
+| AC | status | evidence (see api-evidence-cycle1.log) | log |
+|---|---|---|---|
+| AC2 surge case 1 | PASS | store 1 (z1/m1) + header 10 -> order 91408 module_id=1 original_delivery_charge=8.00 (1.00 + 7.00 store-module surge) | clean (mismatch WARN as designed) |
+| AC2 surge case 2 | PASS | store 12 (z2/m1) + header 3 -> order 91409 module_id=1 original_delivery_charge=1.00 (header-module surge 5.00 NOT applied) | clean (mismatch WARN as designed) |
+| AC2 surge control | PASS | store 58 (z2/m3) + header 3 -> order 91410 module_id=3 original_delivery_charge=6.00 (zone-2 surge row live) | clean, no mismatch line |
+| AC-LOG module_zone_missing | PASS | store 91158 (z1/m15, no pivot) + header 15 -> 200 order 91411 module_id=15; [WARN] store module not configured for zone, reason module_zone_missing, store_id 91158, zone_id 1, module_id 15, request_id; no mismatch line; no PII | clean |
+| Backstop | PASS | phpunit 3830 targeted: 16 tests / 65 assertions OK | n/a |

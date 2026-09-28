@@ -1,0 +1,45 @@
+NEARS-3830 QA [8] cycle 1 (delta) — API evidence (tokens scrubbed; bearer tokens never recorded)
+Backend: /Users/Apple/Projects/nears-NEARS-3830-module-from-store/Admin @ 7614e1cf2 (php -S 127.0.0.1:8330 -t public server.php, pid 30733, env DB_DATABASE=multi_food_db_nears3830_qa; backend-freshness-check.sh 8330 -> PASS)
+Served-DB proof over HTTP: GET /api/v1/stores/details/91158 -> 200 'NEARS-3830 QA Unzoned-Module Store' (store 91158 + module 15 exist ONLY in the isolated DB; multi_food_db count=0 for both)
+Isolated DB: multi_food_db_nears3830_qa (conductor-seeded). Baseline MAX(orders.id)=91407. Clock 2026-09-29 02:18 Asia/Dubai (stores 1/58 open 08:00-23:00 -> schedule_at 2026-09-29 10:00:00; stores 12/91158 always open)
+Fixtures (SELECT): surge_prices id1 zone1 module_ids[1] 7.00 amount permanent weekly all days 00:00-23:59:59 status1; id2 zone2 module_ids[3] 5.00 same shape. module_zone(1,1)/(2,1)/(2,3) fixed 1.00; module 15 has no module_zone row.
+Request: POST /api/v1/customer/order/place, user 6, is_buy_now=1, qty 1, payment digital_payment. Headers: zoneId:[z], moduleId:<m>, X-Request-Id:<uuidv4>, Authorization: Bearer <scrubbed>
+
+=== surge1  X-Request-Id=403d2a8b-7ca7-41a3-9c63-3f53d411487c
+--- response:
+{"message":"Order placed successfully","order_id":91408,"payment_token":"<scrubbed>","total_ammount":37.8,"status":"failed","created_at":"2026-09-29 02:18:25","user_id":6}
+--- laravel.log grep -F "403d2a8b-7ca7-41a3-9c63-3f53d411487c":
+[2026-09-29 02:18:25] production.WARNING: [WARN] new_place_order - buy-now request missing/invalid X-Idempotency-Key, falling through unguarded {"trace_id":"f91aeca60a9296aee2884d9c8541f093","correlation_id":"403d2a8b-7ca7-41a3-9c63-3f53d411487c","endpoint":"api/v1/customer/order/place","request_id":"403d2a8b-7ca7-41a3-9c63-3f53d411487c"} 
+[2026-09-29 02:18:25] production.WARNING: [WARN] order placement - moduleId header differs from store module {"trace_id":"f91aeca60a9296aee2884d9c8541f093","correlation_id":"403d2a8b-7ca7-41a3-9c63-3f53d411487c","endpoint":"api/v1/customer/order/place","store_id":1,"header_module_id":10,"module_id":1,"reason":"header_store_module_mismatch","request_id":"403d2a8b-7ca7-41a3-9c63-3f53d411487c"} 
+
+=== surge2  X-Request-Id=eb26dbd3-a467-4a32-bcd5-f0272dbb186a
+--- response:
+{"message":"Order placed successfully","order_id":91409,"payment_token":"<scrubbed>","total_ammount":4.2,"status":"failed","created_at":"2026-09-29 02:18:32","user_id":6}
+--- laravel.log grep -F "eb26dbd3-a467-4a32-bcd5-f0272dbb186a":
+[2026-09-29 02:18:32] production.WARNING: [WARN] new_place_order - buy-now request missing/invalid X-Idempotency-Key, falling through unguarded {"trace_id":"aa44f16b67465430805d49b63f5351bd","correlation_id":"eb26dbd3-a467-4a32-bcd5-f0272dbb186a","endpoint":"api/v1/customer/order/place","request_id":"eb26dbd3-a467-4a32-bcd5-f0272dbb186a"} 
+[2026-09-29 02:18:32] production.WARNING: [WARN] order placement - moduleId header differs from store module {"trace_id":"aa44f16b67465430805d49b63f5351bd","correlation_id":"eb26dbd3-a467-4a32-bcd5-f0272dbb186a","endpoint":"api/v1/customer/order/place","store_id":12,"header_module_id":3,"module_id":1,"reason":"header_store_module_mismatch","request_id":"eb26dbd3-a467-4a32-bcd5-f0272dbb186a"} 
+
+=== surge2ctl  X-Request-Id=68417f7b-eb9f-4c38-9e81-54b80d427a94
+--- response:
+{"message":"Order placed successfully","order_id":91410,"payment_token":"<scrubbed>","total_ammount":30.43,"status":"failed","created_at":"2026-09-29 02:18:32","user_id":6}
+--- laravel.log grep -F "68417f7b-eb9f-4c38-9e81-54b80d427a94":
+[2026-09-29 02:18:32] production.WARNING: [WARN] new_place_order - buy-now request missing/invalid X-Idempotency-Key, falling through unguarded {"trace_id":"2a7ea52cf702ad256d5a81d189510855","correlation_id":"68417f7b-eb9f-4c38-9e81-54b80d427a94","endpoint":"api/v1/customer/order/place","request_id":"68417f7b-eb9f-4c38-9e81-54b80d427a94"} 
+
+=== mzmissing  X-Request-Id=6a97c04b-8b06-472d-bf9f-c2b55a4d35ca
+--- response:
+{"message":"Order placed successfully","order_id":91411,"payment_token":"<scrubbed>","total_ammount":10.5,"status":"failed","created_at":"2026-09-29 02:18:38","user_id":6}
+--- laravel.log grep -F "6a97c04b-8b06-472d-bf9f-c2b55a4d35ca":
+[2026-09-29 02:18:38] production.WARNING: [WARN] new_place_order - buy-now request missing/invalid X-Idempotency-Key, falling through unguarded {"trace_id":"943725ef6038d0a9bf89445d6927464b","correlation_id":"6a97c04b-8b06-472d-bf9f-c2b55a4d35ca","endpoint":"api/v1/customer/order/place","request_id":"6a97c04b-8b06-472d-bf9f-c2b55a4d35ca"} 
+[2026-09-29 02:18:38] production.WARNING: [WARN] order placement - store module not configured for zone {"trace_id":"943725ef6038d0a9bf89445d6927464b","correlation_id":"6a97c04b-8b06-472d-bf9f-c2b55a4d35ca","endpoint":"api/v1/customer/order/place","store_id":91158,"zone_id":1,"module_id":15,"reason":"module_zone_missing","request_id":"6a97c04b-8b06-472d-bf9f-c2b55a4d35ca"} 
+
+=== orders created by this delta run (SELECT on multi_food_db_nears3830_qa, id>91407)
+id	user_id	store_id	zone_id	module_id	order_type	payment_method	order_status	order_amount	delivery_charge	original_delivery_charge	scheduled	schedule_at
+91408	6	1	1	1	delivery	digital_payment	failed	37.80	0.00	8.00	1	2026-09-29 10:00:00
+91409	6	12	2	1	delivery	digital_payment	failed	4.20	0.00	1.00	0	2026-09-29 02:18:32
+91410	6	58	2	3	delivery	digital_payment	failed	30.43	0.00	6.00	1	2026-09-29 10:00:00
+91411	6	91158	1	15	delivery	digital_payment	failed	10.50	0.00	0.00	0	2026-09-29 02:18:38
+=== shared multi_food_db untouched: orders id>=91408
+0
+=== QA-window laravel.log scan (lines 6027+, 7 lines, all attributable to the 4 request ids above): ERROR/CRITICAL/[FAIL]/[ERR]/Exception count
+0
+=== automated backstop: env -u DB_DATABASE vendor/bin/phpunit --filter 'Nears3830ModuleFromStoreTest|Nears3830QaFixtureSeederTest' -> OK 16 tests / 65 assertions (1 PHPUnit deprecation)

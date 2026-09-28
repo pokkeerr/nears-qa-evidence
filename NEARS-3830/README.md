@@ -1,10 +1,11 @@
 # QA Evidence — NEARS-3830
 
-**NEARS-3830 QA PASS — header!=store placement stamps/prices/caps by store module (API, worktree @ b89c23142)**
+**cycle 1 delta PASS - AC2 surge (8.00/1.00/6.00) + AC-LOG module_zone_missing live on isolated DB @ 7614e1cf2**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
 ### Other artifacts
+- [`api-evidence-cycle1.log`](api-evidence-cycle1.log)
 - [`api-evidence.log`](api-evidence.log)
 - [`bug-parcel-header-module-cod-cap-bypass.log`](bug-parcel-header-module-cod-cap-bypass.log)
 - [`phpunit-ac-test.log`](phpunit-ac-test.log)
