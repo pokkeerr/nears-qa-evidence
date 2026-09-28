@@ -1,0 +1,37 @@
+NEARS-3832 [8b] regression-candidate confirmation R1 — vendor/DM cancel paths never restock stock=true items
+Run: 2026-09-29 02:44-02:46 (Asia/Dubai), QA agent, nested under cmb-3832. PRE-EXISTING defect (not introduced by NEARS-3832).
+Backend: /Users/Apple/Projects/nears-NEARS-3832-cancel-restock/Admin/public @ 9b58065bf
+  (php -S pid 20909 under `php artisan serve --port=8141` pid 20843, cwd .../Admin; backend-freshness-check.sh 8141 -> PASS rc=0; stopped after run)
+DB backup taken before any write: /Users/Apple/nears-db-backups/multi_food_db_pre-NEARS-3832-R1-20260929-024417.sql (13.9MB)
+
+Settings (read-only): canceled_by_store=1, canceled_by_deliveryman=0, order_confirmation_model=store, cross_module_basket=0
+Fixture: user 1 (customer), store 1 "Nears Mart" (vendor demo.store@gmail.com, module 1 = grocery -> config module.grocery.stock=true), item 40 module 1
+
+LIVE REPRO (vendor API path)
+  PRE              items.id=40 stock=96  updated_at=2026-09-29 02:39:08
+  POST /api/v1/customer/cart/add   item 40 x1                         -> cart id 977
+  POST /api/v1/customer/order/place  COD, delivery, store 1, schedule_at 2026-09-29 10:00 (store closed at 02:45 -> scheduled)
+                                                                       -> 200 order_id=91415 status=pending
+  POST-PLACE       items.id=40 stock=95  updated_at=2026-09-29 02:45:37   (placement decremented 1 — expected)
+  PUT  /api/v1/vendor/update-order-status {order_id:91415,status:canceled,reason:...}  (store 1 vendor, owner)
+                                                                       -> 200 {"message":"Status updated"}
+  orders.91415: order_status=canceled canceled_by=store canceled=2026-09-29 02:45:44 confirmed=NULL
+  order_details 373: item_id=40 quantity=1 variation=[]
+  POST-VENDOR-CANCEL items.id=40 stock=95 updated_at=2026-09-29 02:45:37  <-- NOT credited back (row not even touched)
+  PUT  /api/v1/customer/order/cancel {order_id:91415}  (net-zero restore attempt)
+                                                                       -> 409 "This order has already been canceled" (NEARS-377 guard, OrderController.php:628)
+  FINAL            items.id=40 stock=95  -> residual -1 on item 40, order 91415 canceled
+  laravel.log 02:44-02:46: no [ERR]/[FAIL]; only FCM informational WARNING lines. The vendor cancel emitted no restock line at all.
+
+CODE READ (worktree @ 9b58065bf)
+  Api/V1/Vendor/VendorController.php update_order_status  :382-547
+    :408-426 canceled gate (canceled_by_store, !confirmed)
+    :515-527 canceled branch: dm current_orders--, cancellation_reason, canceled_by='store'  — no restock call; no refund call either
+    :529-534 order_status=canceled, save
+  Vendor/OrderController.php (store web panel) status  :257-368
+    :344-368 canceled branch: dm counter, reason, canceled_by='store', increment_order_count, refund_before_delivered — no restock call
+  Api/V1/DeliverymanController.php update_order_status  :666-764
+    :666-680 canceled gate (canceled_by_deliveryman — currently 0 locally, so not live-reachable here without a settings change)
+    :745-754 canceled branch: dm counter, refund_before_delivered, reason, canceled_by='deliveryman' — no restock call
+  Comparison — paths that DO restock: Api/V1/OrderController.php:654 (customer cancel), Admin/OrderController.php:664 (admin cancel),
+    both via ProductLogic::restock_canceled_order_details (ProductLogic.php:983-1020).

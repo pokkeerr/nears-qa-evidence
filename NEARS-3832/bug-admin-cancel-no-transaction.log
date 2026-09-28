@@ -1,0 +1,20 @@
+NEARS-3832 [8b] regression-candidate confirmation R3 — Admin status->canceled side-effects run without a DB transaction
+Method: code read only (live fault injection out of scope). Worktree @ 9b58065bf. PRE-EXISTING in shape; the restock step at :664 is NEARS-3832's.
+
+Admin/app/Http/Controllers/Admin/OrderController.php  status()  :497-689
+  :497-689 no DB::transaction / DB::beginTransaction / lockForUpdate anywhere in the method
+  :653-672 canceled branch, in order:
+    :659-660 set cancellation_reason / canceled_by (in memory)
+    :662     Helpers::increment_order_count($order->store)            (writes store row)
+    :664     ProductLogic::restock_canceled_order_details(...)        (one ->save() per order line, ProductLogic.php:1018)
+    :665-669 delivery_man current_orders-- ; $dm->save()
+    :671     OrderLogic::refund_before_delivered($order)              (its own inner DB::transaction, OrderLogic.php:592 — commits independently)
+  :676-681 order_status='canceled'; $order->save()                   (the status write comes LAST)
+ProductLogic.php:981-982 comment: "Catches nothing so a DB error rolls back the caller" — the admin caller has no transaction to roll back.
+
+Failure consequences (by reading):
+  a) exception mid-loop at :664 (line k of n) -> lines 1..k-1 already restocked and committed, order still in its prior status.
+  b) exception at :668/:671/:681 after the loop -> every line restocked, order NOT canceled; an admin retry passes the :654 guard
+     (status is not 'canceled') and restocks again -> double restock (stock inflation); refund is idempotent-guarded (OrderLogic.php:596) but restock is not.
+  c) no row lock -> two concurrent admin cancel submits can both pass :654 and both restock.
+Contrast: customer cancel (Api/V1/OrderController.php:639-660) wraps restock+refund+save in DB::transaction with lockForUpdate re-read (NEARS-377).
