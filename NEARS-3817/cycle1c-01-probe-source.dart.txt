@@ -1,0 +1,57 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:nears_dls/nears_dls.dart';
+import '../flutter_test_config.dart';
+
+String _circ(Rect txt, Rect c) {
+  final double r = c.width / 2;
+  final dx = c.center.dx.clamp(txt.left, txt.right) - c.center.dx;
+  final dy = c.center.dy.clamp(txt.top, txt.bottom) - c.center.dy;
+  final double pen = r - Offset(dx, dy).distance;
+  return pen > 0 ? pen.toStringAsFixed(1) : '-';
+}
+
+String _rect(Rect a, Rect b) {
+  final i = a.intersect(b);
+  return (i.width > 0 && i.height > 0) ? '${i.width.toStringAsFixed(1)}x${i.height.toStringAsFixed(1)}' : '-';
+}
+
+void main() {
+  setUpAll(loadRealPriceFonts);
+  final chip = find.byWidgetPredicate((w) => w.runtimeType.toString() == '_StatusChip');
+  for (final (w, h, flush) in const [
+    (116.0, 190.0, false), (116.0, 190.0, true),
+    (160.0, 260.0, false), (160.0, 260.0, true),
+    (200.0, 300.0, false), (200.0, 300.0, true),
+  ]) {
+    for (final dir in TextDirection.values) {
+      for (final scale in const [1.0, 1.3]) {
+        for (final label in const ['Sold Out', 'Closed', 'Unavailable', 'نفذ', 'مغلق', 'غير متوفر']) {
+          testWidgets('p', (t) async {
+            final card = NItemCard(
+                image: const SizedBox.expand(key: Key('img')), name: 'X', price: 'AED 1',
+                closed: true, closedLabel: label, addControlFlush: flush,
+                halalTag: const SizedBox(key: Key('halal'), width: 20, height: 20),
+                addControl: const SizedBox.square(dimension: 44, child: Center(child: SizedBox.square(key: Key('add'), dimension: 36))));
+            final body = Align(alignment: Alignment.topCenter, child: SizedBox(width: w, height: h, child: card));
+            await t.pumpWidget(MaterialApp(home: MediaQuery(
+                data: MediaQueryData(size: const Size(360, 800), textScaler: TextScaler.linear(scale)),
+                child: Directionality(textDirection: dir, child: Scaffold(body: body)))));
+            final img = t.getRect(find.byKey(const Key('img')));
+            final txt = t.getRect(find.descendant(of: chip, matching: find.byType(RichText)));
+            final c = t.getRect(chip);
+            final laid = t.getSize(find.descendant(of: chip, matching: find.byType(Container))).width;
+            final halalR = t.getRect(find.byKey(const Key('halal')));
+            final add = t.getRect(find.byKey(const Key('add')));
+            final inImg = c.top >= img.top - 0.01 && c.bottom <= img.bottom + 0.01 && c.left >= img.left - 0.01 && c.right <= img.right + 0.01;
+            final scaled = c.width < laid - 0.01 ? 'scale${(c.width / laid).toStringAsFixed(2)}' : 'x1';
+            final lines = t.renderObject<RenderParagraph>(find.descendant(of: chip, matching: find.byType(RichText))).getBoxesForSelection(TextSelection(baseOffset: 0, extentOffset: label.length)).map((b) => b.top.round()).toSet().length;
+            // ignore: avoid_print
+            print('M grid${w.toInt()}${flush ? 'flush' : ''} ${dir.name} $scale "$label" img=${img.width.toStringAsFixed(0)}x${img.height.toStringAsFixed(0)} chip=${(c.top - img.top).toStringAsFixed(1)}..${(c.bottom - img.top).toStringAsFixed(1)} ${lines}L $scaled inImg=$inImg txt∩halal=${_rect(txt, halalR)} chip∩halal=${_rect(c, halalR)} txt∩add=${_circ(txt, add)} chip∩addbox=${_rect(c, add)} heart=${find.byType(NFavourite).evaluate().length}');
+          });
+        }
+      }
+    }
+  }
+}

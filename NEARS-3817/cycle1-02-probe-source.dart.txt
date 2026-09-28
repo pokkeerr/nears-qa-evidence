@@ -1,0 +1,50 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:nears_dls/nears_dls.dart';
+import '../flutter_test_config.dart';
+
+void main() {
+  setUpAll(loadRealPriceFonts);
+  final chip = find.byWidgetPredicate((w) => w.runtimeType.toString() == '_StatusChip');
+  for (final (layout, w, h) in const [
+    (NItemCardLayout.row, 360.0, null),
+    (NItemCardLayout.menuRow, 360.0, null),
+    (NItemCardLayout.grid, 116.0, 190.0),
+    (NItemCardLayout.grid, 160.0, 260.0),
+    (NItemCardLayout.grid, 200.0, 300.0),
+  ]) {
+    for (final dir in TextDirection.values) {
+      for (final scale in const [1.0, 1.3]) {
+        for (final label in const ['Sold Out', 'Closed', 'نفذ', 'Unavailable', 'مغلق', 'غير متوفر']) {
+          testWidgets('p', (t) async {
+            final card = NItemCard(layout: layout,
+                image: const SizedBox.expand(key: Key('img')), name: 'X', price: 'AED 1',
+                closed: true, closedLabel: label,
+                halalTag: const SizedBox(key: Key('halal'), width: 20, height: 20),
+                favourite: NFavourite(key: const Key('h'), isWished: false, showBackdrop: true, onToggle: () {}));
+            final body = Align(alignment: Alignment.topCenter, child: SizedBox(width: w, height: h, child: card));
+            await t.pumpWidget(MaterialApp(home: MediaQuery(
+                data: MediaQueryData(size: const Size(360, 800), textScaler: TextScaler.linear(scale)),
+                child: Directionality(textDirection: dir, child: Scaffold(body: body)))));
+            final img = t.getRect(find.byKey(const Key('img')));
+            final disc = t.getRect(find.descendant(of: find.byKey(const Key('h')), matching: find.byWidgetPredicate((w) => w is Container && w.decoration is BoxDecoration)));
+            final txt = t.getRect(find.descendant(of: chip, matching: find.byType(RichText)));
+            final c = t.getRect(chip);
+            final halal = t.getRect(find.byKey(const Key('halal')));
+            final i = txt.intersect(disc);
+            final hi = txt.intersect(halal);
+            final double r = disc.width / 2;
+            final dx = (disc.center.dx.clamp(txt.left, txt.right) - disc.center.dx);
+            final dy = (disc.center.dy.clamp(txt.top, txt.bottom) - disc.center.dy);
+            final double pen = r - Offset(dx, dy).distance;
+            final ov = (i.width > 0 && i.height > 0 && pen > 0) ? 'rect${i.width.toStringAsFixed(1)}x${i.height.toStringAsFixed(1)}/circlePen${pen.toStringAsFixed(1)}' : '-';
+            final hov = (hi.width > 0 && hi.height > 0) ? '${hi.width.toStringAsFixed(1)}x${hi.height.toStringAsFixed(1)}' : '-';
+            // ignore: avoid_print
+            print('M ${layout.name}${w.toInt()} ${dir.name} $scale "$label" img=${img.height.toStringAsFixed(0)} chipTop=${(c.top-img.top).toStringAsFixed(1)} chipBot=${(c.bottom-img.top).toStringAsFixed(1)} discBot=${(disc.bottom-img.top).toStringAsFixed(1)} text∩disc=$ov text∩halal=$hov');
+          });
+        }
+      }
+    }
+  }
+}

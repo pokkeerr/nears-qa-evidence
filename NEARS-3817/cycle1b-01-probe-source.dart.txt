@@ -1,0 +1,66 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:nears_dls/nears_dls.dart';
+import '../flutter_test_config.dart';
+
+String _circ(Rect txt, Rect c) {
+  final double r = c.width / 2;
+  final dx = c.center.dx.clamp(txt.left, txt.right) - c.center.dx;
+  final dy = c.center.dy.clamp(txt.top, txt.bottom) - c.center.dy;
+  final double pen = r - Offset(dx, dy).distance;
+  return pen > 0 ? pen.toStringAsFixed(1) : '-';
+}
+
+String _rect(Rect a, Rect b) {
+  final i = a.intersect(b);
+  return (i.width > 0 && i.height > 0) ? '${i.width.toStringAsFixed(1)}x${i.height.toStringAsFixed(1)}' : '-';
+}
+
+void main() {
+  setUpAll(loadRealPriceFonts);
+  final chip = find.byWidgetPredicate((w) => w.runtimeType.toString() == '_StatusChip');
+  for (final (layout, w, h, flush) in const [
+    (NItemCardLayout.menuRow, 360.0, null, false),
+    (NItemCardLayout.grid, 116.0, 190.0, false),
+    (NItemCardLayout.grid, 116.0, 190.0, true),
+    (NItemCardLayout.grid, 160.0, 260.0, false),
+    (NItemCardLayout.grid, 200.0, 300.0, false),
+  ]) {
+    for (final dir in const [TextDirection.ltr]) {
+      for (final scale in const [1.0, 1.3]) {
+        for (final label in const ['Sold Out', 'Closed', 'Unavailable', 'نفذ', 'مغلق', 'غير متوفر']) {
+          for (final disc in const [false, true]) {
+          testWidgets('p', (t) async {
+            final card = NItemCard(layout: layout,
+                image: const SizedBox.expand(key: Key('img')), name: 'X', price: 'AED 1',
+                closed: true, closedLabel: label, discount: disc ? '20% OFF' : null,
+                addControlFlush: flush,
+                halalTag: const SizedBox(key: Key('halal'), width: 20, height: 20),
+                addControl: const SizedBox.square(dimension: 44, child: Center(child: SizedBox.square(key: Key('add'), dimension: 36))),
+                favourite: NFavourite(key: const Key('h'), isWished: false, showBackdrop: true, onToggle: () {}));
+            final body = Align(alignment: Alignment.topCenter, child: SizedBox(width: w, height: h, child: card));
+            await t.pumpWidget(MaterialApp(home: MediaQuery(
+                data: MediaQueryData(size: const Size(360, 800), textScaler: TextScaler.linear(scale)),
+                child: Directionality(textDirection: dir, child: Scaffold(body: body)))));
+            final img = t.getRect(find.byKey(const Key('img')));
+            final hd = t.getRect(find.descendant(of: find.byKey(const Key('h')), matching: find.byWidgetPredicate((w) => w is Container && w.decoration is BoxDecoration)));
+            final txt = t.getRect(find.descendant(of: chip, matching: find.byType(RichText)));
+            final c = t.getRect(chip);
+            final laid = t.getSize(find.descendant(of: chip, matching: find.byType(Container))).width;
+            final halal = find.byKey(const Key('halal'));
+            final halalR = halal.evaluate().isEmpty ? Rect.zero : t.getRect(halal);
+            final add = t.getRect(find.byKey(const Key('add')));
+            final dR = disc ? t.getRect(find.ancestor(of: find.text('20% OFF'), matching: find.byType(NBadge))) : Rect.zero;
+            final inImg = c.top >= img.top - 0.01 && c.bottom <= img.bottom + 0.01 && c.left >= img.left - 12.01 && c.right <= img.right + 12.01;
+            final scaled = c.width < laid - 0.01 ? 'scale${(c.width / laid).toStringAsFixed(2)}' : 'x1';
+            final lines = (t.renderObject<RenderParagraph>(find.descendant(of: chip, matching: find.byType(RichText))).getBoxesForSelection(TextSelection(baseOffset: 0, extentOffset: label.length)).map((b) => b.top.round()).toSet().length);
+            // ignore: avoid_print
+            print('M ${layout.name}${w.toInt()}${flush ? 'flush' : ''}${disc ? '+disc' : ''} $scale "$label" img=${img.height.toStringAsFixed(0)} chip=${(c.top - img.top).toStringAsFixed(1)}..${(c.bottom - img.top).toStringAsFixed(1)} ${lines}L $scaled inImg=$inImg heart=${_circ(txt, hd)} halal=${_rect(txt, halalR)} add=${_circ(txt, add)} discount=${disc ? _rect(txt, dR) : 'n/a'}');
+          });
+          }
+        }
+      }
+    }
+  }
+}
