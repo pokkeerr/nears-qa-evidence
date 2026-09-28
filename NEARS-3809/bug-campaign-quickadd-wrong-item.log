@@ -1,0 +1,9 @@
+# Campaign quick-add sends model=Item with the ItemCampaign id (pre-existing; not in NEARS-3809 diff)
+# Home 'Tasty Food Favorites' = item_campaigns.id 14 (store 4 Burger Palace, food, closed-now). Tapped its 'Add To Cart' quick-add.
+# app log:
+I/m140.bof(22737): Fetching new client parameters: Account {name=signedout@, type=com.google.android.apps.maps}  en_US
+I/flutter (22737): [NET] POST endpoint=/api/v1/customer/cart/add
+I/flutter (22737): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+# DB (read) immediately after: carts id=951 user_id=6 module_id=2 item_id=14 item_type=App\Models\Item qty=1 price=25.000 -> items.id 14 = 'Organic Almond Milk' (store 3 Organic Paradise, grocery, schedule_order=1) - WRONG item, different store/module; server gated store 3 not store 4.
+# client ClosedStoreGate did not block: campaigns/item payload has store_details=null (fail-open), module_type=food.
+# QA removed row 951 via DELETE /api/v1/customer/cart/remove-item (product endpoint) to restore the live user's cart.

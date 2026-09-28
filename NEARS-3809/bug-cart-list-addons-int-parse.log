@@ -1,0 +1,19 @@
+# cart/list parse crash (pre-existing, not in NEARS-3809 diff) - emulator-5560, code 1b2e67b08, backend :8309
+E/flutter (22737): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: type 'int' is not a subtype of type 'Map<String, dynamic>'
+E/flutter (22737): #0      new Item.fromJson.<anonymous closure> (package:nears/features/item/domain/models/item_model.dart:214:39)
+E/flutter (22737): #1      List.forEach (dart:core-patch/growable_array.dart:428:8)
+E/flutter (22737): #2      new Item.fromJson (package:nears/features/item/domain/models/item_model.dart:213:25)
+E/flutter (22737): #3      new OnlineCartModel.fromJson (package:nears/features/cart/domain/models/online_cart_model.dart:62:58)
+E/flutter (22737): #4      CartRepository._getCartDataOnline.<anonymous closure> (package:nears/features/cart/domain/repositories/cart_repository.dart:267:55)
+E/flutter (22737): #5      List.forEach (dart:core-patch/growable_array.dart:428:8)
+E/flutter (22737): #6      CartRepository._getCartDataOnline (package:nears/features/cart/domain/repositories/cart_repository.dart:266:21)
+E/flutter (22737): <asynchronous suspension>
+E/flutter (22737): #7      CartRepository.getList (package:nears/features/cart/domain/repositories/cart_repository.dart:216:12)
+E/flutter (22737): <asynchronous suspension>
+
+# cart/list payload shape (user's cart, module 2): item.add_ons are raw id lists, model expects objects
+cart 944 item 17 add_ons= [1, 3, 4]
+cart 945 item 18 add_ons= [1, 3]
+cart 946 item 25 add_ons= []
+cart 947 item 23 add_ons= [5, 8]
+# effect: CartController.isLoading stays true -> item-sheet CTA a11y label carries ', loading' (e.g. 'Store is closed, loading', 'Add To Cart, loading'); Basket shows totals but no rows; Checkout resolves a stale store (9)
