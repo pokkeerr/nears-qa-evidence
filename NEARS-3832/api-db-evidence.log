@@ -1,0 +1,144 @@
+# NEARS-3832 [8] live QA — API/DB evidence (own backend :8132)
+Backend: /Users/Apple/Projects/nears-NEARS-3832-cancel-restock @ 9b58065bf (php artisan serve cwd .../Admin/public; backend-freshness-check PASS)
+DB backup: /Users/Apple/nears-db-backups/multi_food_db_pre_NEARS-3832_qa_20260929023331.sql
+Actor: customer user 1 (james.wilson@demo.com) via /api/v1/auth/login; admin@admin.com via /login/admin session+CSRF
+Module config: grocery stock=true, food stock=false (config/module.php)
+
+## AC1 credit direction (customer) — header moduleId=2 food, store 1 grocery, item 40 (module 1) qty 2
+pre-place: item 40 stock=96
+{"message":"Order placed successfully","order_id":91408,"payment_token":"<redacted>","total_ammount":43.47,"status":"pending","created_at":"2026-09-29 02:35:36","user_id":1}
+HTTP 200 rid=qa3832-ac1leak-1790634936
+id	module_id	store_id	order_status	order_group_id	canceled_by
+91408	2	1	pending	NULL	NULL
+id	order_id	item_id	item_campaign_id	quantity	variation
+366	91408	40	NULL	2	[]
+id	module_id	stock
+40	1	94
+--- PUT /api/v1/customer/order/cancel 91408
+HTTP/1.1 200 OK
+X-Request-Id: ff0b8f8d-4016-4c87-8961-ed7a716f7c7a
+{"message":"Order canceled successfully"}
+id	module_id	order_status	canceled_by
+91408	2	canceled	customer
+id	stock
+40	96
+
+## AC1 no-credit direction (customer) — header moduleId=1 grocery, store 39 food, item 389 (module 2) qty 1
+(store 4/item 16 unplaceable at QA time: food store closed, NEARS-3809 pre-order gate -> 403 order_time; open food store 39 used instead)
+id	module_id	stock
+389	2	80
+{"message":"Order placed successfully","order_id":91409,"payment_token":"<redacted>","total_ammount":29.54,"status":"pending","created_at":"2026-09-29 02:36:23","user_id":1}
+HTTP 200 rid=qa3832-ac1infl-1790634983
+id	module_id	store_id	order_status
+91409	1	39	pending
+id	item_id	quantity
+367	389	1
+id	stock
+389	80
+--- cancel 91409
+HTTP/1.1 200 OK
+X-Request-Id: 885815d2-d514-4993-8a1c-c1839ddad690
+{"message":"Order canceled successfully"}
+id	module_id	order_status	canceled_by
+91409	1	canceled	customer
+id	stock
+389	80
+
+## AC1 admin twin, credit direction — header moduleId=2, store 1, item 40 qty 3; POST /admin/order/status order_status=canceled
+{"message":"Order placed successfully","order_id":91411,"payment_token":"<redacted>","total_ammount":65.21,"status":"pending","created_at":"2026-09-29 02:37:56","user_id":1}
+HTTP 200 rid=qa3832-ac1admin-1790635075
+id	module_id	store_id	order_status
+91411	2	1	pending
+id	stock
+40	93
+--- admin POST: 302 -> /admin/order/details/91411, flash toastr.success('Order status updated'), X-Request-Id b86278ab-5315-4671-86c8-5c2d814d91da
+id	module_id	order_status	canceled_by	cancellation_reason
+91411	2	canceled	admin	QA NEARS-3832 admin twin
+id	stock
+40	96
+
+## AC1 admin twin, no-credit direction — header moduleId=1, store 39, item 389 qty 2
+{"message":"Order placed successfully","order_id":91412,"payment_token":"<redacted>","total_ammount":59.08,"status":"pending","created_at":"2026-09-29 02:38:29","user_id":1}
+HTTP 200 rid=qa3832-ac1admininfl-1790635109
+id	module_id	store_id	order_status
+91412	1	39	pending
+id	stock
+389	80
+--- admin POST: 302 -> /admin/order/details/91412, toastr.success('Order status updated'), X-Request-Id 03f45d69-f038-4599-a469-a330b47d9eb9 (an earlier attempt 419'd because the QA script scraped no CSRF token — harness error, no state change, order stayed pending)
+id	module_id	order_status	canceled_by
+91412	1	canceled	admin
+id	stock
+389	80
+
+## AC2 mixed-module group — cart (header moduleId=1): item 40 x4 (store 1 grocery) + item 389 x1 (store 39 food); POST /customer/order/group/place
+id	stock
+40	96
+389	80
+id	module_id	item_id	quantity
+975	1	40	4
+976	1	389	1
+{"message":"Order placed successfully","group_id":"30ba64b6-9359-4eab-9c7c-5e0d7fa8f125","payment_token":"<redacted>","order_ids":[91413,91414],"total_amount":116.47999999999999,"group_placed":true,"orders":[{"order_id":91413,"store_id":1,"order_status":"pending"},{"order_id":91414,"store_id":39,"order_status":"pending"}]}
+HTTP 200
+
+id	module_id	store_id	order_status	order_group_id	canceled_by	order_amount
+91413	1	1	pending	30ba64b6-9359-4eab-9c7c-5e0d7fa8f125	NULL	86.94
+91414	1	39	pending	30ba64b6-9359-4eab-9c7c-5e0d7fa8f125	NULL	29.54
+id	order_id	item_id	quantity	price	updated_at
+371	91413	40	4	23.00	2026-09-29 02:39:02
+372	91414	389	1	30.58	2026-09-29 02:39:02
+id	stock
+40	92
+389	80
+carts_left
+0
+--- cancel child A 91413
+HTTP/1.1 200 OK
+X-Request-Id: 18459537-1bf0-463a-b9f3-b70cc63ead3e
+{"message":"Order canceled successfully"}
+id	module_id	store_id	order_status	order_group_id	canceled_by	order_amount
+91413	1	1	canceled	30ba64b6-9359-4eab-9c7c-5e0d7fa8f125	customer	86.94
+91414	1	39	pending	30ba64b6-9359-4eab-9c7c-5e0d7fa8f125	NULL	29.54
+id	order_id	item_id	quantity	price	updated_at
+371	91413	40	4	23.00	2026-09-29 02:39:02
+372	91414	389	1	30.58	2026-09-29 02:39:02
+id	stock
+40	96
+389	80
+carts_left
+0
+--- cancel sibling B 91414 (own order, cleanup + food line under grocery header not credited)
+HTTP/1.1 200 OK
+X-Request-Id: c07130d2-1ec3-46fb-a61f-26d293dd13a3
+{"message":"Order canceled successfully"}
+id	module_id	order_status	canceled_by
+91413	1	canceled	customer
+91414	1	canceled	customer
+id	stock
+40	96
+389	80
+
+## AC-REG single-module — header moduleId=1, store 1, item 40 x1; cancel then re-cancel
+{"message":"Order placed successfully","order_id":91410,"payment_token":"<redacted>","total_ammount":21.74,"status":"pending","created_at":"2026-09-29 02:36:38","user_id":1}
+HTTP 200 rid=qa3832-acreg-1790634998
+id	module_id	store_id	order_status
+91410	1	1	pending
+id	stock
+40	95
+HTTP/1.1 200 OK
+X-Request-Id: 8dcc4f3a-b07c-48bd-82c5-70fa2b544f4d
+{"message":"Order canceled successfully"}
+id	stock
+40	96
+HTTP/1.1 409 Conflict
+X-Request-Id: 481551c9-20e6-4332-bb14-f7d15981b11b
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+id	order_status	canceled_by
+91410	canceled	customer
+id	stock
+40	96
+--- also re-cancel of 91408:
+HTTP/1.1 409 Conflict
+X-Request-Id: e02a474b-0bad-4597-9f3c-9d367e65aeea
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+id	stock
+40	96

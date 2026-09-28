@@ -1,0 +1,26 @@
+# NEARS-3832 scoped laravel.log check (LOG_LEVEL=warning) — QA window lines 1391..1441
+## grep 'cancel restock|restock_target_missing|module_config_missing|ERROR|CRITICAL|[FAIL]|[ERR]' in window:
+[2026-09-29 02:39:38] testing.WARNING: [WARN] cancel restock - order line has no stock row {"correlation_id":"e636ec96-d25c-4332-bc19-05bbc248271d","endpoint":"/api/v1/customer/order/cancel","order_id":92913,"order_detail_id":592,"item_id":191109,"item_campaign_id":null,"reason":"restock_target_missing","request_id":"e636ec96-d25c-4332-bc19-05bbc248271d"} 
+[2026-09-29 02:39:39] testing.WARNING: [WARN] cancel restock - line module has no config {"correlation_id":"70423e1f-c6c8-460e-b837-d24543066edd","endpoint":"/api/v1/customer/order/cancel","order_id":92914,"order_detail_id":594,"item_id":null,"item_campaign_id":9002431,"module_id":660,"reason":"module_config_missing","request_id":"70423e1f-c6c8-460e-b837-d24543066edd"} 
+[2026-09-29 02:39:39] testing.WARNING: [FAIL] guest.token.rejected {"correlation_id":"40edea90-e0be-4754-9dc7-d721c4a7ab08","reason":"unknown_guest","guest_id":910000607,"request_id":"40edea90-e0be-4754-9dc7-d721c4a7ab08"} 
+## every line carrying a cancel request's X-Request-Id (correlation_id):
+### ff0b8f8d-4016-4c87-8961-ed7a716f7c7a
+[2026-09-29 02:35:49] production.WARNING: FCM push skipped - empty or muted token {"trace_id":"883a4755b00d17a633c55a7a858c3229","correlation_id":"ff0b8f8d-4016-4c87-8961-ed7a716f7c7a","order_id":91408} 
+### 885815d2-d514-4993-8a1c-c1839ddad690
+[2026-09-29 02:36:29] production.WARNING: FCM push skipped - empty or muted token {"trace_id":"33c0db132f865a52afd848a6e8d1918a","correlation_id":"885815d2-d514-4993-8a1c-c1839ddad690","order_id":91409} 
+### 8dcc4f3a-b07c-48bd-82c5-70fa2b544f4d
+[2026-09-29 02:36:39] production.WARNING: FCM push skipped - empty or muted token {"trace_id":"a2fb2b5b7a9fde137446337c6391031d","correlation_id":"8dcc4f3a-b07c-48bd-82c5-70fa2b544f4d","order_id":91410} 
+### b86278ab-5315-4671-86c8-5c2d814d91da
+[2026-09-29 02:38:20] production.WARNING: FCM push skipped - empty or muted token {"trace_id":"901ec58d28d9c05bef049482df45e023","correlation_id":"b86278ab-5315-4671-86c8-5c2d814d91da","order_id":91411} 
+### 03f45d69-f038-4599-a469-a330b47d9eb9
+[2026-09-29 02:38:38] production.WARNING: FCM push skipped - empty or muted token {"trace_id":"5732ec98f7f4819797d420e21e639800","correlation_id":"03f45d69-f038-4599-a469-a330b47d9eb9","order_id":91412} 
+### 18459537-1bf0-463a-b9f3-b70cc63ead3e
+[2026-09-29 02:39:08] production.WARNING: FCM push skipped - empty or muted token {"trace_id":"ef17a793c85ee9dc4b3a313373151539","correlation_id":"18459537-1bf0-463a-b9f3-b70cc63ead3e","order_id":91413} 
+### c07130d2-1ec3-46fb-a61f-26d293dd13a3
+[2026-09-29 02:39:13] production.WARNING: FCM push skipped - empty or muted token {"trace_id":"5f25287a85f50320c561f722004c9bf2","correlation_id":"c07130d2-1ec3-46fb-a61f-26d293dd13a3","order_id":91414} 
+### e02a474b-0bad-4597-9f3c-9d367e65aeea
+(no lines — 409 re-cancel path, see note)
+### 481551c9-20e6-4332-bb14-f7d15981b11b
+(no lines — 409 re-cancel path, see note)
+
+NOTE: the double-cancel 409 path (NEARS-377, pre-existing, not in this diff) emits no Log:: line — logged as a followup, not a task bug.
