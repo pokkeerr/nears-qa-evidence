@@ -24,3 +24,15 @@ AC7 non-food store 2 — PASS unchanged 2-col grid
 AC14 analytics add_to_cart — UNVERIFIABLE: open item 125 (no add-ons) added; response carries whole shared cart -> NEARS-3808 Item.fromJson crash before _logAddToCart. add_to_wishlist/favourite_removed observed.
 Regression candidates: compact NItemCard Table semantics assert (bug-compact-table-semantics-assert.log); AR discount pill hardcoded 'OFF' (item_card.dart:253, NEARS-1403).
 Cleanup: cart row 948 (item 125) removed via customer API DELETE cart/remove-item (200), cart back to 9 rows; wishlist item 22 back to 0.
+
+## Cycle 3 (delta, AC14 + quick regression) — 2026-09-28, emulator-5560, unsuffixed com.izzes.nears debug (google-services.json temp copy), backend :8799 = worktree @ e22757680
+AC14 add_to_cart — FIRES on all 3 surfaces (real FA-SVC Logging event + upload bundle + mirror), 0 [FAIL]/[ERR]. item 115 store 4.
+  store-page menuRow (food default list): screen/item_list_id/item_list_name = items_view (ItemsView generic default)
+  store-page GRID (same item): store_screen / store_items_grid
+  in-store search menuRow: store_item_search (== search grid; explicit override in this branch)
+  => store-page menuRow context != grid context. Same as pre-change list(row) path, but food now defaults to list, so default-path attribution moved store_screen -> items_view. FAIL vs packet's grid-parity criterion. bug-menurow-store-page-analytics-context-items-view.log
+AC14 select_item + view_item, add_to_wishlist + favourite_removed — fire under menuRow (items_view ctx), FA + mirror. Wishlist 115 add->remove, set restored.
+Cart: 3 single-row adds (955 list, 956 grid, 957 search), each removed via stepper; set {34,36,939,940,944,946,947,953} identical before/after (qty unchanged).
+Regression: menuRow renders + stepper (c3-ac14-menurow-add-stepper-qty1.png); store 2 grid default + list = old row (fav leading), 0 errors.
+Pre-existing recurrence: global search compact NItemCard Table semantics assert (NEARS-3783) broke a11y tree on /search results.
+Automated: UserApp 500 passed; nears_dls menu_row 44 passed.

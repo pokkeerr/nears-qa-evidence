@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3799
 
-**cycle 2 delta re-QA: PASS (TB1/TB2/TB3 verified live)**
+**cycle 3 delta: AC14 add_to_cart fires (FA+mirror) but store-page menuRow context items_view != grid store_screen/store_items_grid — FAIL**
 
-**19 screenshot(s).** Click any thumbnail for full resolution.
+**20 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -37,6 +37,7 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="c2-ac3-open-discount-struck-1.3x-ltr.png"><img src="c2-ac3-open-discount-struck-1.3x-ltr.png" width="240"></a><br><sub>c2 ac3 open discount struck 1.3x ltr</sub></td>
+<td align="center" width="33%"><a href="c3-ac14-menurow-add-stepper-qty1.png"><img src="c3-ac14-menurow-add-stepper-qty1.png" width="240"></a><br><sub>c3 ac14 menurow add stepper qty1</sub></td>
 </tr>
 </table>
 
@@ -45,6 +46,8 @@
 - [`bug-cart-add-addons-int-parse.log`](bug-cart-add-addons-int-parse.log)
 - [`bug-compact-table-semantics-assert.log`](bug-compact-table-semantics-assert.log)
 - [`bug-menurow-closed-item-add-not-disabled.log`](bug-menurow-closed-item-add-not-disabled.log)
+- [`bug-menurow-store-page-analytics-context-items-view.log`](bug-menurow-store-page-analytics-context-items-view.log)
+- [`c3-ac14-analytics-fa-capture.log`](c3-ac14-analytics-fa-capture.log)
 - [`progress.md`](progress.md)
 
 ---
