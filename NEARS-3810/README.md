@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3810
 
-**NEARS-3810 QA PASS: 10 ACs PASS, AC8 UNVERIFIABLE-live (widget test), emulator-5570 @ 8d1ed7f40**
+**NEARS-3810 delta re-QA cycle 1: AC8 PASS (closed favourite store listed w/ Closed pill, un-favourited via heart; wishlist after==before)**
 
-**5 screenshot(s).** Click any thumbnail for full resolution.
+**6 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -12,6 +12,7 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="ac7-deeplink-cold-store9-en.png"><img src="ac7-deeplink-cold-store9-en.png" width="240"></a><br><sub>ac7 deeplink cold store9 en</sub></td>
+<td align="center" width="33%"><a href="ac8-favourites-stores-closed-en.png"><img src="ac8-favourites-stores-closed-en.png" width="240"></a><br><sub>ac8 favourites stores closed en</sub></td>
 <td align="center" width="33%"><a href="ac9-item-sheet-store9-en.png"><img src="ac9-item-sheet-store9-en.png" width="240"></a><br><sub>ac9 item sheet store9 en</sub></td>
 </tr>
 </table>
@@ -25,6 +26,10 @@
 - [`ac7-deeplink-warm-store9-ar.xml`](ac7-deeplink-warm-store9-ar.xml)
 - [`ac7-deeplink-warm-store9-en.xml`](ac7-deeplink-warm-store9-en.xml)
 - [`ac7-regression-notfound-cold-ar.xml`](ac7-regression-notfound-cold-ar.xml)
+- [`ac8-favourites-stores-after-unfav-en.xml`](ac8-favourites-stores-after-unfav-en.xml)
+- [`ac8-favourites-stores-en.xml`](ac8-favourites-stores-en.xml)
+- [`ac8-wishlist-after.tsv`](ac8-wishlist-after.tsv)
+- [`ac8-wishlist-before.tsv`](ac8-wishlist-before.tsv)
 - [`ac9-item-sheet-store9-en.xml`](ac9-item-sheet-store9-en.xml)
 - [`bug-cold-deeplink-moduleless-403s.log`](bug-cold-deeplink-moduleless-403s.log)
 - [`bug-food-cart-addons-int-parse.log`](bug-food-cart-addons-int-parse.log)
