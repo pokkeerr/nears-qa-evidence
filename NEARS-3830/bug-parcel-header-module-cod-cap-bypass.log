@@ -1,0 +1,14 @@
+Regression (pre-existing, NOT introduced by NEARS-3830): parcel orders take their money module from the client moduleId header.
+Repro (live, 2026-09-29 01:39:41 +04, backend worktree NEARS-3830 @ b89c23142 :8130, X-Request-Id 7979009f-63f8-4ac1-98f5-c778065a2f93):
+  POST /api/v1/customer/order/place  headers: zoneId:[2]  moduleId:10  (module 10 = "NEARS-2907 Campaign Banner Ecommerce", type ecommerce; NO module_zone row for zone 2)
+  body: order_type=parcel, payment_method=cash_on_delivery, parcel_category_id=1, charge_payer=sender, distance=1, dm_tips=1000, sender+receiver in zone 2
+  -> HTTP 200 "Order placed successfully", order_id 91405, total_ammount 1005
+Persisted: orders.id=91405 store_id=NULL zone_id=2 module_id=10 order_type=parcel payment_method=cash_on_delivery order_status=pending order_amount=1005.00 dm_tips=1000.00
+Expected guard: zone 2's parcel module (5) pivot maximum_cod_order_amount=1000.00 -> 1005 > 1000 must return 203 order_amount (cod_cap).
+Why it passed: OrderPlacementService resolveOrderModuleId() = store?->module_id ?? header; parcel has no store -> header 10 -> zone 2 pivot for module 10 is absent ->
+  $module_wise_delivery_charge null -> COD cap check (isset(...) && ...) skipped. Same with zone 1 + header 10 (pivot exists with NULL cap/rates).
+Also: the parcel order is stamped with a non-parcel module (10, ecommerce) -> misfiled for any module-scoped admin/vendor/DM listing and reporting.
+No log line emitted for this request besides FCM send lines (logModuleResolutionAnomalies returns early when $store is null) -> silent.
+Control (header 5) NOT run live (brief capped parcel calls at one); the expected 203 is derived from data (module_zone zone2/module5 cap 1000) + the cap branch in OrderPlacementService.
+Parcel delivery PRICE is not header-module-driven (uses parcel_categories / business_settings), only surge (module-keyed; surge tables empty) and the COD cap are.
+Pre-existing: base resolveModuleId() was header ?? store, i.e. header for parcel too; the diff keeps that for store==null by design (solution doc step 1 guard).
