@@ -1,0 +1,34 @@
+# QA Evidence — NEARS-3810
+
+**NEARS-3810 QA PASS: 10 ACs PASS, AC8 UNVERIFIABLE-live (widget test), emulator-5570 @ 8d1ed7f40**
+
+**5 screenshot(s).** Click any thumbnail for full resolution.
+
+<table>
+<tr>
+<td align="center" width="33%"><a href="ac6-cart-closed-row-ar.png"><img src="ac6-cart-closed-row-ar.png" width="240"></a><br><sub>ac6 cart closed row ar</sub></td>
+<td align="center" width="33%"><a href="ac6-cart-closed-row-en.png"><img src="ac6-cart-closed-row-en.png" width="240"></a><br><sub>ac6 cart closed row en</sub></td>
+<td align="center" width="33%"><a href="ac7-deeplink-cold-store9-ar.png"><img src="ac7-deeplink-cold-store9-ar.png" width="240"></a><br><sub>ac7 deeplink cold store9 ar</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="ac7-deeplink-cold-store9-en.png"><img src="ac7-deeplink-cold-store9-en.png" width="240"></a><br><sub>ac7 deeplink cold store9 en</sub></td>
+<td align="center" width="33%"><a href="ac9-item-sheet-store9-en.png"><img src="ac9-item-sheet-store9-en.png" width="240"></a><br><sub>ac9 item sheet store9 en</sub></td>
+</tr>
+</table>
+
+### Other artifacts
+- [`ac6-cart-ar.xml`](ac6-cart-ar.xml)
+- [`ac6-cart-en.xml`](ac6-cart-en.xml)
+- [`ac6-cart-food-open-rows.xml`](ac6-cart-food-open-rows.xml)
+- [`ac7-deeplink-cold-store9-ar.xml`](ac7-deeplink-cold-store9-ar.xml)
+- [`ac7-deeplink-cold-store9-en.xml`](ac7-deeplink-cold-store9-en.xml)
+- [`ac7-deeplink-warm-store9-ar.xml`](ac7-deeplink-warm-store9-ar.xml)
+- [`ac7-deeplink-warm-store9-en.xml`](ac7-deeplink-warm-store9-en.xml)
+- [`ac7-regression-notfound-cold-ar.xml`](ac7-regression-notfound-cold-ar.xml)
+- [`ac9-item-sheet-store9-en.xml`](ac9-item-sheet-store9-en.xml)
+- [`bug-cold-deeplink-moduleless-403s.log`](bug-cold-deeplink-moduleless-403s.log)
+- [`bug-food-cart-addons-int-parse.log`](bug-food-cart-addons-int-parse.log)
+- [`progress.md`](progress.md)
+
+---
+*From `nears/docs/qa-evidence/NEARS-3810/` · public-repo scrub policy (no live secrets; verified clean).*
