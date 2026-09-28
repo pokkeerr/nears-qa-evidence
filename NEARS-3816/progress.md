@@ -1,0 +1,12 @@
+# NEARS-3816 QA progress (emulator-5572, Pixel_10_Pro_2, UserApp debug from worktree def1d99ae)
+- AC1 PASS: Grocery home "Available Near You" rail keeps rating + ETA on cover; ETA pill shows delivery_dining rider glyph (ac1-home-available-near-you-rail.png). logs clean
+- AC2 PASS: Stores list Fast Market: name -> 4.2 -> rider "3-5 days min" -> chevron one line (ac2-stores-list-fast-market.png); Eco Market same. logs clean
+- AC3 PASS: Pharmacy list "Green Cross Pharmacy (Ab..." / "NEARS-3679 QA Pharmac..." ellipsis; pill + chevron intact (ac3-*.png)
+- AC4 PASS: AR RTL row mirrored, chevron far left, glyph mirrored (ac4-rtl-ar-stores-list.png)
+- AC5 PASS: 1.3x @448dp no overflow; 360dp@1.0x "Eco Market" full; 360dp+1.3x worst case "Eco ..." stub (UX followup, no overflow)
+- AC9 PASS: a11y dump: card = one merged clickable node "name\nETA\n..." + Favourite switch child (ac9-a11y-pharmacy-list.xml)
+- AC6 PASS: goldens n_icon_delivery_glyph.png + n_store_card_inline_name.png present; nears_dls targeted suite re-run from worktree (SDK 3.41.9) 123/123 pass
+- AC7 PASS (reachable): store hero glass pill (textOnNavy), checkout "Arriving in ~23 min" pill, checkout per-store rows (Burger Palace ~23 / Pizza Heaven ~33), order status hero Estimated arrival, search grouped compare row (11px) all show rider glyph. UNVERIFIABLE-live w/ pins: store description pill (desktop-only), cart estimated-delivery banner (desktop-only), order banner (suppressed when status hero shows; no parcel orders), NOrderStatusCard/NActiveOrderBanner ETA pill (etaLabel null for seeded orders), single-store hero + your-tower (no one-store zone/tower address for this account)
+- AC8 PASS: checkout_group_info_banners_test asserts 2x NIcon delivery_dining, 0x schedule_outlined; live row glyph muted 14px
+- AC10 PASS: only 2 opt-in sites (item_view); rails keep overlay; no rail/skeleton file in diff; badgePlacement nullable -> legacy overlayBadges path
+- REGRESSION (pre-existing, outside diff): multi-store order group screen stuck on skeleton after Back from child order detail (2/2 repro) bug-order-group-stuck-skeleton-after-back.*
