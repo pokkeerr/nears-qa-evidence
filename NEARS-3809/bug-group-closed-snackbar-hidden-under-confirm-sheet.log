@@ -1,0 +1,21 @@
+NEARS-3809 fix_cycle 2 (code 1b128cc03, emulator-5570, backend :8329 snapshot nears3809_qa_snap, pin 2026-09-28 03:00 +04)
+Basket: user 6, food stores 4 (Burger Palace) + 5 (Pizza Heaven), both closed at 03:00.
+Flow: Checkout -> Place Order -> confirm sheet opens -> "Confirm & place order".
+
+App log per Confirm tap (logcat, pid 25183):
+  03:08:01.666 analytics: order_confirm_confirmed {store_count: 2, ...}
+  03:08:01.669 [WARN] msg="checkout: group place order blocked — food store(s) 4,5 closed now, no pre-order"
+  03:08:01.670 [ERR] msg="error snackbar shown"   (showCustomSnackBar auto-breadcrumb)
+Server access log: no /group/validate, /group/place, /order/place for the whole run (POSTs: login, guest, fcm token, delivery-quote, get-Tax, get-surge-price only).
+
+Visibility measurement (screencap burst, pixel diff y>=90, threshold 24):
+ A) Confirm with sheet left open: 8 frames t=0.06..3.54s vs pre-tap baseline -> 0 changed pixels in every frame. Nothing visible changes.
+ B) Positive control, Confirm then immediately "Back to checkout": pill-shaped region x269-811 y2009-2119 present t=0.82..2.20s, gone by t=3.13s (3s snackbar lifetime).
+    a11y dump right after dismissal: EN "Restaurant is closed", AR "المتجر مغلق".
+Mechanism: confirm_order_sheet footer calls widget.onConfirm() -> submit() without popping the sheet; the gate calls
+showCustomSnackBar -> NSnackBar.show (ScaffoldMessenger) on the Checkout Scaffold, which sits BELOW the modal
+confirm-sheet route. The snackbar's location (y~2009-2119) is fully covered by the sheet (top y~960).
+Result: the user taps Confirm and nothing appears to happen. The block works, the message is never seen.
+Fix options (engineer's call): pop the sheet before the gate snackbar; or run the closed-food check before
+_openConfirmOrderSheet (like the single-store path); or showCustomSnackBar(..., getXSnackBar: true) (root overlay).
+Crop of revealed snackbar (control B, t=0.82s): bug-group-closed-snackbar-hidden-under-confirm-sheet.png

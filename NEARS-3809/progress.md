@@ -20,3 +20,10 @@
 - Control 12:00 PASS: Preference Time section + Today/Tomorrow slots 13:00-23:00, no notice (instrument validated on a positive). Closed-grocery control SKIPPED: no closed-grocery cart (store 59 open 00:00-23:59)
 - Backstop: phpunit filter 21/21 OK (69 assertions); flutter test 5 files 50/50 pass
 - DB writes to multi_food_db by this run: none (mysqldump read only; all app traffic on :8319 -> snapshot)
+## fix_cycle 2 (delta AC8 only) — code 1b128cc03, emulator-5570, backend :8329 (own php -S from this worktree, opcache off) on PRIVATE snapshot nears3809_qa_snap (SELECT DATABASE() verified in-process), pin 03:00 +04 verified via /__qa_probe before any app request; device clock via cmd alarm set-time
+- AC8 inline notice PASS: user 6 basket stores 4+5 (Demo Zone Dhaka address) -> "Store closed · opens at 10:00 · advance ordering unavailable", no Preference Time/slots (ac8-c2-checkout-food-closed-a11y.xml)
+- AC8 Place Order -> Confirm block PASS (mechanics): confirm sheet opens; Confirm -> exactly one [WARN] "group place order blocked — food store(s) 4,5 closed now" per tap (6 taps / 6 WARN), store ids only; zero group/validate, group/place, order/place requests (server access log + app [NET]); orders/order_groups unchanged
+- AC8 snackbar FAIL: snackbar posts to the Checkout Scaffold UNDER the still-open confirm sheet -> invisible (burst: 0 px changed for 3.5s); positive control (Confirm + Back) reveals it at y2009-2119 for ~2s. Text EN "Restaurant is closed", AR "المتجر مغلق". task-bug: bug-group-closed-snackbar-hidden-under-confirm-sheet.log/.png
+- Control 12:00 PASS (AR): Preference Time "فوري" section, slot sheet Today/Tomorrow 01:00-02:00 PM onward, no closed notice
+- Backstop: flutter test 5 NEARS-3809 files 56/56 pass
+- DB writes to multi_food_db: none (mysqldump read only, all app traffic -> :8329 snapshot)
