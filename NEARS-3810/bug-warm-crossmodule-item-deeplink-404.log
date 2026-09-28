@@ -1,0 +1,12 @@
+# warm cross-module item deep link 404 (pre-existing, not NEARS-3810) — emulator-5570, 2026-09-28 20:35, active module=Pharmacy, link module=1
+I/flutter ( 3429): [INFO] msg="deep link stream event, hasPrevious=false"
+I/flutter ( 3429): [INFO] msg="deep link received"
+I/flutter ( 3429): [INFO] msg="deep link converted, matched=true"
+I/flutter ( 3429): [INFO] msg="deep link: navigating to item details route"
+I/flutter ( 3429): [NET] GET endpoint=/api/v1/items/details/58
+I/flutter ( 3429): [NET] endpoint=/api/v1/items/details/58 http_status=404
+I/flutter ( 3429): [FAIL] endpoint=/api/v1/items/details/58 http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=3293ef0a-f335-4004-a901-5b1e513450af
+I/flutter ( 3429): [NET] GET endpoint=/api/v1/items/details/58
+# same link after in-app switch to Grocery -> 200, sheet renders (see c2-ac9-*)
+# curl items/details/58 moduleId:1 -> 200 ; moduleId:3 -> 404
+# cause: CartService.forcefullySetModule only switches when selectedModule == null (cart_service.dart:69)

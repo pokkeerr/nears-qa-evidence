@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3810
 
-**NEARS-3810 delta re-QA cycle 1: AC8 PASS (closed favourite store listed w/ Closed pill, un-favourited via heart; wishlist after==before)**
+**cycle 2 delta: AC9 PASS on composed code (3ad2ed235)**
 
-**6 screenshot(s).** Click any thumbnail for full resolution.
+**7 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -14,6 +14,9 @@
 <td align="center" width="33%"><a href="ac7-deeplink-cold-store9-en.png"><img src="ac7-deeplink-cold-store9-en.png" width="240"></a><br><sub>ac7 deeplink cold store9 en</sub></td>
 <td align="center" width="33%"><a href="ac8-favourites-stores-closed-en.png"><img src="ac8-favourites-stores-closed-en.png" width="240"></a><br><sub>ac8 favourites stores closed en</sub></td>
 <td align="center" width="33%"><a href="ac9-item-sheet-store9-en.png"><img src="ac9-item-sheet-store9-en.png" width="240"></a><br><sub>ac9 item sheet store9 en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c2-ac9-item58-sheet-closed.png"><img src="c2-ac9-item58-sheet-closed.png" width="240"></a><br><sub>c2 ac9 item58 sheet closed</sub></td>
 </tr>
 </table>
 
@@ -33,6 +36,8 @@
 - [`ac9-item-sheet-store9-en.xml`](ac9-item-sheet-store9-en.xml)
 - [`bug-cold-deeplink-moduleless-403s.log`](bug-cold-deeplink-moduleless-403s.log)
 - [`bug-food-cart-addons-int-parse.log`](bug-food-cart-addons-int-parse.log)
+- [`bug-warm-crossmodule-item-deeplink-404.log`](bug-warm-crossmodule-item-deeplink-404.log)
+- [`c2-ac9-item58-sheet-dump.xml`](c2-ac9-item58-sheet-dump.xml)
 - [`progress.md`](progress.md)
 
 ---
