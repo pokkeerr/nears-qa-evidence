@@ -27,3 +27,11 @@
 - Control 12:00 PASS (AR): Preference Time "فوري" section, slot sheet Today/Tomorrow 01:00-02:00 PM onward, no closed notice
 - Backstop: flutter test 5 NEARS-3809 files 56/56 pass
 - DB writes to multi_food_db: none (mysqldump read only, all app traffic -> :8329 snapshot)
+## fix_cycle 3 (delta AC8 only) — code 72cc13bf2 (fix 23c23d486), emulator-5570, backend :8339 own php -S from this worktree (opcache off) on PRIVATE snapshot nears3809_qa_snap (SELECT DATABASE() verified in-process via /__qa_probe), pin 2026-09-28 03:00 +04 verified before any app request; device clock via cmd alarm set-time
+- AC8 inline notice PASS: user 6 basket stores 4 (Burger Palace) + 5 (Pizza Heaven) -> "Store closed · opens at 10:00 · advance ordering unavailable", no Preference Time section (ac8-c3-checkout-food-closed-a11y.xml)
+- AC8 Place Order -> Confirm PASS: confirm sheet opened (ac8-c3-confirm-sheet-a11y.xml); Confirm & place order -> sheet dismissed, still on Checkout, snackbar "Restaurant is closed" VISIBLE on top at ~0.4-0.9s (ac8-c3-snackbar-visible-en.png; dump ac8-c3-after-confirm-a11y.xml: "Confirm your order" absent, "Restaurant is closed" + "Checkout" + notice present). logcat pid 30196: exactly 1 [WARN] "group place order blocked — food store(s) 4,5 closed now" + paired [ERR] "error snackbar shown"; access log: zero group/validate, group/place, order/place
+- AC8 Arabic snackbar PASS: Confirm (تأكيد وتقديم الطلب) -> sheet dismissed, on Checkout (ac8-c3-after-confirm-ar-a11y.xml), snackbar pill present at y2096-2205 at ~0.5s (same band as EN y2099-2208), gone after expiry (pixel check; ac8-c3-snackbar-visible-ar-crop.png); 1 more [WARN] 4,5 + paired [ERR] snackbar log; zero new requests
+- Control 12:00 PASS (AR): الوقت المفضل/فوري section, slot sheet اليوم/غداً 01:00-02:00 PM onward, no closed notice
+- Single-store path: no single-store closed-food basket for user 6 in snapshot (8 rows, stores 4+5) -> unit-test only (place_order_food_closed_preflight_test.dart:226)
+- Backstop: phpunit filter 21/21 OK (69 assertions); flutter test 5 NEARS-3809 files 59/59 pass
+- DB writes to multi_food_db: none (orders max 91394, order_groups 13, user-6 carts 8 unchanged; all app traffic -> :8339 snapshot)

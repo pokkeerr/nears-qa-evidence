@@ -1,13 +1,17 @@
 # QA Evidence — NEARS-3809
 
-**NEARS-3809 fix_cycle 2 AC8: FAIL - group closed-food block works (no request, 1 WARN) but snackbar hidden under confirm sheet**
+**cycle 3 AC8 PASS: confirm sheet dismissed, closed snackbar visible on Checkout, 0 place requests**
 
-**3 screenshot(s).** Click any thumbnail for full resolution.
+**5 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
 <td align="center" width="33%"><a href="ac7-store-page-quickadd-blocked.png"><img src="ac7-store-page-quickadd-blocked.png" width="240"></a><br><sub>ac7 store page quickadd blocked</sub></td>
 <td align="center" width="33%"><a href="ac8-c1-checkout-food-closed-notice-ar.png"><img src="ac8-c1-checkout-food-closed-notice-ar.png" width="240"></a><br><sub>ac8 c1 checkout food closed notice ar</sub></td>
+<td align="center" width="33%"><a href="ac8-c3-snackbar-visible-ar-crop.png"><img src="ac8-c3-snackbar-visible-ar-crop.png" width="240"></a><br><sub>ac8 c3 snackbar visible ar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="ac8-c3-snackbar-visible-en.png"><img src="ac8-c3-snackbar-visible-en.png" width="240"></a><br><sub>ac8 c3 snackbar visible en</sub></td>
 <td align="center" width="33%"><a href="bug-group-closed-snackbar-hidden-under-confirm-sheet.png"><img src="bug-group-closed-snackbar-hidden-under-confirm-sheet.png" width="240"></a><br><sub>bug group closed snackbar hidden under confirm sheet</sub></td>
 </tr>
 </table>
@@ -28,6 +32,12 @@
 - [`ac8-c2-control-1200-slot-sheet-ar-a11y.xml`](ac8-c2-control-1200-slot-sheet-ar-a11y.xml)
 - [`ac8-c2-snackbar-revealed-ar-a11y.xml`](ac8-c2-snackbar-revealed-ar-a11y.xml)
 - [`ac8-c2-snackbar-revealed-en-a11y.xml`](ac8-c2-snackbar-revealed-en-a11y.xml)
+- [`ac8-c3-after-confirm-a11y.xml`](ac8-c3-after-confirm-a11y.xml)
+- [`ac8-c3-after-confirm-ar-a11y.xml`](ac8-c3-after-confirm-ar-a11y.xml)
+- [`ac8-c3-checkout-food-closed-a11y.xml`](ac8-c3-checkout-food-closed-a11y.xml)
+- [`ac8-c3-confirm-sheet-a11y.xml`](ac8-c3-confirm-sheet-a11y.xml)
+- [`ac8-c3-control-1200-checkout-ar-a11y.xml`](ac8-c3-control-1200-checkout-ar-a11y.xml)
+- [`ac8-c3-control-1200-slot-sheet-ar-a11y.xml`](ac8-c3-control-1200-slot-sheet-ar-a11y.xml)
 - [`api-responses.log`](api-responses.log)
 - [`bug-campaign-quickadd-wrong-item.log`](bug-campaign-quickadd-wrong-item.log)
 - [`bug-cart-list-addons-int-parse.log`](bug-cart-list-addons-int-parse.log)
