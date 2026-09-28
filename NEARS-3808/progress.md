@@ -7,3 +7,4 @@
 - AC6 PASS — cart/list add_ons objects == addons ids on every row incl. selected-add-on row; 0 item_add_ons_skipped.
 - AC7 PASS — phpunit 2/2 (42 assertions), flutter test 8/8.
 - Cart restored (contents identical; Veggie Burger row id 945->953; price column rewritten by app update path).
+- cycle 1 AC4 PASS — unsuffixed com.izzes.nears (+ primary-tree google-services.json placed temporarily, removed after): FA-SVC 'Logging event: name=add_to_cart ... item_id=22' + mirror; row 954 added then removed; cart back to {34,36,939,940,942,944,946,947,953}.

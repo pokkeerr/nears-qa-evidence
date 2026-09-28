@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3808
 
-**NEARS-3808 QA cycle 0: PASS (7/7 AC) emulator-5562 @046da4281**
+**NEARS-3808 QA cycle 1 (AC4 delta): PASS — FA add_to_cart observed**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -17,6 +17,8 @@
 - [`ac1-ac4-grid-quickadd-item18-log.txt`](ac1-ac4-grid-quickadd-item18-log.txt)
 - [`ac2-row-layout-add-log.txt`](ac2-row-layout-add-log.txt)
 - [`ac3-cold-relaunch-log.txt`](ac3-cold-relaunch-log.txt)
+- [`ac4-cycle1-cart-after-restore.txt`](ac4-cycle1-cart-after-restore.txt)
+- [`ac4-cycle1-fa-add_to_cart.log`](ac4-cycle1-fa-add_to_cart.log)
 - [`ac5-session-fail-err-summary.txt`](ac5-session-fail-err-summary.txt)
 - [`ac6-cart-list-add_ons-shape.txt`](ac6-cart-list-add_ons-shape.txt)
 - [`bug-search-results-semantics-assertion.log`](bug-search-results-semantics-assertion.log)
