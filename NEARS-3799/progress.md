@@ -36,3 +36,11 @@ Cart: 3 single-row adds (955 list, 956 grid, 957 search), each removed via stepp
 Regression: menuRow renders + stepper (c3-ac14-menurow-add-stepper-qty1.png); store 2 grid default + list = old row (fav leading), 0 errors.
 Pre-existing recurrence: global search compact NItemCard Table semantics assert (NEARS-3783) broke a11y tree on /search results.
 Automated: UserApp 500 passed; nears_dls menu_row 44 passed.
+
+## Cycle 4 (delta, AC14 + minimal regression) — 2026-09-28, emulator-5560, unsuffixed com.izzes.nears debug (google-services.json temp copy, deleted after), backend :8799 = worktree @ 007108bf7
+AC14 — PASS. Store-page menuRow (food default List), item 115 row 1: add_to_cart, select_item(+view_item), add_to_wishlist, favourite_removed all fire in real FA-SVC + mirror with screen=store_screen, item_list_id/name=store_items_list, index=0, store_id=4. Row 2 (item 116) select_item index=1.
+  Grid toggle, same item: add_to_cart store_screen/store_items_grid index=0 (same position). In-store search menuRow: store_item_search. Non-food store 2 list: select_item store_items_list index 0.
+  0 [FAIL]/[ERR]/exceptions in whole window. c4-ac14-analytics-fa-capture.log, c4-ac14-menurow-stepper-store-items-list.png
+Regression: menuRow renders + stepper (add->stepper->Remove); store 2 default 2-col grid unchanged.
+Cart: 3 single-row adds (958 list, 959 grid, 960 search), each removed via stepper; cart + wishlist identical before/after.
+Automated: flutter test test/features/store/ + item_card_menu_row_test.dart — 501 passed.
