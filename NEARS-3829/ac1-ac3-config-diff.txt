@@ -1,0 +1,10 @@
+NEARS-3829 QA — AC1(a) + AC3 config diff (raw config bodies NOT archived: they carry map_api_key)
+branch backend: /Users/Apple/Projects/nears-NEARS-3829-cmb-setting @ 5c0a8b7a4 on 127.0.0.1:8231
+base backend:   /Users/Apple/Projects/nears-NEARS-3829-qa-base @ 9cd8fb3f6 (detached) on 127.0.0.1:8232
+DB pre-state: business_settings row 'cross_module_basket' ABSENT (170 rows)
+Request: GET /api/v1/config, headers zoneId:[1] moduleId:1 X-localization:en latitude/longitude + Accept json; also a no-header variant.
+Warm-up: 3 fetches per server; fetch 1/2 byte-identical to fetch 3 on both servers (cache warm, stable).
+Sizes: base 8901 B, branch 8929 B (+28 = ',"cross_module_basket":false').
+AC1(a): .cross_module_basket = false, jq type "boolean", last key (after map_api_key_server).
+AC3: branch body == base body with '127.0.0.1:8232' -> '127.0.0.1:8231' (4 request-host-derived *_full_url fields, artefact of two ports) + trailing ',"cross_module_basket":false'  => True (both header variants)
+     key order identical (122 base keys, branch 123 = same 122 + trailing key); every value and JSON type identical.

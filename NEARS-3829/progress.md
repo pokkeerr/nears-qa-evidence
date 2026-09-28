@@ -1,0 +1,13 @@
+# NEARS-3829 QA progress (fix-cycle 0)
+- AC1(a) row absent -> false boolean, last key: PASS
+- AC3 byte-identical vs base 9cd8fb3f6 except trailing key (host-port normalised): PASS
+- AC2 en: toggle ON -> Save -> POST update-order 302 -> GET 200; config .cross_module_basket=true boolean immediately (no cache clear); DB row id 228 value 1; reload (chrome + fresh playwright session) shows checked: PASS (partial, OFF leg pending)
+- AC2 no confirm modal on toggle click (a11y tree: no dialog; probe .modal.show=0): PASS
+- C3: ON + untouched Save -> toast "Successfully updated to changes restart app", still checked, DB 1, config true: PASS
+- AC2 en OFF leg: toggle OFF -> Save -> DB value 0 -> config false boolean immediately; fresh-session reload unchecked: PASS
+- AC1(b) row present value 0 -> false boolean; row value 1 -> true boolean; always last key: PASS
+- M2 ar/RTL: /admin/lang/ar (switcher route) -> html dir=rtl lang=ar; label "سلة متعددة الوحدات", ar tooltip exact; card on own line, same column as 1st sibling (759-1096 px), label right / switch left like siblings; ON and OFF rendered: PASS. Switched back to en.
+- AC-REG: whole business_settings table (170 rows) key/value diff before vs after 3 Order-page saves = only the added row cross_module_basket=0. Home/Takeaway at-least-one client guard fired ("At least one delivery method Home Delivery or Takeaway must be selected for your business"), change discarded by reload: PASS
+- AC-LOG: laravel.log did not grow during the session (1308 lines before and after); '[FAIL] admin_order_settings_persist_failed' count 0; positive control phpunit test_persist_failure_logs_allow_listed_context_and_aborts_without_half_save PASS
+- AC-TEST: 35 tests / 284 assertions, 1 failure = known NEARS-2019 ConfigContractTest::test_decimal_precision_is_two_not_whole_dirhams; Nears3829CrossModuleBasketSettingTest 10/10
+- End state: cross_module_basket row id 228 value 0 (OFF)
