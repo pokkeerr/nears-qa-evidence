@@ -1,0 +1,169 @@
+-- on-ac1-add (flag ON, header 1, item 673 store 58 module 3): user 1 rows
+id	user_id	is_guest	module_id	item_id	quantity	price
+978	1	0	3	673	1	31.160
+-- on-ac5-add2 (flag ON, same item+variation, header 1 again)
+id	user_id	is_guest	module_id	item_id	quantity	price	variation
+978	1	0	3	673	2	31.160	[]
+-- on-sec-add-hdr2 (flag ON, same item, header 2)
+id	user_id	is_guest	module_id	item_id	quantity	price	variation
+978	1	0	3	673	3	31.160	[]
+-- on-sec-add-hdr3 (flag ON, same item, header 3 == store module)
+id	user_id	is_guest	module_id	item_id	quantity	price	variation
+978	1	0	3	673	4	31.160	[]
+-- on-ac2-update-hdr1 (flag ON, update row 978 qty->2 under header 1)
+id	user_id	is_guest	module_id	item_id	quantity	price	variation
+978	1	0	3	673	2	31.160	[]
+-- on-ac2-update-nohdr (flag ON, update row 978 no moduleId header)
+id	user_id	is_guest	module_id	item_id	quantity	price	variation
+978	1	0	3	673	2	31.160	[]
+orders max id before: 91415
+-- on-ac3 order 91416 (flag ON, header 1, store 58)
+id	user_id	store_id	zone_id	module_id	payment_method	order_status	order_amount	scheduled	schedule_at
+91416	1	58	2	3	cash_on_delivery	pending	60.86	1	2026-09-29 10:00:00
+order_id	item_id	quantity	price
+91416	673	2	31.16
+user1_carts_after
+0
+-- on-sec guests G1/G2 (flag ON; G1 header1 item673, G2 header2 item674)
+-- on-sec guests (flag ON; G1 item673 hdr1 then hdr2, G2 item673 hdr2)
+id	user_id	is_guest	module_id	item_id	quantity	price	variation
+979	1968	1	3	673	2	31.160	[]
+980	1969	1	3	673	1	31.160	[]
+id	user_id	module_id	quantity
+980	1969	3	1
+id	user_id	module_id	quantity
+980	1969	3	1
+g1_rows_after_remove_item
+0
+g2_rows_after_remove_hdr3
+0
+===== FLAG OFF block =====
+-- [base user ] 01
+-- [base user ] 02
+-- [base user ] 03
+-- [base user ] 04
+-- [base user ] 05
+-- [base user ] 11
+-- [base] order 91417
+store_id	module_id	order_amount	payment_method	order_status
+58	3	60.86	cash_on_delivery	pending
+item_id	quantity	price
+673	2	31.16
+-- [base user ] 13
+-- [base user ] 14
+-- [base user ] 15
+-- [base user ] 16
+-- [base user ] 17
+-- [wt user ] 01
+-- [wt user ] 02
+-- [wt user ] 03
+-- [wt user ] 04
+-- [wt user ] 05
+-- [wt user ] 11
+-- [wt] order 91418
+store_id	module_id	order_amount	payment_method	order_status
+58	3	60.86	cash_on_delivery	pending
+item_id	quantity	price
+673	2	31.16
+-- [wt user ] 13
+-- [wt user ] 14
+-- [wt user ] 15
+-- [wt user ] 16
+-- [wt user ] 17
+===== ^^^ AC-REG run #1 VOID (QA script bug: user-id lookup failed, cart ids empty -> steps 05/13-16 sent bad cart_id). Orders 91417 (base,u5) / 91418 (wt,u1) came from it. State reset by its own remove-all; rerun #2 below =====
+-- [base user 5] 01
+id	module_id	item_id	quantity
+987	1	673	1
+-- [base user 5] 02
+id	module_id	item_id	quantity
+987	1	673	2
+-- [base user 5] 03
+id	module_id	item_id	quantity
+987	1	673	2
+988	3	673	1
+-- [base user 5] 04
+id	module_id	item_id	quantity
+987	1	673	2
+988	3	673	1
+989	3	674	1
+-- [base user 5] 05
+id	module_id	item_id	quantity
+987	1	673	3
+988	3	673	1
+989	3	674	1
+-- [base user 5] 11
+id	module_id	item_id	quantity
+988	3	673	1
+989	3	674	1
+-- [base] order 91419
+store_id	module_id	order_amount	payment_method	order_status
+58	3	91.28	cash_on_delivery	pending
+item_id	quantity	price
+673	3	31.16
+-- [base user 5] 13
+id	module_id	item_id	quantity
+988	3	673	1
+989	3	674	1
+-- [base user 5] 14
+id	module_id	item_id	quantity
+988	3	673	1
+989	2	674	1
+-- [base user 5] 15
+id	module_id	item_id	quantity
+988	3	673	1
+989	3	674	1
+-- [base user 5] 16
+id	module_id	item_id	quantity
+989	3	674	1
+-- [base user 5] 17
+-- [wt user 1] 01
+id	module_id	item_id	quantity
+990	1	673	1
+-- [wt user 1] 02
+id	module_id	item_id	quantity
+990	1	673	2
+-- [wt user 1] 03
+id	module_id	item_id	quantity
+990	1	673	2
+991	3	673	1
+-- [wt user 1] 04
+id	module_id	item_id	quantity
+990	1	673	2
+991	3	673	1
+992	3	674	1
+-- [wt user 1] 05
+id	module_id	item_id	quantity
+990	1	673	3
+991	3	673	1
+992	3	674	1
+-- [wt user 1] 11
+id	module_id	item_id	quantity
+991	3	673	1
+992	3	674	1
+-- [wt] order 91420
+store_id	module_id	order_amount	payment_method	order_status
+58	3	91.28	cash_on_delivery	pending
+item_id	quantity	price
+673	3	31.16
+-- [wt user 1] 13
+id	module_id	item_id	quantity
+991	3	673	1
+992	3	674	1
+-- [wt user 1] 14
+id	module_id	item_id	quantity
+991	3	673	1
+992	2	674	1
+-- [wt user 1] 15
+id	module_id	item_id	quantity
+991	3	673	1
+992	3	674	1
+-- [wt user 1] 16
+id	module_id	item_id	quantity
+992	3	674	1
+-- [wt user 1] 17
+-- heal: after flag-OFF add hdr1 (legacy header stamp)
+id	user_id	is_guest	module_id	item_id	quantity
+993	1	0	1	673	1
+-- heal: after flag-ON update under header 1
+id	user_id	is_guest	module_id	item_id	quantity
+993	1	0	3	673	1

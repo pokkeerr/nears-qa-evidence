@@ -1,0 +1,53 @@
+AC-REG flag OFF: base f7c6943ef (:8432, user 5) vs NEARS-3831 ffa92027b (:8431, user 1), same DB copy
+normalization: keys ['cart_id', 'created_at', 'id', 'order_id', 'payment_token', 'updated_at', 'user_id'] masked (row ids / owner / timestamps / order id / token differ by actor)
+01-add673-hdr1                   base=200 wt=200 body_identical=False  
+02-add673-hdr1-again             base=200 wt=200 body_identical=False  
+03-add673-hdr3-eqitem            base=200 wt=200 body_identical=False  
+04-add674-nohdr                  base=200 wt=200 body_identical=False  
+05-update-X-hdr1                 base=200 wt=200 body_identical=False  
+06-list-hdr1                     base=200 wt=200 body_identical=False  
+07-list-hdr3                     base=200 wt=200 body_identical=False  
+08-gettax-hdr1                   base=200 wt=200 body_identical=True  {"product_price": 93.48, "tax_amount": 4.34682, "tax_included": 0, "tax_status": "excluded", "total_addon_price": 0, "total_discount": 6.5436}
+09-gettax-hdr3                   base=200 wt=200 body_identical=True  {"product_price": 73.1, "tax_amount": 3.5459399999999994, "tax_included": 0, "tax_status": "excluded", "total_addon_price": 0, "total_discount": 2.1812}
+10-gettax-nohdr                  base=200 wt=200 body_identical=True  {"product_price": 73.1, "tax_amount": 3.5459399999999994, "tax_included": 0, "tax_status": "excluded", "total_addon_price": 0, "total_discount": 2.1812}
+11-place-hdr1                    base=200 wt=200 body_identical=True  {"created_at": "<v>", "message": "Order placed successfully", "order_id": "<v>", "payment_token": "<v>", "status": "pending", "total_ammount": 91.28, "user_id":...
+12-contrast-gettax-hdr1          base=200 wt=200 body_identical=True  {"product_price": 0, "tax_amount": 0, "tax_included": 0, "tax_status": "excluded", "total_addon_price": 0, "total_discount": 0}
+13-contrast-place-hdr1           base=403 wt=403 body_identical=True  {"errors": [{"code": "empty_cart", "message": "You can not place empty orders"}]}
+14-update-Z-hdr2                 base=200 wt=200 body_identical=False  
+15-update-Z-nohdr                base=200 wt=200 body_identical=False  
+16-remove-item-Y-hdr3            base=200 wt=200 body_identical=False  
+17-remove-all-hdr3               base=200 wt=200 body_identical=True  
+DB after 01: (module_id,item_id,qty) base=[('1', '673', '1')] wt=[('1', '673', '1')] identical=True
+DB after 02: (module_id,item_id,qty) base=[('1', '673', '2')] wt=[('1', '673', '2')] identical=True
+DB after 03: (module_id,item_id,qty) base=[('1', '673', '2'), ('3', '673', '1')] wt=[('1', '673', '2'), ('3', '673', '1')] identical=True
+DB after 04: (module_id,item_id,qty) base=[('1', '673', '2'), ('3', '673', '1'), ('3', '674', '1')] wt=[('1', '673', '2'), ('3', '673', '1'), ('3', '674', '1')] identical=True
+DB after 05: (module_id,item_id,qty) base=[('1', '673', '3'), ('3', '673', '1'), ('3', '674', '1')] wt=[('1', '673', '3'), ('3', '673', '1'), ('3', '674', '1')] identical=True
+DB after 11: (module_id,item_id,qty) base=[('3', '673', '1'), ('3', '674', '1')] wt=[('3', '673', '1'), ('3', '674', '1')] identical=True
+DB after 13: (module_id,item_id,qty) base=[('3', '673', '1'), ('3', '674', '1')] wt=[('3', '673', '1'), ('3', '674', '1')] identical=True
+DB after 14: (module_id,item_id,qty) base=[('3', '673', '1'), ('2', '674', '1')] wt=[('3', '673', '1'), ('2', '674', '1')] identical=True
+DB after 15: (module_id,item_id,qty) base=[('3', '673', '1'), ('3', '674', '1')] wt=[('3', '673', '1'), ('3', '674', '1')] identical=True
+DB after 16: (module_id,item_id,qty) base=[('3', '674', '1')] wt=[('3', '674', '1')] identical=True
+DB after 17: (module_id,item_id,qty) base=[] wt=[] identical=True
+order(base): ['store_id\tmodule_id\torder_amount\tpayment_method\torder_status', '58\t3\t91.28\tcash_on_delivery\tpending', 'item_id\tquantity\tprice', '673\t3\t31.16']
+order(wt):   ['store_id\tmodule_id\torder_amount\tpayment_method\torder_status', '58\t3\t91.28\tcash_on_delivery\tpending', 'item_id\tquantity\tprice', '673\t3\t31.16']
+ALL IDENTICAL: False
+
+=== PASS 2 normalization: + nested updated_at, item.stock (base's order ran first and decremented item 673 stock 124->121), and serving host:port in *_full_url masked. Every other byte compared. ===
+01-add673-hdr1                   base=200 wt=200 normalized_body_identical=True rows_in_list=1
+02-add673-hdr1-again             base=200 wt=200 normalized_body_identical=True rows_in_list=1
+03-add673-hdr3-eqitem            base=200 wt=200 normalized_body_identical=True rows_in_list=1
+04-add674-nohdr                  base=200 wt=200 normalized_body_identical=True rows_in_list=2
+05-update-X-hdr1                 base=200 wt=200 normalized_body_identical=True rows_in_list=1
+06-list-hdr1                     base=200 wt=200 normalized_body_identical=True rows_in_list=1
+07-list-hdr3                     base=200 wt=200 normalized_body_identical=True rows_in_list=2
+08-gettax-hdr1                   base=200 wt=200 normalized_body_identical=True rows_in_list=-
+09-gettax-hdr3                   base=200 wt=200 normalized_body_identical=True rows_in_list=-
+10-gettax-nohdr                  base=200 wt=200 normalized_body_identical=True rows_in_list=-
+11-place-hdr1                    base=200 wt=200 normalized_body_identical=True rows_in_list=-
+12-contrast-gettax-hdr1          base=200 wt=200 normalized_body_identical=True rows_in_list=-
+13-contrast-place-hdr1           base=403 wt=403 normalized_body_identical=True rows_in_list=-
+14-update-Z-hdr2                 base=200 wt=200 normalized_body_identical=True rows_in_list=1
+15-update-Z-nohdr                base=200 wt=200 normalized_body_identical=True rows_in_list=2
+16-remove-item-Y-hdr3            base=200 wt=200 normalized_body_identical=True rows_in_list=1
+17-remove-all-hdr3               base=200 wt=200 normalized_body_identical=True rows_in_list=0
+ALL RESPONSES IDENTICAL (pass 2): True

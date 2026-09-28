@@ -1,0 +1,558 @@
+===== FLAG ON block (config proof above: cross_module_basket=True) =====
+### on-ac1-add  03:26:19
+Request: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=qa3831-on-ac1-add-5eb315aa Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: []
+
+### on-ac5-add2  03:26:26
+Request: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=qa3831-on-ac5-add2-94725cf7 Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: []
+
+### on-sec-add-hdr2  03:26:27
+Request: POST /api/v1/customer/cart/add | headers moduleId=2 zoneId=[2] X-Request-Id=qa3831-on-sec-add-hdr2-5e817d1a Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: []
+
+### on-sec-add-hdr3  03:26:27
+Request: POST /api/v1/customer/cart/add | headers moduleId=3 zoneId=[2] X-Request-Id=qa3831-on-sec-add-hdr3-1743d400 Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":978,"user_id":1,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":4,"variation":[],"created_at":"2026-09-28T23:26:19.000000Z","updated_at":"2026-09-28T23:26:27.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### on-ac2-update-hdr1  03:26:36
+Request: POST /api/v1/customer/cart/update | headers moduleId=1 zoneId=[2] X-Request-Id=qa3831-on-ac2-update-hdr1-8e340351 Authorization=Bearer <scrubbed>
+Body: {"cart_id":978,"price":31.16,"quantity":2,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: []
+
+### on-ac2-update-nohdr  03:26:36
+Request: POST /api/v1/customer/cart/update | headers moduleId=- zoneId=[2] X-Request-Id=qa3831-on-ac2-update-nohdr-d26dd726 Authorization=Bearer <scrubbed>
+Body: {"cart_id":978,"price":31.16,"quantity":2,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":978,"user_id":1,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":2,"variation":[],"created_at":"2026-09-28T23:26:19.000000Z","updated_at":"2026-09-28T23:26:36.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### on-ac4-gettax-hdr1  03:26:49
+Request: POST /api/v1/customer/order/get-Tax | headers moduleId=1 zoneId=[2] X-Request-Id=qa3831-on-ac4-gettax-hdr1-96bfa917 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":2.8978800000000002,"tax_status":"excluded","tax_included":0,"product_price":62.32,"total_addon_price":0,"total_discount":4.3624}
+
+### on-ac4-gettax-hdr3  03:26:49
+Request: POST /api/v1/customer/order/get-Tax | headers moduleId=3 zoneId=[2] X-Request-Id=qa3831-on-ac4-gettax-hdr3-7d63e569 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":2.8978800000000002,"tax_status":"excluded","tax_included":0,"product_price":62.32,"total_addon_price":0,"total_discount":4.3624}
+
+### on-ac3-place-hdr1  03:26:56
+Request: POST /api/v1/customer/order/place | headers moduleId=1 zoneId=[2] X-Request-Id=qa3831-on-ac3-place-hdr1-86792812 Authorization=Bearer <scrubbed>
+Body: {"order_type":"delivery","payment_method":"cash_on_delivery","store_id":58,"distance":1.0,"address":"NEARS-3831 QA address","latitude":"24.4312","longitude":"54.3597","address_type":"others","contact_person_name":"QA","contact_person_number":"+971500000000","is_buy_now":0,"dm_tips":0,"order_amount":62.32}
+HTTP 403
+Response: {"errors":[{"code":"order_time","message":"Store is closed at order time"}]}
+
+### on-ac3-place-hdr1-sched  03:27:07
+Request: POST /api/v1/customer/order/place | headers moduleId=1 zoneId=[2] X-Request-Id=qa3831-on-ac3-place-hdr1-sched-836e2001 Authorization=Bearer <scrubbed>
+Body: {"order_type":"delivery","payment_method":"cash_on_delivery","store_id":58,"distance":1.0,"address":"NEARS-3831 QA address","latitude":"24.4312","longitude":"54.3597","address_type":"others","contact_person_name":"QA","contact_person_number":"+971500000000","is_buy_now":0,"dm_tips":0,"order_amount":62.32,"schedule_at":"2026-09-29 10:00:00"}
+HTTP 200
+Response: {"message":"Order placed successfully","order_id":91416,"payment_token":"<scrubbed>","total_ammount":60.86,"status":"pending","created_at":"2026-09-29 03:27:05","user_id":1}
+
+### on-sec-g1-add-hdr1  03:27:44
+Request: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=4b4df91f-de3d-45d9-9274-5b92aa3fbcf6 Authorization=none(guest)
+Body: {"guest_id":383100001,"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 401
+Response: {"errors":"Unauthorized"}
+
+### on-sec-g2-add-hdr2  03:27:44
+Request: POST /api/v1/customer/cart/add | headers moduleId=2 zoneId=[2] X-Request-Id=554189b6-646b-40f4-aae0-ecd37af34d64 Authorization=none(guest)
+Body: {"guest_id":383100002,"item_id":674,"model":"Item","price":41.94,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 401
+Response: {"errors":"Unauthorized"}
+
+### on-sec-g1-list-hdr3  03:27:44
+Request: GET /api/v1/customer/cart/list?guest_id=383100001 | headers moduleId=3 zoneId=[2] X-Request-Id=4876d80c-f69c-47a7-b11f-6d4a826a7531 Authorization=none(guest)
+HTTP 401
+Response: {"errors":"Unauthorized"}
+
+### on-sec-user1-list-hdr3  03:27:44
+Request: GET /api/v1/customer/cart/list | headers moduleId=3 zoneId=[2] X-Request-Id=7a41ce58-17c0-4e85-8c5d-6861ea9fec72 Authorization=Bearer <scrubbed>
+HTTP 200
+Response: []
+
+(the 3 guest calls above returned 401 because the guest_ids were not registered guests - fixture error, retried below with registered guests 1968/1969)
+### on-sec-g1-add-hdr1  03:28:09
+Request: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=f136607c-c57c-4f99-9c3f-22357716e805 Authorization=X-Guest-Token <scrubbed>
+Body: {"guest_id":1968,"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: []
+
+### on-sec-g1-add-hdr2  03:28:09
+Request: POST /api/v1/customer/cart/add | headers moduleId=2 zoneId=[2] X-Request-Id=9c04d8d5-87d1-47f3-98ed-b4bd10e07a63 Authorization=X-Guest-Token <scrubbed>
+Body: {"guest_id":1968,"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: []
+
+### on-sec-g2-add-hdr2  03:28:09
+Request: POST /api/v1/customer/cart/add | headers moduleId=2 zoneId=[2] X-Request-Id=0e62f8d0-ed7b-48ce-b8b2-c07dc2273ccf Authorization=X-Guest-Token <scrubbed>
+Body: {"guest_id":1969,"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: []
+
+### on-sec-g1-list-hdr3  03:28:09
+Request: GET /api/v1/customer/cart/list?guest_id=1968 | headers moduleId=3 zoneId=[2] X-Request-Id=203fc5cd-683a-443d-9b33-4e15c1c87370 Authorization=X-Guest-Token <scrubbed>
+HTTP 200
+Response: [{"id":979,"user_id":1968,"module_id":3,"item_id":673,"is_guest":true,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":2,"variation":[],"created_at":"2026-09-28T23:28:09.000000Z","updated_at":"2026-09-28T23:28:09.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","a
+
+G1 list hdr3 rows (id,user_id,is_guest,item,module,qty): [(979, 1968, True, 673, 3, 2)]
+### on-sec-g1-list-hdr3-g2id  03:28:09
+Request: GET /api/v1/customer/cart/list?guest_id=1969 | headers moduleId=3 zoneId=[2] X-Request-Id=30c0c967-aa3e-4580-8c54-4aacf71d2ad0 Authorization=X-Guest-Token <scrubbed>
+HTTP 401
+Response: {"errors":"Unauthorized"}
+
+### on-sec-g1-update-g2row  03:28:14
+Request: POST /api/v1/customer/cart/update | headers moduleId=1 zoneId=[2] X-Request-Id=d806dd1f-498c-4132-970b-0c1a111028be Authorization=X-Guest-Token <scrubbed>
+Body: {"guest_id":1968,"cart_id":980,"price":31.16,"quantity":5,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 404
+Response: {"errors":[{"code":"cart","message":"Not found"}]}
+
+### on-sweep-g2-remove-all-hdr1  03:28:27
+Request: DELETE /api/v1/customer/cart/remove?guest_id=1969 | headers moduleId=1 zoneId=[2] X-Request-Id=6682cb54-3bbf-4b9c-8b07-a09a991ecf68 Authorization=X-Guest-Token <scrubbed>
+HTTP 200
+Response: []
+
+### on-sweep-g1-remove-item-hdr1  03:28:27
+Request: DELETE /api/v1/customer/cart/remove-item?guest_id=1968&cart_id=979 | headers moduleId=1 zoneId=[2] X-Request-Id=0fc319a9-98ff-4b21-87f8-c3021e4d3715 Authorization=X-Guest-Token <scrubbed>
+HTTP 200
+Response: []
+
+### on-sweep-g2-remove-all-hdr3  03:28:27
+Request: DELETE /api/v1/customer/cart/remove?guest_id=1969 | headers moduleId=3 zoneId=[2] X-Request-Id=30fdaf1a-7fce-4d3c-9502-9e58d60ba0a6 Authorization=X-Guest-Token <scrubbed>
+HTTP 200
+Response: []
+
+===== FLAG OFF block (AC-REG) =====
+### reg-base-01-add673-hdr1  03:30:31
+Request[:8432]: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=91f781b0-ea8e-46fb-bfd9-a4b475091ad5 Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":981,"user_id":5,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:31.000000Z","updated_at":"2026-09-28T23:30:31.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-02-add673-hdr1-again  03:30:31
+Request[:8432]: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=2c233011-0996-44b7-a08e-bc712701dfa5 Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":981,"user_id":5,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":2,"variation":[],"created_at":"2026-09-28T23:30:31.000000Z","updated_at":"2026-09-28T23:30:31.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-03-add673-hdr3-eqitem  03:30:31
+Request[:8432]: POST /api/v1/customer/cart/add | headers moduleId=3 zoneId=[2] X-Request-Id=8be650a0-5772-422c-a907-fccb4744b74f Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":982,"user_id":5,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:31.000000Z","updated_at":"2026-09-28T23:30:31.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-04-add674-nohdr  03:30:32
+Request[:8432]: POST /api/v1/customer/cart/add | headers moduleId=- zoneId=[2] X-Request-Id=338ca48f-b96f-4ed5-869a-06b5926f72f1 Authorization=Bearer <scrubbed>
+Body: {"item_id":674,"model":"Item","price":41.94,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":982,"user_id":5,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:31.000000Z","updated_at":"2026-09-28T23:30:31.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-05-update-X-hdr1  03:30:32
+Request[:8432]: POST /api/v1/customer/cart/update | headers moduleId=1 zoneId=[2] X-Request-Id=a34be86d-2623-45d9-9f76-789c9c8585f5 Authorization=Bearer <scrubbed>
+Body: {"cart_id":,"price":31.16,"quantity":3,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 403
+Response: {"errors":[{"code":"cart_id","message":"The cart id field is required."},{"code":"price","message":"The price field is required."},{"code":"quantity","message":"The quantity field is required."}]}
+
+### reg-base-06-list-hdr1  03:30:32
+Request[:8432]: GET /api/v1/customer/cart/list | headers moduleId=1 zoneId=[2] X-Request-Id=a419227d-1ef3-464c-aac1-0495f77bf4c4 Authorization=Bearer <scrubbed>
+HTTP 200
+Response: [{"id":981,"user_id":5,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":2,"variation":[],"created_at":"2026-09-28T23:30:31.000000Z","updated_at":"2026-09-28T23:30:31.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-07-list-hdr3  03:30:32
+Request[:8432]: GET /api/v1/customer/cart/list | headers moduleId=3 zoneId=[2] X-Request-Id=6642174e-0840-44a8-a0f0-1512495bf5ee Authorization=Bearer <scrubbed>
+HTTP 200
+Response: [{"id":982,"user_id":5,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:31.000000Z","updated_at":"2026-09-28T23:30:31.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-08-gettax-hdr1  03:30:32
+Request[:8432]: POST /api/v1/customer/order/get-Tax | headers moduleId=1 zoneId=[2] X-Request-Id=55794121-a042-471f-beb4-45daaa5de81f Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":2.8978800000000002,"tax_status":"excluded","tax_included":0,"product_price":62.32,"total_addon_price":0,"total_discount":4.3624}
+
+### reg-base-09-gettax-hdr3  03:30:32
+Request[:8432]: POST /api/v1/customer/order/get-Tax | headers moduleId=3 zoneId=[2] X-Request-Id=bd60e7db-506e-4b75-b0fe-ead93b2be280 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":3.5459399999999994,"tax_status":"excluded","tax_included":0,"product_price":73.1,"total_addon_price":0,"total_discount":2.1812}
+
+### reg-base-10-gettax-nohdr  03:30:32
+Request[:8432]: POST /api/v1/customer/order/get-Tax | headers moduleId=- zoneId=[2] X-Request-Id=6911f434-540e-4b3f-908d-b69e45a56712 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":3.5459399999999994,"tax_status":"excluded","tax_included":0,"product_price":73.1,"total_addon_price":0,"total_discount":2.1812}
+
+### reg-base-11-place-hdr1  03:30:34
+Request[:8432]: POST /api/v1/customer/order/place | headers moduleId=1 zoneId=[2] X-Request-Id=f6aeb0b4-b57e-4379-bc0f-9c7df9013074 Authorization=Bearer <scrubbed>
+Body: {"order_type":"delivery","payment_method":"cash_on_delivery","store_id":58,"distance":1.0,"address":"NEARS-3831 QA address","latitude":"24.4312","longitude":"54.3597","address_type":"others","contact_person_name":"QA","contact_person_number":"+971500000000","is_buy_now":0,"dm_tips":0,"order_amount":93.48,"schedule_at":"2026-09-29 10:00:00"}
+HTTP 200
+Response: {"message":"Order placed successfully","order_id":91417,"payment_token":"<scrubbed>","total_ammount":60.86,"status":"pending","created_at":"2026-09-29 03:30:33","user_id":5}
+
+### reg-base-12-contrast-gettax-hdr1  03:30:34
+Request[:8432]: POST /api/v1/customer/order/get-Tax | headers moduleId=1 zoneId=[2] X-Request-Id=abc17ae1-8aba-4126-b796-cd0a6ec41e63 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":0,"total_addon_price":0,"total_discount":0}
+
+### reg-base-13-contrast-place-hdr1  03:30:34
+Request[:8432]: POST /api/v1/customer/order/place | headers moduleId=1 zoneId=[2] X-Request-Id=c9155dfc-4d16-461d-b7cb-be512db720e4 Authorization=Bearer <scrubbed>
+Body: {"order_type":"delivery","payment_method":"cash_on_delivery","store_id":58,"distance":1.0,"address":"NEARS-3831 QA address","latitude":"24.4312","longitude":"54.3597","address_type":"others","contact_person_name":"QA","contact_person_number":"+971500000000","is_buy_now":0,"dm_tips":0,"order_amount":93.48,"schedule_at":"2026-09-29 10:00:00"}
+HTTP 403
+Response: {"errors":[{"code":"empty_cart","message":"You can not place empty orders"}]}
+
+### reg-base-14-update-Z-hdr2  03:30:35
+Request[:8432]: POST /api/v1/customer/cart/update | headers moduleId=2 zoneId=[2] X-Request-Id=792640b5-2275-439f-a447-c6855c6334e8 Authorization=Bearer <scrubbed>
+Body: {"cart_id":,"price":41.94,"quantity":1,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 403
+Response: {"errors":[{"code":"cart_id","message":"The cart id field is required."},{"code":"price","message":"The price field is required."},{"code":"quantity","message":"The quantity field is required."}]}
+
+### reg-base-15-update-Z-nohdr  03:30:35
+Request[:8432]: POST /api/v1/customer/cart/update | headers moduleId=- zoneId=[2] X-Request-Id=e257fa9f-3662-4980-a009-e2a240e66b16 Authorization=Bearer <scrubbed>
+Body: {"cart_id":,"price":41.94,"quantity":1,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 403
+Response: {"errors":[{"code":"cart_id","message":"The cart id field is required."},{"code":"price","message":"The price field is required."},{"code":"quantity","message":"The quantity field is required."}]}
+
+### reg-base-16-remove-item-Y-hdr3  03:30:35
+Request[:8432]: DELETE /api/v1/customer/cart/remove-item?cart_id= | headers moduleId=3 zoneId=[2] X-Request-Id=6f117774-8255-4a19-9a9c-7905d96c1a56 Authorization=Bearer <scrubbed>
+HTTP 403
+Response: {"errors":[{"code":"cart_id","message":"The cart id field is required."}]}
+
+### reg-base-17-remove-all-hdr3  03:30:35
+Request[:8432]: DELETE /api/v1/customer/cart/remove | headers moduleId=3 zoneId=[2] X-Request-Id=dbd90c95-9d15-402f-be0f-dab43337f205 Authorization=Bearer <scrubbed>
+HTTP 200
+Response: []
+
+### reg-wt-01-add673-hdr1  03:30:35
+Request[:8431]: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=b773db87-a9e0-4072-9c5b-d4941349e891 Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":984,"user_id":1,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:35.000000Z","updated_at":"2026-09-28T23:30:35.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-02-add673-hdr1-again  03:30:35
+Request[:8431]: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=97ad395b-da64-4549-a46a-cbb89ff52c35 Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":984,"user_id":1,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":2,"variation":[],"created_at":"2026-09-28T23:30:35.000000Z","updated_at":"2026-09-28T23:30:35.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-03-add673-hdr3-eqitem  03:30:35
+Request[:8431]: POST /api/v1/customer/cart/add | headers moduleId=3 zoneId=[2] X-Request-Id=4698232b-52ff-4e98-abf0-cfdbaa8635fb Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":985,"user_id":1,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:35.000000Z","updated_at":"2026-09-28T23:30:35.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-04-add674-nohdr  03:30:36
+Request[:8431]: POST /api/v1/customer/cart/add | headers moduleId=- zoneId=[2] X-Request-Id=98af5bb2-e6c8-4036-8090-820ee831832b Authorization=Bearer <scrubbed>
+Body: {"item_id":674,"model":"Item","price":41.94,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":985,"user_id":1,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:35.000000Z","updated_at":"2026-09-28T23:30:35.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-05-update-X-hdr1  03:30:36
+Request[:8431]: POST /api/v1/customer/cart/update | headers moduleId=1 zoneId=[2] X-Request-Id=abc8a45c-3088-4a33-9f92-fcce2c4fc0ab Authorization=Bearer <scrubbed>
+Body: {"cart_id":,"price":31.16,"quantity":3,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 403
+Response: {"errors":[{"code":"cart_id","message":"The cart id field is required."},{"code":"price","message":"The price field is required."},{"code":"quantity","message":"The quantity field is required."}]}
+
+### reg-wt-06-list-hdr1  03:30:36
+Request[:8431]: GET /api/v1/customer/cart/list | headers moduleId=1 zoneId=[2] X-Request-Id=9b10c70d-c751-4000-a369-983381ac61dc Authorization=Bearer <scrubbed>
+HTTP 200
+Response: [{"id":984,"user_id":1,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":2,"variation":[],"created_at":"2026-09-28T23:30:35.000000Z","updated_at":"2026-09-28T23:30:35.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-07-list-hdr3  03:30:36
+Request[:8431]: GET /api/v1/customer/cart/list | headers moduleId=3 zoneId=[2] X-Request-Id=1851b238-81ad-4e23-8136-4c5947524ea5 Authorization=Bearer <scrubbed>
+HTTP 200
+Response: [{"id":985,"user_id":1,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:35.000000Z","updated_at":"2026-09-28T23:30:35.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-08-gettax-hdr1  03:30:36
+Request[:8431]: POST /api/v1/customer/order/get-Tax | headers moduleId=1 zoneId=[2] X-Request-Id=e58e5b9f-9f25-4d90-80ad-e8ef6c92c81a Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":2.8978800000000002,"tax_status":"excluded","tax_included":0,"product_price":62.32,"total_addon_price":0,"total_discount":4.3624}
+
+### reg-wt-09-gettax-hdr3  03:30:36
+Request[:8431]: POST /api/v1/customer/order/get-Tax | headers moduleId=3 zoneId=[2] X-Request-Id=61f8b282-f01f-46fb-97d6-42af4e4ed136 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":3.5459399999999994,"tax_status":"excluded","tax_included":0,"product_price":73.1,"total_addon_price":0,"total_discount":2.1812}
+
+### reg-wt-10-gettax-nohdr  03:30:36
+Request[:8431]: POST /api/v1/customer/order/get-Tax | headers moduleId=- zoneId=[2] X-Request-Id=6aced745-b47e-4d2d-a348-1167ce0cfd9d Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":3.5459399999999994,"tax_status":"excluded","tax_included":0,"product_price":73.1,"total_addon_price":0,"total_discount":2.1812}
+
+### reg-wt-11-place-hdr1  03:30:38
+Request[:8431]: POST /api/v1/customer/order/place | headers moduleId=1 zoneId=[2] X-Request-Id=e44eefe0-b54a-4c73-9591-fbcadbed6293 Authorization=Bearer <scrubbed>
+Body: {"order_type":"delivery","payment_method":"cash_on_delivery","store_id":58,"distance":1.0,"address":"NEARS-3831 QA address","latitude":"24.4312","longitude":"54.3597","address_type":"others","contact_person_name":"QA","contact_person_number":"+971500000000","is_buy_now":0,"dm_tips":0,"order_amount":93.48,"schedule_at":"2026-09-29 10:00:00"}
+HTTP 200
+Response: {"message":"Order placed successfully","order_id":91418,"payment_token":"<scrubbed>","total_ammount":60.86,"status":"pending","created_at":"2026-09-29 03:30:36","user_id":1}
+
+### reg-wt-12-contrast-gettax-hdr1  03:30:38
+Request[:8431]: POST /api/v1/customer/order/get-Tax | headers moduleId=1 zoneId=[2] X-Request-Id=3421fa60-e4d2-4961-bcb1-0c077fac187b Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":0,"total_addon_price":0,"total_discount":0}
+
+### reg-wt-13-contrast-place-hdr1  03:30:38
+Request[:8431]: POST /api/v1/customer/order/place | headers moduleId=1 zoneId=[2] X-Request-Id=24a75dd7-254e-46f0-9d3d-13c89870c316 Authorization=Bearer <scrubbed>
+Body: {"order_type":"delivery","payment_method":"cash_on_delivery","store_id":58,"distance":1.0,"address":"NEARS-3831 QA address","latitude":"24.4312","longitude":"54.3597","address_type":"others","contact_person_name":"QA","contact_person_number":"+971500000000","is_buy_now":0,"dm_tips":0,"order_amount":93.48,"schedule_at":"2026-09-29 10:00:00"}
+HTTP 403
+Response: {"errors":[{"code":"empty_cart","message":"You can not place empty orders"}]}
+
+### reg-wt-14-update-Z-hdr2  03:30:38
+Request[:8431]: POST /api/v1/customer/cart/update | headers moduleId=2 zoneId=[2] X-Request-Id=9c327925-c44b-40e1-b032-42c955c475bf Authorization=Bearer <scrubbed>
+Body: {"cart_id":,"price":41.94,"quantity":1,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 403
+Response: {"errors":[{"code":"cart_id","message":"The cart id field is required."},{"code":"price","message":"The price field is required."},{"code":"quantity","message":"The quantity field is required."}]}
+
+### reg-wt-15-update-Z-nohdr  03:30:38
+Request[:8431]: POST /api/v1/customer/cart/update | headers moduleId=- zoneId=[2] X-Request-Id=702873ba-8dfe-4734-9777-5e9cbc612af2 Authorization=Bearer <scrubbed>
+Body: {"cart_id":,"price":41.94,"quantity":1,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 403
+Response: {"errors":[{"code":"cart_id","message":"The cart id field is required."},{"code":"price","message":"The price field is required."},{"code":"quantity","message":"The quantity field is required."}]}
+
+### reg-wt-16-remove-item-Y-hdr3  03:30:38
+Request[:8431]: DELETE /api/v1/customer/cart/remove-item?cart_id= | headers moduleId=3 zoneId=[2] X-Request-Id=8fcc1e9f-86c2-434b-8de9-209c1a478901 Authorization=Bearer <scrubbed>
+HTTP 403
+Response: {"errors":[{"code":"cart_id","message":"The cart id field is required."}]}
+
+### reg-wt-17-remove-all-hdr3  03:30:39
+Request[:8431]: DELETE /api/v1/customer/cart/remove | headers moduleId=3 zoneId=[2] X-Request-Id=7f05dd35-cbc8-47c3-8b0e-6234635e2703 Authorization=Bearer <scrubbed>
+HTTP 200
+Response: []
+
+===== ^^^ AC-REG run #1 VOID (QA script bug: user-id lookup failed, cart ids empty -> steps 05/13-16 sent bad cart_id). Orders 91417 (base,u5) / 91418 (wt,u1) came from it. State reset by its own remove-all; rerun #2 below =====
+### reg-base-01-add673-hdr1  03:30:53
+Request[:8432]: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=f6172b6c-80a4-40a2-b3f6-505ddd36f7e9 Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":987,"user_id":5,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:53.000000Z","updated_at":"2026-09-28T23:30:53.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-02-add673-hdr1-again  03:30:54
+Request[:8432]: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=09f0d87f-3d48-4437-b581-e94d10b51cb4 Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":987,"user_id":5,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":2,"variation":[],"created_at":"2026-09-28T23:30:53.000000Z","updated_at":"2026-09-28T23:30:53.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-03-add673-hdr3-eqitem  03:30:54
+Request[:8432]: POST /api/v1/customer/cart/add | headers moduleId=3 zoneId=[2] X-Request-Id=8561df61-029c-42ce-92dc-1b657d2d1d2b Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":988,"user_id":5,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:54.000000Z","updated_at":"2026-09-28T23:30:54.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-04-add674-nohdr  03:30:54
+Request[:8432]: POST /api/v1/customer/cart/add | headers moduleId=- zoneId=[2] X-Request-Id=98c0d0e0-ec85-414f-8d4e-6f00ae9ae5c5 Authorization=Bearer <scrubbed>
+Body: {"item_id":674,"model":"Item","price":41.94,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":988,"user_id":5,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:54.000000Z","updated_at":"2026-09-28T23:30:54.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-05-update-X-hdr1  03:30:54
+Request[:8432]: POST /api/v1/customer/cart/update | headers moduleId=1 zoneId=[2] X-Request-Id=988a8bd2-9f07-411d-87d5-c1a4946202bb Authorization=Bearer <scrubbed>
+Body: {"cart_id":987,"price":31.16,"quantity":3,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":987,"user_id":5,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":3,"variation":[],"created_at":"2026-09-28T23:30:53.000000Z","updated_at":"2026-09-28T23:30:54.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-06-list-hdr1  03:30:54
+Request[:8432]: GET /api/v1/customer/cart/list | headers moduleId=1 zoneId=[2] X-Request-Id=01f2d672-880a-4fff-8d23-73de2f3d3481 Authorization=Bearer <scrubbed>
+HTTP 200
+Response: [{"id":987,"user_id":5,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":3,"variation":[],"created_at":"2026-09-28T23:30:53.000000Z","updated_at":"2026-09-28T23:30:54.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-07-list-hdr3  03:30:54
+Request[:8432]: GET /api/v1/customer/cart/list | headers moduleId=3 zoneId=[2] X-Request-Id=1fb01d23-1c27-42c7-9701-f1a565bd1bfd Authorization=Bearer <scrubbed>
+HTTP 200
+Response: [{"id":988,"user_id":5,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:54.000000Z","updated_at":"2026-09-28T23:30:54.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-08-gettax-hdr1  03:30:54
+Request[:8432]: POST /api/v1/customer/order/get-Tax | headers moduleId=1 zoneId=[2] X-Request-Id=0c0d206a-619d-4690-b800-853398742b95 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":4.34682,"tax_status":"excluded","tax_included":0,"product_price":93.48,"total_addon_price":0,"total_discount":6.5436}
+
+### reg-base-09-gettax-hdr3  03:30:55
+Request[:8432]: POST /api/v1/customer/order/get-Tax | headers moduleId=3 zoneId=[2] X-Request-Id=94e983fd-a173-4d00-8fce-a636ba90a794 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":3.5459399999999994,"tax_status":"excluded","tax_included":0,"product_price":73.1,"total_addon_price":0,"total_discount":2.1812}
+
+### reg-base-10-gettax-nohdr  03:30:55
+Request[:8432]: POST /api/v1/customer/order/get-Tax | headers moduleId=- zoneId=[2] X-Request-Id=db395460-ab81-43c9-906f-f00178341568 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":3.5459399999999994,"tax_status":"excluded","tax_included":0,"product_price":73.1,"total_addon_price":0,"total_discount":2.1812}
+
+### reg-base-11-place-hdr1  03:30:56
+Request[:8432]: POST /api/v1/customer/order/place | headers moduleId=1 zoneId=[2] X-Request-Id=1a413bdb-e5b4-41d9-a3d8-0b79706ba37d Authorization=Bearer <scrubbed>
+Body: {"order_type":"delivery","payment_method":"cash_on_delivery","store_id":58,"distance":1.0,"address":"NEARS-3831 QA address","latitude":"24.4312","longitude":"54.3597","address_type":"others","contact_person_name":"QA","contact_person_number":"+971500000000","is_buy_now":0,"dm_tips":0,"order_amount":93.48,"schedule_at":"2026-09-29 10:00:00"}
+HTTP 200
+Response: {"message":"Order placed successfully","order_id":91419,"payment_token":"<scrubbed>","total_ammount":91.28,"status":"pending","created_at":"2026-09-29 03:30:55","user_id":5}
+
+### reg-base-12-contrast-gettax-hdr1  03:30:56
+Request[:8432]: POST /api/v1/customer/order/get-Tax | headers moduleId=1 zoneId=[2] X-Request-Id=4b162431-4cdc-4804-bab6-43124b7929ce Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":0,"total_addon_price":0,"total_discount":0}
+
+### reg-base-13-contrast-place-hdr1  03:30:56
+Request[:8432]: POST /api/v1/customer/order/place | headers moduleId=1 zoneId=[2] X-Request-Id=e328650c-75b5-40cb-bfb4-b534303fb54e Authorization=Bearer <scrubbed>
+Body: {"order_type":"delivery","payment_method":"cash_on_delivery","store_id":58,"distance":1.0,"address":"NEARS-3831 QA address","latitude":"24.4312","longitude":"54.3597","address_type":"others","contact_person_name":"QA","contact_person_number":"+971500000000","is_buy_now":0,"dm_tips":0,"order_amount":93.48,"schedule_at":"2026-09-29 10:00:00"}
+HTTP 403
+Response: {"errors":[{"code":"empty_cart","message":"You can not place empty orders"}]}
+
+### reg-base-14-update-Z-hdr2  03:30:56
+Request[:8432]: POST /api/v1/customer/cart/update | headers moduleId=2 zoneId=[2] X-Request-Id=03e7bc57-470c-4999-81a8-830eb3e13610 Authorization=Bearer <scrubbed>
+Body: {"cart_id":989,"price":41.94,"quantity":1,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":989,"user_id":5,"module_id":2,"item_id":674,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":41.94,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:54.000000Z","updated_at":"2026-09-28T23:30:56.000000Z","item":{"id":674,"name":"Sunscreen SPF50","description":"Sunscreen SPF50 \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-a7266cfd82.png","category_id":28,"category_ids":[{"id":"28","position":1,"name":"Personal Care"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":41.94,"tax":0,"tax_type":"percent","discount":0,"discount_type":"percent","available_time_starts":"00:00:00","a
+
+### reg-base-15-update-Z-nohdr  03:30:56
+Request[:8432]: POST /api/v1/customer/cart/update | headers moduleId=- zoneId=[2] X-Request-Id=0835cf64-c08c-413a-b9ca-f727dbdf2936 Authorization=Bearer <scrubbed>
+Body: {"cart_id":989,"price":41.94,"quantity":1,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":988,"user_id":5,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:54.000000Z","updated_at":"2026-09-28T23:30:54.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-base-16-remove-item-Y-hdr3  03:30:57
+Request[:8432]: DELETE /api/v1/customer/cart/remove-item?cart_id=988 | headers moduleId=3 zoneId=[2] X-Request-Id=beb2a696-de8a-4c9e-bfb1-3c84b5692d22 Authorization=Bearer <scrubbed>
+HTTP 200
+Response: [{"id":989,"user_id":5,"module_id":3,"item_id":674,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":41.94,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:54.000000Z","updated_at":"2026-09-28T23:30:56.000000Z","item":{"id":674,"name":"Sunscreen SPF50","description":"Sunscreen SPF50 \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-a7266cfd82.png","category_id":28,"category_ids":[{"id":"28","position":1,"name":"Personal Care"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":41.94,"tax":0,"tax_type":"percent","discount":0,"discount_type":"percent","available_time_starts":"00:00:00","a
+
+### reg-base-17-remove-all-hdr3  03:30:57
+Request[:8432]: DELETE /api/v1/customer/cart/remove | headers moduleId=3 zoneId=[2] X-Request-Id=09a4fc2f-6b6f-446b-af14-a2900b1632bb Authorization=Bearer <scrubbed>
+HTTP 200
+Response: []
+
+### reg-wt-01-add673-hdr1  03:30:57
+Request[:8431]: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=312f5a2b-0e59-445e-9b35-b0d1c926a0e9 Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":990,"user_id":1,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:57.000000Z","updated_at":"2026-09-28T23:30:57.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-02-add673-hdr1-again  03:30:57
+Request[:8431]: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=d86c5258-1ea9-47c6-ab5c-946a330c04e4 Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":990,"user_id":1,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":2,"variation":[],"created_at":"2026-09-28T23:30:57.000000Z","updated_at":"2026-09-28T23:30:57.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-03-add673-hdr3-eqitem  03:30:57
+Request[:8431]: POST /api/v1/customer/cart/add | headers moduleId=3 zoneId=[2] X-Request-Id=03c3b846-51c8-45cb-a533-3dd9e28c037f Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":991,"user_id":1,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:57.000000Z","updated_at":"2026-09-28T23:30:57.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-04-add674-nohdr  03:30:57
+Request[:8431]: POST /api/v1/customer/cart/add | headers moduleId=- zoneId=[2] X-Request-Id=930af26d-841e-44a0-889e-c740348acd23 Authorization=Bearer <scrubbed>
+Body: {"item_id":674,"model":"Item","price":41.94,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":991,"user_id":1,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:57.000000Z","updated_at":"2026-09-28T23:30:57.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-05-update-X-hdr1  03:30:57
+Request[:8431]: POST /api/v1/customer/cart/update | headers moduleId=1 zoneId=[2] X-Request-Id=8462d1b2-b6a9-49c0-b8e0-5014a540db0e Authorization=Bearer <scrubbed>
+Body: {"cart_id":990,"price":31.16,"quantity":3,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":990,"user_id":1,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":3,"variation":[],"created_at":"2026-09-28T23:30:57.000000Z","updated_at":"2026-09-28T23:30:57.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-06-list-hdr1  03:30:58
+Request[:8431]: GET /api/v1/customer/cart/list | headers moduleId=1 zoneId=[2] X-Request-Id=db2e91c8-b5a5-436b-afd1-f3c4a092e836 Authorization=Bearer <scrubbed>
+HTTP 200
+Response: [{"id":990,"user_id":1,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":3,"variation":[],"created_at":"2026-09-28T23:30:57.000000Z","updated_at":"2026-09-28T23:30:57.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-07-list-hdr3  03:30:58
+Request[:8431]: GET /api/v1/customer/cart/list | headers moduleId=3 zoneId=[2] X-Request-Id=2e0f5e62-e803-43bc-b599-21ad2b43f049 Authorization=Bearer <scrubbed>
+HTTP 200
+Response: [{"id":991,"user_id":1,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:57.000000Z","updated_at":"2026-09-28T23:30:57.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-08-gettax-hdr1  03:30:58
+Request[:8431]: POST /api/v1/customer/order/get-Tax | headers moduleId=1 zoneId=[2] X-Request-Id=c03c0d19-ea48-4562-9366-41d93f7a2e31 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":4.34682,"tax_status":"excluded","tax_included":0,"product_price":93.48,"total_addon_price":0,"total_discount":6.5436}
+
+### reg-wt-09-gettax-hdr3  03:30:58
+Request[:8431]: POST /api/v1/customer/order/get-Tax | headers moduleId=3 zoneId=[2] X-Request-Id=317d6883-d832-4ce9-8608-2056d1c8790f Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":3.5459399999999994,"tax_status":"excluded","tax_included":0,"product_price":73.1,"total_addon_price":0,"total_discount":2.1812}
+
+### reg-wt-10-gettax-nohdr  03:30:58
+Request[:8431]: POST /api/v1/customer/order/get-Tax | headers moduleId=- zoneId=[2] X-Request-Id=fe28b481-55a0-498b-a52d-db98479b707a Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":3.5459399999999994,"tax_status":"excluded","tax_included":0,"product_price":73.1,"total_addon_price":0,"total_discount":2.1812}
+
+### reg-wt-11-place-hdr1  03:30:59
+Request[:8431]: POST /api/v1/customer/order/place | headers moduleId=1 zoneId=[2] X-Request-Id=d7c5e61e-f538-43c2-a1cf-278accdd1fd0 Authorization=Bearer <scrubbed>
+Body: {"order_type":"delivery","payment_method":"cash_on_delivery","store_id":58,"distance":1.0,"address":"NEARS-3831 QA address","latitude":"24.4312","longitude":"54.3597","address_type":"others","contact_person_name":"QA","contact_person_number":"+971500000000","is_buy_now":0,"dm_tips":0,"order_amount":93.48,"schedule_at":"2026-09-29 10:00:00"}
+HTTP 200
+Response: {"message":"Order placed successfully","order_id":91420,"payment_token":"<scrubbed>","total_ammount":91.28,"status":"pending","created_at":"2026-09-29 03:30:58","user_id":1}
+
+### reg-wt-12-contrast-gettax-hdr1  03:30:59
+Request[:8431]: POST /api/v1/customer/order/get-Tax | headers moduleId=1 zoneId=[2] X-Request-Id=6a30eadb-98b8-4de2-92ff-28a4aaf054e0 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":0,"total_addon_price":0,"total_discount":0}
+
+### reg-wt-13-contrast-place-hdr1  03:30:59
+Request[:8431]: POST /api/v1/customer/order/place | headers moduleId=1 zoneId=[2] X-Request-Id=0b286f88-65df-476b-b1e5-415fb5e341ab Authorization=Bearer <scrubbed>
+Body: {"order_type":"delivery","payment_method":"cash_on_delivery","store_id":58,"distance":1.0,"address":"NEARS-3831 QA address","latitude":"24.4312","longitude":"54.3597","address_type":"others","contact_person_name":"QA","contact_person_number":"+971500000000","is_buy_now":0,"dm_tips":0,"order_amount":93.48,"schedule_at":"2026-09-29 10:00:00"}
+HTTP 403
+Response: {"errors":[{"code":"empty_cart","message":"You can not place empty orders"}]}
+
+### reg-wt-14-update-Z-hdr2  03:30:59
+Request[:8431]: POST /api/v1/customer/cart/update | headers moduleId=2 zoneId=[2] X-Request-Id=98fb1788-8655-4608-8799-305611e6722b Authorization=Bearer <scrubbed>
+Body: {"cart_id":992,"price":41.94,"quantity":1,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":992,"user_id":1,"module_id":2,"item_id":674,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":41.94,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:57.000000Z","updated_at":"2026-09-28T23:30:59.000000Z","item":{"id":674,"name":"Sunscreen SPF50","description":"Sunscreen SPF50 \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-a7266cfd82.png","category_id":28,"category_ids":[{"id":"28","position":1,"name":"Personal Care"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":41.94,"tax":0,"tax_type":"percent","discount":0,"discount_type":"percent","available_time_starts":"00:00:00","a
+
+### reg-wt-15-update-Z-nohdr  03:31:00
+Request[:8431]: POST /api/v1/customer/cart/update | headers moduleId=- zoneId=[2] X-Request-Id=3f857da3-54f8-4891-a604-c066ef7d1eb5 Authorization=Bearer <scrubbed>
+Body: {"cart_id":992,"price":41.94,"quantity":1,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":991,"user_id":1,"module_id":3,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:57.000000Z","updated_at":"2026-09-28T23:30:57.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### reg-wt-16-remove-item-Y-hdr3  03:31:00
+Request[:8431]: DELETE /api/v1/customer/cart/remove-item?cart_id=991 | headers moduleId=3 zoneId=[2] X-Request-Id=b4cb36f0-55aa-465e-89f3-da247a478fbc Authorization=Bearer <scrubbed>
+HTTP 200
+Response: [{"id":992,"user_id":1,"module_id":3,"item_id":674,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":41.94,"quantity":1,"variation":[],"created_at":"2026-09-28T23:30:57.000000Z","updated_at":"2026-09-28T23:30:59.000000Z","item":{"id":674,"name":"Sunscreen SPF50","description":"Sunscreen SPF50 \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-a7266cfd82.png","category_id":28,"category_ids":[{"id":"28","position":1,"name":"Personal Care"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":41.94,"tax":0,"tax_type":"percent","discount":0,"discount_type":"percent","available_time_starts":"00:00:00","a
+
+### reg-wt-17-remove-all-hdr3  03:31:00
+Request[:8431]: DELETE /api/v1/customer/cart/remove | headers moduleId=3 zoneId=[2] X-Request-Id=c07c9c8c-177a-4a6e-b9e0-ae6776904e0c Authorization=Bearer <scrubbed>
+HTTP 200
+Response: []
+
+===== AC2 heal variant: legacy header-stamped row made with flag OFF, then flag ON update =====
+### heal-off-add-hdr1  03:31:38
+Request[:8431]: POST /api/v1/customer/cart/add | headers moduleId=1 zoneId=[2] X-Request-Id=18df4436-06c9-49ea-bd8d-835faa15fd49 Authorization=Bearer <scrubbed>
+Body: {"item_id":673,"model":"Item","price":31.16,"quantity":1,"variation":[],"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: [{"id":993,"user_id":1,"module_id":1,"item_id":673,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":31.16,"quantity":1,"variation":[],"created_at":"2026-09-28T23:31:38.000000Z","updated_at":"2026-09-28T23:31:38.000000Z","item":{"id":673,"name":"Face Masks 50pk","description":"Face Masks 50pk \u2014 fresh and ready for delivery from City Care Chemist (Abu Dhabi).","image":"d-b49aedbd57.png","category_id":24,"category_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[],"add_ons":[],"attributes":[],"choice_options":[],"price":31.16,"tax":0,"tax_type":"percent","discount":7,"discount_type":"percent","available_time_starts":"00:00:00","ava
+
+### heal-on-gettax-before  03:31:39
+Request[:8431]: POST /api/v1/customer/order/get-Tax | headers moduleId=1 zoneId=[2] X-Request-Id=871e3bc3-d246-48cc-8693-e9e300069314 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":0,"total_addon_price":0,"total_discount":0}
+
+### heal-on-update-hdr1  03:31:39
+Request[:8431]: POST /api/v1/customer/cart/update | headers moduleId=1 zoneId=[2] X-Request-Id=d2030572-8288-49f5-976a-2b71cd6f73ec Authorization=Bearer <scrubbed>
+Body: {"cart_id":993,"price":31.16,"quantity":1,"add_on_ids":[],"add_on_qtys":[]}
+HTTP 200
+Response: []
+
+### heal-on-gettax-after  03:31:39
+Request[:8431]: POST /api/v1/customer/order/get-Tax | headers moduleId=1 zoneId=[2] X-Request-Id=baa3424c-6801-4314-a1c8-dc925c954bb4 Authorization=Bearer <scrubbed>
+Body: {"store_id":58,"order_type":"delivery"}
+HTTP 200
+Response: {"tax_amount":1.4489400000000001,"tax_status":"excluded","tax_included":0,"product_price":31.16,"total_addon_price":0,"total_discount":2.1812}
+
+### heal-cleanup-remove-item  03:31:50
+Request[:8431]: DELETE /api/v1/customer/cart/remove-item?cart_id=993 | headers moduleId=1 zoneId=[2] X-Request-Id=4871edf2-91ea-46e1-a165-ac84e030c0a2 Authorization=Bearer <scrubbed>
+HTTP 200
+Response: []
+

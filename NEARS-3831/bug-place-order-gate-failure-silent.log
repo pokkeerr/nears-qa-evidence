@@ -1,0 +1,14 @@
+Pre-existing (base f7c6943ef identical): single-store POST /api/v1/customer/order/place gate_failure 403s return with no [WARN]/[FAIL] line of their own.
+Path: OrderPlacementService::new_place_order -> loadOrderCart()/placeOrderCore() gate_failure -> DB::rollBack(); return response()->json(...) (Admin/app/Services/Order/OrderPlacementService.php ~L312-322; gateFailure() at ~L432 builds the array only, no Log::).
+
+Case 1 — empty_cart (flag OFF, B-stamped rows, header A):
+  request: POST /api/v1/customer/order/place moduleId=1 zoneId=[2] store_id=58 is_buy_now=0  X-Request-Id=0b286f88-65df-476b-b1e5-415fb5e341ab
+  response: HTTP 403 {"errors":[{"code":"empty_cart","message":"You can not place empty orders"}]}
+  laravel.log lines for that X-Request-Id (FCM excluded):
+    [2026-09-29 03:30:59] production.WARNING: [WARN] order placement - moduleId header differs from store module {"trace_id":"a79197dc7cb2a36701f204131f96b764","correlation_id":"0b286f88-65df-476b-b1e5-415fb5e341ab","endpoint":"api/v1/customer/order/place","store_id":58,"header_module_id":1,"module_id":
+  laravel-structured.log lines for that X-Request-Id: 1
+  -> only the NEARS-3830 header/store mismatch WARN; no empty_cart line. Base server (:8432) identical: 0 empty_cart lines.
+
+Case 2 — order_time (store 58 closed now, schedule_order=1, no schedule_at), 2026-09-29 03:26:56:
+  response: HTTP 403 {"errors":[{"code":"order_time","message":"Store is closed at order time"}]}
+  laravel.log lines in 03:26:50-03:26:59: 0
