@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3799
 
-**NEARS-3799 QA cycle0: FAIL — closed-item AC (chip truncated, add not disabled); 14 PASS, 1 UNVERIFIABLE**
+**cycle 2 delta re-QA: PASS (TB1/TB2/TB3 verified live)**
 
-**15 screenshot(s).** Click any thumbnail for full resolution.
+**19 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -30,11 +30,20 @@
 <td align="center" width="33%"><a href="bug-menurow-closed-chip-truncated.png"><img src="bug-menurow-closed-chip-truncated.png" width="240"></a><br><sub>bug menurow closed chip truncated</sub></td>
 <td align="center" width="33%"><a href="bug-menurow-struck-price-truncated.png"><img src="bug-menurow-struck-price-truncated.png" width="240"></a><br><sub>bug menurow struck price truncated</sub></td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="c2-ac10-closed-en-1.0x.png"><img src="c2-ac10-closed-en-1.0x.png" width="240"></a><br><sub>c2 ac10 closed en 1.0x</sub></td>
+<td align="center" width="33%"><a href="c2-ac2-rtl-ar-1.3x-closed-and-discount.png"><img src="c2-ac2-rtl-ar-1.3x-closed-and-discount.png" width="240"></a><br><sub>c2 ac2 rtl ar 1.3x closed and discount</sub></td>
+<td align="center" width="33%"><a href="c2-ac3-closed-struck-1.3x-ltr.png"><img src="c2-ac3-closed-struck-1.3x-ltr.png" width="240"></a><br><sub>c2 ac3 closed struck 1.3x ltr</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c2-ac3-open-discount-struck-1.3x-ltr.png"><img src="c2-ac3-open-discount-struck-1.3x-ltr.png" width="240"></a><br><sub>c2 ac3 open discount struck 1.3x ltr</sub></td>
+</tr>
 </table>
 
 ### Other artifacts
 - [`ac-closed-store47-a11y-dump.xml`](ac-closed-store47-a11y-dump.xml)
 - [`bug-cart-add-addons-int-parse.log`](bug-cart-add-addons-int-parse.log)
+- [`bug-compact-table-semantics-assert.log`](bug-compact-table-semantics-assert.log)
 - [`bug-menurow-closed-item-add-not-disabled.log`](bug-menurow-closed-item-add-not-disabled.log)
 - [`progress.md`](progress.md)
 
