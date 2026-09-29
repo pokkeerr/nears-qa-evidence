@@ -1,0 +1,10 @@
+# D4 edit case + guest group place (private DB nears3906qa, served by own :8106)
+# env on copy: guest_checkout_status=1, cross_module_basket=1, admin_free_delivery_status=0, module_zone id=2 (zone1/food) delivery_charge_type=distance
+total_before (address A 'House-30 Road No. 16', checkout summary) = 64.00  [Subtotal 69.71, Discount -9.71, VAT +3.00, Delivery 1.00 (Grill House 0.00, QA Mixed Kitchen 1.00)]
+total_after  (guest address edited via Select From Map -> 'Plot-43 Rd N3' @23.83,90.355; confirm sheet Total Amount) = 64.00  [no delivery-quote re-request after edit; only get-zone-id/distance-api/extra_charge]
+group place: POST /api/v1/customer/order/group/place 200, groupId children=2
+id	store_id	module_id	is_guest	order_amount	delivery_charge	original_delivery_charge	total_tax_amount	flash_disc	payment_method	order_status	zone_id	distance
+91424	39	2	1	46.46	0.00	12.12	2.21	9.720	cash_on_delivery	pending	1	1.515
+91425	91159	2	1	33.05	16.51	16.51	0.79	0.000	cash_on_delivery	pending	1	2.064
+placed_sum=79.51
+delivery_address on both children: lat 23.83 lng 90.355 'Plot-43 Rd N3' (the EDITED address), zone_id 1
