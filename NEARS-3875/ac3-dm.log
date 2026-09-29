@@ -1,0 +1,38 @@
+== AC3 DM cancel. fixture (private copy): business_settings canceled_by_deliveryman=1; orders 91420 (item 106, non-flash) and 91421 (item 40, flash) placed via real customer API then delivery_man_id=1 set via SQL (confirmed NULL)
+-- BEFORE
+id	order_status	delivery_man_id	confirmed
+91420	pending	1	NULL
+91421	pending	1	NULL
+id	stock
+40	94
+106	128
+id	sold	available_stock
+33	12	38
+-- DM cancel 91420 #1
+REQ PUT /api/v1/delivery-man/update-order-status {"token":"<dm-token>","order_id":91420,"status":"canceled","reason":"QA3875 dm"} X-Request-Id=55555555-5555-4555-8555-000000000001
+HTTP/1.1 200 OK
+{"message":"Status updated"}
+id	order_status	canceled_by
+91420	canceled	deliveryman
+id	stock
+106	129
+-- DM cancel 91420 #2
+REQ PUT /api/v1/delivery-man/update-order-status {"token":"<dm-token>","order_id":91420,"status":"canceled","reason":"again"} X-Request-Id=55555555-5555-4555-8555-000000000002
+HTTP/1.1 409 Conflict
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+id	stock
+106	129
+-- DM cancel flash 91421
+REQ PUT /api/v1/delivery-man/update-order-status {"token":"<dm-token>","order_id":91421,"status":"canceled","reason":"QA3875 dm flash"} X-Request-Id=55555555-5555-4555-8555-000000000003
+HTTP/1.1 200 OK
+{"message":"Status updated"}
+id	order_status	canceled_by
+91421	canceled	deliveryman
+id	stock
+40	95
+id	sold	available_stock
+33	11	39
+-- LOG
+[2026-09-29 18:52:09] production.INFO: [INFO] cancel restock applied {"trace_id":"56f7d6efacfee6cf079a9d11a83ae876","correlation_id":"55555555-5555-4555-8555-000000000001","endpoint":"/api/v1/delivery-man/update-order-status","order_id":91420,"lines":1,"flash_reversed":0,"request_id":"55555555-5555-4555-8555-000000000001"} 
+[2026-09-29 18:52:09] production.WARNING: [WARN] deliveryman cancel rejected - order already terminal {"trace_id":"3dca5716c7e6eb9acb1effce00190831","correlation_id":"55555555-5555-4555-8555-000000000002","endpoint":"/api/v1/delivery-man/update-order-status","order_id":91420,"reason":"order_already_canceled","request_id":"55555555-5555-4555-8555-000000000002"} 
+[2026-09-29 18:52:10] production.INFO: [INFO] cancel restock applied {"trace_id":"81415cd16d86261b6a7ee538eeb82395","correlation_id":"55555555-5555-4555-8555-000000000003","endpoint":"/api/v1/delivery-man/update-order-status","order_id":91421,"lines":1,"flash_reversed":1,"request_id":"55555555-5555-4555-8555-000000000003"} 

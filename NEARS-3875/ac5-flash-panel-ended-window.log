@@ -1,0 +1,29 @@
+== AC5 flash via store panel, sale window ENDED since placement: order 91423 (item 40 x1). fixture (private copy): flash_sales.id=1 end_date set to order created_at+1s (original 2027-01-11 23:55:03 restored after)
+id	start_date	end_date	is_publish
+1	2026-06-30 12:29:47	2026-09-29 18:52:49	1
+now()
+2026-09-29 18:52:55
+created_at
+2026-09-29 18:52:48
+-- BEFORE
+id	stock
+40	94
+id	sold	available_stock
+33	12	38
+login 302 http://127.0.0.1:8175/vendor-panel
+POST /vendor-panel/order/status {"id":"91423","order_status":"canceled","reason":"QA3875 panel flash"} X-Request-Id 77777777-7777-4777-8777-000000000001 -> 302 Location: http://127.0.0.1:8175/vendor-panel/order/list/all
+TOASTR success Order status updated
+TOASTR success New message arrived
+-- AFTER
+id	order_status	canceled_by
+91423	canceled	store
+id	stock
+40	95
+id	sold	available_stock
+33	11	39
+id	end_date
+1	2027-01-11 23:55:03
+-- LOG
+[2026-09-29 18:52:48] production.INFO: [INFO] cancel restock applied {"trace_id":"4ec6ba559e79fe74588406c458816501","correlation_id":"66666666-6666-4666-8666-000000000001","endpoint":"/vendor-panel/order/status","order_id":91422,"lines":1,"flash_reversed":0,"request_id":"66666666-6666-4666-8666-000000000001"} 
+[2026-09-29 18:52:49] production.WARNING: [WARN] store cancel rejected - order already terminal {"trace_id":"bc8a3a08c1d70f8a1d60f90be21b417b","correlation_id":"66666666-6666-4666-8666-000000000002","endpoint":"/vendor-panel/order/status","order_id":91422,"reason":"order_already_canceled","request_id":"66666666-6666-4666-8666-000000000002"} 
+[2026-09-29 18:52:56] production.INFO: [INFO] cancel restock applied {"trace_id":"867e70325549c0da882a33b731798c2b","correlation_id":"77777777-7777-4777-8777-000000000001","endpoint":"/vendor-panel/order/status","order_id":91423,"lines":1,"flash_reversed":1,"request_id":"77777777-7777-4777-8777-000000000001"} 

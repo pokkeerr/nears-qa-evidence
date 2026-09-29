@@ -1,0 +1,48 @@
+== AC4 prepaid vendor API cancel order 91418 (item 106 x1; fixture: order_status pending, payment_status paid/digital_payment set via SQL in private copy; admin_wallets.digital_received += order_amount; wallet_add_refund=1 set in copy)
+-- BEFORE
+id	order_status	payment_status	payment_method	order_amount	refund_applied_at
+91418	pending	paid	digital_payment	20.02	NULL
+digital_received
+20.02
+wallet_balance
+15.840
+wt_order_refund
+0
+stock
+128
+-- CANCEL #1
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91418,"status":"canceled","reason":"QA3875 prepaid"} X-Request-Id=33333333-3333-4333-8333-000000000001
+HTTP/1.1 200 OK
+{"message":"Status updated"}
+-- AFTER #1
+id	order_status	canceled_by	refund_applied_at
+91418	canceled	store	2026-09-29 18:51:37
+digital_received
+0.00
+wallet_balance
+35.860
+transaction_type	credit	reference	balance
+order_refund	20.020	91418	35.860
+stock
+129
+-- CANCEL #2
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91418,"status":"canceled","reason":"again"} X-Request-Id=33333333-3333-4333-8333-000000000002
+HTTP/1.1 409 Conflict
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+-- AFTER #2
+digital_received
+0.00
+wallet_balance
+35.860
+wt_order_refund
+1
+stock
+129
+-- COD control (order 91417 from AC1)
+id	payment_method	refund_applied_at
+91417	cash_on_delivery	NULL
+count(*)
+0
+-- LOG
+[2026-09-29 18:51:37] production.INFO: [INFO] cancel restock applied {"trace_id":"99da8265ba10bd11a03c3dca45134c65","correlation_id":"33333333-3333-4333-8333-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91418,"lines":1,"flash_reversed":0,"request_id":"33333333-3333-4333-8333-000000000001"} 
+[2026-09-29 18:51:37] production.WARNING: [WARN] vendor cancel rejected - order already terminal {"trace_id":"c8b7be4824a8b6b1a3501d43f83455de","correlation_id":"33333333-3333-4333-8333-000000000002","endpoint":"/api/v1/vendor/update-order-status","order_id":91418,"reason":"order_already_canceled","request_id":"33333333-3333-4333-8333-000000000002"} 

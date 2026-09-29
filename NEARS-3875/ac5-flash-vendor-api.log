@@ -1,0 +1,23 @@
+== AC5 flash via vendor API, order 91416 (item 40 x1 placed via real customer API; placement bumped sold 11->12)
+-- BEFORE
+id	order_status	created_at
+91416	pending	2026-09-29 18:50:21
+id	discount_type	quantity
+374	flash_sale	1
+id	stock
+40	94
+id	stock	sold	available_stock
+33	50	12	38
+-- CANCEL
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91416,"status":"canceled","reason":"QA3875 flash vendor"} X-Request-Id=22222222-2222-4222-8222-000000000001
+HTTP/1.1 200 OK
+{"message":"Status updated"}
+-- AFTER
+id	order_status	canceled_by
+91416	canceled	store
+id	stock
+40	95
+id	stock	sold	available_stock
+33	50	11	39
+-- LOG
+[2026-09-29 18:51:26] production.INFO: [INFO] cancel restock applied {"trace_id":"3a8cf2b990a704456ca17ac5ad56ddce","correlation_id":"22222222-2222-4222-8222-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91416,"lines":1,"flash_reversed":1,"request_id":"22222222-2222-4222-8222-000000000001"} 

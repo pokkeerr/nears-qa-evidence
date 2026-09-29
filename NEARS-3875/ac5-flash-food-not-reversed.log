@@ -1,0 +1,21 @@
+== AC5 F1: flash line in stock=false module (food, module 2) NOT reversed. order 91424 item 27 x2 store 6 (vendor B)
+id	order_status	module_id
+91424	pending	2
+item_id	quantity	discount_type
+27	2	flash_sale
+id	sold	available_stock
+9	5	29
+id	stock
+27	0
+(placement above did not bump sold: was 5 before placement, still 5)
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91424,"status":"canceled","reason":"QA3875 food"} X-Request-Id=88888888-8888-4888-8888-000000000001
+HTTP/1.1 200 OK
+{"message":"Status updated"}
+id	order_status	canceled_by
+91424	canceled	store
+id	sold	available_stock
+9	5	29
+id	stock
+27	0
+[2026-09-29 18:53:18] production.WARNING: [WARN] cancel restock - order line has no stock row {"trace_id":"2b35fb32bae11bf27d60302de532c3f3","correlation_id":"88888888-8888-4888-8888-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91424,"order_detail_id":382,"item_id":27,"item_campaign_id":null,"reason":"restock_target_missing","request_id":"88888888-8888-4888-8888-000000000001"} 
+[2026-09-29 18:53:18] production.INFO: [INFO] cancel restock applied {"trace_id":"2b35fb32bae11bf27d60302de532c3f3","correlation_id":"88888888-8888-4888-8888-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91424,"lines":1,"flash_reversed":0,"request_id":"88888888-8888-4888-8888-000000000001"} 

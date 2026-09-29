@@ -1,0 +1,26 @@
+== AC2 store panel cancel (web session, CSRF + captcha-from-session login as demo.store@gmail.com) orders 91422 (item 106) and 91423 (item 40 flash)
+-- BEFORE
+id	order_status	confirmed
+91422	pending	NULL
+91423	pending	NULL
+id	stock
+40	94
+106	128
+id	sold	available_stock
+33	12	38
+-- cancel 91422 #1
+login 302 http://127.0.0.1:8175/vendor-panel
+POST /vendor-panel/order/status {"id":"91422","order_status":"canceled","reason":"QA3875 panel"} X-Request-Id 66666666-6666-4666-8666-000000000001 -> 302 Location: http://127.0.0.1:8175/vendor-panel/order/list/all
+TOASTR success Order status updated
+TOASTR success New message arrived
+id	order_status	canceled_by
+91422	canceled	store
+id	stock
+106	129
+-- cancel 91422 #2 (repeat)
+login 302 http://127.0.0.1:8175/vendor-panel
+POST /vendor-panel/order/status {"id":"91422","order_status":"canceled","reason":"again"} X-Request-Id 66666666-6666-4666-8666-000000000002 -> 302 Location: http://127.0.0.1:8175/vendor-panel/order/list/all
+TOASTR warning This order has already been canceled
+TOASTR success New message arrived
+id	stock
+106	129

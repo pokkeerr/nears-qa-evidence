@@ -1,0 +1,58 @@
+== EXTRA guard: vendor API cancel on orders in terminal statuses (order 91434, item 106; status set by SQL in private copy, confirmed stays NULL, payment set paid/digital + admin wallet credited to make a refund visible)
+stock
+128
+digital_received
+20.02
+-- status=refund_request_canceled
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91434,"status":"canceled","reason":"guard refund_request_canceled"} X-Request-Id=eeeeeeee-eeee-4eee-8eee-000000000001
+HTTP/1.1 409 Conflict
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+id	order_status	refund_applied_at
+91434	refund_request_canceled	NULL
+stock
+128
+digital_received
+20.02
+wt
+0
+-- status=returned
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91434,"status":"canceled","reason":"guard returned"} X-Request-Id=eeeeeeee-eeee-4eee-8eee-000000000002
+HTTP/1.1 409 Conflict
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+id	order_status	refund_applied_at
+91434	returned	NULL
+stock
+128
+digital_received
+20.02
+wt
+0
+-- status=delivered
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91434,"status":"canceled","reason":"guard delivered"} X-Request-Id=eeeeeeee-eeee-4eee-8eee-000000000003
+HTTP/1.1 409 Conflict
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+id	order_status	refund_applied_at
+91434	delivered	NULL
+stock
+128
+digital_received
+20.02
+wt
+0
+-- status=refunded
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91434,"status":"canceled","reason":"guard refunded"} X-Request-Id=eeeeeeee-eeee-4eee-8eee-000000000004
+HTTP/1.1 409 Conflict
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+id	order_status	refund_applied_at
+91434	refunded	NULL
+stock
+128
+digital_received
+20.02
+wt
+0
+-- LOG
+[2026-09-29 18:55:39] production.WARNING: [WARN] vendor cancel rejected - order already terminal {"trace_id":"ec240dec1d960bfa908ce858e32343a3","correlation_id":"eeeeeeee-eeee-4eee-8eee-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91434,"reason":"order_already_canceled","request_id":"eeeeeeee-eeee-4eee-8eee-000000000001"} 
+[2026-09-29 18:55:39] production.WARNING: [WARN] vendor cancel rejected - order already terminal {"trace_id":"b267123b86e35722f47765c93bfdf392","correlation_id":"eeeeeeee-eeee-4eee-8eee-000000000002","endpoint":"/api/v1/vendor/update-order-status","order_id":91434,"reason":"order_already_canceled","request_id":"eeeeeeee-eeee-4eee-8eee-000000000002"} 
+[2026-09-29 18:55:40] production.WARNING: [WARN] vendor cancel rejected - order already terminal {"trace_id":"45afba8c7d6893490ad54e44c05a828a","correlation_id":"eeeeeeee-eeee-4eee-8eee-000000000003","endpoint":"/api/v1/vendor/update-order-status","order_id":91434,"reason":"order_already_canceled","request_id":"eeeeeeee-eeee-4eee-8eee-000000000003"} 
+[2026-09-29 18:55:40] production.WARNING: [WARN] vendor cancel rejected - order already terminal {"trace_id":"2203997392ec2b91c53dd9a234bb11f9","correlation_id":"eeeeeeee-eeee-4eee-8eee-000000000004","endpoint":"/api/v1/vendor/update-order-status","order_id":91434,"reason":"order_already_canceled","request_id":"eeeeeeee-eeee-4eee-8eee-000000000004"} 

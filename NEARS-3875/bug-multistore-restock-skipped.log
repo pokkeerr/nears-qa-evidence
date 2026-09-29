@@ -1,0 +1,15 @@
+== BUG probe: vendor API cancel of an order in the vendor's NON-FIRST store (vendor A demo.store owns stores 1,8,59,4116; order 91430 is store 8 grocery module 1, item 145 x1)
+fixture: order+order_details cloned by SQL in private copy (store 8 closed at order time so the place API refused), items.stock 174->173 to mimic placement
+id	store_id	order_status
+91430	8	pending
+id	stock
+145	173
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91430,"status":"canceled","reason":"QA3875 multistore"} X-Request-Id=99999999-9999-4999-8999-000000000001
+HTTP/1.1 200 OK
+{"message":"Status updated"}
+id	order_status	canceled_by
+91430	canceled	store
+id	stock
+145	173
+[2026-09-29 18:53:59] production.WARNING: [WARN] cancel restock - order line has no stock row {"trace_id":"71411fbd7322f85da07fc953f37029d5","correlation_id":"99999999-9999-4999-8999-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91430,"order_detail_id":383,"item_id":145,"item_campaign_id":null,"reason":"restock_target_missing","request_id":"99999999-9999-4999-8999-000000000001"} 
+[2026-09-29 18:53:59] production.INFO: [INFO] cancel restock applied {"trace_id":"71411fbd7322f85da07fc953f37029d5","correlation_id":"99999999-9999-4999-8999-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91430,"lines":1,"flash_reversed":0,"request_id":"99999999-9999-4999-8999-000000000001"} 

@@ -1,0 +1,62 @@
+== AC5 flash via customer cancel (order 91432 item 40 x1) and admin panel status->canceled (order 91433 item 40 x2), single-line flash orders placed via real customer API
+-- BEFORE
+order_id	item_id	quantity	discount_type
+91432	40	1	flash_sale
+91433	40	2	flash_sale
+id	stock
+40	92
+id	sold	available_stock
+33	15	35
+-- customer cancel 91432
+REQ PUT /api/v1/customer/order/cancel {"order_id":91432,"reason":"QA3875 customer flash"} X-Request-Id=cccccccc-cccc-4ccc-8ccc-000000000001
+HTTP/1.1 200 OK
+{"message":"Order canceled successfully"}
+id	order_status	canceled_by
+91432	canceled	customer
+id	stock
+40	93
+id	sold	available_stock
+33	14	36
+-- customer repeat cancel
+REQ PUT /api/v1/customer/order/cancel {"order_id":91432,"reason":"again"} X-Request-Id=cccccccc-cccc-4ccc-8ccc-000000000002
+HTTP/1.1 409 Conflict
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+id	stock
+40	93
+id	sold	available_stock
+33	14	36
+-- admin cancel 91433 (qty 2)  [my helper server was killed by something outside this run mid-test and restarted on the same port/DB copy; no write had occurred for 91433]
+id	order_status
+91433	pending
+id	stock
+40	93
+id	sold	available_stock
+33	14	36
+login 302 http://127.0.0.1:8175/admin
+POST /admin/order/status {"id":"91433","order_status":"canceled","reason":"QA3875 admin flash"} X-Request-Id dddddddd-dddd-4ddd-8ddd-000000000002 -> 302 Location: http://127.0.0.1:8175/admin/order/list/all
+TOASTR success Order status updated
+TOASTR success Text copied
+TOASTR success New message arrived
+TOASTR success Text copied to clipboard: 
+TOASTR error Failed to copy text: 
+id	order_status	canceled_by
+91433	canceled	admin
+id	stock
+40	95
+id	sold	available_stock
+33	12	38
+-- admin repeat cancel
+login 302 http://127.0.0.1:8175/admin
+POST /admin/order/status {"id":"91433","order_status":"canceled","reason":"again"} X-Request-Id dddddddd-dddd-4ddd-8ddd-000000000003 -> 302 Location: http://127.0.0.1:8175/admin/order/list/all
+TOASTR warning You can not cancel a completed order
+TOASTR success Text copied
+TOASTR success New message arrived
+TOASTR success Text copied to clipboard: 
+TOASTR error Failed to copy text: 
+id	stock
+40	95
+id	sold	available_stock
+33	12	38
+-- LOG
+[2026-09-29 18:54:56] production.INFO: [INFO] cancel restock applied {"trace_id":"f625dbda24c9714d48f880f1861ec07b","correlation_id":"cccccccc-cccc-4ccc-8ccc-000000000001","endpoint":"/api/v1/customer/order/cancel","order_id":91432,"lines":1,"flash_reversed":1,"request_id":"cccccccc-cccc-4ccc-8ccc-000000000001"} 
+[2026-09-29 18:55:25] production.INFO: [INFO] cancel restock applied {"trace_id":"dc6a3e6f4ac9812df13fede063c5eaa0","correlation_id":"dddddddd-dddd-4ddd-8ddd-000000000002","endpoint":"/admin/order/status","order_id":91433,"lines":1,"flash_reversed":1,"request_id":"dddddddd-dddd-4ddd-8ddd-000000000002"} 

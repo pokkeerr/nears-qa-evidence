@@ -1,0 +1,31 @@
+== AC1 variation line + cross-vendor guard; order 91419 (item 84 variation 250ml x1, store 2 owned by vendor B ahmed.khan)
+-- BEFORE
+stock	variations
+1999	[{"type":"250ml","price":200,"stock":999},{"type":"500ml","price":300,"stock":1000}]
+id	order_status
+91419	pending
+-- vendor A (demo.store, owns stores 1,8,59,4116) tries to cancel
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91419,"status":"canceled","reason":"cross vendor"} X-Request-Id=44444444-4444-4444-8444-000000000001
+HTTP/1.1 500 Internal Server Error
+{"message":"Something went wrong"}
+id	order_status
+91419	pending
+stock	variations
+1999	[{"type":"250ml","price":200,"stock":999},{"type":"500ml","price":300,"stock":1000}]
+-- vendor B cancels
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91419,"status":"canceled","reason":"QA3875 variation"} X-Request-Id=44444444-4444-4444-8444-000000000002
+HTTP/1.1 200 OK
+{"message":"Status updated"}
+id	order_status	canceled_by
+91419	canceled	store
+stock	variations
+2000	[{"type":"250ml","price":200,"stock":1000},{"type":"500ml","price":300,"stock":1000}]
+-- vendor B repeat
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91419,"status":"canceled","reason":"again"} X-Request-Id=44444444-4444-4444-8444-000000000003
+HTTP/1.1 409 Conflict
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+stock	variations
+2000	[{"type":"250ml","price":200,"stock":1000},{"type":"500ml","price":300,"stock":1000}]
+-- LOG
+[2026-09-29 18:51:49] production.INFO: [INFO] cancel restock applied {"trace_id":"c72e8c0d604bdad60983be795698be35","correlation_id":"44444444-4444-4444-8444-000000000002","endpoint":"/api/v1/vendor/update-order-status","order_id":91419,"lines":1,"flash_reversed":0,"request_id":"44444444-4444-4444-8444-000000000002"} 
+[2026-09-29 18:51:49] production.WARNING: [WARN] vendor cancel rejected - order already terminal {"trace_id":"95dcc4ec37f6043264320bbf9dfd4752","correlation_id":"44444444-4444-4444-8444-000000000003","endpoint":"/api/v1/vendor/update-order-status","order_id":91419,"reason":"order_already_canceled","request_id":"44444444-4444-4444-8444-000000000003"} 

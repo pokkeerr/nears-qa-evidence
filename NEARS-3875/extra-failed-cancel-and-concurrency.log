@@ -1,0 +1,29 @@
+== EXTRA: 'failed' order still cancellable + restocks (order 91434, set status=failed by SQL)
+stock
+128
+digital_received
+20.02
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91434,"status":"canceled","reason":"failed cancel"} X-Request-Id=ffffffff-ffff-4fff-8fff-000000000001
+HTTP/1.1 200 OK
+{"message":"Status updated"}
+id	order_status	canceled_by	refund_applied_at
+91434	canceled	store	2026-09-29 18:55:48
+stock
+129
+digital_received
+0.00
+
+== EXTRA: concurrency, two simultaneous vendor cancels of one new order
+order=91435
+stock
+128
+req1 HTTP 200
+req2 HTTP 409
+{"message":"Status updated"}
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+id	order_status
+91435	canceled
+stock
+129
+[2026-09-29 18:55:49] production.INFO: [INFO] cancel restock applied {"trace_id":"d4f2ee58d64d2592c21519a9377b1173","correlation_id":"12121212-1212-4212-8212-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91435,"lines":1,"flash_reversed":0,"request_id":"12121212-1212-4212-8212-000000000001"} 
+[2026-09-29 18:55:49] production.WARNING: [WARN] vendor cancel rejected - order already terminal {"trace_id":"5cfdaf71867eaa7ad45155c653e288dc","correlation_id":"12121212-1212-4212-8212-000000000002","endpoint":"/api/v1/vendor/update-order-status","order_id":91435,"reason":"order_already_canceled","request_id":"12121212-1212-421

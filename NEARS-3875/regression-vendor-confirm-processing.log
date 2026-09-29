@@ -1,0 +1,23 @@
+== REGRESSION: vendor confirmed/processing unaffected; cancel after confirm still 403 by the pre-existing gate; order 91436
+stock
+128
+-- confirmed
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91436,"status":"confirmed"} X-Request-Id=13131313-1313-4313-8313-000000000001
+HTTP/1.1 200 OK
+{"message":"Status updated"}
+id	order_status	confirmed	processing
+91436	confirmed	2026-09-29 18:55:59	NULL
+-- processing
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91436,"status":"processing"} X-Request-Id=13131313-1313-4313-8313-000000000002
+HTTP/1.1 200 OK
+{"message":"Status updated"}
+id	order_status	confirmed	processing
+91436	processing	2026-09-29 18:55:59	2026-09-29 18:55:59
+-- cancel after confirm
+REQ PUT /api/v1/vendor/update-order-status {"order_id":91436,"status":"canceled","reason":"late"} X-Request-Id=13131313-1313-4313-8313-000000000003
+HTTP/1.1 403 Forbidden
+{"errors":[{"code":"status","message":"You can not cancel after the order is confirmed"}]}
+id	order_status
+91436	processing
+stock
+128
