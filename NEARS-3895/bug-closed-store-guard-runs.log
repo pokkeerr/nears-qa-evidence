@@ -1,0 +1,12 @@
+# NEARS-3895 QA: closed (schedule) store item via global-search '+' -> basket cleared then add refused 403 store_closed
+## proxy capture (method path moduleId -> status)
+02:03:06.188 DELETE /api/v1/customer/cart/remove moduleId=1 zoneId=None -> 200 body=
+02:03:06.321 GET /api/v1/customer/cart/list moduleId=2 zoneId=[400,2] -> 200 body=
+02:03:06.325 GET /api/v1/customer/cart/list moduleId=2 zoneId=[400,2] -> 200 body=
+02:03:06.873 POST /api/v1/customer/cart/add moduleId=2 zoneId=[400,2] -> 403 body={"item_id":595,"price":"42.87","variation":[],"quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"}
+## app console
+I/flutter ( 2438): [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=dc70e7c4-fec4-4823-a2fa-98f0533659de
+I/flutter ( 2438): [ERR] msg="error snackbar shown"
+## backend
+[2026-09-30 02:03:06] production.WARNING: [WARN] cart add rejected - store closed {"trace_id":"457e6347dacd68c70c37fa524e690e8e","correlation_id":"dc70e7c4-fec4-4823-a2fa-98f0533659de","endpoint":"api/v1/customer/cart/add","http_status":403,"code":"store_closed","reason":"store_closed","item_id":595,"store_id":52,"request_id":"dc70e7c4-fec4-4823-a2fa-98f0533659de"} 
+## search/global payload for item 595: store_details=None, keys with store: store_id,store_name,store_logo,store_lat,store_lng,store_active,store_discount (no open/schedule signal) -> ClosedStoreGate fails open
