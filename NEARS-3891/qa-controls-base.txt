@@ -1,0 +1,16 @@
+# BASE 53b314d4a (untouched) sandboxed: want 137
+base test_ctl_helpers_send_fcm exit=137 | [ctl] about to POST fcm.googleapis.com via Helpers 
+base test_ctl_helpers_oauth exit=137 | [ctl] about to POST oauth2 via Helpers::getAccessToken 
+base test_ctl_trait_send_fcm exit=137 | [ctl] about to POST fcm via NotificationTrait (oauth faked) 
+base test_ctl_trait_oauth exit=137 | [ctl] about to POST oauth2 via NotificationTrait::getAccessToken 
+base test_ctl_firebase_singleton exit=137 | [ctl] about to POST /subscribeToTopic as admin 
+
+# BASE, both hosts faked + firebase.messaging double (CTL_FAKE=1): want 0
+basefake test_ctl_helpers_send_fcm exit=0 | [ctl] helpers_send_fcm returned true OK (1 test, 1 assertion) 
+basefake test_ctl_helpers_oauth exit=0 | [ctl] about to POST oauth2 via Helpers::getAccessToken [ctl] helpers_oauth returned true OK (1 test, 1 assertion) 
+basefake test_ctl_trait_send_fcm exit=0 | [ctl] about to POST fcm via NotificationTrait (oauth faked) [ctl] trait_send_fcm returned true OK (1 test, 1 assertion) 
+basefake test_ctl_trait_oauth exit=0 | [ctl] about to POST oauth2 via NotificationTrait::getAccessToken [ctl] trait_oauth returned true OK (1 test, 1 assertion) 
+basefake test_ctl_firebase_singleton exit=0 | [ctl] about to POST /subscribeToTopic as admin [ctl] firebase_singleton status 200 body={"message":"Successfully subscribed to topic"} OK (1 test, 1 assertion) 
+
+# BASE raw (non-Http) egress: mPDF font fetch, sandboxed, want 137
+DmEarningInvoiceTest exit=137 ; AdminRouteSmokeTest exit=137 (base 53b314d4a)

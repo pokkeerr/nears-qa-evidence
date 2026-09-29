@@ -1,0 +1,109 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\CentralLogics\Helpers;
+use App\Traits\NotificationTrait;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
+use Tests\Feature\Security\Concerns\ActingAsSuperAdmin;
+use Tests\TestCase;
+
+// THROWAWAY QA control (NEARS-3891 [8]); untracked, deleted after use.
+class ZzQaCtl3891Test extends TestCase
+{
+    use DatabaseTransactions;
+    use ActingAsSuperAdmin;
+
+    private array $svc;
+
+    private function cfg(): void
+    {
+        $kp = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+        openssl_pkey_export($kp, $pk);
+        $this->svc = ['type' => 'service_account', 'project_id' => 'qa-ctl-project', 'client_email' => 'qa@qa-ctl-project.iam.gserviceaccount.com', 'private_key' => $pk];
+        Config::set('push_notification_service_file_content_conf', ['value' => json_encode($this->svc)]);
+        if (getenv('CTL_FAKE') === '1') {
+            Http::fake([
+                'oauth2.googleapis.com/*' => Http::response(['access_token' => 'x'], 200),
+                'fcm.googleapis.com/*' => Http::response(['name' => 'n'], 200),
+            ]);
+        }
+    }
+
+    private function traitClass(): object
+    {
+        $svc = $this->svc;
+        return new class($svc) {
+            use NotificationTrait;
+            public static array $svc = [];
+            public function __construct($s) { self::$svc = $s; }
+            public static function get_business_settings($name) { return self::$svc; }
+            public static function send($d) { return self::sendNotificationToHttp($d); }
+            public static function tok($k) { return self::getAccessToken($k); }
+        };
+    }
+
+    private function fcmMsg(): array
+    {
+        return ['message' => ['token' => 'qa-ctl-token', 'data' => ['order_id' => '1']]];
+    }
+
+    public function test_ctl_helpers_send_fcm(): void
+    {
+        $this->cfg();
+        Cache::put('fcm_oauth_access_token_qa-ctl-project', 'cached-tok', now()->addMinutes(50));
+        if (getenv('CTL_FAKE') !== '1') { fwrite(STDERR, "\n[ctl] about to POST fcm.googleapis.com via Helpers\n"); }
+        $r = Helpers::sendNotificationToHttp($this->fcmMsg());
+        fwrite(STDERR, "\n[ctl] helpers_send_fcm returned ".var_export($r, true)."\n");
+        $this->assertTrue(true);
+    }
+
+    public function test_ctl_helpers_oauth(): void
+    {
+        $this->cfg();
+        fwrite(STDERR, "\n[ctl] about to POST oauth2 via Helpers::getAccessToken\n");
+        $t = Helpers::getAccessToken($this->svc);
+        fwrite(STDERR, "\n[ctl] helpers_oauth returned ".var_export((bool) $t, true)."\n");
+        $this->assertTrue(true);
+    }
+
+    public function test_ctl_trait_send_fcm(): void
+    {
+        $this->cfg();
+        if (getenv('CTL_FAKE') !== '1') {
+            Http::fake(['oauth2.googleapis.com/*' => Http::response(['access_token' => 'x'], 200)]);
+        }
+        fwrite(STDERR, "\n[ctl] about to POST fcm via NotificationTrait (oauth faked)\n");
+        $r = $this->traitClass()::send($this->fcmMsg());
+        fwrite(STDERR, "\n[ctl] trait_send_fcm returned ".var_export($r, true)."\n");
+        $this->assertTrue(true);
+    }
+
+    public function test_ctl_trait_oauth(): void
+    {
+        $this->cfg();
+        fwrite(STDERR, "\n[ctl] about to POST oauth2 via NotificationTrait::getAccessToken\n");
+        $t = $this->traitClass()::tok($this->svc);
+        fwrite(STDERR, "\n[ctl] trait_oauth returned ".var_export((bool) $t, true)."\n");
+        $this->assertTrue(true);
+    }
+
+    public function test_ctl_firebase_singleton(): void
+    {
+        $this->cfg();
+        $this->actingAsSuperAdmin();
+        if (getenv('CTL_FAKE') === '1') {
+            $m = \Mockery::mock();
+            $m->shouldReceive('subscribeToTopic')->andReturn(null);
+            app()->instance('firebase.messaging', $m);
+        }
+        fwrite(STDERR, "\n[ctl] about to POST /subscribeToTopic as admin\n");
+        if (getenv('CTL_DEBUG') === '1') { $this->withoutExceptionHandling(); }
+        $resp = $this->post('/subscribeToTopic', ['token' => 'qa-ctl-token']);
+        fwrite(STDERR, "\n[ctl] firebase_singleton status ".$resp->getStatusCode()." body=".substr((string) $resp->getContent(), 0, 400)."\n");
+        $this->assertTrue(true);
+    }
+}
