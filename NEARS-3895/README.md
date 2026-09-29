@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3895
 
-**FAIL - AC5 closed-store guard runs (basket cleared then 403); AC1/2/3/6/7/10/11-12/13/LOG PASS live**
+**FAIL - AC5 closed-store guard runs (basket cleared then 403); AC1/2/3/6/7/10/12/13/LOG PASS live**
 
 **35 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -71,6 +71,7 @@
 - [`bug-closed-store-guard-runs.log`](bug-closed-store-guard-runs.log)
 - [`bug-s3-flagon-variation-details-fail.log`](bug-s3-flagon-variation-details-fail.log)
 - [`bug-stale-home-misstamp.log`](bug-stale-home-misstamp.log)
+- [`reg-rendertable-semantics-assertion.log`](reg-rendertable-semantics-assertion.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3895/` · public-repo scrub policy (no live secrets; verified clean).*
