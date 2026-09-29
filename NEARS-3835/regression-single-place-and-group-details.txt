@@ -1,0 +1,24 @@
+== flag ON in COPY again
+{"cross_module_basket":true}
+== REG single-store /order/place store 12, FOREIGN header moduleId=2, body smuggles mixed_group_child=true, X-Request-Id=a5a53835-0008-4c2a-9e51-7a0d3c835008
+{"errors":[{"code":"different_stores","message":"Please select items from the same store"}]}
+HTTP 403
+== scoped BE log grep a5a53835-0008-4c2a-9e51-7a0d3c835008 (expect mismatch warning STILL fires)
+[2026-09-29 05:47:18] production.WARNING: [WARN] order placement - moduleId header differs from store module {"trace_id":"46f10ed80663f1857bf20e6d2814a865","correlation_id":"a5a53835-0008-4c2a-9e51-7a0d3c835008","endpoint":"api/v1/customer/order/place","store_id":12,"header_module_id":2,"module_id":1,"reason":"header_store_module_mismatch","request_id":"a5a53835-0008-4c2a-9e51-7a0d3c835008"} 
+id	store_id	module_id	order_group_id
+91425	13	1	78dda53c-0b26-4156-ae49-b483ca65a5c4
+== REG GET group/details mixed group X-Request-Id=a5a53835-0009-4c2a-9e51-7a0d3c835009
+{"group_id":"3f88ac9a-a57b-46ed-a7a1-f3001bf12d33","order_ids":[91419,91420,91421],"orders":[{"order_id":91419,"store_id":12,"order_status":"pending"},{"order_id":91420,"store_id":51,"order_status":"pending"},{"order_id":91421,"store_id":55,"order_status":"pending"}]}
+HTTP 200
+
+
+== (note: first attempt 403 different_stores = cart still held items of stores 13/51/55; single-store path requires a one-store cart — unchanged by this diff). Trim COPY cart to store 12 only and retry
+id	item_id	module_id
+983	51	1
+== REG single-store /order/place store 12, FOREIGN header moduleId=2, smuggled mixed_group_child body fields, X-Request-Id=a5a53835-0010-4c2a-9e51-7a0d3c835010
+{"message":"Order placed successfully","order_id":91436,"payment_token":"<scrubbed>","total_ammount":4.2,"status":"pending","created_at":"2026-09-29 05:47:30","user_id":6}
+HTTP 200
+== scoped BE log grep a5a53835-0010-4c2a-9e51-7a0d3c835010 (non-FCM lines)
+[2026-09-29 05:47:30] production.WARNING: [WARN] order placement - moduleId header differs from store module {"trace_id":"03ed904ee0fa52ec663378f311e6790d","correlation_id":"a5a53835-0010-4c2a-9e51-7a0d3c835010","endpoint":"api/v1/customer/order/place","store_id":12,"header_module_id":2,"module_id":1,"reason":"header_store_module_mismatch","request_id":"a5a53835-0010-4c2a-9e51-7a0d3c835010"} 
+id	store_id	module_id	order_group_id
+91436	12	1	NULL

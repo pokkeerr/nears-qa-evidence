@@ -1,0 +1,13 @@
+== cart/add item=51 header moduleId=2
+HTTP 200
+== cart/add item=203 header moduleId=2
+HTTP 200
+id	item_id	cart_module	store_id
+981	51	1	12
+982	203	1	13
+== AC5 flag-ON NON-mixed validate (stores 12+13, both grocery=1) with FOREIGN header moduleId=2, X-Request-Id=a5a53835-0001-4c2a-9e51-7a0d3c835001
+{"valid":true,"stores":[{"store_id":12,"store_name":"Fresh local","pass":true,"reason":null,"message":null},{"store_id":13,"store_name":"Fresh supermarket","pass":true,"reason":null,"message":null}]}
+HTTP 200
+== scoped BE log grep X-Request-Id=a5a53835-0001-4c2a-9e51-7a0d3c835001
+[2026-09-29 05:46:07] production.WARNING: [WARN] order placement - moduleId header differs from store module {"trace_id":"ad956de08c8964792962e6af206e4543","correlation_id":"a5a53835-0001-4c2a-9e51-7a0d3c835001","endpoint":"api/v1/customer/order/group/validate","store_id":12,"header_module_id":2,"module_id":1,"reason":"header_store_module_mismatch","request_id":"a5a53835-0001-4c2a-9e51-7a0d3c835001"} 
+[2026-09-29 05:46:07] production.WARNING: [WARN] order placement - moduleId header differs from store module {"trace_id":"ad956de08c8964792962e6af206e4543","correlation_id":"a5a53835-0001-4c2a-9e51-7a0d3c835001","endpoint":"api/v1/customer/order/group/validate","store_id":13,"header_module_id":2,"module_id":1,"reason":"header_store_module_mismatch","request_id":"a5a53835-0001-4c2a-9e51-7a0d3c835001"} 

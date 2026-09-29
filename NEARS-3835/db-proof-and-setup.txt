@@ -1,0 +1,14 @@
+NEARS-3835 [8] QA — private DB copy + server attribution
+- Copy: CREATE DATABASE nears3835_qa; mysqldump --single-transaction multi_food_db | mysql nears3835_qa (orders 179 = 179)
+- Server: cd <worktree>/Admin && DB_DATABASE=nears3835_qa php artisan serve --host=127.0.0.1 --port=8735 --no-reload
+  pid 92737 cmd: php -S 127.0.0.1:8735 /Users/Apple/Projects/nears-NEARS-3835-group-cross-module/Admin/server.php
+- backend-freshness-check.sh 8735 (pre-boot): rc=2 USAGE (nothing listening, expected)
+- backend-freshness-check.sh 8735 (post-boot): PASS /Users/Apple/Projects/nears-NEARS-3835-group-cross-module @ 41fc1918b (ticket NEARS-3835)
+- DB PROOF: GET /api/v1/config -> cross_module_basket:false; then in COPY ONLY: business_settings.cross_module_basket=1
+  + delete copy cache rows laravel_cachebusiness_settings% (CACHE_DRIVER=database -> cache table lives in the copy)
+  -> GET /api/v1/config -> cross_module_basket:true while multi_food_db.cross_module_basket=0. Server reads the copy.
+- FCM disabled in COPY: push_notification_service_file_content='{}' -> log shows "FCM config missing - no project_id"
+  on every place (no live pushes sent).
+- Copy fixtures: store_schedule 51/55 forced 00:00-23:59; user 6 carts cleared before seeding via /cart/add.
+- Cleanup: server killed (:8735 free), DROP DATABASE nears3835_qa; shared multi_food_db verified untouched
+  (flag 0, push config intact, orders 179 / max id 91415, order_groups 15, module_zone id 6 present, store 51 schedule 08:00-23:00).

@@ -1,0 +1,24 @@
+== fixture (COPY only): detach pharmacy module 3 from zone 2
+deleted
+1
+module_id
+1
+2
+5
+9
+== AC3 flag-ON validate mixed X-Request-Id=a5a53835-0004-4c2a-9e51-7a0d3c835004
+{"valid":false,"stores":[{"store_id":12,"store_name":"Fresh local","pass":true,"reason":null,"message":null},{"store_id":51,"store_name":"Golden Wok (Abu Dhabi)","pass":true,"reason":null,"message":null},{"store_id":55,"store_name":"MediQuick Pharmacy (Abu Dhabi)","pass":false,"reason":"module_unavailable_in_zone","message":"Selected module is not available in this zone."}]}
+HTTP 200
+== counts before place
+orders	order_groups	order_details	carts
+184	17	196	5
+== AC3 flag-ON place mixed X-Request-Id=a5a53835-0005-4c2a-9e51-7a0d3c835005
+{"errors":[{"code":"group_gate","reason":"module_unavailable_in_zone","store_id":55,"store_name":"MediQuick Pharmacy (Abu Dhabi)","message":"Selected module is not available in this zone."}],"group_placed":false}
+HTTP 403
+== counts after place
+orders	order_groups	order_details	carts
+184	17	196	5
+== AC-LOG scoped grep (validate a5a53835-0004-4c2a-9e51-7a0d3c835004)
+[2026-09-29 05:46:43] production.WARNING: [WARN] group order - store module unavailable in zone {"trace_id":"6005819ea37f111efe9930430f4ad224","correlation_id":"a5a53835-0004-4c2a-9e51-7a0d3c835004","endpoint":"api/v1/customer/order/group/validate","store_id":55,"module_id":3,"zone_id":2,"reason":"module_unavailable_in_zone","request_id":"a5a53835-0004-4c2a-9e51-7a0d3c835004"} 
+== AC-LOG scoped grep (place a5a53835-0005-4c2a-9e51-7a0d3c835005)
+[2026-09-29 05:46:43] production.WARNING: [WARN] group order - store module unavailable in zone {"trace_id":"6217ccf91510a91dc983bc71bd733ad7","correlation_id":"a5a53835-0005-4c2a-9e51-7a0d3c835005","endpoint":"api/v1/customer/order/group/place","store_id":55,"module_id":3,"zone_id":2,"reason":"module_unavailable_in_zone","request_id":"a5a53835-0005-4c2a-9e51-7a0d3c835005"} 
