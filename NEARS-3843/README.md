@@ -49,6 +49,7 @@
 - [`ac4-staples-add-all-fix.log`](ac4-staples-add-all-fix.log)
 - [`bug-ac3-sheet-food-row-grocery-out-of-stock.log`](bug-ac3-sheet-food-row-grocery-out-of-stock.log)
 - [`bug-ac3-sheet-food-row-grocery-out-of-stock.xml`](bug-ac3-sheet-food-row-grocery-out-of-stock.xml)
+- [`bug-get-tax-403-flash-sale-stock-mismatch.log`](bug-get-tax-403-flash-sale-stock-mismatch.log)
 - [`bug-global-search-semantics-table-assert.log`](bug-global-search-semantics-table-assert.log)
 - [`bug-nitemcard-overflow-textscale-1.3.log`](bug-nitemcard-overflow-textscale-1.3.log)
 - [`progress.md`](progress.md)
