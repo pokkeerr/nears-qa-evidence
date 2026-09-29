@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3847
 
-**NEARS-3847 Rx label — QA PASS (fix_cycle 0, e34ef91ba)**
+**NEARS-3847 Rx label — QA PASS + cycle-1 observation (row pill vs price)**
 
-**25 screenshot(s).** Click any thumbnail for full resolution.
+**31 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -46,6 +46,16 @@
 <td align="center" width="33%"><a href="acreg-store-grid-flag-off-en.png"><img src="acreg-store-grid-flag-off-en.png" width="240"></a><br><sub>acreg store grid flag off en</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="c1-a5-store-row-ar-1.3x.png"><img src="c1-a5-store-row-ar-1.3x.png" width="240"></a><br><sub>c1 a5 store row ar 1.3x</sub></td>
+<td align="center" width="33%"><a href="c1-a5-store-row-en-1.3x.png"><img src="c1-a5-store-row-en-1.3x.png" width="240"></a><br><sub>c1 a5 store row en 1.3x</sub></td>
+<td align="center" width="33%"><a href="c1-k2-cart-rail-ar-1.0x.png"><img src="c1-k2-cart-rail-ar-1.0x.png" width="240"></a><br><sub>c1 k2 cart rail ar 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c1-k2-cart-rail-ar-1.3x.png"><img src="c1-k2-cart-rail-ar-1.3x.png" width="240"></a><br><sub>c1 k2 cart rail ar 1.3x</sub></td>
+<td align="center" width="33%"><a href="c1-k2-cart-rail-en-1.0x.png"><img src="c1-k2-cart-rail-en-1.0x.png" width="240"></a><br><sub>c1 k2 cart rail en 1.0x</sub></td>
+<td align="center" width="33%"><a href="c1-k2-cart-rail-en-1.3x.png"><img src="c1-k2-cart-rail-en-1.3x.png" width="240"></a><br><sub>c1 k2 cart rail en 1.3x</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="legacy-row-flag-on-grid.png"><img src="legacy-row-flag-on-grid.png" width="240"></a><br><sub>legacy row flag on grid</sub></td>
 </tr>
 </table>
@@ -53,6 +63,11 @@
 ### Other artifacts
 - [`a11y-acreg-sheet-flag-off-en.xml`](a11y-acreg-sheet-flag-off-en.xml)
 - [`a11y-acreg-store-grid-flag-off-en.xml`](a11y-acreg-store-grid-flag-off-en.xml)
+- [`a11y-c1-a5-store-row-en-1.3x.xml`](a11y-c1-a5-store-row-en-1.3x.xml)
+- [`a11y-c1-rail-ar-1.0x.xml`](a11y-c1-rail-ar-1.0x.xml)
+- [`a11y-c1-rail-ar-1.3x.xml`](a11y-c1-rail-ar-1.3x.xml)
+- [`a11y-c1-rail-en-1.0x.xml`](a11y-c1-rail-en-1.0x.xml)
+- [`a11y-c1-rail-en-1.3x.xml`](a11y-c1-rail-en-1.3x.xml)
 - [`a11y-flash-details-en.xml`](a11y-flash-details-en.xml)
 - [`a11y-flash-rail-en-320dp-1.3x.xml`](a11y-flash-rail-en-320dp-1.3x.xml)
 - [`a11y-flash-rail-home-ar.xml`](a11y-flash-rail-home-ar.xml)
