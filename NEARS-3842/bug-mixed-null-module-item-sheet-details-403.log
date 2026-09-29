@@ -1,0 +1,17 @@
+# NEARS-3842 fix-cycle-2 bug: flag ON + mixed basket + no active module -> opening the item sheet from the Basket (cart row tap OR 'You May Also Like' rail card) fails: GET /api/v1/items/details/{id} -> 403 {"errors":[{"code":"moduleId","message":"Module id required"}]} -> sheet shows "Something went wrong / Please try again / Retry" (Retry repeats the 403). The sheet's Add/Update (the path eb20cb930 guarded) is therefore unreachable in the module-null state.
+# device emulator-5570, build eb20cb930 (feat/NEARS-3842-cart-per-store-groups), backend worktree :8242 @ eb20cb930 on private copy nears_qa_3842 (flag=1). Module-null reached via system Back on Home (dashboard removeModule), cart opened via RouteHelper.getCartRoute(); VM read: module=null throughout.
+# mechanism (read-only lead): item_repository.dart _getItemDetails() calls apiClient.getData(itemDetailsUri) with the ambient headers -> no moduleId when ModuleController.module == null. Cycle-1 fixed the sibling items/suggested 403 by passing a per-request moduleId header (store_repository.dart ~:417); items/details has no equivalent. Before NEARS-3842, cart initCall always selected cartList[0]'s module, so module was never null in the cart.
+# backend confirm (curl, zoneId [1]): items/details/122 no moduleId -> 403 "Module id required"; with moduleId: 2 -> 200.
+# The [FAIL] line IS emitted (not a silent failure).
+📊 analytics: screen_view {screen_name: product_sheet, source: basket}
+[NET] GET endpoint=/api/v1/items/details/122
+[NET] endpoint=/api/v1/items/details/122 http_status=403
+[FAIL] endpoint=/api/v1/items/details/122 http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=c5ca2c0a-94d8-4d89-89d5-20340161712e
+📊 analytics: screen_view {screen_name: product_sheet, source: basket}
+[NET] GET endpoint=/api/v1/items/details/2
+[NET] endpoint=/api/v1/items/details/2 http_status=403
+[FAIL] endpoint=/api/v1/items/details/2 http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=ea5e4f88-af1f-4e0d-b31c-8e7d3df81a98
+📊 analytics: screen_view {screen_name: product_sheet, source: basket}
+[NET] GET endpoint=/api/v1/items/details/98
+[NET] endpoint=/api/v1/items/details/98 http_status=403
+[FAIL] endpoint=/api/v1/items/details/98 http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=f725fb40-6027-4f91-b6af-b5cd467bb998
