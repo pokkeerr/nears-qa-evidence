@@ -1,0 +1,10 @@
+# NEARS-3838 QA progress (backend, API-level)
+Backend: /Users/Apple/Projects/nears-NEARS-3838-store-failure-reasons @ ea517acce on :8738, DB nears3838_qa (private copy, marker business_name=NEARS3838-QA-COPY, cross_module_basket=1, push file {} / fcm_project_id '' / mail_config status 0 driver log)
+multi_food_db baseline: orders 179 (max id 91415), order_groups 15, carts 75 (max id 971), SUM(coupons.total_uses)=14 over 12 coupons
+- AC1 PASS: store 13 active=0 -> validate valid:false, 13 reason store_closed, 12+51 pass:true reason:null; place 403 group_gate store_closed store 13; orders/order_groups/carts unchanged (179/15/8)
+- AC2 PASS: module_zone(2,1).max_cod=1 -> 12,13 cod_cap, 51 pass; inverse (module 2 cap=1) -> 51 cod_cap, 12/13 pass; place 403 group_gate cod_cap store 51; zero rows
+- extra: minimum_order (13 min 999999) and out_of_coverage_area (store 1 zone 1) live per-store, others pass
+- AC3 PASS: validate [13,12,51]+coupon applied [13,12] 15; place [12,51] 200 group f57d9e9f orders 91434(12, coupon 12.00) 91435(51); applied_store_ids [12]; cart row 979 (store 13) kept; group [13] -> 403 min:2; /order/place store 13 -> 200 order 91436
+- AC4 PASS (live, data-induced): copy-only items.variations='x-corrupt-qa3838' on item 51 (store 12) -> TypeError at OrderDetailBuilder.php:155 inside store 12's iteration; validate [51,12,13] 200 valid:false 12 store_failed; place 403 group_gate store_failed store 12 'Fresh local', store 51 (placed first) rolled back, 0 new rows, innodb_trx 0
+- AC-LOG PASS: 2 [FAIL] lines, keys = request_id,group_id,store_id,reason,exception_type(TypeError),file,line,store_count + shared correlation_id/trace_id; no message/user_id; request_id == response X-Request-Id
+- AC-REG live PASS: flag OFF base 572f77734 (:8739) vs worktree (:8738) same copy: 8 bodies byte-identical (validate happy/closed/codcap/mixed, place closed/codcap/onestore/mixed); happy place identical modulo ids; only delta = PHP TypeError pre-commit: base 500 {message:Something went wrong} vs new 403 generic group_order (documented)
