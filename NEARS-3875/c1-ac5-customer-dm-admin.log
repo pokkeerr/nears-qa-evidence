@@ -1,0 +1,136 @@
+== c1 AC5 re-sweep: customer / DM / admin cancel of FLASH-line orders (item 40), all placed via real customer API
+-- BEFORE (all pending; flash sold = 12 baseline + 7 units from 91439..91444)
+id	stock
+40	88
+id	sold	available_stock
+33	19	31
+
+--- customer cancel 91441 (item 40 x1)
+REQ PUT /api/v1/customer/order/cancel {"order_id": 91441, "reason": "QA3875 c1 customer"} X-Request-Id=c1c00000-0000-4000-8000-000000000001
+200 {"message":"Order canceled successfully"}
+id	stock
+40	89
+id	sold	available_stock
+33	18	32
+
+[2026-09-29 19:06:47] production.INFO: [INFO] cancel restock applied {"correlation_id":"c1c00000-0000-4000-8000-000000000001","endpoint":"/api/v1/customer/order/cancel","order_id":91441,"lines":1,"flash_reversed":1,"request_id":"c1c00000-0000-4000-8000-000000000001"} 
+REQ PUT /api/v1/customer/order/cancel {"order_id": 91441, "reason": "again"} X-Request-Id=c1c00000-0000-4000-8000-000000000002
+409 {"errors":[{"code":"order","message":"This order has already been canceled"}]}
+(repeat)  id	stock
+40	89
+id	sold	available_stock
+33	18	32
+
+--- DM cancel 91439 (item 40 x1), delivery_man_id=1 set via SQL (private copy) as in cycle 0
+REQ PUT /api/v1/delivery-man/update-order-status {"token": "<token>", "order_id": 91439, "status": "canceled", "reason": "QA3875 c1 dm"} X-Request-Id=c1d00000-0000-4000-8000-000000000001
+200 {"message":"Status updated"}
+id	order_status	canceled_by
+91439	canceled	deliveryman
+
+id	stock
+40	90
+id	sold	available_stock
+33	17	33
+
+[2026-09-29 19:06:48] production.INFO: [INFO] cancel restock applied {"correlation_id":"c1d00000-0000-4000-8000-000000000001","endpoint":"/api/v1/delivery-man/update-order-status","order_id":91439,"lines":1,"flash_reversed":1,"request_id":"c1d00000-0000-4000-8000-000000000001"} 
+REQ PUT /api/v1/delivery-man/update-order-status {"token": "<token>", "order_id": 91439, "status": "canceled", "reason": "again"} X-Request-Id=c1d00000-0000-4000-8000-000000000002
+409 {"errors":[{"code":"order","message":"This order has already been canceled"}]}
+(repeat) id	stock
+40	90
+id	sold	available_stock
+33	17	33
+
+[2026-09-29 19:06:48] production.WARNING: [WARN] deliveryman cancel rejected - order already terminal {"correlation_id":"c1d00000-0000-4000-8000-000000000002","endpoint":"/api/v1/delivery-man/update-order-status","order_id":91439,"reason":"order_already_canceled","request_id":"c1d00000-0000-4000-8000-000000000002"} 
+--- admin panel cancel 91442 (item 40 x2) via POST /admin/order/status (web session + CSRF)
+id	stock
+40	90
+id	sold	available_stock
+33	17	33
+
+panel login admin 419 None
+POST /admin/order/status {"id": "91442", "order_status": "canceled", "reason": "QA3875 c1 admin"} X-Request-Id c1e00000-0000-4000-8000-000000000001 -> 419 None
+id	order_status	canceled_by
+91442	pending	NULL
+
+id	stock
+40	90
+id	sold	available_stock
+33	17	33
+
+(no log lines for c1e00000-0000-4000-8000-000000000001 )
+POST /admin/order/status {"id": "91442", "order_status": "canceled", "reason": "again"} X-Request-Id c1e00000-0000-4000-8000-000000000002 -> 419 None
+(repeat) id	stock
+40	90
+id	sold	available_stock
+33	17	33
+
+(no log lines for c1e00000-0000-4000-8000-000000000002 )
+--- (retry, CSRF via XSRF cookie header) admin panel cancel 91442 (item 40 x2)
+panel login admin 419 None
+POST /admin/order/status {"id": "91442", "order_status": "canceled", "reason": "QA3875 c1 admin"} X-Request-Id c1e00000-0000-4000-8000-000000000003 -> 419 None
+id	order_status	canceled_by
+91442	pending	NULL
+
+id	stock
+40	90
+id	sold	available_stock
+33	17	33
+
+(no log lines for c1e00000-0000-4000-8000-000000000003 )
+--- (retry 2, form _token) admin panel cancel 91442 (item 40 x2)
+panel login admin 419 None
+POST /admin/order/status {"id": "91442", "order_status": "canceled", "reason": "QA3875 c1 admin", "_token": "0IEq3Ezk7RHdv9ohLIdbbmm6eRpu60QnoSWljSgw"} X-Request-Id c1e00000-0000-4000-8000-000000000004 -> 419 None
+id	order_status	canceled_by
+91442	pending	NULL
+
+id	stock
+40	90
+id	sold	available_stock
+33	17	33
+
+(no log lines for c1e00000-0000-4000-8000-000000000004 )
+POST /admin/order/status {"id": "91442", "order_status": "canceled", "reason": "again", "_token": "8zwH77D5OzALN6TG2JmBGOoAL3JAb0raz30cWj3J"} X-Request-Id c1e00000-0000-4000-8000-000000000005 -> 419 None
+(repeat) id	stock
+40	90
+id	sold	available_stock
+33	17	33
+
+(no log lines for c1e00000-0000-4000-8000-000000000005 )
+--- (retry 3: SESSION_SECURE_COOKIE=true over http needed client-side cookie un-secure) admin panel cancel 91442 (item 40 x2)
+panel login admin 419 None
+POST /admin/order/status {"id": "91442", "order_status": "canceled", "reason": "QA3875 c1 admin", "_token": "ysRLtjEci7N4pJydR1rYwKAMrNzHOYKy3Q34I0Ll"} X-Request-Id c1e00000-0000-4000-8000-000000000006 -> 419 None
+id	order_status	canceled_by
+91442	pending	NULL
+
+id	stock
+40	90
+id	sold	available_stock
+33	17	33
+
+(no log lines for c1e00000-0000-4000-8000-000000000006 )
+POST /admin/order/status {"id": "91442", "order_status": "canceled", "reason": "again", "_token": "Q3txIzb2OEIa2g1lqw9h9vDbwsKvsDkHVG3YR3Ix"} X-Request-Id c1e00000-0000-4000-8000-000000000007 -> 419 None
+(repeat) id	stock
+40	90
+id	sold	available_stock
+33	17	33
+
+(no log lines for c1e00000-0000-4000-8000-000000000007 )
+--- (retry 4: cookie Secure flag stripped client-side since SESSION_SECURE_COOKIE=true over http) admin panel cancel 91442 (item 40 x2)
+panel login admin 302 http://127.0.0.1:8175/admin
+POST /admin/order/status {"id": "91442", "order_status": "canceled", "reason": "QA3875 c1 admin", "_token": "rPekKHHJdfoB6zgpqUnZDx2bvPnfKSGAskXN3gkZ"} X-Request-Id c1e00000-0000-4000-8000-000000000008 -> 302 http://127.0.0.1:8175/admin
+id	order_status	canceled_by
+91442	canceled	admin
+
+id	stock
+40	92
+id	sold	available_stock
+33	15	35
+
+[2026-09-29 19:07:43] production.INFO: [INFO] cancel restock applied {"correlation_id":"c1e00000-0000-4000-8000-000000000008","endpoint":"/admin/order/status","order_id":91442,"lines":1,"flash_reversed":1,"request_id":"c1e00000-0000-4000-8000-000000000008"} 
+POST /admin/order/status {"id": "91442", "order_status": "canceled", "reason": "again", "_token": "rPekKHHJdfoB6zgpqUnZDx2bvPnfKSGAskXN3gkZ"} X-Request-Id c1e00000-0000-4000-8000-000000000009 -> 302 http://127.0.0.1:8175/admin
+(repeat) id	stock
+40	92
+id	sold	available_stock
+33	15	35
+
+(no log lines for c1e00000-0000-4000-8000-000000000009 )

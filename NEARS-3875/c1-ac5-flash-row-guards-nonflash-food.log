@@ -1,0 +1,75 @@
+== c1 AC5: flash_sale_items.status=0 (post-placement, private copy) -> order 91443 (item 40 x1), vendor API cancel: stock restocked, flash row NOT touched
+BEFORE id	stock
+40	93
+id	status	sold	available_stock
+33	0	14	36
+id	is_publish
+1	1
+
+REQ PUT /api/v1/vendor/update-order-status {"order_id": 91443, "status": "canceled", "reason": "QA3875 c1"} X-Request-Id=c1a10000-0000-4000-8000-000000000001
+200 {"message":"Status updated"}
+AFTER id	stock
+40	94
+id	status	sold	available_stock
+33	0	14	36
+id	is_publish
+1	1
+
+[2026-09-29 19:08:03] production.INFO: [INFO] cancel restock applied {"correlation_id":"c1a10000-0000-4000-8000-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91443,"lines":1,"flash_reversed":0,"request_id":"c1a10000-0000-4000-8000-000000000001"} 
+[2026-09-29 19:08:03] production.INFO: Vendor API order status notification dispatch {"correlation_id":"c1a10000-0000-4000-8000-000000000001","order_id":91443,"status":"canceled","delivery_man_id":null,"helper_result":true} 
+restored status=1: id	status
+33	1
+
+
+== c1 AC5: flash_sales.is_publish=0 (post-placement, private copy) -> order 91444 (item 40 x1), vendor API cancel: stock restocked, flash row NOT touched
+BEFORE id	stock
+40	94
+id	status	sold	available_stock
+33	1	14	36
+id	is_publish
+1	0
+
+REQ PUT /api/v1/vendor/update-order-status {"order_id": 91444, "status": "canceled", "reason": "QA3875 c1"} X-Request-Id=c1a20000-0000-4000-8000-000000000001
+200 {"message":"Status updated"}
+AFTER id	stock
+40	95
+id	status	sold	available_stock
+33	1	14	36
+id	is_publish
+1	0
+
+[2026-09-29 19:08:03] production.INFO: [INFO] cancel restock applied {"correlation_id":"c1a20000-0000-4000-8000-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91444,"lines":1,"flash_reversed":0,"request_id":"c1a20000-0000-4000-8000-000000000001"} 
+[2026-09-29 19:08:03] production.INFO: Vendor API order status notification dispatch {"correlation_id":"c1a20000-0000-4000-8000-000000000001","order_id":91444,"status":"canceled","delivery_man_id":null,"helper_result":true} 
+restored is_publish=1: id	is_publish
+1	1
+
+
+== c1 AC5: NON-flash-only order 91445 (item 106 x1), customer cancel: all flash rows untouched, no flash_row_missing/WARN
+Traceback (most recent call last):
+  File "<stdin>", line 18, in <module>
+IndexError: list index out of range
+
+== (rerun; the earlier md5() SQL helper was not a function in this MySQL, hash now computed client-side) c1 AC5: NON-flash-only order 91445 (item 106 x1), customer cancel
+BEFORE item106 stock: 123 flash-table md5 937a6ef20076c062fa21eeb6b0d2e43f
+REQ PUT /api/v1/customer/order/cancel {"order_id": 91445, "reason": "QA3875 c1 nonflash"} X-Request-Id=c1a30000-0000-4000-8000-000000000001
+200 {"message":"Order canceled successfully"}
+AFTER item106 stock: 124 flash-table md5 937a6ef20076c062fa21eeb6b0d2e43f unchanged: True
+[2026-09-29 19:08:25] production.INFO: [INFO] cancel restock applied {"correlation_id":"c1a30000-0000-4000-8000-000000000001","endpoint":"/api/v1/customer/order/cancel","order_id":91445,"lines":1,"flash_reversed":0,"request_id":"c1a30000-0000-4000-8000-000000000001"} 
+
+== c1 AC5: FOOD (stock=false module) flash line, order 91450 (item 27 x2, store 6 = vendor 2's NON-first store, module 2), vendor 2 API cancel: flash row 9 NOT reversed, no WARN
+BEFORE id	sold	available_stock
+9	5	29
+id	stock
+27	0
+
+REQ PUT /api/v1/vendor/update-order-status {"order_id": 91450, "status": "canceled", "reason": "QA3875 c1"} X-Request-Id=c1a40000-0000-4000-8000-000000000001
+200 {"message":"Status updated"}
+AFTER id	order_status	canceled_by
+91450	canceled	store
+id	sold	available_stock
+9	5	29
+id	stock
+27	0
+
+[2026-09-29 19:08:26] production.INFO: [INFO] cancel restock applied {"correlation_id":"c1a40000-0000-4000-8000-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91450,"lines":1,"flash_reversed":0,"request_id":"c1a40000-0000-4000-8000-000000000001"} 
+[2026-09-29 19:08:26] production.INFO: Vendor API order status notification dispatch {"correlation_id":"c1a40000-0000-4000-8000-000000000001","order_id":91450,"status":"canceled","delivery_man_id":null,"helper_result":true} 

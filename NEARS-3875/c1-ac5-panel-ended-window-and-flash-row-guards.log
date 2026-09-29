@@ -1,0 +1,34 @@
+== c1 AC5 store panel cancel, sale window ENDED since placement: order 91440 (item 40 x1); private-copy fixture flash_sales.id=1 end_date := order created_at+1s (restore 2027-01-11 23:55:03 after)
+created_at	now()
+2026-09-29 19:06:23	2026-09-29 19:07:52
+
+id	start_date	end_date	is_publish
+1	2026-06-30 12:29:47	2026-09-29 19:06:24	1
+
+BEFORE id	stock
+40	92
+id	status	sold	available_stock
+33	1	15	35
+
+panel login vendor 302 http://127.0.0.1:8175/vendor-panel
+POST /vendor-panel/order/status {"id": "91440", "order_status": "canceled", "reason": "QA3875 c1 panel ended", "_token": "ZENhUQeS4SdACEZwfLkyVZyBuVZ6dvZsQcZEuv8D"} X-Request-Id c1f00000-0000-4000-8000-000000000001 -> 302 http://127.0.0.1:8175/vendor-panel
+id	order_status	canceled_by
+91440	canceled	store
+
+AFTER id	stock
+40	93
+id	status	sold	available_stock
+33	1	14	36
+
+[2026-09-29 19:07:52] production.INFO: [INFO] cancel restock applied {"correlation_id":"c1f00000-0000-4000-8000-000000000001","endpoint":"/vendor-panel/order/status","order_id":91440,"lines":1,"flash_reversed":1,"request_id":"c1f00000-0000-4000-8000-000000000001"} 
+[2026-09-29 19:07:52] production.INFO: Vendor web order status notification dispatch {"correlation_id":"c1f00000-0000-4000-8000-000000000001","order_id":91440,"status":"canceled","delivery_man_id":null,"helper_result":true} 
+POST /vendor-panel/order/status {"id": "91440", "order_status": "canceled", "reason": "again", "_token": "ZENhUQeS4SdACEZwfLkyVZyBuVZ6dvZsQcZEuv8D"} X-Request-Id c1f00000-0000-4000-8000-000000000002 -> 302 http://127.0.0.1:8175/vendor-panel
+(repeat) id	stock
+40	93
+id	status	sold	available_stock
+33	1	14	36
+
+[2026-09-29 19:07:53] production.WARNING: [WARN] store cancel rejected - order already terminal {"correlation_id":"c1f00000-0000-4000-8000-000000000002","endpoint":"/vendor-panel/order/status","order_id":91440,"reason":"order_already_canceled","request_id":"c1f00000-0000-4000-8000-000000000002"} 
+restored: id	end_date
+1	2027-01-11 23:55:03
+

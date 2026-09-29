@@ -1,0 +1,56 @@
+== c1 guards: vendor-API cancel on terminal statuses. fixture (private copy): status set by SQL after placement; the two 409 orders are also marked prepaid/digital so a wrongly-fired refund would be visible
+
+--- g_rrc order 91446 status=refund_request_canceled (paid/digital)
+BEFORE stock106=124 wallet=55.880 | admin digital_received 0.00 order_refund_tx=0
+REQ PUT /api/v1/vendor/update-order-status {"order_id": 91446, "status": "canceled", "reason": "QA3875 c1"} X-Request-Id=c1b10000-0000-4000-8000-000000000001
+409 {"errors":[{"code":"order","message":"This order has already been canceled"}]}
+AFTER  stock106=124 wallet=55.880 | admin digital_received 0.00 order_refund_tx=0  unchanged=True
+id	order_status	canceled_by
+91446	refund_request_canceled	NULL
+
+[2026-09-29 19:08:39] production.WARNING: [WARN] vendor cancel rejected - order already terminal {"correlation_id":"c1b10000-0000-4000-8000-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91446,"reason":"order_already_canceled","request_id":"c1b10000-0000-4000-8000-000000000001"} 
+
+--- g_ret order 91447 status=returned (paid/digital)
+BEFORE stock106=124 wallet=55.880 | admin digital_received 0.00 order_refund_tx=0
+REQ PUT /api/v1/vendor/update-order-status {"order_id": 91447, "status": "canceled", "reason": "QA3875 c1"} X-Request-Id=c1b11111-0000-4000-8000-000000000001
+409 {"errors":[{"code":"order","message":"This order has already been canceled"}]}
+AFTER  stock106=124 wallet=55.880 | admin digital_received 0.00 order_refund_tx=0  unchanged=True
+id	order_status	canceled_by
+91447	returned	NULL
+
+[2026-09-29 19:08:39] production.WARNING: [WARN] vendor cancel rejected - order already terminal {"correlation_id":"c1b11111-0000-4000-8000-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91447,"reason":"order_already_canceled","request_id":"c1b11111-0000-4000-8000-000000000001"} 
+
+--- g_failed order 91448 status=failed (COD): must still cancel + restock (customer-path parity)
+BEFORE stock106=124
+REQ PUT /api/v1/vendor/update-order-status {"order_id": 91448, "status": "canceled", "reason": "QA3875 c1"} X-Request-Id=c1b1f000-0000-4000-8000-000000000001
+200 {"message":"Status updated"}
+AFTER  stock106=125
+id	order_status	canceled_by
+91448	canceled	store
+
+[2026-09-29 19:08:39] production.INFO: [INFO] cancel restock applied {"correlation_id":"c1b1f000-0000-4000-8000-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91448,"lines":1,"flash_reversed":0,"request_id":"c1b1f000-0000-4000-8000-000000000001"} 
+[2026-09-29 19:08:39] production.INFO: Vendor API order status notification dispatch {"correlation_id":"c1b1f000-0000-4000-8000-000000000001","order_id":91448,"status":"canceled","delivery_man_id":null,"helper_result":true} 
+REQ PUT /api/v1/vendor/update-order-status {"order_id": 91448, "status": "canceled", "reason": "QA3875 c1"} X-Request-Id=c1b1f000-0000-4000-8000-000000000002
+409 {"errors":[{"code":"order","message":"This order has already been canceled"}]}
+(repeat) stock106=125
+[2026-09-29 19:08:39] production.WARNING: [WARN] vendor cancel rejected - order already terminal {"correlation_id":"c1b1f000-0000-4000-8000-000000000002","endpoint":"/api/v1/vendor/update-order-status","order_id":91448,"reason":"order_already_canceled","request_id":"c1b1f000-0000-4000-8000-000000000002"} 
+
+--- prepaid order 91449 (order_amount 20.02; fixture: digital/paid + admin_wallets.digital_received += amount, as in cycle 0)
+BEFORE stock106=125 wallet=55.880 | admin digital_received 20.02 order_refund_tx=0
+REQ PUT /api/v1/vendor/update-order-status {"order_id": 91449, "status": "canceled", "reason": "QA3875 c1"} X-Request-Id=c1b20000-0000-4000-8000-000000000001
+200 {"message":"Status updated"}
+AFTER1 stock106=126 wallet=75.900 | admin digital_received 0.00 order_refund_tx=1
+transaction_type	credit	reference	balance
+order_refund	20.020	91449	75.900
+
+id	order_status	refund_applied_at
+91449	canceled	2026-09-29 19:08:40
+
+[2026-09-29 19:08:40] production.INFO: [INFO] cancel restock applied {"correlation_id":"c1b20000-0000-4000-8000-000000000001","endpoint":"/api/v1/vendor/update-order-status","order_id":91449,"lines":1,"flash_reversed":0,"request_id":"c1b20000-0000-4000-8000-000000000001"} 
+[2026-09-29 19:08:40] production.INFO: Vendor API order status notification dispatch {"correlation_id":"c1b20000-0000-4000-8000-000000000001","order_id":91449,"status":"canceled","delivery_man_id":null,"helper_result":true} 
+REQ PUT /api/v1/vendor/update-order-status {"order_id": 91449, "status": "canceled", "reason": "QA3875 c1"} X-Request-Id=c1b20000-0000-4000-8000-000000000002
+409 {"errors":[{"code":"order","message":"This order has already been canceled"}]}
+AFTER2 (repeat) stock106=126 wallet=75.900 | admin digital_received 0.00 order_refund_tx=1
+[2026-09-29 19:08:40] production.WARNING: [WARN] vendor cancel rejected - order already terminal {"correlation_id":"c1b20000-0000-4000-8000-000000000002","endpoint":"/api/v1/vendor/update-order-status","order_id":91449,"reason":"order_already_canceled","request_id":"c1b20000-0000-4000-8000-000000000002"} 
+
+--- COD control: order 91445 (COD, cancelled above via customer path): wallet_transactions rows for it = 0
