@@ -1,0 +1,602 @@
+### FLAG OFF phase: copy nears_3833_qa cross_module_basket=0
+=== AC1-off-list-nohdr  (2026-09-29T00:42:19Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+=== AC2-off-list-hdr1  (2026-09-29T00:42:20Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":1,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: 0280421df6ce  bytes: 15041
+
+=== AC2-off-list-hdr3  (2026-09-29T00:42:20Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 3
+< HTTP 200
+< summary: [{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]}]
+< raw_sha1: 52420c36bcee  bytes: 7783
+
+=== AC1-off-list-guest-nohdr  (2026-09-29T00:42:20Z) port 8733
+> GET /api/v1/customer/cart/list?guest_id=1332
+> headers: zoneId: [1,2,3]; (guest, no auth); moduleId: <ABSENT>
+< HTTP 401
+< summary: {"errors":"Unauthorized"}
+< raw_sha1: 0ef9b8f0efbe  bytes: 25
+
+=== AC2-off-list-guest-hdr2  (2026-09-29T00:42:20Z) port 8733
+> GET /api/v1/customer/cart/list?guest_id=1332
+> headers: zoneId: [1,2,3]; (guest, no auth); moduleId: 2
+< HTTP 401
+< summary: {"errors":"Unauthorized"}
+< raw_sha1: 0ef9b8f0efbe  bytes: 25
+
+=== SETUP-off-guestA-add-m1  (2026-09-29T00:42:42Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: 1
+> body: {"guest_id":1968,"item_id":95,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":978,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]}]
+< raw_sha1: 3b0fa060b05e  bytes: 5346
+
+=== SETUP-off-guestA-add-m3  (2026-09-29T00:42:42Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: 3
+> body: {"guest_id":1968,"item_id":663,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":979,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: 0544647322e8  bytes: 3897
+
+=== SETUP-off-guestB-add-m1  (2026-09-29T00:42:43Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestB id1969>; moduleId: 1
+> body: {"guest_id":1969,"item_id":96,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":980,"module_id":1,"item_id":96,"qty":1,"store_id":35,"cat_ids":[{"id":"11","position":1,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: 723144794b81  bytes: 5556
+
+DB: user3 rows=5 guest1968 rows=2 guest1969=1 user6=3 guest6=2 user2=1 total=78 [before-AC8]
+=== AC8-off-removeitem-nohdr  (2026-09-29T00:42:52Z) port 8733
+> DELETE /api/v1/customer/cart/remove-item?cart_id=825
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+=== AC8-off-remove-nohdr  (2026-09-29T00:42:52Z) port 8733
+> DELETE /api/v1/customer/cart/remove
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+=== AC8-off-remove-guest-nohdr  (2026-09-29T00:42:52Z) port 8733
+> DELETE /api/v1/customer/cart/remove?guest_id=1968
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: <ABSENT>
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+DB: user3 rows=5 guest1968 rows=2 guest1969=1 user6=3 guest6=2 user2=1 total=78 [after-AC8-nohdr]
+=== AC8-off-remove-guestA-hdr1  (2026-09-29T00:42:52Z) port 8733
+> DELETE /api/v1/customer/cart/remove?guest_id=1968
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: 1
+< HTTP 200
+< summary: []
+< raw_sha1: 97d170e1550e  bytes: 2
+
+DB: user3 rows=5 guest1968 rows=1 guest1969=1 user6=3 guest6=2 user2=1 total=77 [after-AC8-guestA-hdr1-clear]
+id	user_id	is_guest	module_id
+979	1968	1	3
+=== SETUP-off-guestA-readd-m1  (2026-09-29T00:43:04Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: 1
+> body: {"guest_id":1968,"item_id":95,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":981,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]}]
+< raw_sha1: b500d91d83fc  bytes: 5346
+
+### AC-REG byte comparison: worktree :8733 (3ce16f7ea) vs base-code :8734 (da4435d75 CartController+Helpers), same copy DB, flag OFF
+=== REG-wt-list-nohdr  (2026-09-29T00:43:58Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+=== REG-base-list-nohdr  (2026-09-29T00:43:58Z) port 8734
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+=== REG-wt-list-hdr1  (2026-09-29T00:43:58Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":1,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: 0280421df6ce  bytes: 15041
+
+=== REG-base-list-hdr1  (2026-09-29T00:43:58Z) port 8734
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":1,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: 3624c1b48065  bytes: 15041
+
+=== REG-wt-list-hdr3  (2026-09-29T00:43:58Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 3
+< HTTP 200
+< summary: [{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]}]
+< raw_sha1: 52420c36bcee  bytes: 7783
+
+=== REG-base-list-hdr3  (2026-09-29T00:43:59Z) port 8734
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 3
+< HTTP 200
+< summary: [{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]}]
+< raw_sha1: 256fa3e0417f  bytes: 7783
+
+=== REG-wt-list-hdr4-empty  (2026-09-29T00:43:59Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 4
+< HTTP 200
+< summary: []
+< raw_sha1: 97d170e1550e  bytes: 2
+
+=== REG-base-list-hdr4-empty  (2026-09-29T00:43:59Z) port 8734
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 4
+< HTTP 200
+< summary: []
+< raw_sha1: 97d170e1550e  bytes: 2
+
+=== REG-wt-list-hdr-unknown  (2026-09-29T00:43:59Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 999
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+=== REG-base-list-hdr-unknown  (2026-09-29T00:43:59Z) port 8734
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 999
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+=== REG-wt-guestA-list-hdr1  (2026-09-29T00:43:59Z) port 8733
+> GET /api/v1/customer/cart/list?guest_id=1968
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: 1
+< HTTP 200
+< summary: [{"cart_id":981,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]}]
+< raw_sha1: b500d91d83fc  bytes: 5346
+
+=== REG-base-guestA-list-hdr1  (2026-09-29T00:43:59Z) port 8734
+> GET /api/v1/customer/cart/list?guest_id=1968
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: 1
+< HTTP 200
+< summary: [{"cart_id":981,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]}]
+< raw_sha1: 39665ece4e5b  bytes: 5346
+
+=== REG-wt-guestA-list-hdr3  (2026-09-29T00:44:00Z) port 8733
+> GET /api/v1/customer/cart/list?guest_id=1968
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: 3
+< HTTP 200
+< summary: [{"cart_id":979,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: 0544647322e8  bytes: 3897
+
+=== REG-base-guestA-list-hdr3  (2026-09-29T00:44:00Z) port 8734
+> GET /api/v1/customer/cart/list?guest_id=1968
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: 3
+< HTTP 200
+< summary: [{"cart_id":979,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: 75ed19b3337c  bytes: 3897
+
+=== REG-wt-cust-list-hdr4  (2026-09-29T00:44:00Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted customer@nears id6>; moduleId: 4
+< HTTP 200
+< summary: [{"cart_id":939,"module_id":4,"item_id":688,"qty":1,"store_id":59,"cat_ids":[{"id":"143","position":1,"name":"QA Staples"}],"variations":[]},{"cart_id":940,"module_id":4,"item_id":689,"qty":1,"store_id":59,"cat_ids":[{"id":"143","position":1,"name":"QA Staples"}],"variations":[]}]
+< raw_sha1: 1b88c31f3f31  bytes: 5598
+
+=== REG-base-cust-list-hdr4  (2026-09-29T00:44:00Z) port 8734
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted customer@nears id6>; moduleId: 4
+< HTTP 200
+< summary: [{"cart_id":939,"module_id":4,"item_id":688,"qty":1,"store_id":59,"cat_ids":[{"id":"143","position":1,"name":"QA Staples"}],"variations":[]},{"cart_id":940,"module_id":4,"item_id":689,"qty":1,"store_id":59,"cat_ids":[{"id":"143","position":1,"name":"QA Staples"}],"variations":[]}]
+< raw_sha1: 69ae07413fb4  bytes: 5598
+
+=== REG-wt-removeitem-nohdr  (2026-09-29T00:44:00Z) port 8733
+> DELETE /api/v1/customer/cart/remove-item?cart_id=825
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+=== REG-base-removeitem-nohdr  (2026-09-29T00:44:00Z) port 8734
+> DELETE /api/v1/customer/cart/remove-item?cart_id=825
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+=== REG-wt-remove-nohdr  (2026-09-29T00:44:00Z) port 8733
+> DELETE /api/v1/customer/cart/remove
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+=== REG-base-remove-nohdr  (2026-09-29T00:44:00Z) port 8734
+> DELETE /api/v1/customer/cart/remove
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 400
+< summary: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+< raw_sha1: 07162ace8d21  bytes: 63
+
+=== REG-wt-removeitem-otherowner-hdr1  (2026-09-29T00:44:01Z) port 8733
+> DELETE /api/v1/customer/cart/remove-item?cart_id=852
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":1,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: 0280421df6ce  bytes: 15041
+
+=== REG-base-removeitem-otherowner-hdr1  (2026-09-29T00:44:01Z) port 8734
+> DELETE /api/v1/customer/cart/remove-item?cart_id=852
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":1,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: 3624c1b48065  bytes: 15041
+
+=== REG-wt-update-hdr1  (2026-09-29T00:44:01Z) port 8733
+> POST /api/v1/customer/cart/update
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"cart_id":826,"price":1,"quantity":2}
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: f6ae2edc8b24  bytes: 15037
+
+=== REG-base-update-hdr1  (2026-09-29T00:44:01Z) port 8734
+> POST /api/v1/customer/cart/update
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"cart_id":826,"price":1,"quantity":2}
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: d7dc92688900  bytes: 15037
+
+=== REG-wt-add-incr  (2026-09-29T00:44:20Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestB id1969>; moduleId: 1
+> body: {"guest_id":1969,"item_id":96,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":980,"module_id":1,"item_id":96,"qty":2,"store_id":35,"cat_ids":[{"id":"11","position":1,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: cd5bdaae0db6  bytes: 5556
+
+=== REG-reset-qty  (2026-09-29T00:44:21Z) port 8733
+> POST /api/v1/customer/cart/update
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestB id1969>; moduleId: 1
+> body: {"guest_id":1969,"cart_id":980,"price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":980,"module_id":1,"item_id":96,"qty":1,"store_id":35,"cat_ids":[{"id":"11","position":1,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: d5f7f048e90f  bytes: 5556
+
+=== REG-base-add-incr  (2026-09-29T00:44:22Z) port 8734
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestB id1969>; moduleId: 1
+> body: {"guest_id":1969,"item_id":96,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":980,"module_id":1,"item_id":96,"qty":2,"store_id":35,"cat_ids":[{"id":"11","position":1,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: d9cee8dac489  bytes: 5556
+
+=== REG-reset-qty2  (2026-09-29T00:44:22Z) port 8733
+> POST /api/v1/customer/cart/update
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestB id1969>; moduleId: 1
+> body: {"guest_id":1969,"cart_id":980,"price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":980,"module_id":1,"item_id":96,"qty":1,"store_id":35,"cat_ids":[{"id":"11","position":1,"name":"Soft Drinks"}],"variations":[]}]
+< raw_sha1: f2f287c867c3  bytes: 5556
+
+### FLAG ON phase: copy nears_3833_qa cross_module_basket=1 ; shared multi_food_db=0
+=== AC3-on-list-nohdr  (2026-09-29T00:44:38Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]}]
+< raw_sha1: 2c6a44ee97c2  bytes: 22819
+
+=== AC4-on-list-hdr1  (2026-09-29T00:44:38Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]}]
+< raw_sha1: 2c6a44ee97c2  bytes: 22819
+
+=== AC4-on-list-hdr3  (2026-09-29T00:44:38Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 3
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]}]
+< raw_sha1: 2c6a44ee97c2  bytes: 22819
+
+=== AC4-on-list-hdr4-noitems  (2026-09-29T00:44:38Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 4
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]}]
+< raw_sha1: 2c6a44ee97c2  bytes: 22819
+
+=== QP-on-list-hdr-unknown  (2026-09-29T00:44:39Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 999
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]}]
+< raw_sha1: 2c6a44ee97c2  bytes: 22819
+
+=== QP-on-list-hdr-slug  (2026-09-29T00:44:39Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: grocery
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]}]
+< raw_sha1: 2c6a44ee97c2  bytes: 22819
+
+AC4-on-list-hdr1 == no-header body: IDENTICAL
+AC4-on-list-hdr3 == no-header body: IDENTICAL
+AC4-on-list-hdr4-noitems == no-header body: IDENTICAL
+QP-on-list-hdr-unknown == no-header body: IDENTICAL
+QP-on-list-hdr-slug == no-header body: IDENTICAL
+=== AC5-on-add-new-m3item-hdr1  (2026-09-29T00:44:48Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"item_id":663,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]},{"cart_id":982,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: 4a42aa683b33  bytes: 26713
+
+{"rows":6,"modules":[1,3],"new":[{"cart_id":982,"module_id":3,"quantity":1}]}
+=== AC5-on-add-incr-m3item-hdr1  (2026-09-29T00:44:48Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"item_id":663,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]},{"cart_id":982,"module_id":3,"item_id":663,"qty":2,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: 5ef5bd18eb37  bytes: 26713
+
+{"rows":6,"modules":[1,3],"incr":[{"cart_id":982,"module_id":3,"quantity":2}]}
+=== AC5-on-add-new-m4item-hdr3  (2026-09-29T00:44:48Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 3
+> body: {"item_id":688,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]},{"cart_id":982,"module_id":3,"item_id":663,"qty":2,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]},{"cart_id":983,"module_id":4,"item_id":688,"qty":1,"store_id":59,"cat_ids":[{"id":"143","position":1,"name":"QA Staples"}],"variations":[]}]
+< raw_sha1: 53305fbb7c48  bytes: 29507
+
+{"rows":7,"modules":[1,3,4],"new":[{"cart_id":983,"module_id":4,"quantity":1}]}
+=== AC5-on-update-m3row-hdr1  (2026-09-29T00:44:56Z) port 8733
+> POST /api/v1/customer/cart/update
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"cart_id":982,"price":1,"quantity":3}
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]},{"cart_id":982,"module_id":3,"item_id":663,"qty":3,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]},{"cart_id":983,"module_id":4,"item_id":688,"qty":1,"store_id":59,"cat_ids":[{"id":"143","position":1,"name":"QA Staples"}],"variations":[]}]
+< raw_sha1: 1f4a8630a10c  bytes: 29507
+
+{"rows":7,"modules":[1,3,4],"upd":[{"cart_id":982,"module_id":3,"quantity":3}]}
+=== QP-on-update-nohdr  (2026-09-29T00:44:57Z) port 8733
+> POST /api/v1/customer/cart/update
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+> body: {"cart_id":982,"price":1,"quantity":2}
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]},{"cart_id":982,"module_id":3,"item_id":663,"qty":2,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]},{"cart_id":983,"module_id":4,"item_id":688,"qty":1,"store_id":59,"cat_ids":[{"id":"143","position":1,"name":"QA Staples"}],"variations":[]}]
+< raw_sha1: 023c8cb9d014  bytes: 29507
+
+{"rows":7,"modules":[1,3,4],"upd":[{"cart_id":982,"module_id":3,"quantity":2}]}
+=== QP-on-add-nohdr  (2026-09-29T00:44:57Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestB id1969>; moduleId: <ABSENT>
+> body: {"guest_id":1969,"item_id":663,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":980,"module_id":1,"item_id":96,"qty":1,"store_id":35,"cat_ids":[{"id":"11","position":1,"name":"Soft Drinks"}],"variations":[]},{"cart_id":984,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: 1cb0407576b5  bytes: 9452
+
+{"rows":2,"modules":[1,3]}
+DB[before-AC6]: u2:852/m1 u3:542/m3 u3:543/m3 u3:825/m1 u3:826/m1 u3:827/m1 u3:982/m3 u3:983/m4 u6:939/m4 u6:940/m4 u6:971/m3 g6:34/m1 g6:36/m1 g1968:979/m3 g1968:981/m1 g1969:980/m1 g1969:984/m3
+=== AC6-on-removeitem-nohdr  (2026-09-29T00:45:06Z) port 8733
+> DELETE /api/v1/customer/cart/remove-item?cart_id=982
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]},{"cart_id":983,"module_id":4,"item_id":688,"qty":1,"store_id":59,"cat_ids":[{"id":"143","position":1,"name":"QA Staples"}],"variations":[]}]
+< raw_sha1: b950d72d3834  bytes: 25613
+
+{"rows":6,"modules":[1,3,4],"ids":[825,826,827,542,543,983]}
+DB[after-AC6-own]: u2:852/m1 u3:542/m3 u3:543/m3 u3:825/m1 u3:826/m1 u3:827/m1 u3:983/m4 u6:939/m4 u6:940/m4 u6:971/m3 g6:34/m1 g6:36/m1 g1968:979/m3 g1968:981/m1 g1969:980/m1 g1969:984/m3
+=== AC6-on-removeitem-otherowner-nohdr  (2026-09-29T00:45:07Z) port 8733
+> DELETE /api/v1/customer/cart/remove-item?cart_id=971
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]},{"cart_id":983,"module_id":4,"item_id":688,"qty":1,"store_id":59,"cat_ids":[{"id":"143","position":1,"name":"QA Staples"}],"variations":[]}]
+< raw_sha1: b950d72d3834  bytes: 25613
+
+{"rows":6,"modules":[1,3,4],"ids":[825,826,827,542,543,983]}
+=== AC6-on-removeitem-guestrow-as-user  (2026-09-29T00:45:07Z) port 8733
+> DELETE /api/v1/customer/cart/remove-item?cart_id=981
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]},{"cart_id":983,"module_id":4,"item_id":688,"qty":1,"store_id":59,"cat_ids":[{"id":"143","position":1,"name":"QA Staples"}],"variations":[]}]
+< raw_sha1: b950d72d3834  bytes: 25613
+
+=== AC6-on-removeitem-hdr4  (2026-09-29T00:45:07Z) port 8733
+> DELETE /api/v1/customer/cart/remove-item?cart_id=983
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 4
+< HTTP 200
+< summary: [{"cart_id":825,"module_id":1,"item_id":3,"qty":62,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":826,"module_id":1,"item_id":348,"qty":2,"store_id":36,"cat_ids":[{"id":"6","position":1,"name":"Dairy & Eggs"},{"id":"8","position":2,"name":"Cheese"}],"variations":[]},{"cart_id":827,"module_id":1,"item_id":98,"qty":1,"store_id":1,"cat_ids":[{"id":"9","position":1,"name":"Beverages"},{"id":"11","position":2,"name":"Soft Drinks"}],"variations":[]},{"cart_id":542,"module_id":3,"item_id":601,"qty":1,"store_id":53,"cat_ids":[{"id":"24","position":1,"name":"Pain Relief"}],"variations":[]},{"cart_id":543,"module_id":3,"item_id":599,"qty":1,"store_id":53,"cat_ids":[{"id":"27","position":1,"name":"First Aid"}],"variations":[]}]
+< raw_sha1: 2c6a44ee97c2  bytes: 22819
+
+{"rows":5,"modules":[1,3],"ids":[825,826,827,542,543]}
+DB[after-AC6-otherowner]: u2:852/m1 u3:542/m3 u3:543/m3 u3:825/m1 u3:826/m1 u3:827/m1 u6:939/m4 u6:940/m4 u6:971/m3 g6:34/m1 g6:36/m1 g1968:979/m3 g1968:981/m1 g1969:980/m1 g1969:984/m3
+=== AC3-on-guestA-list-nohdr  (2026-09-29T00:45:20Z) port 8733
+> GET /api/v1/customer/cart/list?guest_id=1968
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: <ABSENT>
+< HTTP 200
+< summary: [{"cart_id":981,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]},{"cart_id":979,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: 1cbf9cc2c281  bytes: 9242
+
+DB[before-AC7]: u2:852/m1 u3:542/m3 u3:543/m3 u3:825/m1 u3:826/m1 u3:827/m1 u6:939/m4 u6:940/m4 u6:971/m3 g6:34/m1 g6:36/m1 g1968:979/m3 g1968:981/m1 g1969:980/m1 g1969:984/m3 | carts total=79
+=== AC7-on-clear-user-nohdr  (2026-09-29T00:45:20Z) port 8733
+> DELETE /api/v1/customer/cart/remove
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 200
+< summary: []
+< raw_sha1: 97d170e1550e  bytes: 2
+
+=== AC7-on-relist-user-nohdr  (2026-09-29T00:45:20Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 200
+< summary: []
+< raw_sha1: 97d170e1550e  bytes: 2
+
+DB[after-AC7-user-nohdr]: u2:852/m1 u6:939/m4 u6:940/m4 u6:971/m3 g6:34/m1 g6:36/m1 g1968:979/m3 g1968:981/m1 g1969:980/m1 g1969:984/m3 | carts total=74
+=== AC7-on-clear-guestA-hdr4  (2026-09-29T00:45:20Z) port 8733
+> DELETE /api/v1/customer/cart/remove?guest_id=1968
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: 4
+< HTTP 200
+< summary: []
+< raw_sha1: 97d170e1550e  bytes: 2
+
+=== AC7-on-relist-guestA  (2026-09-29T00:45:20Z) port 8733
+> GET /api/v1/customer/cart/list?guest_id=1968
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestA id1968>; moduleId: 1
+< HTTP 200
+< summary: []
+< raw_sha1: 97d170e1550e  bytes: 2
+
+DB[after-AC7-guestA-hdr4]: u2:852/m1 u6:939/m4 u6:940/m4 u6:971/m3 g6:34/m1 g6:36/m1 g1969:980/m1 g1969:984/m3 | carts total=72
+=== AC7-setup-add-m1  (2026-09-29T00:45:30Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"item_id":95,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":985,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]}]
+< raw_sha1: 64f658a91679  bytes: 5344
+
+=== AC7-setup-add-m3  (2026-09-29T00:45:30Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"item_id":663,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":985,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]},{"cart_id":986,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: 4e83ecde1ab1  bytes: 9238
+
+DB[before-AC7-hdr1-clear]: u2:852/m1 u3:985/m1 u3:986/m3 u6:939/m4 u6:940/m4 u6:971/m3 g6:34/m1 g6:36/m1 g1969:980/m1 g1969:984/m3 | carts total=74
+=== AC7-on-clear-user-hdr1  (2026-09-29T00:45:31Z) port 8733
+> DELETE /api/v1/customer/cart/remove
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+< HTTP 200
+< summary: []
+< raw_sha1: 97d170e1550e  bytes: 2
+
+=== AC7-on-relist-user-hdr3  (2026-09-29T00:45:31Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 3
+< HTTP 200
+< summary: []
+< raw_sha1: 97d170e1550e  bytes: 2
+
+DB[after-AC7-user-hdr1-clear]: u2:852/m1 u6:939/m4 u6:940/m4 u6:971/m3 g6:34/m1 g6:36/m1 g1969:980/m1 g1969:984/m3 | carts total=72
+=== AC7-on-clear-guestB-nohdr  (2026-09-29T00:45:31Z) port 8733
+> DELETE /api/v1/customer/cart/remove?guest_id=1969
+> headers: zoneId: [1,2,3]; X-Guest-Token: <redacted guestB id1969>; moduleId: <ABSENT>
+< HTTP 200
+< summary: []
+< raw_sha1: 97d170e1550e  bytes: 2
+
+DB[after-AC7-guestB-nohdr]: u2:852/m1 u6:939/m4 u6:940/m4 u6:971/m3 g6:34/m1 g6:36/m1 | carts total=70
+=== QC-add-1  (2026-09-29T00:45:54Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"item_id":95,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":987,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]}]
+< raw_sha1: 4dcb78af7c69  bytes: 5344
+
+=== QC-add-2  (2026-09-29T00:45:54Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"item_id":663,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":987,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]},{"cart_id":988,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: bb4b4564c11d  bytes: 9238
+
+=== QC-add-96  (2026-09-29T00:45:55Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"item_id":96,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":987,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]},{"cart_id":989,"module_id":1,"item_id":96,"qty":1,"store_id":35,"cat_ids":[{"id":"11","position":1,"name":"Soft Drinks"}],"variations":[]},{"cart_id":988,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: f1b9b78b7fc4  bytes: 14791
+
+=== QC-add-3  (2026-09-29T00:45:55Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"item_id":3,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":987,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]},{"cart_id":989,"module_id":1,"item_id":96,"qty":1,"store_id":35,"cat_ids":[{"id":"11","position":1,"name":"Soft Drinks"}],"variations":[]},{"cart_id":990,"module_id":1,"item_id":3,"qty":1,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":988,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: 37a0b40196d1  bytes: 20078
+
+=== QC-add-688  (2026-09-29T00:45:55Z) port 8733
+> POST /api/v1/customer/cart/add
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+> body: {"item_id":688,"model":"Item","price":1,"quantity":1}
+< HTTP 200
+< summary: [{"cart_id":987,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]},{"cart_id":989,"module_id":1,"item_id":96,"qty":1,"store_id":35,"cat_ids":[{"id":"11","position":1,"name":"Soft Drinks"}],"variations":[]},{"cart_id":990,"module_id":1,"item_id":3,"qty":1,"store_id":2,"cat_ids":[{"id":"3","position":1,"name":"Fruits & Vegetables"},{"id":"4","position":2,"name":"Fresh Fruits"}],"variations":[]},{"cart_id":988,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]},{"cart_id":991,"module_id":4,"item_id":688,"qty":1,"store_id":59,"cat_ids":[{"id":"143","position":1,"name":"QA Staples"}],"variations":[]}]
+< raw_sha1: 61129001b7d9  bytes: 22872
+
+id	store_id	category_ids	variations
+96	99999999	[{"id":"11","position":1}]	[]
+663	57	[{"id":"25","position":1}]	NULL
+688	59	NULL	[]
+id	item_id
+990	99999999
+AC9/AC10 fixture on COPY only: items.96 store_id->99999999 (store-less; cart 989), carts.990 item_id->99999999 (deleted item), items.688 category_ids->NULL (cart 991), items.663 variations->NULL (cart 988). laravel.log baseline line=    1662 at 2026-09-29T00:46:29Z
+=== AC9-AC10-on-list-nohdr  (2026-09-29T00:46:36Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: <ABSENT>
+< HTTP 200
+< summary: [{"cart_id":987,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]},{"cart_id":988,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]},{"cart_id":991,"module_id":4,"item_id":688,"qty":1,"store_id":59,"cat_ids":[],"variations":[]}]
+< raw_sha1: 34bfd89a21d5  bytes: 11987
+
+[{"cart_id":987,"item_id":95,"cat_ids_type":"array","cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"var_type":"array","variations":[]},{"cart_id":988,"item_id":663,"cat_ids_type":"array","cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"var_type":"array","variations":[]},{"cart_id":991,"item_id":688,"cat_ids_type":"array","cat_ids":[],"var_type":"array","variations":[]}]
+### FLAG OFF again (copy=0) for flag-independent AC9/AC10
+=== AC9-off-list-hdr1  (2026-09-29T00:46:53Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 1
+< HTTP 200
+< summary: [{"cart_id":987,"module_id":1,"item_id":95,"qty":1,"store_id":35,"cat_ids":[{"id":"5","position":1,"name":"Fresh Vegetables"}],"variations":[]}]
+< raw_sha1: 4dcb78af7c69  bytes: 5344
+
+=== AC10-off-list-hdr4-nullcat  (2026-09-29T00:46:53Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 4
+< HTTP 200
+< summary: [{"cart_id":991,"module_id":4,"item_id":688,"qty":1,"store_id":59,"cat_ids":[],"variations":[]}]
+< raw_sha1: 160e208edd75  bytes: 2750
+
+=== AC10-off-list-hdr3-nullvar  (2026-09-29T00:46:53Z) port 8733
+> GET /api/v1/customer/cart/list
+> headers: zoneId: [1,2,3]; Authorization: Bearer <redacted michael.brown id3>; moduleId: 3
+< HTTP 200
+< summary: [{"cart_id":988,"module_id":3,"item_id":663,"qty":1,"store_id":57,"cat_ids":[{"id":"25","position":1,"name":"Cold & Flu"}],"variations":[]}]
+< raw_sha1: 001b9843cb4e  bytes: 3895
+
+=== AC9-off-guest6-list-hdr1  (2026-09-29T00:46:54Z) port 8733
+> GET /api/v1/customer/cart/list?guest_id=6
+> headers: zoneId: [1,2,3]; (guest, no auth); moduleId: 1
+< HTTP 401
+< summary: {"errors":"Unauthorized"}
+< raw_sha1: 0ef9b8f0efbe  bytes: 25
+

@@ -1,0 +1,32 @@
+### Query count probe (in-process tinker, DB::enableQueryLog, copy DB, flag ON unless noted) 2026-09-29T00:45:54Z
+[1 row] user=3 header=ABSENT flag=1 status=200 rows=1 modules=[1] queries=22
+[2 rows 2 modules] user=3 header=ABSENT flag=1 status=200 rows=2 modules=[1,3] queries=22
+[2 rows 2 modules] user=3 header=1 flag=1 status=200 rows=2 modules=[1,3] queries=24
+[5 rows 3 modules] user=3 header=ABSENT flag=1 status=200 rows=5 modules=[1,3,4] queries=24
+[5 rows 3 modules] user=3 header=3 flag=1 status=200 rows=5 modules=[1,3,4] queries=26
+--- SQL template dump, 5 rows / 3 modules / 4 stores, header ABSENT (every relation batched IN(...); zero per-row queries) ---
+  SQL: select * from `modules` where `slug` is null limit 1 :: []
+  SQL: select * from `carts` where `user_id` = ? and `is_guest` = ? :: [3,0]
+  SQL: select * from `items` where `items`.`id` in (95, 96, 3, 663, 688) :: []
+  SQL: select * from `translations` where `translations`.`translationable_id` in (3, 95, 96, 663, 688) and `translations`.`translationable_type` = ? and `loc :: ["App\\Models\\Item","en"]
+  SQL: select * from `storages` where `storages`.`data_id` in (3, 95, 96, 663, 688) and `storages`.`data_type` = ? :: ["App\\Models\\Item"]
+  SQL: select * from `stores` where `stores`.`id` in (2, 35, 57, 59) :: []
+  SQL: select * from `store_configs` where `store_configs`.`store_id` in (2, 35, 57, 59) :: []
+  SQL: select * from `discounts` where `discounts`.`store_id` in (2, 35, 57, 59) :: []
+  SQL: select * from `translations` where `translations`.`translationable_id` in (2, 35, 57, 59) and `translations`.`translationable_type` = ? and `locale` = :: ["App\\Models\\Store","en"]
+  SQL: select * from `storages` where `storages`.`data_id` in (2, 35, 57, 59) and `storages`.`data_type` = ? :: ["App\\Models\\Store"]
+  SQL: select * from `units` where `units`.`id` in (1, 6) :: []
+  SQL: select * from `translations` where `translations`.`translationable_id` in (1, 6) and `translations`.`translationable_type` = ? and `locale` = ? :: ["App\\Models\\Unit","en"]
+  SQL: select * from `modules` where `modules`.`id` in (1, 3, 4) :: []
+  SQL: select * from `translations` where `translations`.`translationable_id` in (1, 3, 4) and `translations`.`translationable_type` = ? and `locale` = ? :: ["App\\Models\\Module","en"]
+  SQL: select * from `storages` where `storages`.`data_id` in (1, 3, 4) and `storages`.`data_type` = ? :: ["App\\Models\\Module"]
+  SQL: select * from `pharmacy_item_details` where `pharmacy_item_details`.`item_id` in (3, 95, 96, 663, 688) :: []
+  SQL: select * from `ecommerce_item_details` where `ecommerce_item_details`.`item_id` in (3, 95, 96, 663, 688) :: []
+  SQL: select `nutritions`.*, `item_nutrition`.`item_id` as `pivot_item_id`, `item_nutrition`.`nutrition_id` as `pivot_nutrition_id` from `nutritions` inner  :: []
+  SQL: select `allergies`.*, `allergy_item`.`item_id` as `pivot_item_id`, `allergy_item`.`allergy_id` as `pivot_allergy_id` from `allergies` inner join `alle :: []
+  SQL: select `generic_names`.*, `item_generic_names`.`item_id` as `pivot_item_id`, `item_generic_names`.`generic_name_id` as `pivot_generic_name_id` from `g :: []
+  SQL: select `name`, `id` from `categories` where `id` in (?, ?, ?, ?, ?, ?) :: ["5","11","3","4","25","143"]
+  SQL: select * from `flash_sale_items` where `status` = ? and exists (select * from `items` where `flash_sale_items`.`item_id` = `items`.`id` and exists (se :: [1,1,"commission","unlimited",0,1]
+  SQL: select * from `flash_sales` where `flash_sales`.`id` = ? limit 1 :: [1]
+  SQL: select * from `translations` where `translations`.`translationable_id` in (1) and `translations`.`translationable_type` = ? and `locale` = ? :: ["App\\Models\\FlashSale","en"]
+user=3 header=ABSENT flag=1 status=200 rows=5 modules=[1,3,4] queries=24
