@@ -1,0 +1,169 @@
+# NEARS-3857 live QA log windows — emulator-5586 (AVD NEARS_2414_QA), debug build of worktree @ 9e3e34126, own backend :8157 on private DB copy nears3857_qa
+
+=== SITE 1 flag OFF, no module+no cache, caller=pick-map address save (fresh install) ===
+09-29 23:28:05.431 [INFO] msg="pick-map: saving location and navigating"
+09-29 23:28:05.439 [NET] GET endpoint=/api/v1/config/get-zone-id
+09-29 23:28:05.581 [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+09-29 23:28:05.581 [INFO] msg="location: inZone=true"
+09-29 23:28:05.586 [WARN] msg="cart getCartDataOnline: fetch skipped reason=no_module config_loaded=true"
+09-29 23:28:05.591 [FAIL] endpoint=null http_status=null type=FcmTopicConfigFailure msg="configureFirebaseMessaging: FCM topic subscribe/unsubscribe failed"
+09-29 23:28:05.609 [INFO] msg="home load started"
+09-29 23:28:05.622 [INFO] msg="location handleRoute canRoute=false"
+09-29 23:28:05.629 [INFO] msg="location: zone resolved from short-TTL coord cache (T2 dedupe)"
+09-29 23:28:05.629 [INFO] msg="location: inZone=true"
+09-29 23:28:05.637 [INFO] msg="route: initial route module=null"
+09-29 23:28:05.666 [INFO] msg="home load skipped: already loading"
+
+=== SITE 1 CONTROL flag ON (copy), same caller after pm clear: fetch runs, 0 skip lines ===
+09-29 23:52:25.462 [INFO] msg="pick-map: saving location and navigating"
+09-29 23:52:26.069 [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 23:52:27.068 [NET] endpoint=/api/v1/customer/cart/list http_status=200
+09-29 23:52:27.097 [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 23:52:27.097 [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 23:52:28.068 [NET] endpoint=/api/v1/customer/cart/list http_status=200
+09-29 23:52:28.068 [NET] endpoint=/api/v1/customer/cart/list http_status=200
+skip lines in window 23:52:25-23:52:40: 0
+
+=== SITE 3 module_mismatch via Reorder (active=pharmacy, order 91401 grocery) + Keep/Replace dialog ===
+09-29 23:30:44.975 [INFO] msg="reorder: open-store fallback reason=module_mismatch order_id=91401"
+
+=== SITE 3 order_lines_fetch_failed via Reorder (airplane mode on) ===
+09-29 23:31:24.442 [NET] GET endpoint=/api/v1/customer/order/details
+09-29 23:31:24.445 [FAIL] endpoint=/api/v1/customer/order/details http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=79cbe44d-ffd1-484e-bd8d-609568b8e93f
+09-29 23:31:24.449 [INFO] msg="reorder: open-store fallback reason=order_lines_fetch_failed order_id=91404"
+
+=== SITE 4 nothing added via Reorder (store 58 active=0 in copy -> 403 store_closed) ===
+09-29 23:32:20.516 [NET] GET endpoint=/api/v1/customer/order/details
+09-29 23:32:21.025 [NET] endpoint=/api/v1/customer/order/details http_status=200
+09-29 23:32:21.029 [NET] POST endpoint=/api/v1/customer/cart/add
+09-29 23:32:22.026 [NET] endpoint=/api/v1/customer/cart/add http_status=403
+09-29 23:32:22.027 [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="api request failed" correlation_id=f4d756ec-f9fa-4b27-bb55-c0e578df13d9
+09-29 23:32:22.029 [WARN] msg="reorder: nothing added rejected=1 skipped=0 rx_skipped=0"
+09-29 23:32:22.029 [ERR] msg="error snackbar shown"
+
+=== SITE 3 order_lines_fetch_failed via Reorder OTC (airplane mode on) ===
+09-29 23:33:08.217 [NET] GET endpoint=/api/v1/customer/order/details
+09-29 23:33:08.219 [FAIL] endpoint=/api/v1/customer/order/details http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=d79727a0-20cd-4797-bd4b-ad70196c4cac
+09-29 23:33:08.220 [INFO] msg="reorder: open-store fallback reason=order_lines_fetch_failed order_id=91160"
+
+=== SITE 3 no_addable_lines via Reorder OTC (91160 lines fixture all-Rx in copy) ===
+09-29 23:33:43.389 [NET] GET endpoint=/api/v1/customer/order/details
+09-29 23:33:43.995 [NET] endpoint=/api/v1/customer/order/details http_status=200
+09-29 23:33:43.996 [INFO] msg="reorder: open-store fallback reason=no_addable_lines order_id=91160"
+
+=== SITE 3 bonus: 91157 prescription-only order -> order details 500 (pre-existing backend bug) -> order_lines_fetch_failed ===
+09-29 23:34:28.091 [NET] GET endpoint=/api/v1/customer/order/details
+09-29 23:34:29.002 [NET] endpoint=/api/v1/customer/order/details http_status=500
+09-29 23:34:29.002 [FAIL] endpoint=/api/v1/customer/order/details http_status=500 type=ApiFailure msg="api request failed" correlation_id=1b8e59c2-5d21-4d77-986f-29b3756f131c
+09-29 23:34:29.003 [INFO] msg="reorder: open-store fallback reason=order_lines_fetch_failed order_id=91157"
+
+=== SITE 3 no_addable_lines via Reorder (active=food, 91117 all lines have variations) ===
+09-29 23:38:16.879 [NET] GET endpoint=/api/v1/customer/order/details
+09-29 23:38:17.043 [NET] endpoint=/api/v1/customer/order/details http_status=200
+09-29 23:38:17.045 [INFO] msg="reorder: open-store fallback reason=no_addable_lines order_id=91117"
+09-29 23:38:17.045 [NET] DELETE endpoint=/api/v1/customer/cart/remove
+09-29 23:38:17.173 [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+09-29 23:38:17.175 [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 23:38:17.205 [INFO] msg="route: waiting for module=food-restaurant"
+09-29 23:38:17.205 [INFO] msg="route: checkModuleId configNull=false hasAddress=true fromDeeplink=false"
+09-29 23:38:17.205 [INFO] msg="route: not from deeplink, skipping module fetch"
+09-29 23:38:17.209 [INFO] msg="route: module future state=ConnectionState.waiting hasData=false hasError=false"
+09-29 23:38:17.225 [INFO] msg="route: module future state=ConnectionState.done hasData=false hasError=false"
+09-29 23:38:17.225 [NET] GET endpoint=/api/v1/stores/details/burger-palace
+09-29 23:38:17.340 [NET] endpoint=/api/v1/customer/cart/list http_status=200
+09-29 23:38:17.445 [NET] endpoint=/api/v1/stores/details/burger-palace http_status=200
+09-29 23:38:17.446 [NET] GET endpoint=/api/v1/config/distance-api
+09-29 23:38:17.446 [NET] GET endpoint=/api/v1/categories/offers
+09-29 23:38:17.446 [NET] GET endpoint=/api/v1/items/recommended
+09-29 23:38:17.446 [NET] GET endpoint=/api/v1/items/latest
+09-29 23:38:17.686 [NET] endpoint=/api/v1/items/latest http_status=200
+
+=== SITE 3 module_mismatch via Reorder OTC (active=food, 91160 pharmacy) ===
+09-29 23:39:05.597 [INFO] msg="reorder: open-store fallback reason=module_mismatch order_id=91160"
+09-29 23:39:05.598 [NET] DELETE endpoint=/api/v1/customer/cart/remove
+09-29 23:39:05.820 [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+09-29 23:39:05.823 [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 23:39:05.840 [INFO] msg="route: waiting for module=food-restaurant"
+09-29 23:39:05.840 [INFO] msg="route: checkModuleId configNull=false hasAddress=true fromDeeplink=false"
+09-29 23:39:05.840 [INFO] msg="route: not from deeplink, skipping module fetch"
+09-29 23:39:05.840 [INFO] msg="route: module future state=ConnectionState.waiting hasData=false hasError=false"
+09-29 23:39:05.859 [INFO] msg="route: module future state=ConnectionState.done hasData=false hasError=false"
+09-29 23:39:05.859 [NET] GET endpoint=/api/v1/stores/details/healthcare-pharmacy
+09-29 23:39:06.000 [NET] endpoint=/api/v1/stores/details/healthcare-pharmacy http_status=200
+
+=== SITE 2a initCall miss (module null, cache null, cart row module 3, module 3 status=0 in copy) ===
+09-29 23:42:12.864 [NET] GET endpoint=/api/v1/module
+09-29 23:42:12.865 [WARN] msg="cart initCall: module match miss module_id=3 store_id=57 modules=3"
+09-29 23:42:12.865 [INFO] msg="cart restored with 1 items"
+09-29 23:42:12.865 [NET] GET endpoint=/api/v1/stores/details/57
+09-29 23:42:13.743 [NET] endpoint=/api/v1/stores/details/57 http_status=200
+09-29 23:42:13.744 [NET] GET endpoint=/api/v1/items/suggested
+09-29 23:42:13.747 [NET] endpoint=/api/v1/module http_status=200
+
+=== SITE 2b prepareCheckout miss (Proceed to Checkout, same cart) -> checkout still opens ===
+09-29 23:42:32.538 [NET] GET endpoint=/api/v1/module
+09-29 23:42:32.539 [WARN] msg="cart prepareCheckout: module match miss module_id=3 store_id=57 modules=3"
+09-29 23:42:32.550 [NET] GET endpoint=/api/v1/most-tips
+09-29 23:42:32.550 [NET] GET endpoint=/api/v1/offline_payment_method_list
+09-29 23:42:32.552 [NET] GET endpoint=/api/v1/coupon/list
+09-29 23:42:32.553 [NET] GET endpoint=/api/v1/stores/details/57
+09-29 23:42:33.268 [NET] endpoint=/api/v1/offline_payment_method_list http_status=200
+09-29 23:42:33.270 [NET] endpoint=/api/v1/most-tips http_status=200
+09-29 23:42:33.271 [NET] endpoint=/api/v1/stores/details/57 http_status=200
+09-29 23:42:33.271 [NET] GET endpoint=/api/v1/config/distance-api
+09-29 23:42:33.272 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+09-29 23:42:33.275 [NET] endpoint=/api/v1/coupon/list http_status=200
+
+=== SITE 1b (i) cold start, logged in (token), no cached module: line present, no cart/list at splash ===
+09-29 23:43:12.650 [INFO] msg="route: building splash route, hasData=false"
+09-29 23:43:12.804 [INFO] msg="route: navigating to splash screen"
+09-29 23:43:12.809 [INFO] msg="splash: cart fetch skipped reason=no_cached_module"
+09-29 23:43:12.810 [INFO] msg="splash: location prefetch initiated"
+09-29 23:43:13.430 [INFO] msg="splash: deeplink resolved canRoute=true"
+09-29 23:43:13.430 [INFO] msg="splash: routing"
+09-29 23:43:14.041 [INFO] msg="route: initial route module=null"
+09-29 23:43:16.721 [INFO] msg="splash: location prefetch completed"
+cart/list calls in window 23:43:12-23:43:40: 0
+
+=== SITE 1b (ii) cold start, logged in, cached module (Pharmacy, user-scoped key): cart/list at splash, line absent ===
+09-29 23:46:44.239 [INFO] msg="route: building splash route, hasData=false"
+09-29 23:46:44.394 [INFO] msg="route: navigating to splash screen"
+09-29 23:46:44.401 [INFO] msg="splash: location prefetch initiated"
+09-29 23:46:44.435 [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 23:46:44.714 [NET] endpoint=/api/v1/customer/cart/list http_status=200
+09-29 23:46:44.830 [INFO] msg="splash: location prefetch completed"
+09-29 23:46:45.084 [INFO] msg="splash: deeplink resolved canRoute=true"
+09-29 23:46:45.084 [INFO] msg="splash: routing"
+09-29 23:46:45.760 [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 23:46:45.760 [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 23:46:45.770 [INFO] msg="route: initial route module=pharmacy"
+09-29 23:46:46.893 [NET] endpoint=/api/v1/customer/cart/list http_status=200
+09-29 23:46:46.961 [NET] endpoint=/api/v1/customer/cart/list http_status=200
+splash skip lines in window: 0
+
+=== SITE 5 live (VM-seeded _abandonedInFlight id 987654321, gate invoked directly; no checkout) ===
+09-29 23:49:17.150 [WARN] msg="cart resolvePendingAbandonedCleanups: timed out leftover=1 polls=20"
+09-29 23:49:17.150 [INFO] msg="qa-probe NEARS-3857 gate returned=false"
+
+=== SITE 5 negative control (seed removed): gate true, no WARN ===
+09-29 23:49:24.227 [INFO] msg="qa-probe NEARS-3857 gate returned=true"
+
+=== NEARS-3847 Rx-skip regression (flag ON, order details 91160 Reorder Items) + SITE 4 with rx_skipped=1 ===
+09-29 23:50:56.396 [INFO] msg="reorder: lines skipped reason=prescription_required count=1"
+09-29 23:50:56.397 [NET] POST endpoint=/api/v1/customer/cart/add
+09-29 23:50:57.280 [NET] endpoint=/api/v1/customer/cart/add http_status=403
+09-29 23:50:57.281 [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="api request failed" correlation_id=91d8464c-d632-4291-9e53-61a7e8910601
+09-29 23:50:57.285 [NET] POST endpoint=/api/v1/customer/cart/add
+09-29 23:50:58.280 [NET] endpoint=/api/v1/customer/cart/add http_status=403
+09-29 23:50:58.280 [FAIL] endpoint=/api/v1/customer/cart/add http_status=403 type=ApiFailure msg="api request failed" correlation_id=e026e5bf-1b32-4c97-ac07-45f08259ace4
+09-29 23:50:58.281 [WARN] msg="reorder: nothing added rejected=2 skipped=0 rx_skipped=1"
+09-29 23:50:58.281 [ERR] msg="error snackbar shown"
+
+=== SITE 1b (iii) pm clear -> cold start, no token, no guest id: line absent, no cart fetch ===
+09-29 23:51:24.899 [INFO] msg="route: building splash route, hasData=false"
+09-29 23:51:25.056 [INFO] msg="route: navigating to splash screen"
+09-29 23:51:25.063 [INFO] msg="splash: location prefetch initiated"
+09-29 23:51:25.306 [INFO] msg="splash: location prefetch skipped (permission not granted)"
+09-29 23:51:25.536 [INFO] msg="splash: deeplink resolved canRoute=true"
+09-29 23:51:25.536 [INFO] msg="splash: routing"
+splash skip lines / cart/list calls in window: 0 / 0
