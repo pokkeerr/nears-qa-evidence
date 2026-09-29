@@ -1,0 +1,19 @@
+# bug: doc §21 run/clean-up 'php artisan cache:clear' is unprefixed -> clears the SHARED multi_food_db cache table, not the copy's
+
+## docs/data-qa/dev-seed-qa-fixtures.md §21 (worktree HEAD ef7dc87db)
+884:mysqldump -u root multi_food_db | mysql -u root multi_food_db_qa3858
+888:php artisan cache:clear
+896:`php artisan cache:clear` before serving another DB. There is no `down()`: the surge row is shared with
+
+## cache driver (worktree Admin/.env and primary Admin/.env)
+Admin/.env:CACHE_DRIVER=database
+nears/Admin/.env:CACHE_DRIVER=database
+Admin/.env:DB_DATABASE=multi_food_db
+
+## why
+CACHE_DRIVER=database stores the cache in the default connection's 'cache' table. With no DB_DATABASE prefix,
+'php artisan cache:clear' resolves DB_DATABASE from .env = multi_food_db, so it empties the SHARED DB's cache table
+(91 rows at QA time) and leaves the copy's cache table (dumped from shared) untouched: a shared-DB write from a
+hand-off doc whose whole premise is 'isolated copy only'. NOT executed during QA (would write the shared DB).
+Fix: 'DB_DATABASE=multi_food_db_qa3858 php artisan cache:clear' in both the Run and Clean-up blocks.
+Minor, same block: the doc's dump line omits --single-transaction --set-gtid-purged=OFF used by the QA scope.
