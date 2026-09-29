@@ -1,0 +1,83 @@
+# NEARS-3841 AC2/extra/AC-REG header capture — local proxy 0.0.0.0:8141 -> php -S 127.0.0.1:8142 (worktree Admin @ 4a287e457, DB nears_3841_qa)
+# fields: time method path(query values redacted) status moduleId=<value|ABSENT> zoneId=<present|ABSENT> auth=<Bearer present yes/no> guest_token=<X-Guest-Token present yes/no> rid=<X-Request-Id>
+# section marks are QA-inserted; flag ON until SKEW MARK, skew 06:47-06:48, flag OFF from REG marks, flag ON again at AC-LOG
+06:24:42 GET /api/v1/config status=200 moduleId=ABSENT zoneId=present auth=no guest_token=no rid=eccc3c3a-df00-4429-81d9-90bebf7f495f
+06:26:34 GET /api/v1/customer/cart/list?guest_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=no guest_token=yes rid=33f5d170-4057-4ce5-ae74-0b4a4fa0aa39
+06:26:37 GET /api/v1/customer/cart/list?guest_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=no guest_token=yes rid=e6c01488-c365-491e-b4dc-c7119dc9deab
+06:26:37 GET /api/v1/customer/cart/list?guest_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=no guest_token=yes rid=d6b2e4ce-581a-4dea-954f-f66022ea5740
+06:27:22 POST /api/v1/customer/cart/add?guest_id=* status=403 moduleId=2 zoneId=present auth=no guest_token=yes rid=184f1a4f-e7be-46d0-9ce5-38f7a903a91b
+06:28:16 GET /api/v1/customer/cart/list?guest_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=no guest_token=yes rid=18f08f11-3777-4dcd-9128-4a1b5911738f
+06:28:29 POST /api/v1/customer/cart/add?guest_id=* status=200 moduleId=2 zoneId=present auth=no guest_token=yes rid=941d98da-44e9-46a4-93eb-62530ca5bb56
+06:28:51 GET /api/v1/customer/cart/list?guest_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=no guest_token=yes rid=e8f1ee43-d51a-4514-a58d-1185db21dc8d
+06:28:51 GET /api/v1/customer/cart/list?guest_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=no guest_token=yes rid=9ff51dc0-b9a3-4c85-aa3c-b45174153cdd
+06:29:04 GET /api/v1/customer/cart/list?guest_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=no guest_token=yes rid=27219c17-40c2-42c9-aa32-37915f6fc5d1
+06:29:17 POST /api/v1/customer/cart/add?guest_id=* status=200 moduleId=1 zoneId=present auth=no guest_token=yes rid=b5c760e0-88c9-46c2-a416-84dd9410afee
+=== COLD RESTART MARK 06:32:16 ===
+06:33:00 GET /api/v1/config status=200 moduleId=ABSENT zoneId=present auth=no guest_token=no rid=64f42f13-a3d0-4468-9d33-b0ffbb3856ee
+=== AC1 GUEST OPEN CART MARK 06:33:13 ===
+06:33:14 GET /api/v1/customer/cart/list?guest_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=no guest_token=yes rid=acb92011-3f03-4db4-86bb-89361f543dd4
+06:33:15 GET /api/v1/customer/cart/list?guest_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=no guest_token=yes rid=b6ac62cd-526a-4417-9a1e-02d8c7b3488e
+=== AC3 GUEST SEARCH TAP MARK 06:35:21 ===
+=== AC3 GUEST SEARCH TAP MARK2 06:37:17 ===
+06:37:17 GET /api/v1/customer/cart/list?guest_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=no guest_token=yes rid=f51e8282-7442-43b8-a26e-b1f00ad062ef
+=== GUEST UPDATE+REMOVE MARK 06:38:37 ===
+06:38:41 POST /api/v1/customer/cart/update?guest_id=* status=200 moduleId=2 zoneId=present auth=no guest_token=yes rid=e534cfe5-094b-4a8d-b02e-75db075c68c7
+06:38:45 DELETE /api/v1/customer/cart/remove-item?cart_id=*&guest_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=no guest_token=yes rid=eaa5f45e-7b64-4d79-aedb-b02f5671c458
+06:39:18 GET /api/v1/config status=200 moduleId=2 zoneId=present auth=no guest_token=no rid=b6c43048-90ae-4aba-8e11-04266f688c47
+=== LOGIN MARK 06:39:38 ===
+06:39:48 POST /api/v1/auth/login status=200 moduleId=2 zoneId=present auth=no guest_token=no rid=3a519400-ba49-4fbf-bd58-eec9622dc866
+06:39:49 GET /api/v1/customer/cart/list status=200 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=68e76a55-deb9-4c44-b044-bf6fb7457351
+06:40:31 GET /api/v1/customer/cart/list status=200 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=06f7887e-08c4-41db-9151-92c123734e3c
+06:40:31 GET /api/v1/customer/cart/list status=200 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=499c4ea4-aa86-4c52-a999-4638c85d630f
+06:40:39 GET /api/v1/customer/cart/list status=200 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=7eb40b08-ee70-44d8-b734-23bfb2d60fe3
+06:40:52 POST /api/v1/customer/cart/add status=200 moduleId=1 zoneId=present auth=yes guest_token=no rid=6793b30e-cd0a-470c-8721-5d096eeda9cb
+=== COLD RESTART 2 (logged-in) MARK 06:41:13 ===
+06:41:22 GET /api/v1/config status=200 moduleId=ABSENT zoneId=present auth=yes guest_token=no rid=96cf186c-5e97-4055-a1a7-ed9acfe9a876
+=== AC1 LOGGEDIN OPEN CART MARK 06:41:43 ===
+06:41:44 GET /api/v1/customer/cart/list status=200 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=69c898c0-072f-4493-a80c-861fe0562303
+06:41:45 GET /api/v1/customer/cart/list status=200 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=a67232a2-cc69-404d-808c-72d307347dd1
+=== LOGGEDIN REMOVE MARK 06:42:29 ===
+06:42:32 DELETE /api/v1/customer/cart/remove-item?cart_id=* status=200 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=2aee12a9-6a9c-424c-9f84-5ce5dd020a1e
+06:43:29 GET /api/v1/config status=200 moduleId=1 zoneId=present auth=yes guest_token=no rid=34645f5d-0e46-46b0-9797-21349c5604d2
+=== K1a REORDER SAME-STORE MARK 06:44:37 ===
+=== K1b REORDER OTHER-STORE MARK 06:45:13 ===
+=== K1b REPLACE MARK 06:45:45 ===
+06:45:53 DELETE /api/v1/customer/cart/remove status=200 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=352b9ed3-ab07-4ba8-8448-d17220649bbe
+06:45:53 GET /api/v1/customer/cart/list status=200 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=26b2382c-7c74-4a05-b781-520c7ce055b7
+=== K1 EMPTY-BASKET REORDER MARK 06:46:31 ===
+06:46:45 POST /api/v1/customer/cart/add status=200 moduleId=1 zoneId=present auth=yes guest_token=no rid=2c1ebef0-94ad-4f77-a422-f61f66ff91f1
+=== SKEW MARK 06:47:25 ===
+06:47:28 GET /api/v1/customer/cart/list status=400 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=0d61011d-c716-4b6d-bdda-1134b69db207
+06:47:28 GET /api/v1/customer/cart/list status=400 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=47978d55-63f7-4551-8fcc-369ea0c8a15e
+06:48:26 GET /api/v1/config status=200 moduleId=2 zoneId=present auth=yes guest_token=no rid=d9851680-cfbc-4f85-b386-668368852219
+06:49:23 GET /api/v1/config status=200 moduleId=2 zoneId=present auth=yes guest_token=no rid=f4ff37fc-4a8a-42e8-9d56-9103e56addfc
+=== LOGOUT MARK 06:49:47 ===
+06:49:50 POST /api/v1/auth/logout status=200 moduleId=ABSENT zoneId=present auth=yes guest_token=no rid=c24305ef-6c3a-43a3-8ab5-08905e583bf5
+=== SKEW LOGIN MARK 06:50:10 ===
+06:50:20 POST /api/v1/auth/login status=401 moduleId=ABSENT zoneId=present auth=no guest_token=no rid=82c218e7-cafa-49a4-8e67-846d4135d033
+=== SKEW LOGIN2 MARK 06:50:55 ===
+06:51:24 POST /api/v1/auth/login status=200 moduleId=ABSENT zoneId=present auth=no guest_token=no rid=c0ee1a4f-f31e-4a29-88b1-4386c30ec1fc
+=== SKEW BASKET MARK 06:51:42 ===
+=== REG MODULE SELECT MARK 06:52:29 ===
+=== REG MODULE SELECT MARK 06:53:24 ===
+06:54:20 GET /api/v1/config status=200 moduleId=ABSENT zoneId=present auth=yes guest_token=no rid=6425a48a-ee3e-483f-8eaf-de12118dd304
+06:54:22 GET /api/v1/customer/cart/list status=200 moduleId=2 zoneId=present auth=yes guest_token=no rid=2d391c42-92f9-48d8-a138-5f531b3239a7
+06:54:22 GET /api/v1/customer/cart/list status=200 moduleId=2 zoneId=present auth=yes guest_token=no rid=7cb3b56c-8400-4dfe-abdf-caea17031a16
+=== REG SEARCH TAP MARK 06:55:27 ===
+06:55:40 DELETE /api/v1/customer/cart/remove status=200 moduleId=2 zoneId=ABSENT auth=yes guest_token=no rid=6dd6ac0c-a694-4bc4-912e-7d6bddc35421
+06:55:40 GET /api/v1/customer/cart/list status=200 moduleId=1 zoneId=present auth=yes guest_token=no rid=e194b711-5385-45df-bc67-a7b984cf61ec
+=== REG ADD+REMOVE MARK 06:56:03 ===
+06:56:06 POST /api/v1/customer/cart/add status=200 moduleId=1 zoneId=present auth=yes guest_token=no rid=966a3169-c96d-41da-a5fa-11b784563335
+06:56:25 DELETE /api/v1/customer/cart/remove-item?cart_id=* status=200 moduleId=1 zoneId=present auth=yes guest_token=no rid=f960fc93-dfd6-4414-9a71-a14ebf4a239c
+06:56:44 GET /api/v1/config status=200 moduleId=1 zoneId=present auth=yes guest_token=no rid=104ef8eb-5924-48a2-aeca-af2de032ba43
+=== REG REORDER EMPTY MARK 06:57:36 ===
+06:57:37 DELETE /api/v1/customer/cart/remove status=200 moduleId=1 zoneId=ABSENT auth=yes guest_token=no rid=6efca03a-36f3-4edc-b615-9d5b39cc49c8
+06:57:37 GET /api/v1/customer/cart/list status=200 moduleId=1 zoneId=present auth=yes guest_token=no rid=58288782-2f77-4277-8b7a-a4001bfa5edc
+=== REG ADD CHEF MARK 06:57:44 ===
+06:57:47 POST /api/v1/customer/cart/add status=200 moduleId=1 zoneId=present auth=yes guest_token=no rid=ff8fe237-bf6d-4752-a641-7999fa3093ff
+=== REG REORDER SAME-STORE MARK 06:58:05 ===
+06:58:05 DELETE /api/v1/customer/cart/remove status=200 moduleId=1 zoneId=ABSENT auth=yes guest_token=no rid=8672109a-5329-456a-b94a-9dc7ae74bfb5
+06:58:05 GET /api/v1/customer/cart/list status=200 moduleId=1 zoneId=present auth=yes guest_token=no rid=6f9c07c4-1033-42f9-bd7d-52036a62e6fb
+06:58:42 GET /api/v1/config status=200 moduleId=ABSENT zoneId=present auth=yes guest_token=no rid=6f334870-26e5-4739-bcce-3d9a96b90174
+=== AC-LOG RETRY MARK 07:00:03 ===
+07:00:05 GET /api/v1/customer/cart/list status=200 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=9248e95a-7fa4-464c-a3a8-afa33d0b6d12

@@ -1,0 +1,14 @@
+# Flag skew: client crossModuleBasket=true (config loaded while server ON), server flipped to 0 + cache:clear at ~06:47:10 without app restart
+# proxy:
+06:47:28 GET /api/v1/customer/cart/list status=400 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=0d61011d-c716-4b6d-bdda-1134b69db207
+06:47:28 GET /api/v1/customer/cart/list status=400 moduleId=ABSENT zoneId=ABSENT auth=yes guest_token=no rid=47978d55-63f7-4551-8fcc-369ea0c8a15e
+06:48:26 GET /api/v1/config status=200 moduleId=2 zoneId=present auth=yes guest_token=no rid=d9851680-cfbc-4f85-b386-668368852219
+06:49:23 GET /api/v1/config status=200 moduleId=2 zoneId=present auth=yes guest_token=no rid=f4ff37fc-4a8a-42e8-9d56-9103e56addfc
+# app log:
+09-29 06:47:26.953 I/flutter (27756): [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 06:47:26.954 I/flutter (27756): [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 06:47:27.314 I/flutter (27756): [NET] endpoint=/api/v1/customer/cart/list http_status=400
+09-29 06:47:27.315 I/flutter (27756): [FAIL] endpoint=/api/v1/customer/cart/list http_status=400 type=ApiFailure msg="api request failed" correlation_id=0d61011d-c716-4b6d-bdda-1134b69db207
+09-29 06:47:27.383 I/flutter (27756): [NET] endpoint=/api/v1/customer/cart/list http_status=400
+09-29 06:47:27.384 I/flutter (27756): [FAIL] endpoint=/api/v1/customer/cart/list http_status=400 type=ApiFailure msg="api request failed" correlation_id=47978d55-63f7-4551-8fcc-369ea0c8a15e
+# controller after: cartList.length=1 cartFetchFailed=true (stale last-known basket shown; NErrorRetry only renders when list empty — NEARS-2574 design); client self-healed to flag=false at next /config reload 06:48:26
