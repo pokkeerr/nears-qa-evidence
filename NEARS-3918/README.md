@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3918
 
-**PASS - order_attachment_full_url real URLs / [] (API matrix + UserApp live)**
+**PASS - DeliveryApp order details Rx block delta re-QA**
 
-**6 screenshot(s).** Click any thumbnail for full resolution.
+**8 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -14,6 +14,10 @@
 <td align="center" width="33%"><a href="ac4-userapp-order-991005-empty-attachment.png"><img src="ac4-userapp-order-991005-empty-attachment.png" width="240"></a><br><sub>ac4 userapp order 991005 empty attachment</sub></td>
 <td align="center" width="33%"><a href="dls-details-billing-summary-nonpharmacy-91401.png"><img src="dls-details-billing-summary-nonpharmacy-91401.png" width="240"></a><br><sub>dls details billing summary nonpharmacy 91401</sub></td>
 <td align="center" width="33%"><a href="dls-tracking-sheet-billing-summary-order-91403.png"><img src="dls-tracking-sheet-billing-summary-order-91403.png" width="240"></a><br><sub>dls tracking sheet billing summary order 91403</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="dm-order-details-991031-rx-with-attachment.png"><img src="dm-order-details-991031-rx-with-attachment.png" width="240"></a><br><sub>dm order details 991031 rx with attachment</sub></td>
+<td align="center" width="33%"><a href="dm-order-details-991032-rx-no-attachment.png"><img src="dm-order-details-991032-rx-no-attachment.png" width="240"></a><br><sub>dm order details 991032 rx no attachment</sub></td>
 </tr>
 </table>
 
