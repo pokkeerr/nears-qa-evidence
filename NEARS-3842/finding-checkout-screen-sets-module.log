@@ -1,0 +1,12 @@
+# NEARS-3842 finding: flag ON + mixed basket, module=null -> Proceed to Checkout keeps module null (prepareCheckout guard works) but CheckoutController's own NEARS-726 block (checkout_controller.dart ~:281-290, untouched by this diff) sets the module to the lead store's module ~1s later
+# device emulator-5570 build 282fb772e; basket Nears Mart(m1) x Rice 2, Burger Palace(m2) x2 rows, Fresh Mart(m1) x Red Apple 2
+VM read BEFORE_PROCEED module=null route=/cart
+VM read AFTER_1S      module=null route=/checkout?page=cart&store-id=null
+VM read AFTER_9S      module=1    route=/checkout?page=cart&store-id=null
+09:11:00.455  7064  7064 I flutter : [NET] GET endpoint=/api/v1/module
+09:11:00.457  7064  7064 I flutter : [INFO] msg="cart prepareCheckout: mixed basket, module left unset stores=3"
+09:11:00.700  7064  7064 I flutter : [NET] endpoint=/api/v1/module http_status=200
+09:11:01.672  7064  7064 I flutter : [NET] GET endpoint=/api/v1/module
+09:11:01.680  7064  7064 I flutter : [NET] GET endpoint=/api/v1/cashback/list
+09:11:02.599  7064  7064 I flutter : [NET] endpoint=/api/v1/module http_status=200
+09:11:02.624  7064  7064 I flutter : [NET] endpoint=/api/v1/cashback/list http_status=200

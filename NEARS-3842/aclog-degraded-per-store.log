@@ -1,0 +1,21 @@
+# NEARS-3842 AC-LOG: fault proxy :8242->:8243 injected 500 on GET /api/v1/stores/details/2 and stripped module 2 from GET /api/v1/module; cold start, module null, /cart
+09:12:20 faultproxy :8242 -> 8243 FAIL_STORE=2 DROP_MODULE=2 ENABLED=True
+09:12:28 GET /api/v1/stores/details/2 -> INJECTED 500
+09:12:28 GET /api/v1/module -> 200 STRIPPED module 2 (7->6)
+09:12:47 GET /api/v1/module -> 200 STRIPPED module 2 (7->6)
+09:12:50 GET /api/v1/module -> 200 STRIPPED module 2 (7->6)
+09:13:14 GET /api/v1/stores/details/2 -> INJECTED 500
+09:13:14 GET /api/v1/module -> 200 STRIPPED module 2 (7->6)
+09:13:14 GET /api/v1/stores/details/1 -> 200
+09:13:14 GET /api/v1/stores/details/4 -> 200
+09:13:15 GET /api/v1/stores/details/1 -> 200
+09:13:16 GET /api/v1/stores/details/2 -> INJECTED 500
+09:13:16 GET /api/v1/stores/details/1 -> 200
+09:13:16 GET /api/v1/stores/details/4 -> 200
+# app log (flutter tag, non-NET):
+  9542  9542 I flutter : [FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=2"
+  9542  9542 I flutter : [FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: module badge omitted, module not in zone list store_id=4 module_id=2"
+  9542  9542 I flutter : [INFO] msg="cart initCall: mixed basket, module left unset stores=3"
+  9542  9542 I flutter : [INFO] msg="cart restored with 4 items"
+# paired degraded UI (a11y dump aclog-degraded-cart-a11y-dump.xml): 'Burger Palace, 2 Items, 55.82 AED' (badge omitted, positive control = that same header node); 'Fresh Mart Grocery, Grocery, 1 Item, 6.65 AED' (row-module fallback, no packaging/cutlery card, logo fallback)
+# VM: groups=1:m1:Grocery:logo=true:1|2:m1:Grocery:logo=false:1|4:m2:null:logo=true:2 module=null

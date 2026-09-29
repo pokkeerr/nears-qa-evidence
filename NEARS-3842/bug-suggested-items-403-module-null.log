@@ -1,0 +1,15 @@
+# NEARS-3842 bug: mixed basket opened with no module -> per-store cart suggestions GET /api/v1/items/suggested 403 (moduleId header absent); 'You May Also Like' rail missing
+# device emulator-5570, build 282fb772e, flag ON (copy nears_qa_3842), basket Rice 5kg (Nears Mart m1) + Soup of the Day + Chef Salad (Burger Palace m2)
+# VM read before: module=null cart(in-memory)=0 ; after cart load: module=null cart=3 mixed=true
+09-29 08:59:51.971  7064  7064 I flutter : [INFO] msg="cart initCall: mixed basket, module left unset stores=2"
+09-29 08:59:51.974  7064  7064 I flutter : [INFO] msg="cart restored with 3 items"
+09-29 08:59:52.563  7064  7064 I flutter : [NET] GET endpoint=/api/v1/items/suggested
+09-29 08:59:52.751  7064  7064 I flutter : [NET] endpoint=/api/v1/items/suggested http_status=403
+09-29 08:59:52.757  7064  7064 I flutter : [FAIL] endpoint=/api/v1/items/suggested http_status=403 type=ApiFailure msg="api request failed" correlation_id=39d211df-ec2c-41e7-95eb-9e70ef9090a1
+09-29 08:59:52.768  7064  7064 I flutter : [NET] GET endpoint=/api/v1/items/suggested
+09-29 08:59:53.028  7064  7064 I flutter : [NET] endpoint=/api/v1/items/suggested http_status=403
+09-29 08:59:53.029  7064  7064 I flutter : [FAIL] endpoint=/api/v1/items/suggested http_status=403 type=ApiFailure msg="api request failed" correlation_id=6e04a83d-1a5b-4ab4-8e18-86463ff4a076
+# repro via curl against the same backend:
+GET /api/v1/items/suggested?store_id=4 zoneId=[1] (no moduleId) -> 403 {"errors":[{"code":"moduleId","message":"Module id required"}]}
+GET /api/v1/items/suggested?store_id=4 zoneId=[1] moduleId=2 -> 200 (15 items)
+# control: same basket opened earlier with module=1 set -> [NET] endpoint=/api/v1/items/suggested http_status=200 and the 'You May Also Like' rail rendered

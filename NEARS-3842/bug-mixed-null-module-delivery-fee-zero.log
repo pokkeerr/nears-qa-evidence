@@ -1,0 +1,11 @@
+# NEARS-3842 bug: flag ON + mixed basket + no active module -> per-store delivery quote skipped; section Delivery Fee rows show 0.00 AED (and change on an edit to ANOTHER section)
+# device emulator-5570, build 282fb772e, backend worktree :8242 (copy nears_qa_3842: admin free delivery by order amount over 100)
+# mechanism: PricingSummaryController group fee path passes moduleId = Get.find<ModuleController>().module?.id (pricing_summary_controller.dart ~:1356);
+#   calculateDeliveryCharge returns early when moduleId == null (~:444) -> no POST /api/v1/config/delivery-quote -> fee 0.
+#   On base, cart initCall auto-selected cartList[0]'s module before the fee summary ran; NEARS-3842 AC5 now leaves it null.
+08:57 module=1 (set)  cart open -> 2x POST /api/v1/config/delivery-quote 200 (control: quote runs when a module is set)
+08:59:51 cold start, module=null -> /cart -> "cart initCall: mixed basket, module left unset stores=2" -> 0x delivery-quote -> rows: Nears Mart Delivery Fee 0.00 AED, Burger Palace 0.00 AED
+09:01:25 module became 1 (switchModule path; trigger not reproduced) ; 09:01:30 edit B (Soup 1->2) -> 2x delivery-quote 200 -> both rows 1.00 AED
+09:03:32 module=null (landing) -> /cart -> rows 1.00 / 1.00 (cached latch from the 09:01 quote), 0x delivery-quote
+09:05:08 module=null, edit section B only (cart_quantity_changed item 122 store 4 2->1) -> 0x delivery-quote -> Nears Mart Delivery Fee 1.00 -> 0.00 AED, Burger Palace 1.00 -> 0.00 AED ; no [FAIL]/[WARN] line (silent)
+# expected: each section's fee quoted with that STORE's module (group.moduleId), independent of the active module, and an edit in B must not move A's fee row
