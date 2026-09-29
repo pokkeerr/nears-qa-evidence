@@ -50,3 +50,14 @@
 - V4 smoke flag ON: store grid (Grid view selected) 91157 card a11y "Prescription Required", logs clean. c3-smoke-store-card-rx-pill.png, c3-smoke-store-card-a11y.xml
 - Backstop: flutter test cart_suggestion_rail_multistore_test + cart_controller_test: 31/31 pass
 - Copy fixture: cart row 981 (item 507) added then removed via UI; cross_module_basket 1->0->1. Cart back to row 978 only.
+
+## Cycle 4 delta re-QA (build 21d9475af fresh from worktree, emulator-5554, backend /Users/Apple/Projects/nears-NEARS-3847-rx-label @ 21d9475af :8148, DB multi_food_db_qa3847, flag ON, EN 1.0x)
+- (c) module switch: OPEN1 from Food module: GET 41.226 -> 200 41.386 -> 1 [WARN] empty (store_count=1) 41.404. Switch to Pharmacy, re-enter OPEN2: GET 20.805 -> 200 20.921 -> 1 [INFO] prescription_blocked 20.932; no stale WARN. PASS
+- (a) pharmacy-only warm re-enter OPEN3: GET 02.051 -> 200 02.167 -> 1 INFO 02.184. Cold (force-stop, new pid) OPEN4: GET 04.339 -> 200 04.526 -> 1 INFO 04.552. After-remove re-enter OPEN7: GET 55.594 -> 200 55.698 -> 1 INFO 55.713; rail absent after scrolling to Items Total (positive control: "You May Also Like" header seen on two-store). PASS. c4-a-pharmacy-only-cold-rail-hidden.png
+- (b) two-store (507 added via UI, cart row 982): first open OPEN5: 2 GETs (01.286/01.479 -> 200 01.479/01.783), 0 empty lines, view_item_list once item_count=8 at 01.816. Warm re-enter OPEN6: 0 empty lines (cycle-3 premature INFO gone), view_item_list once item_count=8 at 48.524 (pre-GET, from the cached non-empty map - by design, pinned by test "stale NON-EMPTY map at mount keeps its view_item_list"). PASS
+- Rendering: two-store rail 8 cards (Adhesive Bandages, Allergy Relief, Hand Sanitizer 250ml, Ibuprofen 400mg, Muscle Relief Gel, Pain Relief Patch, Paracetamol 500mg, Vitamin C 1000mg), no Amoxicillin / Prescription. c4-b-two-store-rail-non-rx-cards.png. PASS
+- In-place remove of 507 (same mount): 1 INFO prescription_blocked store_count=1 from this mount's post-mount fetch data - correct line.
+- Smoke: store grid (Grid view selected) 91157 card a11y "Prescription Required", no Add To Cart; OTC stepper 5. c4-smoke-store-grid-rx-pill.png, c4-smoke-store-grid-a11y.xml. PASS
+- Logs: only startup FirebaseInitFailure/FCM [FAIL]s (suffixed pkg, pre-existing); checkout per-store distance [WARN] (pre-existing on base). c4-rail-log-windows.log
+- Backstop: flutter test cart_suggestion_rail_multistore_test + cart_controller_test 35/35 pass
+- Copy fixture: cart row 982 (item 507) added then removed via UI; cart back to row 978 only; flag untouched (ON)

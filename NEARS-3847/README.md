@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3847
 
-**Cycle 3 delta re-QA FAIL on fc9d8cb9f: stale suggestion map logs a premature empty line before the fetch starts**
+**NEARS-3847 cycle 4 delta re-QA PASS (21d9475af): TB1 fixed - empty-rail lines only after this open's suggested GET**
 
-**43 screenshot(s).** Click any thumbnail for full resolution.
+**46 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -76,6 +76,11 @@
 <td align="center" width="33%"><a href="c3-smoke-store-card-rx-pill.png"><img src="c3-smoke-store-card-rx-pill.png" width="240"></a><br><sub>c3 smoke store card rx pill</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="c4-a-pharmacy-only-cold-rail-hidden.png"><img src="c4-a-pharmacy-only-cold-rail-hidden.png" width="240"></a><br><sub>c4 a pharmacy only cold rail hidden</sub></td>
+<td align="center" width="33%"><a href="c4-b-two-store-rail-non-rx-cards.png"><img src="c4-b-two-store-rail-non-rx-cards.png" width="240"></a><br><sub>c4 b two store rail non rx cards</sub></td>
+<td align="center" width="33%"><a href="c4-smoke-store-grid-rx-pill.png"><img src="c4-smoke-store-grid-rx-pill.png" width="240"></a><br><sub>c4 smoke store grid rx pill</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="legacy-row-flag-on-grid.png"><img src="legacy-row-flag-on-grid.png" width="240"></a><br><sub>legacy row flag on grid</sub></td>
 </tr>
 </table>
@@ -118,6 +123,8 @@
 - [`c3-ac3-flag-off-rail-a11y.xml`](c3-ac3-flag-off-rail-a11y.xml)
 - [`c3-ac3-flag-off-reenter.log`](c3-ac3-flag-off-reenter.log)
 - [`c3-smoke-store-card-a11y.xml`](c3-smoke-store-card-a11y.xml)
+- [`c4-rail-log-windows.log`](c4-rail-log-windows.log)
+- [`c4-smoke-store-grid-a11y.xml`](c4-smoke-store-grid-a11y.xml)
 - [`progress.md`](progress.md)
 
 ---
