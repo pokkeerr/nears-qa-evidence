@@ -1,0 +1,256 @@
+# NEARS-3840 live API QA transcript  server=127.0.0.1:8740 db=nears3840_qa code=34b1dc8be  2026-09-29T10:53:16.059484
+## AC1
+## flag cross_module_basket=1
+## payments: global_online=True global_cash=True zones={2: False} -> 2:0,400:1
+## module_zone caps zone2: 1=1.00,2=1000.00
+## basket [12, 51]: 51x3@m1,576x1@m2
+counts(orders,groups) before=125	15
+--- AC1 place POST /api/v1/customer/order/group/place rid=154531e1-7b5d-415b-bbe3-79e2626e1fce -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"errors": [{"code": "group_gate", "reason": "cod_cap", "store_id": 12, "store_name": "Fresh local", "message": "Amount crossed maximum cod order amount"}], "group_placed": false}
+counts after=125	15
+--- AC1 validate POST /api/v1/customer/order/group/validate rid=2a503094-e963-4cef-a505-7bad3d335038 -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"valid": false, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": false, "reason": "cod_cap", "message": "Amount crossed maximum cod order amount", "amounts": null}, {"store_id": 51, "store_name": "Golden Wok (Abu Dhabi)", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 21.78, "items_total": 21.78, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 1.04, "extra_packaging_amount": 0, "additional_charge": 0}}], "amounts": null, "cash_removed": false}
+log[154531e1-7b5d-415b-bbe3-79e2626e1fce]: []
+log[2a503094-e963-4cef-a505-7bad3d335038]: []
+## AC2 (cap restored 1000; online NOT effective so only the schedule rule can fire)
+## payments: global_online=True global_cash=True zones={2: False} -> 2:0,400:1
+## basket [12, 51]: 51x3@m1,576x1@m2
+--- AC2 place future POST /api/v1/customer/order/group/place rid=c8d16635-8795-4599-a486-594ccb478516 -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}], "schedule_at": "2026-09-29 11:53:29"}
+    resp: {"errors": [{"code": "schedule_at", "reason": "mixed_basket_asap_only", "message": "Scheduling isn't available for a basket with items from different store types. Choose 'As soon as possible' to continue."}], "group_placed": false}
+counts before/after=125	15 / 125	15
+log lines=1 schedule_at_in_log=False
+  [2026-09-29 10:53:29] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"21f5a8549e2557ceaefd7ec357ba3fca","correlation_id":"c8d16635-8795-4599-a486-594ccb478516","endpoint":"api/v1/customer/order/group/place","request_id":"c8d16635-8795-4599-a486-594ccb478516","reason":"mixed_basket_asap_only","store_count":2} 
+--- AC2 place past POST /api/v1/customer/order/group/place rid=4794e9ce-889b-4b4b-ae95-ca4988ecc0f1 -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}], "schedule_at": "2026-09-28 10:53:29"}
+    resp: {"errors": [{"code": "schedule_at", "reason": "mixed_basket_asap_only", "message": "Scheduling isn't available for a basket with items from different store types. Choose 'As soon as possible' to continue."}], "group_placed": false}
+counts before/after=125	15 / 125	15
+log lines=1 schedule_at_in_log=False
+  [2026-09-29 10:53:29] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"5c558a0b7412491b64ee608e0aa710ac","correlation_id":"4794e9ce-889b-4b4b-ae95-ca4988ecc0f1","endpoint":"api/v1/customer/order/group/place","request_id":"4794e9ce-889b-4b4b-ae95-ca4988ecc0f1","reason":"mixed_basket_asap_only","store_count":2} 
+--- AC2 validate future POST /api/v1/customer/order/group/validate rid=773f8956-ee16-4115-8d3e-1b8288b2ea53 -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}], "schedule_at": "2026-09-29 11:53:29"}
+    resp: {"errors": [{"code": "schedule_at", "reason": "mixed_basket_asap_only", "message": "Scheduling isn't available for a basket with items from different store types. Choose 'As soon as possible' to continue."}]}
+counts before/after=125	15 / 125	15
+log lines=1 schedule_at_in_log=False
+  [2026-09-29 10:53:30] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"7f1df24cc10721101c87a2763f9b6514","correlation_id":"773f8956-ee16-4115-8d3e-1b8288b2ea53","endpoint":"api/v1/customer/order/group/validate","request_id":"773f8956-ee16-4115-8d3e-1b8288b2ea53","reason":"mixed_basket_asap_only","store_count":2} 
+--- AC2 validate past POST /api/v1/customer/order/group/validate rid=cfee87fd-5a66-434f-89f0-c9588ad038ed -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}], "schedule_at": "2026-09-28 10:53:29"}
+    resp: {"errors": [{"code": "schedule_at", "reason": "mixed_basket_asap_only", "message": "Scheduling isn't available for a basket with items from different store types. Choose 'As soon as possible' to continue."}]}
+counts before/after=125	15 / 125	15
+log lines=1 schedule_at_in_log=False
+  [2026-09-29 10:53:30] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"c2e60078e7cea7f6c60e2299be9582bc","correlation_id":"cfee87fd-5a66-434f-89f0-c9588ad038ed","endpoint":"api/v1/customer/order/group/validate","request_id":"cfee87fd-5a66-434f-89f0-c9588ad038ed","reason":"mixed_basket_asap_only","store_count":2} 
+cart after: 51,576
+## AC3/AC4 online effective
+## payments: global_online=True global_cash=True zones={2: True} -> 2:1,400:1
+## basket [12, 51]: 51x3@m1,576x1@m2
+--- AC3 cash place POST /api/v1/customer/order/group/place rid=061064e3-8599-4bdc-9926-6f1ea815b02e -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"errors": [{"code": "payment_method", "reason": "mixed_basket_cash_unavailable", "message": "Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}], "group_placed": false}
+counts before/after=125	15 / 125	15
+log lines=1
+  [2026-09-29 10:53:39] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"7bf387435eefe8c5284562470fff0e90","correlation_id":"061064e3-8599-4bdc-9926-6f1ea815b02e","endpoint":"api/v1/customer/order/group/place","request_id":"061064e3-8599-4bdc-9926-6f1ea815b02e","reason":"mixed_basket_cash_unavailable","store_count":2} 
+--- AC3 cash validate POST /api/v1/customer/order/group/validate rid=a2e80174-1338-4b1c-ac6a-e63cf753afee -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"errors": [{"code": "payment_method", "reason": "mixed_basket_cash_unavailable", "message": "Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]}
+counts before/after=125	15 / 125	15
+log lines=1
+  [2026-09-29 10:53:39] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"5d5c99372a4ef1bd7c57bc97957d5630","correlation_id":"a2e80174-1338-4b1c-ac6a-e63cf753afee","endpoint":"api/v1/customer/order/group/validate","request_id":"a2e80174-1338-4b1c-ac6a-e63cf753afee","reason":"mixed_basket_cash_unavailable","store_count":2} 
+--- AC3/AC4 validate digital_payment wallet=1000 POST /api/v1/customer/order/group/validate rid=cf77fc5e-c483-46d1-9937-b35d4fe68b77 -> 200
+    body: {"payment_method": "digital_payment", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"valid": true, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 12.6, "items_total": 12.6, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 0.6, "extra_packaging_amount": 0, "additional_charge": 0}}, {"store_id": 51, "store_name": "Golden Wok (Abu Dhabi)", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 21.78, "items_total": 21.78, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 1.04, "extra_packaging_amount": 0, "additional_charge": 0}}], "amounts": {"order_amount": 34.38, "items_total": 34.38, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0}, "cash_removed": true}
+keys=['valid', 'stores', 'amounts', 'cash_removed'] valid=True cash_removed=True log lines=0
+--- AC3/AC4 validate wallet wallet=1000 POST /api/v1/customer/order/group/validate rid=2902d528-f9db-4967-a1a1-43cfda794dcc -> 200
+    body: {"payment_method": "wallet", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"valid": true, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 12.6, "items_total": 12.6, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 0.6, "extra_packaging_amount": 0, "additional_charge": 0}}, {"store_id": 51, "store_name": "Golden Wok (Abu Dhabi)", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 21.78, "items_total": 21.78, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 1.04, "extra_packaging_amount": 0, "additional_charge": 0}}], "amounts": {"order_amount": 34.38, "items_total": 34.38, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0}, "cash_removed": true}
+keys=['valid', 'stores', 'amounts', 'cash_removed'] valid=True cash_removed=True log lines=0
+--- AC3/AC4 validate partial_payment wallet=5 POST /api/v1/customer/order/group/validate rid=a7dcfd83-16f1-42b3-96c0-a579df091569 -> 200
+    body: {"payment_method": "partial_payment", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"valid": true, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 12.6, "items_total": 12.6, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 0.6, "extra_packaging_amount": 0, "additional_charge": 0}}, {"store_id": 51, "store_name": "Golden Wok (Abu Dhabi)", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 21.78, "items_total": 21.78, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 1.04, "extra_packaging_amount": 0, "additional_charge": 0}}], "amounts": {"order_amount": 34.38, "items_total": 34.38, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0}, "cash_removed": true}
+keys=['valid', 'stores', 'amounts', 'cash_removed'] valid=True cash_removed=True log lines=0
+## AC3 zone-mix: store 12 moved to zone 400 (copy only)
+!! cart add 51 -> 403 {'errors': [{'code': 'out_of_zone', 'message': 'Item not available in your zone'}]}
+## basket [12, 51]: 576x1@m2
+## payments: global_online=True global_cash=True zones={2: True, 400: False} -> 2:1,400:0
+--- AC3 zone-mix validate cash (zone400 online=False) POST /api/v1/customer/order/group/validate rid=58104e46-86b6-4dc9-8196-d9e2d5bb5898 -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"valid": false, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": false, "reason": "empty_cart", "message": "You can not place empty orders", "amounts": null}, {"store_id": 51, "store_name": "Golden Wok (Abu Dhabi)", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 21.78, "items_total": 21.78, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 1.04, "extra_packaging_amount": 0, "additional_charge": 0}}], "amounts": null, "cash_removed": false}
+valid=False cash_removed=False
+log lines=0
+## payments: global_online=True global_cash=True zones={2: True, 400: True} -> 2:1,400:1
+--- AC3 zone-mix validate cash (zone400 online=True) POST /api/v1/customer/order/group/validate rid=5e76d67b-e65f-4583-8075-9a7bfbc11ba9 -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"errors": [{"code": "payment_method", "reason": "mixed_basket_cash_unavailable", "message": "Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]}
+errors=[{"code": "payment_method", "reason": "mixed_basket_cash_unavailable", "message": "Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]
+log lines=1
+## payments: global_online=True global_cash=True zones={2: True, 400: True} -> 2:1,400:1
+store12 zone restored=2
+## AC4 false cases: global online OFF, cash
+## payments: global_online=False global_cash=True zones={2: True} -> 2:1,400:1
+## basket [12, 51]: 51x3@m1,576x1@m2
+--- AC4 global-online-off validate cash POST /api/v1/customer/order/group/validate rid=d7846a5f-775d-409d-ab11-aab49cac82e1 -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"valid": true, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 12.6, "items_total": 12.6, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 0.6, "extra_packaging_amount": 0, "additional_charge": 0}}, {"store_id": 51, "store_name": "Golden Wok (Abu Dhabi)", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 21.78, "items_total": 21.78, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 1.04, "extra_packaging_amount": 0, "additional_charge": 0}}], "amounts": {"order_amount": 34.38, "items_total": 34.38, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0}, "cash_removed": false}
+keys=['valid', 'stores', 'amounts', 'cash_removed'] cash_removed=False
+## payments: global_online=True global_cash=True zones={2: False} -> 2:0,400:1
+--- AC4 zone-online-off validate cash POST /api/v1/customer/order/group/validate rid=611489fe-0313-4a86-9b29-c0ca28511fa0 -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"valid": true, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 12.6, "items_total": 12.6, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 0.6, "extra_packaging_amount": 0, "additional_charge": 0}}, {"store_id": 51, "store_name": "Golden Wok (Abu Dhabi)", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 21.78, "items_total": 21.78, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 1.04, "extra_packaging_amount": 0, "additional_charge": 0}}], "amounts": {"order_amount": 34.38, "items_total": 34.38, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0}, "cash_removed": false}
+keys=['valid', 'stores', 'amounts', 'cash_removed'] cash_removed=False
+## Scope: both rules together
+## payments: global_online=True global_cash=True zones={2: True} -> 2:1,400:1
+--- BOTH place POST /api/v1/customer/order/group/place rid=37fa7081-0918-453c-b7c3-fa50c7f4efcc -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}], "schedule_at": "2026-09-29 11:53:53"}
+    resp: {"errors": [{"code": "schedule_at", "reason": "mixed_basket_asap_only", "message": "Scheduling isn't available for a basket with items from different store types. Choose 'As soon as possible' to continue."}, {"code": "payment_method", "reason": "mixed_basket_cash_unavailable", "message": "Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}], "group_placed": false}
+order=['schedule_at', 'payment_method'] counts 125	15 / 125	15
+log lines=2
+  [2026-09-29 10:53:53] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"6959d377cb832de407a586e2d12ec0fa","correlation_id":"37fa7081-0918-453c-b7c3-fa50c7f4efcc","endpoint":"api/v1/customer/order/group/place","request_id":"37fa7081-0918-453c-b7c3-fa50c7f4efcc","reason":"mixed_basket_asap_only","store_count":2} 
+  [2026-09-29 10:53:53] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"6959d377cb832de407a586e2d12ec0fa","correlation_id":"37fa7081-0918-453c-b7c3-fa50c7f4efcc","endpoint":"api/v1/customer/order/group/place","request_id":"37fa7081-0918-453c-b7c3-fa50c7f4efcc","reason":"mixed_basket_cash_unavailable","store_count":2} 
+--- BOTH validate POST /api/v1/customer/order/group/validate rid=d511cb7e-e47b-488b-ba5d-d0a0f643a405 -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}], "schedule_at": "2026-09-29 11:53:53"}
+    resp: {"errors": [{"code": "schedule_at", "reason": "mixed_basket_asap_only", "message": "Scheduling isn't available for a basket with items from different store types. Choose 'As soon as possible' to continue."}, {"code": "payment_method", "reason": "mixed_basket_cash_unavailable", "message": "Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]}
+order=['schedule_at', 'payment_method'] counts 125	15 / 125	15
+log lines=2
+  [2026-09-29 10:53:53] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"422b528e43c9fd75534a78ce44ab1fb0","correlation_id":"d511cb7e-e47b-488b-ba5d-d0a0f643a405","endpoint":"api/v1/customer/order/group/validate","request_id":"d511cb7e-e47b-488b-ba5d-d0a0f643a405","reason":"mixed_basket_asap_only","store_count":2} 
+  [2026-09-29 10:53:53] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"422b528e43c9fd75534a78ce44ab1fb0","correlation_id":"d511cb7e-e47b-488b-ba5d-d0a0f643a405","endpoint":"api/v1/customer/order/group/validate","request_id":"d511cb7e-e47b-488b-ba5d-d0a0f643a405","reason":"mixed_basket_cash_unavailable","store_count":2} 
+## Scope: unparseable schedule_at
+--- UNPARSEABLE place POST /api/v1/customer/order/group/place rid=2522354a-d087-4899-a155-e3a1650a6528 -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}], "schedule_at": "not-a-date"}
+    resp: {"errors": [{"code": "group_order", "message": "Failed to place order"}]}
+counts 125	15 / 125	15
+log lines=1
+  [2026-09-29 10:53:53] production.ERROR: [FAIL] group_order_place_failed {"trace_id":"4d6cc0985d9c0f50d8efe3b45040c2c0","correlation_id":"2522354a-d087-4899-a155-e3a1650a6528","request_id":"2522354a-d087-4899-a155-e3a1650a6528","group_id":null,"store_id":null,"reason":"unattributed","exception_type":"Carbon\\Exceptions\\InvalidFormatException","file":"/Users/Apple/Projects/nears-NEARS-3840-cash-asap/Admin/vendor/nesbot/carbon/src/Carbon/Traits/Creator.php","line":194,"store_count":2} 
+--- UNPARSEABLE validate POST /api/v1/customer/order/group/validate rid=96f476b3-f050-4faa-a90d-423200ef3d72 -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}], "schedule_at": "not-a-date"}
+    resp: {"errors": [{"code": "group_order", "message": "Failed to place order"}]}
+counts 125	15 / 125	15
+log lines=1
+  [2026-09-29 10:53:53] production.ERROR: [FAIL] group_order_validate_failed {"trace_id":"f4b8368a93c2207889a33aad4e239c94","correlation_id":"96f476b3-f050-4faa-a90d-423200ef3d72","request_id":"96f476b3-f050-4faa-a90d-423200ef3d72","group_id":null,"store_id":null,"reason":"unattributed","exception_type":"Carbon\\Exceptions\\InvalidFormatException","file":"/Users/Apple/Projects/nears-NEARS-3840-cash-asap/Admin/vendor/nesbot/carbon/src/Carbon/Traits/Creator.php","line":194,"store_count":2} 
+## AC3 zone-mix RETRY: cart added via API while store 12 in zone 2, THEN store 12 moved to zone 400 (copy only)
+## payments: global_online=True global_cash=True zones={2: True, 400: True} -> 2:1,400:1
+## basket [12, 51]: 51x3@m1,576x1@m2
+## payments: global_online=True global_cash=True zones={2: True, 400: False} -> 2:1,400:0
+--- AC3 zone-mix validate cash (zone400 online=False) POST /api/v1/customer/order/group/validate rid=ddef219e-e229-4c54-bfa5-45c4dfdb4bac -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"valid": true, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 12.6, "items_total": 12.6, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 0.6, "extra_packaging_amount": 0, "additional_charge": 0}}, {"store_id": 51, "store_name": "Golden Wok (Abu Dhabi)", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 21.78, "items_total": 21.78, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 1.04, "extra_packaging_amount": 0, "additional_charge": 0}}], "amounts": {"order_amount": 34.38, "items_total": 34.38, "delivery_charge": 0, "dm_tips": 0, "discount_amount": 0}, "cash_removed": false}
+valid=True cash_removed=False keys=['valid', 'stores', 'amounts', 'cash_removed']
+log lines=0
+## payments: global_online=True global_cash=True zones={2: True, 400: True} -> 2:1,400:1
+--- AC3 zone-mix validate cash (zone400 online=True) POST /api/v1/customer/order/group/validate rid=0ccc3703-bcc5-452c-bc72-e509af723bce -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"errors": [{"code": "payment_method", "reason": "mixed_basket_cash_unavailable", "message": "Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]}
+errors=[{"code": "payment_method", "reason": "mixed_basket_cash_unavailable", "message": "Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]
+log lines=1
+## payments: global_online=True global_cash=True zones={2: True, 400: True} -> 2:1,400:1
+store12 zone restored=2
+## AC3 place one non-cash mixed order (also regression happy path) + AC5
+## flag cross_module_basket=1
+## payments: global_online=True global_cash=True zones={2: True} -> 2:1,400:1
+## basket [12, 51]: 51x3@m1,576x1@m2
+--- AC3/REG place mixed digital POST /api/v1/customer/order/group/place rid=917caa3e-3b4e-4173-98b1-de2640473990 -> 200
+    body: {"payment_method": "digital_payment", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}]}
+    resp: {"message": "Order placed successfully", "group_id": "c07d4691-a638-453a-9ca5-3e2a33f6a1d5", "payment_token": "<redacted>", "order_ids": [91430, 91431], "total_amount": 34.38, "group_placed": true, "orders": [{"order_id": 91430, "store_id": 12, "order_status": "failed"}, {"order_id": 91431, "store_id": 51, "order_status": "failed"}]}
+counts 125	15 / 127	16 keys=['message', 'group_id', 'payment_token', 'order_ids', 'total_amount', 'group_placed', 'orders'] total_amount=34.38 log lines=0
+children: 91430:s12:m1:digital_payment:failed:unpaid:amt12.60,91431:s51:m2:digital_payment:failed:unpaid:amt21.78
+## AC5 mixed child 91430 (grocery), online effective, flag ON
+--- AC5 payment-failed mixed child GET /api/v1/customer/order/payment-failed?order_id=91430 rid=d8a91603-1ba8-4793-9566-fe4bab7ef9a7 -> 200
+    body: -
+    resp: {"cash_on_delivery": false, "digital_payment": true, "offline_payment": false, "cod_eligible": true, "order_id": 91430, "payment_token": "<redacted>", "order_amount": 12.6, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 6, "zone_id": 2, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "<redacted>"}
+cash_on_delivery=False digital_payment=True log lines=0
+row before: 91430|digital_payment|failed|unpaid|12.60|2026-09-29 10:54:14
+--- AC5 switch mixed child to cash PUT /api/v1/customer/order/payment-method rid=ff6ea10f-7801-4262-a202-075a6a112358 -> 403
+    body: {"order_id": 91430}
+    resp: {"errors": [{"code": "payment_method", "reason": "mixed_basket_cash_unavailable", "message": "Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]}
+row after:  91430|digital_payment|failed|unpaid|12.60|2026-09-29 10:54:14  unchanged=True
+log lines=1
+  [2026-09-29 10:54:24] production.WARNING: [WARN] payment method switch rejected - mixed basket {"trace_id":"050ca682c4e443cbdbb5a1f63363206e","correlation_id":"ff6ea10f-7801-4262-a202-075a6a112358","endpoint":"api/v1/customer/order/payment-method","request_id":"ff6ea10f-7801-4262-a202-075a6a112358","reason":"mixed_basket_cash_unavailable","order_id":91430} 
+## Scope: sibling 91431 canceled (copy), switch 91430 again
+--- AC5 switch after sibling canceled PUT /api/v1/customer/order/payment-method rid=b3c0bde1-39b4-451c-b732-d9194f0c609d -> 403
+    body: {"order_id": 91430}
+    resp: {"errors": [{"code": "payment_method", "reason": "mixed_basket_cash_unavailable", "message": "Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]}
+unchanged=True log lines=1
+--- AC5 payment-failed after sibling canceled GET /api/v1/customer/order/payment-failed?order_id=91430 rid=33c67e0e-ec13-4a28-b8b2-91f70432f6c8 -> 200
+    body: -
+    resp: {"cash_on_delivery": false, "digital_payment": true, "offline_payment": false, "cod_eligible": true, "order_id": 91430, "payment_token": "<redacted>", "order_amount": 12.6, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 6, "zone_id": 2, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "<redacted>"}
+cash_on_delivery=False
+## Scope: another user order id on payment-method (existing not-found path)
+foreign order id=91407 owner=1
+--- AC5 foreign order switch PUT /api/v1/customer/order/payment-method rid=eeb6d765-3480-4ab7-b63b-4e4face9ba61 -> 404
+    body: {"order_id": 91407}
+    resp: {"errors": [{"code": "order", "message": "Not found"}]}
+unchanged=True log lines=0
+## AC5 negatives
+## flag cross_module_basket=1
+## payments: global_online=True global_cash=True zones={2: True} -> 2:1,400:1
+## basket [12]: 51x3@m1
+--- AC5 non-group single digital order POST /api/v1/customer/order/place rid=e2adf080-7198-4418-82bf-9f1ea9eded11 -> 200
+    body: {"payment_method": "digital_payment", "order_type": "delivery", "store_id": 12, "distance": 1, "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438}
+    resp: {"message": "Order placed successfully", "order_id": 91432, "payment_token": "<redacted>", "total_ammount": 12.6, "status": "failed", "created_at": "2026-09-29 10:54:35", "user_id": 6}
+single row: 91432|digital_payment|failed|unpaid
+--- AC5 payment-failed non-group GET /api/v1/customer/order/payment-failed?order_id=91432 rid=c0f1d95c-1374-47ea-a9f8-79f05d9c8433 -> 200
+    body: -
+    resp: {"cash_on_delivery": true, "digital_payment": true, "offline_payment": false, "cod_eligible": true, "order_id": 91432, "payment_token": "<redacted>", "order_amount": 12.6, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 6, "zone_id": 2, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "<redacted>"}
+cash_on_delivery=True
+--- AC5 switch non-group PUT /api/v1/customer/order/payment-method rid=1ed9a9a5-cc5d-49f2-b9c5-2aac25ec4709 -> 200
+    body: {"order_id": 91432}
+    resp: {"message": "Payment method updated successfully"}
+row after: 91432|cash_on_delivery|pending|unpaid log lines=3
+## payments: global_online=True global_cash=True zones={2: False} -> 2:0,400:1
+--- AC5 payment-failed mixed child, online no longer effective GET /api/v1/customer/order/payment-failed?order_id=91430 rid=49deaf07-5141-4672-8134-bd817c2c189c -> 200
+    body: -
+    resp: {"cash_on_delivery": true, "digital_payment": false, "offline_payment": false, "cod_eligible": true, "order_id": 91430, "payment_token": "<redacted>", "order_amount": 12.6, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 6, "zone_id": 2, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "<redacted>"}
+cash_on_delivery=True
+## payments: global_online=True global_cash=True zones={2: True} -> 2:1,400:1
+## flag cross_module_basket=0
+--- AC5 payment-failed mixed child, flag OFF GET /api/v1/customer/order/payment-failed?order_id=91430 rid=af2dc49e-fedf-4be5-a5e7-97b40151a47d -> 200
+    body: -
+    resp: {"cash_on_delivery": true, "digital_payment": true, "offline_payment": false, "cod_eligible": true, "order_id": 91430, "payment_token": "<redacted>", "order_amount": 12.6, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 6, "zone_id": 2, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "<redacted>"}
+cash_on_delivery=True
+--- AC5 switch mixed child, flag OFF PUT /api/v1/customer/order/payment-method rid=3ff41d72-e409-4198-9b57-c0c2cd66bae8 -> 200
+    body: {"order_id": 91430}
+    resp: {"message": "Payment method updated successfully"}
+row after: 91430|cash_on_delivery|pending|unpaid|c07d4691-a638-453a-9ca5-3e2a33f6a1d5 log lines=3
+## flag cross_module_basket=1
+## AC-REG (online effective, global cash ON, schedule_at +1h, cash)
+## payments: global_online=True global_cash=True zones={2: True} -> 2:1,400:1
+## flag cross_module_basket=0
+## basket [12, 13]: 51x3@m1,203x3@m1
+--- REG same-module validate flag=False POST /api/v1/customer/order/group/validate rid=538ffa0c-0e8e-4a91-a396-7309d7ddc1f0 -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 13, "distance": 1}], "schedule_at": "2026-09-29 11:54:52"}
+    resp: {"valid": true, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": true, "reason": null, "message": null}, {"store_id": 13, "store_name": "Fresh supermarket", "pass": true, "reason": null, "message": null}]}
+keys=['valid', 'stores'] valid=True cash_removed_present=False
+--- REG same-module place flag=False POST /api/v1/customer/order/group/place rid=87291dbc-427a-49d2-8e62-46d58f7760ab -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 13, "distance": 1}], "schedule_at": "2026-09-29 11:54:52"}
+    resp: {"message": "Order placed successfully", "group_id": "8386e984-b6e7-49b7-86c9-60a45aa8ca14", "payment_token": "<redacted>", "order_ids": [91435, 91436], "total_amount": 40.6, "group_placed": true, "orders": [{"order_id": 91435, "store_id": 12, "order_status": "pending"}, {"order_id": 91436, "store_id": 13, "order_status": "pending"}]}
+keys=['message', 'group_id', 'payment_token', 'order_ids', 'total_amount', 'group_placed', 'orders']
+children: 91435:s12:sched1:cash_on_delivery:pending,91436:s13:sched1:cash_on_delivery:pending | mixed WARN lines=0
+## flag cross_module_basket=1
+## basket [12, 13]: 51x3@m1,203x3@m1
+--- REG same-module validate flag=True POST /api/v1/customer/order/group/validate rid=bdd0405c-1604-431a-ab18-440ec3e96c73 -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 13, "distance": 1}], "schedule_at": "2026-09-29 11:54:52"}
+    resp: {"valid": true, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": true, "reason": null, "message": null}, {"store_id": 13, "store_name": "Fresh supermarket", "pass": true, "reason": null, "message": null}]}
+keys=['valid', 'stores'] valid=True cash_removed_present=False
+--- REG same-module place flag=True POST /api/v1/customer/order/group/place rid=b68c796b-1812-4524-9d85-434d85db1bb2 -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 13, "distance": 1}], "schedule_at": "2026-09-29 11:54:52"}
+    resp: {"message": "Order placed successfully", "group_id": "0130c569-8e18-4886-8720-8088c0968492", "payment_token": "<redacted>", "order_ids": [91439, 91440], "total_amount": 40.6, "group_placed": true, "orders": [{"order_id": 91439, "store_id": 12, "order_status": "pending"}, {"order_id": 91440, "store_id": 13, "order_status": "pending"}]}
+keys=['message', 'group_id', 'payment_token', 'order_ids', 'total_amount', 'group_placed', 'orders']
+children: 91439:s12:sched1:cash_on_delivery:pending,91440:s13:sched1:cash_on_delivery:pending | mixed WARN lines=0
+## flag cross_module_basket=1
+## basket [12]: 51x3@m1
+--- REG single /order/place flag ON POST /api/v1/customer/order/place rid=8b2244f6-e09e-4a3b-992b-ada477263383 -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "store_id": 12, "distance": 1, "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "schedule_at": "2026-09-29 11:54:52"}
+    resp: {"message": "Order placed successfully", "order_id": 91441, "payment_token": "<redacted>", "total_ammount": 12.6, "status": "pending", "created_at": "2026-09-29 10:54:54", "user_id": 6}
+keys=['message', 'order_id', 'payment_token', 'total_ammount', 'status', 'created_at', 'user_id'] row: 91441|1|cash_on_delivery|pending|1
+## AC-REG flag OFF, MIXED basket, schedule_at +1h, cash (gate must not fire)
+## payments: global_online=True global_cash=True zones={2: True} -> 2:1,400:1
+## flag cross_module_basket=0
+## basket [12, 51]: 51x3@m1,576x1@m2
+--- REG flag OFF mixed validate POST /api/v1/customer/order/group/validate rid=0a186c86-65b5-4bfc-b901-b78f47059c4a -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 51, "distance": 1}], "schedule_at": "2026-09-29 11:55:04"}
+    resp: {"valid": false, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": true, "reason": null, "message": null}, {"store_id": 51, "store_name": "Golden Wok (Abu Dhabi)", "pass": false, "reason": "empty_cart", "message": "You can not place empty orders"}]}
+keys=['valid', 'stores'] mixed WARN lines=0
+## flag cross_module_basket=1
+## logs-first sweep over 39 request ids: ERROR/[FAIL]/[ERR] lines=2
+  [2026-09-29 10:53:53] production.ERROR: [FAIL] group_order_place_failed {"trace_id":"4d6cc0985d9c0f50d8efe3b45040c2c0","correlation_id":"2522354a-d087-4899-a155-e3a1650a6528","request_id":"2522354a-d0
+  [2026-09-29 10:53:53] production.ERROR: [FAIL] group_order_validate_failed {"trace_id":"f4b8368a93c2207889a33aad4e239c94","correlation_id":"96f476b3-f050-4faa-a90d-423200ef3d72","request_id":"96f476b3
