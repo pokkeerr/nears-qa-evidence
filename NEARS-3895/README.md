@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3895
 
-**FAIL - AC5 closed-store guard runs (basket cleared then 403); AC1/2/3/6/7/10/12/13/LOG PASS live**
+**delta: stale-home is pre-existing (existing card-tap path reproduces identically); AC-5 FAIL stands**
 
-**35 screenshot(s).** Click any thumbnail for full resolution.
+**52 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -48,20 +48,49 @@
 <tr>
 <td align="center" width="33%"><a href="aclog-toast-after-failed-clear.png"><img src="aclog-toast-after-failed-clear.png" width="240"></a><br><sub>aclog toast after failed clear</sub></td>
 <td align="center" width="33%"><a href="bug-stale-pharmacy-home-after-switch.png"><img src="bug-stale-pharmacy-home-after-switch.png" width="240"></a><br><sub>bug stale pharmacy home after switch</sub></td>
-<td align="center" width="33%"><a href="dls-360dp-1.3x-after-switch.png"><img src="dls-360dp-1.3x-after-switch.png" width="240"></a><br><sub>dls 360dp 1.3x after switch</sub></td>
+<td align="center" width="33%"><a href="delta-p1-cardtap-home-after-yes-FRESH.png"><img src="delta-p1-cardtap-home-after-yes-FRESH.png" width="240"></a><br><sub>delta p1 cardtap home after yes FRESH</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="delta-p1b-cardtap-silent-home-after-12s.png"><img src="delta-p1b-cardtap-silent-home-after-12s.png" width="240"></a><br><sub>delta p1b cardtap silent home after 12s</sub></td>
+<td align="center" width="33%"><a href="delta-p1b-cardtap-silent-home-after-4s.png"><img src="delta-p1b-cardtap-silent-home-after-4s.png" width="240"></a><br><sub>delta p1b cardtap silent home after 4s</sub></td>
+<td align="center" width="33%"><a href="delta-p1c-cardtap-dialog-grocery-to-pharmacy-home-12s.png"><img src="delta-p1c-cardtap-dialog-grocery-to-pharmacy-home-12s.png" width="240"></a><br><sub>delta p1c cardtap dialog grocery to pharmacy home 12s</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-p2a-seeall-home-after-back.png"><img src="delta-p2a-seeall-home-after-back.png" width="240"></a><br><sub>delta p2a seeall home after back</sub></td>
+<td align="center" width="33%"><a href="delta-p2a-seeall-yes-home-after-back.png"><img src="delta-p2a-seeall-yes-home-after-back.png" width="240"></a><br><sub>delta p2a seeall yes home after back</sub></td>
+<td align="center" width="33%"><a href="delta-p2b-storetap-home-after-back.png"><img src="delta-p2b-storetap-home-after-back.png" width="240"></a><br><sub>delta p2b storetap home after back</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-p3-after-pull-to-refresh-COMPLETE.png"><img src="delta-p3-after-pull-to-refresh-COMPLETE.png" width="240"></a><br><sub>delta p3 after pull to refresh COMPLETE</sub></td>
+<td align="center" width="33%"><a href="delta-p3-pharmacy-home-before.png"><img src="delta-p3-pharmacy-home-before.png" width="240"></a><br><sub>delta p3 pharmacy home before</sub></td>
+<td align="center" width="33%"><a href="delta-p3-quickadd-home-after-back.png"><img src="delta-p3-quickadd-home-after-back.png" width="240"></a><br><sub>delta p3 quickadd home after back</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-p3b-quickadd-restaurant-home-after-back.png"><img src="delta-p3b-quickadd-restaurant-home-after-back.png" width="240"></a><br><sub>delta p3b quickadd restaurant home after back</sub></td>
+<td align="center" width="33%"><a href="delta-p3c-quickadd-dialog-to-pharmacy-home-12s.png"><img src="delta-p3c-quickadd-dialog-to-pharmacy-home-12s.png" width="240"></a><br><sub>delta p3c quickadd dialog to pharmacy home 12s</sub></td>
+<td align="center" width="33%"><a href="delta-p3c-stale-grocery-rail-under-pharmacy-chip.png"><img src="delta-p3c-stale-grocery-rail-under-pharmacy-chip.png" width="240"></a><br><sub>delta p3c stale grocery rail under pharmacy chip</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-p4-ecommerce-home-before.png"><img src="delta-p4-ecommerce-home-before.png" width="240"></a><br><sub>delta p4 ecommerce home before</sub></td>
+<td align="center" width="33%"><a href="delta-p4-silent-switch-home-after-15s-INCOMPLETE.png"><img src="delta-p4-silent-switch-home-after-15s-INCOMPLETE.png" width="240"></a><br><sub>delta p4 silent switch home after 15s INCOMPLETE</sub></td>
+<td align="center" width="33%"><a href="delta-p4-silent-switch-home-after-9s.png"><img src="delta-p4-silent-switch-home-after-9s.png" width="240"></a><br><sub>delta p4 silent switch home after 9s</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-p4-silent-switch-home-after-back.png"><img src="delta-p4-silent-switch-home-after-back.png" width="240"></a><br><sub>delta p4 silent switch home after back</sub></td>
+<td align="center" width="33%"><a href="dls-360dp-1.3x-after-switch.png"><img src="dls-360dp-1.3x-after-switch.png" width="240"></a><br><sub>dls 360dp 1.3x after switch</sub></td>
 <td align="center" width="33%"><a href="dls-360dp-1.3x-dialog.png"><img src="dls-360dp-1.3x-dialog.png" width="240"></a><br><sub>dls 360dp 1.3x dialog</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="dls-rtl-360dp-1.3x-after-switch.png"><img src="dls-rtl-360dp-1.3x-after-switch.png" width="240"></a><br><sub>dls rtl 360dp 1.3x after switch</sub></td>
 <td align="center" width="33%"><a href="dls-rtl-360dp-1.3x-dialog.png"><img src="dls-rtl-360dp-1.3x-dialog.png" width="240"></a><br><sub>dls rtl 360dp 1.3x dialog</sub></td>
+<td align="center" width="33%"><a href="empty-basket-silent-switch-1.5s.png"><img src="empty-basket-silent-switch-1.5s.png" width="240"></a><br><sub>empty basket silent switch 1.5s</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="empty-basket-silent-switch-1.5s.png"><img src="empty-basket-silent-switch-1.5s.png" width="240"></a><br><sub>empty basket silent switch 1.5s</sub></td>
 <td align="center" width="33%"><a href="guest-ac1-dialog.png"><img src="guest-ac1-dialog.png" width="240"></a><br><sub>guest ac1 dialog</sub></td>
 <td align="center" width="33%"><a href="reg-cart-screen.png"><img src="reg-cart-screen.png" width="240"></a><br><sub>reg cart screen</sub></td>
+<td align="center" width="33%"><a href="reg-reorder-replace-dialog.png"><img src="reg-reorder-replace-dialog.png" width="240"></a><br><sub>reg reorder replace dialog</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="reg-reorder-replace-dialog.png"><img src="reg-reorder-replace-dialog.png" width="240"></a><br><sub>reg reorder replace dialog</sub></td>
 <td align="center" width="33%"><a href="t3-food-active-soldout-ecom-card-addable.png"><img src="t3-food-active-soldout-ecom-card-addable.png" width="240"></a><br><sub>t3 food active soldout ecom card addable</sub></td>
 </tr>
 </table>
@@ -71,6 +100,8 @@
 - [`bug-closed-store-guard-runs.log`](bug-closed-store-guard-runs.log)
 - [`bug-s3-flagon-variation-details-fail.log`](bug-s3-flagon-variation-details-fail.log)
 - [`bug-stale-home-misstamp.log`](bug-stale-home-misstamp.log)
+- [`delta-p1c-cardtap-stale-rail-plus-misstamp.log`](delta-p1c-cardtap-stale-rail-plus-misstamp.log)
+- [`delta-p3c-stale-rail-plus-misstamp.log`](delta-p3c-stale-rail-plus-misstamp.log)
 - [`reg-rendertable-semantics-assertion.log`](reg-rendertable-semantics-assertion.log)
 
 ---
