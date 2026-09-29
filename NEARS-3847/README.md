@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3847
 
-**NEARS-3847 cycle 2 delta re-QA: PASS (AC5 Rx filtered from basket rail)**
+**Cycle 3 delta re-QA FAIL on fc9d8cb9f: stale suggestion map logs a premature empty line before the fetch starts**
 
-**40 screenshot(s).** Click any thumbnail for full resolution.
+**43 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -71,6 +71,11 @@
 <td align="center" width="33%"><a href="c2-smoke-store-grid-rx-pill-ar.png"><img src="c2-smoke-store-grid-rx-pill-ar.png" width="240"></a><br><sub>c2 smoke store grid rx pill ar</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="c3-ac1-flag-on-cold-rail-hidden.png"><img src="c3-ac1-flag-on-cold-rail-hidden.png" width="240"></a><br><sub>c3 ac1 flag on cold rail hidden</sub></td>
+<td align="center" width="33%"><a href="c3-ac2-two-store-rail-shows-non-rx.png"><img src="c3-ac2-two-store-rail-shows-non-rx.png" width="240"></a><br><sub>c3 ac2 two store rail shows non rx</sub></td>
+<td align="center" width="33%"><a href="c3-smoke-store-card-rx-pill.png"><img src="c3-smoke-store-card-rx-pill.png" width="240"></a><br><sub>c3 smoke store card rx pill</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="legacy-row-flag-on-grid.png"><img src="legacy-row-flag-on-grid.png" width="240"></a><br><sub>legacy row flag on grid</sub></td>
 </tr>
 </table>
@@ -104,8 +109,15 @@
 - [`a11y-store-row-en-320dp-1.3x.xml`](a11y-store-row-en-320dp-1.3x.xml)
 - [`a11y-store-row-en.xml`](a11y-store-row-en.xml)
 - [`a11y-store-search-grid-en.xml`](a11y-store-search-grid-en.xml)
+- [`bug-premature-empty-log-stale-suggestion-map.log`](bug-premature-empty-log-stale-suggestion-map.log)
 - [`c2-ac5-off-ar-1.0x.log`](c2-ac5-off-ar-1.0x.log)
 - [`c2-ac5-on-en-1.0x.log`](c2-ac5-on-en-1.0x.log)
+- [`c3-ac1-flag-on-cold.log`](c3-ac1-flag-on-cold.log)
+- [`c3-ac2-two-store-cold.log`](c3-ac2-two-store-cold.log)
+- [`c3-ac3-flag-off-cold.log`](c3-ac3-flag-off-cold.log)
+- [`c3-ac3-flag-off-rail-a11y.xml`](c3-ac3-flag-off-rail-a11y.xml)
+- [`c3-ac3-flag-off-reenter.log`](c3-ac3-flag-off-reenter.log)
+- [`c3-smoke-store-card-a11y.xml`](c3-smoke-store-card-a11y.xml)
 - [`progress.md`](progress.md)
 
 ---

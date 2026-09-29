@@ -39,3 +39,14 @@
 - Smoke flag ON AR: grid pill "وصفة طبية مطلوبة" on 91157; sheet CTA disabled "وصفة طبية مطلوبة". PASS
 - Obs4 (NEARS-3903): AR 1.3x flag OFF ordinary rail card - plain "+" covers struck-through original price (only "18." visible); current price fully visible. c2-obs4-off-ar-1.3x-rail-card-crop.png
 - Backstop: flutter test cart_controller_test + cart_suggestion_rail_multistore_test: 29/29 pass
+
+## Cycle 3 delta re-QA (build fc9d8cb9f fresh from worktree, emulator-5554, backend /Users/Apple/Projects/nears-NEARS-3847-rx-label @ fc9d8cb9f :8148, DB multi_food_db_qa3847)
+- V1 cold open, flag ON, pharmacy-only basket, Pharmacy module: PASS - rail hidden; exactly 1 [INFO] prescription_blocked (store_count=1, rx_filtered=1) logged AFTER the suggested GET landed; 0 [WARN] empty. c3-ac1-flag-on-cold-rail-hidden.png, c3-ac1-flag-on-cold.log
+- V1 re-enter (same basket, same module): 1 [INFO] prescription_blocked, 0 WARN - but logged ~100ms BEFORE the GET is issued (read from the previous open's cached map).
+- V1 re-enter after a module switch: FAIL - first open from the post-login home module fetched with a non-pharmacy module header (endpoint returns empty for moduleId 1/2, 91157 for moduleId 3) -> [WARN] empty (store_count=1); switching to Pharmacy and re-opening logged the STALE [WARN] at mount (before the GET) and the true [INFO] prescription_blocked never logged (dedupe sealed on the empty set).
+- V2 two-store (First Aid Kit 507 from Green Cross 46 added via UI on the copy), warm re-enter: FAIL - [INFO] "combined suggestions empty reason=prescription_blocked (store_count=2, rx_filtered=1)" logged BEFORE the fetch started, then the rail rendered 8 non-Rx cards and view_item_list fired once item_count=8. bug-premature-empty-log-stale-suggestion-map.log, c3-ac2-two-store-rail-shows-non-rx.png
+- V2 two-store, cold: PASS - no empty line between the two store fetches; view_item_list once item_count=8 == 8 cards (Adhesive Bandages, Hand Sanitizer, Ibuprofen, Muscle Relief Gel, Pain Relief Patch, Paracetamol, Allergy Relief, Vitamin C); no Amoxicillin. c3-ac2-two-store-cold.log
+- V3 flag OFF (copy, cache:clear, cold): PASS - rail shows 91157 + Add To Cart, view_item_list once item_count=1, no empty line (c3-ac3-flag-off-cold.log, c3-ac3-flag-off-rail-a11y.xml). Re-enter: view_item_list once (fired pre-GET from cached map). Flag restored ON (/config True).
+- V4 smoke flag ON: store grid (Grid view selected) 91157 card a11y "Prescription Required", logs clean. c3-smoke-store-card-rx-pill.png, c3-smoke-store-card-a11y.xml
+- Backstop: flutter test cart_suggestion_rail_multistore_test + cart_controller_test: 31/31 pass
+- Copy fixture: cart row 981 (item 507) added then removed via UI; cross_module_basket 1->0->1. Cart back to row 978 only.
