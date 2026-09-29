@@ -28,3 +28,14 @@
 - K2 cart rail AR 1.3x: pill covers the leading "1" of 16.74 (reads like "6.74") and the strike price (c1-k2-cart-rail-ar-1.3x.png) -> PARTLY / misleading
 - K2 in-cart stepper on the rail: cannot render by design — suggestedItemsFrom() filters in-cart item ids out of the rail
 - A5 store row 1.3x EN (c1-a5-store-row-en-1.3x.png) and AR (c1-a5-store-row-ar-1.3x.png), default width ~448dp: pill below the price line, price readable YES; OTC in-cart stepper 5 alongside, clear. First run's 320dp/1.3x EN row also readable.
+
+## Cycle 2 delta re-QA (build 5605c9f6d, emulator-5554 Pixel_10_Pro, backend /Users/Apple/Projects/nears-NEARS-3847-rx-label @ 5605c9f6d :8148, DB multi_food_db_qa3847)
+- AC5 flag ON EN 1.0x: PASS - rail hidden, 0 Amoxicillin nodes, positive control "Proceed to Checkout"; 1x [INFO] reason=prescription_blocked (store_count=1, rx_filtered=1), 0 [WARN] empty. c2-ac5-on-en-1.0x-rail-hidden.png
+- AC5 flag ON EN 1.3x: PASS - rail hidden; no re-log on rebuild. c2-ac5-on-en-1.3x-rail-hidden.png
+- AC5 flag ON AR 1.3x: PASS - rail hidden; 1x INFO per mount. c2-ac5-on-ar-1.3x-rail-hidden.png
+- AC5 flag ON AR 1.0x: PASS - rail hidden. c2-ac5-on-ar-1.0x-rail-hidden.png
+- AC5 flag OFF AR 1.0x: PASS - rail "قد يعجبك أيضًا" shows 91157 + add button; view_item_list basket_suggestions item_count=1. c2-ac5-off-ar-1.0x-rail-shows-91157.png
+- Analytics flag ON: 0 basket_suggestions events = 0 cards. PASS (app analytics mirror; FA native channel dead - FirebaseInitFailure on suffixed pkg)
+- Smoke flag ON AR: grid pill "وصفة طبية مطلوبة" on 91157; sheet CTA disabled "وصفة طبية مطلوبة". PASS
+- Obs4 (NEARS-3903): AR 1.3x flag OFF ordinary rail card - plain "+" covers struck-through original price (only "18." visible); current price fully visible. c2-obs4-off-ar-1.3x-rail-card-crop.png
+- Backstop: flutter test cart_controller_test + cart_suggestion_rail_multistore_test: 29/29 pass

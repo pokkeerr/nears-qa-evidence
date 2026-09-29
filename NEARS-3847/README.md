@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3847
 
-**NEARS-3847 Rx label — QA PASS + cycle-1 observation (row pill vs price)**
+**NEARS-3847 cycle 2 delta re-QA: PASS (AC5 Rx filtered from basket rail)**
 
-**31 screenshot(s).** Click any thumbnail for full resolution.
+**40 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -56,6 +56,21 @@
 <td align="center" width="33%"><a href="c1-k2-cart-rail-en-1.3x.png"><img src="c1-k2-cart-rail-en-1.3x.png" width="240"></a><br><sub>c1 k2 cart rail en 1.3x</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="c2-ac5-off-ar-1.0x-rail-shows-91157.png"><img src="c2-ac5-off-ar-1.0x-rail-shows-91157.png" width="240"></a><br><sub>c2 ac5 off ar 1.0x rail shows 91157</sub></td>
+<td align="center" width="33%"><a href="c2-ac5-on-ar-1.0x-rail-hidden.png"><img src="c2-ac5-on-ar-1.0x-rail-hidden.png" width="240"></a><br><sub>c2 ac5 on ar 1.0x rail hidden</sub></td>
+<td align="center" width="33%"><a href="c2-ac5-on-ar-1.3x-rail-hidden.png"><img src="c2-ac5-on-ar-1.3x-rail-hidden.png" width="240"></a><br><sub>c2 ac5 on ar 1.3x rail hidden</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c2-ac5-on-en-1.0x-rail-hidden.png"><img src="c2-ac5-on-en-1.0x-rail-hidden.png" width="240"></a><br><sub>c2 ac5 on en 1.0x rail hidden</sub></td>
+<td align="center" width="33%"><a href="c2-ac5-on-en-1.3x-rail-hidden.png"><img src="c2-ac5-on-en-1.3x-rail-hidden.png" width="240"></a><br><sub>c2 ac5 on en 1.3x rail hidden</sub></td>
+<td align="center" width="33%"><a href="c2-obs4-off-ar-1.3x-rail-card-crop.png"><img src="c2-obs4-off-ar-1.3x-rail-card-crop.png" width="240"></a><br><sub>c2 obs4 off ar 1.3x rail card crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c2-obs4-off-ar-1.3x-rail-plain-plus.png"><img src="c2-obs4-off-ar-1.3x-rail-plain-plus.png" width="240"></a><br><sub>c2 obs4 off ar 1.3x rail plain plus</sub></td>
+<td align="center" width="33%"><a href="c2-smoke-sheet-disabled-ar.png"><img src="c2-smoke-sheet-disabled-ar.png" width="240"></a><br><sub>c2 smoke sheet disabled ar</sub></td>
+<td align="center" width="33%"><a href="c2-smoke-store-grid-rx-pill-ar.png"><img src="c2-smoke-store-grid-rx-pill-ar.png" width="240"></a><br><sub>c2 smoke store grid rx pill ar</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="legacy-row-flag-on-grid.png"><img src="legacy-row-flag-on-grid.png" width="240"></a><br><sub>legacy row flag on grid</sub></td>
 </tr>
 </table>
@@ -68,6 +83,13 @@
 - [`a11y-c1-rail-ar-1.3x.xml`](a11y-c1-rail-ar-1.3x.xml)
 - [`a11y-c1-rail-en-1.0x.xml`](a11y-c1-rail-en-1.0x.xml)
 - [`a11y-c1-rail-en-1.3x.xml`](a11y-c1-rail-en-1.3x.xml)
+- [`a11y-c2-ac5-off-ar-1.0x.xml`](a11y-c2-ac5-off-ar-1.0x.xml)
+- [`a11y-c2-ac5-on-ar-1.0x.xml`](a11y-c2-ac5-on-ar-1.0x.xml)
+- [`a11y-c2-ac5-on-ar-1.3x.xml`](a11y-c2-ac5-on-ar-1.3x.xml)
+- [`a11y-c2-ac5-on-en-1.0x.xml`](a11y-c2-ac5-on-en-1.0x.xml)
+- [`a11y-c2-ac5-on-en-1.3x.xml`](a11y-c2-ac5-on-en-1.3x.xml)
+- [`a11y-c2-obs4-off-ar-1.3x.xml`](a11y-c2-obs4-off-ar-1.3x.xml)
+- [`a11y-c2-smoke-sheet-ar.xml`](a11y-c2-smoke-sheet-ar.xml)
 - [`a11y-flash-details-en.xml`](a11y-flash-details-en.xml)
 - [`a11y-flash-rail-en-320dp-1.3x.xml`](a11y-flash-rail-en-320dp-1.3x.xml)
 - [`a11y-flash-rail-home-ar.xml`](a11y-flash-rail-home-ar.xml)
@@ -82,6 +104,8 @@
 - [`a11y-store-row-en-320dp-1.3x.xml`](a11y-store-row-en-320dp-1.3x.xml)
 - [`a11y-store-row-en.xml`](a11y-store-row-en.xml)
 - [`a11y-store-search-grid-en.xml`](a11y-store-search-grid-en.xml)
+- [`c2-ac5-off-ar-1.0x.log`](c2-ac5-off-ar-1.0x.log)
+- [`c2-ac5-on-en-1.0x.log`](c2-ac5-on-en-1.0x.log)
 - [`progress.md`](progress.md)
 
 ---
