@@ -254,3 +254,45 @@ keys=['valid', 'stores'] mixed WARN lines=0
 ## logs-first sweep over 39 request ids: ERROR/[FAIL]/[ERR] lines=2
   [2026-09-29 10:53:53] production.ERROR: [FAIL] group_order_place_failed {"trace_id":"4d6cc0985d9c0f50d8efe3b45040c2c0","correlation_id":"2522354a-d087-4899-a155-e3a1650a6528","request_id":"2522354a-d0
   [2026-09-29 10:53:53] production.ERROR: [FAIL] group_order_validate_failed {"trace_id":"f4b8368a93c2207889a33aad4e239c94","correlation_id":"96f476b3-f050-4faa-a90d-423200ef3d72","request_id":"96f476b3
+# [8b] regression-candidate confirmation  server=:8740 db=nears3840_qa (marker NEARS3840-QA-COPY-8B) code=1fa3b6cec flag OFF 2026-09-29T11:07:25.781832
+## F1 digital: global digital_payment OFF, cash ON, zone2 dp=1
+## payments: global_online=False global_cash=True zones={2: True} -> 2:1,400:1
+## basket [12, 13]: 51x3@m1,203x3@m1
+--- F1 validate digital POST /api/v1/customer/order/group/validate rid=1d211002-b813-48f6-b6dd-5128a7fae5c8 -> 200
+    body: {"payment_method": "digital_payment", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 13, "distance": 1}]}
+    resp: {"valid": true, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": true, "reason": null, "message": null}, {"store_id": 13, "store_name": "Fresh supermarket", "pass": true, "reason": null, "message": null}]}
+## basket [12, 13]: 51x3@m1,203x3@m1
+--- F1 place digital POST /api/v1/customer/order/group/place rid=6dcf61e5-887d-407b-bfb3-91b8bf111039 -> 403
+    body: {"payment_method": "digital_payment", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 13, "distance": 1}]}
+    resp: {"errors": [{"code": "digital_payment", "message": "Digital payment for the order not available at this time"}]}
+counts 125	15 / 125	15 log=[]
+## F1 cash: global cash_on_delivery OFF, digital ON
+## payments: global_online=True global_cash=False zones={2: True} -> 2:1,400:1
+## basket [12, 13]: 51x3@m1,203x3@m1
+--- F1 validate cash POST /api/v1/customer/order/group/validate rid=4a84208b-7ea0-4ca9-87f4-bb5e81928b64 -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 13, "distance": 1}]}
+    resp: {"valid": true, "stores": [{"store_id": 12, "store_name": "Fresh local", "pass": true, "reason": null, "message": null}, {"store_id": 13, "store_name": "Fresh supermarket", "pass": true, "reason": null, "message": null}]}
+## basket [12, 13]: 51x3@m1,203x3@m1
+--- F1 place cash POST /api/v1/customer/order/group/place rid=90626541-2b73-42a7-b298-19a08ee54747 -> 403
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438, "stores": [{"store_id": 12, "distance": 1}, {"store_id": 13, "distance": 1}]}
+    resp: {"errors": [{"code": "digital_payment", "message": "Cash on delivery for the order not available at this time"}]}
+counts 125	15 / 125	15 log=[]
+## F2 cash: global cash ON, global digital ON, zones.cash_on_delivery=0 for zone 2 (store 12 zone=2)
+## payments: global_online=True global_cash=True zones={2: True} -> 2:1,400:1
+zone2 flags: cod=0 dp=1
+## basket [12]: 51x3@m1
+--- F2 single place cash, zone cod=0 POST /api/v1/customer/order/place rid=454e9d01-2063-44a1-bfe9-156f91ad0bd4 -> 200
+    body: {"payment_method": "cash_on_delivery", "order_type": "delivery", "store_id": 12, "distance": 1, "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438}
+    resp: {"message": "Order placed successfully", "order_id": 91420, "payment_token": "<redacted>", "total_ammount": 12.6, "status": "pending", "created_at": "2026-09-29 11:07:38", "user_id": 6}
+counts 125	15 / 126	15
+order row: 91420|6|12|2|cash_on_delivery|pending|unpaid|12.60|1
+log=[]
+## F2 digital: zone2 cod=1, dp=0 (global digital ON)
+zone2 flags: cod=1 dp=0
+## basket [12]: 51x3@m1
+--- F2 single place digital, zone dp=0 POST /api/v1/customer/order/place rid=4f6ef998-8456-465e-8fa8-c905789722df -> 200
+    body: {"payment_method": "digital_payment", "order_type": "delivery", "store_id": 12, "distance": 1, "address": "Tower 1, Abu Dhabi", "latitude": 24.453884, "longitude": 54.3773438}
+    resp: {"message": "Order placed successfully", "order_id": 91421, "payment_token": "<redacted>", "total_ammount": 12.6, "status": "failed", "created_at": "2026-09-29 11:07:38", "user_id": 6}
+counts 126	15 / 127	15
+order row: 91421|6|12|2|digital_payment|failed|unpaid|12.60|1
+log=[]

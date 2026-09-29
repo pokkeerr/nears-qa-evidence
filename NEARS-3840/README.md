@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3840
 
-**PASS - NEARS-3840 live API QA (private DB copy, :8740 @ 34b1dc8be): AC1-AC5, AC-LOG, AC-REG, AC-TEST**
+**[8b] regression-candidate confirm: F1 reproduced, F2 reproduced (pre-existing, base behaviour)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
