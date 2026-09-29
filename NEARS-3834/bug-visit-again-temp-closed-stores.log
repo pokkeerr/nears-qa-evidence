@@ -1,0 +1,11 @@
+Pre-existing (NOT caused by NEARS-3834) - visit-again rail lists temporarily-closed stores (stores.active=0)
+Copy DB multi_food_db_qa3834: stores 8 and 9 -> status=1, active=0 (zone 2, module 1)
+Flag OFF, zoneId=[2], moduleId=1 (base code path, unchanged by this ticket):
+off2-z2-m1: HTTP 200 rid=ebb99566-3c9c-47f0-aa18-a4dbbaa3d14d n=13 modules=[1] keysets=2 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(8, 1, 2, 5), (9, 1, 2, 5), (12, 1, 2, 5), (13, 1, 2, 5), (14, 1, 2, 5), (16, 1, 2, 5), (17, 1, 2, 5), (18, 1, 2, 5), (20, 1, 2, 5), (21, 1, 2, 5), (35, 1, 2, 5), (4117, 1, 2, 5), (4118, 1, 2, 5)]
+Flag ON, zoneId=[2], header absent (new widened branch inherits it):
+on-z2-absent: HTTP 200 rid=6704ba2c-6823-4d72-8381-0c7d6bfc5bc4 n=14 modules=[1, 3] keysets=2 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(8, 1, 2, 5), (9, 1, 2, 5), (12, 1, 2, 5), (13, 1, 2, 5), (14, 1, 2, 5), (16, 1, 2, 5), (17, 1, 2, 5), (18, 1, 2, 5), (20, 1, 2, 5), (21, 1, 2, 5), (35, 1, 2, 5), (58, 3, 2, 5), (4117, 1, 2, 5), (4118, 1, 2, 5)]
+docs/solutions/NEARS-3810-hide-closed-stores.md (c) adds ->opened() to StoreLogic listing methods, CategoryLogic, SearchController,
+ItemController::item_or_store_search; OrderController::order_again is not in that list, while docs/data-qa/qa-demo-data-matrix.md row 5
+says a temporarily-closed store is 'absent from every customer listing/search result' and its details endpoint 404s store_temporarily_closed.

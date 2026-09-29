@@ -1,0 +1,93 @@
+# NEARS-3834 live API transcripts (private server 127.0.0.1:8134, DB multi_food_db_qa3834)
+Backend: /Users/Apple/Projects/nears-NEARS-3834-visit-again-module-optional @ 7491d4e75 (serve --no-reload, pid 85462; freshness-check PASS)
+DB proof: GET /api/v1/stores/details/91158 -> 200 (store 91158 exists only in the copy; 0 rows in multi_food_db)
+Headers per call: Authorization Bearer <redacted>, zoneId, latitude/longitude, X-Request-Id=<uuid4>, moduleId per case; empty case sends 'moduleId:' (verified with curl -v)
+
+## Flag OFF (baseline)
+off-absent: HTTP 200 rid=5165d307-a01e-40f8-ae33-69054a8db4a0 n=0 modules=[] keysets=0 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= []
+off-m1: HTTP 200 rid=4f7ece8d-fad3-47a0-b292-e1aed9249efe n=4 modules=[1] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(1, 1, 1, 5), (2, 1, 1, 5), (3, 1, 1, 5), (38, 1, 1, 5)]
+off-m2: HTTP 200 rid=859ae54d-2410-4f9e-941e-20da56c80f7d n=3 modules=[2] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(4, 2, 1, 5), (5, 2, 1, 5), (39, 2, 1, 5)]
+off-garbage: HTTP 200 rid=446c17ef-7b16-4a3e-a09f-cc8767cb2e48 n=0 modules=[] keysets=0 warn_lines=1 log_lines_for_rid=1
+  rows(id,module,zone,items)= []
+off-99999: HTTP 200 rid=043f051b-159c-42fb-a7af-e4808f2c520b n=0 modules=[] keysets=0 warn_lines=1 log_lines_for_rid=1
+  rows(id,module,zone,items)= []
+off-empty: HTTP 200 rid=100d415d-c2f6-4133-930a-104531497207 n=0 modules=[] keysets=0 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= []
+
+## Flag ON (copy only)
+on-absent: HTTP 200 rid=3bf08da2-fa80-4e95-b570-0e733cc6abf5 n=9 modules=[1, 2, 3] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(1, 1, 1, 5), (2, 1, 1, 5), (3, 1, 1, 5), (4, 2, 1, 5), (5, 2, 1, 5), (7, 3, 1, 5), (38, 1, 1, 5), (39, 2, 1, 5), (42, 3, 1, 5)]
+on-m1: HTTP 200 rid=54da248b-01d1-4abe-8a85-857c01c9d56e n=4 modules=[1] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(1, 1, 1, 5), (2, 1, 1, 5), (3, 1, 1, 5), (38, 1, 1, 5)]
+on-m2: HTTP 200 rid=46497e46-0efc-4126-9916-b88be62fe6b2 n=3 modules=[2] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(4, 2, 1, 5), (5, 2, 1, 5), (39, 2, 1, 5)]
+on-garbage: HTTP 200 rid=73084b9e-eac7-460c-b762-525736a0c0fb n=0 modules=[] keysets=0 warn_lines=1 log_lines_for_rid=1
+  rows(id,module,zone,items)= []
+on-99999: HTTP 200 rid=47521d67-d8d4-4d5c-a561-aba001eed2ce n=0 modules=[] keysets=0 warn_lines=1 log_lines_for_rid=1
+  rows(id,module,zone,items)= []
+on-empty: HTTP 200 rid=81bb1934-3e29-416b-b0b7-645600ae1761 n=9 modules=[1, 2, 3] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(1, 1, 1, 5), (2, 1, 1, 5), (3, 1, 1, 5), (4, 2, 1, 5), (5, 2, 1, 5), (7, 3, 1, 5), (38, 1, 1, 5), (39, 2, 1, 5), (42, 3, 1, 5)]
+on-z2-absent: HTTP 200 rid=6704ba2c-6823-4d72-8381-0c7d6bfc5bc4 n=14 modules=[1, 3] keysets=2 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(8, 1, 2, 5), (9, 1, 2, 5), (12, 1, 2, 5), (13, 1, 2, 5), (14, 1, 2, 5), (16, 1, 2, 5), (17, 1, 2, 5), (18, 1, 2, 5), (20, 1, 2, 5), (21, 1, 2, 5), (35, 1, 2, 5), (58, 3, 2, 5), (4117, 1, 2, 5), (4118, 1, 2, 5)]
+on-zmalformed-absent: HTTP 200 rid=8e21bc36-0b28-4e1f-9df9-ad1cced9a361 n=0 modules=[] keysets=0 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= []
+on-zempty-absent: HTTP 200 rid=b5ee5ee7-e2da-447b-9fd5-5ee3e0268dce n=0 modules=[] keysets=0 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= []
+on-z2-m1: HTTP 200 rid=1cd732ee-1270-4ee6-af48-b06f625a10a4 n=13 modules=[1] keysets=2 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(8, 1, 2, 5), (9, 1, 2, 5), (12, 1, 2, 5), (13, 1, 2, 5), (14, 1, 2, 5), (16, 1, 2, 5), (17, 1, 2, 5), (18, 1, 2, 5), (20, 1, 2, 5), (21, 1, 2, 5), (35, 1, 2, 5), (4117, 1, 2, 5), (4118, 1, 2, 5)]
+
+## Security negative + positive control (guest order user_id=6,is_guest=1 at store 91158, inserted on copy, then removed)
+id	store_id	user_id	is_guest	module_id	zone_id
+91999	91158	6	1	1	1
+sec-guest-on-absent: HTTP 200 rid=fe39f7e3-f8c9-4f31-b035-f82b8b5f0766 n=9 modules=[1, 2, 3] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(1, 1, 1, 5), (2, 1, 1, 5), (3, 1, 1, 5), (4, 2, 1, 5), (5, 2, 1, 5), (7, 3, 1, 5), (38, 1, 1, 5), (39, 2, 1, 5), (42, 3, 1, 5)]
+sec-guest-on-m1: HTTP 200 rid=255391ad-8834-4c7d-88f0-508db9f9c2c9 n=4 modules=[1] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(1, 1, 1, 5), (2, 1, 1, 5), (3, 1, 1, 5), (38, 1, 1, 5)]
+sec-posctl-on-absent: HTTP 200 rid=e0ef9ff9-3e5c-4d57-92e3-b0c598be3d3c n=10 modules=[1, 2, 3] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(1, 1, 1, 5), (2, 1, 1, 5), (3, 1, 1, 5), (4, 2, 1, 5), (5, 2, 1, 5), (7, 3, 1, 5), (38, 1, 1, 5), (39, 2, 1, 5), (42, 3, 1, 5), (91158, 1, 1, 2)]
+
+## AC4 live (module 3 status=0; then module_zone(2,1) deleted; both restored)
+id	module_id	zone_id	per_km_shipping_charge	minimum_shipping_charge	maximum_cod_order_amount	maximum_shipping_charge	delivery_charge_type	fixed_shipping_charge
+2	2	1	8.00	5.00	500.00	50.00	fixed	1.00
+max(id)
+91415
+id	store_id	user_id	is_guest
+91213	37	3	0
+91214	37	3	0
+ac4-mod3off-on-absent: HTTP 200 rid=1ef86e56-10ef-4378-a1a1-29c517ff6e9b n=7 modules=[1, 2] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(1, 1, 1, 5), (2, 1, 1, 5), (3, 1, 1, 5), (4, 2, 1, 5), (5, 2, 1, 5), (38, 1, 1, 5), (39, 2, 1, 5)]
+ac4-mod3off-on-m3: HTTP 200 rid=d41f3453-d6e0-4875-b60a-621905233022 n=2 modules=[3] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(7, 3, 1, 5), (42, 3, 1, 5)]
+ac4-mz21gone-on-absent: HTTP 200 rid=3ec9bc6d-b3ed-4692-a232-8947447321f9 n=6 modules=[1, 3] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(1, 1, 1, 5), (2, 1, 1, 5), (3, 1, 1, 5), (7, 3, 1, 5), (38, 1, 1, 5), (42, 3, 1, 5)]
+ac4-mz21gone-on-m2: HTTP 200 rid=9d447477-79fa-49c0-9f44-0af84d3e461b n=3 modules=[2] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(4, 2, 1, 5), (5, 2, 1, 5), (39, 2, 1, 5)]
+ac4-restored-on-absent: HTTP 200 rid=290d79ee-1db3-40e4-86f3-26fa9e3d445d n=9 modules=[1, 2, 3] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(1, 1, 1, 5), (2, 1, 1, 5), (3, 1, 1, 5), (4, 2, 1, 5), (5, 2, 1, 5), (7, 3, 1, 5), (38, 1, 1, 5), (39, 2, 1, 5), (42, 3, 1, 5)]
+
+## Flag restored to 0 (regression rerun)
+off2-absent: HTTP 200 rid=f9c1712d-95f6-4846-9844-f8b54babb6e4 n=0 modules=[] keysets=0 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= []
+off2-m1: HTTP 200 rid=b035edae-bd84-4245-ab34-d77e8bee4934 n=4 modules=[1] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(1, 1, 1, 5), (2, 1, 1, 5), (3, 1, 1, 5), (38, 1, 1, 5)]
+off2-m2: HTTP 200 rid=e5be2bc9-9304-46c3-92f0-30522708b670 n=3 modules=[2] keysets=1 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(4, 2, 1, 5), (5, 2, 1, 5), (39, 2, 1, 5)]
+off2-garbage: HTTP 200 rid=2cec1d0b-a32d-487a-ad5d-2d757518cba0 n=0 modules=[] keysets=0 warn_lines=1 log_lines_for_rid=1
+  rows(id,module,zone,items)= []
+off2-empty: HTTP 200 rid=f25fc70a-9d2d-468a-bc27-2f0ab19ebb6a n=0 modules=[] keysets=0 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= []
+off2-z2-m1: HTTP 200 rid=ebb99566-3c9c-47f0-aa18-a4dbbaa3d14d n=13 modules=[1] keysets=2 warn_lines=0 log_lines_for_rid=0
+  rows(id,module,zone,items)= [(8, 1, 2, 5), (9, 1, 2, 5), (12, 1, 2, 5), (13, 1, 2, 5), (14, 1, 2, 5), (16, 1, 2, 5), (17, 1, 2, 5), (18, 1, 2, 5), (20, 1, 2, 5), (21, 1, 2, 5), (35, 1, 2, 5), (4117, 1, 2, 5), (4118, 1, 2, 5)]
+
+## Body byte-compare
+IDENTICAL off-m1 == off2-m1
+IDENTICAL off-m2 == off2-m2
+IDENTICAL on-m1 == off-m1
+IDENTICAL on-m2 == off-m2
+IDENTICAL on-garbage == off-garbage
+IDENTICAL on-99999 == off-99999
+IDENTICAL on-empty == on-absent
+IDENTICAL off-empty == off-absent
