@@ -1,0 +1,18 @@
+NEARS-3853 QA byproduct (pre-existing, NOT caused by NEARS-3853) — cross-zone order data via invoice routes
+Env: private DB copy multi_food_db_qa3853, own server 127.0.0.1:8153 from worktree nears-NEARS-3853-admin-basket-card @ 23e36bfc3
+Viewer: admin employee id 5 (role_id 5 "order" module only, zone_id 2). Order 91406's store (58) moved to zone 1 ON THE COPY ONLY.
+
+Control — detail page is zone-scoped (correct):
+  GET /admin/order/details/91406  -> 302 (redirect back, order not found for this viewer)
+
+Exposure — invoice routes ignore ZoneScope (OrderController::generate_invoice()/print_invoice() use Order::withOutGlobalScope(ZoneScope::class)):
+  GET /admin/order/generate-invoice/91406 -> 200 (109148 bytes)
+  GET /admin/order/print-invoice/91406    -> 200 (11321 bytes)
+  Rendered text (print-invoice/91406), PII scrubbed:
+    "Cash receipt Order id : 91406 29/Sep/2026 01:40:am Contact name : <CUSTOMER NAME> Phone : <CUSTOMER PHONE>
+     Address : <DELIVERY ADDRESS> ... Discount: - 11.42 ... Vat/tax: + 5.14 ... Total : 107.88 Paid by : Digital payment Amount : 107.88"
+  Store block and item lines are blank (Store/Item models keep their own ZoneScope) — the Order row, customer contact,
+  delivery address and money totals are exposed.
+Positive control: print-invoice/91407 (in-zone) renders store "Test Store" + item line — the instrument reads real content.
+Route gate: Admin/routes/admin.php:245-248 module.any:order,customer_management,store,parcel (any order-module employee in any zone).
+Ids are sequential -> enumerable. Read-only GETs only; nothing else attempted.
