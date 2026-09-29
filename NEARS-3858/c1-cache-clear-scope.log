@@ -1,0 +1,57 @@
+# NEARS-3858 delta re-QA cycle 1 — FIR-1 (§21 doc fix) @ 243da9248 — condition C1
+
+## diff ef7dc87db..243da9248 (docs only)
+diff --git a/docs/data-qa/dev-seed-qa-fixtures.md b/docs/data-qa/dev-seed-qa-fixtures.md
+index 0a2585012..cbbad2fca 100644
+--- a/docs/data-qa/dev-seed-qa-fixtures.md
++++ b/docs/data-qa/dev-seed-qa-fixtures.md
+@@ -881,20 +881,20 @@ a database that has to persist. Built for the cross-module basket QA (epic NEARS
+ **Run:**
+ ```bash
+ mysql -u root -e "CREATE DATABASE multi_food_db_qa3858"
+-mysqldump -u root multi_food_db | mysql -u root multi_food_db_qa3858
++mysqldump -u root --single-transaction --set-gtid-purged=OFF multi_food_db | mysql -u root multi_food_db_qa3858
+ cd Admin
+ DB_DATABASE=multi_food_db_qa3858 php artisan db:seed --class=Nears3858MixedBasketFixtureSeeder --force
+ # Own server on the copy (port >= 8100); --no-reload keeps DB_DATABASE on the served process.
+-php artisan cache:clear
++DB_DATABASE=multi_food_db_qa3858 php artisan cache:clear
+ DB_DATABASE=multi_food_db_qa3858 php artisan serve --no-reload --port 8100
+ ```
+ 
+ **Idempotency:** a second run is a strict no-op — 3 vendors / 3 stores / 21 schedule rows / 6 items /
+ 2 `pharmacy_item_details` rows / 1 (1,1) surge, unchanged.
+ 
+-**Clean-up:** drop the private copy (`mysql -u root -e "DROP DATABASE multi_food_db_qa3858"`), then
+-`php artisan cache:clear` before serving another DB. There is no `down()`: the surge row is shared with
+-NEARS-3830's fixture.
++**Clean-up:** drop the private copy (`mysql -u root -e "DROP DATABASE multi_food_db_qa3858"`), then clear
++the cache of the DB you serve next, prefixed with it (`DB_DATABASE=<that db> php artisan cache:clear`).
++There is no `down()`: the surge row is shared with NEARS-3830's fixture.
+ 
+ **Not covered (NEARS-3860 must arrange these itself):** store-failure states (a closed store, a basket
+ below a store's minimum order, a basket over the cash-on-delivery limit), coupons, and zone payment flags.
+
+## C1 step 1 — probe put via DB_DATABASE=multi_food_db_qa3858 tinker (driver=database)
+multi_food_db.cache rows	91	probe	0
+multi_food_db.cache	2661995565
+multi_food_db_qa3858.cache rows	92	probe	1
+multi_food_db_qa3858.cache	4136592005
+
+## C1 step 2 — exact §21 line 888 from worktree Admin: DB_DATABASE=multi_food_db_qa3858 php artisan cache:clear -> 'Application cache cleared successfully.' rc=0
+
+## C1 step 3 — after
+multi_food_db.cache rows	91	probe	0
+multi_food_db.cache	2661995565
+multi_food_db_qa3858.cache rows	0	probe	NULL
+multi_food_db_qa3858.cache	0
+
+## §21 Run block (bash -n OK)
+     1	mysql -u root -e "CREATE DATABASE multi_food_db_qa3858"
+     2	mysqldump -u root --single-transaction --set-gtid-purged=OFF multi_food_db | mysql -u root multi_food_db_qa3858
+     3	cd Admin
+     4	DB_DATABASE=multi_food_db_qa3858 php artisan db:seed --class=Nears3858MixedBasketFixtureSeeder --force
+     5	# Own server on the copy (port >= 8100); --no-reload keeps DB_DATABASE on the served process.
+     6	DB_DATABASE=multi_food_db_qa3858 php artisan cache:clear
+     7	DB_DATABASE=multi_food_db_qa3858 php artisan serve --no-reload --port 8100
+mysqldump -u root --single-transaction --set-gtid-purged=OFF --no-data multi_food_db business_settings > /dev/null -> rc=0

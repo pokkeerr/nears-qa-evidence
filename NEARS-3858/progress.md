@@ -18,3 +18,7 @@ Backend: /Users/Apple/Projects/nears-NEARS-3858-mixed-basket-seeder @ ef7dc87db 
 | AC-REG | PASS | grep: 0 update/delete/truncate/upsert/down/raw-write; pre-existing rows on copy == shared (6 tables); shared DB before==after |
 | AC-TEST | PASS | 3858 suite 12/12 (82 assertions); 3830 suite 5/5 (18) |
 | vendor pw insert-only | PASS | sentinel hash survives rerun; original hash restored, verifies 123456789 |
+
+## Delta re-QA cycle 1 @ 243da9248 (FIR-1)
+| AC8 (re-verify) | PASS | §21 diff = 10 command lines only; dump line has --single-transaction --set-gtid-purged=OFF; Run cache:clear prefixed; Clean-up prefixed; bash -n OK; flags accepted |
+| C1 | PASS | probe in qa3858.cache (91->92); §21 line cleared qa3858.cache 92->0 (probe gone); multi_food_db.cache 91 rows, CHECKSUM 2661995565 unchanged; probe never present in shared |
