@@ -1,0 +1,8 @@
+# NEARS-3846 QA — AC6 reopened method sheet empty when client zone digital is stale (emulator-5580, build eb6561bad)
+# Race: probe cash_removed:false (zone digital OFF) -> cash picked -> admin enables zone digital -> Place
+09-29 19:09:53.986 I/flutter ( 5803): [NET] POST endpoint=/api/v1/customer/order/group/validate
+09-29 19:09:54.673 I/flutter ( 5803): [NET] endpoint=/api/v1/customer/order/group/validate http_status=403
+09-29 19:09:54.674 I/flutter ( 5803): [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=b2e7ba33-7e39-43f1-86f2-1e814ef3dce7
+09-29 19:09:54.675 I/flutter ( 5803): [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=b2e7ba33-7e39-43f1-86f2-1e814ef3dce7
+## reopened sheet a11y: 'Choose Payment Method','Total Bill','38.66 AED','Select' — no payment rows (cash removed, digital hidden by stale zone data, wallet 15.84 < 38.66)
+## zone data refreshes only on launch/address pick (get-zone-id), so the state persists for the session

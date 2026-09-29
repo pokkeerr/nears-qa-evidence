@@ -1,0 +1,15 @@
+# NEARS-3846 QA — cod_cap verdict leaves auto-selected cash selected (emulator-5580, build eb6561bad, backend :8146 via proxy :8147, DB multi_food_db_qa3846)
+# Fixture: zone 1 digital_payment=0 (cash_removed:false), module_zone(1,2).maximum_cod_order_amount=10
+## client log (logcat, flutter tag)
+09-29 19:14:19.420 I/flutter ( 9247): 📊 analytics: add_payment_info {payment_type: cash_on_delivery, value: 27.25, currency: AED, screen: checkout, section: payment}
+09-29 19:14:24.869 I/flutter ( 9247): [INFO] msg="checkout: mixed basket probe cash_removed=false valid=true"
+09-29 19:14:24.887 I/flutter ( 9247): 📊 analytics: checkout_cash_removed_shown {reason: cod_cap}
+09-29 19:15:29.006 I/flutter ( 9247): [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=200 type=PlaceOrderBlocked msg="checkout: group validate rejected failures=1 store_ids=91159 reasons=cod_cap"
+## a11y after verdict (payment section)
+'Cash on Delivery ... 38.66 AED' (selected summary, still present)
+'Cash on delivery limit exceeded for this store' (warning row)
+sheet contents: 'Pay Offline' only (cash row absent)
+## Place-time validate (proxy capture)
+19:15:29 POST /api/v1/customer/order/group/validate mod= 2 st= 200 rid= f193c806-356c-40bf-a0a2-e833c0270c9c 
+   BODY {"stores": [{"store_id": 91158, "distance": 0.524, "dm_tips": 0.0}, {"store_id": 91159, "distance": 0.524, "dm_tips": 0.0}], "order_type": "delivery", "payment_method": "cash_on_delivery", "partial_payment": 0, "is_buy_now": 0, "cutlery": 0, "coupon_discount_amount": 0.0, "address": "Demo Zone — Dhaka", "latitude": "23.81796", "longitude": "90.36602", "address_type": "home", "contact_person_name": "<redacted>", "contact_person_number": "<redacted>", "create_new_user": 0}
+   RESP {"valid": false, "stores": [{"store_id": 91158, "store_name": "NEARS-3858 QA Mixed Grocery", "pass": true, "reason": null, "message": null, "amounts": {"order_amount": 21.13, "items_total": 13.13, "delivery_charge": 8, "dm_tips": 0, "discount_amount": 0, "total_tax_amount": 0.63, "extra_packaging_amount": 0, "additional_charge": 0}}, {"store_id": 91159, "store_name": "NEARS-3858 QA Mixed Kitchen", "pass": false, "reason": "cod_cap", "message": "Amount crossed maximum cod order amount", "amounts": null}], "amounts": null, "cash_removed": false}

@@ -1,0 +1,5 @@
+# Pre-existing: guest multi-store checkout never computes per-store fees/total; Place Order disabled
+# Reproduced on BOTH the ticket build (eb6561bad) and a control build of base d14bba041 (same device, same backend :8146 DB multi_food_db_qa3846)
+Summary a11y (both builds): 'Subtotal 28.25' / 'Delivery Fee + -1.00 AED' / no VAT line / 'Total Amount'' AED' (no digits) / 'Place Order' click=false
+Traffic: no per-store config/delivery-quote, no group/validate after name+phone+email+address filled
+Cause (code, not in this diff): checkout_screen.dart:861 calls pricingController.ensureGroupFeeSummary(address: checkoutController.addressDeliveryOptionController.address) — the logged-in address, null for a guest; ensureGroupFeeSummary returns early when address?.latitude == null (pricing_summary_controller.dart:1537)

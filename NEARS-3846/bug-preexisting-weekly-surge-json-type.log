@@ -1,0 +1,4 @@
+# Pre-existing backend: permanent weekly surge lookup is type-strict
+OrderTaxService::getSurgePriceValue uses whereJsonContains('module_ids', $moduleId).
+tinker on multi_food_db_qa3846 with row module_ids=[1]: getSurgePriceValue(1, 1, now)=7.00 ; getSurgePriceValue(1, "1", now)=0
+Client get-surge-price sends module_id as string "1" -> 0; placement passes int -> 7.00 (J2 mismatch). Admin form stores strings ["1"] -> inverse mismatch. Dated surges (surge_price_dates.module_id int column) match both.
