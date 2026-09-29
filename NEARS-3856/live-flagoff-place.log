@@ -1,0 +1,21 @@
+## R4-place-empty-cart-mismatch-flagOFF  X-Request-Id=38560000-0004-4000-8000-000000000004  2026-09-29 14:37:19
+{"errors":[{"code":"empty_cart","message":"You can not place empty orders"}]}
+HTTP 403
+
+-- log:
+[2026-09-29 14:37:19] production.WARNING: [WARN] order placement - moduleId header differs from store module {"trace_id":"7480c6d789dd9883f756b3ab8f40e557","correlation_id":"38560000-0004-4000-8000-000000000004","endpoint":"api/v1/customer/order/place","store_id":12,"header_module_id":2,"module_id":1,"reason":"header_store_module_mismatch","request_id":"38560000-0004-4000-8000-000000000004"} 
+[2026-09-29 14:37:19] production.WARNING: [WARN] order placement rejected - gate {"trace_id":"7480c6d789dd9883f756b3ab8f40e557","correlation_id":"38560000-0004-4000-8000-000000000004","endpoint":"api/v1/customer/order/place","http_status":403,"code":"empty_cart","reason":"empty_cart","store_id":12,"request_id":"38560000-0004-4000-8000-000000000004"} 
+## R5-B1-buynow-invalid-cart  X-Request-Id=38560000-0005-4000-8000-000000000005  2026-09-29 14:37:20
+{"errors":[{"code":"cart","message":"Invalid cart payload"}]}
+HTTP 403
+
+-- log:
+[2026-09-29 14:37:20] production.WARNING: [WARN] new_place_order - buy-now request missing/invalid X-Idempotency-Key, falling through unguarded {"trace_id":"ebf595168b6b45f23894a9e76584326d","correlation_id":"38560000-0005-4000-8000-000000000005","endpoint":"api/v1/customer/order/place","request_id":"38560000-0005-4000-8000-000000000005"} 
+[2026-09-29 14:37:20] production.ERROR: [FAIL] new_place_order - invalid buy-now cart payload {"trace_id":"ebf595168b6b45f23894a9e76584326d","correlation_id":"38560000-0005-4000-8000-000000000005","endpoint":"api/v1/customer/order/place","http_status":403,"code":"invalid_cart","request_id":"38560000-0005-4000-8000-000000000005"} 
+[2026-09-29 14:37:20] production.WARNING: [WARN] order placement rejected - gate {"trace_id":"ebf595168b6b45f23894a9e76584326d","correlation_id":"38560000-0005-4000-8000-000000000005","endpoint":"api/v1/customer/order/place","http_status":403,"code":"cart","reason":"invalid_cart","store_id":12,"request_id":"38560000-0005-4000-8000-000000000005"} 
+## R6-place-validation  X-Request-Id=38560000-0006-4000-8000-000000000006  2026-09-29 14:37:20
+ type is in take_away."},{"code":"contact_person_name","message":"The contact person name field is required."},{"code":"contact_person_number","message":"The contact person number field is required."},{"code":"contact_person_email","message":"The contact person email field is required."}]}
+HTTP 403
+
+-- log:
+[2026-09-29 14:37:20] production.WARNING: [WARN] order placement rejected - validation {"trace_id":"3aa16b602085e9a72b35fdefa8b14172","correlation_id":"38560000-0006-4000-8000-000000000006","endpoint":"api/v1/customer/order/place","http_status":403,"fields":["payment_method","distance","address","longitude","latitude","contact_person_name","contact_person_number","contact_person_email"],"request_id":"38560000-0006-4000-8000-000000000006"} 
