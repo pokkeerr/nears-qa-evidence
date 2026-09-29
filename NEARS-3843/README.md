@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3843
 
-**FAIL - AC3 food-row sheet Out of Stock under grocery; AC1/2a/2b/4/LOG/REG pass**
+**NEARS-3843 fix cycle 1 (e1fc12425): PASS - AC3 both halves re-verified on emulator-5570**
 
-**22 screenshot(s).** Click any thumbnail for full resolution.
+**23 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -38,9 +38,10 @@
 <tr>
 <td align="center" width="33%"><a href="bug-ac3-sheet-food-row-grocery-out-of-stock.png"><img src="bug-ac3-sheet-food-row-grocery-out-of-stock.png" width="240"></a><br><sub>bug ac3 sheet food row grocery out of stock</sub></td>
 <td align="center" width="33%"><a href="bug-item-card-ambient-stock-sold-out.png"><img src="bug-item-card-ambient-stock-sold-out.png" width="240"></a><br><sub>bug item card ambient stock sold out</sub></td>
-<td align="center" width="33%"><a href="reg-global-search-no-module-results.png"><img src="reg-global-search-no-module-results.png" width="240"></a><br><sub>reg global search no module results</sub></td>
+<td align="center" width="33%"><a href="fc1-ac3a-food-row-grocery-active-sheet.png"><img src="fc1-ac3a-food-row-grocery-active-sheet.png" width="240"></a><br><sub>fc1 ac3a food row grocery active sheet</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="reg-global-search-no-module-results.png"><img src="reg-global-search-no-module-results.png" width="240"></a><br><sub>reg global search no module results</sub></td>
 <td align="center" width="33%"><a href="toast-ar-only-quantity-available.png"><img src="toast-ar-only-quantity-available.png" width="240"></a><br><sub>toast ar only quantity available</sub></td>
 </tr>
 </table>
@@ -52,6 +53,7 @@
 - [`bug-get-tax-403-flash-sale-stock-mismatch.log`](bug-get-tax-403-flash-sale-stock-mismatch.log)
 - [`bug-global-search-semantics-table-assert.log`](bug-global-search-semantics-table-assert.log)
 - [`bug-nitemcard-overflow-textscale-1.3.log`](bug-nitemcard-overflow-textscale-1.3.log)
+- [`fc1-ac3a-food-row-grocery-active-sheet.xml`](fc1-ac3a-food-row-grocery-active-sheet.xml)
 - [`progress.md`](progress.md)
 
 ---
