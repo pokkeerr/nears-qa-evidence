@@ -1,0 +1,12 @@
+# NEARS-3895 d2 QA: A->B->C quick-add switches while the Home reload is slower than the switch spacing -> Home ends under chip C with A's content (no self-heal at 12s)
+# Build b62c2b690. Instrument: private logging proxy delays Home endpoints (/home/all, flash-sales, popular, other-banners, get-stores, campaigns) by 8s to emulate a slow network; guard/cart endpoints undelayed. Same 3-switch sequence with 0s delay and with 4s delay ended CORRECTLY on C (Home = C rails).
+# Sequence (logged in james.wilson, results page 'Fixture', flag OFF): '+' Fixture Cap A (module 3) Yes -> '+' Fixture Bean (1) Yes -> swipe -> '+' Fixture Gadget (9) Yes
+03:28:33.762 DELETE /api/v1/customer/cart/remove q= moduleId='9' zoneId=None -> 200  rows=[]
+03:28:34.367 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 {"item_id":990030,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":
+03:28:35.560 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200  rows=[]
+03:28:36.150 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 {"item_id":990032,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons"
+03:28:39.362 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200  rows=[]
+03:28:39.948 POST /api/v1/customer/cart/add q= moduleId='9' zoneId=[1] -> 200 {"item_id":990033,"price":"25.0","quantity":1,"add_on_ids":[],"add_ons":
+03:28:34.341 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200  
+# Note: proxy timestamps are request-RECEIPT times; only ONE home/all (moduleId=3, A) was issued; B (module 1) and C (module 9) reloads were dropped; no home request for module 9 followed.
+# End state: chip = NEARS-2897 Shop (Ecommerce) (module 9) but Home shows Pharmacy categories (Personal Care, First Aid, Vitamins, Cold & Flu, Pain Relief) and Featured Store 'HealthCare Pharmacy' (module 3); 'Most Popular Products' rail absent. Shot: d2-abc-delay8-home-12s.png
