@@ -1,0 +1,28 @@
+NEARS-3912 confirm-only repro (NEARS-3846 QA cycle 2, build 1912013b2, backend worktree @ 1912013b2, private DB copy)
+Config: global offline_payment_status=1, zone 1 offline_payment=1, partial_payment_status=NULL(off); mixed group basket stores 91158 (grocery m1) + 91159 (food m2); zone 1 digital_payment=0 (so cash+offline offered).
+Sheet offered: Cash on Delivery + Pay Offline (method 'NEARS-2647 Bank Transfer'). Picked offline -> Place Order -> Confirm & place order (x3 taps).
+--- proxy (request/response, PII fields omitted)
+22:56:49 POST /api/v1/customer/order/group/validate st= 403 rid= f9662117-41e5-469d-ab1d-93e114d3b01c payment_method= offline_payment
+   RESP {"errors": [{"code": "payment_method", "message": "The selected payment method is invalid."}]}
+22:57:26 POST /api/v1/customer/order/group/validate st= 403 rid= 024d2cae-9098-403c-8384-028e2b05ad0f payment_method= offline_payment
+   RESP {"errors": [{"code": "payment_method", "message": "The selected payment method is invalid."}]}
+22:58:07 POST /api/v1/customer/order/group/validate st= 403 rid= ff330201-1e94-4ba8-a8e8-9c15cf1216f2 payment_method= offline_payment
+   RESP {"errors": [{"code": "payment_method", "message": "The selected payment method is invalid."}]}
+22:58:17 POST /api/v1/customer/order/group/validate st= 403 rid= 03a0f9f5-ab88-4ec7-a9ea-f92bac7e45e8 payment_method= offline_payment
+   RESP {"errors": [{"code": "payment_method", "message": "The selected payment method is invalid."}]}
+--- app log (filtered)
+📊 analytics: order_confirm_confirmed {value: 38.66, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=f9662117-41e5-469d-ab1d-93e114d3b01c
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=none" correlation_id=f9662117-41e5-469d-ab1d-93e114d3b01c
+📊 analytics: order_confirm_confirmed {value: 38.66, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=024d2cae-9098-403c-8384-028e2b05ad0f
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=none" correlation_id=024d2cae-9098-403c-8384-028e2b05ad0f
+📊 analytics: order_confirm_confirmed {value: 38.66, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=ff330201-1e94-4ba8-a8e8-9c15cf1216f2
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=none" correlation_id=ff330201-1e94-4ba8-a8e8-9c15cf1216f2
+📊 analytics: order_confirm_confirmed {value: 38.66, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=03a0f9f5-ab88-4ec7-a9ea-f92bac7e45e8
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=none" correlation_id=03a0f9f5-ab88-4ec7-a9ea-f92bac7e45e8
+--- orders: max(orders.id) before=91415 after=91415  (no order, no charge; no group/place call issued)
+--- display: pixel diff vs the pre-tap frame: only the CTA region [48,2100][1032,2256] changes for 0.1-0.7s (loading), then frames at 1.2s..5.0s are IDENTICAL to pre-tap.
+    Code: place_order_controller.dart ~1295-1300: validation==null and reason not mixed_basket_* -> showCustomSnackBar('something_went_wrong') WITHOUT dismissing the confirm sheet -> the snackbar renders beneath the modal sheet: nothing visible to the customer.

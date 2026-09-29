@@ -1,0 +1,16 @@
+No-method-passes state (ruling 3887-005 C: 'checkout must still open and say so') — NEARS-3846 QA cycle 2, build 1912013b2
+D1: global digital+cash ON, zone1 digital OFF + cash OFF, wallet_status=1 (balance 15.84 < total 38.66), partial pay off.
+  probe: cash -> 200 rows cash_unavailable_in_zone; digital -> 200 rows digital_unavailable_in_zone
+  [INFO] msg="checkout: mixed basket probe method refused reason=cash_unavailable_in_zone"
+  [INFO] msg="checkout: mixed basket probe method refused reason=digital_unavailable_in_zone"
+  [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=200 type=ApiFailure msg="checkout: mixed basket probe — no payment method passes reason=digital_unavailable_in_zone"
+  UI: payment section 'Select Payment Method'; method sheet lists NO rows (offline hidden by the accepted no-method rule; wallet not listed, balance < total).
+      Place Order tap -> reopens the same empty sheet; no validate, no order; no text says no method is available. (shot c2-D1-no-method-passes-empty-method-sheet-EN-360dp.png)
+D2: global digital OFF, zone1 cash OFF, wallet_status=0 (config reloaded by relaunch).
+  [INFO] msg="checkout: mixed basket probe method refused reason=cash_unavailable_in_zone"
+  [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=200 type=ApiFailure msg="checkout: mixed basket probe — no payment method passes reason=cash_unavailable_in_zone"
+  [FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: place-order blocked reason=no_payment_method_is_enabled"
+  [FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: place-order blocked reason=no_payment_method_is_enabled"
+  UI: Place -> confirm sheet (Payment Method chip 'SELECT PAYMENT METHOD') -> Confirm & place order -> blocked (log above) but the 'No payment method is enabled' snackbar is NOT visible:
+      frames at 0-2.4s after the tap are pixel-identical to the pre-tap frame (showCustomSnackBar(non-GetX) renders under the still-open confirm sheet; place_order_controller.dart:403-411 _rejectPlaceOrder).
+  orders: max(id) 91415 unchanged.

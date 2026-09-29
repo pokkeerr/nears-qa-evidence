@@ -1,0 +1,9 @@
+Extra check (2) (advisor-product): while the 6s mixed-basket toast is up over the reopened method sheet, can the first gateway row be tapped?  ANSWER: NO.
+Build 1912013b2, emulator-5580 360dp x font 1.3, EN. Trigger: cash selected, server zone1 digital flipped ON after the probe -> Place -> group/validate 403 reason=mixed_basket_cash_unavailable (server message replaced by proxy sentinel).
+a11y dump at ~t=1.0-3.8s: toast "Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet." bounds [78,1278][1002,1980]; sheet rows: Paypal [63,1728][1017,1896], Razor pay [63,1896][1017,2034].
+=> the toast covers the whole Paypal row (the first gateway row) and the top of Razor pay.
+ui_tap 'Paypal' (label-resolved centre 540,1812) issued at t=5.9s. Frames t=1.4s..6.8s are pixel-identical in the toast box (toast still up at 6.8s; 5.6s vs 6.8s full-frame diff = none).
+App log after the t=5.9s tap: NO 'payment sheet: digital payment tapped' line (tap swallowed).
+Positive control, same label, after the toast left:
+[INFO] msg="payment sheet: digital payment tapped, gateway index=0"
+[INFO] msg="checkout: payment method selected index=2"
