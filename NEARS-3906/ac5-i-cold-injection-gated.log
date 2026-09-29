@@ -1,0 +1,73 @@
+# NEARS-3906 QA cycle 1 — route (i) COLD-LAUNCH state injection (STATE-INJECTED PRECONDITION, real app, NOT a user route)
+# Injected: FlutterSharedPreferences flutter.6ammart_user_address latitude -> "" (zone_ids [1] + everything else kept), app force-stopped, relaunched via am start; guest cart (2 stores) server-side.
+# Result: splash get-zone-id with the empty latitude -> 403, then 404; inZone=false; Home = 'Service not available in this area' (no bottom nav / basket). Store open from search -> [FAIL] module switch verification failed + error snackbar. Checkout NOT reachable from a cold launch with a null-latitude stored address.
+# count 'group fee summary skipped' in this window: 0
+# count of pre-existing search-results semantics assertion stack lines (framework_error, cycle-0 bug-search-results-semantics-assertion.log): 513 (elided below)
+# raw adb logcat -s flutter (framework_error stack lines elided):
+--------- beginning of main
+09-30 03:02:52.993 I/flutter (19953): [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+09-30 03:02:53.055 I/flutter (19953): The Dart VM service is listening on http://127.0.0.1:46453/-y3qGCiVhBo=/
+09-30 03:02:53.957 I/flutter (19953): [FAIL] endpoint=null http_status=null type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+09-30 03:02:54.089 I/flutter (19953): AnalyticsService: FirebaseAnalytics.instance unresolvable: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+09-30 03:02:54.089 I/flutter (19953): [FAIL] endpoint=null http_status=null type=KilledLaunchNotificationFailure msg="killed-launch getInitialMessage failed (FirebaseException)"
+09-30 03:02:54.111 I/flutter (19953): [INFO] msg="route: building splash route, hasData=false"
+09-30 03:02:54.304 I/flutter (19953): [INFO] msg="route: navigating to splash screen"
+09-30 03:02:54.311 I/flutter (19953): [INFO] msg="splash: location prefetch initiated"
+09-30 03:02:54.356 I/flutter (19953): [NET] GET endpoint=/api/v1/customer/cart/list
+09-30 03:02:54.628 I/flutter (19953): [NET] GET endpoint=/api/v1/config
+09-30 03:02:54.632 I/flutter (19953): [NET] endpoint=/api/v1/customer/cart/list http_status=200
+09-30 03:02:54.859 I/flutter (19953): [NET] endpoint=/api/v1/config http_status=200
+09-30 03:02:54.871 I/flutter (19953): [INFO] msg="splash: deeplink resolved canRoute=true"
+09-30 03:02:54.871 I/flutter (19953): [INFO] msg="splash: routing"
+09-30 03:02:54.873 I/flutter (19953): [NET] GET endpoint=/api/v1/config/get-zone-id
+09-30 03:02:54.874 I/flutter (19953): [NET] GET endpoint=/api/v1/module
+09-30 03:02:55.151 I/flutter (19953): [NET] endpoint=/api/v1/module http_status=200
+09-30 03:02:55.224 I/flutter (19953): [NET] endpoint=/api/v1/config/get-zone-id http_status=403
+09-30 03:02:55.224 I/flutter (19953): [INFO] msg="get-zone-id: no zone / out of zone — prompting location picker"
+09-30 03:02:55.224 I/flutter (19953): [INFO] msg="location: inZone=false"
+09-30 03:02:55.236 I/flutter (19953): [INFO] msg="route: initial route module=food-restaurant"
+09-30 03:02:55.236 I/flutter (19953): [INFO] msg="route: waiting for module=food-restaurant"
+09-30 03:02:55.237 I/flutter (19953): [INFO] msg="route: checkModuleId configNull=false hasAddress=true fromDeeplink=false"
+09-30 03:02:55.237 I/flutter (19953): [INFO] msg="route: not from deeplink, skipping module fetch"
+09-30 03:02:55.238 I/flutter (19953): [INFO] msg="route: module future state=ConnectionState.waiting hasData=false hasError=false"
+09-30 03:02:55.252 I/flutter (19953): [INFO] msg="route: module future state=ConnectionState.done hasData=false hasError=false"
+09-30 03:02:55.287 I/flutter (19953): [INFO] msg="home load started"
+09-30 03:02:55.427 I/flutter (19953): [INFO] msg="location: zone resolved from short-TTL coord cache (T2 dedupe)"
+09-30 03:02:55.427 I/flutter (19953): [INFO] msg="location: inZone=false"
+09-30 03:02:55.431 I/flutter (19953): [NET] GET endpoint=/api/v1/config/get-zone-id
+09-30 03:02:56.405 I/flutter (19953): [NET] endpoint=/api/v1/config/get-zone-id http_status=404
+09-30 03:02:56.405 I/flutter (19953): [INFO] msg="get-zone-id: no zone / out of zone — prompting location picker"
+09-30 03:02:56.405 I/flutter (19953): [INFO] msg="location: inZone=false"
+09-30 03:02:56.405 I/flutter (19953): [WARN] msg="location: zone ids empty for current location"
+09-30 03:02:56.408 I/flutter (19953): [NET] GET endpoint=/api/v1/banners
+09-30 03:02:56.415 I/flutter (19953): [NET] GET endpoint=/api/v1/module
+09-30 03:02:56.417 I/flutter (19953): [NET] GET endpoint=/api/v1/stores/get-stores/all
+09-30 03:02:57.423 I/flutter (19953): [NET] endpoint=/api/v1/module http_status=200
+09-30 03:02:57.429 I/flutter (19953): [NET] endpoint=/api/v1/banners http_status=200
+09-30 03:02:57.454 I/flutter (19953): [NET] endpoint=/api/v1/stores/get-stores/all http_status=200
+09-30 03:02:58.717 I/flutter (19953): [FAIL] endpoint=null http_status=null type=GetPositionFailure msg="location: getPosition threw (TimeoutException) — trying the AD1 fallback ladder"
+09-30 03:02:58.718 I/flutter (19953): [INFO] msg="location: fallback ladder -> stale last-known GPS fix"
+09-30 03:02:58.718 I/flutter (19953): [INFO] msg="splash: location prefetch completed"
+09-30 03:03:20.215 I/flutter (19953): [NET] GET endpoint=/api/v1/search/trending
+09-30 03:03:20.899 I/flutter (19953): [NET] endpoint=/api/v1/search/trending http_status=200
+09-30 03:03:29.864 I/flutter (19953): [NET] GET endpoint=/api/v1/search/global
+09-30 03:03:30.414 I/flutter (19953): [NET] endpoint=/api/v1/search/global http_status=200
+09-30 03:03:30.449 I/flutter (19953): [WARN] msg="isAvailable: minute-precision end time, treating as inclusive to :59 (item boundary degrade)"
+09-30 03:03:30.486 I/flutter (19953): [WARN] msg="isAvailable: minute-precision end time, treating as inclusive to :59 (item boundary degrade)"
+09-30 03:04:24.588 I/flutter (19953): [NET] GET endpoint=/api/v1/search/global
+09-30 03:04:25.278 I/flutter (19953): [NET] endpoint=/api/v1/search/global http_status=200
+09-30 03:05:27.430 I/flutter (19953): [NET] GET endpoint=/api/v1/items/item-or-store-search
+09-30 03:05:27.578 I/flutter (19953): [NET] GET endpoint=/api/v1/search/global
+09-30 03:05:28.341 I/flutter (19953): [NET] endpoint=/api/v1/items/item-or-store-search http_status=200
+09-30 03:05:28.346 I/flutter (19953): [NET] endpoint=/api/v1/search/global http_status=200
+09-30 03:06:05.055 I/flutter (19953): [INFO] msg="deep link stream event, hasPrevious=false"
+09-30 03:06:05.055 I/flutter (19953): [INFO] msg="deep link received"
+09-30 03:06:05.055 I/flutter (19953): [INFO] msg="deep link converted, matched=false"
+09-30 03:06:35.222 I/flutter (19953): [NET] GET endpoint=/api/v1/search/global
+09-30 03:06:35.926 I/flutter (19953): [NET] endpoint=/api/v1/search/global http_status=200
+09-30 03:08:19.837 I/flutter (19953): [NET] GET endpoint=/api/v1/search/global
+09-30 03:08:20.726 I/flutter (19953): [NET] endpoint=/api/v1/search/global http_status=200
+09-30 03:09:01.473 I/flutter (19953): [NET] GET endpoint=/api/v1/search/global
+09-30 03:09:02.282 I/flutter (19953): [NET] endpoint=/api/v1/search/global http_status=200
+09-30 03:09:05.496 I/flutter (19953): [FAIL] endpoint=/api/v1/module http_status=null type=ApiFailure msg="module switch verification failed"
+09-30 03:09:05.497 I/flutter (19953): [ERR] msg="error snackbar shown"

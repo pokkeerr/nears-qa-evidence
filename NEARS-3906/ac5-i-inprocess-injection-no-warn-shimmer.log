@@ -1,0 +1,53 @@
+# NEARS-3906 QA cycle 1 — route (i) IN-PROCESS state injection: STATE-INJECTED PRECONDITION, real app + real screen, NOT a user route
+# build worktree @ 4bc15d18e, emulator-5590, pkg com.izzes.nears.nears_nears_3906_guest_group_fee_address, API_HOST=10.0.2.2:8106 (DB nears3906qa), guest, basket = The Grill House (39) Chef Salad + NEARS-3858 QA Mixed Kitchen (91159) Falafel Wrap
+# Injection (flutter attach + VM-service evaluate in package:nears/helper/address_helper.dart, app on the CART screen):
+#   Get.find<SharedPreferences>().setString(AppConstants.userAddress, <stored json>.replaceFirst('"latitude":"<v>"', '"latitude":""'))
+#   probes after: getUserAddressFromSharedPref()?.latitude == null -> true ; longitude == null -> false ; zoneIds.length -> 1
+# Then 'Proceed to Checkout' tapped by label (open #1), Back, 'Proceed to Checkout' again (open #2).
+#
+# RESULT: 'group fee summary skipped' WARN count open#1 = 0 ; open#2 = 0  (expected 1 each per AC5)
+# Checkout never leaves the loading shimmer. VM probes (package:nears/features/checkout/screens/checkout_screen.dart scope), both opens:
+#   CheckoutController.isCheckoutDataLoading = false ; CheckoutController.store == null = false ; storeOutOfZone = false ; storeFetchFailed = false
+#   AddressDeliveryOptionController.selectedDeliveryAddress == null = false ; .latitude == null = true
+#   PricingSummaryController.distance == null = TRUE
+# ext.flutter.debugDumpApp (targeted grep): CheckoutScreenShimmerView x1, CheckoutGroupInfoBanners x0, ErrorWidget x0; shimmer ancestor = GetBuilder<PricingSummaryController> < GetBuilder<CouponController> < GetBuilder<CheckoutController> < CheckoutScreen
+# Mechanism (code-read): checkout_screen.dart:519 renders the body only when pricingController.distance != null && store != null, else the terminal CheckoutScreenShimmerView (:1157).
+#   distance is only computed in store_controller.dart:1231-1242 when _deliveryOrigin() != null (needs the address latitude) -> stays null forever -> the NEARS-3906 guard Builder (:860-873, inside the body Column) never mounts -> WARN can never fire.
+# Instrument-live proof: [INFO]/[NET] lines from the same screen below (route, most-tips, stores/details/39, get-surge-price, payment method selected).
+# Compare O1 (ac5-o1-negative-control-lat-present.log): with a latitude the same basket continues to details/91159, distance-api, delivery-quote x2, get-Tax x2.
+# --- raw adb logcat -s flutter, open #1 (lines 706..722) ---
+09-30 03:13:21.685 I/flutter (21805): [INFO] msg="route: waiting for module=food-restaurant"
+09-30 03:13:21.685 I/flutter (21805): [INFO] msg="route: checkModuleId configNull=false hasAddress=true fromDeeplink=false"
+09-30 03:13:21.685 I/flutter (21805): [INFO] msg="route: not from deeplink, skipping module fetch"
+09-30 03:13:21.686 I/flutter (21805): [INFO] msg="route: module future state=ConnectionState.waiting hasData=false hasError=false"
+09-30 03:13:21.701 I/flutter (21805): [INFO] msg="route: module future state=ConnectionState.done hasData=false hasError=false"
+09-30 03:13:21.704 I/flutter (21805): [NET] GET endpoint=/api/v1/most-tips
+09-30 03:13:21.704 I/flutter (21805): [NET] GET endpoint=/api/v1/offline_payment_method_list
+09-30 03:13:21.705 I/flutter (21805): [NET] GET endpoint=/api/v1/stores/details/39
+09-30 03:13:22.642 I/flutter (21805): [NET] endpoint=/api/v1/stores/details/39 http_status=200
+09-30 03:13:22.644 I/flutter (21805): 📊 analytics: view_store {store_id: 39, is_open: 1}
+09-30 03:13:22.645 I/flutter (21805): [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+09-30 03:13:22.647 I/flutter (21805): [NET] endpoint=/api/v1/offline_payment_method_list http_status=200
+09-30 03:13:22.649 I/flutter (21805): [NET] endpoint=/api/v1/most-tips http_status=200
+09-30 03:13:23.642 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/get-surge-price http_status=200
+09-30 03:13:23.655 I/flutter (21805): 📊 analytics: begin_checkout {value: 53.15, currency: AED, item_count: 2, source: basket, store_count: 2}
+09-30 03:13:23.657 I/flutter (21805): [INFO] msg="checkout: payment method selected index=0"
+09-30 03:13:23.657 I/flutter (21805): 📊 analytics: add_payment_info {payment_type: cash_on_delivery, value: 52.15, currency: AED, screen: checkout, section: payment}
+# --- raw, open #2 (lines 723..) ---
+09-30 03:16:20.351 I/flutter (21805): [INFO] msg="route: waiting for module=food-restaurant"
+09-30 03:16:20.351 I/flutter (21805): [INFO] msg="route: checkModuleId configNull=false hasAddress=true fromDeeplink=false"
+09-30 03:16:20.351 I/flutter (21805): [INFO] msg="route: not from deeplink, skipping module fetch"
+09-30 03:16:20.351 I/flutter (21805): [INFO] msg="route: module future state=ConnectionState.waiting hasData=false hasError=false"
+09-30 03:16:20.369 I/flutter (21805): [INFO] msg="route: module future state=ConnectionState.done hasData=false hasError=false"
+09-30 03:16:20.369 I/flutter (21805): [NET] GET endpoint=/api/v1/most-tips
+09-30 03:16:20.369 I/flutter (21805): [NET] GET endpoint=/api/v1/offline_payment_method_list
+09-30 03:16:20.371 I/flutter (21805): [NET] GET endpoint=/api/v1/stores/details/39
+09-30 03:16:20.379 I/flutter (21805): [INFO] msg="checkout: payment method selected index=0"
+09-30 03:16:20.379 I/flutter (21805): 📊 analytics: add_payment_info {payment_type: cash_on_delivery, value: 52.15, currency: AED, screen: checkout, section: payment}
+09-30 03:16:21.231 I/flutter (21805): [NET] endpoint=/api/v1/offline_payment_method_list http_status=200
+09-30 03:16:21.232 I/flutter (21805): [NET] endpoint=/api/v1/most-tips http_status=200
+09-30 03:16:21.232 I/flutter (21805): [NET] endpoint=/api/v1/stores/details/39 http_status=200
+09-30 03:16:21.234 I/flutter (21805): 📊 analytics: view_store {store_id: 39, is_open: 1}
+09-30 03:16:21.234 I/flutter (21805): [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+09-30 03:16:22.232 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/get-surge-price http_status=200
+09-30 03:16:22.237 I/flutter (21805): 📊 analytics: begin_checkout {value: 53.15, currency: AED, item_count: 2, source: basket, store_count: 2}

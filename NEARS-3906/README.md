@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3906
 
-**NEARS-3906 QA [8] c0 PASS - guest multi-store checkout prices + places (AC5 live UNVERIFIABLE by AC design)**
+**QA cycle 1 (AC5 delta): FAIL - AC5 WARN unreachable for a null-latitude address (checkout stuck on distance-gated shimmer); no user route; route ii/iii NOT FIRED**
 
 **9 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -29,6 +29,12 @@
 - [`ac3-flagOFF-loggedin-2store-food-summary.a11y.txt`](ac3-flagOFF-loggedin-2store-food-summary.a11y.txt)
 - [`ac3-flagON-loggedin-2store-food-summary.a11y.txt`](ac3-flagON-loggedin-2store-food-summary.a11y.txt)
 - [`ac4-flagOFF-guest-2store-food-summary.a11y.txt`](ac4-flagOFF-guest-2store-food-summary.a11y.txt)
+- [`ac5-i-cold-injection-gated.log`](ac5-i-cold-injection-gated.log)
+- [`ac5-i-inprocess-injection-no-warn-shimmer.log`](ac5-i-inprocess-injection-no-warn-shimmer.log)
+- [`ac5-ii-guest-group-place-success-no-warn.log`](ac5-ii-guest-group-place-success-no-warn.log)
+- [`ac5-iii-loggedin-null-lat-address-list-500.log`](ac5-iii-loggedin-null-lat-address-list-500.log)
+- [`ac5-o1-negative-control-lat-present.log`](ac5-o1-negative-control-lat-present.log)
+- [`ac5-o3-control-lat-restored.log`](ac5-o3-control-lat-restored.log)
 - [`ac6-flutter-test.log`](ac6-flutter-test.log)
 - [`bug-search-results-semantics-assertion.log`](bug-search-results-semantics-assertion.log)
 - [`d4-edit-case-1-before-edit.a11y.txt`](d4-edit-case-1-before-edit.a11y.txt)

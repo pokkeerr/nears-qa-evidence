@@ -1,0 +1,57 @@
+# NEARS-3906 QA cycle 1 — route (ii): guest multi-store COD group place SUCCESS path (real user route, no injection)
+# build worktree @ 4bc15d18e, emulator-5590, pkg ...nears_nears_3906_guest_group_fee_address, API_HOST=10.0.2.2:8106 (DB nears3906qa). Basket: The Grill House (39) Chef Salad + NEARS-3858 QA Mixed Kitchen (91159) Falafel Wrap; guest contact filled with test values; COD.
+# Checkout body was mounted before the place (O3 control: CheckoutGroupInfoBanners x1 in debugDumpApp, 0 WARN, delivery-quote/get-Tax fired).
+# Place: 'Place Order' -> 'Confirm your order' sheet -> 'Confirm & place order' at the place window start (line 793). group/place 200 groupId=... children=2 -> nears3906qa orders 91428 + 91429 (is_guest=1, pending, cash_on_delivery). place_order_controller.dart:1338 addr.setGuestAddress(null) ran, then Get.offNamed(order tracking).
+# RESULT: 'group fee summary skipped' count in the whole route-(ii) window (lines 784..845, incl. one earlier blocked attempt [PlaceOrderBlocked please_enter_contact_person_email]) = 0 -> NOT FIRED.
+# Instrument-live proof: [NET]/[INFO] lines from the same place moment below (group/validate, group/place, cart/remove, order/track).
+# --- raw adb logcat -s flutter lines 784..845 (analytics lines elided) ---
+09-30 03:19:26.929 I/flutter (21805): [FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: place-order blocked reason=please_enter_contact_person_email"
+09-30 03:20:30.407 I/flutter (21805): [NET] POST endpoint=/api/v1/customer/order/group/validate
+09-30 03:20:31.381 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+09-30 03:20:31.381 I/flutter (21805): [INFO] msg="checkout: group validate → valid=true"
+09-30 03:20:31.382 I/flutter (21805): [NET] POST endpoint=/api/v1/customer/order/group/place
+09-30 03:20:34.775 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/group/place http_status=200
+09-30 03:20:34.776 I/flutter (21805): [INFO] msg="checkout: group order placed groupId=133ef9af-04c7-45a1-a61c-5a4b3cbb588b children=2"
+09-30 03:20:34.780 I/flutter (21805): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+09-30 03:20:34.785 I/flutter (21805): [INFO] msg="pusher init skipped: websocket disabled"
+09-30 03:20:34.788 I/flutter (21805): [INFO] msg="order: trackOrder orderID=91428"
+09-30 03:20:34.788 I/flutter (21805): [INFO] msg="trackOrder called for orderID=91428 source=rowTap"
+09-30 03:20:34.788 I/flutter (21805): [NET] GET endpoint=/api/v1/customer/order/track
+09-30 03:20:35.776 I/flutter (21805): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+09-30 03:20:35.776 I/flutter (21805): [NET] GET endpoint=/api/v1/customer/cart/list
+09-30 03:20:35.779 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/track http_status=200
+09-30 03:20:35.782 I/flutter (21805): [INFO] msg="getGroupDetails called for groupId=133ef9af-04c7-45a1-a61c-5a4b3cbb588b"
+09-30 03:20:35.782 I/flutter (21805): [NET] GET endpoint=/api/v1/customer/order/group/details
+09-30 03:20:36.775 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/group/details http_status=200
+09-30 03:20:36.776 I/flutter (21805): [INFO] msg="trackOrder called for orderID=91428 source=groupChild"
+09-30 03:20:36.776 I/flutter (21805): [NET] GET endpoint=/api/v1/customer/order/track
+09-30 03:20:36.778 I/flutter (21805): [NET] endpoint=/api/v1/customer/cart/list http_status=200
+09-30 03:20:37.777 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/track http_status=200
+09-30 03:20:37.777 I/flutter (21805): [INFO] msg="trackOrder called for orderID=91429 source=groupChild"
+09-30 03:20:37.777 I/flutter (21805): [NET] GET endpoint=/api/v1/customer/order/track
+09-30 03:20:38.778 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/track http_status=200
+09-30 03:20:38.833 I/flutter (21805): [FAIL] endpoint=null http_status=null type=GetPositionFailure msg="location: getPosition threw (TimeoutException) — trying the AD1 fallback ladder"
+09-30 03:20:38.833 I/flutter (21805): [INFO] msg="location: fallback ladder -> caller-supplied override"
+09-30 03:20:38.833 I/flutter (21805): [INFO] msg="location: getCurrentLocation resolved via fallback rung=callerSupplied"
+09-30 03:20:38.836 I/flutter (21805): [NET] GET endpoint=/api/v1/config/geocode-api
+09-30 03:20:38.836 I/flutter (21805): [NET] GET endpoint=/api/v1/config/get-zone-id
+09-30 03:20:39.777 I/flutter (21805): [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+09-30 03:20:39.778 I/flutter (21805): [INFO] msg="location: inZone=true"
+09-30 03:20:39.996 I/flutter (21805): [NET] endpoint=/api/v1/config/geocode-api http_status=200
+09-30 03:20:53.785 I/flutter (21805): [INFO] msg="getGroupDetails called for groupId=133ef9af-04c7-45a1-a61c-5a4b3cbb588b"
+09-30 03:20:53.785 I/flutter (21805): [NET] GET endpoint=/api/v1/customer/order/group/details
+09-30 03:20:54.514 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/group/details http_status=200
+09-30 03:20:54.515 I/flutter (21805): [INFO] msg="trackOrder called for orderID=91428 source=groupChild"
+09-30 03:20:54.515 I/flutter (21805): [NET] GET endpoint=/api/v1/customer/order/track
+09-30 03:20:55.517 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/track http_status=200
+09-30 03:20:55.518 I/flutter (21805): [INFO] msg="trackOrder called for orderID=91429 source=groupChild"
+09-30 03:20:55.518 I/flutter (21805): [NET] GET endpoint=/api/v1/customer/order/track
+09-30 03:20:56.517 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/track http_status=200
+09-30 03:21:08.778 I/flutter (21805): [INFO] msg="getGroupDetails called for groupId=133ef9af-04c7-45a1-a61c-5a4b3cbb588b"
+09-30 03:21:08.779 I/flutter (21805): [NET] GET endpoint=/api/v1/customer/order/group/details
+09-30 03:21:09.525 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/group/details http_status=200
+09-30 03:21:09.525 I/flutter (21805): [INFO] msg="trackOrder called for orderID=91428 source=groupChild"
+09-30 03:21:09.525 I/flutter (21805): [NET] GET endpoint=/api/v1/customer/order/track
+09-30 03:21:10.526 I/flutter (21805): [NET] endpoint=/api/v1/customer/order/track http_status=200
+09-30 03:21:10.527 I/flutter (21805): [INFO] msg="trackOrder called for orderID=91429 source=groupChild"
+09-30 03:21:10.527 I/flutter (21805): [NET] GET endpoint=/api/v1/customer/order/track
