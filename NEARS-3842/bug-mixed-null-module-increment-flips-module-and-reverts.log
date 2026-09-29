@@ -1,0 +1,30 @@
+# NEARS-3842 fix-cycle-1 bug: flag ON + mixed basket + no active module -> tapping "+" on ANY cart row flips the active module to cartList[0]'s module AND the increment is lost (1->2->1)
+# device emulator-5570, build 130cd1d0d (feat/NEARS-3842-cart-per-store-groups), backend worktree :8242 on private copy nears_qa_3842 (flag=1)
+# mechanism: cart_item_widget.dart onIncrement (~:723) calls cartController.forcefullySetModule(cartList[0].item!.moduleId!) BEFORE the step.
+#   forcefullySetModule acts only when ModuleController.module == null (cart_service.dart:67) -> setModule(cartList[0] module) + HomeController.loadData(true)
+#   -> home reload re-GETs customer/cart/list, which lands BEFORE the increment's cart/update completes -> a second cart/update POST writes the stale quantity back.
+#   Before NEARS-3842, cart initCall always auto-selected cartList[0]'s module, so module was never null in the cart and this call was a no-op. AC5 now (correctly) leaves it null.
+# repro 1 (09:36, edit section Burger Palace = module 2; module flips to 1 = Grocery, i.e. NOT the edited store's module):
+09-29 09:36:33.950 [INFO] msg="home load started"
+09-29 09:36:33.954 [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 09:36:34.632 [NET] POST endpoint=/api/v1/customer/cart/update
+09-29 09:36:36.674 analytics: cart_quantity_changed {item_id: 122, store_id: 4, from_qty: 1, to_qty: 2, ...}
+09-29 09:36:37.209 [NET] POST endpoint=/api/v1/customer/cart/update
+09-29 09:36:39.392 analytics: cart_quantity_changed {item_id: 122, store_id: 4, from_qty: 2, to_qty: 1, ...}
+#   VM read after: module=1 ; DB carts id 982 quantity=1 (updated 09:36:39)
+# repro 2 (09:39, ONE tap on "Increase quantity" of Red Apple in section Fresh Mart; VM pre: module=null, Fresh Mart sub 3.325):
+09-29 09:39:37.256 [INFO] msg="home load started"
+09-29 09:39:37.257 [NET] GET endpoint=/api/v1/customer/cart/list
+09-29 09:39:37.781 [NET] POST endpoint=/api/v1/customer/cart/update
+09-29 09:39:38.142 [NET] endpoint=/api/v1/customer/cart/list http_status=200
+09-29 09:39:39.758 [NET] endpoint=/api/v1/customer/cart/update http_status=200
+09-29 09:39:39.758 📊 analytics: cart_quantity_changed {item_id: 2, store_id: 2, from_qty: 1, to_qty: 2, screen: basket, section: basket_lines, position: 2}
+09-29 09:39:40.297 [NET] POST endpoint=/api/v1/customer/cart/update
+09-29 09:39:43.228 [NET] endpoint=/api/v1/customer/cart/update http_status=200
+09-29 09:39:43.229 analytics: cart_quantity_changed {item_id: 2, store_id: 2, from_qty: 2, to_qty: 1, screen: basket, section: basket_lines, position: 2}
+#   VM read after: module=1, Fresh Mart sub still 3.325 ; DB carts item 2 quantity=1 (updated 09:39:43) -> the customer's "+" was silently undone, no [FAIL]/[WARN] logged
+# control (09:39:59, same tap with module already = 1): single cart/update 1->2, no home reload, DB quantity=2 persisted, Fresh Mart sub 6.65
+09-29 09:39:59.137 [NET] POST endpoint=/api/v1/customer/cart/update
+09-29 09:40:00.002 analytics: cart_quantity_changed {item_id: 2, store_id: 2, from_qty: 1, to_qty: 2, ...}
+# decrement path (no forcefullySetModule) with module null: clean, module stays null (see AC3 row)
+# expected: in a mixed basket with no active module an increment must neither change the active module (AC5 invariant / ticket Context "silently flips the active module to whichever store happened to load first") nor be reverted

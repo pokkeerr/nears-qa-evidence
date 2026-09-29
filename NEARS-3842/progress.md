@@ -16,3 +16,12 @@ Copy fixtures: store_configs s4 extra_packaging_amount 3.5, s2 1.25; store_sched
 - AC4 PASS: client mixed=true for {1,2,4} = server CrossModuleBasket::isMixed(Store module_ids)=true; {1,2} false=false; {4,39} server false; divergent campaign case unit test
 - RTL PASS: ar_SA, header row mirrored, subtotal LTR-pinned, row 2 mirrored, '1 غرض' singular, caption 'ينطبق على جميع المتاجر في سلتك' under each card, long AR module name ellipsizes (translation 269 lengthened on copy, restored to مطعم). shots rtl-ar-mixed-cart-long-module-ellipsis.png, rtl-ar-long-module-name-ellipsis-header.png. Note: module-null AR cart shows NO fee/ETA rows (same quote-skip bug)
 - AC-REG flag OFF PASS: Grocery tile -> Basket tab, one-row headers, basket-wide Add More Items, promo '66.30 AED more for free delivery', You May Also Like rail, module 1, no [FAIL]
+
+# fix-cycle 1 delta (build 130cd1d0d, emulator-5570, backend worktree :8242 @ 130cd1d0d on nears_qa_3842)
+- AC-TEST PASS: flutter test test/features/cart test/features/checkout test/features/store -> +1322 All tests passed
+- AC5 PASS (module null): before-open null -> after-load null (x3 opens), "cart initCall: mixed basket, module left unset stores=3", 3x items/suggested 200 (was 403), store 4 rail = 7 items all module 2 store 4, 'You May Also Like' present, no [FAIL]
+- AC3 PASS (module null): first open 3x delivery-quote 200 -> fees 1:1.00 2:1.00 4:1.00 (was 0.00, 0 quotes); decrement Red Apple in Fresh Mart (non-first) 2->1 -> only Fresh Mart sub 6.65->3.33 + bar met->'not reached'; Nears Mart 27.05 met + Burger 25.87 unchanged; 3x quote 200, fees stay 1.00, module still null; shot fc1-ac3-module-null-edit-B-fees-quoted.png
+- AC3 PASS (module set=1): increment Red Apple 1->2 -> Fresh Mart 3.33->6.65 only, single cart/update, fees 1.00 each
+- NEW TASK BUG: module null + "+" on any row -> forcefullySetModule(cartList[0]) flips module to 1 + home reload race reverts the increment (1->2->1), reproduced 2/2 (Soup/Burger 09:36, Red Apple/Fresh 09:39); control with module set clean. bug-mixed-null-module-increment-flips-module-and-reverts.log
+- AC-REG flag ON same-module {Nears Mart, Fresh Mart} PASS: module null->1 (NEARS-726), mixed=false, one-row headers, basket-wide Add More Items, promo 'more for free delivery', 2x quote 200 fees 1.00, 2x suggested 200, rail present
+- AC-REG flag OFF PASS: Grocery tile -> Basket, module 1, one-row headers, Add More Items, promo, 2x quote 200 fees 1.00, 2x suggested 200, rail present
