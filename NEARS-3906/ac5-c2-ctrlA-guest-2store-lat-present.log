@@ -1,0 +1,100 @@
+# NEARS-3906 QA cycle 2 — negative control (a): guest 2-store same-module checkout WITH latitude (pre-injection) -> 0 AC5 WARN, body renders; also re-proves AC1 on the new build
+# build worktree fix/NEARS-3906-guest-group-fee-address @ 865c405c8 (fresh qa-run.sh install; running source confirmed via VM getObject: checkout_screen.dart contains 'NEARS-3924' and 2 AC5 WARN sites), emulator-5590 (AVD nears_qa_wave56), pkg com.izzes.nears.nears_nears_3906_guest_group_fee_address, API_HOST=10.0.2.2:8106 -> own backend /Users/Apple/Projects/nears-NEARS-3906-guest-group-fee-address @ 865c405c8, DB nears3906qa. Guest; basket = The Grill House (39) Chef Salad + NEARS-3858 QA Mixed Kitchen (91159) NEARS-3858 Falafel Wrap (same module food).
+# AC5 WARN count = 0. No [ERR]/[FAIL]. Other WARNs present are pre-existing sites (map preview 'missing coordinates' / per-store distance near-zero fallback) — also present in cycle-1 controls O1/O3.
+# Order Summary (a11y labels after scroll): Subtotal 53.15 AED ; VAT + 2.66 AED ; Delivery Fees 5.00 AED ; Fee Breakdown: The Grill House 0.00 AED / NEARS-3858 QA Mixed Kitchen 5.00 AED ; Total Amount 60.81 AED ; 'Place Order' enabled=true clickable=true
+# --- raw adb logcat -v time -s flutter (open window) ---
+09-30 03:48:09.904 I/flutter (25186): [INFO] msg="route: waiting for module=food-restaurant"
+09-30 03:48:09.905 I/flutter (25186): [INFO] msg="route: checkModuleId configNull=false hasAddress=true fromDeeplink=false"
+09-30 03:48:09.905 I/flutter (25186): [INFO] msg="route: not from deeplink, skipping module fetch"
+09-30 03:48:09.905 I/flutter (25186): [INFO] msg="route: module future state=ConnectionState.waiting hasData=false hasError=false"
+09-30 03:48:09.917 I/flutter (25186): [INFO] msg="route: module future state=ConnectionState.done hasData=false hasError=false"
+09-30 03:48:09.919 I/flutter (25186): [NET] GET endpoint=/api/v1/most-tips
+09-30 03:48:09.920 I/flutter (25186): [NET] GET endpoint=/api/v1/offline_payment_method_list
+09-30 03:48:09.922 I/flutter (25186): [NET] GET endpoint=/api/v1/stores/details/39
+09-30 03:48:10.899 I/flutter (25186): [NET] endpoint=/api/v1/most-tips http_status=200
+09-30 03:48:10.901 I/flutter (25186): [NET] endpoint=/api/v1/offline_payment_method_list http_status=200
+09-30 03:48:10.903 I/flutter (25186): [NET] endpoint=/api/v1/stores/details/39 http_status=200
+09-30 03:48:10.904 I/flutter (25186): [NET] GET endpoint=/api/v1/config/distance-api
+09-30 03:48:10.905 I/flutter (25186): 📊 analytics: view_store {store_id: 39, is_open: 1}
+09-30 03:48:10.905 I/flutter (25186): [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+09-30 03:48:11.905 I/flutter (25186): [NET] endpoint=/api/v1/customer/order/get-surge-price http_status=200
+09-30 03:48:11.913 I/flutter (25186): 📊 analytics: begin_checkout {value: 53.15, currency: AED, item_count: 2, source: basket, store_count: 2}
+09-30 03:48:11.915 I/flutter (25186): [WARN] msg="checkout: map preview dropped store 39 — missing coordinates"
+09-30 03:48:11.915 I/flutter (25186): [WARN] msg="checkout: map preview dropped store 91159 — missing coordinates"
+09-30 03:48:12.073 I/flutter (25186): [INFO] msg="checkout: payment method selected index=0"
+09-30 03:48:12.074 I/flutter (25186): 📊 analytics: add_payment_info {payment_type: cash_on_delivery, value: 52.15, currency: AED, screen: checkout, section: payment}
+09-30 03:48:12.074 I/flutter (25186): [NET] GET endpoint=/api/v1/stores/details/39
+09-30 03:48:12.075 I/flutter (25186): [NET] GET endpoint=/api/v1/stores/details/91159
+09-30 03:48:12.079 I/flutter (25186): [NET] endpoint=/api/v1/config/distance-api http_status=200
+09-30 03:48:12.080 I/flutter (25186): [NET] GET endpoint=/api/v1/vehicle/extra_charge
+09-30 03:48:13.015 I/flutter (25186): [NET] endpoint=/api/v1/vehicle/extra_charge http_status=200
+09-30 03:48:13.016 I/flutter (25186): [NET] endpoint=/api/v1/stores/details/91159 http_status=200
+09-30 03:48:13.016 I/flutter (25186): [NET] endpoint=/api/v1/stores/details/39 http_status=200
+09-30 03:48:13.016 I/flutter (25186): [NET] GET endpoint=/api/v1/config/distance-api
+09-30 03:48:13.016 I/flutter (25186): [NET] GET endpoint=/api/v1/config/distance-api
+09-30 03:48:14.014 I/flutter (25186): [NET] endpoint=/api/v1/config/distance-api http_status=200
+09-30 03:48:14.015 I/flutter (25186): [WARN] msg="checkout: group per-store distance response near-zero (ROUTE_EXISTS, no distanceMeters) — using straight-line fallback"
+09-30 03:48:14.015 I/flutter (25186): [NET] GET endpoint=/api/v1/vehicle/extra_charge
+09-30 03:48:14.459 I/flutter (25186): [NET] endpoint=/api/v1/config/distance-api http_status=200
+09-30 03:48:14.459 I/flutter (25186): [NET] GET endpoint=/api/v1/vehicle/extra_charge
+09-30 03:48:14.531 I/flutter (25186): [NET] endpoint=/api/v1/vehicle/extra_charge http_status=200
+09-30 03:48:14.605 I/flutter (25186): [NET] endpoint=/api/v1/vehicle/extra_charge http_status=200
+09-30 03:48:14.605 I/flutter (25186): [NET] POST endpoint=/api/v1/config/delivery-quote
+09-30 03:48:14.605 I/flutter (25186): [NET] POST endpoint=/api/v1/config/delivery-quote
+09-30 03:48:15.606 I/flutter (25186): [NET] endpoint=/api/v1/config/delivery-quote http_status=200
+09-30 03:48:15.607 I/flutter (25186): [NET] endpoint=/api/v1/config/delivery-quote http_status=200
+09-30 03:48:15.607 I/flutter (25186): [NET] POST endpoint=/api/v1/customer/order/get-Tax
+09-30 03:48:15.607 I/flutter (25186): [NET] POST endpoint=/api/v1/customer/order/get-Tax
+09-30 03:48:16.607 I/flutter (25186): [NET] endpoint=/api/v1/customer/order/get-Tax http_status=200
+09-30 03:48:16.607 I/flutter (25186): [NET] endpoint=/api/v1/customer/order/get-Tax http_status=200
+#
+# --- control (a) repeated AFTER restoring the injected pref (same basket, latitude present) ---
+# AC5 WARN count = 0 ; debugDumpApp:
+#   CheckoutScreenShimmerView 0
+#   CheckoutGroupInfoBanners 1
+#   ErrorWidget 0
+#   Place Order found by label (body mounted)
+09-30 03:51:31.751 I/flutter (25186): [INFO] msg="route: waiting for module=food-restaurant"
+09-30 03:51:31.751 I/flutter (25186): [INFO] msg="route: checkModuleId configNull=false hasAddress=true fromDeeplink=false"
+09-30 03:51:31.751 I/flutter (25186): [INFO] msg="route: not from deeplink, skipping module fetch"
+09-30 03:51:31.752 I/flutter (25186): [INFO] msg="route: module future state=ConnectionState.waiting hasData=false hasError=false"
+09-30 03:51:31.767 I/flutter (25186): [INFO] msg="route: module future state=ConnectionState.done hasData=false hasError=false"
+09-30 03:51:31.767 I/flutter (25186): [NET] GET endpoint=/api/v1/most-tips
+09-30 03:51:31.768 I/flutter (25186): [NET] GET endpoint=/api/v1/offline_payment_method_list
+09-30 03:51:31.768 I/flutter (25186): [NET] GET endpoint=/api/v1/stores/details/39
+09-30 03:51:31.775 I/flutter (25186): [INFO] msg="checkout: payment method selected index=0"
+09-30 03:51:31.775 I/flutter (25186): 📊 analytics: add_payment_info {payment_type: cash_on_delivery, value: 52.15, currency: AED, screen: checkout, section: payment}
+09-30 03:51:32.774 I/flutter (25186): [NET] endpoint=/api/v1/offline_payment_method_list http_status=200
+09-30 03:51:32.775 I/flutter (25186): [NET] endpoint=/api/v1/most-tips http_status=200
+09-30 03:51:32.775 I/flutter (25186): [NET] endpoint=/api/v1/stores/details/39 http_status=200
+09-30 03:51:32.776 I/flutter (25186): [NET] GET endpoint=/api/v1/config/distance-api
+09-30 03:51:32.776 I/flutter (25186): 📊 analytics: view_store {store_id: 39, is_open: 1}
+09-30 03:51:32.777 I/flutter (25186): [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+09-30 03:51:33.775 I/flutter (25186): [NET] endpoint=/api/v1/customer/order/get-surge-price http_status=200
+09-30 03:51:33.776 I/flutter (25186): [NET] endpoint=/api/v1/config/distance-api http_status=200
+09-30 03:51:33.776 I/flutter (25186): [NET] GET endpoint=/api/v1/vehicle/extra_charge
+09-30 03:51:33.784 I/flutter (25186): 📊 analytics: begin_checkout {value: 53.15, currency: AED, item_count: 2, source: basket, store_count: 2}
+09-30 03:51:33.784 I/flutter (25186): [WARN] msg="checkout: map preview dropped store 39 — missing coordinates"
+09-30 03:51:33.785 I/flutter (25186): [WARN] msg="checkout: map preview dropped store 91159 — missing coordinates"
+09-30 03:51:33.813 I/flutter (25186): [NET] GET endpoint=/api/v1/stores/details/39
+09-30 03:51:33.814 I/flutter (25186): [NET] GET endpoint=/api/v1/stores/details/91159
+09-30 03:51:34.778 I/flutter (25186): [NET] endpoint=/api/v1/vehicle/extra_charge http_status=200
+09-30 03:51:34.779 I/flutter (25186): [NET] endpoint=/api/v1/stores/details/91159 http_status=200
+09-30 03:51:34.780 I/flutter (25186): [NET] endpoint=/api/v1/stores/details/39 http_status=200
+09-30 03:51:34.780 I/flutter (25186): [NET] GET endpoint=/api/v1/config/distance-api
+09-30 03:51:34.781 I/flutter (25186): [NET] GET endpoint=/api/v1/config/distance-api
+09-30 03:51:35.795 I/flutter (25186): [NET] endpoint=/api/v1/config/distance-api http_status=200
+09-30 03:51:35.795 I/flutter (25186): [WARN] msg="checkout: group per-store distance response near-zero (ROUTE_EXISTS, no distanceMeters) — using straight-line fallback"
+09-30 03:51:35.795 I/flutter (25186): [NET] GET endpoint=/api/v1/vehicle/extra_charge
+09-30 03:51:36.289 I/flutter (25186): [NET] endpoint=/api/v1/config/distance-api http_status=200
+09-30 03:51:36.290 I/flutter (25186): [NET] GET endpoint=/api/v1/vehicle/extra_charge
+09-30 03:51:36.371 I/flutter (25186): [NET] endpoint=/api/v1/vehicle/extra_charge http_status=200
+09-30 03:51:36.537 I/flutter (25186): [NET] endpoint=/api/v1/vehicle/extra_charge http_status=200
+09-30 03:51:36.537 I/flutter (25186): [NET] POST endpoint=/api/v1/config/delivery-quote
+09-30 03:51:36.537 I/flutter (25186): [NET] POST endpoint=/api/v1/config/delivery-quote
+09-30 03:51:37.538 I/flutter (25186): [NET] endpoint=/api/v1/config/delivery-quote http_status=200
+09-30 03:51:37.538 I/flutter (25186): [NET] endpoint=/api/v1/config/delivery-quote http_status=200
+09-30 03:51:37.538 I/flutter (25186): [NET] POST endpoint=/api/v1/customer/order/get-Tax
+09-30 03:51:37.538 I/flutter (25186): [NET] POST endpoint=/api/v1/customer/order/get-Tax
+09-30 03:51:38.539 I/flutter (25186): [NET] endpoint=/api/v1/customer/order/get-Tax http_status=200
+09-30 03:51:38.539 I/flutter (25186): [NET] endpoint=/api/v1/customer/order/get-Tax http_status=200

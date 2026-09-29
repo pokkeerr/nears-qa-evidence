@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3906
 
-**QA cycle 1 (AC5 delta): FAIL - AC5 WARN unreachable for a null-latitude address (checkout stuck on distance-gated shimmer); no user route; route ii/iii NOT FIRED**
+**cycle 2 delta: AC5 PASS (state-injected precondition, real app+screen, not a user route) — 1 WARN per open x2; controls 0 WARN**
 
 **9 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -29,12 +29,16 @@
 - [`ac3-flagOFF-loggedin-2store-food-summary.a11y.txt`](ac3-flagOFF-loggedin-2store-food-summary.a11y.txt)
 - [`ac3-flagON-loggedin-2store-food-summary.a11y.txt`](ac3-flagON-loggedin-2store-food-summary.a11y.txt)
 - [`ac4-flagOFF-guest-2store-food-summary.a11y.txt`](ac4-flagOFF-guest-2store-food-summary.a11y.txt)
+- [`ac5-c2-ctrlA-guest-2store-lat-present.log`](ac5-c2-ctrlA-guest-2store-lat-present.log)
+- [`ac5-c2-ctrlB-single-store.log`](ac5-c2-ctrlB-single-store.log)
+- [`ac5-c2-inprocess-injection-warn-once-per-open.log`](ac5-c2-inprocess-injection-warn-once-per-open.log)
 - [`ac5-i-cold-injection-gated.log`](ac5-i-cold-injection-gated.log)
 - [`ac5-i-inprocess-injection-no-warn-shimmer.log`](ac5-i-inprocess-injection-no-warn-shimmer.log)
 - [`ac5-ii-guest-group-place-success-no-warn.log`](ac5-ii-guest-group-place-success-no-warn.log)
 - [`ac5-iii-loggedin-null-lat-address-list-500.log`](ac5-iii-loggedin-null-lat-address-list-500.log)
 - [`ac5-o1-negative-control-lat-present.log`](ac5-o1-negative-control-lat-present.log)
 - [`ac5-o3-control-lat-restored.log`](ac5-o3-control-lat-restored.log)
+- [`ac6-c2-flutter-test.log`](ac6-c2-flutter-test.log)
 - [`ac6-flutter-test.log`](ac6-flutter-test.log)
 - [`bug-search-results-semantics-assertion.log`](bug-search-results-semantics-assertion.log)
 - [`d4-edit-case-1-before-edit.a11y.txt`](d4-edit-case-1-before-edit.a11y.txt)
