@@ -1,0 +1,11 @@
+# Scenario C - honest-client dead end (pre-fix UserApp @ backend 38d842d01), emulator-5570
+state: global cash+digital ON; zone 2 (store 12) cash=1 dp=1; zone 455 (store 13) cash=0 dp=1
+steps: 2-store basket -> checkout (cash default) -> Place Order -> Confirm & place order
+toast text: 'Please resolve the highlighted stores to continue' (no store card visible); Place Order node enabled=false
+change method to Digital Payment (Paypal) via Change->Paypal->Select: Place Order still enabled=false; tap => only analytics place_order_tapped, NO confirm sheet, NO /group/validate call
+leave checkout and re-enter: still dead (Digital selected, tap does nothing); increase a cart quantity then re-enter checkout: Place Order works again (confirm sheet shows, method back to CASH ON DELIVERY)
+
+09-29 20:07:00.514 16660 16660 I flutter : [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=200 type=PlaceOrderBlocked msg="checkout: group validate rejected failures=1 store_ids=13 reasons=cash_unavailable_in_zone"
+
+body={"valid":false,"stores":[{"store_id":12,"store_name":"Fresh local","pass":true,"reason":null,"message":null},{"store_id":13,"store_name":"Fresh supermarket","pass":false,"reason":"cash_unavailable_in_zone","message":"Cash on delivery for the order not available at this time"}]}
+[2026-09-29 19:55:08] production.WARNING: [WARN] order placement - payment method unavailable in zone {"trace_id":"c850c7f26f4349248107b9448a047468","correlation_id":"061e30af-6a19-48e9-96ec-6e2d3405693b","endpoint":"api/v1/customer/order/group/validate","store_id":13,"zone_id":455,"reason":"cash_unavailable_in_zone","request_id":"061e30af-6a19-48e9-96ec-6e2d3405693b"} 
