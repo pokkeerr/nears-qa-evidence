@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3834
 
-**NEARS-3834 visit-again module-optional - QA PASS (device-free API)**
+**cycle 2 delta PASS 4/4 re-run at c20e28552**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 

@@ -9,3 +9,11 @@
 | AC-REG | PASS | flag OFF absent [], m1 {1,2,3,38} == SQL prediction, m2 {4,5,39}, garbage [] + WARN; post-restore bodies identical to baseline | clean |
 | AC-TEST | PASS | phpunit --filter: 19 tests / 288 assertions OK, 1 pre-existing HotTableFilterIndexMigrationTest deprecation; OrderTraitZoneScopingTest unedited | n/a |
 | AC-DOC | PASS | cross-module-basket.md S11 present; each clause matches observed behaviour | n/a |
+
+## Fix-cycle 2 delta (HEAD c20e28552, scope refactor) — other rows reused from cycle 0 (comment 22129)
+| AC | status | evidence | logs |
+|---|---|---|---|
+| AC1 | PASS | flag ON, no header: 9 rows m{1,2,3}, body byte-identical to cycle 0 | clean |
+| AC2 | PASS | moduleId=1: {1,2,3,38} m1 only, byte-identical to cycle 0 | clean |
+| AC4 | PASS | m3 status=0 -> 7,42 dropped (7 rows m{1,2}); module_zone(2,1) deleted -> 4,5,39 dropped (6 rows m{1,3}); restored -> 9 rows; all byte-identical to cycle 0 | clean |
+| AC-REG | PASS | flag OFF absent -> [] before and after the ON window | clean |
