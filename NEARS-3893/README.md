@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3893
 
-**PASS: AC1-AC3 live, flag ON/OFF, private backend :8153**
+**PASS + delta AC2-reverse live**
 
-**20 screenshot(s).** Click any thumbnail for full resolution.
+**23 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -26,12 +26,17 @@
 <td align="center" width="33%"><a href="ac2-flagon-grocery-ambient-sheet-item18.png"><img src="ac2-flagon-grocery-ambient-sheet-item18.png" width="240"></a><br><sub>ac2 flagon grocery ambient sheet item18</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ac2-reverse-ambient-proof-restaurant-tab-selected.png"><img src="ac2-reverse-ambient-proof-restaurant-tab-selected.png" width="240"></a><br><sub>ac2 reverse ambient proof restaurant tab selected</sub></td>
+<td align="center" width="33%"><a href="ac2-reverse-food-ambient-sheet-redapple-unit-chip.png"><img src="ac2-reverse-food-ambient-sheet-redapple-unit-chip.png" width="240"></a><br><sub>ac2 reverse food ambient sheet redapple unit chip</sub></td>
 <td align="center" width="33%"><a href="ac2-rtl-arabic-sheet-item18-chip.png"><img src="ac2-rtl-arabic-sheet-item18-chip.png" width="240"></a><br><sub>ac2 rtl arabic sheet item18 chip</sub></td>
-<td align="center" width="33%"><a href="ac2-scale1.3-sheet-item18-chip.png"><img src="ac2-scale1.3-sheet-item18-chip.png" width="240"></a><br><sub>ac2 scale1.3 sheet item18 chip</sub></td>
-<td align="center" width="33%"><a href="ac3-flagoff-food-ambient-sheet-item18.png"><img src="ac3-flagoff-food-ambient-sheet-item18.png" width="240"></a><br><sub>ac3 flagoff food ambient sheet item18</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ac2-scale1.3-sheet-item18-chip.png"><img src="ac2-scale1.3-sheet-item18-chip.png" width="240"></a><br><sub>ac2 scale1.3 sheet item18 chip</sub></td>
+<td align="center" width="33%"><a href="ac3-flagoff-food-ambient-sheet-item18.png"><img src="ac3-flagoff-food-ambient-sheet-item18.png" width="240"></a><br><sub>ac3 flagoff food ambient sheet item18</sub></td>
 <td align="center" width="33%"><a href="ac3-flagoff-grocery-ambient-search-veggieburger.png"><img src="ac3-flagoff-grocery-ambient-search-veggieburger.png" width="240"></a><br><sub>ac3 flagoff grocery ambient search veggieburger</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="delta-food-ambient-home-before-basket.png"><img src="delta-food-ambient-home-before-basket.png" width="240"></a><br><sub>delta food ambient home before basket</sub></td>
 <td align="center" width="33%"><a href="reg-inline-add-stepper-instock-card.png"><img src="reg-inline-add-stepper-instock-card.png" width="240"></a><br><sub>reg inline add stepper instock card</sub></td>
 <td align="center" width="33%"><a href="x1-food-ambient-search-veggieburger-no-kg.png"><img src="x1-food-ambient-search-veggieburger-no-kg.png" width="240"></a><br><sub>x1 food ambient search veggieburger no kg</sub></td>
 </tr>
@@ -42,6 +47,7 @@
 </table>
 
 ### Other artifacts
+- [`ambient-proof-dump.xml`](ambient-proof-dump.xml)
 - [`bug-item-details-404-mismatched-ambient.log`](bug-item-details-404-mismatched-ambient.log)
 
 ---
