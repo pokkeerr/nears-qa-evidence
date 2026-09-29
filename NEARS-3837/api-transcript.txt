@@ -1,0 +1,39 @@
+NEARS-3837 live API QA transcript (device-free, backend only) - 2026-09-29 13:24-13:28 +04
+Server under test : http://127.0.0.1:8137  pid 28137  cwd /Users/Apple/Projects/nears-NEARS-3837-rx-reject-cart-add/Admin @ 90ba3fde0 (code == reviewed b33ab6aff; later commits docs-only)
+Base comparator   : http://127.0.0.1:8138  pid 30246  cwd /Users/Apple/Projects/nears/Admin @ bd89f413d (Admin tree identical to base 1757dbc19)
+DB                : private copy multi_food_db_qa3837 (mysqldump of multi_food_db), both servers `DB_DATABASE=... php artisan serve --no-reload`
+DB proof          : copy-only marker business_settings.business_name='Nears QA3837 COPY' read back via GET :8137/api/v1/config (and :8138); shared multi_food_db still 'Nears'
+Isolation         : push_notification_service_file_content -> {"project_id":""} and mail_config host -> 127.0.0.1:1 IN THE COPY ONLY; CACHE_DRIVER=database -> cache table lives in the copy (cache:clear run with DB_DATABASE=copy; shared cache rows untouched: 91)
+Fixtures (existing rows, no inserts needed): store 7 HealthCare Pharmacy (module 3 pharmacy, zone 1, active, open 07:00-23:59);
+  Rx item 34 "Cold & Flu Relief" (pharmacy_item_details.is_prescription_required=1); non-Rx item 32 (details =0); ItemCampaign 15 "Pharmacy Essentials" (store 7);
+  customer user 6 (Bearer), guest 1968 (guest/request + X-Guest-Token); headers zoneId:[1] moduleId:3.
+Seeded in the copy: legacy Rx cart rows 978 (user 6, item 34, qty 2) and 979 (guest 1968, item 34, qty 2) for the re-add path.
+
+--- flag ON (cross_module_basket=1, config shows true) ---
+AC1 user new-row  POST cart/add item 34  -> 403 {"errors":[{"code":"prescription_required","message":"This item needs a prescription and can't be added to the basket"}]}   carts: unchanged (no item-34 row)
+AC1 guest new-row POST cart/add item 34  -> 403 same body                                                                                                           carts: unchanged
+AC1 user re-add   (row 978 qty 2)        -> 403 same body   row 978 qty 2, updated_at 09:00:00 unchanged
+AC1 guest re-add  (row 979 qty 2)        -> 403 same body   row 979 qty 2, updated_at 09:00:00 unchanged
+X-localization: ar                       -> 403 code prescription_required, message == 'هذا المنتج يحتاج إلى وصفة طبية ولا يمكن إضافته إلى السلة' (exact match to lang/ar)
+Rx item, store 7 set active=0 (copy)     -> 403 prescription_required (user + guest), NOT store_closed; store restored active=1
+Correlation join: X-Request-Id 3837a1b2-c3d4-4e5f-8a9b-0c1d2e3f4a5b -> response header echoes it; laravel.log WARN line correlation_id == same id
+Other errors unchanged: item 99999999 -> 404 code item; non-Rx 598 in active=0 store 53 -> 403 store_closed; non-Rx 32 with zoneId [2] -> 403 out_of_zone; non-Rx 33 qty 9 with max 5 (temp, copy) -> 403 cart_item_limit
+AC-REG non-Rx item 32 (user)             -> 200, row 980 written (list of 5 rows, keys add_on_ids,add_on_qtys,created_at,id,is_guest,item,item_id,item_type,module_id,price,quantity,updated_at,user_id,variation)
+AC-REG ItemCampaign 15 (user)            -> 200, row 981 written (App\Models\ItemCampaign)   [campaign Rx gap = NEARS-3890, not this ticket]
+AC-REG non-Rx item 32 (guest)            -> 200, row 982 written
+
+--- flag OFF (cross_module_basket=0) ---
+AC-REG Rx item 34 new-row user, worktree -> 200, row 983 qty 1;  same request on base :8138 (row 983 removed first) -> 200, row 984 qty 1
+       response diff worktree vs base: 0 non-environmental differences (only new-row id/timestamps + *_full_url host/storage fallback) - see acreg-flagoff-worktree-vs-base.txt
+AC-REG Rx re-add user (row 984), worktree -> 200, row 984 qty 1 -> 2 (increment)
+AC-REG Rx new-row guest, worktree        -> 200, row 985 qty 1
+No '[WARN] cart add rejected - prescription required' line logged for any flag-OFF request.
+AC2 cart = row 984 only (item 34 Rx, store 7); POST customer/order/place (COD, delivery, store 7) WITHOUT order_attachment
+       -> 403 {"errors":[{"code":"prescription","message":"Prescription is required for this order"}]}; orders count 179 -> 179 (max id 91415 unchanged)
+
+--- flag ON ---
+AC3 POST customer/order/prescription/place (store 42 CarePlus Pharmacy, zone 1, prescription_order=1; COD, delivery; order_attachment=8x8 png)
+       -> 200 "Order placed successfully" order_id 91416 (payment_token omitted here)
+       orders row 91416: user 6, store 42, module 3, pending, prescription_order=1, has attachment, order_amount 0.00; order_details rows: 0; exactly one new order
+       carts total 75 -> 75; user's Rx cart row 984 untouched (zero cart rows involved)
+       logs: 'FCM config missing - no project_id' x2 + 'FCM push skipped' (expected: FCM deliberately blanked in the copy - no real push)
