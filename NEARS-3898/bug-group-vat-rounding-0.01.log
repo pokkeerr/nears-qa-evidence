@@ -1,0 +1,6 @@
+# Pre-existing (not NEARS-3898): group basket checkout VAT/Total differs by 0.01 from the sum of placed children
+# client computes VAT on the combined subtotal and rounds once; placement rounds VAT per child order.
+flag OFF same-module 12+13: checkout VAT +0.50, Total 22.58 ; placed 91418 tax 0.27 + 91419 tax 0.24 = 0.51 ; order_amount 11.62 + 10.97 = 22.59
+flag ON  same-module 12+13: checkout VAT +0.50, Total 22.58 ; placed 91422 0.27 + 91423 0.24 = 0.51 ; 11.62 + 10.97 = 22.59
+flag ON  mixed 12+49      : checkout VAT +1.07, Total 29.55 ; placed 91428 0.27 + 91429 0.81 = 1.08 ; 11.62 + 17.94 = 29.56
+Delivery fees match exactly in all three (6.00/6.00, 6.00/6.00, 6.00/1.00). VAT path untouched by NEARS-3898 diff (pricing_summary_controller fee loop only).
