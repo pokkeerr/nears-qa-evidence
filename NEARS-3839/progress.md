@@ -1,0 +1,21 @@
+# NEARS-3839 QA [8] cycle 0 — API-level live QA (backend, money path)
+
+Backend: /Users/Apple/Projects/nears-NEARS-3839-group-tax-preview @ 83a6d9a7d (php artisan serve --no-reload :8739, listener cwd <worktree>/Admin/public; freshness-check PASS)
+Base: git archive of afdc90137 (Admin/) in a scratch dir with its own composer install (no vendor symlink, primary tree untouched), :8839
+DB: both servers on private copy nears3839_qa (mysqldump of multi_food_db); marker business_settings.business_name='NEARS3839-QA-COPY' read back from GET /api/v1/config on both ports before any write.
+Copy prep: cross_module_basket=1; push file '{}', fcm_project_id '', mail_config status 0 driver log; admin_free_delivery_status 0; module_zone(1,2) distance 2.5/km, (2,2) distance 4.0/km (min 1, max 1000); stores 12/13/51 free_delivery 0; store_configs packaging 1.255 on 12 and 51; extra_packaging_data grocery on / food off; coupons QA39PCT (10% module 1) and QA39FIX (5.00 amount module 1); newcomer user (ref_by 6) + new_customer_discount 3.00 for AC2(iv).
+Files: <name>.body.json = response (payment_token redacted), .headers.txt = response headers (cookies stripped), .rid = X-Request-Id, .meta = HTTP code + curl time; *-compare.txt = validate vs persisted children; *-snap.txt = row counts pre/post.
+
+| AC | Verdict | Evidence |
+|---|---|---|
+| AC1 [api] | PASS | ac1-validate-hdr2/hdr1/nohdr: 3 pass rows (12,13 grocery; 51 food) each carry the 8 amount keys at 2dp; delivery 12=7.50 (3km x 2.5), 13=18.05 (2.5/km), 51=12.00 (3km x 4.0) byte-identical under header 2 (other module), header 1 and no header; packaging 12=1.26 (grocery on), 51=0 (food off). D2: pct coupon 12=1.20, 13=2.67, 51=0; fixed 12=5.00, 13=0, 51=0. Gate-fail (13 minimum_order) row amounts:null, top amounts:null, valid:false; store_failed (data-induced TypeError in 13) row amounts:null, top null. |
+| AC2 [behav] | PASS (see note) | Identity exact per store + top in every mixed response (verify.py, Decimal). validate->place same body, same minute: (i) no coupon 101.19, (ii) pct 97.13, (iii) fixed 95.94, (iv) first-order 51.99 (ref bonus 3.00 on child 1 only), additional charge x3 108.07, p=3 100.49 — every store order_amount == persisted child and all 7 per-store fields == persisted (rounded). Top == place total_amount exactly in 4/6 runs; in 2/6 place returned float noise (51.989999999999995, 100.49000000000001) that equals the preview at the configured precision — pre-existing group/place unrounded sum (NEARS-3836 regression bug), group/place is out of scope/untouched. |
+| Precision p=3 | PASS | digit_after_decimal_point=3: packaging 1.255 and additional_charge 1.125 shown at 3dp; identity exact at 3dp. |
+| Additional charge | PASS | 1.125 persisted on each of the 3 children; preview 1.13 per store at p=2. |
+| AC-LOG [log] | PASS | 1 [FAIL] group_order_validate_failed for the forced throw, keys request_id,group_id,store_id(13),reason(store_failed),exception_type,file,line,store_count (+ trace_id/correlation_id); 0 amount keys / values in any log line of the session; only other lines are pre-existing FCM-missing WARNs and 3836 INFO coupon-skipped. |
+| AC-REG [behav] | PASS | base :8839 vs new :8739, same copy+body: flag OFF validate mixed/mixed-pct/mixed-hdr2/same/same-pct byte-identical; flag ON same-module no-coupon/pct/gate-fail/store_failed byte-identical; get-Tax (12 single, 12+pct, 51) ON and OFF byte-identical; flag ON mixed place base==new modulo ids/payment_token; flag ON mixed validate: new minus amounts == base, key order preserved. |
+| Dry-run integrity | PASS | every validate: orders, order_groups, order_taxes, order_details, coupon total_uses, stock (51/203/576), carts, wallet unchanged (ac2-*-snap.txt). |
+| Latency | info | worktree mixed (3 stores) median 244ms (n=11), same-module (2 stores) 197ms, base mixed 241ms -> the preview adds ~no cost. |
+| AC-TEST [test] | PASS | Nears3839 21 tests/483 assertions OK (a)-(i); regression filter 91 tests/628 assertions OK. |
+
+multi_food_db before == after: orders 179 (max 91415), order_groups 15, carts 75 (max 971), SUM(coupons.total_uses) 14, order_taxes 102, cross_module_basket 0. Copy dropped, both servers stopped, worktree git status clean.
