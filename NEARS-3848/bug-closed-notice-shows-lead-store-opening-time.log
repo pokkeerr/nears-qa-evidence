@@ -1,0 +1,13 @@
+# Pre-existing (NEARS-3809 / NEARS-3814), NOT introduced by NEARS-3848 — regression_bugs lane
+# Surface: UserApp checkout, multi-store basket, closed-now FOOD store that is NOT the lead store
+# Private copy DB qa_3848, 2026-09-30 ~01:12 Asia/Dubai, emulator-5554, build from worktree @ 81e89a88a
+Basket: Test Store (id 35, grocery, LEAD, schedule today 00:00-23:59:59) + Spice Route Kitchen (id 49, food, schedule today 08:00-23:00 => closed now)
+Rendered notice (a11y dump a11y-scope4-mixed-closed-food-notice-en.xml):
+  "Store closed · opens at 00:00 · advance ordering unavailable"
+Expected: the closed store is Spice Route (opens 08:00); the notice shows 00:00 = the LEAD store's opening time.
+Source: UserApp/lib/features/checkout/widgets/time_slot_section.dart — ClosedStoreNoticeWidget.blocked(openingTime:
+  StoreOpenStatus.openingTime(StoreDetails(storeOpeningTime: checkoutController.store?.storeOpeningTime,
+  schedules: checkoutController.store?.schedules))) — reads the lead store, while the notice is triggered by
+  basketFoodClosed (closedFoodStoreIdsIn, any store). Identical at base 197865d0f (NEARS-3848 did not touch this line).
+Also: the notice names no store, so in a 2+ store basket the user cannot tell which store is closed.
+Client pre-flight correctly blocks: [FAIL] ... msg="checkout: place-order blocked reason=store_is_closed store_ids=49"

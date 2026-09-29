@@ -1,0 +1,6 @@
+# Pre-existing (not NEARS-3848): single-store AND group paths map (selectedDateSlot==0 && selectedTimeSlot==0) -> schedule_at null.
+# With a store/module order_place_to_schedule_interval (grocery module flag ON, store 35 interval=120), today's FIRST listed slot is index 0,
+# so a user who explicitly picks it (checkout shows '03:00 AM - 04:00 AM' as the chosen time) is sent as ASAP. qa_3848, 2026-09-30 01:09 Dubai.
+# Code: UserApp/lib/features/checkout/controllers/place_order_controller.dart single-store scheduleAt (~L1702) and group (~L1280); unchanged vs base 197865d0f.
+01:09:10 /api/v1/customer/order/place DRY-403 multipart fields: 28 | schedule_at field present: False
+# Control: picking the SECOND listed slot (04:00-05:00 AM) sends schedule_at=2026-09-30 04:01 (acreg-flag-off-single-module-schedule-at.log).
