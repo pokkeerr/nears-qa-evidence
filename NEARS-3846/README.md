@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3846
 
-**NEARS-3846 QA cycle 0 — FAIL (AC2 cod_cap stale cash selection, AC13 AR snackbar truncation; AC10/12/K3 blocked by pre-existing guest defect)**
+**NEARS-3846 re-QA cycle 1 @29bc434b4: PASS (AC2, AC13, RB5 + delta sweep)**
 
-**22 screenshot(s).** Click any thumbnail for full resolution.
+**32 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -38,20 +38,40 @@
 <tr>
 <td align="center" width="33%"><a href="08a-CONTROL-base-flagOFF-same-module-2store.png"><img src="08a-CONTROL-base-flagOFF-same-module-2store.png" width="240"></a><br><sub>08a CONTROL base flagOFF same module 2store</sub></td>
 <td align="center" width="33%"><a href="08b-flagOFF-same-module-2store-NOrderSummaryRow-EN.png"><img src="08b-flagOFF-same-module-2store-NOrderSummaryRow-EN.png" width="240"></a><br><sub>08b flagOFF same module 2store NOrderSummaryRow EN</sub></td>
-<td align="center" width="33%"><a href="bug-empty-method-sheet-stale-zone-digital.png"><img src="bug-empty-method-sheet-stale-zone-digital.png" width="240"></a><br><sub>bug empty method sheet stale zone digital</sub></td>
+<td align="center" width="33%"><a href="bug-codcap-pending-display-lag.png"><img src="bug-codcap-pending-display-lag.png" width="240"></a><br><sub>bug codcap pending display lag</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="bug-empty-method-sheet-stale-zone-digital.png"><img src="bug-empty-method-sheet-stale-zone-digital.png" width="240"></a><br><sub>bug empty method sheet stale zone digital</sub></td>
 <td align="center" width="33%"><a href="bug-snackbar-copy-truncated-AR-360dp-1.3x.png"><img src="bug-snackbar-copy-truncated-AR-360dp-1.3x.png" width="240"></a><br><sub>bug snackbar copy truncated AR 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="c1-01-online-preferred-sheet-online-only-stale-zone-EN-360dp.png"><img src="c1-01-online-preferred-sheet-online-only-stale-zone-EN-360dp.png" width="240"></a><br><sub>c1 01 online preferred sheet online only stale zone EN 360dp</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c1-02-toast-cash-refused-at-place-EN-360dp-1.3x-t0.9-3.6-6.2s.png"><img src="c1-02-toast-cash-refused-at-place-EN-360dp-1.3x-t0.9-3.6-6.2s.png" width="240"></a><br><sub>c1 02 toast cash refused at place EN 360dp 1.3x t0.9 3.6 6.2s</sub></td>
+<td align="center" width="33%"><a href="c1-03-RB5-dialog-states-and-switch-refused-toast-EN-360dp-1.3x.png"><img src="c1-03-RB5-dialog-states-and-switch-refused-toast-EN-360dp-1.3x.png" width="240"></a><br><sub>c1 03 RB5 dialog states and switch refused toast EN 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="c1-04-toast-asap-only-EN-360dp-1.3x.png"><img src="c1-04-toast-asap-only-EN-360dp-1.3x.png" width="240"></a><br><sub>c1 04 toast asap only EN 360dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c1-05-toast-cash-refused-at-place-AR-360dp-1.3x-partial-both.png"><img src="c1-05-toast-cash-refused-at-place-AR-360dp-1.3x-partial-both.png" width="240"></a><br><sub>c1 05 toast cash refused at place AR 360dp 1.3x partial both</sub></td>
+<td align="center" width="33%"><a href="c1-06-AR-asap-toast-RB5-switch-refused-toast-and-ordinary-toast-regression-360dp-1.3x.png"><img src="c1-06-AR-asap-toast-RB5-switch-refused-toast-and-ordinary-toast-regression-360dp-1.3x.png" width="240"></a><br><sub>c1 06 AR asap toast RB5 switch refused toast and ordinary toast regression 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="c1-07-ordinary-toast-regression-3line-cap-default-duration-AR-360dp-1.3x.png"><img src="c1-07-ordinary-toast-regression-3line-cap-default-duration-AR-360dp-1.3x.png" width="240"></a><br><sub>c1 07 ordinary toast regression 3line cap default duration AR 360dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c1-08-ordinary-toast-server-long-message-3line-cap-AR-360dp-1.3x.png"><img src="c1-08-ordinary-toast-server-long-message-3line-cap-AR-360dp-1.3x.png" width="240"></a><br><sub>c1 08 ordinary toast server long message 3line cap AR 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="c1-confirm-b-wallet-cod-remainder-no-method-EN.png"><img src="c1-confirm-b-wallet-cod-remainder-no-method-EN.png" width="240"></a><br><sub>c1 confirm b wallet cod remainder no method EN</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
+- [`bug-codcap-pending-display-lag.log`](bug-codcap-pending-display-lag.log)
 - [`bug-codcap-stale-cash-selection.log`](bug-codcap-stale-cash-selection.log)
 - [`bug-empty-method-sheet-stale-zone-digital.log`](bug-empty-method-sheet-stale-zone-digital.log)
+- [`bug-preexisting-group-partial-wallet-never-split.log`](bug-preexisting-group-partial-wallet-never-split.log)
 - [`bug-preexisting-guest-multistore-checkout-blocked.log`](bug-preexisting-guest-multistore-checkout-blocked.log)
+- [`bug-preexisting-overflows-360dp-1.3x.log`](bug-preexisting-overflows-360dp-1.3x.log)
 - [`bug-preexisting-renderflex-overflows.log`](bug-preexisting-renderflex-overflows.log)
 - [`bug-preexisting-weekly-surge-json-type.log`](bug-preexisting-weekly-surge-json-type.log)
 - [`bug-search-semantics-assertion-rendertable.log`](bug-search-semantics-assertion-rendertable.log)
+- [`bug-tb4-payfailed-screen-header-module.log`](bug-tb4-payfailed-screen-header-module.log)
 - [`progress.md`](progress.md)
 
 ---

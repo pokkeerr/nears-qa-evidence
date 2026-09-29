@@ -1,0 +1,10 @@
+# NEARS-3846 re-QA c1 — confirm-only (c): group partial pay never splits the wallet (pre-existing; code + live request body, no order placed)
+# app group/validate body with wallet applied + remainder (TB5 run, 21:31:30):
+"payment_method": "cash_on_delivery", "partial_payment": 1
+"payment_method": "digital_payment", "partial_payment": 0
+"payment_method": "cash_on_delivery", "partial_payment": 1
+"payment_method": "digital_payment", "partial_payment": 1
+"payment_method": "digital_payment", "partial_payment": 0
+# app builds payment_method from paymentMethodIndex only (cash_on_delivery|wallet|digital_payment|offline_payment) — place_order_controller.dart:1166-1172; partial rides as partial_payment=1 (group_place_order_body_model.dart:98)
+# server: Admin/app/Traits/PlaceGroupOrder.php:408  if ($request->payment_method === 'partial_payment') { ... wallet split (:625-663) }  — the partial_payment field is never read
+# => a group order with wallet applied is placed without any wallet debit; the gateway/cash leg carries the full amount the UI showed as wallet-reduced.

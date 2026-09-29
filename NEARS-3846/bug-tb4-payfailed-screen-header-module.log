@@ -1,0 +1,10 @@
+# NEARS-3846 re-QA c1 — TB4 residual: Pay Now from DigitalPaymentFailedScreen still resolves COD on the header module
+# order #91457 = module 1 (grocery child of group c39baa7f); header moduleId = 2 at the time
+21:20:44 POST /api/v1/config/delivery-quote mod= 2 st= 200 rid= 7e8a4527-7bd2-476e-a54f-8059764fc040 
+   BODY {"zone_id": 1, "module_id": 2, "order_amount": 21.13}
+   RESP {"delivery_charge": -1, "cod_eligible": true}
+# same flow from ORDER DETAILS (#91458, module 2, header 1) — fixed path, carries the order's module:
+21:24:09 POST /api/v1/config/delivery-quote mod= 1 st= 200 rid= 8ba1fee6-818f-4651-b398-adf4a02ec25c 
+   BODY {"zone_id": 1, "module_id": 2, "order_amount": 17.54}
+   RESP {"delivery_charge": -1, "cod_eligible": true}
+# cause: retryPaymentRoute reads the module only from OrderController.trackModel when its id == orderID; DigitalPaymentFailedScreen / home prompt do not set trackModel -> header fallback

@@ -1,0 +1,16 @@
+# NEARS-3846 re-QA c1 — cod_cap known from the fee quote is not rendered while the probe is pending (emulator-5580, build 29bc434b4, own serve :8146 cwd nears-NEARS-3846-per-store-fee-cod-surge @ 29bc434b4 via proxy :8147, DB multi_food_db_qa3846)
+# Fixture: zone 1 digital_payment=0, module_zone(1,2) cap 10, group/validate held 45s by the QA proxy
+## proxy: fee quote for store 91159 (module 2) returns cod_eligible:false at ~21:13:24
+21:13:24 POST /api/v1/config/delivery-quote mod= 2 st= 200 rid= cdaa2b8e-46fe-4cb9-8130-4aab6aecc14e 
+   RESP {"delivery_charge": 1, "cod_eligible": true}
+21:13:24 POST /api/v1/config/delivery-quote mod= 2 st= 200 rid= 323b9880-32a7-40d1-bb6a-75bbc4bd607e 
+   RESP {"delivery_charge": 1, "cod_eligible": false}
+## a11y payment section 21:13:29-21:13:39 (verdict still pending): 'Cash on Delivery' selected, NO 'Cash on delivery limit exceeded' row (screencap bug-codcap-pending-display-lag.png)
+## client log: the pick is only dropped when something rebuilds checkout_coordinator (here: my Place tap at 21:13:50) or at the verdict
+09-29 21:13:19.796 I/flutter ( 4576): 📊 analytics: add_payment_info {payment_type: cash_on_delivery, value: 38.66, currency: AED, screen: checkout, section: payment}
+09-29 21:13:20.748 I/flutter ( 4576): [WARN] msg="checkout: map preview dropped store 91158 — missing coordinates"
+09-29 21:13:20.748 I/flutter ( 4576): [WARN] msg="checkout: map preview dropped store 91159 — missing coordinates"
+09-29 21:13:24.894 I/flutter ( 4576): [NET] POST endpoint=/api/v1/customer/order/group/validate
+09-29 21:13:50.769 I/flutter ( 4576): [INFO] msg="checkout: mixed basket dropped a method no longer offered index=0"
+## consequence: confirm sheet shows 'SELECT PAYMENT METHOD'; Confirm opens the method sheet with Pay Offline only — nothing placed, no silent failure.
+## normal ordering (probe not held): the probe is dispatched after the quote and its verdict rebuilds + drops the pick (21:16:01 run) — stale window == probe latency.
