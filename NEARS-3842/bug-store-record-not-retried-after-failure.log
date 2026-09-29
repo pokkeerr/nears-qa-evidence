@@ -1,0 +1,20 @@
+# NEARS-3842 QA cycle 3 — finding: a failed/out-of-zone store record is never retried in-session (build 572563fe1, emulator-5570)
+# 1) Address in zone [400,2] (stores 1/2/4 are zone 1): first Basket open -> stores/details 403 out_of_zone (proxy capture, ids only)
+10:56:49 GET /api/v1/stores/details/1 status=403 moduleId=3
+10:56:49 GET /api/v1/stores/details/1 status=403 moduleId=3
+10:56:50 GET /api/v1/stores/details/4 status=403 moduleId=3
+10:56:50 GET /api/v1/stores/details/2 status=403 moduleId=3
+10:56:50 GET /api/v1/stores/details/4 status=403 moduleId=3
+10:56:50 GET /api/v1/stores/details/2 status=403 moduleId=3
+10:56:50 GET /api/v1/stores/details/1 status=403 moduleId=3
+# app log (paired, PII-safe):
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=1"
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=4"
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=2"
+# 2) Address switched to zone [1]; Basket re-opened 10:58 -> stores/details 200 fetched by other callers, but CartController snapshot never refreshed:
+10:58:13 GET /api/v1/stores/details/1 status=200 moduleId=2
+10:58:14 GET /api/v1/stores/details/4 status=200 moduleId=2
+10:58:14 GET /api/v1/stores/details/2 status=200 moduleId=2
+10:58:14 GET /api/v1/stores/details/1 status=200 moduleId=2
+storeSnapshot eval @10:59: 1:null 2:null 4:null  (server: store 2 pkg=true/1.25 cutlery=true; store 4 pkg=true/3.5 cutlery=true)
+# Result: per-section packaging + cutlery cards absent for stores 2 and 4 for the rest of the session (cart_controller.dart:1109 containsKey==fetched skip; :1147 caches null)

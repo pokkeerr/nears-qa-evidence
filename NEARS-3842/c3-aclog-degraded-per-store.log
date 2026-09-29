@@ -1,0 +1,10 @@
+# NEARS-3842 cycle 3 AC-LOG (build 572563fe1, emulator-5570): proxy faults stores/details/2 -> 500, module 2 stripped from /api/v1/module; module null; Cart opened
+11:25:33 GET /api/v1/stores/details/2 status=500 INJECTED moduleId=ABSENT zoneId=present
+11:25:34 GET /api/v1/module status=200 STRIPPED module 2
+11:25:35 GET /api/v1/stores/details/2 status=500 INJECTED moduleId=ABSENT zoneId=present
+# app log (ids only):
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: module badge omitted, module not in zone list store_id=4 module_id=2"
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=2"
+[INFO] msg="cart initCall: mixed basket, module left unset stores=3"
+[INFO] msg="cart restored with 6 items"
+# degraded UI (a11y): 'Burger Palace, 2 Items, 66.21 AED' (badge omitted); 'Fresh Mart Grocery, Grocery, 2 Items, 309.98 AED' (row-module fallback) with no min-order bar and no packaging/cutlery cards; Nears Mart + Burger Palace min bars present. Dumps: c3-aclog-degraded-cart-a11y-top.xml / -bottom.xml (positive control nodes: 'Add More Items, Fresh Mart Grocery', 'Need Extra Packaging, Burger Palace')

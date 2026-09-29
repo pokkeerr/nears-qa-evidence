@@ -1,0 +1,16 @@
+# NEARS-3842 cycle 3 — rail sheet Add with a DIFFERENT module selected switches the active module (build 572563fe1, emulator-5570)
+# state: module=2 (Food) active, Cart open via bottom-nav Basket; rail card Cola 1.5L (item 98, store 1 / module 1)
+11:20:56 GET /api/v1/items/details/98 status=200 moduleId=1 zoneId=present
+11:21:13 GET /api/v1/customer/cart/list status=200 moduleId=ABSENT zoneId=ABSENT
+11:21:13 POST /api/v1/customer/cart/add status=200 moduleId=1 zoneId=present
+11:21:13 GET /api/v1/customer/wish-list status=200 moduleId=1 zoneId=present
+11:21:13 GET /api/v1/cashback/list status=200 moduleId=1 zoneId=present
+11:21:16 GET /api/v1/vehicle/extra_charge?distance=* status=200 moduleId=1 zoneId=present
+11:21:16 GET /api/v1/vehicle/extra_charge?distance=* status=200 moduleId=1 zoneId=present
+11:21:16 POST /api/v1/config/delivery-quote status=200 moduleId=1 zoneId=present
+11:21:16 POST /api/v1/config/delivery-quote status=200 moduleId=1 zoneId=present
+11:21:16 POST /api/v1/config/delivery-quote status=200 moduleId=1 zoneId=present
+DB: carts row 987 item 98 module 1 qty 1 @ 11:21:13 (add landed)
+VM: before add module=2 ; after add module=1 (groups 1:41.11 2:309.98 4:92.08)
+# code: item_bottom_sheet.dart:1567-1593 keepModuleUnset = mixed && module==null; with a module selected the sheet still setModule(item.moduleId) (base behaviour, kept + pinned by item_bottom_sheet_mixed_basket_module_test 'mixed with module 1 -> setModule(2) as before'); setModule triggers the cart/list refetch seen at 11:21:13
+# contrast: sheet Update of Red Apple (module 1 item) at 11:19:03 with module 2 kept module 2; module-null adds (11:11:05, 11:16:11) kept null
