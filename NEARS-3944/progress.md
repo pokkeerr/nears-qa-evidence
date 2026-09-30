@@ -63,3 +63,8 @@ Device: emulator-5562 (spare AVD NEARS_2414_QA booted by this run, pid 25326); l
 - Shared DB AFTER: business_settings id228=0; max(orders.id)=91415; 0 rows >91415; module_zone(1,1)=500.00; zone1 COD=1; ids 22/109/138 unchanged.
 - Private copy left in place: nears_qa_3944 (flag 228=1, guest checkout 138=1, loyalty rate 109=10, footer marker, orders 91418-91463).
 - Instrument note: the agent scratchpad is shared with concurrent QA agents; NEARS-3945's run reused the filename flutter-run.log at ~22:0x and overwrote it AFTER this run's flutter run had ended (21:59, last read still pid 3792). All windows after that used this run's own logcat --pid files; artifacts verified to contain only this run's lines; proxy.log 0 foreign lines.
+
+## G11: AC2 DISCRIMINATING run, group 4c1e8177 (logged in, flag ON copy, same module): #91466 Nears Mart 28.96 + #91467 Daily Fresh Market 10.08 (group/route total 39.04)
+- Dialog opened+dismissed; #91466 cancelled on another surface via the real endpoint (curl rid qa3944-otherdevice-cancel-91466, 200). Reopen -> resolve = group/details + ONE payment-failed (cancelled child skipped) -> dialog HELD after back. Switch -> re-resolve, exactly ONE PUT payment-method (91467) 200, post-loop resolve, Home "You will earn 1 points".
+- AC2 PASS (discriminating): shared_prefs earn_point = "1" = round(10.08/100*10 = 1.008) = sum of SERVER-switched children only; the base formula (route amount 39.04/100*10 = 3.904) would give "4". DB: 91466 canceled, 91467 pending/cash_on_delivery. Logs clean.
+- Also observed before this: on the G10 create-account group the Payment screen cannot be left at all (back reopens the dialog, whose buttons do nothing) -> app had to be force-stopped.

@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3944
 
-**NEARS-3944 cycle-0 QA: PASS (AC1-AC4 + AC-LOG live on nears_qa_3944; base positive control for AC3)**
+**NEARS-3944 cycle-0 QA: PASS (AC1-AC4 + AC-LOG live on nears_qa_3944; AC3 base positive control; AC2 discriminating)**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
