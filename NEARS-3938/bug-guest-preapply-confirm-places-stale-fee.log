@@ -1,0 +1,22 @@
+# NEARS-3938 guest pre-apply window: Confirm not blocked, stale fee + mixed address reach placement
+# build d68d09086, emulator-5570, guest checkout (enabled on private copy nears_qa_3938), delay router 5000ms on place-api-details/get-zone-id/distance-api
+# steps: guest checkout at Al Wahda Mall (fee 5.00, Total 24.00) -> type 'Marina Mall' -> pick 'MARINA MALL - Ring Road' -> tap Place Order -> tap 'Confirm & place order' (all within ~5s, before place-details returns)
+  [NET] GET endpoint=/api/v1/config/place-api-details
+  📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 1, screen: checkout, section: place_order}
+  📊 analytics: order_confirm_sheet_shown {store_count: 1, item_count: 1, value: 23.995399999999997, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+  📊 analytics: order_confirm_confirmed {value: 23.995399999999997, currency: AED, store_count: 1, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+  [INFO] msg="multipart POST endpoint=/api/v1/customer/order/place"
+  [NET] endpoint=/api/v1/config/place-api-details http_status=200
+  [NET] GET endpoint=/api/v1/config/get-zone-id
+  [NET] endpoint=/api/v1/customer/order/place http_status=200
+  [NET] GET endpoint=/api/v1/config/get-zone-id
+  📊 analytics: order_tracking_opened {order_id: 91416, order_status: pending, screen: order_tracking, section: sheet}
+  [NET] GET endpoint=/api/v1/config/get-zone-id
+  [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+  [NET] GET endpoint=/api/v1/config/distance-api
+  [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+  [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+  [NET] endpoint=/api/v1/config/distance-api http_status=200
+# private-copy row (read-only SELECT): orders.id=91416 order_amount=24.00 delivery_charge=5.00 distance=1.632 (Al Wahda quote)
+#   delivery_address.address='Marina Mall' (NEW typed text) but latitude/longitude = Al Wahda Mall pin (OLD) ; Marina Mall quote would be delivery_charge 25.47
+# expected (QA scope guest cell 1, advisor q-001 cond b): Confirm disabled or blocked at tap, no POST. observed: POST /api/v1/customer/order/place 200, no [WARN]/[FAIL] for the gate.
