@@ -1,0 +1,16 @@
+# G4b terminal + G5 409 (proxy log)
+=== #4b cancel
+21:46:20 GET /api/v1/customer/order/group/details -> 200 rid=a77d497a-a857-4376-b65f-1a6187eece73 90ms
+21:46:22 PUT /api/v1/customer/order/cancel -> 200 rid=482b41fd-0cef-4c48-86b8-aed7499d7ecf 133ms
+21:46:22 PUT /api/v1/customer/order/cancel -> 403 code=order rid=9ac768d0-daf1-4621-9cd8-cac98740b4ca 80ms
+21:46:24 GET /api/v1/customer/order/running-orders -> 200 rid=c803cbf7-9d59-4c85-a879-fd2221ceebf2 158ms
+=== #5 409 cancel
+21:48:47 HOLD response of GET /api/v1/customer/order/group/details status=200 rid=6423db50-e1aa-4f81-8e25-6524b75b603d (upstream already done)
+21:48:47 PUT /api/v1/customer/order/cancel -> 200 rid=qa3944-otherdevice-cancel-91443 146ms
+21:48:47 GET /api/v1/customer/order/group/details -> 200 rid=6423db50-e1aa-4f81-8e25-6524b75b603d 497ms (held+released)
+21:48:48 PUT /api/v1/customer/order/cancel -> 200 rid=3ce8b209-f180-4200-8d00-1aeb22d33849 141ms
+21:48:49 PUT /api/v1/customer/order/cancel -> 409 code=order rid=f7b67bf8-5b20-4e8e-9c15-96cb6013fe72 84ms
+21:48:50 GET /api/v1/customer/order/running-orders -> 200 rid=9ccbadf5-564a-45da-9985-9818259b432f 144ms
+# app [FAIL] (G4b)
+[FAIL] endpoint=/api/v1/customer/order/cancel http_status=403 type=ApiFailure msg="order: group cancel refused groupId=2c1f4542-d1e8-4ab4-b236-1888d35116fa orderId=91438 total=2" correlation_id=9ac768d0-daf1-4621-9cd8-cac98740b4ca
+# app [FAIL] (G5 window): none

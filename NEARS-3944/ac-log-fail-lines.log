@@ -1,0 +1,14 @@
+# NEARS-3944 AC-LOG: one [FAIL] line per forced failure path, as observed live on the device log
+# (flutter run for G1-G8, logcat --pid after the G6 relaunch). Allow-list only: groupId, orderId, done/total, endpoint path, status, reason token, correlation_id.
+## resolve failure / roster unknown (airplane, G1 group f420c09d) - dialog still dismissable
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=f420c09d-ca2a-44a6-a184-2ff783b17d16"
+## pre-gate refusal, cap (G1, 0 PUT)
+[FAIL] endpoint=/api/v1/customer/order/payment-failed http_status=null type=ApiFailure msg="order: group switch refused before any change groupId=f420c09d-ca2a-44a6-a184-2ff783b17d16 orderId=91418 reason=cod_cap"
+## pre-gate refusal, cash unavailable (G9 guest, zone COD off between open and tap, 0 PUT)
+[FAIL] endpoint=/api/v1/customer/order/payment-failed http_status=null type=ApiFailure msg="order: group switch refused before any change groupId=225293b2-7414-409e-8f14-f46aae5d3534 orderId=91458 reason=cash_unavailable"
+## partial switch (G3, 2nd PUT 203) - no correlation_id (pre-existing order_service.dart:174-178 drops it)
+[FAIL] endpoint=/api/v1/customer/order/payment-method http_status=203 type=ApiFailure msg="order: group switch to cash stopped groupId=9123b53b-9f10-4c1f-baff-b70fd8cf78f1 orderId=91431 done=1 total=2"
+## terminal cancel refusal (G4b, 403) - correlation_id == proxy rid of the refused PUT
+[FAIL] endpoint=/api/v1/customer/order/cancel http_status=403 type=ApiFailure msg="order: group cancel refused groupId=2c1f4542-d1e8-4ab4-b236-1888d35116fa orderId=91438 total=2" correlation_id=9ac768d0-daf1-4621-9cd8-cac98740b4ca
+## not forced live (unit-pinned): partial cancel "group cancel stopped" (group_payment_recovery_controller_test.dart:254-255); server mixed-basket 403 in the loop (:151-163); child read failed.
+## PII scan of every [FAIL]/[ERR]/[WARN] line in the device logs for payment_token|token=|phone numbers used|emails used|names|JSON bodies|Bearer: 0 hits.

@@ -1,0 +1,11 @@
+# NEARS-3944 task_bug (breaks_ac: false): group Switch/Cancel give the customer NO visible feedback when the roster read fails.
+# Code: order_controller.dart switchGroupToCod()/cancelGroup(): `if (!state.isReady) return const GroupRecoveryOutcome(GroupRecoveryResult.none);`
+#       -> no toast; _resolveGroup() only logs "roster unknown". payment_failed_dialog.dart treats `none` as stay-silently.
+## Case A - airplane mode after a real partial (G3 group 9123b53b), tap "Switch to Cash On Delivery":
+UI: spinner, then the identical dialog (poll at 1.5s and 7.5s: same labels, no snackbar).
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=bdcf1c09-6e80-44fc-b860-ef9635575488
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=9123b53b-9f10-4c1f-baff-b70fd8cf78f1"
+## Case B - guest "Create account with existing info" group (G10 57136cc1, children owned by new user 435 is_guest=0, app still guest 1970):
+Tap Cancel Order -> GET group/details 404 code=group, 0 PUT, dialog unchanged (3 polls). Tap Switch -> same. DB both still failed.
+(see bug-create-account-guest-group-unrecoverable.log for the lines)
+## Base 1534278b2 contrast: the single-order controller paths toast via ApiChecker on a failed PUT; the group path never reaches a PUT here, so nothing is shown.

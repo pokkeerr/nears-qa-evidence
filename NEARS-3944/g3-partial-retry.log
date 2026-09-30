@@ -1,0 +1,29 @@
+# G3 partial -> guard -> airplane -> retry (proxy log: method/path/status/rid/error code only)
+=== G3 place
+21:38:25 POST /api/v1/customer/order/group/place -> 200 rid=917b8fc2-0152-4634-85fa-f3c97922a618 252ms
+21:38:26 GET /payment-mobile -> 302 rid=- 218ms
+21:38:43 GET /api/v1/customer/order/group/details -> 200 rid=ba8d8ea5-62fa-4847-b00e-6bb77f62a3bd 230ms
+21:38:43 GET /api/v1/customer/order/payment-failed -> 200 rid=e9c55a41-03b7-48fc-ab64-a5eeb4df9526 123ms
+21:38:43 GET /api/v1/customer/order/payment-failed -> 200 rid=f915d23f-b2b5-4be4-a1b2-83cee1bdd0c8 120ms
+=== #7 partial G3
+21:38:51 GET /api/v1/customer/order/group/details -> 200 rid=6a611ae3-d233-43aa-8986-9902c9f63d29 134ms
+21:38:52 GET /api/v1/customer/order/payment-failed -> 200 rid=be971417-b610-4d59-8e5f-d1845523e64e 107ms
+21:38:52 GET /api/v1/customer/order/payment-failed -> 200 rid=f32a451a-d65c-4eb1-9ab7-06837484d251 164ms
+21:38:54 HOLD response of PUT /api/v1/customer/order/payment-method status=200 rid=67ff4972-f6d5-41c9-8ef3-feced206951b (upstream already done)
+21:38:54 PUT /api/v1/customer/order/payment-method -> 200 rid=67ff4972-f6d5-41c9-8ef3-feced206951b 1979ms (held+released)
+21:38:54 PUT /api/v1/customer/order/payment-method -> 203 code=order_amount rid=e0abf040-9a24-44e5-82d8-1892a8b58546 89ms
+=== #10 guard after partial
+=== #12 airplane retry
+=== #7 retry G3
+21:40:45 GET /api/v1/customer/order/group/details -> 200 rid=7907d41a-d4fb-4b81-9727-03ae4df9dcf8 277ms
+21:40:46 GET /api/v1/customer/order/payment-failed -> 200 rid=55515196-f82b-47a5-9de4-d7ff359bbcb1 178ms
+21:40:47 GET /api/v1/customer/order/payment-failed -> 200 rid=21aa8fc9-acd9-4af5-807c-04931a999b55 346ms
+21:40:50 PUT /api/v1/customer/order/payment-method -> 200 rid=fd4140e3-0ce9-4934-92e6-a2dd04dc0eae 2222ms
+21:40:51 GET /api/v1/customer/order/group/details -> 200 rid=c79cd954-e492-4cf1-89b1-bfa7ea34593a 464ms
+21:40:52 GET /api/v1/customer/order/payment-failed -> 200 rid=3044ba99-6164-4606-919f-e9d5a0cda505 739ms
+21:40:53 GET /api/v1/customer/order/payment-failed -> 200 rid=038d68d5-35c9-4eda-b0ee-d0980480ae6d 113ms
+
+# app [FAIL] lines (device log, allow-list)
+[FAIL] endpoint=/api/v1/customer/order/payment-method http_status=203 type=ApiFailure msg="order: group switch to cash stopped groupId=9123b53b-9f10-4c1f-baff-b70fd8cf78f1 orderId=91431 done=1 total=2"
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=bdcf1c09-6e80-44fc-b860-ef9635575488
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=9123b53b-9f10-4c1f-baff-b70fd8cf78f1"
