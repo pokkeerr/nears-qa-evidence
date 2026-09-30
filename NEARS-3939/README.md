@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3939
 
-**PASS - group digital route amount = server total_amount 34.28 (client 31.88); single-store unchanged 28.40**
+**NEARS-3939 cycle-1 delta re-QA PASS on rebased d5d2c1793**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -13,7 +13,10 @@
 
 ### Other artifacts
 - [`ac1-acreg-money-proxy.log`](ac1-acreg-money-proxy.log)
+- [`bug-group-cancel-partial.log`](bug-group-cancel-partial.log)
 - [`bug-semantics-rendertable-assert.log`](bug-semantics-rendertable-assert.log)
+- [`c1-app-logs.log`](c1-app-logs.log)
+- [`c1-money-proxy.log`](c1-money-proxy.log)
 - [`logs-placements.log`](logs-placements.log)
 - [`progress.md`](progress.md)
 

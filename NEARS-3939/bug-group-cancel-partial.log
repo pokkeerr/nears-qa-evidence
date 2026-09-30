@@ -1,0 +1,11 @@
+# Pre-existing (NOT NEARS-3939 — file not in diff): Payment-screen back -> 'order fail?' dialog -> 'Cancel Order' on a GROUP digital placement cancels only ONE child.
+# Code: UserApp/lib/features/checkout/widgets/payment_failed_dialog.dart:143 cancelOrder(orderID: int.parse(orderID!)) — single order id, no group_id path. Last touched by NEARS-3846.
+# Repro (emulator-5554, build d5d2c1793, DB nears_qa_3939): group digital (Paypal) #91427 store1 + #91428 store2 -> payment screen Back -> Cancel Order.
+## proxy
+19:26:11 POST /api/v1/customer/order/cancel -> 200 rid=8ceb8237-d28e-4d64-b951-0c6f86d5e014
+19:26:12 GET /api/v1/customer/order/payment-failed -> 200 rid=c86dc327-7fd3-4e96-911d-5d71f72af0b8
+## DB after cancel
+id	store_id	order_amount	order_status	payment_status	order_group_id
+91427	1	28.40	canceled	unpaid	19a138bd-b770-4c2a-b1e1-3afed7f05311
+91428	2	5.88	failed	unpaid	19a138bd-b770-4c2a-b1e1-3afed7f05311
+## UI after redirect to Home: bottom sheet 'Your payment was Incomplete' Order ID #91428 Amount 5.88 AED [Pay Now | Switch to Cash On Delivery | Cancel Order] — the user just cancelled the order but the sibling child still nags for payment.

@@ -1,0 +1,12 @@
+# NEARS-3939 fix-cycle 1 (rebased d5d2c1793 on bb4fc8927) money-field proxy excerpt. Own proxy :8140 -> own backend :8139 (cwd /Users/Apple/Projects/nears @ bb4fc8927, DB nears_qa_3939). payment_token redacted at capture; contact_number never logged.
+19:25:09 POST /api/v1/customer/order/group/validate -> 200 rid=d9e415d2-384b-423f-923e-66e4ce37ce2b REQ payment_method='digital_payment' order_amount=None RESP {}
+19:25:10 POST /api/v1/customer/order/group/place -> 200 rid=384a4e45-82ee-4531-9735-aa4ca6ab0f24 REQ payment_method='digital_payment' order_amount=None RESP {"total_amount": 34.28, "group_id": "19a138bd-b770-4c2a-b1e1-3afed7f05311", "order_ids": [91427, 91428], "group_placed": true, "orders": [{"order_id": 91427, "store_id": 1}, {"order_id": 91428, "store_id": 2}]}
+19:25:11 POST /api/v1/config/delivery-quote -> 200 rid=46b29af0-c6c0-4a23-b2f4-63b6c9d804c9 REQ order_amount=34.28 module_id=1
+19:25:12 GET /payment-mobile?payment_token=<redacted>&group_id=19a138bd-b770-4c2a-b1e1-3afed7f05311&payment_method=paypal -> 302 rid=36e7e39f-f15c-48da-a526-c821487b8224
+19:26:11 POST /api/v1/customer/order/cancel -> 200 rid=8ceb8237-d28e-4d64-b951-0c6f86d5e014
+19:26:12 GET /api/v1/customer/order/payment-failed -> 200 rid=c86dc327-7fd3-4e96-911d-5d71f72af0b8
+19:27:13 POST /api/v1/config/delivery-quote -> 200 rid=0836167f-7b2b-437a-bcb0-1f18c6434fe9 REQ order_amount=27.05 module_id=1
+19:27:14 POST /api/v1/config/delivery-quote -> 200 rid=7079df58-a68c-4dd3-a7cc-99559bfdee2c REQ order_amount=27.05 module_id=1
+19:28:12 POST /api/v1/customer/order/place -> 200 rid=a74b366d-6843-4e50-8df7-2dd6b1d7c87b REQ payment_method=None order_amount=None RESP {"total_ammount": 28.4, "order_id": 91429}
+19:28:13 POST /api/v1/config/delivery-quote -> 200 rid=f264c3ee-1438-41f7-9cf4-3c9b86017ba8 REQ order_amount=28.4 module_id=1
+19:28:14 GET /payment-mobile?payment_token=<redacted>&order_id=91429&payment_method=paypal -> 302 rid=f9da34ef-19b6-4af5-9bda-08dfca0025be
