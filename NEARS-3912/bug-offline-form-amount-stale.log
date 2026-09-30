@@ -1,0 +1,11 @@
+# Pre-existing (NOT NEARS-3912): offline payment form shows the pre-requote client total, not the placed order's amount
+Device emulator-5554, pkg com.izzes.nears.nears_nears_3912_group_offline (HEAD 4e6ce3aae), backend :8112 DB nears_qa_3912, 2026-09-30 09:35-09:37
+Single-store basket: Nears Mart Rice 5kg x2, Pay Offline (NEARS-2647 Bank Transfer)
+1. Choose Payment Method sheet: "Total Bill 26.00 AED"
+2. Confirm sheet: "Your order total has been updated. Please review before confirming." Total Amount 28.40 AED (VAT + 1.35, discount - 3.01)
+3. After Confirm & place order -> OfflinePaymentScreen a11y: "Amount  26.00 AED" / "Pay on this account" / bank NEARS Demo Bank
+4. DB copy: orders 91423 order_amount=28.40 payment_method=offline_payment; offline_payments 51 pending txn QA3912TXN01
+5. client log: analytics add_payment_info {payment_type: offline_payment, value: 26.0}
+Code: UserApp/lib/features/checkout/controllers/place_order_controller.dart:249 passes the client-side `amount` (pre-requote) as `total` to RouteHelper.getOfflinePaymentScreen; response order amount is not used. File untouched by NEARS-3912 diff (19d9b7c67..4e6ce3aae).
+Impact: customer is told to bank-transfer 26.00 for a 28.40 order.
+Not reproduced on the base build in this run (code-read only for pre-existence).

@@ -1,0 +1,36 @@
+# NEARS-3912 AC3 post-fix evidence (HEAD 4e6ce3aae, backend :8112 cwd nears-NEARS-3912-group-offline/Admin/public, DB nears_qa_3912)
+## Client (logcat pid 12175, emulator-5554)
+09-30 09:00:48.051 I/libprocessgroup(12175): Created cgroup /sys/fs/cgroup/apps/uid_10254/pid_12175
+09-30 09:06:05.344 I/flutter (12175): [NET] POST endpoint=/api/v1/customer/order/group/validate
+09-30 09:06:06.021 I/flutter (12175): [NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+09-30 09:06:06.025 I/flutter (12175): [NET] POST endpoint=/api/v1/customer/order/group/place
+09-30 09:06:11.042 I/flutter (12175): [NET] endpoint=/api/v1/customer/order/group/place http_status=200
+09-30 09:06:12.155 I/flutter (12175): [NET] GET endpoint=/api/v1/customer/order/group/details
+09-30 09:06:13.046 I/flutter (12175): [NET] endpoint=/api/v1/customer/order/group/details http_status=200
+09-30 09:06:30.208 I/flutter (12175): [NET] GET endpoint=/api/v1/customer/order/group/details
+09-30 09:06:30.762 I/flutter (12175): [NET] endpoint=/api/v1/customer/order/group/details http_status=200
+09-30 09:06:45.089 I/flutter (12175): [NET] GET endpoint=/api/v1/customer/order/group/details
+09-30 09:06:45.207 I/flutter (12175): [NET] endpoint=/api/v1/customer/order/group/details http_status=200
+09-30 09:07:00.066 I/flutter (12175): [NET] GET endpoint=/api/v1/customer/order/group/details
+09-30 09:07:00.632 I/flutter (12175): [NET] endpoint=/api/v1/customer/order/group/details http_status=200
+09-30 09:07:15.064 I/flutter (12175): [NET] GET endpoint=/api/v1/customer/order/group/details
+09-30 09:07:15.976 I/flutter (12175): [NET] endpoint=/api/v1/customer/order/group/details http_status=200
+09-30 09:07:30.117 I/flutter (12175): [NET] GET endpoint=/api/v1/customer/order/group/details
+09-30 09:07:30.915 I/flutter (12175): [NET] endpoint=/api/v1/customer/order/group/details http_status=200
+## Server spans (OpenObserve, service nears-admin, server_port=8112)
+09:06:07.949282 POST /api/v1/customer/order/group/place status 200 trace f76b8ee9dc2c800055d1d26ab4d709a0 port 8112
+09:06:06.949391 POST /api/v1/customer/order/group/validate status 200 trace 9459e797f92221b362f614d8b207a747 port 8112
+## Join: laravel.log correlation_id ca5ca02c-9d7c-4c65-b4ad-6352d50e0bdc carries trace_id f76b8ee9dc2c800055d1d26ab4d709a0 (= POST group/place span above)
+[2026-09-30 09:06:09] production.WARNING: FCM Send Success {"trace_id":"f76b8ee9dc2c800055d1d26ab4d709a0","correlation_id":"ca5ca02c-9d7c-4c65-b4ad-6352d50e0bdc","status":200,"order_id":"91418"} 
+[2026-09-30 09:06:09] production.ERROR: FCM API Error {"trace_id":"f76b8ee9dc2c800055d1d26ab4d709a0","correlation_id":"ca5ca02c-9d7c-4c65-b4ad-6352d50e0bdc","status":404,"reason":"Not Found","order_id":"91418"} 
+## Copy DB orders
+91418	1	cash_on_delivery	93db4bbb-7ac6-4a2e-a608-60b6873c4a87	2026-09-30 09:06:08
+91419	2	cash_on_delivery	93db4bbb-7ac6-4a2e-a608-60b6873c4a87	2026-09-30 09:06:08
+## Absence predicate (window = laravel.log lines 2..EOF, i.e. every line after the pre-fix RED control line 1; window opened 2026-09-30 09:03:49)
+grep -cF 'group order rejected - validation' <window> = 0
+grep -cF 'offline_payment' <window> = 0
+RED control line 1 (pre-fix, 08:26:04):
+[2026-09-30 08:26:04] production.WARNING: [WARN] group order rejected - validation {"trace_id":"8ee02951559f97c2d906de29a1f2549b","correlation_id":"4f59e297-1609-42eb-9d7b-b6481d76f660","endpoint":"api/v1/customer/order/group/validate","action":"validate","http_status":403,"fields":["payment_method"],"store_count":2,"request_id":"4f59e297-1609-42eb-9d7b-b6481d76f660"} 
+## FINAL full-QA-window re-run (09:38:46): laravel.log lines 2..      50 (2026-09-30 09:06:08 .. 2026-09-30 09:38:38)
+grep -cF 'group order rejected - validation' = 0
+grep -cF 'offline_payment' = 0
