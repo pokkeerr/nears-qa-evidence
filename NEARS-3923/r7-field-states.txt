@@ -1,0 +1,45 @@
+## S0 before (valid addr A, summary loaded, GPS set to OOZ 23.8350,90.3800)
+EditText 'qa3923r7@example.com' 'Email' '' [92,221][988,265]
+EditText '37 Lane 4A, Dhaka 1216, Bangladesh' '' '' [92,391][988,517]
+Button '' '' 'Clear' [862,391][988,517]
+EditText '' 'Ex: Please provide extra napkin' '' [39,1410][1041,1646]
+## S1 after 1st tap on suffix button (icon=clear because text non-empty)
+EditText 'qa3923r7@example.com' 'Email' '' [92,221][988,265]
+EditText '' 'Delivery Address' '' [92,391][988,517]
+Button '' '' 'Clear' [862,391][988,517]
+EditText '' 'Ex: Please provide extra napkin' '' [39,1410][1041,1646]
+requests/log since tap:
+## S2 after 2nd tap (icon=my_location because text empty) at OOZ GPS
+on-screen: Service not available in this location
+EditText 'qa3923r7@example.com' 'Email' '' [92,242][988,362]
+EditText '' 'Delivery Address' '' [92,488][988,614]
+Button '' '' 'Clear' [862,488][988,614]
+requests/log since tap:
+   1 [NET] GET endpoint=/api/v1/config/get-zone-id
+   1 [NET] GET endpoint=/api/v1/config/geocode-api
+   1 [ERR] msg="error snackbar shown"
+Place Order
+## S3 tap Place Order (fields: name/phone/email filled, address field empty, stored guest address still A)
+screen right after tap:
+Back to checkout
+Confirm & place order
+Confirm your order
+Deliver To
+requests/log since tap:
+## S4 tap 'Confirm & place order' on the confirm sheet (Deliver To shows EMPTY; total 60.81 = addr A fees)
+screen right after tap:
+Back to checkout
+CASH ON DELIVERY
+Confirm & place order
+Confirm your order
+Deliver To
+log since tap:
+📊 analytics: order_confirm_confirmed {value: 60.81, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+[FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: place-order blocked reason=please_setup_your_delivery_address"
+nears3923qa max(orders.id) after: 91423
+## S5 extra taps: 'Confirm & place order' tapped 3x in total -> 3x [FAIL] PlaceOrderBlocked reason=please_setup_your_delivery_address; no group/validate or group/place request; nears3923qa max(orders.id) stays 91423.
+Burst screencaps (6 frames, ~0-2s) after a Confirm tap are pixel-identical to the pre-tap frame: the refusal toast is NOT visible while the confirm sheet is up.
+Confirm then immediate 'Back to checkout' -> toast 'Please setup your delivery address' is visible on the checkout screen (r7-snackbar-behind-sheet.png): the ScaffoldMessenger toast renders on the checkout scaffold UNDER the modal confirm sheet.
+## Verdict
+(a) field emptied by the suffix icon's CLEAR action (1st tap, text non-empty -> icon = clear; no request). The my-location refusal (2nd tap) does not touch the field; it was already empty.
+(b) Place is REFUSED at 'Confirm & place order' (placeGroupOrderFromCheckout guest gate) -> no order, no request. BUT Place Order itself is not gated: it opens the confirm sheet with 'Deliver To' blank and the address-A total 60.81, and the refusal toast is hidden behind that sheet.
