@@ -1,0 +1,5 @@
+# NEARS-3940 QA [8] cycle 0 — evidence index
+Build: worktree nears-NEARS-3940-cod-full-amount @ cfd6b9341 (HEAD); BASE: f04c3a21b (scratch worktree). Device emulator-5554 (AVD NEARS_2424_QA), 1080x2400, font_scale 1.0, light mode.
+DB: private copy nears_qa_3940 (mysqldump of multi_food_db, read-only on source). Backend: php -S 127.0.0.1:8342 from worktree Admin/ (cwd @ cfd6b9341), fronted by a logging/fault-injecting proxy on :8340 (proxy-harness.py.txt). App built with API_HOST=10.0.2.2:8340.
+Serverside figures (copy, Rice 5kg x2, store 1): items 27.05 after 10% discount, tax 1.3525, free delivery ON -> server order_amount 28.40 (orders 91416/91417/91422). Free delivery OFF -> 29.40 (delivery_charge 1.00, order 91419). Tax-included -> 27.05 (order 91418).
+Files: proxy-*.log.txt = backend-side delivery-quote/get-Tax/place request log (amt=, resp=, status); app-head-*.log.txt / app-head-all-flutter-lines-part*.txt = AppLogger/analytics lines; *.png/*.xml = screenshots + accessibility dumps.
