@@ -1,0 +1,9 @@
+== (a) positive control: real guest_id + X-Guest-Token
+[a] store=39 guest_id=1968 token=real X-Request-Id=0b2efb21-e38c-4a39-8e91-d143bd302ea3 echoed=0b2efb21-e38c-4a39-8e91-d143bd302ea3 -> HTTP 200 {"tax_amount":2.1875,"tax_status":"excluded","tax_included":0,"product_price":43.75,"total_addon_price":0,"total_discount":0}
+[a] store=91159 guest_id=1968 token=real X-Request-Id=bcf86eaa-d805-4dc6-9605-a28837bb5e2e echoed=bcf86eaa-d805-4dc6-9605-a28837bb5e2e -> HTTP 200 {"tax_amount":0.7875,"tax_status":"excluded","tax_included":0,"product_price":15.75,"total_addon_price":0,"total_discount":0}
+== (b) guest_id omitted (pre-fix guestId:0 shape, no bearer)
+[b] store=39 guest_id=OMITTED token=real X-Request-Id=4ea9d463-7c77-439c-8063-d393fb677d53 echoed=4ea9d463-7c77-439c-8063-d393fb677d53 -> HTTP 401 {"errors":"Unauthorized"}
+[b] store=91159 guest_id=OMITTED token=real X-Request-Id=18378b90-8c85-4b52-be66-2e56a52b6de3 echoed=18378b90-8c85-4b52-be66-2e56a52b6de3 -> HTTP 401 {"errors":"Unauthorized"}
+== (c) guest_id + wrong token
+[c] store=39 guest_id=1968 token=wrong X-Request-Id=638f4e3d-2e42-40cc-9058-f20be6d36e03 echoed=638f4e3d-2e42-40cc-9058-f20be6d36e03 -> HTTP 401 {"errors":"Unauthorized"}
+[c] store=91159 guest_id=1968 token=wrong X-Request-Id=ad8cfd66-38d2-4e4a-b173-b648efe65ba9 echoed=ad8cfd66-38d2-4e4a-b173-b648efe65ba9 -> HTTP 401 {"errors":"Unauthorized"}
