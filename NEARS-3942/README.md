@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3942
 
-**NEARS-3942 QA: AC1 PASS, AC3 PASS, AC4 PASS, AC2 single-store UI red-screens in Arabic (task_bug)**
+**NEARS-3942 QA delta cycle 1: AC2 single-store route fixed live (AR cash/digital), AC1/AC3 regressions PASS**
 
-**15 screenshot(s).** Click any thumbnail for full resolution.
+**31 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -29,6 +29,34 @@
 <td align="center" width="33%"><a href="RED_ar_ac2_single_digital_zone.png"><img src="RED_ar_ac2_single_digital_zone.png" width="240"></a><br><sub>RED ar ac2 single digital zone</sub></td>
 <td align="center" width="33%"><a href="RED_ar_ac2_single_digital_zone_failscreen.png"><img src="RED_ar_ac2_single_digital_zone_failscreen.png" width="240"></a><br><sub>RED ar ac2 single digital zone failscreen</sub></td>
 <td align="center" width="33%"><a href="bug-single-store-ar-refusal-red-screen.png"><img src="bug-single-store-ar-refusal-red-screen.png" width="240"></a><br><sub>bug single store ar refusal red screen</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac1_cash.png"><img src="fix1_GREEN_ar_ac1_cash.png" width="240"></a><br><sub>fix1 GREEN ar ac1 cash</sub></td>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac2_single_cash_zone.png"><img src="fix1_GREEN_ar_ac2_single_cash_zone.png" width="240"></a><br><sub>fix1 GREEN ar ac2 single cash zone</sub></td>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac2_single_cash_zone_320dp_x1.0.png"><img src="fix1_GREEN_ar_ac2_single_cash_zone_320dp_x1.0.png" width="240"></a><br><sub>fix1 GREEN ar ac2 single cash zone 320dp x1.0</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac2_single_cash_zone_320dp_x1.3.png"><img src="fix1_GREEN_ar_ac2_single_cash_zone_320dp_x1.3.png" width="240"></a><br><sub>fix1 GREEN ar ac2 single cash zone 320dp x1.3</sub></td>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac2_single_cash_zone_360dp.png"><img src="fix1_GREEN_ar_ac2_single_cash_zone_360dp.png" width="240"></a><br><sub>fix1 GREEN ar ac2 single cash zone 360dp</sub></td>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac2_single_cash_zone_360dp_x1.0.png"><img src="fix1_GREEN_ar_ac2_single_cash_zone_360dp_x1.0.png" width="240"></a><br><sub>fix1 GREEN ar ac2 single cash zone 360dp x1.0</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac2_single_cash_zone_360dp_x1.3.png"><img src="fix1_GREEN_ar_ac2_single_cash_zone_360dp_x1.3.png" width="240"></a><br><sub>fix1 GREEN ar ac2 single cash zone 360dp x1.3</sub></td>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac2_single_cash_zone_failscreen.png"><img src="fix1_GREEN_ar_ac2_single_cash_zone_failscreen.png" width="240"></a><br><sub>fix1 GREEN ar ac2 single cash zone failscreen</sub></td>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac2_single_cash_zone_montage_360-320dp_x1.0-1.3.png"><img src="fix1_GREEN_ar_ac2_single_cash_zone_montage_360-320dp_x1.0-1.3.png" width="240"></a><br><sub>fix1 GREEN ar ac2 single cash zone montage 360 320dp x1.0 1.3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac2_single_digital_zone_360dp.png"><img src="fix1_GREEN_ar_ac2_single_digital_zone_360dp.png" width="240"></a><br><sub>fix1 GREEN ar ac2 single digital zone 360dp</sub></td>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac2_single_digital_zone_360dp_failscreen.png"><img src="fix1_GREEN_ar_ac2_single_digital_zone_360dp_failscreen.png" width="240"></a><br><sub>fix1 GREEN ar ac2 single digital zone 360dp failscreen</sub></td>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_ac2_single_digital_zone_360dp_x1.3.png"><img src="fix1_GREEN_ar_ac2_single_digital_zone_360dp_x1.3.png" width="240"></a><br><sub>fix1 GREEN ar ac2 single digital zone 360dp x1.3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_pre_ticket_module_refusal.png"><img src="fix1_GREEN_ar_pre_ticket_module_refusal.png" width="240"></a><br><sub>fix1 GREEN ar pre ticket module refusal</sub></td>
+<td align="center" width="33%"><a href="fix1_GREEN_ar_pre_ticket_module_refusal_failscreen.png"><img src="fix1_GREEN_ar_pre_ticket_module_refusal_failscreen.png" width="240"></a><br><sub>fix1 GREEN ar pre ticket module refusal failscreen</sub></td>
+<td align="center" width="33%"><a href="fix1_GREEN_en_ac3_single_cash_zone.png"><img src="fix1_GREEN_en_ac3_single_cash_zone.png" width="240"></a><br><sub>fix1 GREEN en ac3 single cash zone</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix1_GREEN_en_ac3_single_cash_zone_failscreen.png"><img src="fix1_GREEN_en_ac3_single_cash_zone_failscreen.png" width="240"></a><br><sub>fix1 GREEN en ac3 single cash zone failscreen</sub></td>
 </tr>
 </table>
 
@@ -57,6 +85,18 @@
 - [`RED_curl.txt`](RED_curl.txt)
 - [`RED_phpunit.txt`](RED_phpunit.txt)
 - [`bug-single-store-ar-refusal-red-screen.log`](bug-single-store-ar-refusal-red-screen.log)
+- [`fix1_GREEN_ar_ac1_cash.log`](fix1_GREEN_ar_ac1_cash.log)
+- [`fix1_GREEN_ar_ac1_cash.xml`](fix1_GREEN_ar_ac1_cash.xml)
+- [`fix1_GREEN_ar_ac2_single_cash_zone.log`](fix1_GREEN_ar_ac2_single_cash_zone.log)
+- [`fix1_GREEN_ar_ac2_single_cash_zone.xml`](fix1_GREEN_ar_ac2_single_cash_zone.xml)
+- [`fix1_GREEN_ar_ac2_single_cash_zone_360dp.log`](fix1_GREEN_ar_ac2_single_cash_zone_360dp.log)
+- [`fix1_GREEN_ar_ac2_single_cash_zone_360dp.xml`](fix1_GREEN_ar_ac2_single_cash_zone_360dp.xml)
+- [`fix1_GREEN_ar_ac2_single_digital_zone_360dp.log`](fix1_GREEN_ar_ac2_single_digital_zone_360dp.log)
+- [`fix1_GREEN_ar_ac2_single_digital_zone_360dp.xml`](fix1_GREEN_ar_ac2_single_digital_zone_360dp.xml)
+- [`fix1_GREEN_ar_pre_ticket_module_refusal.log`](fix1_GREEN_ar_pre_ticket_module_refusal.log)
+- [`fix1_GREEN_ar_pre_ticket_module_refusal.xml`](fix1_GREEN_ar_pre_ticket_module_refusal.xml)
+- [`fix1_GREEN_en_ac3_single_cash_zone.log`](fix1_GREEN_en_ac3_single_cash_zone.log)
+- [`fix1_GREEN_en_ac3_single_cash_zone.xml`](fix1_GREEN_en_ac3_single_cash_zone.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3942/` · public-repo scrub policy (no live secrets; verified clean).*
