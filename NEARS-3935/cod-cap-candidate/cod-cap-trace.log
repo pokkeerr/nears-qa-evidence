@@ -1,0 +1,13 @@
+# NEARS-3935 [8b] COD-cap regression candidate - live confirmation 2026-09-30, emulator-5556, fix build feaa11718
+# Backend: /Users/Apple/Projects/nears-NEARS-3935-server-amount-consumers @ feaa11718 (:8135, DB_DATABASE=nears_qa_3935, marker QA3935-COPY-MARKER); trace proxy :8136 (app API_HOST=10.0.2.2:8136)
+# module_zone id=1 maximum_cod_order_amount=27.00 (private copy). Basket: customer user 6, store 1 Nears Mart, item 97 Rice 5kg x2
+## proxy trace (delivery-quote + order/place)
+{"method": "POST", "path": "/api/v1/config/delivery-quote", "req_x_request_id": "db3cdf9f-e4d7-4669-99ee-0a6ea0fc18c7", "status": 200, "req": {"zone_id": 1, "module_id": 1, "order_amount": 24.65}, "resp": {"cod_eligible": true}, "ts": "2026-09-30T13:40:29+0400"}
+{"method": "POST", "path": "/api/v1/config/delivery-quote", "req_x_request_id": "42748ff8-fb68-4058-9d78-117a79dd3c48", "status": 200, "req": {"zone_id": 1, "module_id": 1, "order_amount": 24.65}, "resp": {"cod_eligible": true}, "ts": "2026-09-30T13:40:30+0400"}
+{"method": "POST", "path": "/api/v1/customer/order/place", "req_x_request_id": "cf4ebcde-68c9-451b-8c07-ae8b0a86ee02", "status": 203, "resp_x_request_id": "cf4ebcde-68c9-451b-8c07-ae8b0a86ee02", "req": {"payment_method": "cash_on_delivery", "order_amount": "26.0", "store_id": "1", "zone_id": null, "module_id": null, "order_type": "delivery"}, "body": "{\"errors\": [{\"code\": \"order_amount\", \"message\": \"Amount crossed maximum cod order amount\"}]}", "ts": "2026-09-30T13:41:49+0400"}
+## app flutter log (placement)
+09-30 13:41:43.363 14244 14244 I flutter : 📊 analytics: order_confirm_confirmed {value: 28.4, currency: AED, store_count: 1, price_changed: 1, screen: order_confirm_sheet, section: footer_cta}
+09-30 13:41:43.366 14244 14244 I flutter : [INFO] msg="checkout: place-order button clicked"
+09-30 13:41:43.368 14244 14244 I flutter : [INFO] msg="multipart POST endpoint=/api/v1/customer/order/place"
+09-30 13:41:43.932 14244 14244 I flutter : [NET] endpoint=/api/v1/customer/order/place http_status=203
+## private DB after: MAX(orders.id)=91418 (unchanged; last order 13:29:19 from prior run) -> refused placement created NO order

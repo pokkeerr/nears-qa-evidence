@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3935
 
-**NEARS-3935 QA PASS - purchase value, digital route amount, loyalty message all = server order_amount 28.40 (client 26.00); emulator-5556 fix feaa11718; private DB nears_qa_3935**
+**[8b] COD-cap candidate CONFIRMED: quote 24.65 cod_eligible=true, COD offered; placement 203 amount_crossed_maximum_cod_order_amount; no order created**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -14,6 +14,7 @@
 ### Other artifacts
 - [`ac1-ac3-ac4-cod-91416.log`](ac1-ac3-ac4-cod-91416.log)
 - [`ac2-ac4-digital-91417.log`](ac2-ac4-digital-91417.log)
+- [`cod-cap-candidate`](cod-cap-candidate)
 - [`db-readback-nears_qa_3935.txt`](db-readback-nears_qa_3935.txt)
 - [`place-and-quote-trace.jsonl`](place-and-quote-trace.jsonl)
 - [`progress.md`](progress.md)
