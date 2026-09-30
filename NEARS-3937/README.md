@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3937
 
-**PASS - NEARS-3937 cycle 0 live QA (emulator-5562, 16d8bcbad): AC1/AC2/AC3/AC-LOG demonstrated; (e)/no-address unit-pinned**
+**PASS - NEARS-3937 cycle 1 delta re-QA (FIR-1 fee-row wrap) on 2a91f4511, emulator-5562**
 
 **16 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -48,6 +48,7 @@
 - [`ac1-site5-storeid-cod-failed.xml`](ac1-site5-storeid-cod-failed.xml)
 - [`ac3-control-self-delivery-surge-failing-real-total.xml`](ac3-control-self-delivery-surge-failing-real-total.xml)
 - [`bug-feerow-failed-overflow-320dp.log`](bug-feerow-failed-overflow-320dp.log)
+- [`cycle1`](cycle1)
 - [`layout-320dp-1.3x-AR-failed.xml`](layout-320dp-1.3x-AR-failed.xml)
 - [`layout-320dp-1.3x-EN-failed.xml`](layout-320dp-1.3x-EN-failed.xml)
 - [`progress.md`](progress.md)
