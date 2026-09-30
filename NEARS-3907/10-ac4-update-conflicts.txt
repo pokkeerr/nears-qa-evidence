@@ -1,0 +1,28 @@
+### AC4 update path
+== UPDATE row 10 (int, mod 1, 18:00-20:00) -> 10:00 AM-12:00 PM overlaps existing INT row 6
+10	[1]	18:00:00	20:00:00
+{"status":false,"type":"conflict","message":"Time conflict: Permanent surge already exists for Monday for module ID 1"}
+HTTP 409
+row after:
+10	[1]	18:00:00	20:00:00
+
+== UPDATE row 12 (int, mod 2, 18:00-20:00) -> 10:00 AM-12:00 PM overlaps existing STRING row 7
+12	[2]	18:00:00	20:00:00
+{"status":false,"type":"conflict","message":"Time conflict: Permanent surge already exists for Monday for module ID 2"}
+HTTP 409
+row after:
+12	[2]	18:00:00	20:00:00
+
+== POSITIVE: UPDATE row 10 -> 07:00 PM-09:00 PM (no other row)
+{"status":true,"message":"Surge price updated successfully"}
+HTTP 200
+row after:
+10	[1]	19:00:00	21:00:00
+
+== POSITIVE / legacy: UPDATE string row 7 (mod 2, 09:00-17:00) unchanged window, self must not conflict; becomes int
+7	["2"]	09:00:00	17:00:00
+{"status":true,"message":"Surge price updated successfully"}
+HTTP 200
+row after:
+7	[2]	09:00:00	17:00:00
+count: 5

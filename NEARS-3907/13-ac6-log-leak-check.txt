@@ -1,0 +1,15 @@
+### AC6 raw-value leak check over the log slice since the AC6 run began (offset   597736)
+      12 /private/tmp/claude-501/-Users-Apple-Projects-nears/272c552a-66ed-4d99-a9d9-aa7b921f5263/scratchpad/slice6.log
+total '[WARN] surge lookup - invalid module id' lines in slice: 12  (expect 12: rows 1,2,4,5,6,7,8,9,10,11,12,15; row 3 " 1 " is trimmed to "1" by TrimStrings -> valid, rows 13/14 stopped by the pre-existing required validator)
+raw 1abc                   occurrences in any WARN line: 0
+raw 99999999999999999999   occurrences in any WARN line: 0
+raw 1 OR 1=1               occurrences in any WARN line: 0
+raw +1                     occurrences in any WARN line: 0
+raw 1.0                    occurrences in any WARN line: 0
+distinct context key sets in the WARN lines:
+  12 ["correlation_id","reason","trace_id"]
+-- structured log (laravel-structured.log) twin lines for the same slice, key check
+{"tag":"[WARN]","timestamp":"2026-09-30T04:18:56.926884+04:00","correlation_id":null,"level":"warning","message":"[WARN] surge lookup - invalid module id","context":{"reason":"invalid_module_id"}}
+{"tag":"[WARN]","timestamp":"2026-09-30T04:18:56.975482+04:00","correlation_id":null,"level":"warning","message":"[WARN] surge lookup - invalid module id","context":{"reason":"invalid_module_id"}}
+-- middleware check (' 1 ' JSON is trimmed before the service):
+73:            \App\Http\Middleware\TrimStrings::class,

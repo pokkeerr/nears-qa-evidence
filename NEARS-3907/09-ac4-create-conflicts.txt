@@ -1,0 +1,36 @@
+### AC4 setup: table reset on copy; existing INT row (module 1) and existing STRING row (module 2), zone 2, all-week 09:00-17:00
+int row id=6  string row id=7
+id	zone_id	module_ids	elem_type	price	status	is_permanent	duration_type	start_time	end_time
+6	2	[1]	INTEGER	2.00	1	1	weekly	09:00:00	17:00:00
+7	2	["2"]	STRING	2.00	1	1	weekly	09:00:00	17:00:00
+
+== CREATE overlapping (10:00 AM - 12:00 PM) module_ids[]=1 (STRING '1' in request) vs existing INT row; count before: 2
+{"status":false,"type":"conflict","message":"Time conflict: Permanent surge already exists for Monday for module ID 1"}
+HTTP 409
+count after: 2
+
+== CREATE overlapping module_ids[]=2 (string '2' in request) vs existing STRING row; count before: 2
+{"status":false,"type":"conflict","message":"Time conflict: Permanent surge already exists for Monday for module ID 2"}
+HTTP 409
+count after: 2
+
+== POSITIVE CONTROL A: non-overlapping window 06:00 PM - 08:00 PM module 1 -> accepted; count before: 2
+{"status":true,"message":"Surge price created successfully"}
+HTTP 200
+count after: 3
+
+== POSITIVE CONTROL B: same window 10:00 AM - 12:00 PM but DIFFERENT module 3 (no row) -> accepted; count before: 3
+{"status":true,"message":"Surge price created successfully"}
+HTTP 200
+count after: 4
+
+== POSITIVE CONTROL C: non-overlapping window 06:00 PM - 08:00 PM module 2 (string existing row's module) -> accepted; count before: 4
+{"status":true,"message":"Surge price created successfully"}
+HTTP 200
+count after: 5
+id	zone_id	module_ids	elem_type	price	status	is_permanent	duration_type	start_time	end_time
+6	2	[1]	INTEGER	2.00	1	1	weekly	09:00:00	17:00:00
+7	2	["2"]	STRING	2.00	1	1	weekly	09:00:00	17:00:00
+10	2	[1]	INTEGER	9.00	1	1	weekly	18:00:00	20:00:00
+11	2	[3]	INTEGER	9.00	1	1	weekly	10:00:00	12:00:00
+12	2	[2]	INTEGER	9.00	1	1	weekly	18:00:00	20:00:00

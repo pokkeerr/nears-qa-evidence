@@ -1,0 +1,21 @@
+### AC3(b) overlap pair, ordering 1: int row id 3 (price 9) lower id, string row id 4 (price 4) -> expect 9 everywhere
+id	zone_id	module_ids	elem_type	price	status	is_permanent	duration_type	start_time	end_time
+3	2	[1]	INTEGER	9.00	1	1	weekly	00:00:00	23:59:00
+4	2	["1"]	STRING	4.00	1	1	weekly	00:00:00	23:59:59
+J int: {"title":"QA3907 admin form","customer_note":null,"customer_note_status":0,"price":"9.00","price_type":"amount"} HTTP 200
+J str: {"title":"QA3907 admin form","customer_note":null,"customer_note_status":0,"price":"9.00","price_type":"amount"} HTTP 200
+form str: {"title":"QA3907 admin form","customer_note":null,"customer_note_status":0,"price":"9.00","price_type":"amount"} HTTP 200
+
+### AC3(b) ordering 2: string row id 4 (price 4) lower id, int row id 5 (price 3) -> expect 4 everywhere
+inserted int id=5
+id	zone_id	module_ids	elem_type	price	status	is_permanent	duration_type	start_time	end_time
+4	2	["1"]	STRING	4.00	1	1	weekly	00:00:00	23:59:59
+5	2	[1]	INTEGER	3.00	1	1	weekly	00:00:00	23:59:59
+J int: {"title":"QA3907 fixture","customer_note":null,"customer_note_status":1,"price":"4.00","price_type":"amount"} HTTP 200
+J str: {"title":"QA3907 fixture","customer_note":null,"customer_note_status":1,"price":"4.00","price_type":"amount"} HTTP 200
+form str: {"title":"QA3907 fixture","customer_note":null,"customer_note_status":1,"price":"4.00","price_type":"amount"} HTTP 200
+--- placement (5th; 66666666-0000-4000-8000-000000000001): baseline original charge is 1.00 -> expect 5.00 (1+4)
+{"message":"Order placed successfully","order_id":91420,"total_ammount":4.2,"status":"pending","created_at":"2026-09-30 04:23:56","user_id":6}
+HTTP 200
+id	delivery_charge	original_delivery_charge
+91420	0.00	5.00

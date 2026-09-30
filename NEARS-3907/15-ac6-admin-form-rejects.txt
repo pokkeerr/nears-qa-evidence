@@ -1,0 +1,60 @@
+### AC6 admin form: invalid module_ids -> 422 (ajax) + exactly one '[WARN] surge price rejected - invalid module id'. table emptied first; count=0
+[module_ids[]=1abc] rid=7db20f8b-fe01-4e92-bf73-381305c3dcc7 count before=0
+{"status":false,"errors":{"module_ids.0":["Modules required"]}}
+HTTP 422
+   count after=0; WARN lines for rid: 1
+   production.WARNING: [WARN] surge price rejected - invalid module id {"trace_id":"257ab1716992143a6aba0c663a767f23","correlation_id":"7db20f8b-fe01-4e92-bf73-381305c3dcc7","endpoint":"admin/business-settings/zone/surge-price/store","action":"store","reason":"invalid_module_id"} 
+[module_ids[]=1 & module_ids[]=1abc (mixed)] rid=dfc63b4d-19d5-4380-932e-7bf01ef28807 count before=0
+{"status":false,"errors":{"module_ids.1":["Modules required"]}}
+HTTP 422
+   count after=0; WARN lines for rid: 1
+   production.WARNING: [WARN] surge price rejected - invalid module id {"trace_id":"bbde924211ac8905f75e4d4b62f82150","correlation_id":"dfc63b4d-19d5-4380-932e-7bf01ef28807","endpoint":"admin/business-settings/zone/surge-price/store","action":"store","reason":"invalid_module_id"} 
+[module_ids[]=1abc & module_ids[]=+2 (two bad elems)] rid=dfe8f4d7-9f97-4c91-958e-c10d8be57e5c count before=0
+{"status":false,"errors":{"module_ids.0":["Modules required"],"module_ids.1":["Modules required"]}}
+HTTP 422
+   count after=0; WARN lines for rid: 1
+   production.WARNING: [WARN] surge price rejected - invalid module id {"trace_id":"8bcb1e34da223305443ae859ed23417d","correlation_id":"dfe8f4d7-9f97-4c91-958e-c10d8be57e5c","endpoint":"admin/business-settings/zone/surge-price/store","action":"store","reason":"invalid_module_id"} 
+[nested array module_ids[0][]=1] rid=eadf496c-3181-4365-911e-21a6e70ea808 count before=0
+{"status":false,"errors":{"module_ids.0":["Modules required"]}}
+HTTP 422
+   count after=0; WARN lines for rid: 1
+   production.WARNING: [WARN] surge price rejected - invalid module id {"trace_id":"08ad6e918912852dcbb9303ef196bad3","correlation_id":"eadf496c-3181-4365-911e-21a6e70ea808","endpoint":"admin/business-settings/zone/surge-price/store","action":"store","reason":"invalid_module_id"} 
+[module_ids[]=01] rid=f46409b9-7461-493e-8226-d07bda6679ff count before=0
+{"status":false,"errors":{"module_ids.0":["Modules required"]}}
+HTTP 422
+   count after=0; WARN lines for rid: 1
+   production.WARNING: [WARN] surge price rejected - invalid module id {"trace_id":"1c5dc3f50731fd901282757c1f760cd3","correlation_id":"f46409b9-7461-493e-8226-d07bda6679ff","endpoint":"admin/business-settings/zone/surge-price/store","action":"store","reason":"invalid_module_id"} 
+[module_ids[]=0] rid=fd5928cb-7a7e-4ea4-b589-98805452061c count before=0
+{"status":false,"errors":{"module_ids.0":["Modules required"]}}
+HTTP 422
+   count after=0; WARN lines for rid: 1
+   production.WARNING: [WARN] surge price rejected - invalid module id {"trace_id":"6ff027fcf693bbe2a3652660d955da5a","correlation_id":"fd5928cb-7a7e-4ea4-b589-98805452061c","endpoint":"admin/business-settings/zone/surge-price/store","action":"store","reason":"invalid_module_id"} 
+[module_ids[]=-3] rid=3effed60-90b9-4db5-b3bf-9bd7693f3600 count before=0
+{"status":false,"errors":{"module_ids.0":["Modules required"]}}
+HTTP 422
+   count after=0; WARN lines for rid: 1
+   production.WARNING: [WARN] surge price rejected - invalid module id {"trace_id":"ec4c7f72d14ae9ebc465c6f95cd1f9b9","correlation_id":"3effed60-90b9-4db5-b3bf-9bd7693f3600","endpoint":"admin/business-settings/zone/surge-price/store","action":"store","reason":"invalid_module_id"} 
+
+--- validation failure NOT about module ids (missing module_ids entirely) -> no module WARN expected
+{"status":false,"errors":{"module_ids":["Modules required"]}}
+HTTP 422
+WARN lines for rid: 0
+
+--- UPDATE path with invalid id: create good row first
+{"status":true,"message":"Surge price created successfully"}
+HTTP 200
+id	module_ids	start_time	end_time
+17	[1]	10:00:00	12:00:00
+[update id=17 module_ids[]=1abc] rid=260d6286-3d6a-46c2-839e-cda2e2e412f0
+{"status":false,"errors":{"module_ids.0":["Modules required"]}}
+HTTP 422
+   row after:
+id	module_ids	start_time	end_time
+17	[1]	10:00:00	12:00:00
+   WARN lines for rid: 1
+   production.WARNING: [WARN] surge price rejected - invalid module id {"trace_id":"d52c61e84866d627b5f8db1ea5f552b1","correlation_id":"260d6286-3d6a-46c2-839e-cda2e2e412f0","endpoint":"admin/business-settings/zone/surge-price/update/17","action":"update","reason":"invalid_module_id"} 
+
+--- NON-AJAX (browser form) path: redirect with errors, no ajax header
+HTTP 302 -> http://127.0.0.1:8196/admin/business-settings/zone/surge-price/create/2
+count=1; WARN lines for rid: 1
+   production.WARNING: [WARN] surge price rejected - invalid module id {"trace_id":"e73572307c7bac395cce2cc2ff5687b2","correlation_id":"4b41070f-7259-4546-acdb-3416cea7bffd","endpoint":"admin/business-settings/zone/surge-price/store","action":"store","reason":"invalid_module_id"} 

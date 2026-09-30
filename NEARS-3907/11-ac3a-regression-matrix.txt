@@ -1,0 +1,24 @@
+### AC3(a) regression matrix (zone 2 unless stated). Today = Wed 2026-09-30. Table reset first.
+id	surge_price_name	module_ids	t	price	status	is_permanent	duration_type	weekly_days	start_time	end_time
+13	A int weekly Mon-Wed 00:00-23:59	[1]	INTEGER	5.00	1	1	weekly	["Monday", "Tuesday", "Wednesday"]	09:00:00	17:00:00
+14	B status0 mod3	[3]	INTEGER	6.00	0	1	weekly	["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]	00:00:00	23:59:59
+15	C non-permanent weekly mod2	[2]	INTEGER	7.00	1	0	weekly	["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]	00:00:00	23:59:59
+16	D dated mod5	["5"]	STRING	8.00	1	0	daily	NULL	10:00:00	14:00:00
+id	surge_price_id	zone_id	module_id	status	applicable_date	start_time	end_time	created_at	updated_at
+1	16	2	5	1	2026-09-30	10:00:00	14:00:00	2026-09-30 04:24:44	2026-09-30 04:24:44
+--- expectations: A matched -> 5.00; everything else -> 0
+A: int 1, Wed 12:00 (match)                               title=A int weekly Mon-Wed 00:00-23:59 price="5.00"
+A: string "1", Wed 12:00 (match)                          title=A int weekly Mon-Wed 00:00-23:59 price="5.00"
+A: int 1, Wed 18:00 (outside window)                      title= price=0
+A: int 1, Sat 12:00 (wrong weekday)                       title= price=0
+A: int 1, zone 3 (other zone)                             title= price=0
+A: int 2 (other module; C non-permanent row must not match)title= price=0
+A: int 11 (must not widen from 1)                         title= price=0
+B: int 3 status 0                                         title= price=0
+C: string "2" non-permanent weekly not picked             title= price=0
+D dated: int 5 at 12:00 (in window) -> 8                  title=D dated mod5 price="8.00"
+D dated: string "5" at 12:00 -> 8                         title=D dated mod5 price="8.00"
+D dated: int 5 at 15:00 (after window) -> 0               title= price=0
+D dated: int 5 next day 12:00 -> 0                        title= price=0
+--- warnings emitted by this valid-id matrix (expect 0):
+0
