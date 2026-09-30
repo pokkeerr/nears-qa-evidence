@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3922
 
-**NEARS-3922 QA [8] PASS - AC1-5 live, fix 12040e680 vs base 9b6729523, private DB multi_food_db_qa3922**
+**NEARS-3922 fix-cycle 1 (NEARS-3932) delta re-QA: PASS @ 75821e4e9**
 
-**12 screenshot(s).** Click any thumbnail for full resolution.
+**13 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -25,6 +25,9 @@
 <td align="center" width="33%"><a href="bug-c3-daytab-cancel-label-instant-fee-6.00.png"><img src="bug-c3-daytab-cancel-label-instant-fee-6.00.png" width="240"></a><br><sub>bug c3 daytab cancel label instant fee 6.00</sub></td>
 <td align="center" width="33%"><a href="bug-c7-shown-fee-1.00.png"><img src="bug-c7-shown-fee-1.00.png" width="240"></a><br><sub>bug c7 shown fee 1.00</sub></td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="cycle1-p3-fault-entry-toast-once.png"><img src="cycle1-p3-fault-entry-toast-once.png" width="240"></a><br><sub>cycle1 p3 fault entry toast once</sub></td>
+</tr>
 </table>
 
 ### Other artifacts
@@ -43,11 +46,16 @@
 - [`ac5-fix-single-fault-final-a11y.xml`](ac5-fix-single-fault-final-a11y.xml)
 - [`bug-c3-daytab-cancel-a11y.xml`](bug-c3-daytab-cancel-a11y.xml)
 - [`bug-c7-shown-fee-1.00-a11y.xml`](bug-c7-shown-fee-1.00-a11y.xml)
+- [`bug-delivery-section-contact-row-overflow.log`](bug-delivery-section-contact-row-overflow.log)
 - [`bug-post-placement-surge-refetch.log`](bug-post-placement-surge-refetch.log)
+- [`bug-search-results-rendertable-semantics-assert.log`](bug-search-results-rendertable-semantics-assert.log)
 - [`bug-stale-slot-index-rangeerror.log`](bug-stale-slot-index-rangeerror.log)
 - [`bug-stale-slot-index-state-a11y.xml`](bug-stale-slot-index-state-a11y.xml)
 - [`c2-flagoff-basket-after-back-a11y.xml`](c2-flagoff-basket-after-back-a11y.xml)
 - [`c2-flagoff-checkout-w2-a11y.xml`](c2-flagoff-checkout-w2-a11y.xml)
+- [`cycle1-app-surge-fail-lines.log`](cycle1-app-surge-fail-lines.log)
+- [`cycle1-post-placement-no-surge.log`](cycle1-post-placement-no-surge.log)
+- [`cycle1-qaproxy-request-log.jsonl`](cycle1-qaproxy-request-log.jsonl)
 - [`progress.md`](progress.md)
 - [`qaproxy-request-log.jsonl`](qaproxy-request-log.jsonl)
 - [`qaproxy.py`](qaproxy.py)
