@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3945
 
-**Fix-cycle 1 delta re-QA PASS (04b6b0464): group post-place 0 cashback calls, AC1 single call 28.4, coupon re-settle; regression-candidate non-flash CONFIRMED (pre-existing)**
+**Cycle 2 delta re-QA PASS on bb4beb313 (rebased onto ac8e2f40d)**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -27,6 +27,10 @@
 - [`bug-nonflash-perline-store-discount-divergence.log`](bug-nonflash-perline-store-discount-divergence.log)
 - [`bug-server-store-max-discount-ignored.log`](bug-server-store-max-discount-ignored.log)
 - [`c1-money-proxy.log`](c1-money-proxy.log)
+- [`c2-ac1-checkout-price-rows.txt`](c2-ac1-checkout-price-rows.txt)
+- [`c2-ac1-confirm-sheet.txt`](c2-ac1-confirm-sheet.txt)
+- [`c2-ac2-group-checkout-price-rows.txt`](c2-ac2-group-checkout-price-rows.txt)
+- [`c2-ac2-group-confirm-sheet.txt`](c2-ac2-group-confirm-sheet.txt)
 - [`followup-group-place-transport-drop-after-commit.log`](followup-group-place-transport-drop-after-commit.log)
 - [`followup-search-addtocart-semantics-assert.log`](followup-search-addtocart-semantics-assert.log)
 - [`instrument-moneyproxy.py`](instrument-moneyproxy.py)
