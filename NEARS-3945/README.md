@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3945
 
-**NEARS-3945 QA PASS (compiled ACs) - flash+store-discount parity 28.40/34.28/X3/flag-OFF+RTL; findings: group post-placement cashback transient; pre-existing server max_discount bug**
+**Fix-cycle 1 delta re-QA PASS (04b6b0464): group post-place 0 cashback calls, AC1 single call 28.4, coupon re-settle; regression-candidate non-flash CONFIRMED (pre-existing)**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -24,7 +24,11 @@
 - [`ac3-be-log.log`](ac3-be-log.log)
 - [`app-logs.log`](app-logs.log)
 - [`bug-group-postplace-cashback-transient.log`](bug-group-postplace-cashback-transient.log)
+- [`bug-nonflash-perline-store-discount-divergence.log`](bug-nonflash-perline-store-discount-divergence.log)
 - [`bug-server-store-max-discount-ignored.log`](bug-server-store-max-discount-ignored.log)
+- [`c1-money-proxy.log`](c1-money-proxy.log)
+- [`followup-group-place-transport-drop-after-commit.log`](followup-group-place-transport-drop-after-commit.log)
+- [`followup-search-addtocart-semantics-assert.log`](followup-search-addtocart-semantics-assert.log)
 - [`instrument-moneyproxy.py`](instrument-moneyproxy.py)
 - [`money-proxy.log`](money-proxy.log)
 - [`progress.md`](progress.md)
