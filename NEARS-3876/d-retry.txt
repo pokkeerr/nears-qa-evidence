@@ -1,0 +1,8 @@
+### RETRY after trigger dropped
+BEFORE
+order=99020 status=confirmed canceled=NULL by=NULL refund_applied_at=NULL reason=NULL | item_stock[300]=200 qty=3 | wallet[user 433]=210.000 wtx_for_order=0 | admin_wallet.digital_received=290.00 | dm[1].current_orders=2 | store_sub.max_order=16
+POST 302 -> http://127.0.0.1:8196/admin/order/list/all | flash: toastr.success('Order status updated;toastr.error('Failed to copy text: ;
+AFTER
+order=99020 status=canceled canceled=2026-09-30 05:01:15 by=admin refund_applied_at=2026-09-30 05:01:15 reason=qa fault retry | item_stock[300]=203 qty=3 | wallet[user 433]=240.000 wtx_for_order=1 | admin_wallet.digital_received=260.00 | dm[1].current_orders=1 | store_sub.max_order=17
+POST 302 -> http://127.0.0.1:8196/admin/order/list/all | flash: toastr.warning('You can not cancel a completed order;toastr.error('Failed to copy text: ;
+order=99020 status=canceled canceled=2026-09-30 05:01:15 by=admin refund_applied_at=2026-09-30 05:01:15 reason=qa fault retry | item_stock[300]=203 qty=3 | wallet[user 433]=240.000 wtx_for_order=1 | admin_wallet.digital_received=260.00 | dm[1].current_orders=1 | store_sub.max_order=17

@@ -1,0 +1,55 @@
+# QA Evidence — NEARS-3876
+
+**PASS - admin cancel atomic: AC1-AC5 + normal cancel + zone parcel live on private DB copy**
+
+**0 screenshot(s).** Click any thumbnail for full resolution.
+
+### Other artifacts
+- [`a1-after.txt`](a1-after.txt)
+- [`a1-before.txt`](a1-before.txt)
+- [`a1-response.txt`](a1-response.txt)
+- [`a2-cod-after.txt`](a2-cod-after.txt)
+- [`a2-cod-before.txt`](a2-cod-before.txt)
+- [`a2-cod-response.txt`](a2-cod-response.txt)
+- [`ac-log-excerpts.log`](ac-log-excerpts.log)
+- [`b-retry-after.txt`](b-retry-after.txt)
+- [`b-retry-before.txt`](b-retry-before.txt)
+- [`b-retry-response.txt`](b-retry-response.txt)
+- [`b-round1-after.txt`](b-round1-after.txt)
+- [`b-round1-before.txt`](b-round1-before.txt)
+- [`b-round1-log.txt`](b-round1-log.txt)
+- [`b-round1-response.txt`](b-round1-response.txt)
+- [`b-round2-after.txt`](b-round2-after.txt)
+- [`b-round2-before.txt`](b-round2-before.txt)
+- [`b-round2-log.txt`](b-round2-log.txt)
+- [`b-round2-response.txt`](b-round2-response.txt)
+- [`b-round3-after.txt`](b-round3-after.txt)
+- [`b-round3-before.txt`](b-round3-before.txt)
+- [`b-round3-log.txt`](b-round3-log.txt)
+- [`b-round3-response.txt`](b-round3-response.txt)
+- [`b-round4-after.txt`](b-round4-after.txt)
+- [`b-round4-before.txt`](b-round4-before.txt)
+- [`b-round4-log.txt`](b-round4-log.txt)
+- [`b-round4-response.txt`](b-round4-response.txt)
+- [`b-round5-after.txt`](b-round5-after.txt)
+- [`b-round5-before.txt`](b-round5-before.txt)
+- [`b-round5-flash.txt`](b-round5-flash.txt)
+- [`b-round5-log.txt`](b-round5-log.txt)
+- [`b-round5-response.txt`](b-round5-response.txt)
+- [`c-ac5.txt`](c-ac5.txt)
+- [`d-fault-headers.txt`](d-fault-headers.txt)
+- [`d-fault-log.txt`](d-fault-log.txt)
+- [`d-fault-run.txt`](d-fault-run.txt)
+- [`d-retry.txt`](d-retry.txt)
+- [`d2-fault-log.txt`](d2-fault-log.txt)
+- [`d2-fault-run.txt`](d2-fault-run.txt)
+- [`d2-retry.txt`](d2-retry.txt)
+- [`db-proof.txt`](db-proof.txt)
+- [`e-phpunit-3876.txt`](e-phpunit-3876.txt)
+- [`e-phpunit-neighbours.txt`](e-phpunit-neighbours.txt)
+- [`e-red-on-base.txt`](e-red-on-base.txt)
+- [`f-zone-parcel.txt`](f-zone-parcel.txt)
+- [`g-regression.txt`](g-regression.txt)
+
+---
+*From `nears/docs/qa-evidence/NEARS-3876/` · public-repo scrub policy (no live secrets; verified clean).*

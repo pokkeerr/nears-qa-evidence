@@ -1,0 +1,7 @@
+DB proof (server -> private copy, not the shared DB)
+- server: php artisan serve --no-reload, DB_DATABASE=multi_food_db_qa_bug3876, PHP_CLI_SERVER_WORKERS=4, port 8196, cwd = worktree @ 6ad50ab80
+- process env of the listening php -S (ps -E): DB_DATABASE=multi_food_db_qa_bug3876
+- marker: copy business_settings id=16 business_name set to 'Nears QA3876COPYMARK' (shared value is 'Nears').
+  GET /admin (logged in) -> <title>Nears QA3876COPYMARK</title> (2 occurrences in the page) => the running server reads the COPY.
+- marker row business_settings.key='qa_bug3876_marker': copy=1, shared multi_food_db=0.
+- shared multi_food_db before run: max(orders.id)=91415, business_settings id=228 value=0
