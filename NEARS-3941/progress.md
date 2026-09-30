@@ -30,3 +30,15 @@ AR: only `الدفع عند الا…` (cash-on-delivery) ellipsized; title, cou
 - `payment_method_bottom_sheet.dart:904:27` 27 px (wallet partial `remaining_bill` row, 4-digit)
 - `bottom_section.dart:399:77` 66 px (due_payment body row, partial pay, 4-digit)
 - `nears_dls n_item_card.dart:1964:19` RenderConstraintsTransformBox 19 px bottom (AR 320/1.3 cart/suggested item card; basket screen)
+
+## Delta re-QA fix-cycle 2 (qa_sha 8b2c042cc, emulator-5558, wm size 1080x2400, prefix fix2-)
+Backend: /Users/Apple/Projects/nears-NEARS-3941-checkout-total-row @ 8b2c042cc (backend-freshness-check 8121 PASS; DB nears_qa_3941). Full per-cell table: fix2-measurements.md.
+- Cell 1 EN 320dp/1.3x non-tax 1190.84: label 'Total'/'Amount' whole words, price 1190.84 AED whole; price span 586->536 px (x0.915), label slot 318->368 px, bar 580->459 px. PASS
+- Cell 2 EN 320dp/1.3x tax-incl 3d 113.41 + 4d 1134.13: '(Vat/Tax Incl.)' unbroken. PASS
+- Cell 3 EN 320dp/1.3x Due Payment 4d 1180.84: 'Due'/'Payment' whole (ink 350 px of 368 slot). PASS
+- Cell 4 AR 320dp/1.3x non-tax 4d 1190.84: 'المبلغ'/'الإجمالي' whole, label flush right, price LTR left, real device Arabic font. PASS
+- Cell 5 AR 320dp/1.3x tax-incl 3d/4d: wraps between words only; widest token 'المضافة/الضريبة' ink 292 px vs slot 377 (4d); 3d widest line 410 px vs slot 438. PASS
+- Cell 6 AR 320dp/1.3x Due Payment 4d 1180.84: 'الدفع'/'المستحق' whole. PASS
+- Cell 7 non-regression: 3-digit EN/AR at 320/360 x 1.0/1.3, 4-digit at 320/1.0, 360/1.0, 360/1.3: price span, label slot and bar height byte-identical to first post-fix run (price scale 1.0). PASS
+- Sticky-row overflow lines: 0 in every cell and 0 in the whole session log. Other overflow lines are pre-existing non-sticky: checkout_screen_shimmer_view.dart:53 (NEARS-3873), n_item_card.dart:1964, bottom_section.dart:399, payment_method_bottom_sheet.dart:885/904.
+- flutter test test/features/checkout/checkout_sticky_total_row_overflow_test.dart: 164 passed.

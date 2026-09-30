@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3941
 
-**post-fix full QA PASS (sha 6d32183a7): sticky Total row zero overflow 320/360dp x1.0/1.3 EN+AR; fix- prefixed**
+**delta re-QA fix-cycle 2 (8b2c042cc): PASS 7 cells, no word split**
 
-**130 screenshot(s).** Click any thumbnail for full resolution.
+**190 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -222,6 +222,106 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="fix-R-regress-place-order-confirm-sheet-AR-320dp-1.3x.png"><img src="fix-R-regress-place-order-confirm-sheet-AR-320dp-1.3x.png" width="240"></a><br><sub>fix R regress place order confirm sheet AR 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix2-1-nontax-4d-EN-320dp-1.3x-bar-crop.png"><img src="fix2-1-nontax-4d-EN-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 1 nontax 4d EN 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-1-nontax-4d-EN-320dp-1.3x.png"><img src="fix2-1-nontax-4d-EN-320dp-1.3x.png" width="240"></a><br><sub>fix2 1 nontax 4d EN 320dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-1b-nontax-4d-EN-320dp-1.0x-bar-crop.png"><img src="fix2-1b-nontax-4d-EN-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix2 1b nontax 4d EN 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-1b-nontax-4d-EN-320dp-1.0x.png"><img src="fix2-1b-nontax-4d-EN-320dp-1.0x.png" width="240"></a><br><sub>fix2 1b nontax 4d EN 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix2-1b-nontax-4d-EN-360dp-1.0x-bar-crop.png"><img src="fix2-1b-nontax-4d-EN-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix2 1b nontax 4d EN 360dp 1.0x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-1b-nontax-4d-EN-360dp-1.0x.png"><img src="fix2-1b-nontax-4d-EN-360dp-1.0x.png" width="240"></a><br><sub>fix2 1b nontax 4d EN 360dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix2-1b-nontax-4d-EN-360dp-1.3x-bar-crop.png"><img src="fix2-1b-nontax-4d-EN-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 1b nontax 4d EN 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-1b-nontax-4d-EN-360dp-1.3x.png"><img src="fix2-1b-nontax-4d-EN-360dp-1.3x.png" width="240"></a><br><sub>fix2 1b nontax 4d EN 360dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-2-taxincl-3d-EN-320dp-1.3x-bar-crop.png"><img src="fix2-2-taxincl-3d-EN-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 2 taxincl 3d EN 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-2-taxincl-3d-EN-320dp-1.3x.png"><img src="fix2-2-taxincl-3d-EN-320dp-1.3x.png" width="240"></a><br><sub>fix2 2 taxincl 3d EN 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix2-2-taxincl-3d-EN-360dp-1.3x-bar-crop.png"><img src="fix2-2-taxincl-3d-EN-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 2 taxincl 3d EN 360dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-2-taxincl-3d-EN-360dp-1.3x.png"><img src="fix2-2-taxincl-3d-EN-360dp-1.3x.png" width="240"></a><br><sub>fix2 2 taxincl 3d EN 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix2-2-taxincl-4d-EN-320dp-1.0x-bar-crop.png"><img src="fix2-2-taxincl-4d-EN-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix2 2 taxincl 4d EN 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-2-taxincl-4d-EN-320dp-1.0x.png"><img src="fix2-2-taxincl-4d-EN-320dp-1.0x.png" width="240"></a><br><sub>fix2 2 taxincl 4d EN 320dp 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-2-taxincl-4d-EN-320dp-1.3x-bar-crop.png"><img src="fix2-2-taxincl-4d-EN-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 2 taxincl 4d EN 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-2-taxincl-4d-EN-320dp-1.3x.png"><img src="fix2-2-taxincl-4d-EN-320dp-1.3x.png" width="240"></a><br><sub>fix2 2 taxincl 4d EN 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix2-2-taxincl-4d-EN-360dp-1.3x-bar-crop.png"><img src="fix2-2-taxincl-4d-EN-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 2 taxincl 4d EN 360dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-2-taxincl-4d-EN-360dp-1.3x.png"><img src="fix2-2-taxincl-4d-EN-360dp-1.3x.png" width="240"></a><br><sub>fix2 2 taxincl 4d EN 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix2-3-duepay-4d-EN-320dp-1.3x-bar-crop.png"><img src="fix2-3-duepay-4d-EN-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 3 duepay 4d EN 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-3-duepay-4d-EN-320dp-1.3x.png"><img src="fix2-3-duepay-4d-EN-320dp-1.3x.png" width="240"></a><br><sub>fix2 3 duepay 4d EN 320dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-4-nontax-4d-AR-320dp-1.0x-bar-crop.png"><img src="fix2-4-nontax-4d-AR-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix2 4 nontax 4d AR 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-4-nontax-4d-AR-320dp-1.0x.png"><img src="fix2-4-nontax-4d-AR-320dp-1.0x.png" width="240"></a><br><sub>fix2 4 nontax 4d AR 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix2-4-nontax-4d-AR-320dp-1.3x-bar-crop.png"><img src="fix2-4-nontax-4d-AR-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 4 nontax 4d AR 320dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-4-nontax-4d-AR-320dp-1.3x.png"><img src="fix2-4-nontax-4d-AR-320dp-1.3x.png" width="240"></a><br><sub>fix2 4 nontax 4d AR 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix2-4-nontax-4d-AR-360dp-1.3x-bar-crop.png"><img src="fix2-4-nontax-4d-AR-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 4 nontax 4d AR 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-4-nontax-4d-AR-360dp-1.3x.png"><img src="fix2-4-nontax-4d-AR-360dp-1.3x.png" width="240"></a><br><sub>fix2 4 nontax 4d AR 360dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-5-taxincl-3d-AR-320dp-1.0x-bar-crop.png"><img src="fix2-5-taxincl-3d-AR-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix2 5 taxincl 3d AR 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-5-taxincl-3d-AR-320dp-1.0x.png"><img src="fix2-5-taxincl-3d-AR-320dp-1.0x.png" width="240"></a><br><sub>fix2 5 taxincl 3d AR 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix2-5-taxincl-3d-AR-320dp-1.3x-bar-crop.png"><img src="fix2-5-taxincl-3d-AR-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 5 taxincl 3d AR 320dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-5-taxincl-3d-AR-320dp-1.3x.png"><img src="fix2-5-taxincl-3d-AR-320dp-1.3x.png" width="240"></a><br><sub>fix2 5 taxincl 3d AR 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix2-5-taxincl-3d-AR-360dp-1.3x-bar-crop.png"><img src="fix2-5-taxincl-3d-AR-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 5 taxincl 3d AR 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-5-taxincl-3d-AR-360dp-1.3x.png"><img src="fix2-5-taxincl-3d-AR-360dp-1.3x.png" width="240"></a><br><sub>fix2 5 taxincl 3d AR 360dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-5-taxincl-4d-AR-320dp-1.0x-bar-crop.png"><img src="fix2-5-taxincl-4d-AR-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix2 5 taxincl 4d AR 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-5-taxincl-4d-AR-320dp-1.0x.png"><img src="fix2-5-taxincl-4d-AR-320dp-1.0x.png" width="240"></a><br><sub>fix2 5 taxincl 4d AR 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix2-5-taxincl-4d-AR-320dp-1.3x-bar-crop.png"><img src="fix2-5-taxincl-4d-AR-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 5 taxincl 4d AR 320dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-5-taxincl-4d-AR-320dp-1.3x.png"><img src="fix2-5-taxincl-4d-AR-320dp-1.3x.png" width="240"></a><br><sub>fix2 5 taxincl 4d AR 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix2-5-taxincl-4d-AR-360dp-1.3x-bar-crop.png"><img src="fix2-5-taxincl-4d-AR-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 5 taxincl 4d AR 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-5-taxincl-4d-AR-360dp-1.3x.png"><img src="fix2-5-taxincl-4d-AR-360dp-1.3x.png" width="240"></a><br><sub>fix2 5 taxincl 4d AR 360dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-6-duepay-4d-AR-320dp-1.3x-bar-crop.png"><img src="fix2-6-duepay-4d-AR-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 6 duepay 4d AR 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-6-duepay-4d-AR-320dp-1.3x.png"><img src="fix2-6-duepay-4d-AR-320dp-1.3x.png" width="240"></a><br><sub>fix2 6 duepay 4d AR 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-AR-320dp-1.0x-bar-crop.png"><img src="fix2-7-nontax-3d-AR-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix2 7 nontax 3d AR 320dp 1.0x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-AR-320dp-1.0x.png"><img src="fix2-7-nontax-3d-AR-320dp-1.0x.png" width="240"></a><br><sub>fix2 7 nontax 3d AR 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-AR-320dp-1.3x-bar-crop.png"><img src="fix2-7-nontax-3d-AR-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 7 nontax 3d AR 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-AR-320dp-1.3x.png"><img src="fix2-7-nontax-3d-AR-320dp-1.3x.png" width="240"></a><br><sub>fix2 7 nontax 3d AR 320dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-AR-360dp-1.0x-bar-crop.png"><img src="fix2-7-nontax-3d-AR-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix2 7 nontax 3d AR 360dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-AR-360dp-1.0x.png"><img src="fix2-7-nontax-3d-AR-360dp-1.0x.png" width="240"></a><br><sub>fix2 7 nontax 3d AR 360dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-AR-360dp-1.3x-bar-crop.png"><img src="fix2-7-nontax-3d-AR-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 7 nontax 3d AR 360dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-AR-360dp-1.3x.png"><img src="fix2-7-nontax-3d-AR-360dp-1.3x.png" width="240"></a><br><sub>fix2 7 nontax 3d AR 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-EN-320dp-1.0x-bar-crop.png"><img src="fix2-7-nontax-3d-EN-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix2 7 nontax 3d EN 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-EN-320dp-1.0x.png"><img src="fix2-7-nontax-3d-EN-320dp-1.0x.png" width="240"></a><br><sub>fix2 7 nontax 3d EN 320dp 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-EN-320dp-1.3x-bar-crop.png"><img src="fix2-7-nontax-3d-EN-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 7 nontax 3d EN 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-EN-320dp-1.3x.png"><img src="fix2-7-nontax-3d-EN-320dp-1.3x.png" width="240"></a><br><sub>fix2 7 nontax 3d EN 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-EN-360dp-1.0x-bar-crop.png"><img src="fix2-7-nontax-3d-EN-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix2 7 nontax 3d EN 360dp 1.0x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-EN-360dp-1.0x.png"><img src="fix2-7-nontax-3d-EN-360dp-1.0x.png" width="240"></a><br><sub>fix2 7 nontax 3d EN 360dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-EN-360dp-1.3x-bar-crop.png"><img src="fix2-7-nontax-3d-EN-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix2 7 nontax 3d EN 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix2-7-nontax-3d-EN-360dp-1.3x.png"><img src="fix2-7-nontax-3d-EN-360dp-1.3x.png" width="240"></a><br><sub>fix2 7 nontax 3d EN 360dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-pair-cell1-EN-320dp-1.3x-nontax4d-firstrun-left-fix2-right.png"><img src="fix2-pair-cell1-EN-320dp-1.3x-nontax4d-firstrun-left-fix2-right.png" width="240"></a><br><sub>fix2 pair cell1 EN 320dp 1.3x nontax4d firstrun left fix2 right</sub></td>
+<td align="center" width="33%"><a href="fix2-pair-cell4-AR-320dp-1.3x-nontax4d-firstrun-left-fix2-right.png"><img src="fix2-pair-cell4-AR-320dp-1.3x-nontax4d-firstrun-left-fix2-right.png" width="240"></a><br><sub>fix2 pair cell4 AR 320dp 1.3x nontax4d firstrun left fix2 right</sub></td>
+<td align="center" width="33%"><a href="fix2-pair-cell5-AR-320dp-1.3x-taxincl3d-firstrun-left-fix2-right.png"><img src="fix2-pair-cell5-AR-320dp-1.3x-taxincl3d-firstrun-left-fix2-right.png" width="240"></a><br><sub>fix2 pair cell5 AR 320dp 1.3x taxincl3d firstrun left fix2 right</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix2-pair-cell5b-AR-320dp-1.3x-taxincl-3d-left-4d-right.png"><img src="fix2-pair-cell5b-AR-320dp-1.3x-taxincl-3d-left-4d-right.png" width="240"></a><br><sub>fix2 pair cell5b AR 320dp 1.3x taxincl 3d left 4d right</sub></td>
 </tr>
 </table>
 
@@ -356,6 +456,63 @@
 - [`fix-O-nontax-2d-AR-360dp-1.3x-dump.xml`](fix-O-nontax-2d-AR-360dp-1.3x-dump.xml)
 - [`fix-O-nontax-2d-AR-360dp-1.3x-overflow.log`](fix-O-nontax-2d-AR-360dp-1.3x-overflow.log)
 - [`fix-measurements.md`](fix-measurements.md)
+- [`fix2-1-nontax-4d-EN-320dp-1.3x-dump.xml`](fix2-1-nontax-4d-EN-320dp-1.3x-dump.xml)
+- [`fix2-1-nontax-4d-EN-320dp-1.3x-overflow.log`](fix2-1-nontax-4d-EN-320dp-1.3x-overflow.log)
+- [`fix2-1b-nontax-4d-EN-320dp-1.0x-dump.xml`](fix2-1b-nontax-4d-EN-320dp-1.0x-dump.xml)
+- [`fix2-1b-nontax-4d-EN-320dp-1.0x-overflow.log`](fix2-1b-nontax-4d-EN-320dp-1.0x-overflow.log)
+- [`fix2-1b-nontax-4d-EN-360dp-1.0x-dump.xml`](fix2-1b-nontax-4d-EN-360dp-1.0x-dump.xml)
+- [`fix2-1b-nontax-4d-EN-360dp-1.0x-overflow.log`](fix2-1b-nontax-4d-EN-360dp-1.0x-overflow.log)
+- [`fix2-1b-nontax-4d-EN-360dp-1.3x-dump.xml`](fix2-1b-nontax-4d-EN-360dp-1.3x-dump.xml)
+- [`fix2-1b-nontax-4d-EN-360dp-1.3x-overflow.log`](fix2-1b-nontax-4d-EN-360dp-1.3x-overflow.log)
+- [`fix2-2-taxincl-3d-EN-320dp-1.3x-dump.xml`](fix2-2-taxincl-3d-EN-320dp-1.3x-dump.xml)
+- [`fix2-2-taxincl-3d-EN-320dp-1.3x-overflow.log`](fix2-2-taxincl-3d-EN-320dp-1.3x-overflow.log)
+- [`fix2-2-taxincl-3d-EN-360dp-1.3x-dump.xml`](fix2-2-taxincl-3d-EN-360dp-1.3x-dump.xml)
+- [`fix2-2-taxincl-3d-EN-360dp-1.3x-overflow.log`](fix2-2-taxincl-3d-EN-360dp-1.3x-overflow.log)
+- [`fix2-2-taxincl-4d-EN-320dp-1.0x-dump.xml`](fix2-2-taxincl-4d-EN-320dp-1.0x-dump.xml)
+- [`fix2-2-taxincl-4d-EN-320dp-1.0x-overflow.log`](fix2-2-taxincl-4d-EN-320dp-1.0x-overflow.log)
+- [`fix2-2-taxincl-4d-EN-320dp-1.3x-dump.xml`](fix2-2-taxincl-4d-EN-320dp-1.3x-dump.xml)
+- [`fix2-2-taxincl-4d-EN-320dp-1.3x-overflow.log`](fix2-2-taxincl-4d-EN-320dp-1.3x-overflow.log)
+- [`fix2-2-taxincl-4d-EN-360dp-1.3x-dump.xml`](fix2-2-taxincl-4d-EN-360dp-1.3x-dump.xml)
+- [`fix2-2-taxincl-4d-EN-360dp-1.3x-overflow.log`](fix2-2-taxincl-4d-EN-360dp-1.3x-overflow.log)
+- [`fix2-3-duepay-4d-EN-320dp-1.3x-dump.xml`](fix2-3-duepay-4d-EN-320dp-1.3x-dump.xml)
+- [`fix2-3-duepay-4d-EN-320dp-1.3x-overflow.log`](fix2-3-duepay-4d-EN-320dp-1.3x-overflow.log)
+- [`fix2-4-nontax-4d-AR-320dp-1.0x-dump.xml`](fix2-4-nontax-4d-AR-320dp-1.0x-dump.xml)
+- [`fix2-4-nontax-4d-AR-320dp-1.0x-overflow.log`](fix2-4-nontax-4d-AR-320dp-1.0x-overflow.log)
+- [`fix2-4-nontax-4d-AR-320dp-1.3x-dump.xml`](fix2-4-nontax-4d-AR-320dp-1.3x-dump.xml)
+- [`fix2-4-nontax-4d-AR-320dp-1.3x-overflow.log`](fix2-4-nontax-4d-AR-320dp-1.3x-overflow.log)
+- [`fix2-4-nontax-4d-AR-360dp-1.3x-dump.xml`](fix2-4-nontax-4d-AR-360dp-1.3x-dump.xml)
+- [`fix2-4-nontax-4d-AR-360dp-1.3x-overflow.log`](fix2-4-nontax-4d-AR-360dp-1.3x-overflow.log)
+- [`fix2-5-taxincl-3d-AR-320dp-1.0x-dump.xml`](fix2-5-taxincl-3d-AR-320dp-1.0x-dump.xml)
+- [`fix2-5-taxincl-3d-AR-320dp-1.0x-overflow.log`](fix2-5-taxincl-3d-AR-320dp-1.0x-overflow.log)
+- [`fix2-5-taxincl-3d-AR-320dp-1.3x-dump.xml`](fix2-5-taxincl-3d-AR-320dp-1.3x-dump.xml)
+- [`fix2-5-taxincl-3d-AR-320dp-1.3x-overflow.log`](fix2-5-taxincl-3d-AR-320dp-1.3x-overflow.log)
+- [`fix2-5-taxincl-3d-AR-360dp-1.3x-dump.xml`](fix2-5-taxincl-3d-AR-360dp-1.3x-dump.xml)
+- [`fix2-5-taxincl-3d-AR-360dp-1.3x-overflow.log`](fix2-5-taxincl-3d-AR-360dp-1.3x-overflow.log)
+- [`fix2-5-taxincl-4d-AR-320dp-1.0x-dump.xml`](fix2-5-taxincl-4d-AR-320dp-1.0x-dump.xml)
+- [`fix2-5-taxincl-4d-AR-320dp-1.0x-overflow.log`](fix2-5-taxincl-4d-AR-320dp-1.0x-overflow.log)
+- [`fix2-5-taxincl-4d-AR-320dp-1.3x-dump.xml`](fix2-5-taxincl-4d-AR-320dp-1.3x-dump.xml)
+- [`fix2-5-taxincl-4d-AR-320dp-1.3x-overflow.log`](fix2-5-taxincl-4d-AR-320dp-1.3x-overflow.log)
+- [`fix2-5-taxincl-4d-AR-360dp-1.3x-dump.xml`](fix2-5-taxincl-4d-AR-360dp-1.3x-dump.xml)
+- [`fix2-5-taxincl-4d-AR-360dp-1.3x-overflow.log`](fix2-5-taxincl-4d-AR-360dp-1.3x-overflow.log)
+- [`fix2-6-duepay-4d-AR-320dp-1.3x-dump.xml`](fix2-6-duepay-4d-AR-320dp-1.3x-dump.xml)
+- [`fix2-6-duepay-4d-AR-320dp-1.3x-overflow.log`](fix2-6-duepay-4d-AR-320dp-1.3x-overflow.log)
+- [`fix2-7-nontax-3d-AR-320dp-1.0x-dump.xml`](fix2-7-nontax-3d-AR-320dp-1.0x-dump.xml)
+- [`fix2-7-nontax-3d-AR-320dp-1.0x-overflow.log`](fix2-7-nontax-3d-AR-320dp-1.0x-overflow.log)
+- [`fix2-7-nontax-3d-AR-320dp-1.3x-dump.xml`](fix2-7-nontax-3d-AR-320dp-1.3x-dump.xml)
+- [`fix2-7-nontax-3d-AR-320dp-1.3x-overflow.log`](fix2-7-nontax-3d-AR-320dp-1.3x-overflow.log)
+- [`fix2-7-nontax-3d-AR-360dp-1.0x-dump.xml`](fix2-7-nontax-3d-AR-360dp-1.0x-dump.xml)
+- [`fix2-7-nontax-3d-AR-360dp-1.0x-overflow.log`](fix2-7-nontax-3d-AR-360dp-1.0x-overflow.log)
+- [`fix2-7-nontax-3d-AR-360dp-1.3x-dump.xml`](fix2-7-nontax-3d-AR-360dp-1.3x-dump.xml)
+- [`fix2-7-nontax-3d-AR-360dp-1.3x-overflow.log`](fix2-7-nontax-3d-AR-360dp-1.3x-overflow.log)
+- [`fix2-7-nontax-3d-EN-320dp-1.0x-dump.xml`](fix2-7-nontax-3d-EN-320dp-1.0x-dump.xml)
+- [`fix2-7-nontax-3d-EN-320dp-1.0x-overflow.log`](fix2-7-nontax-3d-EN-320dp-1.0x-overflow.log)
+- [`fix2-7-nontax-3d-EN-320dp-1.3x-dump.xml`](fix2-7-nontax-3d-EN-320dp-1.3x-dump.xml)
+- [`fix2-7-nontax-3d-EN-320dp-1.3x-overflow.log`](fix2-7-nontax-3d-EN-320dp-1.3x-overflow.log)
+- [`fix2-7-nontax-3d-EN-360dp-1.0x-dump.xml`](fix2-7-nontax-3d-EN-360dp-1.0x-dump.xml)
+- [`fix2-7-nontax-3d-EN-360dp-1.0x-overflow.log`](fix2-7-nontax-3d-EN-360dp-1.0x-overflow.log)
+- [`fix2-7-nontax-3d-EN-360dp-1.3x-dump.xml`](fix2-7-nontax-3d-EN-360dp-1.3x-dump.xml)
+- [`fix2-7-nontax-3d-EN-360dp-1.3x-overflow.log`](fix2-7-nontax-3d-EN-360dp-1.3x-overflow.log)
+- [`fix2-measurements.md`](fix2-measurements.md)
 - [`progress.md`](progress.md)
 
 ---
