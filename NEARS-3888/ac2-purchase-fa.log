@@ -1,0 +1,80 @@
+NEARS-3888 AC2 evidence - real FA verbose lines (FA-SVC 'Logging event: origin=app,name=...')
+Mirror line (flutter tag, AnalyticsService._mirror) is CORROBORATION ONLY (advisor-qa RULING B).
+
+=== (i) BUILD ===
+GREEN tree : /Users/Apple/Projects/nears-NEARS-3888-ga4-group-purchase @ 63526e9d3e10ce562ce480a5cba83cd51bbad582
+             git diff 63526e9d3 -- UserApp/lib :        0 bytes (empty = lib identical to reviewed commit 63526e9d3)
+RED tree   : scratch worktree nears-3888-base @ 42fa60b0dce3674bd0992fe5a897bf19ada1af69 (BASE; grep NEARS-3888 place_order_controller.dart = 0 hits)
+applicationId=com.izzes.nears (UNSUFFIXED bare flutter run, NEARS_PKG_SUFFIX unset); google-services.json copied from primary UserApp/android/app (gitignored; removed from both trees at teardown); serial emulator-5554 (lock NEARS-3888 by hand via qa_lock_acquire)
+cmd: /Users/Apple/Tools/flutter/bin/flutter run -d emulator-5554 --debug --dart-define API_HOST=10.0.2.2:8188
+backend: own php artisan serve --no-reload :8188, DB_DATABASE=nears_qa_3888 (private copy; business_settings id228 cross_module_basket=1 on the copy only)
+
+=== (ii) FIREBASE HEALTH (no 'Missing google_app_id' / 'FirebaseApp failed to initialize' in whole capture: count = 0) ===
+(GREEN, relaunch before capture) FirebaseApp initialization successful / App measurement enabled ... google app id: com.izzes.nears, 1:1033648887925:android:088bc311ac766c34cf003c
+09-30 23:11:39.686 V/FA      (30616): App measurement enabled for app package, google app id: com.izzes.nears, 1:1033648887925:android:088bc311ac766c34cf003c
+09-30 23:11:39.688 I/FA      (30616): App measurement initialized, version: 183005
+09-30 23:11:39.689 D/FA      (30616): Debug-level message logging enabled
+(RED base build)
+09-30 23:28:27.925 V/FA      ( 5091): App measurement enabled for app package, google app id: com.izzes.nears, 1:1033648887925:android:088bc311ac766c34cf003c
+09-30 23:28:27.942 I/FA      ( 5091): App measurement initialized, version: 183005
+09-30 23:28:27.946 D/FA      ( 5091): Debug-level message logging enabled
+
+=== (iii) GREEN - group placement #1, COD, no coupon (2 stores, window 23:18:28-23:18:45) ===
+--- FA-SVC events purchase/group_order_placed in window ---
+09-30 23:18:32.676 V/FA-SVC  ( 1237): Logging event: origin=app,name=group_order_placed,params=Bundle[{source=confirm_sheet, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=5856421491321471697, ga_screen(_sn)=order_confirm_sheet, order_sub_order_count=2, basket_store_count=2}]
+09-30 23:18:32.691 V/FA-SVC  ( 1237): Logging event: origin=app,name=purchase,params=Bundle[{store_count=2, source=confirm_sheet, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=5856421491321471697, ga_screen(_sn)=order_confirm_sheet, value=57.07, currency=AED, transaction_id=9f7b1372-ee2f-4d59-9cca-625c8159f23f}]
+grep -c name=purchase in window = 1
+grep -c name=group_order_placed in window = 1
+--- paired mirror lines ---
+09-30 23:18:32.653 I/flutter (30616): 📊 analytics: group_order_placed {basket_store_count: 2, order_sub_order_count: 2, source: confirm_sheet}
+09-30 23:18:32.653 I/flutter (30616): [INFO] msg="checkout: group order placed groupId=9f7b1372-ee2f-4d59-9cca-625c8159f23f children=2"
+09-30 23:18:32.654 I/flutter (30616): 📊 analytics: purchase {transaction_id: 9f7b1372-ee2f-4d59-9cca-625c8159f23f, value: 57.07, currency: AED, store_count: 2, source: confirm_sheet}
+DB (private copy): orders 91418 (store 1) 28.40 + 91419 (store 37) 28.67 = 57.07 ; order_groups.id = 9f7b1372-ee2f-4d59-9cca-625c8159f23f child_count=2
+
+=== GREEN - group placement #2, COD + coupon NEARS2924PCT (coupon id 16) (window 23:21:40-23:21:58) ===
+09-30 23:21:51.901 V/FA-SVC  ( 1237): Logging event: origin=app,name=group_order_placed,params=Bundle[{source=confirm_sheet, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=4597781436913225394, ga_screen(_sn)=order_confirm_sheet, order_sub_order_count=2, basket_store_count=2}]
+09-30 23:21:51.943 V/FA-SVC  ( 1237): Logging event: origin=app,name=purchase,params=Bundle[{store_count=2, source=confirm_sheet, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=4597781436913225394, ga_screen(_sn)=order_confirm_sheet, value=51.36, currency=AED, transaction_id=c55d4c0a-d5fc-4245-a9ec-095b3334949c, coupon_id=16}]
+grep -c name=purchase in window = 1
+09-30 23:21:51.891 I/flutter (  589): 📊 analytics: group_order_placed {basket_store_count: 2, order_sub_order_count: 2, source: confirm_sheet}
+09-30 23:21:51.891 I/flutter (  589): [INFO] msg="checkout: group order placed groupId=c55d4c0a-d5fc-4245-a9ec-095b3334949c children=2"
+09-30 23:21:51.892 I/flutter (  589): 📊 analytics: purchase {transaction_id: c55d4c0a-d5fc-4245-a9ec-095b3334949c, value: 51.36, currency: AED, coupon_id: 16, store_count: 2, source: confirm_sheet}
+DB: orders 91422 25.56 + 91423 25.80 = 51.36 (coupon_code NEARS2924PCT both) ; confirm sheet showed 51.63 (client estimate) -> purchase value = server total 51.36 (NEARS-3939 server-amount seam)
+
+=== GREEN - group placement #3, DIGITAL (Paypal, gateway webview opened, not paid) (window 23:24:00-23:24:15) ===
+09-30 23:24:03.937 V/FA-SVC  ( 1237): Logging event: origin=app,name=group_order_placed,params=Bundle[{source=confirm_sheet, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=-9076500882326373024, ga_screen(_sn)=order_confirm_sheet, order_sub_order_count=2, basket_store_count=2}]
+09-30 23:24:03.948 V/FA-SVC  ( 1237): Logging event: origin=app,name=purchase,params=Bundle[{store_count=2, source=confirm_sheet, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=-9076500882326373024, ga_screen(_sn)=order_confirm_sheet, value=57.07, currency=AED, transaction_id=51c1021e-94e7-4ca4-962b-176848207191}]
+grep -c name=purchase in window = 1
+09-30 23:24:03.919 I/flutter ( 2800): 📊 analytics: group_order_placed {basket_store_count: 2, order_sub_order_count: 2, source: confirm_sheet}
+09-30 23:24:03.920 I/flutter ( 2800): [INFO] msg="checkout: group order placed groupId=51c1021e-94e7-4ca4-962b-176848207191 children=2"
+09-30 23:24:03.922 I/flutter ( 2800): 📊 analytics: purchase {transaction_id: 51c1021e-94e7-4ca4-962b-176848207191, value: 57.07, currency: AED, store_count: 2, source: confirm_sheet}
+DB: orders 91426 28.40 + 91427 28.67 = 57.07 digital_payment ; purchase fired at placement, before payment; gateway InAppBrowserActivity opened (mCurrentFocus)
+
+=== GREEN - FAILURE PATH: group/validate rejected (store 37 closed) -> NO purchase (window 23:25:30-23:26:10) ===
+09-30 23:25:40.291 I/flutter ( 4038): [NET] POST endpoint=/api/v1/customer/order/group/validate
+09-30 23:25:40.865 I/flutter ( 4038): [NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+09-30 23:25:40.866 I/flutter ( 4038): The following exception was thrown checkout: group validate rejected failures=1 store_ids=37 reasons=store_closed:
+09-30 23:25:40.866 I/flutter ( 4038): PlaceOrderBlocked
+09-30 23:25:40.869 I/flutter ( 4038): [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=200 type=PlaceOrderBlocked msg="checkout: group validate rejected failures=1 store_ids=37 reasons=store_closed"
+FA-SVC purchase/group_order_placed count in window = 0  (events that DID fire: place_order_tapped, order_confirm_confirmed etc.)
+
+=== GREEN - AC3/AC-REG SINGLE-STORE (store 1, COD) (window 23:26:50-23:27:05) ===
+09-30 23:26:57.902 V/FA-SVC  ( 1237): Logging event: origin=app,name=purchase,params=Bundle[{store_count=1, source=confirm_sheet, shipping=0.0, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=-4694048682753143038, ga_screen(_sn)=order_confirm_sheet, tax=1.3525, value=28.4, currency=AED, transaction_id=91429}]
+grep -c name=purchase in window = 1 ; group_order_placed = 0
+09-30 23:26:57.753 I/flutter ( 4516): 📊 analytics: purchase {transaction_id: 91429, value: 28.4, currency: AED, tax: 1.3525, shipping: 0.0, store_count: 1, source: confirm_sheet}
+09-30 23:26:57.771 I/flutter ( 4516): [INFO] msg="checkout: order placed successfully orderID=91429"
+DB: order 91429 store 1 order_amount 28.40 cash_on_delivery (transaction_id=91429 numeric order id)
+
+=== (iv) RED on BASE 42fa60b0d, same recipe (2-store COD group, window 23:30:40-23:31:10) ===
+09-30 23:30:50.466 V/FA-SVC  ( 1237): Logging event: origin=app,name=group_order_placed,params=Bundle[{source=confirm_sheet, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=3939242475121209079, ga_screen(_sn)=order_confirm_sheet, order_sub_order_count=2, basket_store_count=2}]
+grep -c name=purchase (WHOLE base capture) = 0 ; group_order_placed = 1
+09-30 23:30:50.345 I/flutter ( 5091): 📊 analytics: group_order_placed {basket_store_count: 2, order_sub_order_count: 2, source: confirm_sheet}
+09-30 23:30:50.346 I/flutter ( 5091): [INFO] msg="checkout: group order placed groupId=e954c76a-2b4e-40a5-8e07-24f4d0c5bd84 children=2"
+DB: orders 91432 28.40 + 91433 28.67, group e954c76a-2b4e-40a5-8e07-24f4d0c5bd84
+
+=== SUMMARY (whole GREEN capture 23:10-23:28) ===
+FA-SVC name=purchase total = 4 (3 group placements + 1 single-store; each window above = exactly 1)
+store_count=2 value=57.07 transaction_id=9f7b1372-ee2f-4d59-9cca-625c8159f23f
+store_count=2 value=51.36 transaction_id=c55d4c0a-d5fc-4245-a9ec-095b3334949c
+store_count=2 value=57.07 transaction_id=51c1021e-94e7-4ca4-962b-176848207191
+store_count=1 value=28.4 transaction_id=91429
+FA-SVC name=group_order_placed total = 3 (3 group placements; 0 on single-store)
