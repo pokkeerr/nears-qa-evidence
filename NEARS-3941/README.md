@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3941
 
-**BASELINE-RED (pre-fix): sticky Total row overflow 23/41/59 px EN 320dp x1.3; tax-incl digits clip**
+**post-fix full QA PASS (sha 6d32183a7): sticky Total row zero overflow 320/360dp x1.0/1.3 EN+AR; fix- prefixed**
 
-**26 screenshot(s).** Click any thumbnail for full resolution.
+**130 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -48,6 +48,180 @@
 <tr>
 <td align="center" width="33%"><a href="17-en-360dp-1.3x-nontax-2digit-bar-crop.png"><img src="17-en-360dp-1.3x-nontax-2digit-bar-crop.png" width="240"></a><br><sub>en 360dp 1.3x nontax 2digit bar crop</sub></td>
 <td align="center" width="33%"><a href="17-en-360dp-1.3x-nontax-2digit.png"><img src="17-en-360dp-1.3x-nontax-2digit.png" width="240"></a><br><sub>en 360dp 1.3x nontax 2digit</sub></td>
+<td align="center" width="33%"><a href="fix-A-nontax-3d-EN-320dp-1.0x-bar-crop.png"><img src="fix-A-nontax-3d-EN-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix A nontax 3d EN 320dp 1.0x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-A-nontax-3d-EN-320dp-1.0x.png"><img src="fix-A-nontax-3d-EN-320dp-1.0x.png" width="240"></a><br><sub>fix A nontax 3d EN 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-A-nontax-3d-EN-320dp-1.3x-bar-crop.png"><img src="fix-A-nontax-3d-EN-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix A nontax 3d EN 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-A-nontax-3d-EN-320dp-1.3x.png"><img src="fix-A-nontax-3d-EN-320dp-1.3x.png" width="240"></a><br><sub>fix A nontax 3d EN 320dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-A-nontax-3d-EN-360dp-1.0x-bar-crop.png"><img src="fix-A-nontax-3d-EN-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix A nontax 3d EN 360dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-A-nontax-3d-EN-360dp-1.0x.png"><img src="fix-A-nontax-3d-EN-360dp-1.0x.png" width="240"></a><br><sub>fix A nontax 3d EN 360dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-A-nontax-3d-EN-360dp-1.3x-bar-crop.png"><img src="fix-A-nontax-3d-EN-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix A nontax 3d EN 360dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-A-nontax-3d-EN-360dp-1.3x.png"><img src="fix-A-nontax-3d-EN-360dp-1.3x.png" width="240"></a><br><sub>fix A nontax 3d EN 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-B-taxincl-3d-EN-320dp-1.0x-bar-crop.png"><img src="fix-B-taxincl-3d-EN-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix B taxincl 3d EN 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-B-taxincl-3d-EN-320dp-1.0x.png"><img src="fix-B-taxincl-3d-EN-320dp-1.0x.png" width="240"></a><br><sub>fix B taxincl 3d EN 320dp 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-B-taxincl-3d-EN-320dp-1.3x-bar-crop.png"><img src="fix-B-taxincl-3d-EN-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix B taxincl 3d EN 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-B-taxincl-3d-EN-320dp-1.3x.png"><img src="fix-B-taxincl-3d-EN-320dp-1.3x.png" width="240"></a><br><sub>fix B taxincl 3d EN 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-B-taxincl-3d-EN-360dp-1.0x-bar-crop.png"><img src="fix-B-taxincl-3d-EN-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix B taxincl 3d EN 360dp 1.0x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-B-taxincl-3d-EN-360dp-1.0x.png"><img src="fix-B-taxincl-3d-EN-360dp-1.0x.png" width="240"></a><br><sub>fix B taxincl 3d EN 360dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-B-taxincl-3d-EN-360dp-1.3x-bar-crop.png"><img src="fix-B-taxincl-3d-EN-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix B taxincl 3d EN 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-B-taxincl-3d-EN-360dp-1.3x.png"><img src="fix-B-taxincl-3d-EN-360dp-1.3x.png" width="240"></a><br><sub>fix B taxincl 3d EN 360dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-C-duepay-3d-EN-320dp-1.0x-bar-crop.png"><img src="fix-C-duepay-3d-EN-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix C duepay 3d EN 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-C-duepay-3d-EN-320dp-1.0x.png"><img src="fix-C-duepay-3d-EN-320dp-1.0x.png" width="240"></a><br><sub>fix C duepay 3d EN 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-C-duepay-3d-EN-320dp-1.3x-bar-crop.png"><img src="fix-C-duepay-3d-EN-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix C duepay 3d EN 320dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-C-duepay-3d-EN-320dp-1.3x.png"><img src="fix-C-duepay-3d-EN-320dp-1.3x.png" width="240"></a><br><sub>fix C duepay 3d EN 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-C-duepay-3d-EN-360dp-1.0x-bar-crop.png"><img src="fix-C-duepay-3d-EN-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix C duepay 3d EN 360dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-C-duepay-3d-EN-360dp-1.0x.png"><img src="fix-C-duepay-3d-EN-360dp-1.0x.png" width="240"></a><br><sub>fix C duepay 3d EN 360dp 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-C-duepay-3d-EN-360dp-1.3x-bar-crop.png"><img src="fix-C-duepay-3d-EN-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix C duepay 3d EN 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-C-duepay-3d-EN-360dp-1.3x.png"><img src="fix-C-duepay-3d-EN-360dp-1.3x.png" width="240"></a><br><sub>fix C duepay 3d EN 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-D-nontax-2d-EN-320dp-1.0x-bar-crop.png"><img src="fix-D-nontax-2d-EN-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix D nontax 2d EN 320dp 1.0x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-D-nontax-2d-EN-320dp-1.0x.png"><img src="fix-D-nontax-2d-EN-320dp-1.0x.png" width="240"></a><br><sub>fix D nontax 2d EN 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-D-nontax-2d-EN-320dp-1.3x-bar-crop.png"><img src="fix-D-nontax-2d-EN-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix D nontax 2d EN 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-D-nontax-2d-EN-320dp-1.3x.png"><img src="fix-D-nontax-2d-EN-320dp-1.3x.png" width="240"></a><br><sub>fix D nontax 2d EN 320dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-D-nontax-2d-EN-360dp-1.0x-bar-crop.png"><img src="fix-D-nontax-2d-EN-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix D nontax 2d EN 360dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-D-nontax-2d-EN-360dp-1.0x.png"><img src="fix-D-nontax-2d-EN-360dp-1.0x.png" width="240"></a><br><sub>fix D nontax 2d EN 360dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-D-nontax-2d-EN-360dp-1.3x-bar-crop.png"><img src="fix-D-nontax-2d-EN-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix D nontax 2d EN 360dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-D-nontax-2d-EN-360dp-1.3x.png"><img src="fix-D-nontax-2d-EN-360dp-1.3x.png" width="240"></a><br><sub>fix D nontax 2d EN 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-E-nontax-4d-EN-320dp-1.0x-bar-crop.png"><img src="fix-E-nontax-4d-EN-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix E nontax 4d EN 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-E-nontax-4d-EN-320dp-1.0x.png"><img src="fix-E-nontax-4d-EN-320dp-1.0x.png" width="240"></a><br><sub>fix E nontax 4d EN 320dp 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-E-nontax-4d-EN-320dp-1.3x-bar-crop.png"><img src="fix-E-nontax-4d-EN-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix E nontax 4d EN 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-E-nontax-4d-EN-320dp-1.3x.png"><img src="fix-E-nontax-4d-EN-320dp-1.3x.png" width="240"></a><br><sub>fix E nontax 4d EN 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-E-nontax-4d-EN-360dp-1.0x-bar-crop.png"><img src="fix-E-nontax-4d-EN-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix E nontax 4d EN 360dp 1.0x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-E-nontax-4d-EN-360dp-1.0x.png"><img src="fix-E-nontax-4d-EN-360dp-1.0x.png" width="240"></a><br><sub>fix E nontax 4d EN 360dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-E-nontax-4d-EN-360dp-1.3x-bar-crop.png"><img src="fix-E-nontax-4d-EN-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix E nontax 4d EN 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-E-nontax-4d-EN-360dp-1.3x.png"><img src="fix-E-nontax-4d-EN-360dp-1.3x.png" width="240"></a><br><sub>fix E nontax 4d EN 360dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-F-duepay-4d-EN-320dp-1.0x-bar-crop.png"><img src="fix-F-duepay-4d-EN-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix F duepay 4d EN 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-F-duepay-4d-EN-320dp-1.0x.png"><img src="fix-F-duepay-4d-EN-320dp-1.0x.png" width="240"></a><br><sub>fix F duepay 4d EN 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-F-duepay-4d-EN-320dp-1.3x-bar-crop.png"><img src="fix-F-duepay-4d-EN-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix F duepay 4d EN 320dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-F-duepay-4d-EN-320dp-1.3x.png"><img src="fix-F-duepay-4d-EN-320dp-1.3x.png" width="240"></a><br><sub>fix F duepay 4d EN 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-F-duepay-4d-EN-360dp-1.0x-bar-crop.png"><img src="fix-F-duepay-4d-EN-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix F duepay 4d EN 360dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-F-duepay-4d-EN-360dp-1.0x.png"><img src="fix-F-duepay-4d-EN-360dp-1.0x.png" width="240"></a><br><sub>fix F duepay 4d EN 360dp 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-F-duepay-4d-EN-360dp-1.3x-bar-crop.png"><img src="fix-F-duepay-4d-EN-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix F duepay 4d EN 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-F-duepay-4d-EN-360dp-1.3x.png"><img src="fix-F-duepay-4d-EN-360dp-1.3x.png" width="240"></a><br><sub>fix F duepay 4d EN 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-G-ac3-EN-320dp-1.3x-labels.png"><img src="fix-G-ac3-EN-320dp-1.3x-labels.png" width="240"></a><br><sub>fix G ac3 EN 320dp 1.3x labels</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-G-ac3-EN-320dp-1.3x-labels2.png"><img src="fix-G-ac3-EN-320dp-1.3x-labels2.png" width="240"></a><br><sub>fix G ac3 EN 320dp 1.3x labels2</sub></td>
+<td align="center" width="33%"><a href="fix-H-nontax-4d-AR-320dp-1.0x-bar-crop.png"><img src="fix-H-nontax-4d-AR-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix H nontax 4d AR 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-H-nontax-4d-AR-320dp-1.0x.png"><img src="fix-H-nontax-4d-AR-320dp-1.0x.png" width="240"></a><br><sub>fix H nontax 4d AR 320dp 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-H-nontax-4d-AR-320dp-1.3x-bar-crop.png"><img src="fix-H-nontax-4d-AR-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix H nontax 4d AR 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-H-nontax-4d-AR-320dp-1.3x.png"><img src="fix-H-nontax-4d-AR-320dp-1.3x.png" width="240"></a><br><sub>fix H nontax 4d AR 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-H-nontax-4d-AR-360dp-1.0x-bar-crop.png"><img src="fix-H-nontax-4d-AR-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix H nontax 4d AR 360dp 1.0x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-H-nontax-4d-AR-360dp-1.0x.png"><img src="fix-H-nontax-4d-AR-360dp-1.0x.png" width="240"></a><br><sub>fix H nontax 4d AR 360dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-H-nontax-4d-AR-360dp-1.3x-bar-crop.png"><img src="fix-H-nontax-4d-AR-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix H nontax 4d AR 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-H-nontax-4d-AR-360dp-1.3x.png"><img src="fix-H-nontax-4d-AR-360dp-1.3x.png" width="240"></a><br><sub>fix H nontax 4d AR 360dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-I-duepay-4d-AR-320dp-1.0x-bar-crop.png"><img src="fix-I-duepay-4d-AR-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix I duepay 4d AR 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-I-duepay-4d-AR-320dp-1.0x.png"><img src="fix-I-duepay-4d-AR-320dp-1.0x.png" width="240"></a><br><sub>fix I duepay 4d AR 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-I-duepay-4d-AR-320dp-1.3x-bar-crop.png"><img src="fix-I-duepay-4d-AR-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix I duepay 4d AR 320dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-I-duepay-4d-AR-320dp-1.3x.png"><img src="fix-I-duepay-4d-AR-320dp-1.3x.png" width="240"></a><br><sub>fix I duepay 4d AR 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-I-duepay-4d-AR-360dp-1.0x-bar-crop.png"><img src="fix-I-duepay-4d-AR-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix I duepay 4d AR 360dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-I-duepay-4d-AR-360dp-1.0x.png"><img src="fix-I-duepay-4d-AR-360dp-1.0x.png" width="240"></a><br><sub>fix I duepay 4d AR 360dp 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-I-duepay-4d-AR-360dp-1.3x-bar-crop.png"><img src="fix-I-duepay-4d-AR-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix I duepay 4d AR 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-I-duepay-4d-AR-360dp-1.3x.png"><img src="fix-I-duepay-4d-AR-360dp-1.3x.png" width="240"></a><br><sub>fix I duepay 4d AR 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-J-ac3-AR-320dp-1.3x-labels.png"><img src="fix-J-ac3-AR-320dp-1.3x-labels.png" width="240"></a><br><sub>fix J ac3 AR 320dp 1.3x labels</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-J-ac3-AR-320dp-1.3x-labels2.png"><img src="fix-J-ac3-AR-320dp-1.3x-labels2.png" width="240"></a><br><sub>fix J ac3 AR 320dp 1.3x labels2</sub></td>
+<td align="center" width="33%"><a href="fix-K-nontax-3d-AR-320dp-1.0x-bar-crop.png"><img src="fix-K-nontax-3d-AR-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix K nontax 3d AR 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-K-nontax-3d-AR-320dp-1.0x.png"><img src="fix-K-nontax-3d-AR-320dp-1.0x.png" width="240"></a><br><sub>fix K nontax 3d AR 320dp 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-K-nontax-3d-AR-320dp-1.3x-bar-crop.png"><img src="fix-K-nontax-3d-AR-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix K nontax 3d AR 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-K-nontax-3d-AR-320dp-1.3x.png"><img src="fix-K-nontax-3d-AR-320dp-1.3x.png" width="240"></a><br><sub>fix K nontax 3d AR 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-K-nontax-3d-AR-360dp-1.0x-bar-crop.png"><img src="fix-K-nontax-3d-AR-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix K nontax 3d AR 360dp 1.0x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-K-nontax-3d-AR-360dp-1.0x.png"><img src="fix-K-nontax-3d-AR-360dp-1.0x.png" width="240"></a><br><sub>fix K nontax 3d AR 360dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-K-nontax-3d-AR-360dp-1.3x-bar-crop.png"><img src="fix-K-nontax-3d-AR-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix K nontax 3d AR 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-K-nontax-3d-AR-360dp-1.3x.png"><img src="fix-K-nontax-3d-AR-360dp-1.3x.png" width="240"></a><br><sub>fix K nontax 3d AR 360dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-L-taxincl-3d-AR-320dp-1.0x-bar-crop.png"><img src="fix-L-taxincl-3d-AR-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix L taxincl 3d AR 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-L-taxincl-3d-AR-320dp-1.0x.png"><img src="fix-L-taxincl-3d-AR-320dp-1.0x.png" width="240"></a><br><sub>fix L taxincl 3d AR 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-L-taxincl-3d-AR-320dp-1.3x-bar-crop.png"><img src="fix-L-taxincl-3d-AR-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix L taxincl 3d AR 320dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-L-taxincl-3d-AR-320dp-1.3x.png"><img src="fix-L-taxincl-3d-AR-320dp-1.3x.png" width="240"></a><br><sub>fix L taxincl 3d AR 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-L-taxincl-3d-AR-360dp-1.0x-bar-crop.png"><img src="fix-L-taxincl-3d-AR-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix L taxincl 3d AR 360dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-L-taxincl-3d-AR-360dp-1.0x.png"><img src="fix-L-taxincl-3d-AR-360dp-1.0x.png" width="240"></a><br><sub>fix L taxincl 3d AR 360dp 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-L-taxincl-3d-AR-360dp-1.3x-bar-crop.png"><img src="fix-L-taxincl-3d-AR-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix L taxincl 3d AR 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-L-taxincl-3d-AR-360dp-1.3x.png"><img src="fix-L-taxincl-3d-AR-360dp-1.3x.png" width="240"></a><br><sub>fix L taxincl 3d AR 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-M-ar-320dp-1.3x-taxincl3d-left-nontax4d-right-bar-pair.png"><img src="fix-M-ar-320dp-1.3x-taxincl3d-left-nontax4d-right-bar-pair.png" width="240"></a><br><sub>fix M ar 320dp 1.3x taxincl3d left nontax4d right bar pair</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-N-duepay-3d-AR-320dp-1.0x-bar-crop.png"><img src="fix-N-duepay-3d-AR-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix N duepay 3d AR 320dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-N-duepay-3d-AR-320dp-1.0x.png"><img src="fix-N-duepay-3d-AR-320dp-1.0x.png" width="240"></a><br><sub>fix N duepay 3d AR 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-N-duepay-3d-AR-320dp-1.3x-bar-crop.png"><img src="fix-N-duepay-3d-AR-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix N duepay 3d AR 320dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-N-duepay-3d-AR-320dp-1.3x.png"><img src="fix-N-duepay-3d-AR-320dp-1.3x.png" width="240"></a><br><sub>fix N duepay 3d AR 320dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-N-duepay-3d-AR-360dp-1.0x-bar-crop.png"><img src="fix-N-duepay-3d-AR-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix N duepay 3d AR 360dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-N-duepay-3d-AR-360dp-1.0x.png"><img src="fix-N-duepay-3d-AR-360dp-1.0x.png" width="240"></a><br><sub>fix N duepay 3d AR 360dp 1.0x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-N-duepay-3d-AR-360dp-1.3x-bar-crop.png"><img src="fix-N-duepay-3d-AR-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix N duepay 3d AR 360dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-N-duepay-3d-AR-360dp-1.3x.png"><img src="fix-N-duepay-3d-AR-360dp-1.3x.png" width="240"></a><br><sub>fix N duepay 3d AR 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-O-nontax-2d-AR-320dp-1.0x-bar-crop.png"><img src="fix-O-nontax-2d-AR-320dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix O nontax 2d AR 320dp 1.0x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-O-nontax-2d-AR-320dp-1.0x.png"><img src="fix-O-nontax-2d-AR-320dp-1.0x.png" width="240"></a><br><sub>fix O nontax 2d AR 320dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-O-nontax-2d-AR-320dp-1.3x-bar-crop.png"><img src="fix-O-nontax-2d-AR-320dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix O nontax 2d AR 320dp 1.3x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-O-nontax-2d-AR-320dp-1.3x.png"><img src="fix-O-nontax-2d-AR-320dp-1.3x.png" width="240"></a><br><sub>fix O nontax 2d AR 320dp 1.3x</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-O-nontax-2d-AR-360dp-1.0x-bar-crop.png"><img src="fix-O-nontax-2d-AR-360dp-1.0x-bar-crop.png" width="240"></a><br><sub>fix O nontax 2d AR 360dp 1.0x bar crop</sub></td>
+<td align="center" width="33%"><a href="fix-O-nontax-2d-AR-360dp-1.0x.png"><img src="fix-O-nontax-2d-AR-360dp-1.0x.png" width="240"></a><br><sub>fix O nontax 2d AR 360dp 1.0x</sub></td>
+<td align="center" width="33%"><a href="fix-O-nontax-2d-AR-360dp-1.3x-bar-crop.png"><img src="fix-O-nontax-2d-AR-360dp-1.3x-bar-crop.png" width="240"></a><br><sub>fix O nontax 2d AR 360dp 1.3x bar crop</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-O-nontax-2d-AR-360dp-1.3x.png"><img src="fix-O-nontax-2d-AR-360dp-1.3x.png" width="240"></a><br><sub>fix O nontax 2d AR 360dp 1.3x</sub></td>
+<td align="center" width="33%"><a href="fix-P-before-vs-after-320dp-1.3x-nontax-3d-EN-bar-pair.png"><img src="fix-P-before-vs-after-320dp-1.3x-nontax-3d-EN-bar-pair.png" width="240"></a><br><sub>fix P before vs after 320dp 1.3x nontax 3d EN bar pair</sub></td>
+<td align="center" width="33%"><a href="fix-P-before-vs-after-360dp-1.0x-nontax-EN-bar-pair.png"><img src="fix-P-before-vs-after-360dp-1.0x-nontax-EN-bar-pair.png" width="240"></a><br><sub>fix P before vs after 360dp 1.0x nontax EN bar pair</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fix-R-regress-place-order-confirm-sheet-AR-320dp-1.3x.png"><img src="fix-R-regress-place-order-confirm-sheet-AR-320dp-1.3x.png" width="240"></a><br><sub>fix R regress place order confirm sheet AR 320dp 1.3x</sub></td>
 </tr>
 </table>
 
@@ -77,6 +251,111 @@
 - [`16-en-320dp-1.3x-nontax-2digit-ticket-shape-overflow.log`](16-en-320dp-1.3x-nontax-2digit-ticket-shape-overflow.log)
 - [`17-en-360dp-1.3x-nontax-2digit-dump.xml`](17-en-360dp-1.3x-nontax-2digit-dump.xml)
 - [`17-en-360dp-1.3x-nontax-2digit-overflow.log`](17-en-360dp-1.3x-nontax-2digit-overflow.log)
+- [`fix-A-nontax-3d-EN-320dp-1.0x-dump.xml`](fix-A-nontax-3d-EN-320dp-1.0x-dump.xml)
+- [`fix-A-nontax-3d-EN-320dp-1.0x-overflow.log`](fix-A-nontax-3d-EN-320dp-1.0x-overflow.log)
+- [`fix-A-nontax-3d-EN-320dp-1.3x-dump.xml`](fix-A-nontax-3d-EN-320dp-1.3x-dump.xml)
+- [`fix-A-nontax-3d-EN-320dp-1.3x-overflow.log`](fix-A-nontax-3d-EN-320dp-1.3x-overflow.log)
+- [`fix-A-nontax-3d-EN-360dp-1.0x-dump.xml`](fix-A-nontax-3d-EN-360dp-1.0x-dump.xml)
+- [`fix-A-nontax-3d-EN-360dp-1.0x-overflow.log`](fix-A-nontax-3d-EN-360dp-1.0x-overflow.log)
+- [`fix-A-nontax-3d-EN-360dp-1.3x-dump.xml`](fix-A-nontax-3d-EN-360dp-1.3x-dump.xml)
+- [`fix-A-nontax-3d-EN-360dp-1.3x-overflow.log`](fix-A-nontax-3d-EN-360dp-1.3x-overflow.log)
+- [`fix-B-taxincl-3d-EN-320dp-1.0x-dump.xml`](fix-B-taxincl-3d-EN-320dp-1.0x-dump.xml)
+- [`fix-B-taxincl-3d-EN-320dp-1.0x-overflow.log`](fix-B-taxincl-3d-EN-320dp-1.0x-overflow.log)
+- [`fix-B-taxincl-3d-EN-320dp-1.3x-dump.xml`](fix-B-taxincl-3d-EN-320dp-1.3x-dump.xml)
+- [`fix-B-taxincl-3d-EN-320dp-1.3x-overflow.log`](fix-B-taxincl-3d-EN-320dp-1.3x-overflow.log)
+- [`fix-B-taxincl-3d-EN-360dp-1.0x-dump.xml`](fix-B-taxincl-3d-EN-360dp-1.0x-dump.xml)
+- [`fix-B-taxincl-3d-EN-360dp-1.0x-overflow.log`](fix-B-taxincl-3d-EN-360dp-1.0x-overflow.log)
+- [`fix-B-taxincl-3d-EN-360dp-1.3x-dump.xml`](fix-B-taxincl-3d-EN-360dp-1.3x-dump.xml)
+- [`fix-B-taxincl-3d-EN-360dp-1.3x-overflow.log`](fix-B-taxincl-3d-EN-360dp-1.3x-overflow.log)
+- [`fix-C-duepay-3d-EN-320dp-1.0x-dump.xml`](fix-C-duepay-3d-EN-320dp-1.0x-dump.xml)
+- [`fix-C-duepay-3d-EN-320dp-1.0x-overflow.log`](fix-C-duepay-3d-EN-320dp-1.0x-overflow.log)
+- [`fix-C-duepay-3d-EN-320dp-1.3x-dump.xml`](fix-C-duepay-3d-EN-320dp-1.3x-dump.xml)
+- [`fix-C-duepay-3d-EN-320dp-1.3x-overflow.log`](fix-C-duepay-3d-EN-320dp-1.3x-overflow.log)
+- [`fix-C-duepay-3d-EN-360dp-1.0x-dump.xml`](fix-C-duepay-3d-EN-360dp-1.0x-dump.xml)
+- [`fix-C-duepay-3d-EN-360dp-1.0x-overflow.log`](fix-C-duepay-3d-EN-360dp-1.0x-overflow.log)
+- [`fix-C-duepay-3d-EN-360dp-1.3x-dump.xml`](fix-C-duepay-3d-EN-360dp-1.3x-dump.xml)
+- [`fix-C-duepay-3d-EN-360dp-1.3x-overflow.log`](fix-C-duepay-3d-EN-360dp-1.3x-overflow.log)
+- [`fix-D-nontax-2d-EN-320dp-1.0x-dump.xml`](fix-D-nontax-2d-EN-320dp-1.0x-dump.xml)
+- [`fix-D-nontax-2d-EN-320dp-1.0x-overflow.log`](fix-D-nontax-2d-EN-320dp-1.0x-overflow.log)
+- [`fix-D-nontax-2d-EN-320dp-1.3x-dump.xml`](fix-D-nontax-2d-EN-320dp-1.3x-dump.xml)
+- [`fix-D-nontax-2d-EN-320dp-1.3x-overflow.log`](fix-D-nontax-2d-EN-320dp-1.3x-overflow.log)
+- [`fix-D-nontax-2d-EN-360dp-1.0x-dump.xml`](fix-D-nontax-2d-EN-360dp-1.0x-dump.xml)
+- [`fix-D-nontax-2d-EN-360dp-1.0x-overflow.log`](fix-D-nontax-2d-EN-360dp-1.0x-overflow.log)
+- [`fix-D-nontax-2d-EN-360dp-1.3x-dump.xml`](fix-D-nontax-2d-EN-360dp-1.3x-dump.xml)
+- [`fix-D-nontax-2d-EN-360dp-1.3x-overflow.log`](fix-D-nontax-2d-EN-360dp-1.3x-overflow.log)
+- [`fix-E-nontax-4d-EN-320dp-1.0x-dump.xml`](fix-E-nontax-4d-EN-320dp-1.0x-dump.xml)
+- [`fix-E-nontax-4d-EN-320dp-1.0x-overflow.log`](fix-E-nontax-4d-EN-320dp-1.0x-overflow.log)
+- [`fix-E-nontax-4d-EN-320dp-1.3x-dump.xml`](fix-E-nontax-4d-EN-320dp-1.3x-dump.xml)
+- [`fix-E-nontax-4d-EN-320dp-1.3x-overflow.log`](fix-E-nontax-4d-EN-320dp-1.3x-overflow.log)
+- [`fix-E-nontax-4d-EN-360dp-1.0x-dump.xml`](fix-E-nontax-4d-EN-360dp-1.0x-dump.xml)
+- [`fix-E-nontax-4d-EN-360dp-1.0x-overflow.log`](fix-E-nontax-4d-EN-360dp-1.0x-overflow.log)
+- [`fix-E-nontax-4d-EN-360dp-1.3x-dump.xml`](fix-E-nontax-4d-EN-360dp-1.3x-dump.xml)
+- [`fix-E-nontax-4d-EN-360dp-1.3x-overflow.log`](fix-E-nontax-4d-EN-360dp-1.3x-overflow.log)
+- [`fix-F-duepay-4d-EN-320dp-1.0x-dump.xml`](fix-F-duepay-4d-EN-320dp-1.0x-dump.xml)
+- [`fix-F-duepay-4d-EN-320dp-1.0x-overflow.log`](fix-F-duepay-4d-EN-320dp-1.0x-overflow.log)
+- [`fix-F-duepay-4d-EN-320dp-1.3x-dump.xml`](fix-F-duepay-4d-EN-320dp-1.3x-dump.xml)
+- [`fix-F-duepay-4d-EN-320dp-1.3x-overflow.log`](fix-F-duepay-4d-EN-320dp-1.3x-overflow.log)
+- [`fix-F-duepay-4d-EN-360dp-1.0x-dump.xml`](fix-F-duepay-4d-EN-360dp-1.0x-dump.xml)
+- [`fix-F-duepay-4d-EN-360dp-1.0x-overflow.log`](fix-F-duepay-4d-EN-360dp-1.0x-overflow.log)
+- [`fix-F-duepay-4d-EN-360dp-1.3x-dump.xml`](fix-F-duepay-4d-EN-360dp-1.3x-dump.xml)
+- [`fix-F-duepay-4d-EN-360dp-1.3x-overflow.log`](fix-F-duepay-4d-EN-360dp-1.3x-overflow.log)
+- [`fix-G-ac3-EN-320dp-1.3x-labels-dump.xml`](fix-G-ac3-EN-320dp-1.3x-labels-dump.xml)
+- [`fix-G-ac3-EN-320dp-1.3x-labels-overflow.log`](fix-G-ac3-EN-320dp-1.3x-labels-overflow.log)
+- [`fix-G-ac3-EN-320dp-1.3x-labels2-dump.xml`](fix-G-ac3-EN-320dp-1.3x-labels2-dump.xml)
+- [`fix-G-ac3-EN-320dp-1.3x-labels2-overflow.log`](fix-G-ac3-EN-320dp-1.3x-labels2-overflow.log)
+- [`fix-H-nontax-4d-AR-320dp-1.0x-dump.xml`](fix-H-nontax-4d-AR-320dp-1.0x-dump.xml)
+- [`fix-H-nontax-4d-AR-320dp-1.0x-overflow.log`](fix-H-nontax-4d-AR-320dp-1.0x-overflow.log)
+- [`fix-H-nontax-4d-AR-320dp-1.3x-dump.xml`](fix-H-nontax-4d-AR-320dp-1.3x-dump.xml)
+- [`fix-H-nontax-4d-AR-320dp-1.3x-overflow.log`](fix-H-nontax-4d-AR-320dp-1.3x-overflow.log)
+- [`fix-H-nontax-4d-AR-360dp-1.0x-dump.xml`](fix-H-nontax-4d-AR-360dp-1.0x-dump.xml)
+- [`fix-H-nontax-4d-AR-360dp-1.0x-overflow.log`](fix-H-nontax-4d-AR-360dp-1.0x-overflow.log)
+- [`fix-H-nontax-4d-AR-360dp-1.3x-dump.xml`](fix-H-nontax-4d-AR-360dp-1.3x-dump.xml)
+- [`fix-H-nontax-4d-AR-360dp-1.3x-overflow.log`](fix-H-nontax-4d-AR-360dp-1.3x-overflow.log)
+- [`fix-I-duepay-4d-AR-320dp-1.0x-dump.xml`](fix-I-duepay-4d-AR-320dp-1.0x-dump.xml)
+- [`fix-I-duepay-4d-AR-320dp-1.0x-overflow.log`](fix-I-duepay-4d-AR-320dp-1.0x-overflow.log)
+- [`fix-I-duepay-4d-AR-320dp-1.3x-dump.xml`](fix-I-duepay-4d-AR-320dp-1.3x-dump.xml)
+- [`fix-I-duepay-4d-AR-320dp-1.3x-overflow.log`](fix-I-duepay-4d-AR-320dp-1.3x-overflow.log)
+- [`fix-I-duepay-4d-AR-360dp-1.0x-dump.xml`](fix-I-duepay-4d-AR-360dp-1.0x-dump.xml)
+- [`fix-I-duepay-4d-AR-360dp-1.0x-overflow.log`](fix-I-duepay-4d-AR-360dp-1.0x-overflow.log)
+- [`fix-I-duepay-4d-AR-360dp-1.3x-dump.xml`](fix-I-duepay-4d-AR-360dp-1.3x-dump.xml)
+- [`fix-I-duepay-4d-AR-360dp-1.3x-overflow.log`](fix-I-duepay-4d-AR-360dp-1.3x-overflow.log)
+- [`fix-J-ac3-AR-320dp-1.3x-labels-dump.xml`](fix-J-ac3-AR-320dp-1.3x-labels-dump.xml)
+- [`fix-J-ac3-AR-320dp-1.3x-labels-overflow.log`](fix-J-ac3-AR-320dp-1.3x-labels-overflow.log)
+- [`fix-J-ac3-AR-320dp-1.3x-labels2-dump.xml`](fix-J-ac3-AR-320dp-1.3x-labels2-dump.xml)
+- [`fix-J-ac3-AR-320dp-1.3x-labels2-overflow.log`](fix-J-ac3-AR-320dp-1.3x-labels2-overflow.log)
+- [`fix-K-nontax-3d-AR-320dp-1.0x-dump.xml`](fix-K-nontax-3d-AR-320dp-1.0x-dump.xml)
+- [`fix-K-nontax-3d-AR-320dp-1.0x-overflow.log`](fix-K-nontax-3d-AR-320dp-1.0x-overflow.log)
+- [`fix-K-nontax-3d-AR-320dp-1.3x-dump.xml`](fix-K-nontax-3d-AR-320dp-1.3x-dump.xml)
+- [`fix-K-nontax-3d-AR-320dp-1.3x-overflow.log`](fix-K-nontax-3d-AR-320dp-1.3x-overflow.log)
+- [`fix-K-nontax-3d-AR-360dp-1.0x-dump.xml`](fix-K-nontax-3d-AR-360dp-1.0x-dump.xml)
+- [`fix-K-nontax-3d-AR-360dp-1.0x-overflow.log`](fix-K-nontax-3d-AR-360dp-1.0x-overflow.log)
+- [`fix-K-nontax-3d-AR-360dp-1.3x-dump.xml`](fix-K-nontax-3d-AR-360dp-1.3x-dump.xml)
+- [`fix-K-nontax-3d-AR-360dp-1.3x-overflow.log`](fix-K-nontax-3d-AR-360dp-1.3x-overflow.log)
+- [`fix-L-taxincl-3d-AR-320dp-1.0x-dump.xml`](fix-L-taxincl-3d-AR-320dp-1.0x-dump.xml)
+- [`fix-L-taxincl-3d-AR-320dp-1.0x-overflow.log`](fix-L-taxincl-3d-AR-320dp-1.0x-overflow.log)
+- [`fix-L-taxincl-3d-AR-320dp-1.3x-dump.xml`](fix-L-taxincl-3d-AR-320dp-1.3x-dump.xml)
+- [`fix-L-taxincl-3d-AR-320dp-1.3x-overflow.log`](fix-L-taxincl-3d-AR-320dp-1.3x-overflow.log)
+- [`fix-L-taxincl-3d-AR-360dp-1.0x-dump.xml`](fix-L-taxincl-3d-AR-360dp-1.0x-dump.xml)
+- [`fix-L-taxincl-3d-AR-360dp-1.0x-overflow.log`](fix-L-taxincl-3d-AR-360dp-1.0x-overflow.log)
+- [`fix-L-taxincl-3d-AR-360dp-1.3x-dump.xml`](fix-L-taxincl-3d-AR-360dp-1.3x-dump.xml)
+- [`fix-L-taxincl-3d-AR-360dp-1.3x-overflow.log`](fix-L-taxincl-3d-AR-360dp-1.3x-overflow.log)
+- [`fix-N-duepay-3d-AR-320dp-1.0x-dump.xml`](fix-N-duepay-3d-AR-320dp-1.0x-dump.xml)
+- [`fix-N-duepay-3d-AR-320dp-1.0x-overflow.log`](fix-N-duepay-3d-AR-320dp-1.0x-overflow.log)
+- [`fix-N-duepay-3d-AR-320dp-1.3x-dump.xml`](fix-N-duepay-3d-AR-320dp-1.3x-dump.xml)
+- [`fix-N-duepay-3d-AR-320dp-1.3x-overflow.log`](fix-N-duepay-3d-AR-320dp-1.3x-overflow.log)
+- [`fix-N-duepay-3d-AR-360dp-1.0x-dump.xml`](fix-N-duepay-3d-AR-360dp-1.0x-dump.xml)
+- [`fix-N-duepay-3d-AR-360dp-1.0x-overflow.log`](fix-N-duepay-3d-AR-360dp-1.0x-overflow.log)
+- [`fix-N-duepay-3d-AR-360dp-1.3x-dump.xml`](fix-N-duepay-3d-AR-360dp-1.3x-dump.xml)
+- [`fix-N-duepay-3d-AR-360dp-1.3x-overflow.log`](fix-N-duepay-3d-AR-360dp-1.3x-overflow.log)
+- [`fix-O-nontax-2d-AR-320dp-1.0x-dump.xml`](fix-O-nontax-2d-AR-320dp-1.0x-dump.xml)
+- [`fix-O-nontax-2d-AR-320dp-1.0x-overflow.log`](fix-O-nontax-2d-AR-320dp-1.0x-overflow.log)
+- [`fix-O-nontax-2d-AR-320dp-1.3x-dump.xml`](fix-O-nontax-2d-AR-320dp-1.3x-dump.xml)
+- [`fix-O-nontax-2d-AR-320dp-1.3x-overflow.log`](fix-O-nontax-2d-AR-320dp-1.3x-overflow.log)
+- [`fix-O-nontax-2d-AR-360dp-1.0x-dump.xml`](fix-O-nontax-2d-AR-360dp-1.0x-dump.xml)
+- [`fix-O-nontax-2d-AR-360dp-1.0x-overflow.log`](fix-O-nontax-2d-AR-360dp-1.0x-overflow.log)
+- [`fix-O-nontax-2d-AR-360dp-1.3x-dump.xml`](fix-O-nontax-2d-AR-360dp-1.3x-dump.xml)
+- [`fix-O-nontax-2d-AR-360dp-1.3x-overflow.log`](fix-O-nontax-2d-AR-360dp-1.3x-overflow.log)
+- [`fix-measurements.md`](fix-measurements.md)
 - [`progress.md`](progress.md)
 
 ---
