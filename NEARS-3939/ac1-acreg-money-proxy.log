@@ -1,0 +1,26 @@
+# NEARS-3939 money-field proxy excerpt (own proxy :8140 -> own backend :8139, DB nears_qa_3939). payment_token redacted at capture; contact_number stripped.
+18:58:23 POST /api/v1/config/delivery-quote -> 200 rid=2eb59da4-55ac-4636-9f03-dc76aef55d5e REQ order_amount=5.6 module_id=1
+18:58:23 POST /api/v1/config/delivery-quote -> 200 rid=29be8290-f80e-45eb-8b0d-968061963b19 REQ order_amount=27.054 module_id=1
+18:58:33 POST /api/v1/config/delivery-quote -> 200 rid=24017c95-10ba-4de8-9c76-83b255ceaf15 REQ order_amount=5.6 module_id=1
+18:58:33 POST /api/v1/config/delivery-quote -> 200 rid=a69de859-bc1c-472f-899e-d0efb9e96df4 REQ order_amount=27.054 module_id=1
+18:59:33 POST /api/v1/customer/order/group/validate -> 200 rid=bb63e98d-b1ee-4c1f-906c-812bcf0e7ea3 REQ payment_method='digital_payment' order_amount=None RESP {}
+18:59:34 POST /api/v1/customer/order/group/place -> 200 rid=07252229-962e-41fa-aa93-8498d2f500a4 REQ payment_method='digital_payment' order_amount=None RESP {"total_amount": 34.28, "group_id": "c50abd70-707e-4be1-825f-892183f3754b", "order_ids": [91418, 91419], "group_placed": true, "orders": [{"order_id": 91418, "store_id": 1}, {"order_id": 91419, "store_id": 2}]}
+18:59:35 POST /api/v1/config/delivery-quote -> 200 rid=d9496b48-8ce2-4ed7-ae5c-d6669bd7b0ec REQ order_amount=34.28 module_id=1
+18:59:36 GET /payment-mobile?payment_token=<redacted>&group_id=c50abd70-707e-4be1-825f-892183f3754b&payment_method=paypal -> 302 rid=6d86432b-1cb2-4d7c-a113-0d70ea88509f
+19:02:20 POST /api/v1/config/delivery-quote -> 200 rid=9c26e182-d7d1-40db-9830-37e632ff1888 REQ order_amount=24.65 module_id=1
+19:02:21 POST /api/v1/config/delivery-quote -> 200 rid=b8d348a7-503e-4cfe-afce-76ca1bf8aa61 REQ order_amount=24.65 module_id=1
+19:03:10 POST /api/v1/customer/order/place -> 200 rid=17b3aa89-e9b3-4c18-8c1a-7d794a790f03 REQ payment_method=None order_amount=None RESP {"total_ammount": 28.4, "order_id": 91420}
+19:03:11 POST /api/v1/config/delivery-quote -> 200 rid=65b758ef-4436-4288-a7b1-bc49b7ce73bf REQ order_amount=28.4 module_id=1
+19:03:12 GET /payment-mobile?payment_token=<redacted>&order_id=91420&payment_method=paypal -> 302 rid=639e8d88-61e1-4838-b173-42e2470dd368
+19:03:30 POST /api/v1/config/delivery-quote -> 200 rid=0a3de5ac-cf38-42f1-9126-49033621934e REQ order_amount=24.65 module_id=1
+19:04:59 POST /api/v1/config/delivery-quote -> 200 rid=ca6c2a65-7b74-4a10-bb44-9fb7ff366c3c REQ order_amount=5.6 module_id=1
+19:04:59 POST /api/v1/config/delivery-quote -> 200 rid=2da09601-7cb2-45ec-8a1d-39f308ab8a2a REQ order_amount=27.054 module_id=1
+19:05:03 POST /api/v1/config/delivery-quote -> 200 rid=0bbf0d6b-fd05-416c-a854-7315ebba05c8 REQ order_amount=5.6 module_id=1
+19:05:04 POST /api/v1/config/delivery-quote -> 200 rid=16addbdc-8f63-4a19-851a-7268d70fea73 REQ order_amount=27.054 module_id=1
+19:05:26 POST /api/v1/customer/order/group/validate -> 200 rid=c96dd268-2ca0-4147-82d8-ffdd8025369c REQ payment_method='cash_on_delivery' order_amount=None RESP {}
+19:05:31 POST /api/v1/customer/order/group/place -> 200 rid=e9152df1-a143-4754-a47a-99d9be96550e REQ payment_method='cash_on_delivery' order_amount=None RESP {"total_amount": 34.28, "group_id": "dc493a78-7ee4-48fe-ac60-213cab28099c", "order_ids": [91423, 91424], "group_placed": true, "orders": [{"order_id": 91423, "store_id": 1}, {"order_id": 91424, "store_id": 2}]}
+19:05:31 GET /api/v1/customer/order/track?order_id=91423&contact_number=<stripped> -> 200 rid=7eeefe01-d3e8-4ab8-bb56-1ddc30ac5362
+19:05:32 GET /api/v1/customer/order/group/details?group_id=dc493a78-7ee4-48fe-ac60-213cab28099c -> 200 rid=d5cebb2a-dd4e-4fb6-950a-b02f5865655e
+19:05:33 GET /api/v1/customer/order/track?order_id=91423 -> 200 rid=676ced06-886f-4a76-8d8e-77701a8680c3
+19:05:34 GET /api/v1/customer/order/track?order_id=91424 -> 200 rid=c95c033f-8077-405c-bed3-f00040686750
+# (tracking-screen 15s polling of track/group-details after 19:05:34 omitted)
