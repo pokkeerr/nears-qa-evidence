@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3945
 
-**Cycle 2 delta re-QA PASS on bb4beb313 (rebased onto ac8e2f40d)**
+**Delta re-QA #3 PASS on 28b181d57: unresolved group fee -> 0 estimates; Retry -> one getCashback 36.28 == Total; free-fee group 34.28; single-store 28.4; backstop 47/47**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -31,8 +31,13 @@
 - [`c2-ac1-confirm-sheet.txt`](c2-ac1-confirm-sheet.txt)
 - [`c2-ac2-group-checkout-price-rows.txt`](c2-ac2-group-checkout-price-rows.txt)
 - [`c2-ac2-group-confirm-sheet.txt`](c2-ac2-group-confirm-sheet.txt)
+- [`c3-app-log-fail-lines.log`](c3-app-log-fail-lines.log)
+- [`c3-group-retry-resolved-checkout-rows.txt`](c3-group-retry-resolved-checkout-rows.txt)
+- [`c3-group-unresolved-checkout-rows.txt`](c3-group-unresolved-checkout-rows.txt)
+- [`c3-money-proxy.log`](c3-money-proxy.log)
 - [`followup-group-place-transport-drop-after-commit.log`](followup-group-place-transport-drop-after-commit.log)
 - [`followup-search-addtocart-semantics-assert.log`](followup-search-addtocart-semantics-assert.log)
+- [`instrument-moneyproxy-c3-failquote.py`](instrument-moneyproxy-c3-failquote.py)
 - [`instrument-moneyproxy.py`](instrument-moneyproxy.py)
 - [`money-proxy.log`](money-proxy.log)
 - [`progress.md`](progress.md)
