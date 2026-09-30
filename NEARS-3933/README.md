@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3933
 
-**PASS - AC1-4 RED/GREEN, private DB, emulator-5554**
+**PASS - rebased 05534f2c8 delta re-QA**
 
-**22 screenshot(s).** Click any thumbnail for full resolution.
+**30 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -33,14 +33,26 @@
 <tr>
 <td align="center" width="33%"><a href="green-followup-tomorrow-slot0-reopen.png"><img src="green-followup-tomorrow-slot0-reopen.png" width="240"></a><br><sub>green followup tomorrow slot0 reopen</sub></td>
 <td align="center" width="33%"><a href="green-scale13-tomorrow.png"><img src="green-scale13-tomorrow.png" width="240"></a><br><sub>green scale13 tomorrow</sub></td>
-<td align="center" width="33%"><a href="red-ac1-open-initial-today-selected.png"><img src="red-ac1-open-initial-today-selected.png" width="240"></a><br><sub>red ac1 open initial today selected</sub></td>
+<td align="center" width="33%"><a href="rebased-ac1-open0.png"><img src="rebased-ac1-open0.png" width="240"></a><br><sub>rebased ac1 open0</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="rebased-ac1-reopen-cancel.png"><img src="rebased-ac1-reopen-cancel.png" width="240"></a><br><sub>rebased ac1 reopen cancel</sub></td>
+<td align="center" width="33%"><a href="rebased-ac1-reopen-drag.png"><img src="rebased-ac1-reopen-drag.png" width="240"></a><br><sub>rebased ac1 reopen drag</sub></td>
+<td align="center" width="33%"><a href="rebased-ac1-tomorrow.png"><img src="rebased-ac1-tomorrow.png" width="240"></a><br><sub>rebased ac1 tomorrow</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="rebased-ac2b-reopen.png"><img src="rebased-ac2b-reopen.png" width="240"></a><br><sub>rebased ac2b reopen</sub></td>
+<td align="center" width="33%"><a href="rebased-ac2b-today-tab.png"><img src="rebased-ac2b-today-tab.png" width="240"></a><br><sub>rebased ac2b today tab</sub></td>
+<td align="center" width="33%"><a href="rebased-ac3-today-tab.png"><img src="rebased-ac3-today-tab.png" width="240"></a><br><sub>rebased ac3 today tab</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="rebased-ac3b-today-tab.png"><img src="rebased-ac3b-today-tab.png" width="240"></a><br><sub>rebased ac3b today tab</sub></td>
+<td align="center" width="33%"><a href="red-ac1-open-initial-today-selected.png"><img src="red-ac1-open-initial-today-selected.png" width="240"></a><br><sub>red ac1 open initial today selected</sub></td>
 <td align="center" width="33%"><a href="red-ac1-reopen-tomorrow-still-selected.png"><img src="red-ac1-reopen-tomorrow-still-selected.png" width="240"></a><br><sub>red ac1 reopen tomorrow still selected</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="red-ac1-sheet-tomorrow-tab-tapped.png"><img src="red-ac1-sheet-tomorrow-tab-tapped.png" width="240"></a><br><sub>red ac1 sheet tomorrow tab tapped</sub></td>
 <td align="center" width="33%"><a href="red-ac3-today-tab-no-slot-selected.png"><img src="red-ac3-today-tab-no-slot-selected.png" width="240"></a><br><sub>red ac3 today tab no slot selected</sub></td>
-</tr>
-<tr>
 <td align="center" width="33%"><a href="red-ac3-tomorrow-last-slot.png"><img src="red-ac3-tomorrow-last-slot.png" width="240"></a><br><sub>red ac3 tomorrow last slot</sub></td>
 </tr>
 </table>
@@ -53,6 +65,11 @@
 - [`green-schedule-restored-and-clamp-lines.log`](green-schedule-restored-and-clamp-lines.log)
 - [`private-db-orders-created.txt`](private-db-orders-created.txt)
 - [`progress.md`](progress.md)
+- [`rebased-fail-err-lines.log`](rebased-fail-err-lines.log)
+- [`rebased-flutter-logcat-full.log`](rebased-flutter-logcat-full.log)
+- [`rebased-private-db-orders.txt`](rebased-private-db-orders.txt)
+- [`rebased-progress.md`](rebased-progress.md)
+- [`rebased-schedule-restored-and-clamp-lines.log`](rebased-schedule-restored-and-clamp-lines.log)
 - [`red-ac2-order-91416-db.txt`](red-ac2-order-91416-db.txt)
 - [`red-ac2-place-and-surge-calls.log`](red-ac2-place-and-surge-calls.log)
 - [`red-ac3-rangeerror-fail.log`](red-ac3-rangeerror-fail.log)
