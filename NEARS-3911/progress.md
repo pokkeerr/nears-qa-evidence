@@ -1,0 +1,17 @@
+# NEARS-3911 QA progress (fix_cycle 0)
+Backend: /Users/Apple/Projects/nears-NEARS-3911-zone-payment-gate-card @ 51ddc918f, :8113, DB nears_qa_3911
+Device: emulator-5556 (AVD NEARS_2411_QA), pkg com.izzes.nears.nears_nears_3911_zone_payment_gate_card
+- AC1 validate-row (digital): PASS - flag OFF; basket Morning Mart(z2)+Faast Layn(z400); zone2 dp flipped 0 after cache; Paypal->Place->Confirm; validate 200 store_ids=20 reasons=digital_unavailable_in_zone; card under Morning Mart only; Place clickable=false; CTA 176x48dp. log: 1x [FAIL] group validate rejected reasons=digital_unavailable_in_zone
+- AC2 live: PASS - CTA "Change Payment Method" opened payment sheet; dismiss (Back; scrim is BARRIER) -> card stays, Place clickable=false; pick Cash -> card cleared, Place clickable=true, log "[INFO] kept zone payment refusal dropped, payment method moved"; next Place re-ran group/validate (fresh [NET] POST) -> new refusal.
+- AC1 validate-row (cash): PASS - zone400 cod flipped 0 after cache; Cash->Place->Confirm; validate 200 store_ids=4009 reasons=cash_unavailable_in_zone; card "Cash on delivery isn't available for this store's area" under Faast Layn only; Place disabled. 0 orders (max id 91415).
+- AC2 control (store_closed not cleared by method change): live UNREACHABLE cheaply - cart/add refuses closed-store items (403 store_closed); cite unit test.
+- Pre-check (scope 4): PASS - fresh zone data, multi-store basket: z400 cod=0 -> Cash not in sheet; reversed (z2 cod=0) -> Cash not in sheet (one orientation is necessarily the non-lead zone = new narrowing); single-store Faast (z400 cod=1) -> Cash offered (unchanged).
+- AC4(b) single-store all off (z400 cod=0 dp=0, wallet_status=0, offline_payment_status=0, copy): PASS - row "No payment method is available for this basket" (key payment_no_method_available) visible on open after scroll, no sheet/scrim/toast, no cod_cap line; Change/row tap -> no toast, no sheet, log [INFO] payment sheet not opened; [FAIL] "no payment method available for the basket" once.
+- AC4(a) multi-store all off (z2 cod=0, z400 cod=0 dp=0, wallet/offline off): PASS - row visible on open, no sheet; [FAIL] once. Surface B red icon+text on bare bg.
+- AC3 AR: PASS - all 5 AR strings rendered live exactly (cash/digital titles, body, CTA, no-method row); RTL pixel mirror: card title EN x0=165 -> AR x1=1179 (=1344-165), CTA EN x1=1269 -> AR x0=75; AC4 row red extent EN x0=50 -> AR x1=1293 (1px). CTA 176x48dp EN / 98x48dp AR.
+- AC2 in AR: card cleared on Cash pick, Place re-enabled; re-validate -> cash card store 4009.
+- Unit: 5 NEARS-3911 test files 93/93 pass (incl. place-403 re-validate->card, store_closed/min_order/cod_cap controls).
+- Regression min_order (AR): PASS - store 20 minimum_order=100 (copy) -> validate reasons=minimum_order -> title-only card "لم يتم الوصول إلى الحد الأدنى للطلب", CTA "عدّل السلة", no raw @; AC2 CONTROL LIVE: Paypal->Cash kept card, Place disabled, no "kept zone payment refusal dropped" line.
+- D6 flag ON (copy cross_module_basket=1, read back True via /config): mixed basket grocery(4009 z400)+grocery(20 z2)+pharmacy(57 z2); probe cash_removed=true valid=true; Paypal, z400 dp flipped 0 -> validate store_ids=4009 digital_unavailable_in_zone -> AR card under Faast only, Place disabled. AC1 flag ON PASS. 0 orders.
+- D6 flag OFF: all of AC1/AC2/AC4/pre-check above ran with copy cross_module_basket=0 (read back False via /config).
+- Full suite: 7765 pass / 25 fail == baseline identity (0 new, 0 fixed).
