@@ -1,0 +1,1 @@
+Scripts: h.py (harness), sweep.py, group.py, group5.py, mix.py, fixtures.sql. Token file NOT included. Server log window: 313 lines 06:08-06:12; 228 ERROR = Firebase/FCM token failures (dead proxy on purpose), 0 SQL/TypeError.
