@@ -1,0 +1,9 @@
+NEARS-3936 task_bug: unresolved bill row store name breaks MID-WORD at the advisor-dls deciding cell (320dp x 1.3x font)
+Device: emulator-5558 (Pixel_10_Pro_3 AVD, 1344x2992 @480dpi), override `wm size 960x2992` (=320dp) + `settings put system font_scale 1.3`; light mode.
+Setup: group basket Fresh local / Fresh supermarket / Online market; Fresh supermarket's delivery-quote forced 500 (proxy, order_amount 9.46).
+EN: store name renders "Fresh su" / "permar..." (2 lines, ellipsis) -> see ac2-perstore-quote-fail-en-320dp-1_3x.png
+AR: same "Fresh su" / "...permar"                                   -> see ac3-ar-320dp-1_3x-row-visible-no-toast.png
+Spec pass criteria (docs/design/NEARS-3936-group-fee-failure-row-spec.md Surface 1 s3 + RTL/a11y): "no mid-word break ... store name stays readable (2 lines, ellipsis on a 3rd). Fail on either locale -> this layout does not clear the floor" -> conditional fallback + advisor-product re-show.
+Cause (read, not changed): checkout_group_fee_breakdown.dart _unresolvedLine -> store name is Expanded(flex: 2) vs the Flexible(flex: 3) error/Retry Wrap, leaving ~2/5 of the row for the name; "supermarket" at bodyMd x1.3 exceeds that width, so Text breaks inside the word.
+Passing parts of the same cell: no overflow in the breakdown (no RenderFlex error attributed to checkout_group_fee_breakdown.dart), "Something went wrong" wraps on a word boundary, Retry whole on its own Wrap run, Retry node 389x132px = 130x44dp.
+Dumps: L1b-en-320-13x.xml, L2-ar-320-13x.xml

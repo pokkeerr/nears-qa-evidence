@@ -1,0 +1,7 @@
+NEARS-3936 finding (advisor-product condition 4): a permanently unresolvable store offers ONLY a Retry that can never work, on checkout
+Instrument: proxy returns 403 for GET /api/v1/stores/details/13 on every call (out-of-zone shape), private DB nears_qa_3936.
+Checkout (p1-403-top.xml): orientation row "Fresh supermarket, Something went wrong, —"; Review Items store header "Fresh supermarket" is NOT clickable; no remove/edit-cart control, no reason copy.
+Bill (p1-403-after-retry.xml): only actionable node for the store = "Fresh supermarket, Something went wrong, Retry" [clickable]; Place Order [disabled].
+Retry tapped 19:15:37 -> GET /stores/details/13 INJ403 again -> row returns, Place still disabled; app log: exactly one
+  [FAIL] endpoint=/api/v1/stores/details/ http_status=null type=ApiFailure msg="checkout: group store detail unresolved store_id=13"
+Recovery exists only off-screen: system/app-bar Back -> Basket -> "Remove Sugar 1kg" -> Place Order unblocks (e2-after-remove-403-*.xml). The customer is not told the store cannot be delivered, nor pointed at the Basket.
