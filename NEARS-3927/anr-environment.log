@@ -1,0 +1,51 @@
+# NEARS-3927 QA: ANR observed 07:25:27 on emulator-5554 (AR, font_scale 1.3) after: favourite Chef Salad on basket rail -> BACK -> Profile tab
+2026-09-30 07:25:51 data_app_anr (compressed text, 23844 bytes)
+SystemUptimeMs: 123091854
+Process: com.izzes.nears.nears_nears_3927_row_host_text_scale_siz
+PID: 25323
+UID: 10252
+Frozen: false
+Timestamp: 2026-09-30 07:25:27.127+0400
+Flags: 0x38e83e46
+Package: com.izzes.nears.nears_nears_3927_row_host_text_scale_siz v3 (3.8.0)
+Foreground: Yes
+Process-Runtime: 1531704
+Activity: com.izzes.nears.nears_nears_3927_row_host_text_scale_siz/com.izzes.nears.MainActivity
+ErrorId: d796712a-f770-45ba-abea-9630df216297
+Build: google/sdk_gphone16k_arm64/emu64a16k:17/CP21.260330.005/15181570:user/dev-keys
+PageSize: 16384
+DefaultScreen-State: ON
+Keyguard-Locked: false
+Loading-Progress: 1.0
+Dropped-Count: 0
+
+----- Output from /proc/pressure/memory -----
+some avg10=2.53 avg60=0.45 avg300=0.09 total=13849638
+full avg10=2.35 avg60=0.42 avg300=0.08 total=7432927
+----- End output from /proc/pressure/memory -----
+----- Output from /proc/pressure/cpu -----
+some avg10=62.20 avg60=32.79 avg300=20.41 total=1590869316
+full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+----- End output from /proc/pressure/cpu -----
+----- Output from /proc/pressure/io -----
+some avg10=27.76 avg60=44.58 avg300=54.87 total=107817687240
+full avg10=2.73 avg60=25.90 avg300=39.37 total=105500948828
+----- End output from /proc/pressure/io -----
+
+"main" prio=5 tid=1 Native
+  | group="main" sCount=1 ucsCount=0 flags=1 obj=0x715dcc80 self=0xb40072ed20020010
+  | sysTid=25323 nice=-10 cgrp=top-app sched=0/0 handle=0x72ee161e5048
+  | state=R schedstat=( 254548707573 134914067109 69807 ) utm=22910 stm=2543 core=1 HZ=100
+  | stack=0x7fffcc2b0000-0x7fffcc2b2000 stackSize=8176KB
+  | held mutexes=
+  native: #00 pc 00012338  [anon:dart-code] (???)
+  at android.os.MessageQueue.nativePollOnce(Native method)
+  at android.os.MessageQueue.nextLegacy(MessageQueue.java:871)
+  at android.os.MessageQueue.next(MessageQueue.java:773)
+  at android.os.Looper.loopOnce(Looper.java:232)
+  at android.os.Looper.loop(Looper.java:397)
+  at android.app.ActivityThread.main(ActivityThread.java:9523)
+  at java.lang.reflect.Method.invoke(Native method)
+  at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:575)
+  at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:939)
+# host: 4 emulators booted, emulator top showed 188% iow; app CPU idle (2.9%) after the event, VM main isolate running/idle, dialog re-armed after every Wait

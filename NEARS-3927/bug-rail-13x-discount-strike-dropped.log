@@ -1,0 +1,13 @@
+# NEARS-3927 QA — AC3: cart suggestion rail, discounted row card in '+' state, strike not drawn at 1.3x
+# a11y labels (uiautomator), emulator-5554 448dp wide, same card Chicago Style Cheese (item 542, 12% OFF, Spice Route Kitchen, food = rating meta)
+AR 1.0x: [369,1470][1299,1860] "12% OFF\nSPICE ROUTE KITCHEN (ABU DHABI)\nChicago Style Cheese\n4.0\n(1)\nد.إ. 37.99\nد.إ. 43.17"   <- strike present
+AR 1.3x: [369,1587][1299,2136] "12% OFF\nSPICE ROUTE KITCHEN (ABU DHABI)\nChicago Style Cheese\n4.0\n(1)\nد.إ. 37.99"               <- strike absent
+EN 1.3x: [45,1596][975,2127]   "12% OFF\nSPICE ROUTE KITCHEN (ABU DHABI)\nChicago Style Cheese\n4.0\n(1)\n37.99 AED"                <- strike absent
+Same item in item_view (Favourites, full-width row) at 1.3x AR: "...د.إ. 37.99\nد.إ. 43.17" (strike drawn); EN: "37.99 AED\n43.17 AED"
+Logs: 0 overflowed / 0 [ERR] in the window — graceful drop, not a clip.
+Mechanism (read, packages/nears_dls/lib/components/nitemcard/n_item_card.dart _rowAddPrice/_discountRowWidths/_RenderRowBody):
+  the side-by-side decision is taken at decisionWidth = infoWidth (full info column), the price then renders at
+  _inlinePriceWidth(infoWidth, add 44dp); strike width left beside the full-size price < _strikeFloor -> _strikeOrNull == null
+  -> singleLine() -> discount pill present -> current price only (NEARS-3903 W2). Width-driven: the rail card width (300dp)
+  is unchanged by this fix; the new host height (bottom whitespace visible) is not the limiter.
+Test-vs-device: row_card_host_text_scale_test.dart expects the strike drawn for non-in-cart discounted rows at 1.3x (test fonts); device fonts drop it.
