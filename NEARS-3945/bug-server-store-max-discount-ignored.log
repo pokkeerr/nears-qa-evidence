@@ -1,0 +1,13 @@
+# NEARS-3945 QA - pre-existing (not in diff): server ignores store discount max_discount; checkout Total != charge
+# Private copy nears_qa_3945, own backend :8101 (worktree @ 0204da695). Seeded on copy: discounts id=1 (store 1, 10% percent) max_discount 999999.00 -> 1.00.
+# Basket: Bell Peppers id=106 x1 (store 1, price 21.19, own discount 0%, NOT flash). Non-flash path is unchanged by the NEARS-3945 diff.
+## Checkout Order Summary (client PricingService, cap applied):
+Order Summary|Subtotal|⁦21.19 AED⁩|Discount|- ⁦1.00 AED⁩|VAT|+ ⁦0.95 AED⁩|Delivery Fee|Free|By placing this order, you agree to our |Privacy Policy|Terms & Conditions|Refund Policy|You got ⁦1.00 AED⁩ additional discount|Total Amount|2|1|1|4| AED|Place Order|
+   -> Total Amount 21.14 (digits 2,1,.,1,4)
+## Confirm sheet (server get-Tax re-price):
+Subtotal|⁦21.19 AED⁩|Discount|- ⁦2.12 AED⁩|VAT|+ ⁦0.95 AED⁩|Total Amount|⁦20.02 AED⁩|
+## Proxy (money fields only):
+{"t": "20:31:15", "m": "POST", "path": "/api/v1/customer/order/get-Tax", "status": 200, "rid": "1bb22571-e480-49f8-b361-5efc32da45bc", "req": {"payment_method": "cash_on_delivery", "order_amount": "21.19", "order_type": "delivery", "store_id": "1"}, "resp": {"tax_amount": "0.95355", "tax_included": "0"}}
+{"t": "20:31:28", "m": "POST", "path": "/api/v1/customer/order/place", "status": 200, "rid": "01c7c816-bb70-4577-b041-9b55a5dd7c9c", "req": {"payment_method": "cash_on_delivery", "order_amount": "21.14", "order_type": "delivery", "store_id": "1"}, "resp": {"total_ammount": "20.02", "order_id": "91422", "message": "Order placed successfully"}}
+## DB (copy): orders 91422 order_amount 20.02 store_discount_amount 2.12 total_tax_amount 0.95
+## Mechanism: Admin/app/Services/Order/OrderDetailBuilder.php ~L604-608: admin_discount = Helpers::checkAdminDiscount(...max_discount...) = 1.00 (capped), then discount = max(store_discount_amount /*per-line uncapped 10% = 2.12*/, admin_discount) = 2.12 -> cap never binds. get-Tax taxes the uncapped net too (0.95355 = 5% of 19.071).
