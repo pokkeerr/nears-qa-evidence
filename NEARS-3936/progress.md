@@ -27,3 +27,26 @@
 
 Automated: flutter test test/features/checkout test/features/cart -> 1543 passed.
 Orders placed: 0 (proxy safety-net 500 on /order/place + /order/group/place; 0 place calls observed).
+
+# Fix cycle 1 (delta re-QA) - emulator-5556, UserApp @ d0cc1dcd8 (qa-run.sh, API_HOST=10.0.2.2:8137), backend /Users/Apple/Projects/nears-NEARS-3936-group-fee-failure-row @ d0cc1dcd8 :8136 on nears_qa_3936, proxy :8137 (qaproxy.py)
+
+| # | Check | Result | Evidence |
+|---|---|---|---|
+| AC1 | Surge 500 all stores, default size EN | PASS - per unresolved store TWO button nodes `<store>, Something went wrong, Retry` (132x132px=44x44dp) + `<store>, Edit Cart` (174x132px=58x44dp), combined `Delivery Fees, Something went wrong`, self-delivery Test Store resolved 0.00, Place Order clickable=false; 3 injected -> 3 [FAIL] get-surge-price | v3-ac1-surge-bill-en.xml/.png |
+| AC2 | Retry success (fault cleared) | PASS - 1 dispatch (3 surge calls), 1.00+1.00 -> Delivery Fees 2.00, Place enabled | v3-ac2-retry-success.xml |
+| AC2' | Per-store fault: store-detail 403 store 13 | PASS - only store 13 unresolved, Fresh local 1.00, Place disabled; Retry re-dispatches once, stays blocked; 2x403 -> 2x [FAIL] 'group store detail unresolved store_id=13' | v3-c3-403-*.xml |
+| C1 | 320dp x1.3 EN+AR, long name (store 13 renamed on copy) | PASS - EN 'Fresh Supermarket Al / Barsha' breaks between words; AR 'سوبرماركت فريش البرشاء' one line; Retry + Edit Cart whole, same line, end-aligned (LTR end x=855 == resolved amount end; RTL Edit Cart left x=105 == resolved amount x=105); tap targets EN 46x44/75x44dp, AR 78x44/64x44dp; no overflow from checkout_group_fee_breakdown.dart | v3-c1-en-ar-320-13x-feebreakdown.png, v3-c1-*-320-13x.xml/.png |
+| C2 | Edit Cart -> Basket -> Back, nothing removed | PASS - Basket opened, 0 surge/quote calls after the tap; back on Checkout both stores still unresolved, Place Order clickable=false | v3-c2-*.xml |
+| C3 | Permanent 403: Edit Cart -> identify -> remove | PASS - Basket shows 'Fresh Supermarket Al Barsha' with 'Delivery Fee, Something went wrong' + ETA '—'; Remove Sparkling Water -> Back -> Delivery Fees 1.00, Place Order clickable=true | v3-c3-403-basket.xml, v3-c3-403-after-remove.xml |
+| AC3 | No toast in these flows | PASS - 0 toast-like nodes in 10 v3 dumps; positive control: 'Removed from cart' snackbar did appear in the tree | v3-*.xml |
+| X | Coupon at free-delivery threshold (routed -001 C3) | PRE-EXISTING mismatch (base bb4fc8927): client Free 0.00, server eligibleAmount 20-2=18 < 19 -> charges 1.00 | bug-coupon-at-threshold-group-fee-shown-free-server-charges.log |
+| R | DLS n_item_card.dart:1964 bottom overflow 15/19px at 320dp/1.3x | regression_bug (pre-existing, packages untouched) | bug-dls-nitemcard-bottom-overflow-320dp-1_3x.log |
+
+Orders placed: 0 (place endpoints 500 via proxy safety net; none called).
+
+## Guide notes (parked here; do not edit the shared guide from this worktree)
+- The copy (and the shared DB) carry `admin_free_delivery_status=1 / free_delivery_to_all_store`: every group fee is 0.00 and a surge failure correctly does NOT block (unresolved needs fee > 0). Set status 0 on the COPY + `DB_DATABASE=<copy> php artisan cache:clear`, then hot-restart the app (config is cached): `kill -USR2 <flutter_tools run pid>` works for a backgrounded `qa-run.sh`.
+- After a hot restart user 6 (`customer@nears.com`) gets an old "Your payment was Incomplete" sheet (#91404): tap `Close` only (never `Cancel Order` / `Pay Now` / `Switch to Cash On Delivery`).
+- Coupon chips in the checkout coupon sheet apply on tap (no separate `Apply` press needed).
+- Store names in Checkout come from the cart load: after switching language, reload via Home -> `Pharmacy` -> `Grocery` -> Basket to see the translated name.
+- Settings on Profile sits partly under the bottom bar at 320dp; resolve its live bounds and tap the visible strip.

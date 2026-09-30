@@ -1,0 +1,20 @@
+NEARS-3936 QA (fix cycle 1) - routed probe advisor-product -001 C3. PRE-EXISTING (present at base bb4fc8927), not caused by NEARS-3936.
+Env: private copy nears_qa_3936, backend /Users/Apple/Projects/nears-NEARS-3936-group-fee-failure-row @ d0cc1dcd8 :8136, emulator-5556, 0 orders placed.
+Copy config (reverted after): admin_free_delivery_status=1, admin_free_delivery_option=free_delivery_by_order_amount, free_delivery_over=19.
+Basket (module 1, group, 2 stores): Fresh local (store 12) 5 x 4.00 = 20.00; Test Store (35) 10.00. Coupon NEARS2924PCT (10% default, min_purchase 20).
+
+CLIENT (live a11y dump v3-x-threshold-coupon.xml):
+  'NEARS2924PCT · 3.00 AED Off'   'Coupon Discount - 3.00 AED'   'Applied to Fresh local'  'Applied to Test Store'
+  'Delivery Fees 0.00 AED'   'Fresh local 0.00 AED'   'Test Store 0.00 AED'
+  After the coupon apply (GET /api/v1/coupon/apply 200) NO delivery-quote re-fetch; per-store fee input = groups[i].subTotal (20.0) - proxy log:
+  POST /api/v1/config/delivery-quote {"zone_id":2,"module_id":1,"order_amount":20.0,"distance":0.954}
+  UserApp/lib/features/checkout/controllers/pricing_summary_controller.dart:1571/1578/1586 orderAmount: groups[i].subTotal (coupon not subtracted)
+  UserApp/lib/features/cart/domain/services/pricing_service.dart:819-824 free_delivery_by_order_amount && orderAmount >= freeDeliveryOver -> 0
+
+SERVER (code-derived with the copy's numbers; group validate is a rollback dry-run whose non-mixed response carries no amounts):
+  Admin/app/Services/Order/OrderPlacementService.php:615-617 delivery_charge = getDeliveryCharge(distance) -> 1.00 (live delivery-quote for store 12 returned delivery_charge 1)
+  :870 eligibleAmount = product_price + addons - coupon_discount_amount - store_discount ... = 20.00 - 2.00 (10% of 20) = 18.00
+  :872 free_delivery_by_order_amount && 18.00 >= 19 -> FALSE -> delivery_charge stays 1.00
+Result: checkout shows Fresh local delivery 0.00 / Total excludes it; placement would charge 1.00 for that store (COD total higher than shown).
+Without the coupon the same basket is parity (client 20>=19 Free, server 20>=19 Free) - v3-x-threshold-nocoupon.xml.
+Latent on the shared DB today: its admin_free_delivery_option is free_delivery_to_all_store (not by_order_amount).
