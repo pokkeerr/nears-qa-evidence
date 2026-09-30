@@ -1,0 +1,157 @@
+=================== S2: cancelled child (AC1) ===================
+PLACED via POST /api/v1/customer/order/group/place: group=b2222097-e3b0-4965-871c-104d11efeb3a children=91812,91813 (http placement, private DB)
+--- DB [S2 before (child 91812 canceled, sibling 91813 failed/digital; callback pre-set to ORIGINAL)] group=b2222097-e3b0-4965-871c-104d11efeb3a
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91812	canceled	unpaid	digital_payment	https://orig.invalid/original-cb	4.00	0.000
+91813	failed	unpaid	digital_payment	https://orig.invalid/original-cb	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+X-Request-Id sent: dc39581b-c192-42c1-abd5-5b05b0870700
+GET /payment-mobile?group_id=b2222097-e3b0-4965-871c-104d11efeb3a&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=dc39581b-c192-42c1-abd5-5b05b0870700
+  -> HTTP/1.1 403 Forbidden  Location:   x-request-id-echo: dc39581b-c192-42c1-abd5-5b05b0870700
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+--- DB [S2 after (expect 403 order-state, count 0, callbacks still original)] group=b2222097-e3b0-4965-871c-104d11efeb3a
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91812	canceled	unpaid	digital_payment	https://orig.invalid/original-cb	4.00	0.000
+91813	failed	unpaid	digital_payment	https://orig.invalid/original-cb	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+
+=================== S3: COD-switched child, payment_method=cash_on_delivery (AC2) ===================
+PLACED via POST /api/v1/customer/order/group/place: group=fdaac7ed-a0d4-4fb0-9871-4a2e34f070a5 children=91814,91815 (http placement, private DB)
+--- DB [S3 before (child 91814 switched to cash_on_delivery/pending; sibling failed/digital)] group=fdaac7ed-a0d4-4fb0-9871-4a2e34f070a5
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91814	pending	unpaid	cash_on_delivery	NULL	4.00	0.000
+91815	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+GET /payment-mobile?group_id=fdaac7ed-a0d4-4fb0-9871-4a2e34f070a5&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=3c1ad0e8-e0ff-46aa-b9ec-44849d28b68a
+  -> HTTP/1.1 403 Forbidden  Location:   x-request-id-echo: 3c1ad0e8-e0ff-46aa-b9ec-44849d28b68a
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+--- DB [S3 after (expect 403, count 0, child unchanged: still pending/cash_on_delivery)] group=fdaac7ed-a0d4-4fb0-9871-4a2e34f070a5
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91814	pending	unpaid	cash_on_delivery	NULL	4.00	0.000
+91815	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+
+=================== S3b: partial_payment child whose unpaid order_payments row flipped to cash_on_delivery ===================
+PLACED via POST /api/v1/customer/order/group/place: group=c08cf028-bdc7-4b1b-bf8f-b69381e0f9f7 children=91816,91817 (http placement, private DB)
+--- DB [S3b before (child 91816 partial_payment, wallet 2.00 paid + remainder row unpaid cash_on_delivery)] group=c08cf028-bdc7-4b1b-bf8f-b69381e0f9f7
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91816	failed	unpaid	partial_payment	NULL	4.00	2.000
+91817	failed	unpaid	digital_payment	NULL	9.00	0.000
+order_id	payment_method	payment_status	amount
+91816	wallet	paid	2.00
+91816	cash_on_delivery	unpaid	2.00
+payment_requests for group: count=0 (paid=0)
+GET /payment-mobile?group_id=c08cf028-bdc7-4b1b-bf8f-b69381e0f9f7&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=9d0a11de-9b48-419f-bc26-291379cb11d6
+  -> HTTP/1.1 403 Forbidden  Location:   x-request-id-echo: 9d0a11de-9b48-419f-bc26-291379cb11d6
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+--- DB [S3b after (expect 403, count 0)] group=c08cf028-bdc7-4b1b-bf8f-b69381e0f9f7
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91816	failed	unpaid	partial_payment	NULL	4.00	2.000
+91817	failed	unpaid	digital_payment	NULL	9.00	0.000
+order_id	payment_method	payment_status	amount
+91816	wallet	paid	2.00
+91816	cash_on_delivery	unpaid	2.00
+payment_requests for group: count=0 (paid=0)
+
+--- S3b negative control: same partial_payment shape but remainder row still 'digital_payment' (unpaid) => eligible (partially_paid stays payable) => expect 302 + amount = 4-2 + 9 = 11.00
+PLACED via POST /api/v1/customer/order/group/place: group=79ffa4b2-4301-4923-ac56-411937e06b96 children=91818,91819 (http placement, private DB)
+GET /payment-mobile?group_id=79ffa4b2-4301-4923-ac56-411937e06b96&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=d0c75eab-85c4-4c00-815d-2c82b97b84a7
+  -> HTTP/1.1 302 Found  Location: http://127.0.0.1:8957/payment/stripe/pay?payment_id=94fd4efa-4d07-4314-bb0d-29e65a6dbe39  x-request-id-echo: d0c75eab-85c4-4c00-815d-2c82b97b84a7
+  body: <!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="refresh" content="0;url='http://127.0.0.1:8957/payment/stripe/pay?payment_id=94fd4efa-4d07-4314-bb0d-29e65a6dbe39'" />
+
+        <title>Redirecting to http://127.0.0.1:8957/payment/stripe/pay?payment_id=94fd4efa-4d07-4314-bb0d-29e65a6dbe39</title>
+    </head>
+    <body>
+        Redirecting to <a href="http:
+--- DB [S3b-control after] group=79ffa4b2-4301-4923-ac56-411937e06b96
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91818	failed	unpaid	partial_payment	https://example.invalid/cb-d0c75eab-85c4-4c00-815d-2c82b97b84a7	4.00	2.000
+91819	failed	unpaid	digital_payment	https://example.invalid/cb-d0c75eab-85c4-4c00-815d-2c82b97b84a7	9.00	0.000
+order_id	payment_method	payment_status	amount
+91818	wallet	paid	2.00
+91818	digital_payment	unpaid	2.00
+payment_requests for group: count=1 (paid=0)
+payment_amount
+11.00
+
+=================== S4: store-advanced children (AC3) ===================
+PLACED via POST /api/v1/customer/order/group/place: group=4544d459-9ea0-4b8d-adb5-8cf03d22655a children=91820,91821 (http placement, private DB)
+--- DB [S4[delivered] before (child 91820 = delivered / digital_payment / unpaid; so only order_status is the blocker)] group=4544d459-9ea0-4b8d-adb5-8cf03d22655a
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91820	delivered	unpaid	digital_payment	NULL	4.00	0.000
+91821	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+GET /payment-mobile?group_id=4544d459-9ea0-4b8d-adb5-8cf03d22655a&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=106a3072-3c58-40ec-b9a9-d481d921ca29
+  -> HTTP/1.1 403 Forbidden  Location:   x-request-id-echo: 106a3072-3c58-40ec-b9a9-d481d921ca29
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+--- DB [S4[delivered] after (expect 403 order-state, count 0, unchanged)] group=4544d459-9ea0-4b8d-adb5-8cf03d22655a
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91820	delivered	unpaid	digital_payment	NULL	4.00	0.000
+91821	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+PLACED via POST /api/v1/customer/order/group/place: group=9b0e841b-881a-483c-89f2-bce1c7f0dd67 children=91822,91823 (http placement, private DB)
+--- DB [S4[processing] before (child 91822 = processing / digital_payment / unpaid; so only order_status is the blocker)] group=9b0e841b-881a-483c-89f2-bce1c7f0dd67
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91822	processing	unpaid	digital_payment	NULL	4.00	0.000
+91823	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+GET /payment-mobile?group_id=9b0e841b-881a-483c-89f2-bce1c7f0dd67&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=5d62fa77-2b2d-4910-b4c1-615d34ed1112
+  -> HTTP/1.1 403 Forbidden  Location:   x-request-id-echo: 5d62fa77-2b2d-4910-b4c1-615d34ed1112
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+--- DB [S4[processing] after (expect 403 order-state, count 0, unchanged)] group=9b0e841b-881a-483c-89f2-bce1c7f0dd67
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91822	processing	unpaid	digital_payment	NULL	4.00	0.000
+91823	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+PLACED via POST /api/v1/customer/order/group/place: group=e9eaddfb-6de4-4f55-8c57-76b313e02d1c children=91824,91825 (http placement, private DB)
+--- DB [S4[handover] before (child 91824 = handover / digital_payment / unpaid; so only order_status is the blocker)] group=e9eaddfb-6de4-4f55-8c57-76b313e02d1c
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91824	handover	unpaid	digital_payment	NULL	4.00	0.000
+91825	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+GET /payment-mobile?group_id=e9eaddfb-6de4-4f55-8c57-76b313e02d1c&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=54b0b572-81f4-4e1d-85d1-e5ea01922853
+  -> HTTP/1.1 403 Forbidden  Location:   x-request-id-echo: 54b0b572-81f4-4e1d-85d1-e5ea01922853
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+--- DB [S4[handover] after (expect 403 order-state, count 0, unchanged)] group=e9eaddfb-6de4-4f55-8c57-76b313e02d1c
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91824	handover	unpaid	digital_payment	NULL	4.00	0.000
+91825	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+PLACED via POST /api/v1/customer/order/group/place: group=a742da53-6fa0-4b9d-8148-7014898b2192 children=91826,91827 (http placement, private DB)
+--- DB [S4[picked_up] before (child 91826 = picked_up / digital_payment / unpaid; so only order_status is the blocker)] group=a742da53-6fa0-4b9d-8148-7014898b2192
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91826	picked_up	unpaid	digital_payment	NULL	4.00	0.000
+91827	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+GET /payment-mobile?group_id=a742da53-6fa0-4b9d-8148-7014898b2192&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=aeebadf0-8cba-4309-80be-34e19287ba2d
+  -> HTTP/1.1 403 Forbidden  Location:   x-request-id-echo: aeebadf0-8cba-4309-80be-34e19287ba2d
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+--- DB [S4[picked_up] after (expect 403 order-state, count 0, unchanged)] group=a742da53-6fa0-4b9d-8148-7014898b2192
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91826	picked_up	unpaid	digital_payment	NULL	4.00	0.000
+91827	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+
+--- laravel.log new lines this block (payment rejected / partial), ids only:
+[2026-10-01 01:02:22] production.WARNING: [WARN] group payment rejected {"correlation_id":"dc39581b-c192-42c1-abd5-5b05b0870700","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"b2222097-e3b0-4965-871c-104d11efeb3a","request_id":"dc39581b-c192-42c1-abd5-5b05b0870700","code":"order_state","order_id":91812} 
+[2026-10-01 01:02:26] production.WARNING: [WARN] group payment rejected {"correlation_id":"3c1ad0e8-e0ff-46aa-b9ec-44849d28b68a","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"fdaac7ed-a0d4-4fb0-9871-4a2e34f070a5","request_id":"3c1ad0e8-e0ff-46aa-b9ec-44849d28b68a","code":"cash_selected","order_id":91814} 
+[2026-10-01 01:02:29] production.WARNING: [WARN] group payment rejected {"correlation_id":"9d0a11de-9b48-419f-bc26-291379cb11d6","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"c08cf028-bdc7-4b1b-bf8f-b69381e0f9f7","request_id":"9d0a11de-9b48-419f-bc26-291379cb11d6","code":"cash_selected","order_id":91816} 
+[2026-10-01 01:02:37] production.WARNING: [WARN] group payment rejected {"correlation_id":"106a3072-3c58-40ec-b9a9-d481d921ca29","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"4544d459-9ea0-4b8d-adb5-8cf03d22655a","request_id":"106a3072-3c58-40ec-b9a9-d481d921ca29","code":"order_state","order_id":91820} 
+[2026-10-01 01:02:41] production.WARNING: [WARN] group payment rejected {"correlation_id":"5d62fa77-2b2d-4910-b4c1-615d34ed1112","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"9b0e841b-881a-483c-89f2-bce1c7f0dd67","request_id":"5d62fa77-2b2d-4910-b4c1-615d34ed1112","code":"order_state","order_id":91822} 
+[2026-10-01 01:02:46] testing.WARNING: [WARN] group payment rejected {"correlation_id":"c37c13ad-629f-4276-b3b8-fc764fafd388","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"3e241bf5-a23c-4dd8-adf9-f9b3cc62957f","request_id":"c37c13ad-629f-4276-b3b8-fc764fafd388","code":"order_state","order_id":93074} 
+[2026-10-01 01:02:46] production.WARNING: [WARN] group payment rejected {"correlation_id":"54b0b572-81f4-4e1d-85d1-e5ea01922853","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"e9eaddfb-6de4-4f55-8c57-76b313e02d1c","request_id":"54b0b572-81f4-4e1d-85d1-e5ea01922853","code":"order_state","order_id":91824} 
+[2026-10-01 01:02:46] testing.WARNING: [WARN] group payment rejected {"correlation_id":"d49dc49f-2b20-456e-b007-25ab18b277be","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"d86768fb-a856-4464-9845-c2a12bf88d81","request_id":"d49dc49f-2b20-456e-b007-25ab18b277be","code":"order_state","order_id":93076} 
+[2026-10-01 01:02:47] testing.WARNING: [WARN] group payment rejected {"correlation_id":"2ef25391-9bf0-44b4-b443-bd9ce778ec95","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"2bf216e1-0ca7-42fe-8466-a5b849e31a4e","request_id":"2ef25391-9bf0-44b4-b443-bd9ce778ec95","code":"cash_selected","order_id":93079} 
+[2026-10-01 01:02:47] testing.WARNING: [WARN] group payment rejected {"correlation_id":"e934e1c0-ae39-462b-bcba-42fa84101e0f","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"b170a539-a7ea-4700-b840-9ffc5a850a11","request_id":"e934e1c0-ae39-462b-bcba-42fa84101e0f","code":"cash_selected","order_id":93080} 
+[2026-10-01 01:02:48] testing.WARNING: [WARN] group payment rejected {"correlation_id":"aabbd801-a784-4f5b-bb21-2125503da410","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"abb90fda-0e21-454c-a907-70dcfb423f6d","request_id":"aabbd801-a784-4f5b-bb21-2125503da410","code":"already_paid","order_id":93082} 
+[2026-10-01 01:02:48] testing.WARNING: [WARN] group payment rejected {"correlation_id":"acbad21c-2c03-498c-9163-6d6b3a52a323","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"b263aace-db81-4899-ada5-86a1e40d40c7","request_id":"acbad21c-2c03-498c-9163-6d6b3a52a323","code":"cash_selected","order_id":93085} 
+[2026-10-01 01:02:48] testing.WARNING: [WARN] group payment rejected {"correlation_id":"2f67fe36-c8bf-41fa-b8cb-59679f0d7270","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"f31c818b-deb2-45f4-b077-c40811db70db","request_id":"2f67fe36-c8bf-41fa-b8cb-59679f0d7270","code":"order_state","order_id":93086} 
+[2026-10-01 01:02:48] testing.WARNING: [WARN] group payment rejected {"correlation_id":"cc8d9ce2-aa4b-4c3a-9781-fecffc6cb1ee","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"4c541f09-e367-4bfe-94bf-1091021a50bf","request_id":"cc8d9ce2-aa4b-4c3a-9781-fecffc6cb1ee","code":"order_state","order_id":93088} 
+[2026-10-01 01:02:49] testing.WARNING: [WARN] group payment rejected {"correlation_id":"ae083b69-e97c-405a-bed0-d5c64c9602b4","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"85fbd8d2-d74f-4c83-8732-bf809558a2c3","request_id":"ae083b69-e97c-405a-bed0-d5c64c9602b4","code":"order_state","order_id":93090} 
+[2026-10-01 01:02:49] testing.WARNING: [WARN] group payment rejected {"correlation_id":"7e4e9b99-f8c7-4933-bbb0-cd9b505f9171","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"d7c9faaf-cb7a-4d06-9569-bb3059ef7914","request_id":"7e4e9b99-f8c7-4933-bbb0-cd9b505f9171","code":"order_state","order_id":93092} 
+[2026-10-01 01:02:53] production.WARNING: [WARN] group payment rejected {"correlation_id":"aeebadf0-8cba-4309-80be-34e19287ba2d","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"a742da53-6fa0-4b9d-8148-7014898b2192","request_id":"aeebadf0-8cba-4309-80be-34e19287ba2d","code":"order_state","order_id":91826} 
+S2_REQ=dc39581b-c192-42c1-abd5-5b05b0870700 S2_GROUP=b2222097-e3b0-4965-871c-104d11efeb3a

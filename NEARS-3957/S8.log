@@ -1,0 +1,11 @@
+=================== S8: X-Request-Id correlation (S2 request) ===================
+sent header X-Request-Id: dc39581b-c192-42c1-abd5-5b05b0870700 ; response echoed x-request-id: dc39581b-c192-42c1-abd5-5b05b0870700 (see S2-S4.log)
+note: a NON-UUID X-Request-Id (e.g. 'qa3957-s0-req') is NOT echoed by SetRequestId - the server mints its own UUID and uses that; pre-existing middleware behaviour.
+--- grep -F on laravel.log:
+[2026-10-01 01:02:22] production.WARNING: [WARN] group payment rejected {"correlation_id":"dc39581b-c192-42c1-abd5-5b05b0870700","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"b2222097-e3b0-4965-871c-104d11efeb3a","request_id":"dc39581b-c192-42c1-abd5-5b05b0870700","code":"order_state","order_id":91812} 
+--- key set of that line:
+code,correlation_id,endpoint,group_id,http_status,order_id,reason,request_id
+--- PII/token check on the line (expect no match): 
+0
+--- all production-channel 'group payment rejected' lines from this run carry only allowed keys:
+  10 code,correlation_id,endpoint,group_id,http_status,order_id,reason,request_id

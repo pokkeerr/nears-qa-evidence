@@ -1,0 +1,116 @@
+=================== S9: LIVE re-entry after a REAL customer cancel (AC1, via PUT /api/v1/customer/order/cancel) ===================
+PLACED via POST /api/v1/customer/order/group/place: group=15b2777f-ea1a-41ae-90cf-2f2ae42e8911 children=91851,91852 (http placement, private DB)
+--- DB [S9 before] group=15b2777f-ea1a-41ae-90cf-2f2ae42e8911
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91851	failed	unpaid	digital_payment	NULL	4.00	0.000
+91852	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+[first entry]
+GET /payment-mobile?group_id=15b2777f-ea1a-41ae-90cf-2f2ae42e8911&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=b45fa593-e8fe-4164-a009-65bae0d427fa
+  -> HTTP/1.1 302 Found  Location: http://127.0.0.1:8957/payment/stripe/pay?payment_id=d15eb9c7-c696-4916-ac7d-ef705b5daca5  x-request-id-echo: b45fa593-e8fe-4164-a009-65bae0d427fa
+  body: <!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="refresh" content="0;url='http://127.0.0.1:8957/payment/stripe/pay?payment_id=d15eb9c7-c696-4916-ac7d-ef705b5daca5'" />
+
+        <title>Redirecting to http://127.0.0.1:8957/payment/stripe/pay?payment_id=d15eb9c7-c696-4916-ac7d-ef705b5daca5</title>
+    </head>
+    <body>
+        Redirecting to <a href="http:
+id	payment_amount	is_paid
+d15eb9c7-c696-4916-ac7d-ef705b5daca5	13.00	0
+[customer cancels child 91851 through the real API]
+{"message":"Order canceled successfully"}
+  [HTTP 200]
+--- DB [S9 after real cancel] group=15b2777f-ea1a-41ae-90cf-2f2ae42e8911
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91851	canceled	unpaid	digital_payment	https://example.invalid/cb-b45fa593-e8fe-4164-a009-65bae0d427fa	4.00	0.000
+91852	failed	unpaid	digital_payment	https://example.invalid/cb-b45fa593-e8fe-4164-a009-65bae0d427fa	9.00	0.000
+payment_requests for group: count=1 (paid=0)
+[webview re-entry with the same token after the cancel]
+GET /payment-mobile?group_id=15b2777f-ea1a-41ae-90cf-2f2ae42e8911&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=213a51fd-4b21-420d-9f04-047eccd9edd3
+  -> HTTP/1.1 403 Forbidden  Location:   x-request-id-echo: 213a51fd-4b21-420d-9f04-047eccd9edd3
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+--- DB [S9 after re-entry (expect 403 order-state; payment_requests count still 1; no 2nd row => cancelled child's 4.00 never added to a charge)] group=15b2777f-ea1a-41ae-90cf-2f2ae42e8911
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91851	canceled	unpaid	digital_payment	https://example.invalid/cb-b45fa593-e8fe-4164-a009-65bae0d427fa	4.00	0.000
+91852	failed	unpaid	digital_payment	https://example.invalid/cb-b45fa593-e8fe-4164-a009-65bae0d427fa	9.00	0.000
+payment_requests for group: count=1 (paid=0)
+
+=================== S10: LIVE re-entry after a REAL switch to COD (AC2, via PUT /api/v1/customer/order/payment-method) ===================
+PLACED via POST /api/v1/customer/order/group/place: group=d978c6e2-8c09-4dd3-b714-e3dbfe2f6b93 children=91853,91854 (http placement, private DB)
+[first entry]
+GET /payment-mobile?group_id=d978c6e2-8c09-4dd3-b714-e3dbfe2f6b93&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=e3ade967-3873-4186-a277-d72a4679badd
+  -> HTTP/1.1 302 Found  Location: http://127.0.0.1:8957/payment/stripe/pay?payment_id=7da8443f-bb38-4041-abb5-a48a1d0aa14e  x-request-id-echo: e3ade967-3873-4186-a277-d72a4679badd
+  body: <!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="refresh" content="0;url='http://127.0.0.1:8957/payment/stripe/pay?payment_id=7da8443f-bb38-4041-abb5-a48a1d0aa14e'" />
+
+        <title>Redirecting to http://127.0.0.1:8957/payment/stripe/pay?payment_id=7da8443f-bb38-4041-abb5-a48a1d0aa14e</title>
+    </head>
+    <body>
+        Redirecting to <a href="http:
+[customer switches child 91853 to COD through the real API]
+{"message":"Payment method updated successfully"}
+  [HTTP 200]
+--- DB [S10 after real COD switch] group=d978c6e2-8c09-4dd3-b714-e3dbfe2f6b93
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91853	pending	unpaid	cash_on_delivery	https://example.invalid/cb-e3ade967-3873-4186-a277-d72a4679badd	4.00	0.000
+91854	failed	unpaid	digital_payment	https://example.invalid/cb-e3ade967-3873-4186-a277-d72a4679badd	9.00	0.000
+payment_requests for group: count=1 (paid=0)
+[webview re-entry, same token]
+GET /payment-mobile?group_id=d978c6e2-8c09-4dd3-b714-e3dbfe2f6b93&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=348030ab-bc20-47de-b640-5bfcafce1276
+  -> HTTP/1.1 403 Forbidden  Location:   x-request-id-echo: 348030ab-bc20-47de-b640-5bfcafce1276
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+[gateway completes the ORIGINAL session anyway (race): success hook on row 1]
+hook_place ran on payment_request 7da8443f-bb38-4041-abb5-a48a1d0aa14e
+--- DB [S10 after success fan-out (expect COD child 91853 unchanged pending/unpaid/cash_on_delivery; sibling 91854 confirmed/paid/stripe)] group=d978c6e2-8c09-4dd3-b714-e3dbfe2f6b93
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91853	pending	unpaid	cash_on_delivery	https://example.invalid/cb-e3ade967-3873-4186-a277-d72a4679badd	4.00	0.000
+91854	confirmed	paid	stripe	https://example.invalid/cb-e3ade967-3873-4186-a277-d72a4679badd	9.00	0.000
+payment_requests for group: count=1 (paid=1)
+[2026-10-01 01:05:29] production.WARNING: [WARN] group payment rejected {"correlation_id":"348030ab-bc20-47de-b640-5bfcafce1276","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"d978c6e2-8c09-4dd3-b714-e3dbfe2f6b93","request_id":"348030ab-bc20-47de-b640-5bfcafce1276","code":"cash_selected","order_id":91853} 
+[2026-10-01 01:05:29] production.ERROR: order_group_place_partial {"request_id":null,"group_id":"d978c6e2-8c09-4dd3-b714-e3dbfe2f6b93","order_id":91853,"reason":"child_cash_selected"} 
+
+=================== S11: token stays usable for retry after a FAILED attempt ===================
+PLACED via POST /api/v1/customer/order/group/place: group=0c77c701-6560-44dc-8c59-738f83c9bd8e children=91855,91856 (http placement, private DB)
+[attempt 1]
+GET /payment-mobile?group_id=0c77c701-6560-44dc-8c59-738f83c9bd8e&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=269e231e-74df-4e44-af77-231d31349c5b
+  -> HTTP/1.1 302 Found  Location: http://127.0.0.1:8957/payment/stripe/pay?payment_id=14e9e059-8ef0-4a16-b066-0cd8d871a8d6  x-request-id-echo: 269e231e-74df-4e44-af77-231d31349c5b
+  body: <!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="refresh" content="0;url='http://127.0.0.1:8957/payment/stripe/pay?payment_id=14e9e059-8ef0-4a16-b066-0cd8d871a8d6'" />
+
+        <title>Redirecting to http://127.0.0.1:8957/payment/stripe/pay?payment_id=14e9e059-8ef0-4a16-b066-0cd8d871a8d6</title>
+    </head>
+    <body>
+        Redirecting to <a href="http:
+hook_failed ran on payment_request 14e9e059-8ef0-4a16-b066-0cd8d871a8d6
+--- DB [S11 after failed hook] group=0c77c701-6560-44dc-8c59-738f83c9bd8e
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91855	failed	unpaid	stripe	https://example.invalid/cb-269e231e-74df-4e44-af77-231d31349c5b	4.00	0.000
+91856	failed	unpaid	stripe	https://example.invalid/cb-269e231e-74df-4e44-af77-231d31349c5b	9.00	0.000
+payment_requests for group: count=1 (paid=0)
+[attempt 2, same token]
+GET /payment-mobile?group_id=0c77c701-6560-44dc-8c59-738f83c9bd8e&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=72d3738b-f000-467f-92e0-f943de71ba20
+  -> HTTP/1.1 302 Found  Location: http://127.0.0.1:8957/payment/stripe/pay?payment_id=e4c71494-c703-4078-87c4-05a18db7dbbc  x-request-id-echo: 72d3738b-f000-467f-92e0-f943de71ba20
+  body: <!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="refresh" content="0;url='http://127.0.0.1:8957/payment/stripe/pay?payment_id=e4c71494-c703-4078-87c4-05a18db7dbbc'" />
+
+        <title>Redirecting to http://127.0.0.1:8957/payment/stripe/pay?payment_id=e4c71494-c703-4078-87c4-05a18db7dbbc</title>
+    </head>
+    <body>
+        Redirecting to <a href="http:
+--- DB [S11 after retry (expect 302 and payment_requests count 2)] group=0c77c701-6560-44dc-8c59-738f83c9bd8e
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91855	failed	unpaid	stripe	https://example.invalid/cb-72d3738b-f000-467f-92e0-f943de71ba20	4.00	0.000
+91856	failed	unpaid	stripe	https://example.invalid/cb-72d3738b-f000-467f-92e0-f943de71ba20	9.00	0.000
+payment_requests for group: count=2 (paid=0)

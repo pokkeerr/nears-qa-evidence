@@ -1,0 +1,50 @@
+=== S0 positive control + S1 replay after success ===
+PLACED via POST /api/v1/customer/order/group/place: group=bea37a41-011e-4318-9a16-aa6bfef9af28 children=91810,91811 (http placement, private DB)
+--- DB [S0 before (children flipped to failed/digital_payment, unpaid)] group=bea37a41-011e-4318-9a16-aa6bfef9af28
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91810	failed	unpaid	digital_payment	NULL	4.00	0.000
+91811	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=0 (paid=0)
+GET /payment-mobile?group_id=bea37a41-011e-4318-9a16-aa6bfef9af28&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=qa3957-s0-req
+  -> HTTP/1.1 302 Found  Location: http://127.0.0.1:8957/payment/stripe/pay?payment_id=02cfdfd8-23e8-49df-8ccb-7336b3dae63f  x-request-id-echo: eecc7919-7e5a-402e-864f-dca9aec2b103
+  body: <!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="refresh" content="0;url='http://127.0.0.1:8957/payment/stripe/pay?payment_id=02cfdfd8-23e8-49df-8ccb-7336b3dae63f'" />
+
+        <title>Redirecting to http://127.0.0.1:8957/payment/stripe/pay?payment_id=02cfdfd8-23e8-49df-8ccb-7336b3dae63f</title>
+    </head>
+    <body>
+        Redirecting to <a href="http:
+--- DB [S0 after GET (expect 302 + exactly 1 payment_requests row)] group=bea37a41-011e-4318-9a16-aa6bfef9af28
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91810	failed	unpaid	digital_payment	https://example.invalid/cb-qa3957-s0-req	4.00	0.000
+91811	failed	unpaid	digital_payment	https://example.invalid/cb-qa3957-s0-req	9.00	0.000
+payment_requests for group: count=1 (paid=0)
+
+=== S1: run success hook (order_group_place on the payment_requests row, is_paid=1) then replay SAME token ===
+hook_place ran on payment_request 02cfdfd8-23e8-49df-8ccb-7336b3dae63f
+--- DB [S1 after success hook (expect both children confirmed/paid)] group=bea37a41-011e-4318-9a16-aa6bfef9af28
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91810	confirmed	paid	stripe	https://example.invalid/cb-qa3957-s0-req	4.00	0.000
+91811	confirmed	paid	stripe	https://example.invalid/cb-qa3957-s0-req	9.00	0.000
+payment_requests for group: count=1 (paid=1)
+GET /payment-mobile?group_id=bea37a41-011e-4318-9a16-aa6bfef9af28&payment_token=<redacted>&payment_method=stripe&callback=... X-Request-Id=qa3957-s1-req
+  -> HTTP/1.1 403 Forbidden  Location:   x-request-id-echo: 556d9f52-4001-4022-aee6-883df4a7c14d
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+--- DB [S1 after replay (expect 403 order-state, payment_requests count unchanged = 1, children unchanged)] group=bea37a41-011e-4318-9a16-aa6bfef9af28
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91810	confirmed	paid	stripe	https://example.invalid/cb-qa3957-s0-req	4.00	0.000
+91811	confirmed	paid	stripe	https://example.invalid/cb-qa3957-s0-req	9.00	0.000
+payment_requests for group: count=1 (paid=1)
+--- laravel.log new lines (filtered to this group/request ids):
+[2026-10-01 01:01:50] production.WARNING: [WARN] group payment rejected {"correlation_id":"556d9f52-4001-4022-aee6-883df4a7c14d","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"bea37a41-011e-4318-9a16-aa6bfef9af28","request_id":"556d9f52-4001-4022-aee6-883df4a7c14d","code":"order_state","order_id":91810} 
+--- S0 supplemental: charged amount on the minted row (AC1 'generate_link computed amount') ---
+id	payment_amount	payment_method	attribute	attribute_id	is_paid	success_hook	failure_hook
+02cfdfd8-23e8-49df-8ccb-7336b3dae63f	13.00	stripe	order_group	bea37a41-011e-4318-9a16-aa6bfef9af28	1	order_group_place	order_group_failed
+(children order_amount 4.00 + 9.00 = 13.00; partially_paid_amount 0)
+--- pre-existing WARN lines: does correlation_id appear on pre-fix 'group payment rejected' lines too? (pipeline processor, not this change)
+[2026-09-30 23:26:20] testing.WARNING: [WARN] group payment rejected {"correlation_id":"1088451c-540e-45cc-8b37-f62901d9fbb2","endpoint":"payment-mobile","http_status":403,"reason":"gateway_not_allowed","group_id":"d50e747d-19e0-4ec3-b60e-b487ddf960fd","request_id":"1088451c-540e-45cc-8b37-f62901d9fbb2"} 
+[2026-09-30 23:29:31] testing.WARNING: [WARN] group payment rejected {"correlation_id":"8b4190fd-9d22-4361-b996-b6843940053e","endpoint":"payment-mobile","http_status":403,"reason":"gateway_not_allowed","group_id":"0d60e8de-d3d2-471b-a9f8-5255bfd4973b","request_id":"8b4190fd-9d22-4361-b996-b6843940053e"} 
+[2026-09-30 23:39:21] testing.WARNING: [WARN] group payment rejected {"correlation_id":"adace060-8f25-4f1e-b62e-6bd964c6a6e0","endpoint":"payment-mobile","http_status":403,"reason":"nothing_to_pay","group_id":"73da3bc9-3653-4119-9315-509e60b4a46e","request_id":"adace060-8f25-4f1e-b62e-6bd964c6a6e0"} 

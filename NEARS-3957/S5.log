@@ -1,0 +1,33 @@
+=================== S5: fan-out on a PRE-FIX paid payment_requests row (AC2/AC3/AC5 at the success hook) ===================
+PLACED via POST /api/v1/customer/order/group/place: group=e38ef007-1ebd-4e0f-aafa-9d1a9d63c01b children=91833,91834 (http placement, private DB)
+children: A=91833 delivered(digital,unpaid) | B=91835 pending/cash_on_delivery | C=91834 failed/digital (ELIGIBLE sibling) | D=91836 pending/paid/digital
+--- DB [S5 before] group=e38ef007-1ebd-4e0f-aafa-9d1a9d63c01b
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91833	delivered	unpaid	digital_payment	NULL	4.00	0.000
+91834	failed	unpaid	digital_payment	NULL	9.00	0.000
+91835	pending	unpaid	cash_on_delivery	NULL	4.00	0.000
+91836	pending	paid	digital_payment	NULL	4.00	0.000
+payment_requests for group: count=0 (paid=0)
+inserted payment_requests dace0d79-3b11-4850-8a8b-754e287ee404 (is_paid=1 method=stripe) for group e38ef007-1ebd-4e0f-aafa-9d1a9d63c01b via private SQL
+hook_place ran on payment_request dace0d79-3b11-4850-8a8b-754e287ee404
+--- DB [S5 after order_group_place (expect A,B,D unchanged; C confirmed/paid/stripe)] group=e38ef007-1ebd-4e0f-aafa-9d1a9d63c01b
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91833	delivered	unpaid	digital_payment	NULL	4.00	0.000
+91834	confirmed	paid	stripe	NULL	9.00	0.000
+91835	pending	unpaid	cash_on_delivery	NULL	4.00	0.000
+91836	pending	paid	digital_payment	NULL	4.00	0.000
+payment_requests for group: count=1 (paid=1)
+--- laravel.log lines for this group (Log::error order_group_place_partial, ids only):
+[2026-10-01 01:04:04] production.ERROR: order_group_place_partial {"request_id":null,"group_id":"e38ef007-1ebd-4e0f-aafa-9d1a9d63c01b","order_id":91833,"reason":"child_order_state"} 
+[2026-10-01 01:04:04] production.ERROR: order_group_place_partial {"request_id":null,"group_id":"e38ef007-1ebd-4e0f-aafa-9d1a9d63c01b","order_id":91835,"reason":"child_cash_selected"} 
+[2026-10-01 01:04:04] production.ERROR: order_group_place_partial {"request_id":null,"group_id":"e38ef007-1ebd-4e0f-aafa-9d1a9d63c01b","order_id":91836,"reason":"child_already_paid"} 
+--- replay hook once more (idempotency): C already confirmed+paid -> silent skip; A/B/D re-logged; nothing changes
+hook_place ran on payment_request dace0d79-3b11-4850-8a8b-754e287ee404
+--- DB [S5 after 2nd hook run] group=e38ef007-1ebd-4e0f-aafa-9d1a9d63c01b
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91833	delivered	unpaid	digital_payment	NULL	4.00	0.000
+91834	confirmed	paid	stripe	NULL	9.00	0.000
+91835	pending	unpaid	cash_on_delivery	NULL	4.00	0.000
+91836	pending	paid	digital_payment	NULL	4.00	0.000
+payment_requests for group: count=1 (paid=1)
+S5_GROUP=e38ef007-1ebd-4e0f-aafa-9d1a9d63c01b

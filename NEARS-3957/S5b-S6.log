@@ -1,0 +1,53 @@
+=================== S5b: store-advanced children (processing/handover/picked_up) vs success fan-out (AC3) ===================
+PLACED via POST /api/v1/customer/order/group/place: group=3b5ace8f-f880-4b52-9a23-ff7988250791 children=91837,91838 (http placement, private DB)
+--- DB [S5b before (A=91837 processing, B=91839 handover, C=91840 picked_up, D=91838 failed/digital eligible)] group=3b5ace8f-f880-4b52-9a23-ff7988250791
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91837	processing	unpaid	digital_payment	NULL	4.00	0.000
+91838	failed	unpaid	digital_payment	NULL	9.00	0.000
+91839	handover	unpaid	digital_payment	NULL	4.00	0.000
+91840	picked_up	unpaid	digital_payment	NULL	4.00	0.000
+payment_requests for group: count=0 (paid=0)
+inserted payment_requests 0f1b8af4-c05d-4185-a934-a2e82c809604 (is_paid=1 method=stripe) for group 3b5ace8f-f880-4b52-9a23-ff7988250791 via private SQL
+hook_place ran on payment_request 0f1b8af4-c05d-4185-a934-a2e82c809604
+--- DB [S5b after order_group_place (expect A,B,C unchanged; D confirmed)] group=3b5ace8f-f880-4b52-9a23-ff7988250791
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91837	processing	unpaid	digital_payment	NULL	4.00	0.000
+91838	confirmed	paid	stripe	NULL	9.00	0.000
+91839	handover	unpaid	digital_payment	NULL	4.00	0.000
+91840	picked_up	unpaid	digital_payment	NULL	4.00	0.000
+payment_requests for group: count=1 (paid=1)
+[2026-10-01 01:04:22] production.ERROR: order_group_place_partial {"request_id":null,"group_id":"3b5ace8f-f880-4b52-9a23-ff7988250791","order_id":91837,"reason":"child_order_state"} 
+[2026-10-01 01:04:22] production.ERROR: order_group_place_partial {"request_id":null,"group_id":"3b5ace8f-f880-4b52-9a23-ff7988250791","order_id":91839,"reason":"child_order_state"} 
+[2026-10-01 01:04:22] production.ERROR: order_group_place_partial {"request_id":null,"group_id":"3b5ace8f-f880-4b52-9a23-ff7988250791","order_id":91840,"reason":"child_order_state"} 
+
+=================== S6: order_group_failed (AC4) ===================
+PLACED via POST /api/v1/customer/order/group/place: group=038e2760-d576-4a99-96db-521e26e227a2 children=91841,91842 (http placement, private DB)
+--- DB [S6 before (Bc=91841 pending/COD, Ee=91842 pending/digital/unpaid SIBLING, Dp=91843 pending/paid/digital, Bf=91844 failed/COD-switched)] group=038e2760-d576-4a99-96db-521e26e227a2
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91841	pending	unpaid	cash_on_delivery	NULL	4.00	0.000
+91842	pending	unpaid	digital_payment	NULL	9.00	0.000
+91843	pending	paid	digital_payment	NULL	4.00	0.000
+91844	failed	unpaid	cash_on_delivery	NULL	4.00	0.000
+payment_requests for group: count=0 (paid=0)
+inserted payment_requests 495bb35a-964f-4916-b448-6b3c83362648 (is_paid=0 method=stripe) for group 038e2760-d576-4a99-96db-521e26e227a2 via private SQL
+hook_failed ran on payment_request 495bb35a-964f-4916-b448-6b3c83362648
+--- DB [S6 after 1st failed-hook (expect ONLY Ee -> failed/stripe; Bc,Dp,Bf unchanged)] group=038e2760-d576-4a99-96db-521e26e227a2
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91841	pending	unpaid	cash_on_delivery	NULL	4.00	0.000
+91842	failed	unpaid	stripe	NULL	9.00	0.000
+91843	pending	paid	digital_payment	NULL	4.00	0.000
+91844	failed	unpaid	cash_on_delivery	NULL	4.00	0.000
+payment_requests for group: count=1 (paid=0)
+--- 2nd failed attempt (AC4 'second failed group attempt'):
+hook_failed ran on payment_request 495bb35a-964f-4916-b448-6b3c83362648
+--- DB [S6 after 2nd failed-hook (expect unchanged vs 1st)] group=038e2760-d576-4a99-96db-521e26e227a2
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91841	pending	unpaid	cash_on_delivery	NULL	4.00	0.000
+91842	failed	unpaid	stripe	NULL	9.00	0.000
+91843	pending	paid	digital_payment	NULL	4.00	0.000
+91844	failed	unpaid	cash_on_delivery	NULL	4.00	0.000
+payment_requests for group: count=1 (paid=0)
+--- log lines for S6 group:
+--- order_failed WARN lines mention order ids only:
+[2026-10-01 01:04:28] production.WARNING: [WARN] payment failed - order marked failed {"request_id":null,"order_id":91842,"reason":"payment_failed"} 
+[2026-10-01 01:04:29] production.WARNING: [WARN] payment failed - order marked failed {"request_id":null,"order_id":91842,"reason":"payment_failed"} 

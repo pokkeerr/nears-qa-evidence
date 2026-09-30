@@ -1,0 +1,53 @@
+=================== S7: php artisan group:reconcile-stranded-payments (reconcile predicate) ===================
+paid group payment_requests in private clone now: 3
+--- baseline run over every paid group row already in the private DB (S1 fully settled, S5/S5b hook-settled w/ ineligible leftovers): expect Reconciled 0
+Reconciled 0 stranded group payment(s).
+partial logs since baseline: 0
+
+--- S7a: paid request, ONLY unsettled child is ineligible (child1 confirmed+paid, child2 delivered)
+PLACED via POST /api/v1/customer/order/group/place: group=f1baf6a8-fe91-4c3b-bab0-49a6307a8106 children=91845,91846 (http placement, private DB)
+inserted payment_requests 5f9fc107-32d2-468a-86b9-dd302e7e0438 (is_paid=1 method=stripe) for group f1baf6a8-fe91-4c3b-bab0-49a6307a8106 via private SQL
+--- DB [S7a before] group=f1baf6a8-fe91-4c3b-bab0-49a6307a8106
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91845	confirmed	paid	stripe	NULL	4.00	0.000
+91846	delivered	unpaid	cash_on_delivery	NULL	9.00	0.000
+payment_requests for group: count=1 (paid=1)
+Reconciled 0 stranded group payment(s).
+--- DB [S7a after (expect unchanged)] group=f1baf6a8-fe91-4c3b-bab0-49a6307a8106
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91845	confirmed	paid	stripe	NULL	4.00	0.000
+91846	delivered	unpaid	cash_on_delivery	NULL	9.00	0.000
+payment_requests for group: count=1 (paid=1)
+order_group_place_partial lines emitted by the command run: 0 (expect 0 - hook not re-invoked)
+
+--- S7b: genuinely stranded group: paid request, children failed/digital unpaid (tx rolled back case)
+PLACED via POST /api/v1/customer/order/group/place: group=43120773-df2b-443d-87f4-cf4c91169758 children=91847,91848 (http placement, private DB)
+inserted payment_requests 72b41bf2-247d-47f0-8491-6a8e4b05a45a (is_paid=1 method=stripe) for group 43120773-df2b-443d-87f4-cf4c91169758 via private SQL
+--- DB [S7b before] group=43120773-df2b-443d-87f4-cf4c91169758
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91847	failed	unpaid	digital_payment	NULL	4.00	0.000
+91848	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=1 (paid=1)
+Reconciled 1 stranded group payment(s).
+--- DB [S7b after (expect both confirmed/paid)] group=43120773-df2b-443d-87f4-cf4c91169758
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91847	confirmed	paid	stripe	NULL	4.00	0.000
+91848	confirmed	paid	stripe	NULL	9.00	0.000
+payment_requests for group: count=1 (paid=1)
+--- re-run: expect Reconciled 0
+Reconciled 0 stranded group payment(s).
+
+--- S7c: mixed: paid request, child1 COD-switched + child2 eligible => stranded via eligible child (expect 1; child2 confirmed, child1 untouched)
+PLACED via POST /api/v1/customer/order/group/place: group=e2a36d3e-06a6-4ef3-ad6f-b515f977dc7f children=91849,91850 (http placement, private DB)
+inserted payment_requests 872614bc-d3c0-41bf-8e2e-83d493f12efa (is_paid=1 method=stripe) for group e2a36d3e-06a6-4ef3-ad6f-b515f977dc7f via private SQL
+--- DB [S7c before] group=e2a36d3e-06a6-4ef3-ad6f-b515f977dc7f
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91849	pending	unpaid	cash_on_delivery	NULL	4.00	0.000
+91850	failed	unpaid	digital_payment	NULL	9.00	0.000
+payment_requests for group: count=1 (paid=1)
+Reconciled 1 stranded group payment(s).
+--- DB [S7c after] group=e2a36d3e-06a6-4ef3-ad6f-b515f977dc7f
+id	order_status	payment_status	payment_method	callback	order_amount	part_paid
+91849	pending	unpaid	cash_on_delivery	NULL	4.00	0.000
+91850	confirmed	paid	stripe	NULL	9.00	0.000
+payment_requests for group: count=1 (paid=1)
