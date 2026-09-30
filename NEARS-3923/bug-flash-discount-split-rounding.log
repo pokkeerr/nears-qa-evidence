@@ -1,0 +1,11 @@
+# Pre-existing: flash-sale discount rounding — checkout shows 0.01 less than the placed group total
+Guest group place, flag OFF, nears3923qa. Checkout + confirm sheet Total 138.29; placed children 91422 69.17 + 91423 69.13 = 138.30.
+id	order_amount	delivery_charge	total_tax_amount	flash_admin_discount_amount	flash_store_discount_amount
+91422	69.17	0.00	3.29	1.940	2.910
+91423	69.13	42.72	1.26	0.000	0.000
+order_id	item_id	price	discount_on_item	tax_amount
+91422	388	43.75	0.00	2.19
+91422	390	26.98	4.86	1.11
+Client Discount row -4.86 (18% of 26.98 = 4.8564 -> 4.86; order_details.discount_on_item 4.86).
+Server order_amount for 91422 = 70.73 - (flash_admin 1.94 + flash_store 2.91 = 4.85) + 3.29 = 69.17.
+Address-independent: Grill House child delivery 0.00; no address edit changes it. Repro: any basket with Double Bacon Burger (item 390, 18% flash) -> checkout total vs placed order_amount.

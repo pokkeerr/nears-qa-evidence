@@ -1,0 +1,24 @@
+# K1 BASE b291dfb21 (detached scratch worktree /Users/Apple/Projects/nears-qa3923-base, pkg com.izzes.nears.nears_qa3923_base), flag ON, same basket/backend
+## checkout entry (addr A): one group fetch after route (basket screen's own delivery-quote x2/get-Tax x2 land just before the route, same as HEAD)
+   5 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   4 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   4 [NET] POST endpoint=/api/v1/config/delivery-quote
+   3 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+   3 [NET] GET endpoint=/api/v1/config/distance-api
+   2 [NET] GET endpoint=/api/v1/stores/details/39
+   1 [WARN] msg="checkout: map preview dropped store 91159 — missing coordinates"
+   1 [WARN] msg="checkout: map preview dropped store 39 — missing coordinates"
+   1 [NET] GET endpoint=/api/v1/stores/details/91159
+   1 [NET] GET endpoint=/api/v1/offline_payment_method_list
+   1 [NET] GET endpoint=/api/v1/most-tips
+## my-location A -> B 'Rd 1, Dhaka 1216': NO group re-request; Kitchen stays 5.00 (the NEARS-3923 defect reproduced on base)
+   1 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   1 [NET] GET endpoint=/api/v1/config/get-zone-id
+   1 [NET] GET endpoint=/api/v1/config/geocode-api
+   1 [NET] GET endpoint=/api/v1/config/distance-api
+## same-address reselect B -> B (my-location, GPS unchanged)
+   1 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   1 [NET] GET endpoint=/api/v1/config/get-zone-id
+   1 [NET] GET endpoint=/api/v1/config/geocode-api
+   1 [NET] GET endpoint=/api/v1/config/distance-api
+## K1 result: BASE same-address = distance-api 1, extra_charge 1, get-zone-id 1, geocode-api 1, delivery-quote 0, get-Tax 0; HEAD same-address = distance-api 1, extra_charge 1, get-zone-id 1, geocode-api 1, delivery-quote 0, get-Tax 0 -> HEAD == BASE

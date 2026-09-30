@@ -1,0 +1,70 @@
+# AC1 flag ON (HEAD 50c390d8c, emulator-5590, backend :8123 DB nears3923qa) — guest 2-store (Grill House 39 + QA Mixed Kitchen 91159)
+## checkout entry (addr A '37 Lane 4A', GPS 23.8190,90.3710)
+   3 [NET] GET endpoint=/api/v1/config/distance-api
+   1 [NET] GET endpoint=/api/v1/most-tips
+   1 [NET] GET endpoint=/api/v1/offline_payment_method_list
+   2 [NET] GET endpoint=/api/v1/stores/details/39
+   1 [NET] GET endpoint=/api/v1/stores/details/91159
+   3 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   2 [NET] POST endpoint=/api/v1/config/delivery-quote
+   2 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   3 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+   1 [WARN] msg="checkout: map preview dropped store 39 — missing coordinates"
+   1 [WARN] msg="checkout: map preview dropped store 91159 — missing coordinates"
+summary before: Subtotal 53.15, VAT +2.66, Delivery Fees 5.00 (Grill 0.00 / Kitchen 5.00) => Total 60.81
+## Select From Map (:150) confirm addr B 'Rd 1, Dhaka 1216' (23.8300,90.3600)
+   3 [NET] GET endpoint=/api/v1/config/distance-api
+   1 [NET] GET endpoint=/api/v1/config/get-zone-id
+   1 [NET] GET endpoint=/api/v1/stores/details/39
+   1 [NET] GET endpoint=/api/v1/stores/details/91159
+   3 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   2 [NET] POST endpoint=/api/v1/config/delivery-quote
+   2 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   2 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+summary after: Subtotal 53.15, VAT +2.66, Delivery Fees 42.72 (Grill 0.00 / Kitchen 42.72) => Total 98.53
+## Place (COD) -> group/place 200; nears3923qa orders:
+id	order_amount	delivery_charge	total_tax_amount	distance	store_id	is_guest	zone_id
+91418	45.94	0.00	2.19	4.690	39	1	1
+91419	52.59	42.72	0.47	5.340	91159	1	1
+placed total = 45.94 + 52.59 = 98.53 == after-edit total 98.53
+## post-place (AC2) log lines:
+📊 analytics: order_confirm_confirmed {value: 98.53, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+[INFO] msg="checkout: group validate → valid=true"
+[NET] POST endpoint=/api/v1/customer/order/group/place
+[NET] endpoint=/api/v1/customer/order/group/place http_status=200
+📊 analytics: group_order_placed {basket_store_count: 2, order_sub_order_count: 2, source: confirm_sheet}
+[INFO] msg="checkout: group order placed groupId=4595d6e6-8a97-461e-852e-8def312b6c9c children=2"
+[NET] DELETE endpoint=/api/v1/customer/cart/remove
+[INFO] msg="pusher init skipped: websocket disabled"
+[INFO] msg="order: trackOrder orderID=91418"
+[INFO] msg="trackOrder called for orderID=91418 source=rowTap"
+[NET] GET endpoint=/api/v1/customer/order/track
+[NET] GET endpoint=/api/v1/config/geocode-api
+[NET] GET endpoint=/api/v1/config/get-zone-id
+[NET] endpoint=/api/v1/customer/cart/remove http_status=200
+[NET] GET endpoint=/api/v1/customer/cart/list
+[NET] endpoint=/api/v1/config/get-zone-id http_status=200
+[INFO] msg="location: inZone=true"
+[NET] endpoint=/api/v1/customer/order/track http_status=200
+[INFO] msg="getGroupDetails called for groupId=4595d6e6-8a97-461e-852e-8def312b6c9c"
+[NET] GET endpoint=/api/v1/customer/order/group/details
+📊 analytics: order_tracking_opened {order_id: 91418, order_status: pending, screen: order_tracking, section: sheet}
+[NET] endpoint=/api/v1/config/geocode-api http_status=200
+[NET] endpoint=/api/v1/customer/cart/list http_status=200
+[NET] endpoint=/api/v1/customer/order/group/details http_status=200
+[INFO] msg="trackOrder called for orderID=91418 source=groupChild"
+[NET] GET endpoint=/api/v1/customer/order/track
+[NET] endpoint=/api/v1/customer/order/track http_status=200
+[INFO] msg="trackOrder called for orderID=91419 source=groupChild"
+[NET] GET endpoint=/api/v1/customer/order/track
+[NET] endpoint=/api/v1/customer/order/track http_status=200
+[INFO] msg="getGroupDetails called for groupId=4595d6e6-8a97-461e-852e-8def312b6c9c"
+[NET] GET endpoint=/api/v1/customer/order/group/details
+[NET] endpoint=/api/v1/customer/order/group/details http_status=200
+[INFO] msg="trackOrder called for orderID=91418 source=groupChild"
+[NET] GET endpoint=/api/v1/customer/order/track
+[NET] endpoint=/api/v1/customer/order/track http_status=200
+[INFO] msg="trackOrder called for orderID=91419 source=groupChild"
+[NET] GET endpoint=/api/v1/customer/order/track

@@ -1,0 +1,43 @@
+# AC5/AC1 flag OFF (copy id=228=0, own /config cross_module_basket=False) — HEAD 50c390d8c, guest, 2-store basket (Grill House: Chef Salad + Double Bacon Burger [18% flash]; QA Mixed Kitchen: Falafel + Shawarma)
+## checkout entry (addr A): one group fetch
+   3 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+   3 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   3 [NET] GET endpoint=/api/v1/config/distance-api
+   2 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   2 [NET] POST endpoint=/api/v1/config/delivery-quote
+   2 [NET] GET endpoint=/api/v1/stores/details/39
+   2 [NET] GET endpoint=/api/v1/config/get-zone-id
+   2 [NET] GET endpoint=/api/v1/config/geocode-api
+   1 [WARN] msg="checkout: map preview dropped store 91159 — missing coordinates"
+   1 [WARN] msg="checkout: map preview dropped store 39 — missing coordinates"
+   1 [NET] GET endpoint=/api/v1/zone/list
+   1 [NET] GET endpoint=/api/v1/stores/details/91159
+   1 [NET] GET endpoint=/api/v1/offline_payment_method_list
+   1 [NET] GET endpoint=/api/v1/most-tips
+before (addr A): Subtotal 95.88, Discount -4.86, VAT +4.55, Delivery 5.00 (Grill 0.00 / Kitchen 5.00) -> Total 100.57 (positional read of the Total row)
+## Select From Map (:150) -> addr B 'Rd 1, Dhaka 1216'
+   3 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   3 [NET] GET endpoint=/api/v1/config/distance-api
+   2 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+   2 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   2 [NET] POST endpoint=/api/v1/config/delivery-quote
+   1 [NET] GET endpoint=/api/v1/stores/details/91159
+   1 [NET] GET endpoint=/api/v1/stores/details/39
+   1 [NET] GET endpoint=/api/v1/config/get-zone-id
+after (addr B): Delivery 42.72 (Grill 0.00 / Kitchen 42.72) -> Total 138.29; confirm sheet 138.29
+## placed (group/place 200):
+id	order_amount	delivery_charge	original_delivery_charge	total_tax_amount	flash_admin_discount_amount	flash_store_discount_amount	distance	store_id	is_guest	zone_id
+91422	69.17	0.00	37.52	3.29	1.940	2.910	4.690	39	1	1
+91423	69.13	42.72	42.72	1.26	0.000	0.000	5.340	91159	1	1
+order_id	item_id	price	discount_on_item	tax_amount
+91422	388	43.75	0.00	2.19
+91422	390	26.98	4.86	1.11
+placed = 69.17 + 69.13 = 138.30 vs shown 138.29. Address-dependent child (Kitchen 91423) matches exactly: 25.15 + 1.26 VAT + 42.72 = 69.13. The 0.01 sits in the Grill child (delivery 0.00, address-independent): client discount 4.86 (18% of 26.98 = 4.8564) vs server flash split 1.94 + 2.91 = 4.85 -> pre-existing flash-discount rounding, not this change.
+## post-place (AC2, group site :1338, flag OFF): no distance-api/delivery-quote/get-Tax/surge, no WARN/FAIL/ERR
+   7 [NET] GET endpoint=/api/v1/customer/order/track
+   3 [NET] GET endpoint=/api/v1/customer/order/group/details
+   1 [NET] POST endpoint=/api/v1/customer/order/group/validate
+   1 [NET] POST endpoint=/api/v1/customer/order/group/place
+   1 [NET] GET endpoint=/api/v1/customer/cart/list
+   1 [NET] GET endpoint=/api/v1/config/get-zone-id
+   1 [NET] GET endpoint=/api/v1/config/geocode-api

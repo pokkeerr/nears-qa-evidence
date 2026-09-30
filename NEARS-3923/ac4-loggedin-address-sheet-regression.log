@@ -1,0 +1,38 @@
+# AC4 logged-in regression (michael.brown, user 3), HEAD, flag OFF, 2-store basket; address sheet (delivery_section 'Edit address' -> address_bottom_sheet)
+copy-only fixture: customer_addresses id=64 (user 3, office, 23.83/90.36, zone 1) inserted into nears3923qa only
+## entry: Kitchen 5.00
+   3 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+   3 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   3 [NET] GET endpoint=/api/v1/config/distance-api
+   2 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   2 [NET] POST endpoint=/api/v1/config/delivery-quote
+   2 [NET] GET endpoint=/api/v1/stores/details/91159
+   2 [NET] GET endpoint=/api/v1/cashback/getCashback
+   1 [WARN] msg="checkout: map preview dropped store 91159 — missing coordinates"
+   1 [WARN] msg="checkout: map preview dropped store 39 — missing coordinates"
+   1 [NET] GET endpoint=/api/v1/stores/details/39
+   1 [NET] GET endpoint=/api/v1/offline_payment_method_list
+   1 [NET] GET endpoint=/api/v1/most-tips
+   1 [NET] GET endpoint=/api/v1/customer/address/list
+   1 [NET] GET endpoint=/api/v1/coupon/list
+## Home -> Office (QA3923 Rd 1): group re-request, Kitchen 42.72
+   3 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   3 [NET] GET endpoint=/api/v1/config/distance-api
+   2 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+   2 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   2 [NET] POST endpoint=/api/v1/config/delivery-quote
+   2 [NET] GET endpoint=/api/v1/cashback/getCashback
+   1 [NET] GET endpoint=/api/v1/stores/details/91159
+   1 [NET] GET endpoint=/api/v1/stores/details/39
+## Office -> Office (same address): no group re-request
+   1 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   1 [NET] GET endpoint=/api/v1/config/distance-api
+## Office -> Home: group re-request, Kitchen 5.00
+   3 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   3 [NET] GET endpoint=/api/v1/config/distance-api
+   2 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+   2 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   2 [NET] POST endpoint=/api/v1/config/delivery-quote
+   2 [NET] GET endpoint=/api/v1/cashback/getCashback
+   1 [NET] GET endpoint=/api/v1/stores/details/91159
+   1 [NET] GET endpoint=/api/v1/stores/details/39

@@ -1,0 +1,50 @@
+# HEAD 50c390d8c flag ON — K2 wiring + AC3 + K3 (guest, 2-store Grill House + QA Mixed Kitchen)
+## checkout entry #2 (addr A) — one group fetch (delivery-quote x2); first 2 get-Tax lines are the basket screen's own, fired before the route
+   4 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   3 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+   3 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   3 [NET] GET endpoint=/api/v1/config/distance-api
+   2 [NET] POST endpoint=/api/v1/config/delivery-quote
+   2 [NET] GET endpoint=/api/v1/stores/details/39
+   1 [WARN] msg="checkout: map preview dropped store 91159 — missing coordinates"
+   1 [WARN] msg="checkout: map preview dropped store 39 — missing coordinates"
+   1 [NET] GET endpoint=/api/v1/stores/details/91159
+   1 [NET] GET endpoint=/api/v1/offline_payment_method_list
+   1 [NET] GET endpoint=/api/v1/most-tips
+## my-location icon (:238) A -> B 'Rd 1, Dhaka 1216' (GPS 23.8300,90.3600): Kitchen 5.00 -> 42.72
+   3 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   3 [NET] GET endpoint=/api/v1/config/distance-api
+   2 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+   2 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   2 [NET] POST endpoint=/api/v1/config/delivery-quote
+   1 [NET] GET endpoint=/api/v1/stores/details/91159
+   1 [NET] GET endpoint=/api/v1/stores/details/39
+   1 [NET] GET endpoint=/api/v1/config/get-zone-id
+   1 [NET] GET endpoint=/api/v1/config/geocode-api
+## AC3 same-address reselect: my-location again, GPS unchanged (B -> B)
+   1 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   1 [NET] GET endpoint=/api/v1/config/place-api-autocomplete
+   1 [NET] GET endpoint=/api/v1/config/get-zone-id
+   1 [NET] GET endpoint=/api/v1/config/geocode-api
+   1 [NET] GET endpoint=/api/v1/config/distance-api
+## TypeAhead (:282) 'Mirpur 10 Roundabout' (after re-entry to checkout; addr A -> Mirpur): Kitchen 5.00 -> 12.10
+   3 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   3 [NET] GET endpoint=/api/v1/config/get-zone-id
+   3 [NET] GET endpoint=/api/v1/config/distance-api
+   2 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+   2 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   2 [NET] POST endpoint=/api/v1/config/delivery-quote
+   2 [NET] GET endpoint=/api/v1/config/geocode-api
+   1 [NET] GET endpoint=/api/v1/stores/details/91159
+   1 [NET] GET endpoint=/api/v1/stores/details/39
+   1 [NET] GET endpoint=/api/v1/config/place-api-details
+## K3 out-of-zone GPS 23.8350,90.3800: pick-map shows 'Service not available in this area', NO Confirm button (dump k3-ooz-pickmap-no-confirm.a11y.txt); Back:
+   1 [WARN] msg="NAppBar: onAction not wired for action="back" tap — app_bar_action_tapped dropped (caller bug, NEARS-3644)"
+   1 [NET] GET endpoint=/api/v1/config/place-api-autocomplete
+## K3 my-location at OOZ point: snackbar 'Service not available in this location', no edit applied, summary stays Kitchen 12.10, Place Order present
+   1 [NET] GET endpoint=/api/v1/config/get-zone-id
+   1 [NET] GET endpoint=/api/v1/config/geocode-api
+   1 [ERR] msg="error snackbar shown"
+## window notes
+- AC3 window above runs until the first TypeAhead suggestion tap, so it also contains the typing's place-api-autocomplete. Measured 9s after the reselect tap alone (live read): distance-api x1, vehicle/extra_charge x1, get-zone-id x1, geocode-api x1; delivery-quote 0, get-Tax 0, surge 0, stores/details 0.
+- TypeAhead window runs to the K3 map open, so it also contains that screen's geocode-api/get-zone-id lookups. Group re-request = delivery-quote x2 + get-Tax x2.
