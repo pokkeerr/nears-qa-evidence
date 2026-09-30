@@ -1,0 +1,10 @@
+# NEARS-3953 QA 2026-09-30 ~23:17 +04, emulator-5558, UserApp @ c7b0806be (pricing-only diff; checkout widgets/controllers untouched)
+# Store 1 (Nears Mart, schedule_order=1, Wed 08:00-23:00). Host/device time 23:16 = after close.
+# Checkout a11y tree showed NO "Preference Time" row (TimeSlotSection hidden; only "Arriving in ~31 min"),
+# yet Confirm & place order was rejected for want of a time slot:
+I/flutter ( 5947): [INFO] msg="checkout: place-order button clicked"
+I/flutter ( 5947): [FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: place-order blocked reason=select_a_time store_id=1"
+# Earlier in the same session: analytics view_store {store_id: 1, is_open: 0}
+# After extending store 1's Wed closing_time to 23:59:59 on the private copy, placement succeeded (#91416) and the
+# Preference Time row was STILL absent - so the row is hidden independently of open state, and after close the
+# customer is asked to "select a time" with no visible picker. Root cause not isolated (outside this ticket).

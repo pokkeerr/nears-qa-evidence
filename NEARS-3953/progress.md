@@ -1,0 +1,11 @@
+# NEARS-3953 QA progress (emulator-5558, own backend :8101 worktree@c7b0806be, DB nears_qa_3953)
+- AC1-A PASS: store 1, Tomatoes 102 x1 (own 18%) + Bell Peppers 106 x1 (own 0%), flag 228=0. Checkout Subtotal 34.58 / Discount -4.53 / VAT +1.50 / banner "You got 2.12 AED additional discount". Confirm sheet Subtotal 34.58 / Discount -4.53 / VAT +1.50 / Total 31.55, no order_total_updated_notice (analytics price_changed:0). Order 91416 order_amount 31.55, store_discount_amount 4.53, tax 1.50. Logs: no [FAIL]/[ERR] during checkout/sheet/place; post-place GetPositionFailure = mock-location artifact.
+- AC1-B PASS: store 1 discount max_discount=1.00 on copy (+cache:clear prefixed). Checkout -4.53 / sheet 31.55 no notice (price_changed 0). Order 91417 order_amount 31.55, store_discount 4.53.
+- AC1-C PASS: min_purchase=100 (> subtotal 34.58) on copy. Checkout -4.53 / sheet 31.55, price_changed 0. No order. Row restored byte-identical after.
+- AC1-D PASS: flag 228=1 on copy. 2-store basket (102+106 store 1, Broccoli 4 x2 store 2). Checkout Subtotal 40.18 / -4.53 / VAT +1.78; group sheet 37.43 no notice price_changed 0; children 91420=31.55 (disc 4.53) + 91421=5.88 = 37.43.
+- REG-E1 PASS: flash 97x2 flag 0: checkout 30.06/-3.01/+1.35, sheet 28.40, price_changed 0 (NEARS-3945: 28.40).
+- REG-E2 PASS: store-wins-all 103+106: checkout 23.54/-2.35/+1.06, sheet 22.25, price_changed 0.
+- REG-E3 PASS: flash group 97x2 + Broccoli x2, flag 1: sheet 34.28, price_changed 0 (NEARS-3945: 34.28).
+- CONTROL (base be31596f4 build, same device/backend/basket): checkout -3.46 (banner 1.05); sheet -4.53/31.55 WITH "Your order total has been updated" (price_changed 1). Fix removes the correction step.
+- AC2 PASS: pricing_service_checkout_test.dart 46/46 in worktree.
+- AC3 PASS: diff adds no catch/toast/API call; no new [FAIL]/[ERR] in checkout/sheet/place windows.
