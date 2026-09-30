@@ -1,0 +1,24 @@
+# AC-REG live capture, FIX build 2cdced37b, emulator-5554, private backend :8130 (cwd /Users/Apple/Projects/nears-NEARS-3896-reorder-analytics-context @ 2cdced37b), private DB multi_food_db_qa_bug3896
+# capture: adb -s emulator-5554 logcat -v time -s flutter   (filtered: grep -a -E '📊|\[FAIL\]|\[ERR\]|\[WARN\]|cart/add|items/details')
+# Data fixture (private copy only): items.id=542 'Chicago Style Cheese' (module 2 food, store 49 Spice Route Kitchen, zone 2, stock 108, status 1) variations '[]' -> '[{"type":"S","price":25,"stock":1000}]', choice_options '[]' -> '[{"name":"choice_1","title":"Size","options":["S"]}]', food_variations NULL untouched
+# path: card quick-add 'Add To Cart' -> optimisticAddToCart false (choiceOptions non-empty) -> getItemDetails(542) -> foodVariations empty && food -> addToCartOnline + showCartSnackBar() [bare, item_controller.dart:1547] -> snackbar 'Item added to cart' + 'View Cart' -> tap snackbar View Cart
+09-30 11:49:51.431 I/flutter (31683): [NET] GET endpoint=/api/v1/items/details/542
+09-30 11:49:52.113 I/flutter (31683): [NET] endpoint=/api/v1/items/details/542 http_status=200
+09-30 11:49:52.114 I/flutter (31683): 📊 analytics: view_item {item_id: 542, item_category: 16, price: 43.17, value: 43.17, screen: store_screen, item_list_id: recommended_items, item_list_name: recommended_items, index: 1, store_id: 49, is_available: 1}
+09-30 11:49:52.116 I/flutter (31683): [NET] POST endpoint=/api/v1/customer/cart/add
+09-30 11:49:53.229 I/flutter (31683): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+09-30 11:49:53.230 I/flutter (31683): 📊 analytics: add_to_cart {item_id: 542, price: 43.17, quantity: 1, currency: AED, value: 43.17, screen: store_screen, item_list_id: recommended_items, item_list_name: recommended_items, index: 1, store_id: 49, is_available: 1}
+09-30 11:49:57.110 I/flutter (31683): 📊 analytics: view_item_list {item_list_id: basket_suggestions, item_list_name: basket_suggestions, item_count: 5, store_count: 1, screen: basket}
+09-30 11:49:58.113 I/flutter (31683): 📊 analytics: view_store {store_id: 49, screen: search, item_list_id: search_results, item_list_name: search_results, source: search, index: 0, is_open: 1}
+09-30 11:49:58.115 I/flutter (31683): 📊 analytics: view_cart {value: 72.4496, currency: AED, item_count: 2, store_count: 1, screen: basket, source: product_sheet}
+# --- earlier same session (first bare-caller add, id 541, snackbar expired before tap; the 2nd 'View Cart' tap hit the store basket bar -> source store_basket_bar, i.e. an untagged entry unchanged) ---
+09-30 11:47:53.948 I/flutter (31683): [NET] GET endpoint=/api/v1/items/details/541
+09-30 11:47:54.760 I/flutter (31683): [NET] endpoint=/api/v1/items/details/541 http_status=200
+09-30 11:47:54.769 I/flutter (31683): 📊 analytics: view_item {item_id: 541, item_category: 14, price: 34.46, value: 34.46, screen: store_screen, item_list_id: recommended_items, item_list_name: recommended_items, index: 0, store_id: 49, is_available: 1}
+09-30 11:47:54.783 I/flutter (31683): [NET] POST endpoint=/api/v1/customer/cart/add
+09-30 11:47:55.753 I/flutter (31683): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+09-30 11:47:55.759 I/flutter (31683): 📊 analytics: add_to_cart {item_id: 541, price: 34.46, quantity: 1, currency: AED, value: 34.46, screen: store_screen, item_list_id: recommended_items, item_list_name: recommended_items, index: 0, store_id: 49, is_available: 1}
+09-30 11:48:16.633 I/flutter (31683): 📊 analytics: basket_bar_tapped {item_count: 1, screen: store_basket_bar}
+09-30 11:48:17.984 I/flutter (31683): 📊 analytics: view_store {store_id: 49, screen: search, item_list_id: search_results, item_list_name: search_results, source: search, index: 0, is_open: 1}
+09-30 11:48:17.998 I/flutter (31683): 📊 analytics: view_cart {value: 34.46, currency: AED, item_count: 1, store_count: 1, screen: basket, source: store_basket_bar}
+09-30 11:48:19.289 I/flutter (31683): 📊 analytics: view_item_list {item_list_id: basket_suggestions, item_list_name: basket_suggestions, item_count: 6, store_count: 1, screen: basket}
