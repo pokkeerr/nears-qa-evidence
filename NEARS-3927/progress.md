@@ -30,3 +30,20 @@ Session-wide log scan (flutter run log + logcat after relaunch): 0 "overflowed",
 Instrument note: the same I/flutter channel captured "RenderConstraintsTransformBox overflowed by 15|20 pixels" on this rail in NEARS-3903 QA (bug-rail-brand-unit-overflow-head.log) - positive control for the overflow grep.
 Private DB writes (nears_qa_3927 only): carts +4 (Ibuprofen, Hand Sanitizer, Falafel Wrap, Chicago Style Cheese), wishlists +2 (542, 544), marker item 1 name. Shared multi_food_db: carts user 6 = 5 (unchanged), wishlists 542/544 = 0, item 1 name unchanged (write landed on copy only).
 font_scale reset to 1.0.
+
+# Fix cycle 1 — DELTA re-QA (AC3 only, per re-read in Jira comment 22445)
+
+Build: HEAD 8737e3d06 (lib/ identical to 6013e4e40: `git diff --stat 6013e4e40..8737e3d06 -- UserApp/lib` empty); cycle-0 APK was gone from 5554, rebuilt via qa-run.sh --root <worktree> --dart-define API_HOST=10.0.2.2:8127
+Device: emulator-5554 (lock NEARS-3927), 1344x2992 @480dpi, light mode
+Backend: /Users/Apple/Projects/nears/Admin/public (lsof cwd) @ d160b0fa4, :8127, DB_DATABASE=nears_qa_3927 --no-reload; copy proven by marker item 1 "Sample Product QA3927COPY" via :8127
+Private DB writes (copy only): cart row item 542 removed (to reach the '+' state), wishlist 542 removed (unfavourite probe). Shared multi_food_db: carts user 6 = 5, wishlists 542 = 0 (unchanged).
+
+| AC / scope | status | evidence | logs |
+|---|---|---|---|
+| AC3 EN 1.3x Chicago Style Cheese '+' state | FAIL (re-read condition: pill must be drawn whole) | c1-rail-en13-disc-plus(-crop).png: card [45,1596][975,2127] 531px/177dp; label '12% OFF / ... / 37.99 AED' (no 43.17 -> strike absent); '+' = Add To Cart button [723,1929][855,2037]; price 37.99 AED whole; zero overflow. BUT pill (red, x 96..325, y 1662..1733) sits under the Favourite heart (Switch [192,1662][324,1794]); visible text reads '12% O' — 'FF' hidden | clean (0 overflowed, 0 EXCEPTION; only env Firebase [FAIL]s) |
+| AC3 AR 1.3x same card '+' state | FAIL (same) | c1-rail-ar13-disc-plus(-crop).png: card [369,1587][1299,2136] 549px/183dp; label no 43.17 (strike absent); price 'د.إ. 37.99' whole; '+' [489,1938][621,2046]; pill x 1018..1247 under heart [1020,1653][1152,1785]; visible 'F 12%' — 'OF' hidden | clean |
+| Pill occlusion is favourite-state independent | observed | unfavourited 542 (AR 1.3x): red pill px 8391 both states; heart backdrop covers same area | clean |
+| Pre-existing at 1.0x | observed | bug-rail-13x-discount-pill-occluded-by-heart.png (EN 1.0x vs 1.3x): 1.0x shows '12% OF' + NO strike in EN; bug-rail-13x-discount-pill-occluded-by-heart-ar.png (AR 1.0x vs 1.3x): 1.0x pill x 1083..1247 overlaps heart x 1020..1152, strike 43.17 drawn in AR 1.0x | clean |
+| Targeted tests | PASS | flutter test --no-pub test/common/widgets/card_design/ + cart_suggestion_rail_row_golden_test + item_view_row_golden_test: 147/147 | - |
+| AC1 AC2 AC4 AC5 | carried from cycle 0 (PASS) | no product-code change since cycle 0 | - |
+font_scale reset to 1.0.

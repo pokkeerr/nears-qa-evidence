@@ -1,0 +1,10 @@
+NEARS-3927 cycle 1 - cart rail "You May Also Like", item 542 Chicago Style Cheese (Spice Route Kitchen), '+' state, emulator-5554 448dp, light
+uiautomator bounds (px):
+EN 1.3x card [45,1596][975,2127]  Favourite Switch [192,1662][324,1794]  red pill (pixel scan) x 96..325 y 1662..1733  -> visible "12% O"
+EN 1.0x card [45,1449][975,1839]  Favourite Switch [192,1515][324,1647]  red pill x 96..260 y 1515..1574   -> visible "12% OF" (no strike in EN at 1.0x either)
+AR 1.3x card [369,1587][1299,2136] Favourite Switch [1020,1653][1152,1785] red pill x 1018..1247 y 1653..1724 -> visible "F 12%"
+AR 1.0x card [369,1470][1299,1860] Favourite Switch [1020,1536][1152,1668] red pill x 1083..1247 y 1536..1595 (strike 43.17 drawn at 1.0x AR)
+Pill text is merged into the card's a11y label ("12% OFF\n..."); it has no own node, so its bounds come from a red-pixel scan.
+Favourite on vs off (AR 1.3x): identical red pixel count 8391 -> occlusion independent of favourite state.
+Logs over the whole session: 0 "overflowed", 0 "EXCEPTION CAUGHT"; [FAIL] lines are Firebase-init only (no google-services.json by instruction).
+Source (outside this ticket's diff): pill = packages/nears_dls/lib/components/nitemcard/n_item_card.dart _rowImageBlock (84dp image; discount NBadge PositionedDirectional top/start space1, same top band as the favourite heart). Same shape NEARS-3866 fixed for the closed chip (':790 below the heart ... hid the label's end') - not applied to the discount badge; pill text built in UserApp/lib/common/widgets/card_design/item_card.dart:263 ('% OFF' hardcoded English).
