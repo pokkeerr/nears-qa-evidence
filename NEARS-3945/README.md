@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3945
 
-**NEARS-3945 QA PASS - flash+store-discount checkout parity (28.40 / 34.28 / X3 cap / flag-OFF+RTL); pre-existing server max_discount bug found**
+**NEARS-3945 QA PASS (compiled ACs) - flash+store-discount parity 28.40/34.28/X3/flag-OFF+RTL; findings: group post-placement cashback transient; pre-existing server max_discount bug**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -23,6 +23,7 @@
 - [`ac2-group-confirm-sheet.txt`](ac2-group-confirm-sheet.txt)
 - [`ac3-be-log.log`](ac3-be-log.log)
 - [`app-logs.log`](app-logs.log)
+- [`bug-group-postplace-cashback-transient.log`](bug-group-postplace-cashback-transient.log)
 - [`bug-server-store-max-discount-ignored.log`](bug-server-store-max-discount-ignored.log)
 - [`instrument-moneyproxy.py`](instrument-moneyproxy.py)
 - [`money-proxy.log`](money-proxy.log)

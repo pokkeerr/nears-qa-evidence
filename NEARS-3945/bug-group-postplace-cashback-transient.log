@@ -1,0 +1,21 @@
+# NEARS-3945 QA finding (in the changed line checkout_screen.dart ~531-533): GROUP post-placement cashback estimate carries a transient amount
+# Group basket (AC2): item 97 x2 (store 1) + Broccoli x2 (store 2); displayed + confirm + charged group total = 34.28.
+## Proxy sequence (money fields only):
+{"t": "20:25:27", "m": "GET", "path": "/api/v1/cashback/getCashback?amount=34.28", "status": 200, "rid": "511708ab-cb28-4f25-9869-177270cf47b9", "req": {}, "resp": {"calculated_amount": "1.71", "cashback_amount": "5", "cashback_ty
+{"t": "20:26:16", "m": "POST", "path": "/api/v1/customer/order/group/validate", "status": 200, "rid": "3e0e6b9f-403f-432b-8aa6-29f4506994a5", "req": {"payment_method": "cash_on_delivery", "order_type": "delivery", "store_id": "1"}
+{"t": "20:26:21", "m": "POST", "path": "/api/v1/customer/order/group/place", "status": 200, "rid": "b9f2625b-5276-45b1-89fa-0e749e089e2c", "req": {"payment_method": "cash_on_delivery", "order_type": "delivery", "store_id": "1"}, "
+{"t": "20:26:22", "m": "GET", "path": "/api/v1/customer/order/group/details", "status": 200, "rid": "5280dfe9-0c30-43bb-bdf6-9526a9252a54", "req": {}, "resp": {"order_id": "91419", "order_ids": "[91419,91420]", "group_id": "866986
+{"t": "20:26:23", "m": "GET", "path": "/api/v1/cashback/getCashback?amount=32.65", "status": 200, "rid": "b8874386-cced-4e0c-959e-761c5bb0f3a5", "req": {}, "resp": {"calculated_amount": "1.63", "cashback_amount": "5", "cashback_ty
+## App log after group/place (pid 18121):
+I/flutter (18121): [NET] POST endpoint=/api/v1/customer/order/group/place
+I/flutter (18121): [NET] endpoint=/api/v1/customer/order/group/place http_status=200
+I/flutter (18121): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+I/flutter (18121): [INFO] msg="order: trackOrder orderID=91419"
+I/flutter (18121): [INFO] msg="trackOrder called for orderID=91419 source=rowTap"
+I/flutter (18121): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+I/flutter (18121): [NET] GET endpoint=/api/v1/customer/cart/list
+I/flutter (18121): [NET] endpoint=/api/v1/customer/cart/list http_status=200
+I/flutter (18121): [INFO] msg="trackOrder called for orderID=91419 source=groupChild"
+I/flutter (18121): [NET] GET endpoint=/api/v1/cashback/getCashback
+I/flutter (18121): [INFO] msg="trackOrder called for orderID=91420 source=groupChild"
+## Reading: pre-placement settled call amount=34.28 (correct). After group/place the still-mounted CheckoutScreen rebuilds on post-placement state (cart removed/reloaded, per-store tax gone) -> viewTotalPrice 32.65 (= 35.66 - 3.01, no VAT); the 800ms callback now assigns _payableAmount = 32.65 BEFORE showCashBackSnackBar(), so the estimate call carries the transient. Pre-fix the same callback read the stale previous _payableAmount (the last settled client total: 31.88 in the ticket's divergent case; == charged in a divergence-free group basket). Single-store placements (#91416 #91421 #91424) fire NO post-placement call. Snackbar text shows the offer (5%), not calculated_amount, so user-visible text is unchanged unless an offer's min_purchase falls between 32.65 and 34.28.
