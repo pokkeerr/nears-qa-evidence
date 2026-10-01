@@ -1,0 +1,17 @@
+# PRE-EXISTING (not this diff): cart/update price for a non-base VARIATION row is computed from item.price, ignoring the row's variation price
+# code: UserApp/lib/features/cart/domain/services/cart_service.dart calculateDiscountedPrice() - non-food branch uses cartModel.item!.price only (file unchanged by NEARS-3977 diff: git diff 1e58fe464 ce7064d26 -- UserApp/lib/features/cart/domain is empty)
+# item 91: price 100, discount 30 percent, variations 64g=100, 100g=150. R2 = 100g row. Expected discounted unit 105 -> q2 line 210; display header moved +105 (correct); request price=140 (=70*2, base-variation price)
+# newly REACHABLE on head: base never sent any update for R2 (baseline B2-OFF-a: 0 requests)
+11:41:20Z POST /api/v1/customer/cart/update moduleId=1 zoneId=[403,2] status=200 body={"cart_id":994,"price":140.0,"quantity":2}
+11:42:09Z POST /api/v1/customer/cart/update moduleId=1 zoneId=[403,2] status=200 body={"cart_id":994,"price":70.0,"quantity":1}
+11:42:22Z POST /api/v1/customer/cart/update moduleId=1 zoneId=[403,2] status=200 body={"cart_id":994,"price":140.0,"quantity":2}
+11:42:32Z POST /api/v1/customer/cart/update moduleId=1 zoneId=[403,2] status=200 body={"cart_id":994,"price":70.0,"quantity":1}
+11:45:59Z POST /api/v1/customer/cart/update moduleId=1 zoneId=[403,2] status=200 body={"cart_id":1000,"price":140.0,"quantity":2}
+11:52:35Z POST /api/v1/customer/cart/update moduleId=1 zoneId=[403,2] status=200 body={"cart_id":1006,"price":140.0,"quantity":2}
+11:52:44Z POST /api/v1/customer/cart/update moduleId=1 zoneId=[403,2] status=200 body={"cart_id":1006,"price":70.0,"quantity":1}
+11:53:05Z POST /api/v1/customer/cart/update moduleId=1 zoneId=[403,2] status=200 body={"cart_id":1006,"price":140.0,"quantity":2}
+11:53:14Z POST /api/v1/customer/cart/update moduleId=1 zoneId=[403,2] status=200 body={"cart_id":1006,"price":70.0,"quantity":1}
+11:57:21Z POST /api/v1/customer/cart/update moduleId=1 zoneId=[403,2] status=200 body={"cart_id":1012,"price":140.0,"quantity":2}
+# DB readback after AC2-OFF-a (nears_qa_cartrow.carts id,quantity,price,variation):
+994	2	140.000	[{"type":"100g","price":150}]
+# app display after the same tap: basket header 385.00 -> 490.00 AED (+105 = correct 100g discounted unit)
