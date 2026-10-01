@@ -1,0 +1,6 @@
+# NEARS-3973 QA [8] progress (sha 0f9c900a1, emulator-5640, own server :8173 on nears_qa_3973)
+- AC1 mobile (mixed 12+49, cart order slow-first): PASS — a11y dump ac1-mobile-mixed-slowfirst.xml: no "Arriving" node; map (Google Map / delivery_route_preview) at [45,384][1299,804] directly below Checkout title; shot ac1-mobile-mixed-hero.png. Logs clean in checkout window (only pre-existing map-stop WARN).
+- AC1 desktop: widget tests checkout_mixed_basket_eta_call_sites_test.dart (1400dp desktop hero group) — 44/44 across 3 files.
+- AC2 (mixed 12+49 sheet): PASS — ac2-sheet-mixed.xml/png: no Estimated arrival node; Deliver To -> Payment Method single divider; Subtotal 60.45 / VAT 3.02 / Total 63.47 intact. Logs (pid 6140) clean during checkout+sheet.
+- Scope 10: rows scrolled off (s10-before-place.xml: 0 time nodes) -> sheet open (s10-sheet-open.xml): 0 time nodes anywhere. With rows on-screen (1st pass) the sheet also covers them -> no time visible either way.
+- AC3 slow-first (12 ~2 h 12 min row 1, 49 ~28 min row 2) and fast-first (35 Test Store ~9 min row 1, 52 Mediterranean ~60 min row 2; 52 qty 2 for min order): PASS — only time-bearing nodes are the per-store rows. Note: backend cart list is module-ordered, so 12+49 can't be reversed; used 35+52 for fast-first.
