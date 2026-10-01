@@ -53,3 +53,15 @@
 - AC2 [api]: PASS - 90/90 client tests (85 pricing incl. 29-case parity fixture + 5 adopt tests); fixture blob db002a2b2 unchanged; Admin bytes unchanged since prior 284/284 backend PASS (delta = test comment only).
 - AC3 [api]: PASS - cycle-2 UserApp/lib diff adds no non-success branch.
 - Shared multi_food_db: max order 91415, bs228 0 (verified at end). Copy disc 1 restored to max 5.00.
+
+# ROUTING CELL q-...-004 (advisor-product): MIXED basket + campaign quick-add (emulator-5590, UserApp debug @ f868a34de, backend :8120 on nears_qa_3960, bs228=1)
+- Basket build: Beta10 (store 1) via product sheet -> carts 1016 item 91155 @9.000; then Restaurant home "Just for You" "Tasty Food Favorites" Add To Cart (analytics item_id 14 store_id 4 price 25.0) -> carts 1017 item_id 14 App\Models\Item (Organic Almond Milk, store 3) @25.000, module_id 1
+- (a) Basket (no refresh): "Nears Mart, Grocery, 1 Item, 9.00" + "Burger Palace, Restaurant, 1 Item, 22.50" / row "Tasty Food Favorites 22.50 struck 25.00"; per-store get-Tax for store 4 -> 403 different_stores (BE d1c5c88f-...)
+- (a) Checkout: Nears Mart: QA3960 Beta10 1x9.00 / Burger Palace: Tasty Food Favorites 1x22.50; Subtotal 35.00 / Discount -1.00 / VAT +0.45 / delivery 0.00+0.00 / Total 34.45; cash removed (probe cash_removed=true valid=false); Wallet chosen
+- (b) Confirm sheet: Nears Mart 1 Items + Burger Palace 1 Items, WALLET, 35.00/-1.00/+0.45/34.45, NO "total updated" notice (price_changed 0)
+- 1st Confirm: client gate please_enter_valid_phone_number (GPS "Others" address carried account phone +1016..., known-bad seed) -> switched to saved Home address (+12015550124)
+- (b)/(c) 2nd Confirm: app re-ran group/validate -> 200 valid=false; [FAIL] PlaceOrderBlocked "group validate rejected failures=1 store_ids=4 reasons=empty_cart"; snackbar key please_resolve_the_highlighted_stores ("Please resolve the highlighted stores to continue"); NO group/place POST; max order id stays 91440
+- Replay (curl, same body shape, stores [1,4], wallet): 200 X-Request-Id 3b1acfd0-4747-4257-af96-b8e08ee0ad2a -> store 1 pass 9.45; store 4 pass:false reason empty_cart message "You can not place empty orders" amounts null; cash_removed true
+- (d) No inline gate card for Burger Palace (gateCardForReason('empty_cart') == null), no store "Remove" exit (NEARS-3851 not merged into this tree); Place Order left disabled; only exit = basket per-row "Remove Tasty Food Favorites"
+- Refreshed display: Organic Paradise / Organic Almond Milk 1 bottle 5.50 (server row 25.000) / Not Available / min not reached (add 4.50); replay stores [1,3] -> store 3 store_closed (e1eb3156-...), so the store-3 charge question is unexercised (opens 09:00)
+- Cell result: placed=false; refusal = group/validate store 4 empty_cart "You can not place empty orders"; no place POST; no Remove exit

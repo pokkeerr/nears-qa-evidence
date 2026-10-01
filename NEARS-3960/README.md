@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3960
 
-**NEARS-3960 fix-cycle 2 delta re-QA: PASS (AC1 default-path cap/min parity 91431-91434; R6-R10 PASS; 2 non-AC findings)**
+**NEARS-3960 routing cell 004: mixed basket + campaign quick-add - placed=false; group/validate refuses store 4 empty_cart; no Remove exit**
 
 **4 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -21,6 +21,7 @@
 - [`bug-campaign-add-wrong-server-row.log`](bug-campaign-add-wrong-server-row.log)
 - [`bug-optimistic-row-cap-drift.log`](bug-optimistic-row-cap-drift.log)
 - [`bug-search-rendertable-semantics.log`](bug-search-rendertable-semantics.log)
+- [`cell004`](cell004)
 - [`cycle2`](cycle2)
 - [`flutter-test-cycle2.log`](flutter-test-cycle2.log)
 - [`flutter-test-pricing_service_checkout.log`](flutter-test-pricing_service_checkout.log)

@@ -1,0 +1,34 @@
+NEARS-3960 routing cell 004 (advisor-product q-20261001-015012-cmb-3960-NEARS-3960-004)
+emulator-5590, UserApp debug @ f868a34de (pkg com.izzes.nears.nears_nears_3960_store_cap_remirror), backend :8120 on nears_qa_3960, business_settings 228 cross_module_basket = 1
+User 3 (michael.brown), saved Home address (zone 1). Payment: Wallet (cash removed for the mixed basket).
+
+Basket built:
+  1. QA3960 Beta10 (item 91155, store 1 Nears Mart) via product sheet -> carts 1016 item 91155 App\Models\Item @9.000
+  2. Restaurant home "Just for You" card "Tasty Food Favorites" Add To Cart
+     app: add_to_cart {item_id: 14, price: 25.0, item_list_id: just_for_you, store_id: 4}
+     server: carts 1017 item_id 14 item_type App\Models\Item module_id 1 @25.000 = Organic Almond Milk (store 3 Organic Paradise, real price 5.50)
+
+(a) Display, no refresh (the add's own optimistic row):
+  Basket:   "Nears Mart, Grocery, 1 Item, 9.00" | "Burger Palace, Restaurant, 1 Item, 22.50" row "Tasty Food Favorites 22.50 (struck 25.00)"
+  Checkout: Nears Mart: QA3960 Beta10 1 x 9.00 | Burger Palace: Tasty Food Favorites 1 x 22.50
+            Subtotal 35.00, Discount -1.00, VAT +0.45, Delivery 0.00 + 0.00, Total 34.45
+  Per-store get-Tax for store 4 -> 403; app: [FAIL] endpoint=/api/v1/customer/order/get-Tax http_status=403 msg="checkout: group per-store tax non-200"
+                                       BE:  [FAIL] get_calculated_tax code=different_stores request_id d1c5c88f-62bf-45e4-85df-91bc119d0175 (and d6ea8659-63a2-4f60-bf5c-39a47646e29a on re-quote)
+(a') Display after a cart refresh (module switch -> GET cart/list 200):
+  Basket: "Organic Paradise" section, "Organic Almond Milk, 1 bottle, 5.50" (server row price 25.000), "Not Available", "Minimum order amount not reached - Add 4.50 more"; Nears Mart Beta10 9.00
+
+(b) Confirm sheet (group): Nears Mart 1 Items, Burger Palace 1 Items, WALLET PAYMENT, Subtotal 35.00, Discount -1.00, VAT +0.45, Total 34.45, no "total updated" notice (price_changed 0)
+    Confirm & place order -> app re-runs POST /api/v1/customer/order/group/validate -> 200 valid=false
+    app: [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=200 type=PlaceOrderBlocked msg="checkout: group validate rejected failures=1 store_ids=4 reasons=empty_cart"
+    snackbar key please_resolve_the_highlighted_stores = "Please resolve the highlighted stores to continue" (nothing is highlighted: gateCardForReason('empty_cart') returns null)
+    Place Order then stays disabled (non-clickable); no inline gate card; no store Remove exit.
+    (1st Confirm attempt was blocked earlier, client-side, by please_enter_valid_phone_number: GPS-picked "Others" address carried the account's known-bad seed phone; switched to saved Home address.)
+
+(c) Placed: NO. No POST /api/v1/customer/order/group/place was sent. nears_qa_3960 max(orders.id) = 91440 before and after. No order/child order with Item 14.
+    Server refusal (replay, same body shape, stores [1,4], wallet): HTTP 200 X-Request-Id 3b1acfd0-4747-4257-af96-b8e08ee0ad2a
+      store 1 Nears Mart pass true, order_amount 9.45 | store 4 Burger Palace pass false reason "empty_cart" message "You can not place empty orders" amounts null | cash_removed true
+    Server stance on the store-3 slice (replay, stores [1,3]): HTTP 200 X-Request-Id e1eb3156-acd6-46a5-a915-d4c5f85d2ae9
+      store 3 Organic Paradise pass false reason "store_closed" "Store is closed at order time" (opens 09:00, run at 06:23) - the 25.00-vs-5.50 charge question could NOT be exercised.
+
+(d) NEARS-3851 Cart card "Remove" exit: NOT present (8d72d6083 / feat/NEARS-3851-cart-store-failure not an ancestor of f868a34de). Only exit is the basket per-row "Remove Tasty Food Favorites".
+(e) Place call X-Request-Id: none, no place call was made. The app's group/validate [FAIL] line carries no correlation id (200-path logs omit it); replay ids above.
