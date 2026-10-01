@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3967
 
-**FAIL @13d61c074 - AC1/AC2/AC3 PASS; required cell C5 FAIL: popup toast hit box covers wallet Apply at 320dp x1.3 EN**
+**NEARS-3967 fix-cycle-1 delta re-QA PASS @ 9c581942d (D1-D6)**
 
-**10 screenshot(s).** Click any thumbnail for full resolution.
+**16 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -22,11 +22,26 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="c8-head-resume-sheet-cod-cap-toast-top-above-barrier.png"><img src="c8-head-resume-sheet-cod-cap-toast-top-above-barrier.png" width="240"></a><br><sub>c8 head resume sheet cod cap toast top above barrier</sub></td>
+<td align="center" width="33%"><a href="fc1-d1-320dp-1.3x-13gw-toast-pill-apply-3dp-below.png"><img src="fc1-d1-320dp-1.3x-13gw-toast-pill-apply-3dp-below.png" width="240"></a><br><sub>fc1 d1 320dp 1.3x 13gw toast pill apply 3dp below</sub></td>
+<td align="center" width="33%"><a href="fc1-d1-320dp-1.3x-2gw-toast-pill-apply-clear.png"><img src="fc1-d1-320dp-1.3x-2gw-toast-pill-apply-clear.png" width="240"></a><br><sub>fc1 d1 320dp 1.3x 2gw toast pill apply clear</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fc1-d2-320dp-1.3x-13gw-header-drag-closed-sheet-toast-stays.png"><img src="fc1-d2-320dp-1.3x-13gw-header-drag-closed-sheet-toast-stays.png" width="240"></a><br><sub>fc1 d2 320dp 1.3x 13gw header drag closed sheet toast stays</sub></td>
+<td align="center" width="33%"><a href="fc1-d3-360dp-2gw-select-popped-toast-stays.png"><img src="fc1-d3-360dp-2gw-select-popped-toast-stays.png" width="240"></a><br><sub>fc1 d3 360dp 2gw select popped toast stays</sub></td>
+<td align="center" width="33%"><a href="fc1-d5-coupon-sheet-keyboard-up-toast-top.png"><img src="fc1-d5-coupon-sheet-keyboard-up-toast-top.png" width="240"></a><br><sub>fc1 d5 coupon sheet keyboard up toast top</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fc1-d6-ar-320dp-1.3x-13gw-toast-apply-clear.png"><img src="fc1-d6-ar-320dp-1.3x-13gw-toast-apply-clear.png" width="240"></a><br><sub>fc1 d6 ar 320dp 1.3x 13gw toast apply clear</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
 - [`bug-popup-toast-hitbox-covers-wallet-apply-tall-sheet.log`](bug-popup-toast-hitbox-covers-wallet-apply-tall-sheet.log)
+- [`fc1-d1_13gw-t0-dump.xml`](fc1-d1_13gw-t0-dump.xml)
+- [`fc1-d1_2gw-t0-dump.xml`](fc1-d1_2gw-t0-dump.xml)
+- [`fc1-d3_360_2gw-t0-dump.xml`](fc1-d3_360_2gw-t0-dump.xml)
+- [`fc1-d5_coupon_kb-t0-dump.xml`](fc1-d5_coupon_kb-t0-dump.xml)
+- [`fc1-d6_ar_13gw-t0-dump.xml`](fc1-d6_ar_13gw-t0-dump.xml)
 - [`progress.md`](progress.md)
 
 ---
