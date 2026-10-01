@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3860
 
-**NEARS-3860 [8] final CMB live QA @ fc980d776 - FAIL (C-VAT-SUM wide, AC2, F, A3)**
+**NEARS-3860 [8] delta-1 evidence: F cart flag + fetch bound, AC2 refund status (wallet_add_refund=1)**
 
-**19 screenshot(s).** Click any thumbnail for full resolution.
+**23 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -33,9 +33,15 @@
 <tr>
 <td align="center" width="33%"><a href="d1-frame-2.png"><img src="d1-frame-2.png" width="240"></a><br><sub>d1 frame 2</sub></td>
 <td align="center" width="33%"><a href="d1-notice-before-confirm-tap.png"><img src="d1-notice-before-confirm-tap.png" width="240"></a><br><sub>d1 notice before confirm tap</sub></td>
-<td align="center" width="33%"><a href="f-checkout-addr60-outofzone.png"><img src="f-checkout-addr60-outofzone.png" width="240"></a><br><sub>f checkout addr60 outofzone</sub></td>
+<td align="center" width="33%"><a href="delta-ac2-child-details.png"><img src="delta-ac2-child-details.png" width="240"></a><br><sub>delta ac2 child details</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="delta-ac2-group-card-ongoing.png"><img src="delta-ac2-group-card-ongoing.png" width="240"></a><br><sub>delta ac2 group card ongoing</sub></td>
+<td align="center" width="33%"><a href="delta-f-cart-direct-addr60-flag-by-name.png"><img src="delta-f-cart-direct-addr60-flag-by-name.png" width="240"></a><br><sub>delta f cart direct addr60 flag by name</sub></td>
+<td align="center" width="33%"><a href="delta-f-editcart-from-block.png"><img src="delta-f-editcart-from-block.png" width="240"></a><br><sub>delta f editcart from block</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="f-checkout-addr60-outofzone.png"><img src="f-checkout-addr60-outofzone.png" width="240"></a><br><sub>f checkout addr60 outofzone</sub></td>
 <td align="center" width="33%"><a href="obs-basketbar-stale-after-pharmacy-add.png"><img src="obs-basketbar-stale-after-pharmacy-add.png" width="240"></a><br><sub>obs basketbar stale after pharmacy add</sub></td>
 </tr>
 </table>
@@ -48,6 +54,11 @@
 - [`bug-f-outofzone-fullpage-not-row.log`](bug-f-outofzone-fullpage-not-row.log)
 - [`bug-group-screen-a11y-empty-after-back.xml`](bug-group-screen-a11y-empty-after-back.xml)
 - [`bug-group-screen-blank-after-back.log`](bug-group-screen-blank-after-back.log)
+- [`delta-ac2-evidence.log`](delta-ac2-evidence.log)
+- [`delta-ac2-group-card-ongoing.xml`](delta-ac2-group-card-ongoing.xml)
+- [`delta-f-cart-direct-addr60.xml`](delta-f-cart-direct-addr60.xml)
+- [`delta-f-editcart-from-block.xml`](delta-f-editcart-from-block.xml)
+- [`delta-f-evidence.log`](delta-f-evidence.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3860/` · public-repo scrub policy (no live secrets; verified clean).*

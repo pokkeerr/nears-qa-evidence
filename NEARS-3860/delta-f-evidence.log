@@ -1,0 +1,17 @@
+# delta-1 F evidence (fix cycle 1, evidence only) — same build fc980d776, copy nears_qa_3860, emulator-5662
+Arrange: temp 3168 Fri 00:00-07:59 schedule id 29076 (Admin, 03:35:07); basket 1026 Rice 5kg (3168) + 1027 Beef Shawarma (49) built at address 45; checkout opened at 45 (resolved 12.94/44.53); Home location -> address 60; Basket -> Proceed (Cart did not re-validate: basket signature unchanged) -> full-page block 'This store doesn't deliver to your area' 03:46:20.
+
+## F-fetch-bound
+03:46:10 GET /api/v1/stores/details/3168 403 93ms rid=001d5b54-a781-45a0-a9b6-ba0519850dfd resp={"errors":[{"c
+03:46:11 GET /api/v1/stores/details/49 200 91ms rid=4d747442-29bb-41d0-8774-83715eb8a133 resp={"id":49,"status
+03:46:11 GET /api/v1/stores/details/3168 403 196ms rid=39039e48-3cc6-440a-a6da-fbf855555b42 resp={"errors":[{"
+03:46:20 GET /api/v1/stores/details/3168 403 109ms rid=88d04ba7-ed73-45a8-81ec-de2f4f6f231f resp={"errors":[{"
+03:47:59 GET /api/v1/stores/details/3168 403 106ms rid=4ac29013-00a2-4b2f-85a8-1a2a654ef2bf resp={"errors":[{"
+03:48:00 GET /api/v1/stores/details/49 200 93ms rid=1d44731f-c3b9-4250-96ff-5f942c966c04 resp={"id":49,"status
+03:48:00 GET /api/v1/stores/details/3168 403 175ms rid=5575d0e5-0d32-422e-a18e-a6a82aace869 resp={"errors":[{"
+03:48:33 GET /api/v1/stores/details/3168 403 108ms rid=ff131d5a-275e-490a-8d07-338b53f1b8e3 resp={"errors":[{"
+60 s window with block on screen 03:46:42-03:47:44: 0 requests of any kind (3168 count 0). Fetches are event-driven: Cart open 2x (03:46:10/11, 03:47:59/03:48:00), checkout init 1x (03:46:20) -> BOUNDED.
+
+## F-cart-flag-by-name
+Edit Cart from the block (03:47:58) -> Cart shows Dama baqala section with 'Delivery Fee, Something went wrong' + ETA '—'; NO 'Not available for this address' card; Proceed to Checkout enabled=true; tapping it re-opens the same block (03:48:46) -> loop. Dump: delta-f-editcart-from-block.xml, shot delta-f-editcart-from-block.png.
+Contrast (direct path, Cart re-validated after location change, 03:43:20): 'Not available for this address: Dama baqala' + Remove; dump delta-f-cart-direct-addr60.xml, shot delta-f-cart-direct-addr60-flag-by-name.png.
