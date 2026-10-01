@@ -1,0 +1,9 @@
+NEARS-3970 QA (lane e6a896aeb, emulator-5600, private copy nears_qa_3970) - observed while placing the guest order for AC4.
+Sequence: logged in as james.wilson (phone +101600000001) -> Logout -> continue as guest -> group checkout.
+Guest Delivery Information shows the country picker "+971" (a11y node "+971").
+Phone 501234567 (valid UAE mobile under +971) -> Confirm & place order ->
+  [FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: place-order blocked reason=please_enter_valid_phone_number"
+Phone 6502530000 (valid only under +1) -> placed (orders 91441/91442).
+Code: place_order_controller.dart:1199-1203 validates addr.countryDialCode + guest number;
+address_delivery_option_controller.dart:72 seeds countryDialCode from AuthController.getUserCountryCode() (the previous user's stored code) before the config country.
+So the validator uses the logged-out user's dial code, not the picker the guest sees. Not touched by NEARS-3970 (UserApp checkout pricing only). Not checked at base.

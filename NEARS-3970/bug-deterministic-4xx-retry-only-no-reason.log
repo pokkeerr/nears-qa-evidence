@@ -1,0 +1,20 @@
+NEARS-3970 QA cell 7 (advisor-product -001 cond. 1) - deterministic 4xx on one store's get-Tax
+Lane UserApp @ e6a896aeb, emulator-5600, private copy nears_qa_3970, logged-in james.wilson, cross_module_basket=1.
+
+Case 7a (quantity limit): Side Salad x2 (store 49), copy items.540 maximum_cart_quantity=1
+  proxy: POST /api/v1/customer/order/get-Tax store=49 -> 403 (OrderDetailBuilder.php:121-122 code=quantity)
+  proxy: POST /api/v1/customer/order/group/validate -> 200   (validate does not flag the store)
+  Cart: no per-item/store warning; Delivery Fee "—"; Proceed to Checkout enabled.
+  Checkout: Fee Breakdown "Spice Route Kitchen (Abu Dhabi), Something went wrong, Retry" + "Edit Cart"; Total "—"; Place Order disabled.
+  Retry -> get-Tax 49 -> 403 again (rid 1f0e99b2-7e8e-4be4-b5cd-5b5e9fa4a630), still blocked.
+
+Case 7b (out of stock): Tortilla Chips x1 (store 19, grocery), copy items.270 stock=0
+  07:36:57 get-Tax store=19 -> 403 (cart)  | 07:37:16 get-Tax store=19 -> 403 rid=bd0ad4a5 (checkout) | 07:37:17 group/validate -> 200
+  07:37:53 Retry: get-Tax store=19 -> 403 rid=3a08a4be-142b-4fb3-ba9d-d104ce380155, store=49 -> 200; group/validate -> 200
+  App log per attempt: [FAIL] endpoint=/api/v1/customer/order/get-Tax http_status=403 type=ApiFailure msg="checkout: group per-store tax non-200"
+  Screen: "Eco Market, Something went wrong, Retry" + "Eco Market, Edit Cart"; no "out of stock"/quantity text anywhere on Cart or Checkout (a11y dumps c7-out-of-stock-store-a-a11y-dump.xml, c8-cart-b-failing-a11y-dump.xml).
+
+What the customer sees: a Retry that always fails, no reason. The only other exit is Edit Cart, and the Cart does not say which item is wrong.
+The server's reason (code stock / quantity, OrderDetailBuilder.php:121-122 and :162-164) is dropped by the handleError:false tax fetch.
+group/validate does not flag the store, so the NEARS-3851 Cart card never appears.
+At base 812800503 the same failure fails OPEN (Total numeric, Place enabled - cell 11), so the reason would only surface at placement (not placed in this QA).
