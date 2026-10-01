@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3954
 
-**NEARS-3954 final delta QA (fix-cycle 1) on bae19a2b3: PASS - TB-1/TB-2 fixed, core re-confirmed**
+**NEARS-3954 fix-cycle 2 delta re-QA PASS @ 38fc8d5ab: held confirm-sheet rows name+skeleton, spoken 'Loading...' (EN/AR), replay lands on original group, no 3849 coupon-missing line under hold**
 
-**16 screenshot(s).** Click any thumbnail for full resolution.
+**21 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -12,25 +12,32 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="c7-payagain-prompt.png"><img src="c7-payagain-prompt.png" width="240"></a><br><sub>c7 payagain prompt</sub></td>
+<td align="center" width="33%"><a href="fc2-c1-held-confirm-sheet-en.png"><img src="fc2-c1-held-confirm-sheet-en.png" width="240"></a><br><sub>fc2 c1 held confirm sheet en</sub></td>
+<td align="center" width="33%"><a href="fc2-c1b-held-confirm-sheet-en.png"><img src="fc2-c1b-held-confirm-sheet-en.png" width="240"></a><br><sub>fc2 c1b held confirm sheet en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="fc2-c2-control-settled.png"><img src="fc2-c2-control-settled.png" width="240"></a><br><sub>fc2 c2 control settled</sub></td>
+<td align="center" width="33%"><a href="fc2-c4-held-confirm-sheet-ar.png"><img src="fc2-c4-held-confirm-sheet-ar.png" width="240"></a><br><sub>fc2 c4 held confirm sheet ar</sub></td>
+<td align="center" width="33%"><a href="fc2-c4-montage-en-ar.png"><img src="fc2-c4-montage-en-ar.png" width="240"></a><br><sub>fc2 c4 montage en ar</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="preqa-ac10-montage-en-ar.png"><img src="preqa-ac10-montage-en-ar.png" width="240"></a><br><sub>preqa ac10 montage en ar</sub></td>
 <td align="center" width="33%"><a href="preqa-ac14i-found-earlier-tracking.png"><img src="preqa-ac14i-found-earlier-tracking.png" width="240"></a><br><sub>preqa ac14i found earlier tracking</sub></td>
+<td align="center" width="33%"><a href="preqa-ac14iii-found-earlier.png"><img src="preqa-ac14iii-found-earlier.png" width="240"></a><br><sub>preqa ac14iii found earlier</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="preqa-ac14iii-found-earlier.png"><img src="preqa-ac14iii-found-earlier.png" width="240"></a><br><sub>preqa ac14iii found earlier</sub></td>
 <td align="center" width="33%"><a href="preqa-ac5-could-not-confirm-en.png"><img src="preqa-ac5-could-not-confirm-en.png" width="240"></a><br><sub>preqa ac5 could not confirm en</sub></td>
 <td align="center" width="33%"><a href="preqa-ac8a-retap-success.png"><img src="preqa-ac8a-retap-success.png" width="240"></a><br><sub>preqa ac8a retap success</sub></td>
+<td align="center" width="33%"><a href="preqa-ac9-found-earlier-tracking.png"><img src="preqa-ac9-found-earlier-tracking.png" width="240"></a><br><sub>preqa ac9 found earlier tracking</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="preqa-ac9-found-earlier-tracking.png"><img src="preqa-ac9-found-earlier-tracking.png" width="240"></a><br><sub>preqa ac9 found earlier tracking</sub></td>
 <td align="center" width="33%"><a href="preqa-bug-held-payment-prompt-shows-client-total.png"><img src="preqa-bug-held-payment-prompt-shows-client-total.png" width="240"></a><br><sub>preqa bug held payment prompt shows client total</sub></td>
 <td align="center" width="33%"><a href="preqa-c41-held-checkout-small.png"><img src="preqa-c41-held-checkout-small.png" width="240"></a><br><sub>preqa c41 held checkout small</sub></td>
+<td align="center" width="33%"><a href="tb1-control-nohold-sheet.png"><img src="tb1-control-nohold-sheet.png" width="240"></a><br><sub>tb1 control nohold sheet</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="tb1-control-nohold-sheet.png"><img src="tb1-control-nohold-sheet.png" width="240"></a><br><sub>tb1 control nohold sheet</sub></td>
 <td align="center" width="33%"><a href="tb1-held-change-sheet.png"><img src="tb1-held-change-sheet.png" width="240"></a><br><sub>tb1 held change sheet</sub></td>
 <td align="center" width="33%"><a href="tb1-held-confirm-sheet.png"><img src="tb1-held-confirm-sheet.png" width="240"></a><br><sub>tb1 held confirm sheet</sub></td>
-</tr>
-<tr>
 <td align="center" width="33%"><a href="tb1-noprompt-sheet.png"><img src="tb1-noprompt-sheet.png" width="240"></a><br><sub>tb1 noprompt sheet</sub></td>
 </tr>
 </table>
@@ -68,6 +75,31 @@
 - [`c7-payagain-prompt.txt`](c7-payagain-prompt.txt)
 - [`c7-payagain-prompt.xml`](c7-payagain-prompt.xml)
 - [`db_writes.log`](db_writes.log)
+- [`fc2-backend-freshness-8104.txt`](fc2-backend-freshness-8104.txt)
+- [`fc2-c1-db.txt`](fc2-c1-db.txt)
+- [`fc2-c1-held-confirm-sheet-en.xml`](fc2-c1-held-confirm-sheet-en.xml)
+- [`fc2-c1b-applog.txt`](fc2-c1b-applog.txt)
+- [`fc2-c1b-held-confirm-sheet-en.xml`](fc2-c1b-held-confirm-sheet-en.xml)
+- [`fc2-c1b-replay-belog.txt`](fc2-c1b-replay-belog.txt)
+- [`fc2-c1b-replay-journal.txt`](fc2-c1b-replay-journal.txt)
+- [`fc2-c2-control-settled.xml`](fc2-c2-control-settled.xml)
+- [`fc2-c3-anr-dropbox-head.txt`](fc2-c3-anr-dropbox-head.txt)
+- [`fc2-c3-anr.log`](fc2-c3-anr.log)
+- [`fc2-c3-db.txt`](fc2-c3-db.txt)
+- [`fc2-c3-drop-journal.txt`](fc2-c3-drop-journal.txt)
+- [`fc2-c3-held-checkout-coupon-ar.xml`](fc2-c3-held-checkout-coupon-ar.xml)
+- [`fc2-c3-vm-isolate-state.txt`](fc2-c3-vm-isolate-state.txt)
+- [`fc2-c3-vm-stack.txt`](fc2-c3-vm-stack.txt)
+- [`fc2-c3b-applog.txt`](fc2-c3b-applog.txt)
+- [`fc2-c3b-journal.txt`](fc2-c3b-journal.txt)
+- [`fc2-c3b-logcat-dump-full.txt`](fc2-c3b-logcat-dump-full.txt)
+- [`fc2-c4-db.txt`](fc2-c4-db.txt)
+- [`fc2-c4-drop-journal.txt`](fc2-c4-drop-journal.txt)
+- [`fc2-c4-held-confirm-sheet-ar.xml`](fc2-c4-held-confirm-sheet-ar.xml)
+- [`fc2-db_writes.log`](fc2-db_writes.log)
+- [`fc2-flutter-test-fixcycle2.txt`](fc2-flutter-test-fixcycle2.txt)
+- [`fc2-run-notes.txt`](fc2-run-notes.txt)
+- [`fc2-spoken-label-assertions.txt`](fc2-spoken-label-assertions.txt)
 - [`flutter-test-changed-files.txt`](flutter-test-changed-files.txt)
 - [`phpunit-BuyNowOrderIdempotencyTest.log`](phpunit-BuyNowOrderIdempotencyTest.log)
 - [`phpunit-GroupOrderPlacementTest.log`](phpunit-GroupOrderPlacementTest.log)
