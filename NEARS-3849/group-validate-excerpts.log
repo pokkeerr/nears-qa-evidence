@@ -1,0 +1,32 @@
+# NEARS-3849 QA: group/validate request/response excerpts (Dart VM HTTP profile, emulator-5570, backend :8106 nears_qa_3849). Coupon fields only; no PII.
+## C1 apply (12+51, NEARS2924PCT)
+x-request-id(req): ['778ac58c-7681-4b42-9d68-7c088ea45217']  x-request-id(resp): ['778ac58c-7681-4b42-9d68-7c088ea45217']
+request: coupon_code=NEARS2924PCT payment_method=cash_on_delivery stores=[12, 51]
+response: valid=True coupon={'code': 'NEARS2924PCT', 'applied_store_ids': [12], 'discount_total': 4.5}
+  store 12 pass=True reason=None coupon_applied=True coupon_discount_amount=4.5
+  store 51 pass=True reason=None coupon_applied=False coupon_discount_amount=0
+## C5 remove (12+51)
+x-request-id(req): ['dcf25719-4238-4ffa-8dc0-8fe7b94d11de']  x-request-id(resp): ['dcf25719-4238-4ffa-8dc0-8fe7b94d11de']
+request: coupon_code=<absent> payment_method=cash_on_delivery stores=[12, 51]
+response: valid=True coupon=<absent>
+  store 12 pass=True reason=None coupon_applied=<absent> coupon_discount_amount=<absent>
+  store 51 pass=True reason=None coupon_applied=<absent> coupon_discount_amount=<absent>
+## C3 free_delivery (12+51, NEARS2924FDOK)
+x-request-id(req): ['c1efc615-3057-4577-9dfe-e36d93fe5500']  x-request-id(resp): ['c1efc615-3057-4577-9dfe-e36d93fe5500']
+request: coupon_code=NEARS2924FDOK payment_method=cash_on_delivery stores=[12, 51]
+response: valid=True coupon={'code': 'NEARS2924FDOK', 'applied_store_ids': [12], 'discount_total': 0}
+  store 12 pass=True reason=None coupon_applied=True coupon_discount_amount=0
+  store 51 pass=True reason=None coupon_applied=False coupon_discount_amount=0
+## C2 two stores (12+13+51, NEARS2924PCT)
+x-request-id(req): ['9f769324-9a83-4643-87bc-33433f675ceb']  x-request-id(resp): ['9f769324-9a83-4643-87bc-33433f675ceb']
+request: coupon_code=NEARS2924PCT payment_method=cash_on_delivery stores=[12, 13, 51]
+response: valid=True coupon={'code': 'NEARS2924PCT', 'applied_store_ids': [12, 13], 'discount_total': 6.77}
+  store 12 pass=True reason=None coupon_applied=True coupon_discount_amount=4.5
+  store 13 pass=True reason=None coupon_applied=True coupon_discount_amount=2.27
+  store 51 pass=True reason=None coupon_applied=False coupon_discount_amount=0
+## C10 food-first rows (51 inserted first)
+x-request-id(req): ['6f1d9510-6d59-4acb-922c-3da97993d7e5']  x-request-id(resp): ['6f1d9510-6d59-4acb-922c-3da97993d7e5']
+request: coupon_code=NEARS2924PCT payment_method=cash_on_delivery stores=[12, 51]
+response: valid=True coupon={'code': 'NEARS2924PCT', 'applied_store_ids': [12], 'discount_total': 4.5}
+  store 12 pass=True reason=None coupon_applied=True coupon_discount_amount=4.5
+  store 51 pass=True reason=None coupon_applied=False coupon_discount_amount=0
