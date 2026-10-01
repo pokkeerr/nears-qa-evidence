@@ -1,0 +1,21 @@
+# group/validate dry-run oracle (server's own per-store amounts.delivery_charge), private copy, flag cross_module_basket=1
+# basket: store 58 (Pharmacy, 125.82) + store 14 (Grocery, 130.84)
+## over=100, no coupon
+{'status': True, 'type': 'free_delivery_by_order_amount', 'free_delivery_over': 100}
+  oracle store 58 pass True coupon_applied None coupon_amt None delivery_charge 0
+  oracle store 14 pass True coupon_applied None coupon_amt None delivery_charge 0
+   None
+## over=100, coupon QA3948P30 (30% module-1)
+  oracle store 58 pass True coupon_applied False coupon_amt 0 delivery_charge 0
+  oracle store 14 pass True coupon_applied True coupon_amt 39.25 delivery_charge 1
+   {'code': 'QA3948P30', 'applied_store_ids': [14], 'discount_total': 39.25}
+## over=1000, coupon QA3948FDALL (free_delivery module-1)
+{'status': True, 'type': 'free_delivery_by_order_amount', 'free_delivery_over': 1000}
+  oracle store 58 pass True coupon_applied False coupon_amt 0 delivery_charge 1
+  oracle store 14 pass True coupon_applied True coupon_amt 0 delivery_charge 0
+   {'code': 'QA3948FDALL', 'applied_store_ids': [14], 'discount_total': 0}
+## free_delivery_to_all_store, coupon QA3948P30
+{'status': True, 'type': 'free_delivery_to_all_store', 'free_delivery_over': 100}
+  oracle store 58 pass True coupon_applied False coupon_amt 0 delivery_charge 0
+  oracle store 14 pass True coupon_applied True coupon_amt 39.25 delivery_charge 0
+   {'code': 'QA3948P30', 'applied_store_ids': [14], 'discount_total': 39.25}
