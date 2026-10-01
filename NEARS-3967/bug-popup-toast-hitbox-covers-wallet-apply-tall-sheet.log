@@ -1,0 +1,23 @@
+# NEARS-3967 QA - popup toast hit box covers wallet Apply (head 13d61c074, emulator-5600, 320x711dp font 1.3, EN)
+# a11y bounds during toast (px, 3px/dp):
+class=android.view.View clickable=false bounds=[78,228][882,1104] label="Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."
+class=android.widget.Button clickable=true bounds=[602,1092][852,1176] label="Apply"
+# trial c5_2gw_apply (2 gateways): taps rel. t0 = refusal log
+-0.82 trigger [480, 1911]
++0.00 t0 
++1.50 apply_center_during [727, 1134]
++3.01 apply_bottomedge_during [727, 1170]
++7.00 apply_center_after [727, 1134]
+         1790814110.590  9795  9795 I flutter : [NET] POST endpoint=/api/v1/customer/order/group/validate
+         1790814111.384  9795  9795 I flutter : [NET] endpoint=/api/v1/customer/order/group/validate http_status=403
+         1790814111.384  9795  9795 I flutter : [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=<redacted>
+         1790814111.384  9795  9795 I flutter : [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=<redacted>
+         1790814111.385  9795  9795 I flutter : [INFO] msg="checkout: payment method selected index=-1"
+         1790814111.386  9795  9795 I flutter : [WARN] msg="showCustomSnackBar: modal route on top, used overlay"
+         1790814114.696  9795  9795 I flutter : [INFO] msg="checkout: payment method selected index=1"
+         1790814114.696  9795  9795 I flutter : 📊 analytics: add_payment_info {payment_type: wallet, value: 38.77, currency: AED, screen: checkout, section: payment}
+# trial c5_head_wallet (13 gateways): Apply centre +1.51 absorbed, same control +7.00 after expiry registers
+         1790813505.441  4156  4156 I flutter : [INFO] msg="checkout: payment method selected index=-1"
+         1790813505.442  4156  4156 I flutter : [WARN] msg="showCustomSnackBar: modal route on top, used overlay"
+         1790813512.690  4156  4156 I flutter : [INFO] msg="checkout: payment method selected index=1"
+         1790813512.690  4156  4156 I flutter : 📊 analytics: add_payment_info {payment_type: wallet, value: 38.77, currency: AED, screen: checkout, section: payment}
