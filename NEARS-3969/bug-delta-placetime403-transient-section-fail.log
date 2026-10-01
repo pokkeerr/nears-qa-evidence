@@ -1,0 +1,10 @@
+# TB (this change): healed Place-time 403 emits a transient section [FAIL] for a state that self-heals ~1s later
+# app apml [] (stale), checkout probe passed cash while server had no gateway, server paypal ON, proxy pass (refresh heals); Place -> Confirm (cash)
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=a4a5d422-4435-478c-abbc-e92ebcc6a2bf
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=a4a5d422-4435-478c-abbc-e92ebcc6a2bf
+[INFO] msg="checkout: payment method selected index=-1"
+[FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: no payment method available for the basket"
+[INFO] msg="checkout: stale gateway config refreshed healed=true"
+[INFO] msg="checkout: payment method selected index=2"
+## FAIL lines BY REASON: (1) 'unhandled api response' + (2) 'checkout: group validate failed reason=mixed_basket_cash_unavailable' — SAME correlation_id a4a5d422 (one request, two lines = doubled); (3) 'checkout: no payment method available for the basket' (section, transient while the refresh is in flight, then healed)
+# Expected (AC5 binding): healed path holds the no-method FAIL until after the refresh (as the open-path probe does); cycle 0 never emitted this line on the Place-time path (bug-narrowingN-loop-no-fail.log)

@@ -1,0 +1,16 @@
+# Cart pre-flight in the stale-config cell (app active_payment_method_list=[] via proxy strip, server [paypal]); emulator-5600, user 6, address 60 zones 2,400
+## qty edit -> pre-flight (stale):
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=403
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=PlaceOrderBlocked msg="cart: store pre-flight flagged store_ids= reasons= rx_rows=0 notice=blocking"
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+08:20:04 proxy: POST group/validate -> 403 body{payment_method=cash_on_delivery} reasons=mixed_basket_cash_unavailable
+## a11y: 'Cash on delivery isn't available ... Please pay online or with your wallet.' notice shown; Proceed to Checkout clickable=false enabled=false (dump bug-delta-cart-stale-blocks-proceed-a11y-dump.xml; positive control 'Add More Items, Fresh local' clickable=true in the same dump)
+## Home -> Basket again: no pre-flight re-run, Proceed still clickable=false
+## Profile tab (refreshConfigFlags, proxy pass -> app config [paypal]) -> Basket: no pre-flight re-run, Proceed STILL clickable=false
+## basket edit (Decrease quantity) -> pre-flight re-runs:
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+[INFO] msg="cart: store pre-flight passed notice=advisory"
+08:21:48 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+## -> Proceed clickable=true. Exit needed: a config refetch (Profile tab) + a basket edit, or a relaunch.

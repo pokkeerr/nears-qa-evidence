@@ -1,0 +1,9 @@
+# AC6 regression NEARS-3967 consistent Place-time refusal (app apml [paypal], probe passed cash while server had no gateway, then server paypal ON, Place->Confirm cash)
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=403
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=f2c51ceb-33b7-4783-a7f3-d2b2e600f05f
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=f2c51ceb-33b7-4783-a7f3-d2b2e600f05f
+[INFO] msg="checkout: payment method selected index=-1"
+[WARN] msg="showCustomSnackBar: modal route on top, used overlay"
+08:42:34 mode=pass POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+## UI (3 dumps right after Confirm): toast '...store types. Please pay online or with your wallet.' + sheet [Total Bill, Pay Via Online, Paypal], no Cash on Delivery row — same as prior run regr3967 (toast + Paypal-row sheet). FAIL pair 'unhandled api response' + 'group validate failed' on one correlation_id = same as prior run (pre-existing)

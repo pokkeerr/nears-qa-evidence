@@ -1,0 +1,13 @@
+# AC5: the confirm-time group/validate 403 (Place-time cash refusal) logs TWO [FAIL] lines for ONE request (same correlation_id) — generic ApiClient 'unhandled api response' + 'checkout: group validate failed'. The probe's 403 got logError:false in this cycle; the confirm-time validate did not.
+## delta-stale-place403-healed.log
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=a4a5d422-4435-478c-abbc-e92ebcc6a2bf
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=a4a5d422-4435-478c-abbc-e92ebcc6a2bf
+## FAIL lines BY REASON: (1) 'unhandled api response' + (2) 'checkout: group validate failed reason=mixed_basket_cash_unavailable' — SAME correlation_id a4a5d422 (one request, two lines = doubled); (3) 'checkout: no payment method available for the basket' (section, transient while the refresh is in flight, then healed)
+## delta-stale-place403-unhealed.log
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=11f458c1-45dc-4457-b1e3-3d3bdada999b
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=11f458c1-45dc-4457-b1e3-3d3bdada999b
+## delta-regr3967-consistent.log
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=f2c51ceb-33b7-4783-a7f3-d2b2e600f05f
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=f2c51ceb-33b7-4783-a7f3-d2b2e600f05f
+## UI (3 dumps right after Confirm): toast '...store types. Please pay online or with your wallet.' + sheet [Total Bill, Pay Via Online, Paypal], no Cash on Delivery row — same as prior run regr3967 (toast + Paypal-row sheet). FAIL pair 'unhandled api response' + 'group validate failed' on one correlation_id = same as prior run (pre-existing)
+## cycle-0 consistent 3967 cell had the same pair (regr3967-cash-refusal-sheet.log) -> pre-existing emitter, now inside AC5's 'no path doubled' binding

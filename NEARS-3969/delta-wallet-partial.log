@@ -1,0 +1,36 @@
+# WALLET usability + partial wallet (NEARS-3908) on the mixed basket 12+57
+## (1) wallet 15.84 < total, cash removed (server paypal), no gateway selectable (proxy strip): no-method row — see delta-stale-unhealed.log ('No payment method is available for this basket')
+## (2) wallet set 500 on copy (>= total 164.49), proxy strip (app apml []), server paypal ON:
+### cart pre-flight method order with no selectable gateway + covering wallet:
+[INFO] msg="cart: store pre-flight passed notice=advisory"
+08:37:44 mode=strip POST /api/v1/customer/order/group/validate -> 200 body{payment_method=wallet,partial_payment=0}
+08:38:05 mode=strip POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+08:40:02 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+### checkout open:
+[INFO] msg="checkout: payment method selected index=0"
+[INFO] msg="checkout: mixed basket probe method refused reason=mixed_basket_cash_unavailable"
+[INFO] msg="checkout: stale gateway config refreshed healed=false"
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: mixed basket probe — no payment method passes reason=mixed_basket_cash_unavailable" correlation_id=6a20b3cc-5729-4bfb-85a4-d3370a9ece66
+[INFO] msg="checkout: payment method selected index=-1"
+[INFO] msg="cart restored with 2 items"
+[INFO] msg="checkout: payment method selected index=2"
+[INFO] msg="checkout: mixed basket probe cash_removed=true valid=true"
+[INFO] msg="checkout: payment method selected index=1"
+[INFO] msg="payment sheet: digital payment tapped, gateway index=0"
+[INFO] msg="checkout: payment method selected index=2"
+### payment section: 'Select Payment Method', NO no-method row (wallet counts); Place -> Confirm -> sheet opens with Wallet Balance 500.00 + Apply row (delta-wallet-covers-place-sheet-a11y-dump.xml) — not a zero-row sheet
+## (3) partial wallet: wallet 15.84, partial_payment_status=1/method=both on copy, consistent [paypal] (cell b): checkout probe:
+📊 analytics: view_store {store_id: 12, is_open: 1}
+📊 analytics: view_promotion {promotion_count: 0, eligible_count: 0, expiring_count: 0, screen: coupons, source: profile_menu}
+📊 analytics: begin_checkout {value: 169.24, currency: AED, item_count: 2, source: basket, store_count: 2}
+[INFO] msg="checkout: payment method selected index=2"
+📊 analytics: add_payment_info {payment_type: digital_payment, value: 155.66, currency: AED, screen: checkout, section: payment}
+[INFO] msg="checkout: mixed basket probe cash_removed=true valid=true"
+📊 analytics: checkout_cash_removed_shown {reason: mixed_basket_cash_unavailable}
+[INFO] msg="checkout: payment method selected index=1"
+📊 analytics: add_payment_info {payment_type: wallet, value: 164.49, currency: AED, screen: checkout, section: payment}
+[INFO] msg="payment sheet: digital payment tapped, gateway index=0"
+[INFO] msg="checkout: payment method selected index=2"
+📊 analytics: add_payment_info {payment_type: digital_payment, value: 148.65, currency: AED, screen: checkout, section: payment}
+08:40:02 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+### sheet: Wallet Balance 15.84 Apply -> '(Applied!)', Paid by wallet 15.84, Remaining Bill 148.65, Paypal row offered; Paypal+Select -> section 'Digital Payment (Paypal) (Partial)' + 'Due Payment' (delta-partial-wallet-applied-sheet-a11y-dump.xml). FAIL lines in this entry: 0

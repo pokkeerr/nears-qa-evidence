@@ -1,0 +1,26 @@
+# REVERSE stale: app apml [paypal] (config fetched 08:33:46 while server had paypal), then server paypal OFF; checkout open
+[INFO] msg="checkout: payment method selected index=2"
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+[INFO] msg="checkout: mixed basket probe cash_removed=false valid=true"
+[INFO] msg="checkout: payment method selected index=0"
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+[INFO] msg="checkout: group validate → valid=true"
+[NET] POST endpoint=/api/v1/customer/order/group/place
+[NET] endpoint=/api/v1/customer/order/group/place http_status=200
+[INFO] msg="checkout: group order placed groupId=c06507ad-a791-4591-a687-908f04eae301 children=2"
+[WARN] msg="showCustomSnackBar: modal route on top, used overlay"
+[INFO] msg="getGroupDetails called for groupId=c06507ad-a791-4591-a687-908f04eae301"
+[NET] GET endpoint=/api/v1/customer/order/group/details
+[NET] endpoint=/api/v1/customer/order/group/details http_status=200
+[INFO] msg="getGroupDetails called for groupId=c06507ad-a791-4591-a687-908f04eae301"
+[NET] GET endpoint=/api/v1/customer/order/group/details
+[NET] endpoint=/api/v1/customer/order/group/details http_status=200
+## proxy
+08:34:04 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+08:35:05 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=cash_on_delivery,partial_payment=0}
+08:35:09 mode=pass POST /api/v1/customer/order/group/place -> 200 body{payment_method=cash_on_delivery,partial_payment=0}
+08:35:11 mode=pass GET /api/v1/customer/order/group/details -> 200
+08:35:27 mode=pass GET /api/v1/customer/order/group/details -> 200
+## payment section preselected 'Digital Payment (Paypal)' (stale pick); Change sheet = Cash on Delivery + Pay Via Online/Paypal (delta-reverse-stale-change-sheet-a11y-dump.xml) — no zero-row sheet, cash offered; picked Cash -> placed 91448 (store 12) + 91449 (store 57) COD pending; FAIL lines: 0

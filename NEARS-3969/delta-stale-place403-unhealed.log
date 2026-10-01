@@ -1,0 +1,14 @@
+# STALE Place-time 403, refresh FORCED TO FAIL (proxy strip): checkout entered with server no-gateway (probe 200 cash_removed=false), then server paypal ON, Place -> Confirm (cash)
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=403
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=11f458c1-45dc-4457-b1e3-3d3bdada999b
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=11f458c1-45dc-4457-b1e3-3d3bdada999b
+[INFO] msg="checkout: payment method selected index=-1"
+[FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: no payment method available for the basket"
+[INFO] msg="checkout: stale gateway config refreshed healed=false"
+[FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: place-order blocked reason=no_payment_method_is_enabled"
+## proxy
+08:32:50 mode=strip POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+08:32:51 mode=strip GET /api/v1/config -> 200 STRIPPED apml ['paypal']->[]
+## UI polled 4 dumps right after Confirm: toast text '...store types. Please pay online or with your wallet.' present x2; 'Total Bill'/'Pay Via Online' (sheet) absent in all 4 -> toast only, no sheet
+## after: payment section no-method row; next Place->Confirm -> 1 FAIL place-order blocked, no network call

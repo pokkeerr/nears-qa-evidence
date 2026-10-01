@@ -1,0 +1,49 @@
+# STALE-HEAL cell: app active_payment_method_list=[] (proxy strip at 08:22:35), cart pre-flight passed cash while server had no gateway, then server paypal ON; proxy -> pass so the one-shot refresh can heal
+## FAIL/ERR lines in window: 0; refresh INFO lines: 1; 'unhandled api response': 0
+[INFO] msg="checkout: payment method selected index=0"
+📊 analytics: add_payment_info {payment_type: cash_on_delivery, value: 155.66, currency: AED, screen: checkout, section: payment}
+📊 analytics: view_promotion {promotion_count: 0, eligible_count: 0, expiring_count: 0, screen: coupons, source: profile_menu}
+📊 analytics: view_store {store_id: 12, is_open: 1}
+📊 analytics: begin_checkout {value: 169.24, currency: AED, item_count: 2, source: basket, store_count: 2}
+[WARN] msg="checkout: map preview dropped store 12 — missing coordinates"
+[WARN] msg="checkout: map preview dropped store 57 — missing coordinates"
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=403
+[INFO] msg="checkout: mixed basket probe method refused reason=mixed_basket_cash_unavailable"
+[INFO] msg="checkout: stale gateway config refreshed healed=true"
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+[INFO] msg="checkout: mixed basket probe cash_removed=true valid=true"
+[INFO] msg="checkout: payment method selected index=-1"
+📊 analytics: checkout_cash_removed_shown {reason: mixed_basket_cash_unavailable}
+[INFO] msg="checkout: payment method selected index=2"
+📊 analytics: add_payment_info {payment_type: digital_payment, value: 164.49, currency: AED, screen: checkout, section: payment}
+[INFO] msg="payment sheet: digital payment tapped, gateway index=0"
+[INFO] msg="checkout: payment method selected index=2"
+📊 analytics: add_payment_info {payment_type: digital_payment, value: 164.49, currency: AED, screen: checkout, section: payment}
+📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 2, screen: checkout, section: place_order}
+📊 analytics: screen_view {screen_name: order_confirm_sheet, source: checkout}
+📊 analytics: order_confirm_sheet_shown {store_count: 2, item_count: 2, value: 164.49, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+📊 analytics: order_confirm_confirmed {value: 164.49, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+[INFO] msg="checkout: group validate → valid=true"
+[NET] POST endpoint=/api/v1/customer/order/group/place
+[NET] endpoint=/api/v1/customer/order/group/place http_status=200
+📊 analytics: group_order_placed {basket_store_count: 2, order_sub_order_count: 2, source: confirm_sheet}
+[INFO] msg="checkout: group order placed groupId=c348d213-6c82-4e08-ba4e-689ab7285ee0 children=2"
+📊 analytics: purchase {transaction_id: c348d213-6c82-4e08-ba4e-689ab7285ee0, value: 164.49, currency: AED, store_count: 2, source: confirm_sheet}
+[INFO] msg="payment screen initialised"
+[INFO] msg="payment browser created"
+[INFO] msg="payment webview navigation override"
+[INFO] msg="payment webview navigation blocked: host not allow-listed"
+[INFO] msg="payment webview load stop"
+## proxy
+08:23:11 mode=pass POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+08:23:11 mode=pass GET /api/v1/config -> 200
+08:23:12 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+08:24:57 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+08:24:58 mode=pass POST /api/v1/customer/order/group/place -> 200 body{payment_method=digital_payment,partial_payment=0}
+08:24:59 mode=pass GET /payment-mobile -> 302
+## DB copy: 91436 (store 12) + 91437 (store 57) digital_payment/failed/unpaid group c348d213 — placement level, payment webview blocked external host (no real payment)
+## payment section a11y after heal: 'Digital Payment (Paypal)' (delta-heal-payment-section-a11y-dump.xml); Change sheet: Pay Via Online + Paypal, no cash, no zero-row (delta-heal-change-sheet-paypal-a11y-dump.xml)

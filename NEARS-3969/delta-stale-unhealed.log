@@ -1,0 +1,24 @@
+# STALE-UNHEALED cell: app apml=[] and the one-shot refresh FORCED to return [] by a local proxy (:8179 -> worktree :8169) that blanks active_payment_method_list on GET /api/v1/config ONLY; server truly has [paypal], so group/validate cash still 403s. Proxy proven falsifiably: direct /config [paypal] vs proxied-strip [] in the same second.
+## Entry 1 (open):
+[INFO] msg="checkout: mixed basket probe method refused reason=mixed_basket_cash_unavailable"
+[INFO] msg="checkout: stale gateway config refreshed healed=false"
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: mixed basket probe — no payment method passes reason=mixed_basket_cash_unavailable" correlation_id=5ca2f88a-2ed7-4c6c-91eb-4662acdf468c
+[FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: no payment method available for the basket"
+[INFO] msg="checkout: payment sheet not opened, no payment method available"
+[FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: place-order blocked reason=no_payment_method_is_enabled"
+[FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: place-order blocked reason=no_payment_method_is_enabled"
+[INFO] msg="checkout: mixed basket probe method refused reason=mixed_basket_cash_unavailable"
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: mixed basket probe — no payment method passes reason=mixed_basket_cash_unavailable" correlation_id=a81a1b08-dfbf-40cc-86de-59d4686cfe25
+[INFO] msg="checkout: mixed basket probe method refused reason=mixed_basket_cash_unavailable"
+[INFO] msg="checkout: stale gateway config refreshed healed=false"
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: mixed basket probe — no payment method passes reason=mixed_basket_cash_unavailable" correlation_id=482fc033-61ea-4ab6-a1b9-8082192a534a
+[FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: no payment method available for the basket"
+## proxy (all):
+08:26:48 mode=strip POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+08:26:48 mode=strip GET /api/v1/config -> 200 STRIPPED apml ['paypal']->[]
+08:29:08 mode=strip POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+08:29:50 mode=strip POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+08:29:50 mode=strip GET /api/v1/config -> 200 STRIPPED apml ['paypal']->[]
+## BE correlation: 5ca2f88a-2ed7-4c6c-91eb-4662acdf468c -> laravel.log [WARN] group order rejected - mixed basket reason=mixed_basket_cash_unavailable (same request_id)
+## a11y: payment section 'Select Payment Method' + 'No payment method is available for this basket' (delta-unhealed-no-method-row-a11y-dump.xml); Change + 'Select Payment Method' taps -> INFO 'payment sheet not opened', no sheet; Place -> Confirm sheet 'SELECT PAYMENT METHOD' -> Confirm -> toast 'No payment method is enabled' + 1 FAIL, back on checkout; x2
+## FAIL count after 6 scroll rebuilds in entry 2: 2 (unchanged)
