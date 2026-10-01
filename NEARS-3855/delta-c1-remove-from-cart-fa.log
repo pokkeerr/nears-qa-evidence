@@ -1,0 +1,26 @@
+# NEARS-3855 delta re-QA cycle 1 — remove_from_cart now reaches FA (GA4) with module_id + currency
+# emulator-5600, unsuffixed control build (com.izzes.nears) of aa8a11900 from git-archive copy (+google-services.json in scratch copy only); backend :8155 from git-archive copy of aa8a11900 Admin on private DB nears_qa_3855b (flag cross_module_basket=1 on copy only); seeded QA customer (users_test_data.md)
+# Source: adb logcat -v threadtime FA:V FA-SVC:V flutter:I (mirror = 'analytics:' lines; FA = 'FA-SVC Logging event' lines)
+
+## control add_to_cart (same capture window)
+10-01 12:53:23.085 26257 26257 I flutter : 📊 analytics: add_to_cart {item_id: 390, price: 26.98, quantity: 1, currency: AED, value: 26.98, screen: home, item_list_id: flash_sale, item_list_name: flash_sale, index: 0, store_id: 39, is_available: 1, module_id: 2}
+10-01 12:53:23.092 28704 27141 V FA-SVC  : Logging event: origin=app,name=add_to_cart,params=Bundle[{item_list_name=flash_sale, is_available=1, module_id=2, item_list_id=flash_sale, screen=home, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=6089094727593153234, ga_screen(_sn)=/, index=0, items=[Bundle[{quantity=1, price=26.98, item_id=390}]], value=26.98, currency=AED, store_id=39}]
+
+## leg 2: whole-store remove (removeStoreFromCart, gate card Remove on NEARS-257 Fixture Store, store 59) — one event per row
+10-01 12:53:57.427 26257 26257 I flutter : 📊 analytics: remove_from_cart {item_id: 688, price: 6.5, quantity: 1, currency: AED, value: 6.5, store_id: 59, method: remove_button, module_id: 4, screen: basket, section: basket_lines}
+10-01 12:53:57.428 26257 26257 I flutter : 📊 analytics: remove_from_cart {item_id: 689, price: 4.0, quantity: 1, currency: AED, value: 4.0, store_id: 59, method: remove_button, module_id: 4, screen: basket, section: basket_lines}
+10-01 12:53:57.676 28704 27141 V FA-SVC  : Logging event: origin=app,name=remove_from_cart,params=Bundle[{module_id=4, method=remove_button, screen=basket, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=6089094727593153234, ga_screen(_sn)=/, items=[Bundle[{quantity=1, price=6.5, item_id=688}]], value=6.5, currency=AED, store_id=59, section=basket_lines}]
+10-01 12:53:57.685 28704 27141 V FA-SVC  : Logging event: origin=app,name=remove_from_cart,params=Bundle[{module_id=4, method=remove_button, screen=basket, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=6089094727593153234, ga_screen(_sn)=/, items=[Bundle[{quantity=1, price=4.0, item_id=689}]], value=4.0, currency=AED, store_id=59, section=basket_lines}]
+
+## leg 1: row remove (Remove Cough Syrup 100ml -> confirmRemoval, store 57)
+10-01 12:54:09.972 26257 26257 I flutter : 📊 analytics: remove_from_cart {item_id: 663, price: 36.1652, quantity: 4, currency: AED, value: 144.6608, store_id: 57, method: remove_button, module_id: 3, screen: basket, section: basket_lines}
+10-01 12:54:10.022 28704 27141 V FA-SVC  : Logging event: origin=app,name=remove_from_cart,params=Bundle[{module_id=3, method=remove_button, screen=basket, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=6089094727593153234, ga_screen(_sn)=/, items=[Bundle[{quantity=4, price=36.1652, item_id=663}]], value=144.6608, currency=AED, store_id=57, section=basket_lines}]
+
+## leg 1b: stepper-to-zero -> confirmRemoval (store 39)
+10-01 12:54:27.435 26257 26257 I flutter : 📊 analytics: remove_from_cart {item_id: 390, price: 22.1236, quantity: 1, currency: AED, value: 22.1236, store_id: 39, method: stepper_to_zero, module_id: 2, screen: basket, section: basket_lines}
+10-01 12:54:27.459 28704 27141 V FA-SVC  : Logging event: origin=app,name=remove_from_cart,params=Bundle[{module_id=2, method=stepper_to_zero, screen=basket, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=6089094727593153234, ga_screen(_sn)=/, items=[Bundle[{quantity=1, price=22.1236, item_id=390}]], value=22.1236, currency=AED, store_id=39, section=basket_lines}]
+
+mirror remove_from_cart count: 4
+FA-SVC remove_from_cart Logging event count: 4
+FA-SVC remove_from_cart lines missing currency=: 0
+FA-SVC remove_from_cart lines missing module_id=: 0

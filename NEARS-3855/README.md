@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3855
 
-**NEARS-3855 QA PASS - cmb analytics module_id/module_count/store_count/group_id (emulator-5600, FA logcat)**
+**Delta re-QA c1 PASS @aa8a11900 - remove_from_cart reaches FA with module_id+currency (row + whole-store)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -8,6 +8,8 @@
 - [`analytics-events-logcat.log`](analytics-events-logcat.log)
 - [`bug-remove-from-cart-never-reaches-ga4.log`](bug-remove-from-cart-never-reaches-ga4.log)
 - [`bug-search-results-semantics-assert.log`](bug-search-results-semantics-assert.log)
+- [`bug-view-item-never-reaches-ga4.log`](bug-view-item-never-reaches-ga4.log)
+- [`delta-c1-remove-from-cart-fa.log`](delta-c1-remove-from-cart-fa.log)
 - [`progress.md`](progress.md)
 
 ---

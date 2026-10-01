@@ -1,0 +1,12 @@
+# bug-view-item-never-reaches-ga4 — pre-existing (outside NEARS-3855 diff): view_item sends value without currency
+# Call site: UserApp/lib/features/item/controllers/item_controller.dart:1068 logViewItem(price: ...) passes no currency; AnalyticsService.logViewItem (analytics_service.dart:317-346) forwards value=price, currency=null to FirebaseAnalytics.logViewItem -> _requireValueAndCurrencyTogether throws, _safe swallows (same mechanism as the remove_from_cart bug fixed in this ticket)
+# Observed live @aa8a11900 control build, emulator-5600, 2026-10-01:
+10-01 12:54:57.270 26257 26257 I flutter : 📊 analytics: view_item {item_id: 425, item_category: 19, price: 29.44, value: 29.44, screen: home, item_list_id: flash_sale, item_list_name: flash_sale, index: 1, store_id: 41, is_available: 1}
+10-01 12:55:28.064 28704 28064 V FA-SVC  : Logging event: origin=app,name=view_item_list,params=Bundle[{item_list_name=favourite_items, item_count=0, item_list_id=favourite_items, screen=favourites, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=6089094727593153235, ga_screen(_sn)=product_sheet}]
+10-01 12:55:28.072 28704 28064 V FA-SVC  : Logging event: origin=app,name=view_store_list,params=Bundle[{item_list_name=favourite_stores, item_list_id=favourite_stores, screen=favourites, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=6089094727593153235, ga_screen(_sn)=product_sheet, count=0}]
+10-01 12:55:28.078 26257 26257 I flutter : 📊 analytics: add_to_cart {item_id: 425, price: 20.608, quantity: 1, currency: AED, value: 20.608, screen: product_sheet, item_list_id: product_details, item_list_name: product_details, store_id: 41, is_available: 1, module_id: 2}
+10-01 12:55:28.086 28704 28064 V FA-SVC  : Logging event: origin=app,name=add_to_cart,params=Bundle[{item_list_name=product_details, is_available=1, module_id=2, item_list_id=product_details, screen=product_sheet, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen_id(_si)=6089094727593153235, ga_screen(_sn)=product_sheet, items=[Bundle[{quantity=1, price=20.608, item_id=425}]], value=20.608, curren
+
+mirror view_item count: 1
+FA-SVC view_item Logging event count: 0
+positive control in same window: FA-SVC view_item_list / view_store_list / add_to_cart logged at 12:55:28
