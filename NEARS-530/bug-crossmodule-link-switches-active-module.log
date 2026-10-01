@@ -1,0 +1,54 @@
+# NEARS-530 QA - bug: warm cross-module item deep link switches the user's active module (A -> B)
+# build: worktree nears-NEARS-530-crossmodule-deeplink-slug @ 354f0e03a, pkg com.izzes.nears.<slug>, emulator-5570, own backend :8530 (private DB nears_qa_530)
+# link: https://nears-web.izzes.ae/item-details/sunscreen-spf50?id=628&page=item&module=pharmacy  (Grocery active)
+# persisted active module (shared_prefs flutter.moduleId / cacheModuleId::g:<guest>):
+BEFORE link: id=1 (Grocery)
+AFTER  link: id=3 (Pharmacy)
+# app log (filtered, flutter lines since the intent):
+[INFO] msg="deep link stream event, hasPrevious=false"
+[INFO] msg="deep link received"
+[INFO] msg="deep link converted, matched=true"
+[INFO] msg="deep link: navigating to item details route"
+[NET] GET endpoint=/api/v1/items/details/628
+[NET] endpoint=/api/v1/items/details/628 http_status=200
+[INFO] msg="route: initial route module=pharmacy"
+[INFO] msg="route: waiting for module=pharmacy"
+[INFO] msg="route: checkModuleId configNull=false hasAddress=true fromDeeplink=true"
+[INFO] msg="route: module future state=ConnectionState.waiting hasData=false hasError=false"
+[INFO] msg="route: waiting for module=pharmacy"
+[INFO] msg="route: checkModuleId configNull=false hasAddress=true fromDeeplink=true"
+[INFO] msg="route: module future state=ConnectionState.waiting hasData=false hasError=false"
+[NET] GET endpoint=/api/v1/items/details/628
+[NET] endpoint=/api/v1/items/details/628 http_status=200
+[NET] endpoint=/api/v1/module http_status=200
+[INFO] msg="route: module match found=true for slug=pharmacy"
+[INFO] msg="route: store deep-link module found in current zone, deferring to StoreScreen store-scoped resolution"
+[NET] endpoint=/api/v1/module http_status=200
+[INFO] msg="route: module match found=true for slug=pharmacy"
+[INFO] msg="route: module future state=ConnectionState.done hasData=false hasError=false"
+[NET] GET endpoint=/api/v1/stores/details/mediquick-pharmacy-abu-dhabi
+[INFO] msg="route: module future state=ConnectionState.done hasData=false hasError=false"
+[NET] endpoint=/api/v1/stores/details/mediquick-pharmacy-abu-dhabi http_status=200
+[NET] GET endpoint=/api/v1/items/recommended
+[NET] GET endpoint=/api/v1/items/latest
+[NET] endpoint=/api/v1/items/recommended http_status=200
+[NET] endpoint=/api/v1/items/latest http_status=200
+[NET] GET endpoint=/api/v1/items/popular
+[NET] GET endpoint=/api/v1/items/most-reviewed
+[NET] GET endpoint=/api/v1/campaigns/item
+[NET] GET endpoint=/api/v1/items/recommended
+
+# repro 2 (numeric module id): Grocery active, link ...?id=628&page=item&module=3
+before=1 after=3 ; log: "route: initial route module=3" -> "module match found=true for slug=3" (no "deferring" on this pass) ; Back -> Home renders Pharmacy (grocery markers 0, pharmacy markers 5)
+
+# control (NEARS-2738 contract): Grocery active, plain STORE link /store/mediquick-pharmacy-abu-dhabi?id=55&page=store&module=pharmacy
+before=1 after=1 ; only the store-route pass runs ("deferring to StoreScreen store-scoped resolution") ; Back -> Home still Grocery
+=> the switch comes from the extra `initial` GetPage pass that only the item-link success path triggers.
+
+# likely mechanism (code read, worktree @354f0e03a):
+# link_converter_helper.dart success path: Get.offAllNamed(RouteHelper.getInitialRoute()) then Get.toNamed/offNamed(storeRoute)
+#   storeRoute = getStoreRoute(..., moduleId: <raw link param>, fromDeeplink: true)  -> '?...&module=<B>&from_deeplink=true'
+# route_helper.dart:561-580 `initial` GetPage reads Get.parameters['module'] / ['from_deeplink'] -> log shows module=<B> (not the
+#   grocery-food slug getInitialRoute() was built with), so _waitForModule -> checkModuleId(allowOutOfZoneRelocate=false) takes the
+#   `foundModule != null` branch (route_helper.dart:1705-1718): ModuleController.setModule(B) + updateHeader + HomeController.loadData(true).
+# Pre-fix this branch was unreachable cross-module (the fetch 404'd first), so the fix newly exposes it.
