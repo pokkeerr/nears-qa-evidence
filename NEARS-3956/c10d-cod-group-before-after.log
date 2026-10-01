@@ -1,0 +1,16 @@
+# C10d BEFORE (control a9ded9971) vs AFTER (lane d1a86f5c1): COD group + Create account, guest
+## BEFORE
+04:44:02 POST /api/v1/customer/order/group/place -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=7294eced-cdbe-40b4-b425-db738815c60e 2579ms
+04:44:03 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=5b6da924-831d-4e24-a241-b1b95b8fbbe0 100ms
+04:44:04 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=e7d9b2be-a862-4996-89bc-ae9087dd7e0b 88ms
+04:44:14 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=0aab8cc0-43c6-434c-9e3a-5cddaa203f61 87ms
+## AFTER (lane)
+04:36:12 POST /api/v1/customer/order/group/place -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=e76f9972-d337-41b7-a484-d407c4c1908f 2596ms
+04:36:13 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=427fcd6d-1337-49e1-97d1-24ba7e988ee1 109ms
+04:36:13 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=923c95d2-5d30-4f5a-b2df-6ab90b242693 99ms
+04:36:24 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=b7b44974-d23f-4b11-bbe3-9c48758b5eed 96ms
+04:36:34 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=b7729cb8-d749-4482-bda7-9e7d2e9f97ce 98ms
+04:36:44 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=478a97d1-a7fd-424d-b46a-6fc303288d19 114ms
+04:36:53 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=c591e0ce-f6dc-4578-acd0-06021efbfdd4 99ms
+04:37:03 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=2d792de2-3266-45e1-9177-83b1c618149f 106ms
+# identical: no auth/login, session stays guest, tracking order/track 404 'No order found' on both builds => pre-existing, unchanged by NEARS-3956

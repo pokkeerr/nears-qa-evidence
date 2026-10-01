@@ -1,0 +1,25 @@
+owner token len=983 (positive control login) | other-user token len=979 | other guest id=1969
+--- group/details GET ?group_id=b5f198cb
+POSITIVE owner bearer              -> 200 code=- children=2
+NEG different logged-in user       -> 404 code=group 
+NEG different guest (own token)    -> 404 code=group 
+NEG different guest (wrong token)  -> 401 code=Unauthorized 
+NEG garbage bearer, no guest_id    -> 401 code=Unauthorized 
+NEG no auth, no guest_id           -> 401 code=Unauthorized 
+--- PUT cancel (POST _method=put) order 91467 by non-owners (expect refusal, order must stay unchanged)
+NEG different logged-in user cancel -> 403 code=order 
+NEG different guest cancel          -> 403 code=order 
+--- PUT payment-method order 91467 by non-owners
+NEG different logged-in user switch -> 404 code=order 
+NEG different guest switch          -> 404 code=order 
+--- PUT cancel (POST _method=put) order 91468 by non-owners (expect refusal, order must stay unchanged)
+NEG different logged-in user cancel -> 403 code=order 
+NEG different guest cancel          -> 403 code=order 
+--- PUT payment-method order 91468 by non-owners
+NEG different logged-in user switch -> 404 code=order 
+NEG different guest switch          -> 404 code=order 
+--- POSITIVE controls for the owner on the SAME group, same run (statuses)
+owner PUT payment-method 91468 -> 200 (DB: pending/cash_on_delivery)
+owner PUT cancel 91467 -> 200 (DB: canceled)
+Bearer null, no guest_id (group/details) -> 401
+Admin diff base(a9ded9971)..lane(d1a86f5c1): 0 files => backend identical in both runs

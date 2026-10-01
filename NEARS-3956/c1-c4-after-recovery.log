@@ -1,0 +1,69 @@
+# C1/C4 AFTER (lane build d1a86f5c1, pkg com.izzes.nears.nears_nears_3956): guest + Create account, 2-store same-module group, digital (Paypal); verification OFF
+# proxy log (method/path/status/error-code/auth-shape/rid; no bodies, no tokens). auth=bearer after the login = owner-scoped calls of the new account
+=== C1 start 04:06:56
+04:07:04 POST /api/v1/customer/order/group/validate -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=a4223a2c-30f3-4310-947b-d017dab7323a 317ms
+04:07:05 POST /api/v1/customer/order/group/place -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=b91990f7-dcbb-4e98-b974-6d53298640d6 412ms
+04:07:06 DELETE /api/v1/customer/cart/remove -> 200 auth=none guest_id+gtok z=- m=1 rid=764050a0-4217-44bc-b761-9f6ccabb39e5 94ms
+04:07:06 POST /api/v1/auth/login -> 200 auth=none guest_id z=[400,2] m=1 rid=ea1256c5-0363-4d48-8cc6-0527b1f2345b 185ms
+04:07:07 GET /api/v1/customer/cart/list -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=312ee3d4-0600-4876-a4f7-3fa4ac5ba9ca 122ms
+04:07:07 GET /api/v1/customer/info -> 200 auth=bearer - z=[400,2] m=1 rid=0d1a4355-acb3-41d9-9246-9d93523b5c45 184ms
+04:07:10 POST /api/v1/customer/cm-firebase-token -> 200 auth=bearer - _method=put z=[400,2] m=1 rid=55039e66-cc8b-434c-a82e-ef23b4f3f81f 90ms
+04:07:11 GET /api/v1/customer/order/buy-it-again -> 200 auth=bearer - z=[400,2] m=1 rid=7a8428e4-c845-424f-9e09-fef45dfc652b 103ms
+04:07:11 GET /api/v1/customer/cart/list -> 200 auth=bearer - z=[400,2] m=1 rid=50109f27-4a57-477c-93a3-c51c8cb6a9f3 104ms
+04:07:11 GET /api/v1/customer/info -> 200 auth=bearer - z=[400,2] m=1 rid=ff2da416-bbda-4fbb-975a-33c3e3c87bcb 108ms
+04:07:11 GET /api/v1/customer/info -> 200 auth=bearer - z=[400,2] m=1 rid=229fe0f8-8eb6-4396-a0e0-54f409aceba9 123ms
+04:07:12 GET /payment-mobile -> 302 auth=none - group_id=ddd7ee69 z=- m=- rid=9ea5a47a-40fe-4ff0-b36f-f67f0145c185 94ms
+04:07:14 GET /payment/paypal/pay -> 200 auth=none - z=- m=- rid=b05e9644-63cd-49c6-8852-53b42602c617 660ms
+04:07:14 GET /favicon.ico -> 200 auth=none - z=- m=- rid=- 7ms
+04:07:28 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=ddd7ee69 z=[400,2] m=1 rid=4576628f-438d-4ab3-87db-2ff37e5608d8 95ms
+04:07:29 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=fe446458-bcc8-4fcd-a29d-1092e6de405c 94ms
+04:07:30 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=de959fc1-5301-46fb-b854-001639d2a7fe 95ms
+=== C4 forced roster failure start 04:08:26
+04:08:38 GET /api/v1/customer/order/group/details -> 404 code=group auth=bearer - group_id=ddd7ee69 z=[400,2] m=1 rid=991fd400-9c65-45fd-ab8f-fc7494afa40e 158ms
+--- Retry tap (still failing) 04:08:59
+04:09:01 GET /api/v1/customer/order/group/details -> 404 code=group auth=bearer - group_id=ddd7ee69 z=[400,2] m=1 rid=54b51245-8d51-41bc-a3e2-3348510fafe6 106ms
+--- Retry tap with 6s delayed upstream (spinner check) 04:09:18
+04:09:27 GET /api/v1/customer/order/group/details -> 404 code=group auth=bearer - group_id=ddd7ee69 z=[400,2] m=1 rid=c18f7804-efe9-4a40-91f9-a6753d88816f 6137ms
+--- owner restored; Retry tap 04:09:38
+04:09:40 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=ddd7ee69 z=[400,2] m=1 rid=f3dbfa1d-c67c-4d6c-92e3-2406c76f6e57 124ms
+04:09:41 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=cf60d40b-f631-459b-8255-3429f75e85cf 105ms
+04:09:42 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=9ba37d10-661b-4c10-9983-70c1b6e16bd3 106ms
+--- C1 switch tap 04:09:50
+04:09:52 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=ddd7ee69 z=[400,2] m=1 rid=cfc24b28-ff6b-466c-b87d-77228b13416d 152ms
+04:09:53 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=d0962dd7-caaf-4ead-a226-fce476cc25e4 108ms
+04:09:54 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=06807652-b96f-47bf-93e5-65144fb530ad 109ms
+04:09:57 POST /api/v1/customer/order/payment-method -> 200 auth=bearer - _method=put order_id=91422 z=[400,2] m=1 rid=c13874d8-4058-41d8-bf0b-7230319e1488 1639ms
+04:09:58 POST /api/v1/customer/order/payment-method -> 200 auth=bearer - _method=put order_id=91423 z=[400,2] m=1 rid=4024be93-cd24-4b0c-a73f-4b88c0eaa489 1220ms
+04:09:59 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=ddd7ee69 z=[400,2] m=1 rid=59008725-4d85-478e-9642-3563f271a14d 120ms
+04:10:00 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=b42e5ba5-0a34-4689-8123-9947ac2d1358 135ms
+04:10:01 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=733245f6-51bf-49db-b56c-4a79e4c33dbd 104ms
+04:10:02 GET /api/v1/config/get-zone-id -> 200 auth=bearer - z=[400,2] m=1 rid=719d9422-9c3c-4d8a-8670-3ff2de275222 134ms
+04:10:02 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=48c02dae-b782-49af-b146-c9eeaed2f958 140ms
+04:10:02 GET /api/v1/customer/order/running-orders -> 200 auth=bearer - z=[400,2] m=1 rid=d169e7f9-c91c-43ff-af32-6f418177d845 215ms
+04:10:02 GET /api/v1/home/all -> 200 auth=bearer - z=[400,2] m=1 rid=3006d3d9-07f2-46a2-b973-3ac4ecfecb66 411ms
+04:10:03 GET /api/v1/advertisement/list -> 200 auth=bearer - z=[400,2] m=1 rid=a1240c25-9d85-4d9e-a3cb-1af48bebfe3f 135ms
+04:10:03 GET /api/v1/customer/order/buy-it-again -> 200 auth=bearer - z=[400,2] m=1 rid=089fe5f1-c3e1-4dd3-b5fb-781bc987647d 164ms
+04:10:03 GET /api/v1/items/most-reviewed -> 200 auth=bearer - z=[400,2] m=1 rid=a8e8a2a0-d202-4493-8d2d-c314ea955590 217ms
+04:10:03 GET /api/v1/items/popular -> 200 auth=bearer - z=[400,2] m=1 rid=01cdd47d-aa25-42af-80c2-9cb388c6667d 229ms
+04:10:03 GET /api/v1/stores/get-stores/all -> 200 auth=bearer - z=[400,2] m=1 rid=b1bedb24-e17d-4f3a-8a89-b739e168d790 239ms
+04:10:03 GET /api/v1/customer/info -> 200 auth=bearer - z=[400,2] m=1 rid=ba508da5-aa4d-4f68-ad9f-7b9da9165a11 333ms
+04:10:04 GET /api/v1/coupon/list -> 200 auth=bearer - z=[400,2] m=1 rid=7efb1910-ea06-49f7-91e2-a81202073eaf 203ms
+04:10:04 GET /api/v1/module -> 200 auth=bearer - z=[400,2] m=1 rid=67800b02-e315-47d0-999e-be1d49245914 276ms
+04:10:04 GET /api/v1/customer/notifications -> 200 auth=bearer - z=[400,2] m=1 rid=b48bcd0b-ad44-49e5-992f-2bda8ebea42d 301ms
+
+# client [FAIL] lines in the window (C4 ones are the forced roster failure; FCM/Firebase lines = suffixed worktree build has no google-services.json, pre-existing env, see verification-checks.md)
+04:07:02.914 I/flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="FCM registration id fetch failed"
+04:07:02.915 I/flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"
+04:08:31.573 I/flutter : [FAIL] endpoint=/api/v1/customer/order/group/details http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=991fd400-9c65-45fd-ab8f-fc7494afa40e
+04:08:31.573 I/flutter : [FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=ddd7ee69-35a1-468c-a578-cd11badd677a"
+04:08:55.439 I/flutter : [FAIL] endpoint=/api/v1/customer/order/group/details http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=54b51245-8d51-41bc-a3e2-3348510fafe6
+04:08:55.439 I/flutter : [FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=ddd7ee69-35a1-468c-a578-cd11badd677a"
+04:09:20.628 I/flutter : [FAIL] endpoint=/api/v1/customer/order/group/details http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=c18f7804-efe9-4a40-91f9-a6753d88816f
+04:09:20.628 I/flutter : [FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=ddd7ee69-35a1-468c-a578-cd11badd677a"
+
+# DB (private copy) after switch
+t	id	user_id	guest_id	child_count
+order_groups	ddd7ee69-35a1-468c-a578-cd11badd677a	436	NULL	2
+t	id	user_id	is_guest	store_id	order_status	payment_method	payment_status
+orders	91422	436	0	12	pending	cash_on_delivery	unpaid
+orders	91423	436	0	13	pending	cash_on_delivery	unpaid

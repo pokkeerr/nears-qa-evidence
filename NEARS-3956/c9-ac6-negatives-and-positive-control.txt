@@ -1,0 +1,20 @@
+owner token len=983 (positive control login) | other-user token len=979 | other guest id=1969
+--- group/details GET ?group_id=ddd7ee69
+POSITIVE owner bearer              -> 200 code=- children=2
+NEG different logged-in user       -> 404 code=group 
+NEG different guest (own token)    -> 404 code=group 
+NEG different guest (wrong token)  -> 401 code=Unauthorized 
+NEG garbage bearer, no guest_id    -> 401 code=Unauthorized 
+NEG no auth, no guest_id           -> 401 code=Unauthorized 
+--- PUT cancel (POST _method=put) order 91422 by non-owners (expect refusal, order must stay unchanged)
+NEG different logged-in user cancel -> 403 code=order 
+NEG different guest cancel          -> 403 code=order 
+--- PUT payment-method order 91422 by non-owners
+NEG different logged-in user switch -> 404 code=order 
+NEG different guest switch          -> 404 code=order 
+--- PUT cancel (POST _method=put) order 91423 by non-owners (expect refusal, order must stay unchanged)
+NEG different logged-in user cancel -> 403 code=order 
+NEG different guest cancel          -> 403 code=order 
+--- PUT payment-method order 91423 by non-owners
+NEG different logged-in user switch -> 404 code=order 
+NEG different guest switch          -> 404 code=order 

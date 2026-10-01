@@ -1,0 +1,16 @@
+# C4b locked-state (partial switch) + roster failure: Retry + Leave; Leave reaches Home
+=== C4b locked-state Leave (partial switch + roster failure) 04:58:08
+04:58:37 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=b5f198cb z=[400,2] m=1 rid=cf4d9ba8-4afb-43bb-bc01-95ff2487b3b4 124ms
+--- C4b Switch tap with 2nd-child PUT 500 + post-loop group/details 502 04:59:00
+04:59:03 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=b5f198cb z=[400,2] m=1 rid=6004ccd6-7776-4860-b6c4-a8c5e44eb11d 120ms
+04:59:05 POST /api/v1/customer/order/payment-method -> 200 auth=bearer - _method=put order_id=91467 z=[400,2] m=1 rid=e823d230-df75-48fa-b73d-ee8c22d60bd9 1744ms
+04:59:06 POST /api/v1/customer/order/payment-method -> 500 INJECTED auth=bearer - _method=put order_id=91468 rid=80c6ccf9-cb5d-468a-af66-0a0ae5d467a9
+--- C4b second Switch tap (roster re-read now 502) 04:59:29
+04:59:31 GET /api/v1/customer/order/group/details -> 502 INJECTED auth=bearer - group_id=b5f198cb rid=3262af1c-294b-4e86-b164-3abd2391221e
+--- C4b Leave tap (locked) 04:59:53
+04:59:56 GET /api/v1/home/all -> 200 auth=bearer - z=[400,2] m=1 rid=01dae7ab-c41f-4de4-84ca-5e63116eb775 308ms
+# client [FAIL] lines
+04:58:59.696 I/flutter : [FAIL] endpoint=/api/v1/customer/order/payment-method http_status=500 type=ApiFailure msg="api request failed"
+04:58:59.701 I/flutter : [FAIL] endpoint=/api/v1/customer/order/payment-method http_status=null type=ApiFailure msg="order: group switch to cash stopped groupId=b5f198cb-fa41-40b8-9f12-fa42d8022a77 orderId=91468 done=1 total=2"
+04:59:25.049 I/flutter : [FAIL] endpoint=/api/v1/customer/order/group/details http_status=502 type=ApiFailure msg="unhandled api response" correlation_id=3262af1c-294b-4e86-b164-3abd2391221e
+04:59:25.049 I/flutter : [FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=b5f198cb-fa41-40b8-9f12-fa42d8022a77"

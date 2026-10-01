@@ -1,0 +1,34 @@
+# C0 BEFORE (control build a9ded9971, pkg suffix nears_nears_3956_base): guest + Create account, 2-store same-module group, digital (Paypal)
+# proxy log (method/path/status/error-code/auth-shape/rid; no bodies, no tokens) -- C0 window
+=== C0 start 04:00:24
+04:00:36 POST /api/v1/customer/order/group/validate -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=c1146735-1133-47b2-b077-3c88329d268f 3534ms
+04:00:38 POST /api/v1/customer/order/group/place -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=84d99a8f-9657-4fe1-a3c5-928c51daa76f 2122ms
+04:00:39 DELETE /api/v1/customer/cart/remove -> 200 auth=none guest_id+gtok z=- m=1 rid=22503f6f-5830-43cc-86b2-5de07fe1ed0f 385ms
+04:00:41 GET /api/v1/customer/cart/list -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=a7925515-91ec-42f5-84a8-8c135c450111 590ms
+04:00:41 GET /payment-mobile -> 302 auth=none - z=- m=- rid=b87bb826-0cb6-45ac-bdb7-16610a645c3c 913ms
+04:00:42 GET /payment/paypal/pay -> 200 auth=none - z=- m=- rid=326b2a7e-5eff-4750-966b-e67f05239047 819ms
+04:00:42 GET /favicon.ico -> 200 auth=none - z=- m=- rid=- 2ms
+04:00:59 GET /api/v1/customer/order/group/details -> 404 code=group auth=none guest_id+gtok z=[400,2] m=1 rid=c0ed882e-a741-4a37-8ca9-188c0250f24b 163ms
+=== C0 switch tap 04:01:17
+04:01:20 GET /api/v1/customer/order/group/details -> 404 code=group auth=none guest_id+gtok z=[400,2] m=1 rid=199699b2-810a-4a29-a3fd-af5e0dfbafba 414ms
+=== C0 cancel tap
+04:01:29 GET /api/v1/customer/order/group/details -> 404 code=group auth=none guest_id+gtok z=[400,2] m=1 rid=a0d20b41-987e-44fc-8152-1b4296bc61b5 161ms
+04:01:50 GET /api/v1/customer/order/group/details -> 404 code=group auth=none guest_id+gtok z=[400,2] m=1 rid=018b2bb1-6933-4666-8151-b9910fbc791e 262ms
+
+# client [FAIL] lines (flutter run console) for the C0 window
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=c0ed882e-a741-4a37-8ca9-188c0250f24b
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=4cfa1a1d-2195-4628-b177-f842a61e1a14"
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=199699b2-810a-4a29-a3fd-af5e0dfbafba
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=4cfa1a1d-2195-4628-b177-f842a61e1a14"
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=a0d20b41-987e-44fc-8152-1b4296bc61b5
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=4cfa1a1d-2195-4628-b177-f842a61e1a14"
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=018b2bb1-6933-4666-8151-b9910fbc791e
+[FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=4cfa1a1d-2195-4628-b177-f842a61e1a14"
+
+# DB owner (private copy multi_food_db_qa_bug3956) right after group/place
+t	id	user_id	guest_id	child_count
+order_groups	4cfa1a1d-2195-4628-b177-f842a61e1a14	435	NULL	2
+t	id	user_id	is_guest	store_id	order_status	payment_method	payment_status
+orders	91418	435	0	12	failed	digital_payment	unpaid
+orders	91419	435	0	13	failed	digital_payment	unpaid
+# session identity at the time: guest_id present on every call (guest_id+gtok), auth=none (no bearer) => session stays guest; owner is the NEW user (user_id=435,is_guest=0)
