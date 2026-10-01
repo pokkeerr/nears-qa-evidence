@@ -1,0 +1,11 @@
+# AC6 method-sheet refusal (INSTRUMENTED): proxy rule mutated ONLY the no-id payment-failed read: group_amount_due -> 0 (token kept, labelled INJECTED-BY-PROXY). G7 mixed, copy zones restored (cod=1, dp=1).
+16:25:32 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer  rid=b9dd4f13-73d9-429d-a09b-1a1d66b42495 echo=b9dd4f13-73d9-429d-a09b-1a1d66b42495 819ms INJECTED-BY-PROXY(mutate:amount-zero-noid keys=group_amount_due)
+16:25:33 GET /api/v1/customer/order/group/details -> 200 auth=bearer group_id=c515a195-aa7d-4330-b536-9c9c86f0c7bd rid=453d5d64-914b-474b-a790-3594fc8e900f echo=453d5d64-914b-474b-a790-3594fc8e900f 1025ms
+16:25:34 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91439 rid=68c8eeb8-76a7-4455-a32b-21b666896927 echo=68c8eeb8-76a7-4455-a32b-21b666896927 749ms
+16:25:35 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91440 rid=6f4967a1-cebe-46b2-b5d7-0a7341fcf51b echo=6f4967a1-cebe-46b2-b5d7-0a7341fcf51b 279ms
+Sheet showed 0.00 (injected), Pay Now; method sheet rows Pay Via Online (Paypal, Razor pay), no cash (mixed). Paypal -> Proceed:
+poll1 labels: Choose Payment Method|Dismiss|Pay Via Online|Payment method is not available|Paypal|Proceed|Razor pay|Total Bill|0.00 AED  (one toast)
+poll2 labels: toast gone, sheet still open
+proxy requests after tap: 0
+app log after tap (exactly one line):
+I/flutter ( 3984): [FAIL] endpoint=/api/v1/customer/order/payment-failed http_status=null type=ApiFailure msg="payment sheet: group resume refused groupId=c515a195-aa7d-4330-b536-9c9c86f0c7bd orderId=91440 reason=no_token"

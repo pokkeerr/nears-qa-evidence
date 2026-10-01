@@ -1,0 +1,29 @@
+# FLAG ON (copy id228=1) MIXED group G7 c515a195-aa7d-4330-b536-9c9c86f0c7bd placed via app UI (Nears Mart grocery + The Grill House restaurant), PayPal -> harness fail
+group_module	id	store_id	module_id	order_status	payment_status	payment_method	order_amount
+NULL	91439	1	1	failed	unpaid	digital_payment	19.11
+NULL	91440	39	2	failed	unpaid	digital_payment	45.94
+== mixed-g7-91439  auth=bearer  query=order_id=91439  rid=70a5871f-8a31-4146-bb88-1d649807f491
+HTTP 200 {"cash_on_delivery": false, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91439, "payment_token": "<present len=312>", "order_amount": 19.11, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 6, "zone_id": 1, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+971565811199", "order_group_id": "c515a195-aa7d-4330-b536-9c9c86f0c7bd", "group_payment_token": "<present len=400>", "group_amount_due": 65.05}
+laravel.log lines with this rid: 0
+token-in-log check (this rid window): absent
+16:21:54 POST /api/v1/customer/order/group/validate -> 200 auth=bearer  body:payment_method=digital_payment rid=49cfcd6c-c80d-4046-8238-6b1c5a35a0be echo=49cfcd6c-c80d-4046-8238-6b1c5a35a0be 265ms
+16:21:55 POST /api/v1/customer/order/group/place -> 200 auth=bearer  body:payment_method=digital_payment rid=ff8704ee-0c0d-4729-a106-43a7a93f80ca echo=ff8704ee-0c0d-4729-a106-43a7a93f80ca 226ms
+16:21:56 GET /payment-mobile -> 302 auth=none group_id=c515a195-aa7d-4330-b536-9c9c86f0c7bd payment_method=paypal payment_token=<present> rid=- echo=813b14e8-9fd9-45b0-9984-bd3356f4c00d Location=/payment/paypal/pay 83ms
+16:21:56 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT /payment-fail (gateway NOT called) auth=none 
+16:21:56 GET /payment-fail -> 403 auth=none  rid=- echo=db2cf37f-4900-4b53-96e9-db710c8a791f 119ms
+16:21:57 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91439 rid=aeb0d5d5-aeb1-4113-9cb8-b485dc304f56 echo=aeb0d5d5-aeb1-4113-9cb8-b485dc304f56 110ms
+16:21:58 GET /api/v1/customer/order/group/details -> 200 auth=bearer group_id=c515a195-aa7d-4330-b536-9c9c86f0c7bd rid=174d70ac-2c82-401b-8380-809d3fd1cb9e echo=174d70ac-2c82-401b-8380-809d3fd1cb9e 88ms
+16:21:59 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91439 rid=42e43f68-5663-4c95-b35c-e69767644a02 echo=42e43f68-5663-4c95-b35c-e69767644a02 118ms
+16:22:00 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91440 rid=a2604c74-097b-44d1-af66-e4c74121c8b2 echo=a2604c74-097b-44d1-af66-e4c74121c8b2 128ms
+16:22:29 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91439 rid=70a5871f-8a31-4146-bb88-1d649807f491 echo=70a5871f-8a31-4146-bb88-1d649807f491 147ms
+# device failed screen a11y:
+   'Payment' clickable=false enabled=true
+   'Orders \u2066#91439, #91440\u2069' clickable=false enabled=true
+   'Your order is placed but' clickable=false enabled=true
+   'Payment Failed' clickable=false enabled=true
+   'Due amount' clickable=false enabled=true
+   '\u206665.05 AED\u2069' clickable=false enabled=true
+   'Please choose an option from below to continue with this order' clickable=false enabled=true
+   'Pay Now' clickable=true enabled=true
+   'Cancel Order' clickable=true enabled=true
+# Note: with copy zone1 digital_payment=0 the server returns cash_on_delivery=true for the mixed group (CrossModuleBasket::cashRemoved is gateway-aware, NEARS-3969) -> resume sheet shows Pay Now + Switch + Cancel, consistent with the server.

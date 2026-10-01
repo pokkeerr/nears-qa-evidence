@@ -1,0 +1,25 @@
+# P4 fixtures (private copy nears_qa_3947 only; state flips as GroupPaymentTest/NEARS-3957 QA do). Groups placed via real API (user 6).
+# G5 3e2794ea: #91430 -> order_status=pending, payment_status=paid (paid while pending). G6 f866c16b: #91432 -> partial_payment, partially_paid 5.00, order_payments wallet/paid 5.00 + cash_on_delivery/unpaid 14.11.
+id	order_group_id	order_status	payment_status	payment_method	order_amount	partially_paid_amount
+91429	3e2794ea-7570-42fb-a5fa-5238907b8c40	failed	unpaid	digital_payment	3.73	0.000
+91430	3e2794ea-7570-42fb-a5fa-5238907b8c40	pending	paid	digital_payment	19.11	0.000
+91431	f866c16b-b2b8-4ffb-9f21-0e01035c3ee9	failed	unpaid	digital_payment	3.73	0.000
+91432	f866c16b-b2b8-4ffb-9f21-0e01035c3ee9	failed	unpaid	partial_payment	19.11	5.000
+order_id	amount	payment_status	payment_method
+91432	5.00	paid	wallet
+91432	14.11	unpaid	cash_on_delivery
+== p4-g5-91429  auth=bearer  query=order_id=91429  rid=e400a2b8-1a2e-4fc2-a72a-a01982ee72d2
+HTTP 200 {"cash_on_delivery": true, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91429, "payment_token": "<present len=312>", "order_amount": 3.73, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 6, "zone_id": 1, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+971565811199", "order_group_id": "3e2794ea-7570-42fb-a5fa-5238907b8c40", "group_payment_token": null, "group_amount_due": 3.73}
+laravel.log lines with this rid: 0
+== p4-g5-91430  auth=bearer  query=order_id=91430  rid=71cb1d17-4410-4923-a41f-13adfa5a2dca
+HTTP 200 {"cash_on_delivery": true, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91430, "payment_token": "<present len=312>", "order_amount": 19.11, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 6, "zone_id": 1, "payment_status": "paid", "payment_method": "digital_payment", "contact_person_number": "+971565811199", "order_group_id": "3e2794ea-7570-42fb-a5fa-5238907b8c40", "group_payment_token": null, "group_amount_due": 3.73}
+laravel.log lines with this rid: 0
+== p4-g6-91431  auth=bearer  query=order_id=91431  rid=91feb51c-e405-4543-b72f-84111f59517f
+HTTP 200 {"cash_on_delivery": true, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91431, "payment_token": "<present len=312>", "order_amount": 3.73, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 6, "zone_id": 1, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+971565811199", "order_group_id": "f866c16b-b2b8-4ffb-9f21-0e01035c3ee9", "group_payment_token": null, "group_amount_due": 3.73}
+laravel.log lines with this rid: 0
+== p4-g6-91432  auth=bearer  query=order_id=91432  rid=addc9477-528c-4923-92c9-eaa41af2e167
+HTTP 200 {"cash_on_delivery": true, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91432, "payment_token": "<present len=312>", "order_amount": 19.11, "partially_paid_amount": 5, "order_type": "delivery", "user_id": 6, "zone_id": 1, "payment_status": "unpaid", "payment_method": "partial_payment", "contact_person_number": "+971565811199", "order_group_id": "f866c16b-b2b8-4ffb-9f21-0e01035c3ee9", "group_payment_token": null, "group_amount_due": 3.73}
+laravel.log lines with this rid: 0
+== p4-noid  auth=bearer  query=  rid=e01c69ed-4746-47e1-bbe0-47437a65b638
+HTTP 200 {"cash_on_delivery": true, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91431, "payment_token": "<present len=312>", "order_amount": 3.73, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 6, "zone_id": 1, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+971565811199", "order_group_id": "f866c16b-b2b8-4ffb-9f21-0e01035c3ee9", "group_payment_token": null, "group_amount_due": 3.73}
+laravel.log lines with this rid: 0

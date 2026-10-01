@@ -1,0 +1,33 @@
+# AC-SEC IDOR battery (HEAD :8148->:8147, DB nears_qa_3947). Guest A=1968 owns group 7e9c2b20 (#91417 3.73 + #91418 19.11); guest B=1969; user A=1 owns group 3f64a660 (#91406 + #91407); user B=5 (robert).
+== sec-guestA-owner-91417  auth=guest  query=guest_id=1968&order_id=91417  rid=f5a7acce-06f1-4fe0-92e6-3b6eb5d81a90
+HTTP 200 {"cash_on_delivery": true, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91417, "payment_token": "<present len=312>", "order_amount": 3.73, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 1968, "zone_id": 1, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+971500003947", "order_group_id": "7e9c2b20-c185-4e8b-88fb-bffcac77c1af", "group_payment_token": "<present len=400>", "group_amount_due": 22.84}
+laravel.log lines with this rid: 0
+token-in-log check (this rid window): absent
+== sec-guestA-owner-noid  auth=guest  query=guest_id=1968  rid=bb73e627-64c6-4388-bb32-6dd3acca7a7a
+HTTP 200 {"cash_on_delivery": true, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91418, "payment_token": "<present len=312>", "order_amount": 19.11, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 1968, "zone_id": 1, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+971500003947", "order_group_id": "7e9c2b20-c185-4e8b-88fb-bffcac77c1af", "group_payment_token": "<present len=400>", "group_amount_due": 22.84}
+laravel.log lines with this rid: 0
+token-in-log check (this rid window): absent
+== sec-guestB-on-A-child  auth=guest  query=guest_id=1969&order_id=91417  rid=920aa063-e6ee-4060-bb57-f9c9e7f077d4
+HTTP 200 []
+laravel.log lines with this rid: 0
+== sec-guestB-noid  auth=guest  query=guest_id=1969  rid=596ba1c2-c892-46d3-bd03-9cd23980e43d
+HTTP 200 []
+laravel.log lines with this rid: 0
+== sec-guestB-claims-guestA-id  auth=guest  query=guest_id=1968&order_id=91417  rid=8ba8525d-3702-49a4-8756-bd44bccefa46
+HTTP 401 {"errors": "Unauthorized"}
+laravel.log lines with this rid: 1
+  [2026-10-01 15:48:54] production.WARNING: [FAIL] guest.token.rejected {"trace_id":"4c14f1ac90e957988eb5eba59a6d2a64","correlation_id":"8ba8525d-3702-49a4-8756-bd44bccefa46","reason":"token_mismatch","guest_id":"1968","request_id":"8ba8525d-3702-49a4-8756-bd44bccefa46"} 
+== sec-userB-on-userA-child  auth=bearer  query=order_id=91407  rid=6df0516b-d90a-429c-b36d-d211b8298a8c
+HTTP 200 []
+laravel.log lines with this rid: 0
+== sec-userB-noid  auth=bearer  query=  rid=5b55076c-66db-4ae7-84d7-a5b61a34f1c5
+HTTP 200 []
+laravel.log lines with this rid: 0
+== sec-garbage-bearer  auth=bearer-raw  query=order_id=91407  rid=cb079142-ee1c-479a-9293-af685c519ebf
+HTTP 401 {"errors": "Unauthorized"}
+laravel.log lines with this rid: 1
+  [2026-10-01 15:48:55] production.ERROR: [FAIL] The resource owner or authorization server denied the request. {"trace_id":"6920f9dcd2852ab361145f243a21d4b1","correlation_id":"cb079142-ee1c-479a-9293-af685c519ebf","type":"League\\OAuth2\\Server\\Exception\\OAuthServerException","endpoint":"/api/v1/customer/order/payment-failed"} 
+== sec-garbage-bearer-noid  auth=bearer-raw  query=  rid=7e657839-7199-4074-935e-4646101ec10e
+HTTP 401 {"errors": "Unauthorized"}
+laravel.log lines with this rid: 1
+  [2026-10-01 15:48:56] production.ERROR: [FAIL] The resource owner or authorization server denied the request. {"trace_id":"a382e560b6bc56cc00f6bb2dfeafcee0","correlation_id":"7e657839-7199-4074-935e-4646101ec10e","type":"League\\OAuth2\\Server\\Exception\\OAuthServerException","endpoint":"/api/v1/customer/order/payment-failed"} 

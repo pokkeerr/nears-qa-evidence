@@ -1,0 +1,20 @@
+# CRITICAL REGRESSION: order details (child #91421 of G1 1217a218) -> Pay Again -> single-order sheet
+sheet rows: ['Choose Payment Method', 'Total Bill', '\u20663.73 AED\u2069', 'Wallet Balance', '\u206615.84 AED\u2069', 'Apply', 'Cash on Delivery', 'Pay Via Online', 'Paypal', 'Razor pay', 'Pay Offline', 'Proceed', 'Dismiss']
+Picked Paypal -> Proceed:
+16:05:47 GET /api/v1/customer/order/track -> 200 auth=bearer order_id=91421 rid=ccbbe643-62a1-4af6-8066-f9771b767dc1 echo=ccbbe643-62a1-4af6-8066-f9771b767dc1 144ms
+16:05:49 GET /api/v1/offline_payment_method_list -> 200 auth=bearer  rid=c1e32bfa-2959-49bb-954e-4cefd278932f echo=c1e32bfa-2959-49bb-954e-4cefd278932f 71ms
+16:05:57 GET /api/v1/customer/order/track -> 200 auth=bearer order_id=91421 rid=9ed03779-b1ee-4405-92ca-8619e8a3090d echo=9ed03779-b1ee-4405-92ca-8619e8a3090d 136ms
+16:06:08 GET /api/v1/customer/order/track -> 200 auth=bearer order_id=91421 rid=da285b5f-042d-4e83-8886-de87d9f338ea echo=da285b5f-042d-4e83-8886-de87d9f338ea 123ms
+16:06:12 GET /payment-mobile -> 302 auth=none order_id=91421 payment_method=paypal payment_token=<present> rid=- echo=9e354e98-88e9-4746-8a54-3cd82bc99ddb Location=/payment/paypal/pay 93ms
+16:06:12 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT /payment-fail (gateway NOT called) auth=none 
+16:06:13 GET /payment-fail -> 403 auth=none  rid=- echo=799c1119-3589-4e67-b9ca-e4360a82aa01 203ms
+16:06:13 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91421 rid=e3017b6b-3a88-474b-b2ec-f8d2b7ec0da6 echo=e3017b6b-3a88-474b-b2ec-f8d2b7ec0da6 96ms
+16:06:13 GET /api/v1/customer/order/group/details -> 200 auth=bearer group_id=1217a218-c991-4e5b-a86b-e0ef7c96b549 rid=300d1801-1b98-46e6-9ff5-01fbe8207382 echo=300d1801-1b98-46e6-9ff5-01fbe8207382 77ms
+16:06:14 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91421 rid=03509ebe-1332-4c67-a232-a84002237965 echo=03509ebe-1332-4c67-a232-a84002237965 105ms
+16:06:15 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91422 rid=51a29649-6cf4-4b89-834d-8fe4fc683f45 echo=51a29649-6cf4-4b89-834d-8fe4fc683f45 99ms
+16:06:17 GET /api/v1/customer/order/track -> 200 auth=bearer order_id=91421 rid=26486559-8f22-4059-86ac-cf78d6816385 echo=26486559-8f22-4059-86ac-cf78d6816385 101ms
+16:06:27 GET /api/v1/customer/order/track -> 200 auth=bearer order_id=91421 rid=c3dd6136-843d-4ec2-a83e-5c8b4445b572 echo=c3dd6136-843d-4ec2-a83e-5c8b4445b572 215ms
+16:06:37 GET /api/v1/customer/order/track -> 200 auth=bearer order_id=91421 rid=d81ee08c-8f11-4eb4-9ddb-b49c73c6b30a echo=d81ee08c-8f11-4eb4-9ddb-b49c73c6b30a 136ms
+payment_amount	payment_method	attribute	attribute_id	is_paid	created_at
+3.73	paypal	order	91421	0	2026-10-01 16:06:12
+=> single-child request (order_id=91421, child token), charged 3.73 = that child only. No group_id call. After the harness failure the app lands on DigitalPaymentFailedScreen, which (by spec: group mode from paymentModel.isGroup) shows the group view.

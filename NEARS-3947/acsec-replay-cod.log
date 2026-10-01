@@ -1,0 +1,23 @@
+# AC-SEC replay after a child is COD-switched (group 3f64a660, user 1). Old group token = label sec-mismatch-restored-control (minted 15:49:13 while eligible).
+payment_requests for group BEFORE: 1
+PUT /api/v1/customer/order/payment-method {order_id:91406} (real endpoint, user 1) rid=fc9e6a5f-35d4-4326-80d6-809269dc5bad
+{"message":"Payment method updated successfully"}
+id	order_status	payment_status	payment_method	order_amount
+91406	pending	unpaid	cash_on_delivery	107.88
+91407	failed	unpaid	digital_payment	23.97
+== after-cod-91407  auth=bearer  query=order_id=91407  rid=e3462513-47dd-4a1c-a09c-495d04438fc3
+HTTP 200 {"cash_on_delivery": true, "digital_payment": false, "offline_payment": false, "cod_eligible": true, "order_id": 91407, "payment_token": "<present len=312>", "order_amount": 23.97, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 1, "zone_id": 2, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+101600000001", "order_group_id": "3f64a660-ae8b-4718-a933-4667e4981cd5", "group_payment_token": null, "group_amount_due": 23.97}
+laravel.log lines with this rid: 0
+== after-cod-91406  auth=bearer  query=order_id=91406  rid=09282cb4-6a47-4107-890c-51dbde00a2c0
+HTTP 200 {"cash_on_delivery": true, "digital_payment": false, "offline_payment": false, "cod_eligible": true, "order_id": 91406, "payment_token": "<present len=312>", "order_amount": 107.88, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 1, "zone_id": 2, "payment_status": "unpaid", "payment_method": "cash_on_delivery", "contact_person_number": "+101600000001", "order_group_id": "3f64a660-ae8b-4718-a933-4667e4981cd5", "group_payment_token": null, "group_amount_due": 23.97}
+laravel.log lines with this rid: 0
+== after-cod-noid  auth=bearer  query=  rid=f4711a0d-b713-4534-9020-7d8b9841fb31
+HTTP 200 {"cash_on_delivery": true, "digital_payment": false, "offline_payment": false, "cod_eligible": true, "order_id": 91407, "payment_token": "<present len=312>", "order_amount": 23.97, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 1, "zone_id": 2, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+101600000001", "order_group_id": "3f64a660-ae8b-4718-a933-4667e4981cd5", "group_payment_token": null, "group_amount_due": 23.97}
+laravel.log lines with this rid: 0
+# replay the OLD token:
+GET /payment-mobile?group_id=3f64a660-ae8b-4718-a933-4667e4981cd5&payment_token=<redacted:sec-mismatch-restored-control>&payment_method=paypal X-Request-Id=3ce9f2a4-5571-468c-93f8-e7d0609aac18
+HTTP/1.1 403 Forbidden
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+  laravel.log lines with rid: 1
+    [2026-10-01 15:49:34] production.WARNING: [WARN] group payment rejected {"trace_id":"e05844192eeab6489ce7858154307717","correlation_id":"3ce9f2a4-5571-468c-93f8-e7d0609aac18","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"3f64a660-ae8b-4718-a933-4667e4981cd5","request_id":"3ce9f2a4-5571-468c-93f
+payment_requests for group AFTER replay: 1

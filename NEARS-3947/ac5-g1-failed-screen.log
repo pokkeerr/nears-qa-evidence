@@ -1,0 +1,42 @@
+# G1 (flag OFF, module 1, zone 1) placed via app UI 16:01:35, group 1217a218-c991-4e5b-a86b-e0ef7c96b549
+id	store_id	module_id	order_status	payment_status	payment_method	order_amount	partially_paid_amount
+91421	2	1	failed	unpaid	digital_payment	3.73	0.000
+91422	1	1	failed	unpaid	digital_payment	19.11	0.000
+payment_amount	payment_method	attribute	is_paid	created_at
+22.84	paypal	order_group	0	2026-10-01 16:01:35
+== g1-server-91421  auth=bearer  query=order_id=91421  rid=82280aa0-a622-42e9-aa50-a7416cb37908
+HTTP 200 {"cash_on_delivery": true, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91421, "payment_token": "<present len=312>", "order_amount": 3.73, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 6, "zone_id": 1, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+971565811199", "order_group_id": "1217a218-c991-4e5b-a86b-e0ef7c96b549", "group_payment_token": "<present len=400>", "group_amount_due": 22.84}
+laravel.log lines with this rid: 0
+token-in-log check (this rid window): absent
+# proxy window (placement -> webview -> harness fail -> failed screen resolve):
+16:01:34 POST /api/v1/customer/order/group/validate -> 200 auth=bearer  body:payment_method=digital_payment rid=87815891-0ffb-42b5-8de7-83011a1d2e56 echo=87815891-0ffb-42b5-8de7-83011a1d2e56 318ms
+16:01:35 POST /api/v1/customer/order/group/place -> 200 auth=bearer  body:payment_method=digital_payment rid=6616fe33-3eb9-467d-a0bc-bf6584fcfd02 echo=6616fe33-3eb9-467d-a0bc-bf6584fcfd02 263ms
+16:01:36 GET /payment-mobile -> 302 auth=none group_id=1217a218-c991-4e5b-a86b-e0ef7c96b549 payment_method=paypal payment_token=<present> rid=- echo=40a5c71d-3cf0-450e-b8eb-5be9f9f86b8b Location=/payment/paypal/pay 143ms
+16:01:36 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT /payment-fail (gateway NOT called) auth=none 
+16:01:36 GET /payment-fail -> 403 auth=none  rid=- echo=3f5cf27f-e884-4a59-8001-29dd3572a210 73ms
+16:01:36 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91421 rid=ed411e1d-6186-48b9-b51a-1f32c9a4d461 echo=ed411e1d-6186-48b9-b51a-1f32c9a4d461 94ms
+16:01:37 GET /api/v1/customer/order/group/details -> 200 auth=bearer group_id=1217a218-c991-4e5b-a86b-e0ef7c96b549 rid=6e992b11-24ee-498e-8552-2e1d28a9aaac echo=6e992b11-24ee-498e-8552-2e1d28a9aaac 81ms
+16:01:37 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91421 rid=2501e6a5-8ae7-4ec6-a439-134cde482ffb echo=2501e6a5-8ae7-4ec6-a439-134cde482ffb 91ms
+16:01:37 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91422 rid=4afbae8c-807b-41ff-b5df-ad668d02247c echo=4afbae8c-807b-41ff-b5df-ad668d02247c 92ms
+16:02:09 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91421 rid=82280aa0-a622-42e9-aa50-a7416cb37908 echo=82280aa0-a622-42e9-aa50-a7416cb37908 99ms
+# device a11y (failed screen):
+   'Payment' clickable=false enabled=true [417,174][663,255]
+   'Orders \u2066#91421, #91422\u2069' clickable=false enabled=true [214,862][866,943]
+   'Your order is placed but' clickable=false enabled=true [243,969][837,1045]
+   'Payment Failed' clickable=false enabled=true [360,1080][720,1127]
+   'Due amount' clickable=false enabled=true [390,1200][690,1276]
+   '\u206622.84 AED\u2069' clickable=false enabled=true [332,1303][748,1413]
+   'Please choose an option from below to continue with this order' clickable=false enabled=true [118,1479][962,1631]
+   'Pay Now' clickable=true enabled=true [216,1736][864,1872]
+   'Switch to Cash On Delivery' clickable=true enabled=true [216,1912][864,2043]
+   'Cancel Order' clickable=true enabled=true [331,2095][749,2211]
+16:01:34 POST /api/v1/customer/order/group/validate -> 200 auth=bearer  body:payment_method=digital_payment rid=87815891-0ffb-42b5-8de7-83011a1d2e56 echo=87815891-0ffb-42b5-8de7-83011a1d2e56 318ms
+16:01:35 POST /api/v1/customer/order/group/place -> 200 auth=bearer  body:payment_method=digital_payment rid=6616fe33-3eb9-467d-a0bc-bf6584fcfd02 echo=6616fe33-3eb9-467d-a0bc-bf6584fcfd02 263ms
+16:01:36 GET /payment-mobile -> 302 auth=none group_id=1217a218-c991-4e5b-a86b-e0ef7c96b549 payment_method=paypal payment_token=<present> rid=- echo=40a5c71d-3cf0-450e-b8eb-5be9f9f86b8b Location=/payment/paypal/pay 143ms
+16:01:36 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT /payment-fail (gateway NOT called) auth=none 
+16:01:36 GET /payment-fail -> 403 auth=none  rid=- echo=3f5cf27f-e884-4a59-8001-29dd3572a210 73ms
+16:01:36 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91421 rid=ed411e1d-6186-48b9-b51a-1f32c9a4d461 echo=ed411e1d-6186-48b9-b51a-1f32c9a4d461 94ms
+16:01:37 GET /api/v1/customer/order/group/details -> 200 auth=bearer group_id=1217a218-c991-4e5b-a86b-e0ef7c96b549 rid=6e992b11-24ee-498e-8552-2e1d28a9aaac echo=6e992b11-24ee-498e-8552-2e1d28a9aaac 81ms
+16:01:37 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91421 rid=2501e6a5-8ae7-4ec6-a439-134cde482ffb echo=2501e6a5-8ae7-4ec6-a439-134cde482ffb 91ms
+16:01:37 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91422 rid=4afbae8c-807b-41ff-b5df-ad668d02247c echo=4afbae8c-807b-41ff-b5df-ad668d02247c 92ms
+16:02:09 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91421 rid=82280aa0-a622-42e9-aa50-a7416cb37908 echo=82280aa0-a622-42e9-aa50-a7416cb37908 99ms

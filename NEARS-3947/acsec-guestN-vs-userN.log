@@ -1,0 +1,21 @@
+# AC-SEC guest id N vs registered user N (N=1). Copy fixture: guests.id=1 given a token (copy only) so guest 1 can authenticate.
+== sec-guest1-on-user1-child  auth=guest  query=guest_id=1&order_id=91407  rid=40ee8e83-be36-4702-b2b7-5578c27950da
+HTTP 200 []
+laravel.log lines with this rid: 0
+== sec-guest1-noid  auth=guest  query=guest_id=1  rid=d99959aa-884b-4df2-a57d-707030acf9f1
+HTTP 200 []
+laravel.log lines with this rid: 0
+# Constructed owner-mismatch fixture (copy only): orders.id=91407 is_guest 0->1 (user_id stays 1). Group 3f64a660 user_id=1 guest_id NULL.
+== sec-mismatch-guest1-flipped-child  auth=guest  query=guest_id=1&order_id=91407  rid=d688bd82-4938-4c8b-847b-ee55ad58322b
+HTTP 200 {"cash_on_delivery": true, "digital_payment": false, "offline_payment": false, "cod_eligible": true, "order_id": 91407, "payment_token": "<present len=312>", "order_amount": 23.97, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 1, "zone_id": 2, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+101600000001", "order_group_id": null, "group_payment_token": null, "group_amount_due": null}
+laravel.log lines with this rid: 1
+  [2026-10-01 15:49:12] production.WARNING: [WARN] payment failed group unresolved {"trace_id":"42ccd124318ae19b9bc25ccb464f81d9","correlation_id":"d688bd82-4938-4c8b-847b-ee55ad58322b","endpoint":"api/v1/customer/order/payment-failed","reason":"group_owner_mismatch","order_id":91407,"group_id":"3f64a660-ae8b-4718-a933-4667e4981cd5","request_id":"d688bd82-4938-4c8b-847b-ee55ad58322b"} 
+== sec-mismatch-user1-sibling  auth=bearer  query=order_id=91406  rid=5a2712a3-030c-4772-b39a-ef9b9bf3223d
+HTTP 200 {"cash_on_delivery": true, "digital_payment": false, "offline_payment": false, "cod_eligible": true, "order_id": 91406, "payment_token": "<present len=312>", "order_amount": 107.88, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 1, "zone_id": 2, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+101600000001", "order_group_id": null, "group_payment_token": null, "group_amount_due": null}
+laravel.log lines with this rid: 1
+  [2026-10-01 15:49:13] production.WARNING: [WARN] payment failed group unresolved {"trace_id":"6eb8f331825779ed6e87c6307594c538","correlation_id":"5a2712a3-030c-4772-b39a-ef9b9bf3223d","endpoint":"api/v1/customer/order/payment-failed","reason":"group_owner_mismatch","order_id":91406,"group_id":"3f64a660-ae8b-4718-a933-4667e4981cd5","request_id":"5a2712a3-030c-4772-b39a-ef9b9bf3223d"} 
+# restored 91407 is_guest=0 -> positive control: same user-1 request mints again
+== sec-mismatch-restored-control  auth=bearer  query=order_id=91406  rid=fb40aabe-7e8e-4a1c-8574-2af98051fa44
+HTTP 200 {"cash_on_delivery": true, "digital_payment": false, "offline_payment": false, "cod_eligible": true, "order_id": 91406, "payment_token": "<present len=312>", "order_amount": 107.88, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 1, "zone_id": 2, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+101600000001", "order_group_id": "3f64a660-ae8b-4718-a933-4667e4981cd5", "group_payment_token": "<present len=400>", "group_amount_due": 131.85}
+laravel.log lines with this rid: 0
+token-in-log check (this rid window): absent

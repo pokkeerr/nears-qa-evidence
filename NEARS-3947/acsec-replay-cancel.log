@@ -1,0 +1,19 @@
+# AC-SEC replay after a child is CANCELLED (guest A=1968 group 7e9c2b20). Old token = label sec-guestA-owner-91417 (minted 15:48:53 while eligible).
+payment_requests for group BEFORE: 0
+PUT /api/v1/customer/order/cancel {order_id:91417, guest_id:1968} (real endpoint) rid=03d066dc-6e77-491d-ae8b-ae555958a3e2
+{"message":"Order canceled successfully"}
+id	order_status	payment_status	payment_method	order_amount
+91417	canceled	unpaid	digital_payment	3.73
+91418	failed	unpaid	digital_payment	19.11
+== after-cancel-91418  auth=guest  query=guest_id=1968&order_id=91418  rid=2b748eb9-3e53-404d-b53d-fc5030c468ff
+HTTP 200 {"cash_on_delivery": true, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91418, "payment_token": "<present len=312>", "order_amount": 19.11, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 1968, "zone_id": 1, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+971500003947", "order_group_id": "7e9c2b20-c185-4e8b-88fb-bffcac77c1af", "group_payment_token": null, "group_amount_due": 19.11}
+laravel.log lines with this rid: 0
+== after-cancel-noid  auth=guest  query=guest_id=1968  rid=8f32dbee-076d-465d-9bd1-d543a3b390cf
+HTTP 200 {"cash_on_delivery": true, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91418, "payment_token": "<present len=312>", "order_amount": 19.11, "partially_paid_amount": 0, "order_type": "delivery", "user_id": 1968, "zone_id": 1, "payment_status": "unpaid", "payment_method": "digital_payment", "contact_person_number": "+971500003947", "order_group_id": "7e9c2b20-c185-4e8b-88fb-bffcac77c1af", "group_payment_token": null, "group_amount_due": 19.11}
+laravel.log lines with this rid: 0
+# replay the OLD token:
+GET /payment-mobile?group_id=7e9c2b20-c185-4e8b-88fb-bffcac77c1af&payment_token=<redacted:sec-guestA-owner-91417>&payment_method=paypal X-Request-Id=88e40c48-36e4-4248-8565-091fe8f2ffe5
+HTTP/1.1 403 Forbidden
+  body: {"errors":[{"code":"order-state","message":"Some orders in this group can no longer be paid online"}]}
+    log: [2026-10-01 15:49:46] production.WARNING: [WARN] group payment rejected {"trace_id":"ca5bed75cba943260aa43d4736381579","correlation_id":"88e40c48-36e4-4248-8565-091fe8f2ffe5","endpoint":"payment-mobile","http_status":403,"reason":"order-state","group_id":"7e9c2b20-c185-4e8b-88fb-bffcac77c1af","request_id":"88e40c48-36e4-4248-856
+payment_requests for group AFTER replay: 0

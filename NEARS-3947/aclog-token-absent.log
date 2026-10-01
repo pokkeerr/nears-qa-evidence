@@ -1,0 +1,11 @@
+# AC-LOG: group token never logged. 11 saved group tokens (minted this run) + generic prefix eyJpdiI6 (base64 of {"iv": = every Crypt::encryptString token, incl. tokens only the device received).
+laravel.log (worktree, whole file)               size=  3737887  saved-token hits=0  eyJpdiI6 hits=0  | positive control (planted 1 token): token hits=1 prefix hits=1
+flutter run log (app stdout, whole session)      size=   750385  saved-token hits=0  eyJpdiI6 hits=0  | positive control (planted 1 token): token hits=1 prefix hits=1
+adb logcat -d -b all (device, whole buffer)      size= 16821906  saved-token hits=0  eyJpdiI6 hits=0  | positive control (planted 1 token): token hits=1 prefix hits=1
+proxy log                                        size=   234454  saved-token hits=0  eyJpdiI6 hits=0  | positive control (planted 1 token): token hits=1 prefix hits=1
+# instrument liveness controls:
+saved tokens starting with eyJpdiI6: 11 /       11
+laravel.log lines carrying this run's WARN rids (d688bd82 + 5a2712a3): 2
+flutter run log lines with the instrumented refusal [FAIL]: 1
+logcat buffer lines with the same refusal [FAIL]: 1
+# AC-LOG backend line count per failure path: each owner-mismatch request wrote exactly 1 '[WARN] payment failed group unresolved' (acsec-guestN-vs-userN.log); total such lines in laravel.log from this run (production channel): 2

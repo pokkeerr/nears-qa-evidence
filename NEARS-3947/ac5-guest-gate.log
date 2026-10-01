@@ -1,0 +1,31 @@
+# AC5 guest gate (device logged out -> guest 1972; copy guest checkout on; flag ON copy, same-module stores 1+2). Group cd5f3aab-689a-4e62-a467-f0a3795e6bbf placed via app UI, PayPal -> harness fail
+user_id	guest_id	id	is_guest	order_status	payment_method	order_amount
+NULL	1972	91443	1	failed	digital_payment	3.73
+NULL	1972	91444	1	failed	digital_payment	19.11
+== guest-91443  auth=guest  query=guest_id=1972&order_id=91443  rid=9f82333e-df97-4050-a29f-d704b48f5579
+HTTP 200 {"cash_on_delivery": true, "digital_payment": true, "offline_payment": true, "cod_eligible": true, "order_id": 91443,  "order_group_id": "cd5f3aab-689a-4e62-a467-f0a3795e6bbf", "group_payment_token": "<present len=400>", "group_amount_due": 22.84}
+laravel.log lines with this rid: 0
+token-in-log check (this rid window): absent
+16:33:53 POST /api/v1/customer/order/group/validate -> 200 auth=none  body:payment_method=digital_payment guest_id=1972 rid=3f9dacbd-e5a4-4775-b57f-f012e2d83f11 echo=3f9dacbd-e5a4-4775-b57f-f012e2d83f11 224ms
+16:33:54 POST /api/v1/customer/order/group/place -> 200 auth=none  body:payment_method=digital_payment guest_id=1972 rid=263bdbc7-d201-4dea-af9a-69acc308fdb2 echo=263bdbc7-d201-4dea-af9a-69acc308fdb2 207ms
+16:33:55 GET /payment-mobile -> 302 auth=none group_id=cd5f3aab-689a-4e62-a467-f0a3795e6bbf payment_method=paypal payment_token=<present> rid=- echo=1fffeb7e-e8f4-4633-909b-f4c107cf26d5 Location=/payment/paypal/pay 147ms
+16:33:56 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT /payment-fail (gateway NOT called) auth=none 
+16:33:56 GET /payment-fail -> 403 auth=none  rid=- echo=ae47c914-cfee-43c6-91e5-015418cb45d3 142ms
+16:33:56 GET /api/v1/customer/order/payment-failed -> 200 auth=none order_id=91443 guest_id=1972 rid=5eb097dc-c9e8-411e-bb26-e12bdfac9c04 echo=5eb097dc-c9e8-411e-bb26-e12bdfac9c04 89ms
+16:33:57 GET /api/v1/customer/order/group/details -> 200 auth=none group_id=cd5f3aab-689a-4e62-a467-f0a3795e6bbf guest_id=1972 rid=9014d581-9c05-4778-8462-64b39b3ee815 echo=9014d581-9c05-4778-8462-64b39b3ee815 75ms
+16:33:58 GET /api/v1/customer/order/payment-failed -> 200 auth=none order_id=91443 guest_id=1972 rid=2a506567-5740-4acc-9f0c-50c12fb226af echo=2a506567-5740-4acc-9f0c-50c12fb226af 92ms
+16:33:59 GET /api/v1/customer/order/payment-failed -> 200 auth=none order_id=91444 guest_id=1972 rid=c96a4d8a-89b8-4353-9ee6-9a785d40bd2f echo=c96a4d8a-89b8-4353-9ee6-9a785d40bd2f 92ms
+16:34:27 GET /api/v1/customer/order/payment-failed -> 200 auth=none order_id=91443 guest_id=1972 rid=9f82333e-df97-4050-a29f-d704b48f5579 echo=9f82333e-df97-4050-a29f-d704b48f5579 101ms
+# device a11y:
+   'Payment' clickable=false enabled=true
+   'Orders \u2066#91443, #91444\u2069' clickable=false enabled=true
+   'Your order is placed but' clickable=false enabled=true
+   'Payment Failed' clickable=false enabled=true
+   'Due amount' clickable=false enabled=true
+   '\u206622.84 AED\u2069' clickable=false enabled=true
+   'Please choose an option from below to continue with this order' clickable=false enabled=true
+   'Switch to Cash On Delivery' clickable=true enabled=true
+   'Cancel Order' clickable=true enabled=true
+=> token present server-side, but NO Pay Now and NO notice for the guest (existing !isGuestLoggedIn gate unchanged); Switch + Cancel shown.
+# app [FAIL]/[ERR] in window:
+  none

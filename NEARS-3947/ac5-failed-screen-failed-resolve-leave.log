@@ -1,0 +1,11 @@
+# AC5 failed screen FAILED-resolve + Leave (guest group cd5f3aab): proxy injected 2x 500 on group/details (INJECTED-BY-PROXY). Tap Cancel -> its roster read 500 (no PUT) -> screen re-reads -> 500 -> failed state.
+16:34:41 GET /api/v1/customer/order/group/details -> 500 INJECTED-BY-PROXY(roster-500x2) auth=none group_id=cd5f3aab-689a-4e62-a467-f0a3795e6bbf guest_id=1972 rid=e20d9700-3ded-4676-9c45-90a2f692ded9
+16:34:42 GET /api/v1/customer/order/payment-failed -> 200 auth=none order_id=91443 guest_id=1972 rid=60372663-5372-484b-b18e-5fef7a3a3c7c echo=60372663-5372-484b-b18e-5fef7a3a3c7c 103ms
+16:34:42 GET /api/v1/customer/order/group/details -> 500 INJECTED-BY-PROXY(roster-500x2) auth=none group_id=cd5f3aab-689a-4e62-a467-f0a3795e6bbf guest_id=1972 rid=6204da87-a35a-4693-a7cb-d87e3d6b677b
+# a11y: 'Something went wrong' + 'Retry' (clickable) + 'Back to Home' (clickable) = two actionable nodes; no ids/amount underneath. DB: both still failed/digital (0 PUT).
+# app log window:
+I/flutter ( 3984): [FAIL] endpoint=/api/v1/customer/order/group/details http_status=500 type=ApiFailure msg="unhandled api response" correlation_id=e20d9700-3ded-4676-9c45-90a2f692ded9
+I/flutter ( 3984): [FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=cd5f3aab-689a-4e62-a467-f0a3795e6bbf"
+I/flutter ( 3984): [FAIL] endpoint=/api/v1/customer/order/group/details http_status=500 type=ApiFailure msg="unhandled api response" correlation_id=6204da87-a35a-4693-a7cb-d87e3d6b677b
+I/flutter ( 3984): [FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=cd5f3aab-689a-4e62-a467-f0a3795e6bbf"
+# Back to Home tapped -> left the screen (home tab bar visible).

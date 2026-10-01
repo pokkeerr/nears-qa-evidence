@@ -1,0 +1,14 @@
+# AC4 FAILED-resolve (G2 d3448968): proxy injected ONE 500 on GET group/details (INJECTED-BY-PROXY, never forwarded)
+16:10:18 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer  rid=61724cc2-1f7d-44e9-bc41-22298fb42cc8 echo=61724cc2-1f7d-44e9-bc41-22298fb42cc8 185ms
+16:10:19 GET /api/v1/customer/order/group/details -> 500 INJECTED-BY-PROXY(roster-500) auth=bearer group_id=d3448968-589c-4156-bbae-9b8b7a3d41b4 rid=8bb8d2ea-d3ff-4e9a-8334-9b62e65f7055
+16:10:44 GET /api/v1/customer/order/group/details -> 200 auth=bearer group_id=d3448968-589c-4156-bbae-9b8b7a3d41b4 rid=1bd8a881-9c48-440d-b2fd-b5ebfc66cc8a echo=1bd8a881-9c48-440d-b2fd-b5ebfc66cc8a 108ms
+16:10:44 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91423 rid=e054a3ad-89c7-46fa-95d1-ff79255aaab4 echo=e054a3ad-89c7-46fa-95d1-ff79255aaab4 98ms
+16:10:45 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91424 rid=e50d2bdc-35c3-48c3-a286-6221019a073f echo=e50d2bdc-35c3-48c3-a286-6221019a073f 93ms
+# a11y (failed): 'Something went wrong' (text) + 'Retry' (clickable) + 'Back to Home' (clickable) = two distinct actionable nodes; no ids/amount rendered. Dump: ac4-g2-resume-sheet-failed-retry-leave.xml
+# app log (paired failure lines, correlation_id == proxy rid):
+I/flutter ( 3984): [FAIL] endpoint=/api/v1/customer/order/group/details http_status=500 type=ApiFailure msg="unhandled api response" correlation_id=8bb8d2ea-d3ff-4e9a-8334-9b62e65f7055
+I/flutter ( 3984): [FAIL] endpoint=/api/v1/customer/order/group/details http_status=null type=ApiFailure msg="order: group recovery roster unknown groupId=d3448968-589c-4156-bbae-9b8b7a3d41b4"
+# Retry tapped -> re-resolve:
+16:10:44 GET /api/v1/customer/order/group/details -> 200 auth=bearer group_id=d3448968-589c-4156-bbae-9b8b7a3d41b4 rid=1bd8a881-9c48-440d-b2fd-b5ebfc66cc8a echo=1bd8a881-9c48-440d-b2fd-b5ebfc66cc8a 108ms
+16:10:44 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91423 rid=e054a3ad-89c7-46fa-95d1-ff79255aaab4 echo=e054a3ad-89c7-46fa-95d1-ff79255aaab4 98ms
+16:10:45 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer order_id=91424 rid=e50d2bdc-35c3-48c3-a286-6221019a073f echo=e50d2bdc-35c3-48c3-a286-6221019a073f 93ms
