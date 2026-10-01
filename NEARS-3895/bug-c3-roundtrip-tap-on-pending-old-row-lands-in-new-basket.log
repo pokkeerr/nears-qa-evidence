@@ -1,0 +1,87 @@
+# NEARS-3895 cycle 3 - a '+' tapped on a PENDING (not yet synced) old-basket row DURING the clear round trip is held, then sent AFTER the successful clear under the NEW module header -> mis-bucketed row (Grocery item stamped cart module 3), shown in the new basket after a reload, and it poisons the next reset.
+# build 090947f84 (fresh debug APK 2026-10-02 00:01), emulator-5690, backend worktree :8100 @ 090947f84 via proxy :8101 (proxy = host clock, app log = device clock; host ~= device + 24.6s), DB multi_food_db_qa_bug3895, flag 228='0'
+# Steps: basket=[Zqx Rice, Grocery mod 1, saved]; '+' Zqx Rice Two (same module, optimistic local add, 500ms debounce); '+' Zqx Pill (Pharmacy mod 3) -> reset dialog; Yes; then +0.2..0.6s (AFTER Yes, while DELETE cart/remove is on the wire) '+' on the Zqx Rice Two STEPPER.
+# Not known residual A (nothing was on the wire before Yes) and not residual B (B = saved row -> PATCH -> 404 rowGone; here the row is unsaved -> POST cart/add -> 200, persisted).
+### D2-fresh-add-then-step-during-roundtrip seq=[tap:1205:1316:riceTwoAdd tap:1205:1832:cross sleep:0.1 tap:944:1889:yes sleep:0.6 tap:1230:1359:riceTwoStepPlus] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 2500}}
+T0 00:16:59.547870949
+T_riceTwoAdd_done 00:16:59.560244241
+T_cross_done 00:16:59.576244783
+T_yes_done 00:16:59.694375658
+T_riceTwoStepPlus_done 00:17:00.313260116
+-- proxy (host clock)
+00:17:24.382 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [2626ms] DELAY2500 rows=[]
+00:17:27.514 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [286ms] rows=[]
+00:17:27.515 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [640ms] rows=[]
+00:17:27.524 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [914ms] rows=[]
+00:17:27.524 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [1093ms] {"item_id":990008,"price":"22.98","quantity":2,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1086, 990008, 3]]
+00:17:28.021 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [744ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1086, 990008, 3], [1087, 990002, 3]]
+-- app log (device clock)
+10-02 00:16:59.691 I/flutter ( 3647): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 00:17:02.654 I/flutter ( 3647): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 00:17:02.656 I/flutter ( 3647): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 00:17:03.163 I/flutter ( 3647): [FAIL] endpoint=/api/v1/customer/wish-list http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=077dd8f5-abed-4011-aa37-98a26693af76
+10-02 00:17:03.164 I/flutter ( 3647): [FAIL] endpoint=/api/v1/customer/wish-list http_status=null type=ApiFailure msg="get favourite list failed"
+10-02 00:17:03.168 I/flutter ( 3647): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 00:17:03.677 I/flutter ( 3647): [WARN] msg="pending add dropped: reason=module_mismatch item_id=990008 row_module_id=1 active_module_id=3"
+10-02 00:17:04.263 I/flutter ( 3647): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 00:17:04.412 I/flutter ( 3647): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1086	3	990008	Zqx Rice Two	1	2
+1087	3	990002	Zqx Pill	3	1
+### D3-repeat-fresh-add-then-step-during-roundtrip seq=[tap:1205:1316:riceTwoAdd tap:1205:1832:cross sleep:0.1 tap:944:1889:yes sleep:0.6 tap:1230:1359:riceTwoStepPlus] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 2500}}
+T0 00:20:40.462413430
+T_riceTwoAdd_done 00:20:40.476586471
+T_cross_done 00:20:40.503830346
+T_yes_done 00:20:40.620857013
+T_riceTwoStepPlus_done 00:20:41.237131055
+-- proxy (host clock)
+00:21:05.374 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [2623ms] DELAY2500 rows=[]
+00:21:08.500 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [198ms] rows=[]
+00:21:08.501 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [292ms] rows=[]
+00:21:08.502 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [572ms] rows=[]
+00:21:08.503 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [706ms] {"item_id":990008,"price":"22.98","quantity":2,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1089, 990008, 3]]
+00:21:09.002 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [337ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1089, 990008, 3], [1090, 990002, 3]]
+-- app log (device clock)
+10-02 00:20:40.617 I/flutter ( 3647): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 00:20:43.641 I/flutter ( 3647): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 00:20:43.643 I/flutter ( 3647): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 00:20:44.148 I/flutter ( 3647): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 00:20:44.648 I/flutter ( 3647): [WARN] msg="pending add dropped: reason=module_mismatch item_id=990008 row_module_id=1 active_module_id=3"
+10-02 00:20:44.854 I/flutter ( 3647): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 00:20:44.983 I/flutter ( 3647): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1089	3	990008	Zqx Rice Two	1	2
+1090	3	990002	Zqx Pill	3	1
+### D4-natural-net-fresh-add-then-step-0.15-after-yes seq=[tap:1205:1316:riceTwoAdd tap:1205:1832:cross sleep:0.1 tap:944:1889:yes sleep:0.15 tap:1230:1359:riceTwoStepPlus] ctrl={}
+T0 00:21:12.864501862
+T_riceTwoAdd_done 00:21:12.877187070
+T_cross_done 00:21:12.898160778
+T_yes_done 00:21:13.025869945
+T_riceTwoStepPlus_done 00:21:13.225465320
+-- proxy (host clock)
+00:21:37.613 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [168ms] rows=[]
+00:21:38.616 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [229ms] rows=[]
+00:21:38.617 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [333ms] rows=[]
+00:21:38.620 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [690ms] rows=[]
+00:21:38.620 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [873ms] {"item_id":990008,"price":"22.98","quantity":2,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1092, 990008, 3]]
+00:21:39.119 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [528ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1092, 990008, 3], [1093, 990002, 3]]
+-- app log (device clock)
+10-02 00:21:13.023 I/flutter ( 3647): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 00:21:13.756 I/flutter ( 3647): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 00:21:13.757 I/flutter ( 3647): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 00:21:14.262 I/flutter ( 3647): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 00:21:14.764 I/flutter ( 3647): [WARN] msg="pending add dropped: reason=module_mismatch item_id=990008 row_module_id=1 active_module_id=3"
+10-02 00:21:15.138 I/flutter ( 3647): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 00:21:15.293 I/flutter ( 3647): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1092	3	990008	Zqx Rice Two	1	2
+1093	3	990002	Zqx Pill	3	1
+# After reload (hot restart -> Pharmacy -> Basket): cart/list moduleId=3 rows=[[1086, 990008, 3], [1087, 990002, 3]]; Basket shows 'Zqx Rice Two' (Grocery, qty 2, Nears Mart group) next to 'Zqx Pill' -> bug-c3-roundtrip-tap-on-pending-old-row-lands-in-new-basket.png
+# Follow-on: the next confirmed reset (back to Grocery) resolved its clear module from the cart's first item module (the mismatched Grocery item) and sent DELETE cart/remove moduleId='1' -> the Pharmacy rows 1086/1087 SURVIVED the confirmed reset server-side (orphans; removed by QA from the copy DB afterwards):
+00:20:35.135 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [93ms] rows=[]
+#   DB after: 1088 cart_mod 1 Zqx Rice | 1086 cart_mod 3 Zqx Rice Two (item mod 1) q2 | 1087 cart_mod 3 Zqx Pill
+# Client side: [WARN] 'pending add dropped: reason=module_mismatch item_id=990008 row_module_id=1 active_module_id=3' -> local basket drops the row while the server keeps it (client/server divergence until the next reload).
+# Likely mechanism (read, not proven): the stepper '+' re-schedules the item's debounce (new Timer, not identical to the one in syncsAtClear), so the success-path identity cancel misses it; it is held, then fired after success; _syncItem captures _clearedEpoch at its own start (already post-increment), and by then the module header is the new one.

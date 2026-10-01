@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3895
 
-**NEARS-3895 cycle 2 re-QA: FAIL (AC-8 timing race; AC-5 both sides PASS, 8-fix3 PASS)**
+**cycle 3 FAIL - AC-8: round-trip tap on a pending old row lands mis-bucketed in the new basket; core fix clean 5/5**
 
-**102 screenshot(s).** Click any thumbnail for full resolution.
+**105 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -47,32 +47,37 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="aclog-toast-after-failed-clear.png"><img src="aclog-toast-after-failed-clear.png" width="240"></a><br><sub>aclog toast after failed clear</sub></td>
+<td align="center" width="33%"><a href="bug-c3-roundtrip-tap-on-pending-old-row-lands-in-new-basket.png"><img src="bug-c3-roundtrip-tap-on-pending-old-row-lands-in-new-basket.png" width="240"></a><br><sub>bug c3 roundtrip tap on pending old row lands in new basket</sub></td>
 <td align="center" width="33%"><a href="bug-stale-pharmacy-home-after-switch.png"><img src="bug-stale-pharmacy-home-after-switch.png" width="240"></a><br><sub>bug stale pharmacy home after switch</sub></td>
-<td align="center" width="33%"><a href="c2-aba-delay8-home-after-settle.png"><img src="c2-aba-delay8-home-after-settle.png" width="240"></a><br><sub>c2 aba delay8 home after settle</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="c2-aba-delay8-home-after-settle.png"><img src="c2-aba-delay8-home-after-settle.png" width="240"></a><br><sub>c2 aba delay8 home after settle</sub></td>
 <td align="center" width="33%"><a href="c2-abc-delay8-home-after-settle.png"><img src="c2-abc-delay8-home-after-settle.png" width="240"></a><br><sub>c2 abc delay8 home after settle</sub></td>
 <td align="center" width="33%"><a href="c2-abc-delay8-results-after-C.png"><img src="c2-abc-delay8-results-after-C.png" width="240"></a><br><sub>c2 abc delay8 results after C</sub></td>
-<td align="center" width="33%"><a href="c2-ac1-ac15-dialog.png"><img src="c2-ac1-ac15-dialog.png" width="240"></a><br><sub>c2 ac1 ac15 dialog</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="c2-ac1-ac15-dialog.png"><img src="c2-ac1-ac15-dialog.png" width="240"></a><br><sub>c2 ac1 ac15 dialog</sub></td>
 <td align="center" width="33%"><a href="c2-ac11-landing-header-absent-same-module-skip-1.5s.png"><img src="c2-ac11-landing-header-absent-same-module-skip-1.5s.png" width="240"></a><br><sub>c2 ac11 landing header absent same module skip 1.5s</sub></td>
 <td align="center" width="33%"><a href="c2-ac14-yes-plus-second-plus-1.2s.png"><img src="c2-ac14-yes-plus-second-plus-1.2s.png" width="240"></a><br><sub>c2 ac14 yes plus second plus 1.2s</sub></td>
-<td align="center" width="33%"><a href="c2-ac3-same-module-header1-1.5s.png"><img src="c2-ac3-same-module-header1-1.5s.png" width="240"></a><br><sub>c2 ac3 same module header1 1.5s</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="c2-ac3-same-module-header1-1.5s.png"><img src="c2-ac3-same-module-header1-1.5s.png" width="240"></a><br><sub>c2 ac3 same module header1 1.5s</sub></td>
 <td align="center" width="33%"><a href="c2-ac5a-after-yes-1.2s.png"><img src="c2-ac5a-after-yes-1.2s.png" width="240"></a><br><sub>c2 ac5a after yes 1.2s</sub></td>
 <td align="center" width="33%"><a href="c2-ac5a-nosignal-closed-store-dialog.png"><img src="c2-ac5a-nosignal-closed-store-dialog.png" width="240"></a><br><sub>c2 ac5a nosignal closed store dialog</sub></td>
-<td align="center" width="33%"><a href="c2-ac5b-closed-signal-no-dialog-toast-0.8s.png"><img src="c2-ac5b-closed-signal-no-dialog-toast-0.8s.png" width="240"></a><br><sub>c2 ac5b closed signal no dialog toast 0.8s</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="c2-ac5b-closed-signal-no-dialog-toast-0.8s.png"><img src="c2-ac5b-closed-signal-no-dialog-toast-0.8s.png" width="240"></a><br><sub>c2 ac5b closed signal no dialog toast 0.8s</sub></td>
 <td align="center" width="33%"><a href="c2-ac5b-closed-store-page-opens-0300.png"><img src="c2-ac5b-closed-store-page-opens-0300.png" width="240"></a><br><sub>c2 ac5b closed store page opens 0300</sub></td>
 <td align="center" width="33%"><a href="c2-ac6-flagon-cross-module-add-2s.png"><img src="c2-ac6-flagon-cross-module-add-2s.png" width="240"></a><br><sub>c2 ac6 flagon cross module add 2s</sub></td>
-<td align="center" width="33%"><a href="c2-basket-after-switches.png"><img src="c2-basket-after-switches.png" width="240"></a><br><sub>c2 basket after switches</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="c2-basket-after-switches.png"><img src="c2-basket-after-switches.png" width="240"></a><br><sub>c2 basket after switches</sub></td>
 <td align="center" width="33%"><a href="c2-fix2-home-after-yes-pharmacy.png"><img src="c2-fix2-home-after-yes-pharmacy.png" width="240"></a><br><sub>c2 fix2 home after yes pharmacy</sub></td>
 <td align="center" width="33%"><a href="c2-reg-cardtap-dialog.png"><img src="c2-reg-cardtap-dialog.png" width="240"></a><br><sub>c2 reg cardtap dialog</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c3-ac7-basket-after-restart-only-new-row.png"><img src="c3-ac7-basket-after-restart-only-new-row.png" width="240"></a><br><sub>c3 ac7 basket after restart only new row</sub></td>
+<td align="center" width="33%"><a href="c3-smoke-ac1-dialog-before-any-cart-call.png"><img src="c3-smoke-ac1-dialog-before-any-cart-call.png" width="240"></a><br><sub>c3 smoke ac1 dialog before any cart call</sub></td>
 <td align="center" width="33%"><a href="d2-a1-home-after-back-2s.png"><img src="d2-a1-home-after-back-2s.png" width="240"></a><br><sub>d2 a1 home after back 2s</sub></td>
 </tr>
 <tr>
@@ -181,11 +186,14 @@
 - [`aclog-ensureModuleContext-failure.log`](aclog-ensureModuleContext-failure.log)
 - [`bug-abc-inflight-reload-dropped.log`](bug-abc-inflight-reload-dropped.log)
 - [`bug-c2-pending-add-escapes-reset-roundtrip.log`](bug-c2-pending-add-escapes-reset-roundtrip.log)
+- [`bug-c3-roundtrip-tap-on-pending-old-row-lands-in-new-basket.log`](bug-c3-roundtrip-tap-on-pending-old-row-lands-in-new-basket.log)
 - [`bug-closed-store-guard-runs.log`](bug-closed-store-guard-runs.log)
 - [`bug-s3-flagon-variation-details-fail.log`](bug-s3-flagon-variation-details-fail.log)
 - [`bug-stale-home-misstamp.log`](bug-stale-home-misstamp.log)
 - [`c2-progress.md`](c2-progress.md)
 - [`c2-proxy-capture.log`](c2-proxy-capture.log)
+- [`c3-progress.md`](c3-progress.md)
+- [`c3-race-runs.log`](c3-race-runs.log)
 - [`d2-aclog-failed-clear.log`](d2-aclog-failed-clear.log)
 - [`d2-progress.md`](d2-progress.md)
 - [`d2-proxy-capture.log`](d2-proxy-capture.log)
