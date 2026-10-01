@@ -1,0 +1,16 @@
+# cycle2 AC5 Place-time 403 UNHEALED (checkout open w/ server none, then server paypal on + proxy strip)
+falsifier: same second direct :8169 apml ['paypal'] vs proxy :8179 apml []
+--- app (FAIL/ERR/WARN/INFO lines)
+I/flutter ( 3991): [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=6fa09485-8207-4dc2-94f9-b275aae38d9e
+I/flutter ( 3991): [INFO] msg="checkout: payment method selected index=-1"
+I/flutter ( 3991): [INFO] msg="checkout: stale gateway config refreshed healed=false"
+I/flutter ( 3991): [FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: no payment method available for the basket"
+--- proxy
+09:42:17 mode=strip POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+09:42:17 mode=strip GET /api/v1/config -> 200 STRIPPED apml ['paypal']->[]
+--- rebuild (scroll up/down): no new FAIL
+--- BE
+[2026-10-01 09:42:17] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"4d6f2ef8c5a668b0676f9729abbae404","correlation_id":"6fa09485-8207-4dc2-94f9-b275aae38d9e","endpoint":"api/v1/customer/order/group/validate","request_id":"6fa09485-8207-4dc2-94f9-b275aae38d9e","reason":"
+--- second Place->Confirm in unhealed state:
+--- app (FAIL/ERR/WARN/INFO lines)
+I/flutter ( 3991): [FAIL] endpoint=null http_status=null type=PlaceOrderBlocked msg="checkout: place-order blocked reason=no_payment_method_is_enabled"

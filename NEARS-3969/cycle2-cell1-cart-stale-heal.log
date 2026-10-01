@@ -1,0 +1,49 @@
+# cycle2 cell1 Cart stale heal (app [] via stripped restart; server paypal; proxy pass for the refetch)
+09:45:17 mode=strip GET /api/v1/config -> 200 STRIPPED apml ['paypal']->[]
+--- cart entry
+--- app (FAIL/ERR/WARN/INFO lines)
+I/flutter ( 3991): [INFO] msg="cart restored with 2 items"
+I/flutter ( 3991): [INFO] msg="cart: stale gateway config refreshed healed=true"
+I/flutter ( 3991): [INFO] msg="cart: store pre-flight passed notice=advisory"
+I/flutter ( 3991): [WARN] msg="checkout: map preview dropped store 12 — missing coordinates"
+I/flutter ( 3991): [WARN] msg="checkout: map preview dropped store 57 — missing coordinates"
+I/flutter ( 3991): [INFO] msg="checkout: payment method selected index=2"
+I/flutter ( 3991): [INFO] msg="checkout: mixed basket probe cash_removed=true valid=true"
+I/flutter ( 3991): [INFO] msg="payment sheet: digital payment tapped, gateway index=0"
+I/flutter ( 3991): [INFO] msg="checkout: payment method selected index=2"
+I/flutter ( 3991): [INFO] msg="checkout: group validate → valid=true"
+I/flutter ( 3991): [INFO] msg="checkout: group order placed groupId=cea35b1a-5b00-45d0-9b12-5db4c1f5cc19 children=2"
+I/flutter ( 3991): [INFO] msg="payment screen initialised"
+I/flutter ( 3991): [INFO] msg="payment browser created"
+I/flutter ( 3991): [INFO] msg="payment webview navigation override"
+I/flutter ( 3991): [INFO] msg="payment webview navigation blocked: host not allow-listed"
+I/flutter ( 3991): [INFO] msg="payment webview load stop"
+09:45:43 mode=pass POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+09:45:44 mode=pass GET /api/v1/config -> 200
+09:45:45 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+09:46:17 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+09:46:58 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+--- UI: Proceed to Checkout ENABLED; notice shown (advisory); no relaunch, no basket edit
+--- checkout
+--- app (FAIL/ERR/WARN/INFO lines)
+I/flutter ( 3991): [INFO] msg="checkout: payment method selected index=2"
+I/flutter ( 3991): [INFO] msg="checkout: mixed basket probe cash_removed=true valid=true"
+I/flutter ( 3991): [INFO] msg="payment sheet: digital payment tapped, gateway index=0"
+I/flutter ( 3991): [INFO] msg="checkout: payment method selected index=2"
+I/flutter ( 3991): [INFO] msg="checkout: group validate → valid=true"
+I/flutter ( 3991): [INFO] msg="checkout: group order placed groupId=cea35b1a-5b00-45d0-9b12-5db4c1f5cc19 children=2"
+09:46:17 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+09:46:58 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+--- Change sheet: Pay Via Online + Paypal; no cash row
+--- place (placement level only)
+--- app (FAIL/ERR/WARN/INFO lines)
+I/flutter ( 3991): [INFO] msg="checkout: group validate → valid=true"
+I/flutter ( 3991): [INFO] msg="checkout: group order placed groupId=cea35b1a-5b00-45d0-9b12-5db4c1f5cc19 children=2"
+I/flutter ( 3991): [INFO] msg="payment screen initialised"
+I/flutter ( 3991): [INFO] msg="payment browser created"
+I/flutter ( 3991): [INFO] msg="payment webview navigation override"
+I/flutter ( 3991): [INFO] msg="payment webview navigation blocked: host not allow-listed"
+I/flutter ( 3991): [INFO] msg="payment webview load stop"
+09:46:58 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+09:46:59 mode=pass POST /api/v1/customer/order/group/place -> 200 body{payment_method=digital_payment,partial_payment=0}
+--- copy DB: 91430 store12 digital_payment unpaid failed 12.60; 91431 store57 digital_payment unpaid failed 151.89

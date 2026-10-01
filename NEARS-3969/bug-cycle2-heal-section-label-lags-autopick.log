@@ -1,0 +1,15 @@
+# cycle2 checkout open-time stale-heal smoke (app [] consistent at cart w/ server none -> cart cash 200; server paypal ON; Proceed)
+--- app (FAIL/ERR/WARN/INFO lines)
+I/flutter ( 3991): [INFO] msg="checkout: payment method selected index=0"
+I/flutter ( 3991): [INFO] msg="checkout: mixed basket probe method refused reason=mixed_basket_cash_unavailable"
+I/flutter ( 3991): [INFO] msg="checkout: stale gateway config refreshed healed=true"
+I/flutter ( 3991): [INFO] msg="checkout: mixed basket probe cash_removed=true valid=true"
+I/flutter ( 3991): [INFO] msg="checkout: payment method selected index=-1"
+I/flutter ( 3991): [INFO] msg="checkout: payment method selected index=2"
+09:49:05 mode=pass POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+09:49:06 mode=pass GET /api/v1/config -> 200
+09:49:06 mode=pass POST /api/v1/customer/order/group/validate -> 200 body{payment_method=digital_payment,partial_payment=0}
+--- FAIL/ERR count in window: 0
+--- section label at +10s/+12s/+18s (incl. scroll up/down rebuild): 'Select Payment Method' (cycle2-checkout-stale-heal-smoke-a11y-dump.xml) although the last log says index=2
+--- Place Order -> confirm sheet 'Payment Method: DIGITAL PAYMENT' (cycle2-checkout-stale-heal-confirm-sheet-a11y-dump.xml); back -> section now 'Digital Payment (Paypal)'
+--- mechanism (read, not mutated): checkout_screen.dart:343-358 _setSinglePaymentActive -> Future.delayed(600ms) setPaymentMethod(2, isUpdate:false) + changeDigitalPaymentName(willUpdate:false) — no rebuild; on the heal path nothing rebuilds after it, so the label lags until the next unrelated rebuild

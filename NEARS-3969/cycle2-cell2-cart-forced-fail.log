@@ -1,0 +1,15 @@
+# cycle2 cell2 Cart refetch forced to fail (app [] at restart via strip; server paypal; proxy strip)
+--- restart:
+09:43:11 mode=strip GET /api/v1/config -> 200 STRIPPED apml ['paypal']->[]
+--- cart entry:
+--- app (FAIL/ERR/WARN/INFO lines)
+I/flutter ( 3991): [INFO] msg="cart restored with 2 items"
+I/flutter ( 3991): [INFO] msg="cart: stale gateway config refreshed healed=false"
+I/flutter ( 3991): [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=PlaceOrderBlocked msg="cart: store pre-flight flagged store_ids= reasons= rx_rows=0 notice=blocking"
+I/flutter ( 3991): [INFO] msg="home load started"
+I/flutter ( 3991): [INFO] msg="location: inZone=true"
+I/flutter ( 3991): [INFO] msg="cart restored with 2 items"
+09:43:44 mode=strip POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+09:43:45 mode=strip GET /api/v1/config -> 200 STRIPPED apml ['paypal']->[]
+--- UI: Proceed to Checkout enabled=false; notice 'Cash on delivery isn't available for a basket with items from different store types...' (cycle2-cell2-cart-forced-fail-notice-a11y-dump.xml)
+--- re-entry (Home -> Basket): no validate, no /config refetch, no FAIL; Proceed still disabled

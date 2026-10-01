@@ -1,0 +1,11 @@
+# cycle2 AC5 Place-time 403 HEALED (server paypal on after checkout open, proxy pass)
+--- app (FAIL/ERR/WARN/INFO lines)
+I/flutter ( 3991): [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=183efc2b-6e57-481b-9ffb-144d1789d6df
+I/flutter ( 3991): [INFO] msg="checkout: payment method selected index=-1"
+I/flutter ( 3991): [INFO] msg="checkout: stale gateway config refreshed healed=true"
+I/flutter ( 3991): [INFO] msg="checkout: payment method selected index=2"
+--- proxy
+09:36:48 mode=pass POST /api/v1/customer/order/group/validate -> 403 body{payment_method=cash_on_delivery,partial_payment=0} reasons=mixed_basket_cash_unavailable
+09:36:49 mode=pass GET /api/v1/config -> 200
+--- BE (correlation join)
+[2026-10-01 09:36:48] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"a1931e1d5a37cc00ad7202c555e981c8","correlation_id":"183efc2b-6e57-481b-9ffb-144d1789d6df","endpoint":"api/v1/customer/order/group/validate","request_id":"183efc2b-6e57-481b-9ffb-144d1789d6df","reason":"

@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3969
 
-**NEARS-3969 [8] delta re-QA cycle 1: FAIL (AC5 Place-time 403 FAIL lines); stale heal/unhealed/reverse/re-entry/wallet PASS**
+**cycle 2 delta re-QA: PASS (AC1-AC7 + RB3 cart heal)**
 
 **7 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -21,6 +21,7 @@
 </table>
 
 ### Other artifacts
+- [`bug-cycle2-heal-section-label-lags-autopick.log`](bug-cycle2-heal-section-label-lags-autopick.log)
 - [`bug-delta-cart-stale-blocks-proceed-a11y-dump.xml`](bug-delta-cart-stale-blocks-proceed-a11y-dump.xml)
 - [`bug-delta-cart-stale-blocks-proceed.log`](bug-delta-cart-stale-blocks-proceed.log)
 - [`bug-delta-placetime403-doubled-validate-fail.log`](bug-delta-placetime403-doubled-validate-fail.log)
@@ -34,6 +35,32 @@
 - [`cellC-payment-incomplete-no-gateway-switch-to-cod-a11y-dump.xml`](cellC-payment-incomplete-no-gateway-switch-to-cod-a11y-dump.xml)
 - [`cellD-same-module-unchanged.log`](cellD-same-module-unchanged.log)
 - [`cellE-flag-off-unchanged.log`](cellE-flag-off-unchanged.log)
+- [`cycle2-a-smoke-checkout-a11y-dump.xml`](cycle2-a-smoke-checkout-a11y-dump.xml)
+- [`cycle2-a-smoke-payment-section-a11y-dump.xml`](cycle2-a-smoke-payment-section-a11y-dump.xml)
+- [`cycle2-ac5-healed-after-refusal-a11y-dump.xml`](cycle2-ac5-healed-after-refusal-a11y-dump.xml)
+- [`cycle2-ac5-healed-payment-section-a11y-dump.xml`](cycle2-ac5-healed-payment-section-a11y-dump.xml)
+- [`cycle2-ac5-place403-healed.log`](cycle2-ac5-place403-healed.log)
+- [`cycle2-ac5-place403-unhealed.log`](cycle2-ac5-place403-unhealed.log)
+- [`cycle2-ac5-unhealed-after-refusal-a11y-dump.xml`](cycle2-ac5-unhealed-after-refusal-a11y-dump.xml)
+- [`cycle2-b-smoke-change-sheet-a11y-dump.xml`](cycle2-b-smoke-change-sheet-a11y-dump.xml)
+- [`cycle2-cell1-cart-stale-heal-a11y-dump.xml`](cycle2-cell1-cart-stale-heal-a11y-dump.xml)
+- [`cycle2-cell1-cart-stale-heal-notice-a11y-dump.xml`](cycle2-cell1-cart-stale-heal-notice-a11y-dump.xml)
+- [`cycle2-cell1-cart-stale-heal.log`](cycle2-cell1-cart-stale-heal.log)
+- [`cycle2-cell1-checkout-gateway-a11y-dump.xml`](cycle2-cell1-checkout-gateway-a11y-dump.xml)
+- [`cycle2-cell2-cart-forced-fail-a11y-dump.xml`](cycle2-cell2-cart-forced-fail-a11y-dump.xml)
+- [`cycle2-cell2-cart-forced-fail-notice-a11y-dump.xml`](cycle2-cell2-cart-forced-fail-notice-a11y-dump.xml)
+- [`cycle2-cell2-cart-forced-fail.log`](cycle2-cell2-cart-forced-fail.log)
+- [`cycle2-cell3-cart-consistent-no-gateway-a11y-dump.xml`](cycle2-cell3-cart-consistent-no-gateway-a11y-dump.xml)
+- [`cycle2-cell4-cart-wallet-stale-a11y-dump.xml`](cycle2-cell4-cart-wallet-stale-a11y-dump.xml)
+- [`cycle2-cell4-cart-wallet-stale.log`](cycle2-cell4-cart-wallet-stale.log)
+- [`cycle2-cell4-checkout-a11y-dump.xml`](cycle2-cell4-checkout-a11y-dump.xml)
+- [`cycle2-cell4-method-sheet-a11y-dump.xml`](cycle2-cell4-method-sheet-a11y-dump.xml)
+- [`cycle2-cell4-place-sheet-a11y-dump.xml`](cycle2-cell4-place-sheet-a11y-dump.xml)
+- [`cycle2-checkout-stale-heal-confirm-sheet-a11y-dump.xml`](cycle2-checkout-stale-heal-confirm-sheet-a11y-dump.xml)
+- [`cycle2-checkout-stale-heal-smoke-a11y-dump.xml`](cycle2-checkout-stale-heal-smoke-a11y-dump.xml)
+- [`cycle2-flag-off-cart-a11y-dump.xml`](cycle2-flag-off-cart-a11y-dump.xml)
+- [`cycle2-flag-off-checkout-a11y-dump.xml`](cycle2-flag-off-checkout-a11y-dump.xml)
+- [`cycle2-flag-off.log`](cycle2-flag-off.log)
 - [`delta-cellA-smoke.log`](delta-cellA-smoke.log)
 - [`delta-cellD-same-module.log`](delta-cellD-same-module.log)
 - [`delta-flag-off.log`](delta-flag-off.log)
