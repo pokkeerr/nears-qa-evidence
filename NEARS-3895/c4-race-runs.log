@@ -1,0 +1,894 @@
+### SEED0-silent-rice seq=[tap:1205:956:rice] ctrl={}
+T0 01:03:40.059028951
+T_rice_done 01:03:40.072425618
+-- proxy (host clock)
+01:04:04.635 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [183ms] rows=[]
+01:04:04.636 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [367ms] rows=[]
+01:04:05.136 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [324ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1098, 990001, 1]]
+01:04:05.160 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [794ms]
+-- app log (device clock)
+10-02 01:03:40.585 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:03:41.094 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 01:03:42.649 I/flutter ( 9292): [WARN] msg="isAvailable: minute-precision end time, treating as inclusive to :59 (item boundary degrade)"
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1098	1	990001	Zqx Rice	1	1
+### S1-R1-add-delay1500 seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 1500}}
+T0 01:04:30.409585267
+T_oldRiceTwo_done 01:04:30.423007684
+T_crossPill_done 01:04:30.444136059
+T_yes_done 01:04:30.609941517
+-- proxy (host clock)
+01:04:55.104 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [1624ms] DELAY1500 rows=[]
+01:04:57.232 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [166ms] rows=[]
+01:04:57.232 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [248ms] rows=[]
+01:04:57.233 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [487ms] rows=[]
+01:04:57.731 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [134ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1099, 990002, 3]]
+01:04:58.233 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [210ms]
+-- app log (device clock)
+10-02 01:04:30.608 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:04:32.360 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:04:32.864 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:04:33.863 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1099	3	990002	Zqx Pill	3	1
+### RESEED-1 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:04:49.562352318
+T_rice_done 01:04:49.574208443
+T_yes_done 01:04:50.793302943
+-- proxy (host clock)
+01:05:15.488 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [101ms] rows=[]
+01:05:16.505 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [174ms] rows=[]
+01:05:16.506 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [255ms] rows=[]
+01:05:16.507 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [570ms] rows=[]
+01:05:16.998 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [203ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1100, 990001, 1]]
+01:05:17.081 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [389ms]
+-- app log (device clock)
+10-02 01:04:50.790 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:04:51.619 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:04:52.127 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:04:52.834 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1100	1	990001	Zqx Rice	1	1
+### C1-control-NO-add seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:400:1889:no] ctrl={}
+T0 01:05:02.794945449
+T_oldRiceTwo_done 01:05:02.809155157
+T_crossPill_done 01:05:02.825806407
+T_no_done 01:05:02.993286866
+-- proxy (host clock)
+01:05:28.138 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [150ms] {"item_id":990008,"price":"22.98","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1100, 990001, 1], [1101, 990008, 1]]
+-- app log (device clock)
+10-02 01:05:03.310 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:05:04.270 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1100	1	990001	Zqx Rice	1	1
+1101	1	990008	Zqx Rice Two	1	1
+### S1-R2-patch-row1101-delay1500 seq=[tap:1229:1316:oldStepRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 1500}}
+T0 01:05:14.206554496
+T_oldStepRiceTwo_done 01:05:14.217576621
+T_crossPill_done 01:05:14.228916455
+T_yes_done 01:05:14.394098538
+-- proxy (host clock)
+01:05:38.858 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [1592ms] DELAY1500 rows=[]
+01:05:40.955 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [174ms] rows=[]
+01:05:40.955 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [258ms] rows=[]
+01:05:40.957 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [514ms] rows=[]
+01:05:41.455 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [158ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1102, 990002, 3]]
+01:05:41.489 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [333ms]
+-- app log (device clock)
+10-02 01:05:14.392 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:05:16.082 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:05:16.588 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:05:17.247 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1102	3	990002	Zqx Pill	3	1
+### RESEED-010557 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes sleep:3 tap:1205:1316:riceTwo] ctrl={}
+T0 01:05:33.371049339
+T_rice_done 01:05:33.385224380
+T_yes_done 01:05:34.606702506
+T_riceTwo_done 01:05:37.623180591
+-- proxy (host clock)
+01:05:59.197 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [92ms] rows=[]
+01:06:00.199 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [151ms] rows=[]
+01:06:00.200 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [228ms] rows=[]
+01:06:00.200 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [452ms] rows=[]
+01:06:00.701 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [130ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1103, 990001, 1]]
+01:06:01.203 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [266ms]
+01:06:02.725 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [900ms] {"item_id":990008,"price":"22.98","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1103, 990001, 1], [1104, 990008, 1]]
+-- app log (device clock)
+10-02 01:05:34.603 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:05:35.329 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:05:35.837 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:05:36.833 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 01:05:38.124 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:05:39.259 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1103	1	990001	Zqx Rice	1	1
+1104	1	990008	Zqx Rice Two	1	1
+### S1-R3-patch-row1103-natural seq=[tap:1229:956:oldStepRice tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes] ctrl={}
+T0 01:05:49.464043346
+T_oldStepRice_done 01:05:49.475252680
+T_crossPill_done 01:05:49.489114305
+T_yes_done 01:05:49.656588221
+-- proxy (host clock)
+01:06:14.437 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [105ms] rows=[]
+01:06:15.442 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [171ms] rows=[]
+01:06:15.442 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [249ms] rows=[]
+01:06:15.443 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [545ms] rows=[]
+01:06:15.940 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [180ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1105, 990002, 3]]
+01:06:15.992 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [314ms]
+-- app log (device clock)
+10-02 01:05:49.653 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:05:50.567 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:05:51.073 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:05:51.752 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1105	3	990002	Zqx Pill	3	1
+### RESEED-010629 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:06:04.825191354
+T_rice_done 01:06:04.835717979
+T_yes_done 01:06:06.051633396
+-- proxy (host clock)
+01:06:30.836 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [100ms] rows=[]
+01:06:31.838 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [158ms] rows=[]
+01:06:31.839 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [236ms] rows=[]
+01:06:31.840 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [486ms] rows=[]
+01:06:32.340 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [129ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1106, 990001, 1]]
+01:06:32.840 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [256ms]
+-- app log (device clock)
+10-02 01:06:06.048 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:06:06.966 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:06:07.470 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:06:08.471 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1106	1	990001	Zqx Rice	1	1
+### S1-R4-add-natural seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes] ctrl={}
+T0 01:06:13.400092358
+T_oldRiceTwo_done 01:06:13.409894399
+T_crossPill_done 01:06:13.422921358
+T_yes_done 01:06:13.591573316
+-- proxy (host clock)
+01:06:38.369 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [95ms] rows=[]
+01:06:39.371 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [160ms] rows=[]
+01:06:39.371 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [243ms] rows=[]
+01:06:39.373 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [487ms] rows=[]
+01:06:39.453 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [527ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1107, 990002, 3]]
+01:06:39.536 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [613ms]
+-- app log (device clock)
+10-02 01:06:13.588 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:06:14.498 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:06:15.006 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:06:15.614 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1107	3	990002	Zqx Pill	3	1
+### RESEED-010647 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:06:22.682056362
+T_rice_done 01:06:22.696646779
+T_yes_done 01:06:23.913633738
+-- proxy (host clock)
+01:06:48.345 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [90ms] rows=[]
+01:06:49.348 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [167ms] rows=[]
+01:06:49.348 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [253ms] rows=[]
+01:06:49.350 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [546ms] rows=[]
+01:06:49.857 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [164ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1108, 990001, 1]]
+01:06:49.901 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [380ms]
+-- app log (device clock)
+10-02 01:06:23.909 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:06:24.477 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:06:24.983 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:06:25.654 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1108	1	990001	Zqx Rice	1	1
+### S1-R5-add-delay2500 seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 2500}}
+T0 01:06:31.244300241
+T_oldRiceTwo_done 01:06:31.256278908
+T_crossPill_done 01:06:31.271619908
+T_yes_done 01:06:31.439057908
+-- proxy (host clock)
+01:06:56.152 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [2622ms] DELAY2500 rows=[]
+01:06:59.282 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [257ms] rows=[]
+01:06:59.283 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [439ms] rows=[]
+01:06:59.286 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [640ms] rows=[]
+01:06:59.779 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [336ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1109, 990002, 3]]
+01:06:59.829 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [507ms]
+-- app log (device clock)
+10-02 01:06:31.436 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:06:34.411 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:06:34.919 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:06:35.750 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1109	3	990002	Zqx Pill	3	1
+### RESEED-010712 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes sleep:3 tap:1205:1316:riceTwo] ctrl={}
+T0 01:06:48.236626208
+T_rice_done 01:06:48.249407708
+T_yes_done 01:06:49.465437500
+T_riceTwo_done 01:06:52.483236085
+-- proxy (host clock)
+01:07:14.087 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [131ms] rows=[]
+01:07:15.087 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [236ms] rows=[]
+01:07:15.087 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [324ms] rows=[]
+01:07:15.088 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [583ms] rows=[]
+01:07:15.589 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [222ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1110, 990001, 1]]
+01:07:15.683 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [403ms]
+01:07:17.413 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [989ms] {"item_id":990008,"price":"22.98","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1110, 990001, 1], [1111, 990008, 1]]
+-- app log (device clock)
+10-02 01:06:49.461 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:06:50.217 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:06:50.720 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:06:51.443 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 01:06:52.983 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:06:54.036 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1110	1	990001	Zqx Rice	1	1
+1111	1	990008	Zqx Rice Two	1	1
+### S2-F1-patch-DELETE500 seq=[tap:1229:1316:oldStepRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 1500}, "fail": {"DELETE /api/v1/customer/cart/remove": 500}}
+T0 01:06:59.899827422
+T_oldStepRiceTwo_done 01:06:59.915414755
+T_crossPill_done 01:06:59.930817338
+T_yes_done 01:07:00.099738297
+-- proxy (host clock)
+01:07:24.586 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 500 [1504ms] DELAY1500 INJECTED-FAIL
+01:07:26.594 POST /api/v1/customer/cart/update q= moduleId='1' zoneId=[1] -> 200 [161ms] {"cart_id":1111,"price":41.364000000000004,"quantity":2} rows=[[1110, 990001, 1], [1111, 990008, 1]]
+-- app log (device clock)
+10-02 01:07:00.094 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:07:01.722 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=500
+10-02 01:07:01.723 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=500 type=ApiFailure msg="unhandled api response" correlation_id=0b0049b1-1dff-4d6e-85f4-2e4e64bb2a1e
+10-02 01:07:01.724 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null type=ApiFailure msg="cross-module clear-cart failed"
+10-02 01:07:01.725 I/flutter ( 9292): [ERR] msg="error snackbar shown"
+10-02 01:07:01.726 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/update
+10-02 01:07:02.724 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1110	1	990001	Zqx Rice	1	1
+1111	1	990008	Zqx Rice Two	1	2
+### SWITCH-to-pharm seq=[tap:1205:1832:crossPill sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:07:17.963764472
+T_crossPill_done 01:07:17.975986680
+T_yes_done 01:07:19.191838847
+-- proxy (host clock)
+01:07:43.657 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [113ms] rows=[]
+01:07:44.664 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [146ms] rows=[]
+01:07:44.664 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [519ms] rows=[]
+01:07:44.665 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [625ms] rows=[]
+01:07:45.163 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [360ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1112, 990002, 3]]
+01:07:45.201 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [541ms]
+-- app log (device clock)
+10-02 01:07:19.189 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:07:19.788 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:07:20.295 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:07:21.156 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1112	3	990002	Zqx Pill	3	1
+### RESEED-010750 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:07:26.321017393
+T_rice_done 01:07:26.336703059
+T_yes_done 01:07:27.561259476
+-- proxy (host clock)
+01:07:52.301 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [137ms] rows=[]
+01:07:53.303 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [174ms] rows=[]
+01:07:53.303 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [292ms] rows=[]
+01:07:53.304 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [599ms] rows=[]
+01:07:53.802 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [248ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1113, 990001, 1]]
+01:07:53.906 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [439ms]
+-- app log (device clock)
+10-02 01:07:27.558 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:07:28.431 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:07:28.935 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:07:29.682 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1113	1	990001	Zqx Rice	1	1
+### S2-F2-add-DELETE503 seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 1500}, "fail": {"DELETE /api/v1/customer/cart/remove": 503}}
+T0 01:07:39.355962399
+T_oldRiceTwo_done 01:07:39.385861149
+T_crossPill_done 01:07:39.422283774
+T_yes_done 01:07:39.600848107
+-- proxy (host clock)
+01:08:04.297 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 503 [1510ms] DELAY1500 INJECTED-FAIL
+01:08:06.312 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [248ms] {"item_id":990008,"price":"22.98","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1113, 990001, 1], [1114, 990008, 1]]
+-- app log (device clock)
+10-02 01:07:39.595 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:07:41.439 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=503
+10-02 01:07:41.440 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=503 type=ApiFailure msg="unhandled api response" correlation_id=057af6c5-42b8-44e8-931b-c2ca09bbd47b
+10-02 01:07:41.440 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null type=ApiFailure msg="cross-module clear-cart failed"
+10-02 01:07:41.440 I/flutter ( 9292): [ERR] msg="error snackbar shown"
+10-02 01:07:41.441 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:07:42.443 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1113	1	990001	Zqx Rice	1	1
+1114	1	990008	Zqx Rice Two	1	1
+### S2-F3-patch-DELETE500-nodelay seq=[tap:1229:956:oldStepRice tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes] ctrl={"fail": {"DELETE /api/v1/customer/cart/remove": 500}}
+T0 01:07:54.903696906
+T_oldStepRice_done 01:07:54.917699156
+T_crossPill_done 01:07:54.930926739
+T_yes_done 01:07:55.100678740
+-- proxy (host clock)
+01:08:19.557 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 500 [0ms] INJECTED-FAIL
+01:08:20.565 POST /api/v1/customer/cart/update q= moduleId='1' zoneId=[1] -> 200 [196ms] {"cart_id":1113,"price":27.054,"quantity":2} rows=[[1113, 990001, 1], [1114, 990008, 1]]
+-- app log (device clock)
+10-02 01:07:55.094 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:07:55.687 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=500
+10-02 01:07:55.687 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=500 type=ApiFailure msg="unhandled api response" correlation_id=93131d10-f5bc-4e1a-99b8-d6264817e816
+10-02 01:07:55.688 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null type=ApiFailure msg="cross-module clear-cart failed"
+10-02 01:07:55.688 I/flutter ( 9292): [ERR] msg="error snackbar shown"
+10-02 01:07:55.689 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/update
+10-02 01:07:56.393 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/update http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1113	1	990001	Zqx Rice	1	2
+1114	1	990008	Zqx Rice Two	1	1
+### SWITCH-to-pharm2 seq=[tap:1205:1832:crossPill sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:08:10.662299122
+T_crossPill_done 01:08:10.679554622
+T_yes_done 01:08:11.897860456
+-- proxy (host clock)
+01:08:36.293 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [119ms] rows=[]
+01:08:36.427 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [236ms] rows=[]
+01:08:36.477 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [274ms] rows=[]
+01:08:36.478 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [365ms] rows=[]
+01:08:36.934 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [233ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1115, 990002, 3]]
+01:08:37.172 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [210ms]
+-- app log (device clock)
+10-02 01:08:11.894 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:08:12.043 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:08:12.547 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:08:12.799 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1115	3	990002	Zqx Pill	3	1
+### RESEED-010843 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:08:19.005118793
+T_rice_done 01:08:19.017615418
+T_yes_done 01:08:20.233692918
+-- proxy (host clock)
+01:08:44.687 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [103ms] rows=[]
+01:08:45.202 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [100ms] rows=[]
+01:08:45.202 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [214ms] rows=[]
+01:08:45.203 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [500ms] rows=[]
+01:08:45.707 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [218ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1116, 990001, 1]]
+01:08:45.839 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [378ms]
+-- app log (device clock)
+10-02 01:08:20.230 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:08:20.817 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:08:21.321 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:08:21.558 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1116	1	990001	Zqx Rice	1	1
+### S3-CTRL-posttap-DELETE500 seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes sleep:0.3 tap:1229:1316:oldStepRiceTwo sleep:0.2 shot:s3ctrl] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 2500}, "fail": {"DELETE /api/v1/customer/cart/remove": 500}}
+T0 01:08:34.480463008
+T_oldRiceTwo_done 01:08:34.493256300
+T_crossPill_done 01:08:34.509650967
+T_yes_done 01:08:34.674695008
+T_oldStepRiceTwo_done 01:08:34.991391967
+T_shot_s3ctrl 01:08:35.419943384
+-- proxy (host clock)
+01:08:59.048 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 500 [2509ms] DELAY2500 INJECTED-FAIL
+01:09:02.058 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [133ms] {"item_id":990008,"price":"22.98","quantity":2,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1116, 990001, 1], [1117, 990008, 1]]
+-- app log (device clock)
+10-02 01:08:34.671 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:08:37.189 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=500
+10-02 01:08:37.189 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=500 type=ApiFailure msg="unhandled api response" correlation_id=637a64a6-3620-4ba3-a48b-b5e17aabe5fc
+10-02 01:08:37.189 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/remove http_status=null type=ApiFailure msg="cross-module clear-cart failed"
+10-02 01:08:37.189 I/flutter ( 9292): [ERR] msg="error snackbar shown"
+10-02 01:08:37.190 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:08:38.189 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1116	1	990001	Zqx Rice	1	1
+1117	1	990008	Zqx Rice Two	1	2
+### SWITCH-to-pharm3 seq=[tap:1205:1832:crossPill sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:08:52.107817017
+T_crossPill_done 01:08:52.117603142
+T_yes_done 01:08:53.333500017
+-- proxy (host clock)
+01:09:18.093 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [85ms] rows=[]
+01:09:19.093 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [161ms] rows=[]
+01:09:19.093 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [238ms] rows=[]
+01:09:19.094 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [522ms] rows=[]
+01:09:19.594 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [148ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1118, 990002, 3]]
+01:09:19.623 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [325ms]
+-- app log (device clock)
+10-02 01:08:53.329 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:08:54.223 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:08:54.727 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:08:55.374 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1118	3	990002	Zqx Pill	3	1
+### RESEED-010924 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:09:00.423786562
+T_rice_done 01:09:00.435762229
+T_yes_done 01:09:01.650269021
+-- proxy (host clock)
+01:09:26.322 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [88ms] rows=[]
+01:09:27.327 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [169ms] rows=[]
+01:09:27.328 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [244ms] rows=[]
+01:09:27.333 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [469ms] rows=[]
+01:09:27.826 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [124ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1119, 990001, 1]]
+01:09:28.329 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [273ms]
+-- app log (device clock)
+10-02 01:09:01.648 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:09:02.452 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:09:02.958 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:09:03.959 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1119	1	990001	Zqx Rice	1	1
+### S3-D1-posttap0.3-delay2500 seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes sleep:0.3 tap:1229:1316:oldStepRiceTwo sleep:0.2 shot:s3d1] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 2500}}
+T0 01:09:23.438289990
+T_oldRiceTwo_done 01:09:23.448850823
+T_crossPill_done 01:09:23.459741115
+T_yes_done 01:09:23.622814532
+T_oldStepRiceTwo_done 01:09:23.940075574
+T_shot_s3d1 01:09:24.326994782
+-- proxy (host clock)
+01:09:48.477 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [2601ms] DELAY2500 rows=[]
+01:09:51.590 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [163ms] rows=[]
+01:09:51.590 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [247ms] rows=[]
+01:09:51.591 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [513ms] rows=[]
+01:09:52.086 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [138ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1120, 990002, 3]]
+01:09:52.108 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [291ms]
+-- app log (device clock)
+10-02 01:09:23.620 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:09:26.709 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:09:27.215 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:09:27.856 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1120	3	990002	Zqx Pill	3	1
+### RESEED-011101 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:10:37.575952484
+T_rice_done 01:10:37.612085817
+T_yes_done 01:10:38.838908943
+-- proxy (host clock)
+01:11:03.472 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [1287ms] rows=[]
+01:11:05.265 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [584ms] rows=[]
+01:11:05.264 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [680ms] rows=[]
+01:11:05.267 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [987ms] rows=[]
+01:11:05.287 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [1099ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1121, 990001, 1]]
+01:11:05.855 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [1177ms]
+-- app log (device clock)
+10-02 01:10:38.835 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:10:40.391 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:10:40.901 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:10:42.017 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1121	1	990001	Zqx Rice	1	1
+### S3-D2-posttap0.5-delay2500 seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes sleep:0.5 tap:1229:1316:oldStepRiceTwo] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 2500}}
+T0 01:10:46.791192696
+T_oldRiceTwo_done 01:10:46.803167155
+T_crossPill_done 01:10:46.815269363
+T_yes_done 01:10:46.981609738
+T_oldStepRiceTwo_done 01:10:47.519039738
+-- proxy (host clock)
+01:11:11.510 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [2787ms] DELAY2500 rows=[]
+01:11:14.865 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [317ms] rows=[]
+01:11:14.887 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [388ms] rows=[]
+01:11:14.897 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [922ms] rows=[]
+01:11:15.308 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [3752ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1122, 990002, 3]]
+01:11:15.389 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [3869ms]
+-- app log (device clock)
+10-02 01:10:46.978 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:10:49.933 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:10:50.442 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:10:54.692 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1122	3	990002	Zqx Pill	3	1
+### RESEED-011129 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:11:05.229841122
+T_rice_done 01:11:05.248170789
+T_yes_done 01:11:06.468241706
+-- proxy (host clock)
+01:11:31.078 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [131ms] rows=[]
+01:11:32.092 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [145ms] rows=[]
+01:11:32.094 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [372ms] rows=[]
+01:11:32.097 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [740ms] rows=[]
+01:11:32.582 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [521ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1123, 990001, 1]]
+01:11:32.736 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [929ms]
+-- app log (device clock)
+10-02 01:11:06.464 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:11:07.207 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:11:07.723 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:11:08.735 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1123	1	990001	Zqx Rice	1	1
+### S3-D3-posttap0.2-natural seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes sleep:0.2 tap:1229:1316:oldStepRiceTwo] ctrl={}
+T0 01:11:14.272077710
+T_oldRiceTwo_done 01:11:14.325027251
+T_crossPill_done 01:11:14.415944793
+T_yes_done 01:11:14.609774460
+T_oldStepRiceTwo_done 01:11:14.834550210
+-- proxy (host clock)
+01:11:39.465 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [156ms] rows=[]
+01:11:40.472 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [249ms] rows=[]
+01:11:40.473 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [372ms] rows=[]
+01:11:40.475 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [935ms] rows=[]
+01:11:40.983 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [664ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1124, 990002, 3]]
+01:11:41.040 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [907ms]
+-- app log (device clock)
+10-02 01:11:14.604 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:11:15.604 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:11:16.115 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:11:17.279 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1124	3	990002	Zqx Pill	3	1
+### RESEED-011149 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:11:25.221951673
+T_rice_done 01:11:25.237547715
+T_yes_done 01:11:26.457976507
+-- proxy (host clock)
+01:11:50.907 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [647ms] rows=[]
+01:11:52.058 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [366ms] rows=[]
+01:11:52.058 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [532ms] rows=[]
+01:11:52.059 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [1002ms] rows=[]
+01:11:52.558 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [768ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1125, 990001, 1]]
+01:11:52.594 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [1107ms]
+-- app log (device clock)
+10-02 01:11:26.454 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:11:27.185 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:11:27.689 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:11:28.957 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1125	1	990001	Zqx Rice	1	1
+### S3-D4-posttap0.6-natural seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes sleep:0.6 tap:1229:1316:oldStepRiceTwo] ctrl={}
+T0 01:11:34.334375552
+T_oldRiceTwo_done 01:11:34.435574011
+T_crossPill_done 01:11:34.470816886
+T_yes_done 01:11:34.659165594
+T_oldStepRiceTwo_done 01:11:35.279393720
+-- proxy (host clock)
+01:11:59.047 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [313ms] rows=[]
+01:11:59.873 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [664ms] rows=[]
+01:11:59.874 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [853ms] rows=[]
+01:11:59.876 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [1819ms] rows=[]
+01:12:00.366 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [1707ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1126, 990002, 3]]
+01:12:00.450 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [1855ms]
+-- app log (device clock)
+10-02 01:11:34.646 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:11:34.991 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:11:35.496 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:11:35.780 I/flutter ( 9292): [WARN] msg="pending add dropped: reason=module_mismatch phase=send item_id=990008 row_module_id=1 active_module_id=3"
+10-02 01:11:37.704 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1126	3	990002	Zqx Pill	3	1
+### RESEED-011209 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:11:45.531138766
+T_rice_done 01:11:45.547065891
+T_yes_done 01:11:46.767044975
+-- proxy (host clock)
+01:12:11.581 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [680ms] rows=[]
+01:12:12.766 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [424ms] rows=[]
+01:12:12.766 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [509ms] rows=[]
+01:12:12.767 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [824ms] rows=[]
+01:12:13.265 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [459ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1127, 990001, 1]]
+01:12:13.279 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [735ms]
+-- app log (device clock)
+10-02 01:11:46.763 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:11:47.891 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:11:48.395 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:11:49.355 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1127	1	990001	Zqx Rice	1	1
+### S3-D5-posttap0.4-natural seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes sleep:0.4 tap:1229:1316:oldStepRiceTwo] ctrl={}
+T0 01:11:54.995553687
+T_oldRiceTwo_done 01:11:55.008555854
+T_crossPill_done 01:11:55.022065146
+T_yes_done 01:11:55.194134812
+T_oldStepRiceTwo_done 01:11:55.611056396
+-- proxy (host clock)
+01:12:19.904 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [91ms] rows=[]
+01:12:20.905 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [175ms] rows=[]
+01:12:20.905 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [261ms] rows=[]
+01:12:20.906 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [540ms] rows=[]
+01:12:21.406 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [235ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1128, 990002, 3]]
+01:12:21.453 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [429ms]
+-- app log (device clock)
+10-02 01:11:55.188 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:11:56.034 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:11:56.537 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:11:57.273 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1128	3	990002	Zqx Pill	3	1
+### RESEED-011250 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:12:26.481883369
+T_rice_done 01:12:26.498920119
+T_yes_done 01:12:27.717324536
+-- proxy (host clock)
+01:12:52.228 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [155ms] rows=[]
+01:12:53.230 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [178ms] rows=[]
+01:12:53.231 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [263ms] rows=[]
+01:12:53.232 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [464ms] rows=[]
+01:12:53.731 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [199ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1129, 990001, 1]]
+01:12:53.793 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [672ms]
+-- app log (device clock)
+10-02 01:12:27.714 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:12:28.356 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:12:28.860 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:12:29.561 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1129	1	990001	Zqx Rice	1	1
+### S4-A1-pendingrow-posttap1.2-reload2500 seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes sleep:1.2 tap:1229:1316:oldStepRiceTwo] ctrl={"delay": {"GET /api/v1/customer/cart/list": 2500, "GET /api/v1/config/get-zone-id": 2500}}
+T0 01:12:35.373637832
+T_oldRiceTwo_done 01:12:35.389288873
+T_crossPill_done 01:12:35.406193832
+T_yes_done 01:12:35.571928457
+T_oldStepRiceTwo_done 01:12:36.790211457
+-- proxy (host clock)
+01:13:00.220 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [88ms] rows=[]
+01:13:01.245 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [333ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1130, 990002, 3]]
+01:13:01.225 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [2808ms] DELAY2500 rows=[[1130, 990002, 3]]
+01:13:01.226 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [2967ms] DELAY2500 rows=[[1130, 990002, 3]]
+01:13:01.230 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [3114ms] DELAY2500 rows=[[1130, 990002, 3]]
+01:13:03.878 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [701ms]
+-- app log (device clock)
+10-02 01:12:35.568 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:12:36.349 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:12:36.858 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:12:37.209 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 01:12:37.295 I/flutter ( 9292): [WARN] msg="pending add dropped: reason=module_mismatch phase=send item_id=990008 row_module_id=1 active_module_id=3"
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1130	3	990002	Zqx Pill	3	1
+### RESEED-011319 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes] ctrl={}
+T0 01:12:55.200405924
+T_rice_done 01:12:55.213647716
+T_yes_done 01:12:56.442195800
+-- proxy (host clock)
+01:13:20.886 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [111ms] rows=[]
+01:13:21.404 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [186ms] rows=[]
+01:13:21.405 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [275ms] rows=[]
+01:13:21.453 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [538ms] rows=[]
+01:13:21.904 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [216ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1131, 990001, 1]]
+01:13:21.935 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [471ms]
+-- app log (device clock)
+10-02 01:12:56.439 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:12:57.000 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:12:57.505 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:12:57.751 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1131	1	990001	Zqx Rice	1	1
+### S4-A2-pendingrow-posttap1.6-reload4000 seq=[tap:1205:1316:oldRiceTwo tap:1205:1832:crossPill sleep:0.15 tap:944:1889:yes sleep:1.6 tap:1229:1316:oldStepRiceTwo] ctrl={"delay": {"GET /api/v1/customer/cart/list": 4000, "GET /api/v1/config/get-zone-id": 4000, "GET /api/v1/home/all": 4000}}
+T0 01:13:04.024093304
+T_oldRiceTwo_done 01:13:04.036466304
+T_crossPill_done 01:13:04.047315512
+T_yes_done 01:13:04.214499054
+T_oldStepRiceTwo_done 01:13:05.830900513
+-- proxy (host clock)
+01:13:28.721 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [122ms] rows=[]
+01:13:30.222 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [159ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1132, 990002, 3]]
+01:13:29.725 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [4279ms] DELAY4000 rows=[[1132, 990002, 3]]
+01:13:29.725 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [5553ms] DELAY4000 rows=[[1132, 990002, 3]]
+01:13:29.726 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [5897ms] DELAY4000 rows=[[1132, 990002, 3]]
+01:13:34.778 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [4217ms] DELAY4000
+-- app log (device clock)
+10-02 01:13:04.209 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:13:04.848 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:13:05.354 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:13:06.331 I/flutter ( 9292): [WARN] msg="pending add dropped: reason=module_mismatch phase=send item_id=990008 row_module_id=1 active_module_id=3"
+10-02 01:13:06.351 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1132	3	990002	Zqx Pill	3	1
+### RESEED-011350 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes sleep:3 tap:1205:1316:riceTwo] ctrl={}
+T0 01:13:26.664308481
+T_rice_done 01:13:26.677127564
+T_yes_done 01:13:27.898942315
+T_riceTwo_done 01:13:30.915638858
+-- proxy (host clock)
+01:13:52.640 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [130ms] rows=[]
+01:13:53.644 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [216ms] rows=[]
+01:13:53.644 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [337ms] rows=[]
+01:13:53.646 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [617ms] rows=[]
+01:13:54.144 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [280ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1133, 990001, 1]]
+01:13:54.185 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [599ms]
+01:13:55.801 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [1653ms] {"item_id":990008,"price":"22.98","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1133, 990001, 1], [1134, 990008, 1]]
+-- app log (device clock)
+10-02 01:13:27.894 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:13:28.768 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:13:29.275 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:13:30.055 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 01:13:31.415 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:13:33.085 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1133	1	990001	Zqx Rice	1	1
+1134	1	990008	Zqx Rice Two	1	1
+### RB-1-savedrow-posttap0.4-delay2500 seq=[tap:1205:1832:crossPill sleep:1.0 tap:944:1889:yes sleep:0.4 tap:1229:1316:oldStepRiceTwo] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 2500}}
+T0 01:13:38.824501487
+T_crossPill_done 01:13:38.845882570
+T_yes_done 01:13:39.867784654
+T_oldStepRiceTwo_done 01:13:40.286718112
+-- proxy (host clock)
+01:14:04.279 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [2633ms] DELAY2500 rows=[]
+01:14:07.424 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [247ms] rows=[]
+01:14:07.425 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [356ms] rows=[]
+01:14:07.431 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [681ms] rows=[]
+01:14:07.920 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [380ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1135, 990002, 3]]
+01:14:08.018 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [604ms]
+-- app log (device clock)
+10-02 01:13:39.864 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:13:42.542 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:13:43.054 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:13:43.937 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1135	3	990002	Zqx Pill	3	1
+### RESEED-011422 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes sleep:3 tap:1205:1316:riceTwo] ctrl={}
+T0 01:13:58.191754288
+T_rice_done 01:13:58.207821496
+T_yes_done 01:13:59.427383372
+T_riceTwo_done 01:14:02.449983790
+-- proxy (host clock)
+01:14:23.981 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [135ms] rows=[]
+01:14:24.988 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [179ms] rows=[]
+01:14:24.987 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [264ms] rows=[]
+01:14:24.989 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [1341ms] rows=[]
+01:14:25.484 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [2118ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1136, 990001, 1]]
+01:14:25.641 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [2781ms]
+01:14:27.336 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [1438ms] {"item_id":990008,"price":"22.98","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1136, 990001, 1], [1137, 990008, 1]]
+-- app log (device clock)
+10-02 01:13:59.424 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:14:00.110 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:14:00.617 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:14:02.949 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:14:03.234 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 01:14:04.409 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1136	1	990001	Zqx Rice	1	1
+1137	1	990008	Zqx Rice Two	1	1
+### RB-2-savedrow-posttap0.6-delay2500 seq=[tap:1205:1832:crossPill sleep:1.0 tap:944:1889:yes sleep:0.6 tap:1229:956:oldStepRice] ctrl={"delay": {"DELETE /api/v1/customer/cart/remove": 2500}}
+T0 01:14:10.064121377
+T_crossPill_done 01:14:10.077613210
+T_yes_done 01:14:11.104481044
+T_oldStepRice_done 01:14:11.729143252
+-- proxy (host clock)
+01:14:35.781 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [2682ms] DELAY2500 rows=[]
+01:14:38.971 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [194ms] rows=[]
+01:14:38.972 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [286ms] rows=[]
+01:14:38.975 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [649ms] rows=[]
+01:14:39.469 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [320ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1138, 990002, 3]]
+01:14:39.529 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [547ms]
+-- app log (device clock)
+10-02 01:14:11.100 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:14:14.093 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:14:14.601 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:14:15.422 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1138	3	990002	Zqx Pill	3	1
+### RESEED-011447 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes sleep:3 tap:1205:1316:riceTwo] ctrl={}
+T0 01:14:22.821661049
+T_rice_done 01:14:22.836585633
+T_yes_done 01:14:24.051541758
+T_riceTwo_done 01:14:27.072398385
+-- proxy (host clock)
+01:14:48.902 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [90ms] rows=[]
+01:14:49.906 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [231ms] rows=[]
+01:14:49.907 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [324ms] rows=[]
+01:14:49.908 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [621ms] rows=[]
+01:14:50.415 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [249ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1139, 990001, 1]]
+01:14:50.443 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [539ms]
+01:14:52.000 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [2392ms] {"item_id":990008,"price":"22.98","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1139, 990001, 1], [1140, 990008, 1]]
+-- app log (device clock)
+10-02 01:14:24.048 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:14:25.030 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:14:25.536 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:14:26.294 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 01:14:27.574 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:14:30.024 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1139	1	990001	Zqx Rice	1	1
+1140	1	990008	Zqx Rice Two	1	1
+### S4-B1-savedrow-posttap1.3-reload3000 seq=[tap:1205:1832:crossPill sleep:1.0 tap:944:1889:yes sleep:1.3 tap:1229:1316:oldStepRiceTwo] ctrl={"delay": {"GET /api/v1/customer/cart/list": 3000, "GET /api/v1/config/get-zone-id": 3000}}
+T0 01:14:34.787619513
+T_crossPill_done 01:14:34.799395347
+T_yes_done 01:14:35.813484056
+T_oldStepRiceTwo_done 01:14:37.137983473
+-- proxy (host clock)
+01:15:00.593 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [90ms] rows=[]
+01:15:02.097 POST /api/v1/customer/cart/update q= moduleId='3' zoneId=[1] -> 404 [159ms] {"cart_id":1140,"price":41.364000000000004,"quantity":2}
+01:15:02.098 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [338ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1141, 990002, 3]]
+01:15:01.596 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [3409ms] DELAY3000 rows=[[1141, 990002, 3]]
+01:15:01.596 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [3619ms] DELAY3000 rows=[[1141, 990002, 3]]
+01:15:01.597 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [3926ms] DELAY3000 rows=[[1141, 990002, 3]]
+01:15:06.157 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [309ms]
+-- app log (device clock)
+10-02 01:14:35.810 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:14:36.722 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:14:37.226 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:14:37.632 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/update
+10-02 01:14:38.226 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/update http_status=404
+10-02 01:14:38.227 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/update http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=5e4e49ad-aa2f-4ce0-9773-da57a9ac8be0
+10-02 01:14:38.228 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/update http_status=404 type=ApiFailure msg="cart: updateCartQuantityOnline rowGone" correlation_id=5e4e49ad-aa2f-4ce0-9773-da57a9ac8be0
+10-02 01:14:38.231 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1141	3	990002	Zqx Pill	3	1
+### RESEED-011528 seq=[tap:1205:956:rice sleep:1.2 tap:944:1889:yes sleep:3 tap:1205:1316:riceTwo] ctrl={}
+T0 01:15:04.302767194
+T_rice_done 01:15:04.331886028
+T_yes_done 01:15:05.559011361
+T_riceTwo_done 01:15:08.587631030
+-- proxy (host clock)
+01:15:30.245 DELETE /api/v1/customer/cart/remove q= moduleId='3' zoneId=None -> 200 [499ms] rows=[]
+01:15:30.986 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [441ms] rows=[]
+01:15:30.987 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [945ms] rows=[]
+01:15:31.047 GET /api/v1/customer/cart/list q= moduleId='1' zoneId=[1] -> 200 [1617ms] rows=[]
+01:15:31.433 GET /api/v1/home/all q= moduleId='1' zoneId=[1] -> 200 [2009ms]
+01:15:31.432 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [2286ms] {"item_id":990001,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1142, 990001, 1]]
+01:15:33.483 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [620ms] {"item_id":990008,"price":"22.98","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1142, 990001, 1], [1143, 990008, 1]]
+-- app log (device clock)
+10-02 01:15:05.555 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:15:06.377 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:15:06.889 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:15:09.087 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:15:09.351 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 01:15:09.739 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1142	1	990001	Zqx Rice	1	1
+1143	1	990008	Zqx Rice Two	1	1
+### S4-B2-savedrow-posttap1.3-reload3000 seq=[tap:1205:1832:crossPill sleep:1.0 tap:944:1889:yes sleep:1.3 tap:1229:956:oldStepRice sleep:0.3 shot:s4b2] ctrl={"delay": {"GET /api/v1/customer/cart/list": 3000, "GET /api/v1/config/get-zone-id": 3000}}
+T0 01:15:16.234857867
+T_crossPill_done 01:15:16.256970158
+T_yes_done 01:15:17.284831784
+T_oldStepRice_done 01:15:18.613029243
+T_shot_s4b2 01:15:19.332240368
+-- proxy (host clock)
+01:15:41.905 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [140ms] rows=[]
+01:15:43.416 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [768ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1144, 990002, 3]]
+01:15:43.844 POST /api/v1/customer/cart/update q= moduleId='3' zoneId=[1] -> 404 [476ms] {"cart_id":1142,"price":27.054,"quantity":2}
+01:15:42.913 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [3317ms] DELAY3000 rows=[[1144, 990002, 3]]
+01:15:42.915 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [3750ms] DELAY3000 rows=[[1144, 990002, 3]]
+01:15:42.928 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [4061ms] DELAY3000 rows=[[1144, 990002, 3]]
+01:15:46.998 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [266ms]
+-- app log (device clock)
+10-02 01:15:17.278 I/flutter ( 9292): [NET] DELETE endpoint=/api/v1/customer/cart/remove
+10-02 01:15:18.031 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/remove http_status=200
+10-02 01:15:18.544 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:15:19.110 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/update
+10-02 01:15:19.819 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 01:15:19.966 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/update http_status=404
+10-02 01:15:19.971 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/update http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=db95446e-6ad0-4055-b91d-6a1dd3e59803
+10-02 01:15:19.972 I/flutter ( 9292): [FAIL] endpoint=/api/v1/customer/cart/update http_status=404 type=ApiFailure msg="cart: updateCartQuantityOnline rowGone" correlation_id=db95446e-6ad0-4055-b91d-6a1dd3e59803
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1144	3	990002	Zqx Pill	3	1
+### SAN-1-storepage-sameModule-add seq=[tap:1224:2232:storePillTwo] ctrl={}
+T0 01:17:51.989232274
+T_storePillTwo_done 01:17:52.004776733
+-- proxy (host clock)
+01:18:17.134 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [179ms] {"item_id":990009,"price":"7.25","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=[[1144, 990002, 3], [1145, 990009, 3]]
+-- app log (device clock)
+10-02 01:17:52.512 I/flutter ( 9292): [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:17:53.260 I/flutter ( 9292): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+-- DB
+id	cart_mod	item_id	name	item_mod	q
+1144	3	990002	Zqx Pill	3	1
+1145	3	990009	Zqx Pill Two	3	1
