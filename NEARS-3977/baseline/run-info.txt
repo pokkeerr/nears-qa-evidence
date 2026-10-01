@@ -1,0 +1,11 @@
+NEARS-3977 BASELINE (pre-change) — run info
+code under test: control worktree /Users/Apple/Projects/nears-NEARS-3977-base @ 35c5707666cfba3775f1f4193e127e53bbd4959d (detached), UserApp debug, Flutter /Users/Apple/Tools/flutter (qa-run.sh --root <base> --dart-define API_HOST=10.0.2.2:8101)
+app package: com.izzes.nears.nears_nears_3977_base (uninstalled at teardown)
+device: emulator-5600 (sdk gphone16k arm64), lock key NEARS-3977
+backend: php -S 0.0.0.0:8101 (PID 91421) router=/Users/Apple/.nears/qa/NEARS-3977/baseline/router.php -> /Users/Apple/Projects/nears/Admin/server.php, cwd /Users/Apple/Projects/nears/Admin/public, env DB_DATABASE=nears_qa_cartrow
+  Backend: /Users/Apple/Projects/nears @ 35c570766 (backend-freshness-check.sh 8101 PASS)
+  (first booted as 'php artisan serve --no-reload' PID 86995/87069, stopped by own PID and replaced by php -S + body-logging router to capture cart payloads)
+  router logs cart endpoints only to /Users/Apple/.nears/qa/NEARS-3977/baseline/requests.jsonl (method, path, query, moduleId/zoneId headers, body, status; NO auth headers)
+db: nears_qa_cartrow (mysqldump copy of multi_food_db at ~10:04Z). Proof: copy-only flag flip id 228 -> GET /api/v1/config cross_module_basket true while multi_food_db=0; shared cache rows unchanged (2) across every DB_DATABASE=nears_qa_cartrow artisan cache:clear
+end state left for [8]: flag OFF on copy; user 6 item-91 rows 993 (64g q3) + 994 (100g q1); server 91421 left running
+adb reverse tcp:80 & tcp:8101 -> 8101 removed at teardown; mock gps test provider removed at teardown
