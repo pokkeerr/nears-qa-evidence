@@ -1,14 +1,17 @@
 # QA Evidence — NEARS-3851
 
-**NEARS-3851 phase 8 QA: FAIL (AC1 cod_cap/below-min masked by Cart pre-flight digital guess in a cash-only zone; AC7 pre-existing lead-store ETA)**
+**NEARS-3851 cycle-1 delta re-QA @ f0bf72089: PASS (D1-D6, D8); D7 unreachable through UI (NEARS-3625 guard)**
 
-**3 screenshot(s).** Click any thumbnail for full resolution.
+**4 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
 <td align="center" width="33%"><a href="ac1-cart-closed-and-out-of-zone-cards.png"><img src="ac1-cart-closed-and-out-of-zone-cards.png" width="240"></a><br><sub>ac1 cart closed and out of zone cards</sub></td>
 <td align="center" width="33%"><a href="ac3-ac10-late-close-returned-to-cart-scrolled.png"><img src="ac3-ac10-late-close-returned-to-cart-scrolled.png" width="240"></a><br><sub>ac3 ac10 late close returned to cart scrolled</sub></td>
 <td align="center" width="33%"><a href="bug-ac7-basket-eta-is-lead-store-eta.png"><img src="bug-ac7-basket-eta-is-lead-store-eta.png" width="240"></a><br><sub>bug ac7 basket eta is lead store eta</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c1-d1-codcap-and-minimum-cards-default-config.png"><img src="c1-d1-codcap-and-minimum-cards-default-config.png" width="240"></a><br><sub>c1 d1 codcap and minimum cards default config</sub></td>
 </tr>
 </table>
 
@@ -21,6 +24,15 @@
 - [`bug-ac7-basket-eta-dump.xml`](bug-ac7-basket-eta-dump.xml)
 - [`bug-cart-preflight-codcap-masked-checkout-dump.xml`](bug-cart-preflight-codcap-masked-checkout-dump.xml)
 - [`bug-cart-preflight-digital-in-cash-only-zone.log`](bug-cart-preflight-digital-in-cash-only-zone.log)
+- [`c1-d1-dump.xml`](c1-d1-dump.xml)
+- [`c1-d1-proxy-requests.log`](c1-d1-proxy-requests.log)
+- [`c1-d2-reask-proxy-requests.log`](c1-d2-reask-proxy-requests.log)
+- [`c1-d6a-queued-retry-proxy-requests.log`](c1-d6a-queued-retry-proxy-requests.log)
+- [`c1-d6a-store-failed-card-dump.xml`](c1-d6a-store-failed-card-dump.xml)
+- [`c1-d6b-place403-returned-dump.xml`](c1-d6b-place403-returned-dump.xml)
+- [`c1-d6c-named-toast-dump.xml`](c1-d6c-named-toast-dump.xml)
+- [`c1-d7-unserviceable-address-redirect-dump.xml`](c1-d7-unserviceable-address-redirect-dump.xml)
+- [`c1-qa_proxy.py.txt`](c1-qa_proxy.py.txt)
 - [`cash-notice-i-blocking-dump.xml`](cash-notice-i-blocking-dump.xml)
 - [`cash-notice-ii-advisory-dump.xml`](cash-notice-ii-advisory-dump.xml)
 - [`cash-notice-iii-advisory-dump.xml`](cash-notice-iii-advisory-dump.xml)
