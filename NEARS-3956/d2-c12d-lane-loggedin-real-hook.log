@@ -1,0 +1,12 @@
+# DELTA2 C12d LANE: logged-in user digital group, REAL hook order_group_place (same method as C12a)
+06:10:13 POST /api/v1/customer/order/group/place -> 200 auth=bearer - z=[400,2] m=1 rid=ffdc3da4-0e6d-478b-a5a7-df93dd2ceed9 412ms
+06:10:14 GET /payment-mobile -> 302 auth=none - group_id=b6155407 z=- m=- rid=e41f6b7f-d62c-4df9-8675-15d3fea3bcbe 112ms
+--- REAL hook invoked (d) 06:10:31
+06:12:14 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT to /payment-success (after 60s) rid=-
+06:12:15 GET /api/v1/customer/order/track -> 200 auth=bearer - z=[400,2] m=1 rid=76ad4a20-63af-430d-bcb3-833812968f0f 252ms
+06:12:16 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=b6155407 z=[400,2] m=1 rid=a63e9150-c765-47dc-8796-54e743c7d102 93ms
+06:12:26 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=c303312e-4a65-4656-9e79-b2b9d1ae0c40 120ms
+id	user_id	is_guest	order_status	payment_status	payment_method
+91422	435	0	confirmed	paid	paypal
+91423	435	0	confirmed	paid	paypal
+# Home after success: no incomplete/Pay Now sheet for confirmed orders (see screenshot-free grep above: empty)

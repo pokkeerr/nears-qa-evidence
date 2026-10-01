@@ -1,0 +1,36 @@
+# DELTA2 C12a LANE d1a86f5c1: guest + Create account, 2-store same-module group, digital, REAL success hook order_group_place -> proxy 302 /payment-success
+# METHOD: group placed in-app; GET /payment-mobile created the payment_requests row (success_hook order_group_place, paypal, group id) via PaymentController::groupPayment -> Payment::generate_link; then on the private copy: payment_requests.is_paid=1 + transaction_id set (as a gateway callback does) and call_user_func(row->success_hook, row) = order_group_place(row) via artisan tinker (DB_DATABASE-pinned). No credentials read. Proxy 302 of the stub /payment/paypal/pay -> /payment-success drove the app's own success route (real PaymentController@success).
+06:04:15 POST /api/v1/customer/order/group/place -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=6b40e391-b0ac-4d75-81c2-4291d1c497e1 369ms
+06:04:15 POST /api/v1/auth/login -> 200 auth=none guest_id z=[400,2] m=1 rid=6be885f3-f642-466e-966e-f775424bf627 254ms
+06:04:22 GET /payment-mobile -> 302 auth=none - group_id=cba21c6b z=- m=- rid=d53f49af-fb21-48e9-8b85-274d345e6046 107ms
+--- REAL hook order_group_place invoked 06:04:34
+06:06:22 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT to /payment-success (after 60s) rid=-
+06:06:23 GET /api/v1/customer/order/track -> 200 auth=bearer - z=[400,2] m=1 rid=6be2a7db-1747-477f-a02e-26240cf11f1e 202ms
+06:06:24 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=cba21c6b z=[400,2] m=1 rid=7505b24a-33bb-420a-a704-e542ef8c0ad5 93ms
+--- Track Order tap 06:07:01
+06:07:04 GET /api/v1/customer/order/track -> 200 auth=bearer - z=[400,2] m=1 rid=d7e79403-5053-4bb4-aa44-ba4defc2729a 239ms
+06:07:04 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=cba21c6b z=[400,2] m=1 rid=641ac0b3-8585-41f4-a80a-5b2216108e8c 99ms
+06:07:05 GET /api/v1/customer/order/track -> 200 auth=bearer - z=[400,2] m=1 rid=b76e0149-7c89-4d19-85be-e398a3f94a92 135ms
+06:07:06 GET /api/v1/customer/order/track -> 200 auth=bearer - z=[400,2] m=1 rid=697d2609-ee02-4266-a8a4-429cf0dbb392 148ms
+06:07:14 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=385cc4bc-7736-4cca-ab9b-ee2e730a8168 108ms
+06:07:14 GET /api/v1/customer/order/running-orders -> 200 auth=bearer - z=[400,2] m=1 rid=bb0b6358-8223-4fcf-b972-74ceb18616f7 136ms
+--- My Orders tap 06:08:07
+--- My Orders tap 06:08:26
+06:08:28 GET /api/v1/customer/order/list -> 200 auth=bearer - z=[400,2] m=1 rid=4ae4e438-7c10-412c-8a57-f7d085c800b4 117ms
+06:08:28 GET /api/v1/customer/order/running-orders -> 200 auth=bearer - z=[400,2] m=1 rid=9a059dba-eda2-4dfd-bc42-cf61d758254e 153ms
+# DB after the real hook
+id	user_id	is_guest	order_status	payment_status	payment_method
+91418	435	0	confirmed	paid	paypal
+91419	435	0	confirmed	paid	paypal
+id	user_id	guest_id	child_count
+cba21c6b-0469-494b-bd3c-2021296bcb13	435	NULL	2
+attribute	gid	success_hook	payment_method	is_paid
+order_group	cba21c6b	order_group_place	paypal	1
+# payment-failed for the owner after the hook: [] (curl)
+# screens: success 'Order #91418 ... 2 stores'; Track Order lists #91418/#91419 Confirmed; Home chips #91418/#91419 and NO 'Your payment was Incomplete / Pay Now' sheet; Profile 2 Orders -> My Orders: Ongoing tab shows the group 'Orders from multiple stores' (All Orders = history, empty as expected)
+# analytics mirror (suffixed build, corroboration):
+10-01 06:04:08.233 I/flutter ( 4940): 📊 analytics: purchase {transaction_id: <group>, value: 55.5, currency: AED, store_count: 2, source: confirm_sheet}
+10-01 06:04:13.256 I/flutter ( 4940): 📊 analytics: login {method: phone}
+# [FAIL]/[ERR] since placement:
+06:04:12.249 I/flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="FCM registration id fetch failed"
+06:04:12.249 I/flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"

@@ -1,0 +1,10 @@
+# DELTA2 C12b CONTROL a9ded9971: guest + Create account group, digital, REAL hook (children confirmed/paid, owner user 436) -> /payment-success -> guest session
+06:20:56 POST /api/v1/customer/order/group/place -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=90804fa9-66f4-455a-b20b-45b360e074b6 484ms
+06:20:58 GET /payment-mobile -> 302 auth=none - group_id=d0515410 z=- m=- rid=1686b6b0-1672-40ae-a02f-58a92952a0f4 165ms
+--- REAL hook invoked (b) 06:21:18
+06:22:58 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT to /payment-success (after 60s) rid=-
+06:22:59 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=e2b52a2a-f4ba-4a61-82cb-d563da4e6ae7 132ms
+id	user_id	is_guest	order_status	payment_status	payment_method
+91430	436	0	confirmed	paid	paypal
+91431	436	0	confirmed	paid	paypal
+# screen: 'Something went wrong / Please try again / Retry' (order/track 404 for the guest session)

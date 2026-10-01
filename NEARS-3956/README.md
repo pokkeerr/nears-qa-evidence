@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3956
 
-**NEARS-3956 QA PASS (delta C12): payment-success redirect driven live - adopted guest reaches order success (control: Something went wrong / track 404)**
+**NEARS-3956 QA PASS (delta2): success path re-taken with the REAL order_group_place hook (children confirmed+paid)**
 
-**19 screenshot(s).** Click any thumbnail for full resolution.
+**27 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -37,6 +37,18 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="c8b-basket-empty-after-adopt-flag1.png"><img src="c8b-basket-empty-after-adopt-flag1.png" width="240"></a><br><sub>c8b basket empty after adopt flag1</sub></td>
+<td align="center" width="33%"><a href="d2-c12a-home-no-incomplete-sheet.png"><img src="d2-c12a-home-no-incomplete-sheet.png" width="240"></a><br><sub>d2 c12a home no incomplete sheet</sub></td>
+<td align="center" width="33%"><a href="d2-c12a-lane-adopted-success-real-hook.png"><img src="d2-c12a-lane-adopted-success-real-hook.png" width="240"></a><br><sub>d2 c12a lane adopted success real hook</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="d2-c12a-my-orders-ongoing.png"><img src="d2-c12a-my-orders-ongoing.png" width="240"></a><br><sub>d2 c12a my orders ongoing</sub></td>
+<td align="center" width="33%"><a href="d2-c12a-my-orders.png"><img src="d2-c12a-my-orders.png" width="240"></a><br><sub>d2 c12a my orders</sub></td>
+<td align="center" width="33%"><a href="d2-c12b-control-guest-something-went-wrong-real-hook.png"><img src="d2-c12b-control-guest-something-went-wrong-real-hook.png" width="240"></a><br><sub>d2 c12b control guest something went wrong real hook</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="d2-c12c-control-plain-guest-success-real-hook.png"><img src="d2-c12c-control-plain-guest-success-real-hook.png" width="240"></a><br><sub>d2 c12c control plain guest success real hook</sub></td>
+<td align="center" width="33%"><a href="d2-c12c-lane-plain-guest-success-real-hook.png"><img src="d2-c12c-lane-plain-guest-success-real-hook.png" width="240"></a><br><sub>d2 c12c lane plain guest success real hook</sub></td>
+<td align="center" width="33%"><a href="d2-c12d-lane-loggedin-success-real-hook.png"><img src="d2-c12d-lane-loggedin-success-real-hook.png" width="240"></a><br><sub>d2 c12d lane loggedin success real hook</sub></td>
 </tr>
 </table>
 
@@ -62,6 +74,11 @@
 - [`c8-basket-empty-flag0-flag1.log`](c8-basket-empty-flag0-flag1.log)
 - [`c9-ac6-negatives-and-positive-control.txt`](c9-ac6-negatives-and-positive-control.txt)
 - [`c9b-ac6-second-group-with-owner-positive-controls.txt`](c9b-ac6-second-group-with-owner-positive-controls.txt)
+- [`d2-c12a-lane-adopted-real-hook.log`](d2-c12a-lane-adopted-real-hook.log)
+- [`d2-c12b-control-real-hook.log`](d2-c12b-control-real-hook.log)
+- [`d2-c12c-control-plain-guest-real-hook.log`](d2-c12c-control-plain-guest-real-hook.log)
+- [`d2-c12c-lane-plain-guest-real-hook.log`](d2-c12c-lane-plain-guest-real-hook.log)
+- [`d2-c12d-lane-loggedin-real-hook.log`](d2-c12d-lane-loggedin-real-hook.log)
 - [`progress.md`](progress.md)
 
 ---

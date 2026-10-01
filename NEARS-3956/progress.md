@@ -29,3 +29,8 @@ Harness (least invasive, no product code, no server-tree edit): the logging prox
 | C12c plain guest success | lane + control | c12c-lane-plain-guest-payment-success.log, c12c-control-plain-guest-payment-success.log, c12c-*.png |
 | C12d logged-in user success | lane | c12d-lane-loggedin-payment-success.log, c12d-*.png |
 | C12e payment-FAIL redirect (info) | lane, adopted | c12e-lane-adopted-payment-fail.log, c12e-*.png |
+
+## Delta2: success path re-taken with the REAL hook (supersedes the hand-set pending/paid rows of C12)
+C12a-d rows above are OBSERVED-under-simulation (hand-set pending/paid). The d2-* files re-take them with the real success hook:
+method = place the group in-app; GET /payment-mobile creates the payment_requests row (success_hook order_group_place, paypal, group id) via PaymentController::groupPayment -> Payment::generate_link; then on the private copy set is_paid=1 + transaction_id (as a gateway callback does) and call order_group_place(row) via DB_DATABASE-pinned artisan tinker; DB then shows EVERY child order_status=confirmed + payment_status=paid. Proxy 302 stub /payment/paypal/pay -> /payment-success as before. The 'payment Incomplete / Pay Now' Home observation of C12a is WITHDRAWN (harness artifact: payment-failed excludes confirmed orders; absent in d2 runs).
+Files: d2-c12a-*.log/png (lane adopted), d2-c12d-* (lane logged-in), d2-c12c-* (lane + control plain guest), d2-c12b-* (control guest+create-account).
