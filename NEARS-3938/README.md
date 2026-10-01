@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3938
 
-**NEARS-3938 QA fix-cycle 0: FAIL (guest pre-apply window places stale fee); logged-in AC1/AC2/AC3/AC4/AC5 PASS**
+**fix-cycle-1 delta PASS on 34446e8db: cells a,b,c,d,e,g PASS; f UNVERIFIABLE live (trigger closed by fix)**
 
 **9 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -31,6 +31,7 @@
 - [`bug-guest-preapply-confirm-places-stale-fee.log`](bug-guest-preapply-confirm-places-stale-fee.log)
 - [`bug-search-results-semantics-assert.log`](bug-search-results-semantics-assert.log)
 - [`control-base-window-a11y-dump.xml`](control-base-window-a11y-dump.xml)
+- [`fc1`](fc1)
 - [`frameB-confirm-disabled-a11y-dump.xml`](frameB-confirm-disabled-a11y-dump.xml)
 - [`progress.md`](progress.md)
 

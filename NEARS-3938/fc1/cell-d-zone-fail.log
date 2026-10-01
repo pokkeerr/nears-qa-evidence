@@ -1,0 +1,36 @@
+# cell (d) failed zone lookup (Marina Mall, Egattur, Tamil Nadu), get-zone-id held 8s
+T0 04:04:18.824 tap Tamil Nadu suggestion
+T1 04:04:21.985 mInputShown=true tap Place Order in window
+T2 04:04:30.527 after zone fail: screencap + dump
+'Marina Mall||' enabled=true clickable=true focused=true EditText [105,1403][1239,1547]
+'|Place Order|' enabled=true clickable=true focused=false Button [60,1780][1284,1936]
+T3 04:04:48.077 tap Place Order after failed lookup
+tap 'Place Order' @ 672 1858
+'|Confirm your order|' enabled=true clickable=false focused=false View [48,1519][576,1603]
+'|Deliver To|' enabled=true clickable=false focused=false View [96,1756][315,1822]
+'|Marina Mall|' enabled=true clickable=false focused=false View [1026,1762][1248,1816]
+'|\u206622.34 AED\u2069|' enabled=true clickable=false focused=false View [1044,1969][1248,2023]
+'|- \u20664.24 AED\u2069|' enabled=true clickable=false focused=false View [1040,2038][1248,2092]
+'|+ \u20660.90 AED\u2069|' enabled=true clickable=false focused=false View [1030,2107][1248,2161]
+'|Total Amount|' enabled=true clickable=false focused=false View [96,2170][387,2236]
+'|\u206642.46 AED\u2069|' enabled=true clickable=false focused=false View [1041,2176][1248,2230]
+'|Confirm & place order|' enabled=true clickable=true focused=false Button [48,2692][1296,2848]
+## server
+[57286] [Thu Oct  1 04:04:20 2026] [qa-delay] GET /api/v1/config/get-zone-id sleep=8s t=1790813060.328
+[57286] [Thu Oct  1 04:04:28 2026] [qa-delay] GET /api/v1/config/get-zone-id release t=1790813068.335
+## app (emu)
+10-01 04:04:08.955 I/flutter ( 3698): [NET] GET endpoint=/api/v1/config/place-api-details
+10-01 04:04:09.905 I/flutter ( 3698): [NET] endpoint=/api/v1/config/place-api-details http_status=200
+10-01 04:04:09.905 I/flutter ( 3698): [NET] GET endpoint=/api/v1/config/get-zone-id
+10-01 04:04:12.092 I/flutter ( 3698): [WARN] msg="checkout: place order tap blocked — pricing not settled (tax/delivery-quote) address_resolving=true"
+10-01 04:04:12.092 I/flutter ( 3698): 📊 analytics: place_order_tapped {pricing_settled: 0, store_count: 1, screen: checkout, section: place_order}
+10-01 04:04:18.551 I/flutter ( 3698): [NET] endpoint=/api/v1/config/get-zone-id http_status=404
+10-01 04:04:18.551 I/flutter ( 3698): [INFO] msg="get-zone-id: no zone / out of zone — prompting location picker"
+10-01 04:04:18.551 I/flutter ( 3698): [INFO] msg="location: inZone=false"
+10-01 04:04:18.553 I/flutter ( 3698): [ERR] msg="error snackbar shown"
+10-01 04:04:40.274 I/flutter ( 3698): 📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 1, screen: checkout, section: place_order}
+10-01 04:04:40.274 I/flutter ( 3698): [NET] POST endpoint=/api/v1/customer/order/get-Tax
+10-01 04:04:40.282 I/flutter ( 3698): 📊 analytics: screen_view {screen_name: order_confirm_sheet, source: checkout}
+10-01 04:04:41.008 I/flutter ( 3698): [NET] endpoint=/api/v1/customer/order/get-Tax http_status=200
+10-01 04:04:41.014 I/flutter ( 3698): 📊 analytics: order_confirm_sheet_shown {store_count: 1, item_count: 1, value: 42.4554, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+## sheet after fail: Deliver To='Marina Mall' (stale search text, known/logged elsewhere), Total 42.46 == applied Emirates Palace quote

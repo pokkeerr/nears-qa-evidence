@@ -1,0 +1,64 @@
+# cell (e) guest mobile Select From Map, get-zone-id held 15s after Confirm Address (PickMapScreen pops before onPicked resolves)
+T0 04:07:02.952 tap Confirm Address
+tap 'Confirm Address' @ 672 2782
+T1 04:07:06.187 dump on checkout
+'|Mozzarella 200g\n1 × \u206618.10 AED\u2069\n\u206618.10 AED\u2069\nx 1|' enabled=true clickable=false focused=false View [90,339][1254,503]
+'Marina Mall||' enabled=true clickable=true focused=true EditText [105,1403][1239,1547]
+'|Marina Mall, Egattur, Tamil Nadu|' enabled=true clickable=true focused=false View [105,1562][1239,1694]
+'|MARINA MALL - Ring Road - Abu Dhabi - United Arab Emirates|' enabled=true clickable=true focused=false View [105,1694][1239,1826]
+'|Marina Mall, Arabian Gulf Street, Kuwait|' enabled=true clickable=true focused=false View [105,1826][1239,1958]
+'|Marina Mall - Dubai - United Arab Emirates|' enabled=true clickable=true focused=false View [105,1958][1239,1984]
+'|Place Order|' enabled=false clickable=false focused=false Button [60,1780][1284,1936]
+T2 04:07:08.160 tap Place Order #1 at x=80 (inside button [60..1284], outside overlay [105..1239])
+T3 04:07:10.199 tap Place Order #2 x=80
+T4 04:07:11.243
+'|Place Order|' enabled=false clickable=false focused=false Button [60,1780][1284,1936]
+## server
+[57295] [Thu Oct  1 04:07:05 2026] [qa-delay] GET /api/v1/config/get-zone-id sleep=15s t=1790813225.336
+[57295] [Thu Oct  1 04:07:20 2026] [qa-delay] GET /api/v1/config/get-zone-id release t=1790813240.339
+## app (emu)
+10-01 04:06:55.254 I/flutter ( 3698): [NET] GET endpoint=/api/v1/config/get-zone-id
+10-01 04:06:58.262 I/flutter ( 3698): [WARN] msg="checkout: place order tap blocked — pricing not settled (tax/delivery-quote) address_resolving=true"
+10-01 04:06:58.263 I/flutter ( 3698): 📊 analytics: place_order_tapped {pricing_settled: 0, store_count: 1, screen: checkout, section: place_order}
+10-01 04:07:00.304 I/flutter ( 3698): [WARN] msg="checkout: place order tap blocked — pricing not settled (tax/delivery-quote) address_resolving=true"
+10-01 04:07:00.304 I/flutter ( 3698): 📊 analytics: place_order_tapped {pricing_settled: 0, store_count: 1, screen: checkout, section: place_order}
+10-01 04:07:10.556 I/flutter ( 3698): [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+10-01 04:07:10.556 I/flutter ( 3698): [INFO] msg="location: inZone=true"
+10-01 04:07:10.557 I/flutter ( 3698): [NET] GET endpoint=/api/v1/config/distance-api
+10-01 04:07:11.565 I/flutter ( 3698): [NET] endpoint=/api/v1/config/distance-api http_status=200
+10-01 04:07:11.565 I/flutter ( 3698): [NET] GET endpoint=/api/v1/vehicle/extra_charge
+10-01 04:07:12.567 I/flutter ( 3698): [NET] endpoint=/api/v1/vehicle/extra_charge http_status=200
+10-01 04:07:12.969 I/flutter ( 3698): [NET] POST endpoint=/api/v1/config/delivery-quote
+10-01 04:07:13.669 I/flutter ( 3698): [NET] endpoint=/api/v1/config/delivery-quote http_status=200
+10-01 04:07:29.789 I/flutter ( 3698): 📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 1, screen: checkout, section: place_order}
+10-01 04:07:29.792 I/flutter ( 3698): [NET] POST endpoint=/api/v1/customer/order/get-Tax
+10-01 04:07:29.810 I/flutter ( 3698): 📊 analytics: screen_view {screen_name: order_confirm_sheet, source: checkout}
+10-01 04:07:30.540 I/flutter ( 3698): [NET] endpoint=/api/v1/customer/order/get-Tax http_status=200
+10-01 04:07:30.552 I/flutter ( 3698): 📊 analytics: order_confirm_sheet_shown {store_count: 1, item_count: 1, value: 32.175399999999996, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+## landed: sheet Deliver To 18 13th St - Hadbat Al Za`Faranah, Total 32.18
+
+# interfered first attempt (overlay re-opened over Place Order; ui_tap label centre hit the Kuwait suggestion)
+T0 04:05:51.374 tap Confirm Address
+tap 'Confirm Address' @ 672 2782
+T1 04:05:54.672 dump on checkout
+'|Checkout|' enabled=true clickable=false focused=false View [554,213][790,285]
+'|Mozzarella 200g\n1 × \u206618.10 AED\u2069\n\u206618.10 AED\u2069\nx 1|' enabled=true clickable=false focused=false View [90,339][1254,503]
+'|MARINA MALL - Ring Road - Abu Dhabi - United Arab Emirates|' enabled=true clickable=true focused=false View [105,1694][1239,1826]
+'|Marina Mall - Dubai - United Arab Emirates|' enabled=true clickable=true focused=false View [105,1958][1239,1984]
+'|Place Order|' enabled=false clickable=false focused=false Button [60,1780][1284,1936]
+T2 04:05:56.780 mInputShown=true tap Place Order #1
+tap 'Place Order' @ 672 1858
+T3 04:05:58.860 tap Place Order #2
+tap 'Place Order' @ 672 1858
+T4 04:06:00.992
+10-01 04:05:43.738 I/flutter ( 3698): [NET] GET endpoint=/api/v1/config/get-zone-id
+10-01 04:05:48.935 I/flutter ( 3698): [NET] GET endpoint=/api/v1/config/place-api-details
+10-01 04:05:49.874 I/flutter ( 3698): [NET] endpoint=/api/v1/config/place-api-details http_status=200
+10-01 04:05:49.874 I/flutter ( 3698): [NET] GET endpoint=/api/v1/config/get-zone-id
+10-01 04:05:51.066 I/flutter ( 3698): [WARN] msg="checkout: place order tap blocked — pricing not settled (tax/delivery-quote) address_resolving=true"
+10-01 04:05:51.066 I/flutter ( 3698): 📊 analytics: place_order_tapped {pricing_settled: 0, store_count: 1, screen: checkout, section: place_order}
+10-01 04:05:57.907 I/flutter ( 3698): [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+10-01 04:06:04.460 I/flutter ( 3698): [NET] endpoint=/api/v1/config/get-zone-id http_status=404
+10-01 04:06:04.460 I/flutter ( 3698): [INFO] msg="get-zone-id: no zone / out of zone — prompting location picker"
+10-01 04:06:04.460 I/flutter ( 3698): [INFO] msg="location: inZone=false"
+10-01 04:06:04.460 I/flutter ( 3698): [ERR] msg="error snackbar shown"

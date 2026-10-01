@@ -1,0 +1,36 @@
+# cell (a) guest TypeAhead pre-apply window, 34446e8db, emulator-5572 (emu clock ~10s behind host)
+T0 03:51:54.854 tap suggestion
+tap 'MARINA MALL - Ring Road' @ 672 1077
+T1 03:51:57.030 dump
+'Marina Mall||' enabled=true clickable=true focused=true EditText [105,720][1239,864]
+'|Total Amount|' enabled=true clickable=false focused=false View [60,1660][926,1744]
+'|Place Order|' enabled=false clickable=false focused=false Button [60,1780][1284,1936]
+T2 03:51:59.117 tap Place Order #1
+tap 'Place Order' @ 672 1858
+T3 03:52:01.272 tap Place Order #2
+tap 'Place Order' @ 672 1858
+T4 03:52:03.378 dump2
+'Marina Mall||' enabled=true clickable=true focused=true EditText [105,720][1239,864]
+'|Place Order|' enabled=false clickable=false focused=false Button [60,1780][1284,1936]
+## server delay log
+[57286] [Thu Oct  1 03:51:59 2026] [qa-delay] GET /api/v1/config/get-zone-id sleep=15s t=1790812319.047
+[57286] [Thu Oct  1 03:52:14 2026] [qa-delay] GET /api/v1/config/get-zone-id release t=1790812334.052
+## app log (emu time)
+10-01 03:51:47.111 I/flutter ( 3698): [NET] GET endpoint=/api/v1/config/place-api-details
+10-01 03:51:48.633 I/flutter ( 3698): [NET] endpoint=/api/v1/config/place-api-details http_status=200
+10-01 03:51:48.634 I/flutter ( 3698): [NET] GET endpoint=/api/v1/config/get-zone-id
+10-01 03:51:51.345 I/flutter ( 3698): [WARN] msg="checkout: place order tap blocked — pricing not settled (tax/delivery-quote) address_resolving=true"
+10-01 03:51:51.345 I/flutter ( 3698): 📊 analytics: place_order_tapped {pricing_settled: 0, store_count: 1, screen: checkout, section: place_order}
+10-01 03:51:53.454 I/flutter ( 3698): [WARN] msg="checkout: place order tap blocked — pricing not settled (tax/delivery-quote) address_resolving=true"
+10-01 03:51:53.454 I/flutter ( 3698): 📊 analytics: place_order_tapped {pricing_settled: 0, store_count: 1, screen: checkout, section: place_order}
+10-01 03:52:04.265 I/flutter ( 3698): [NET] endpoint=/api/v1/config/get-zone-id http_status=200
+10-01 03:52:04.266 I/flutter ( 3698): [INFO] msg="location: inZone=true"
+10-01 03:52:04.274 I/flutter ( 3698): [NET] GET endpoint=/api/v1/config/distance-api
+10-01 03:52:05.100 I/flutter ( 3698): [NET] POST endpoint=/api/v1/config/delivery-quote
+10-01 03:52:05.279 I/flutter ( 3698): [NET] endpoint=/api/v1/config/distance-api http_status=200
+10-01 03:52:05.279 I/flutter ( 3698): [NET] GET endpoint=/api/v1/vehicle/extra_charge
+10-01 03:52:05.410 I/flutter ( 3698): [NET] endpoint=/api/v1/config/delivery-quote http_status=200
+10-01 03:52:05.475 I/flutter ( 3698): [NET] endpoint=/api/v1/vehicle/extra_charge http_status=200
+10-01 03:52:05.818 I/flutter ( 3698): [NET] POST endpoint=/api/v1/config/delivery-quote
+10-01 03:52:05.988 I/flutter ( 3698): [NET] endpoint=/api/v1/config/delivery-quote http_status=200
+## POST /customer/order/place count in window: 0
