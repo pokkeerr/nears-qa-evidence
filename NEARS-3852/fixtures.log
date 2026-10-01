@@ -21,3 +21,23 @@ F17 (cell 21) cap back 1000.00; user 6 carts -> item200 (store12) + item216 Hone
 F18 deleted cart 983 (guest Margherita merged into user 6 on login)
 F19 (cell 21 flag OFF) id228 1->0 on copy + cache:clear; user 6 cart + item573 (store51) => mixed basket under flag OFF
 F20 id228 back to 1 on copy (cell 22)
+TEARDOWN (copy only): wallet 15.84; zone2 digital 0 / cash 1; cap 1000.00; partial_payment NULL/NULL; admin_free_delivery_status 1; guest_checkout_status 0; cash_on_delivery {"status":true}; gateways active; store 12 name 'Fresh local'; user 6 carts restored to item663x4 + item688 + item689 (new ids); guest 1969 carts removed; flag id228 left at 1 (copy's purpose). Orders 91496/91497 (live group place) remain on nears_qa_3852. multi_food_db: id228=0, MAX(orders.id)=91415 (never written).
+
+# ---- fix cycle 1 DELTA (HEAD 94769c93a) — ALL on private copy nears_qa_3852 only ----
+# backend: primary Admin @1e58fe464, DB_DATABASE=nears_qa_3852 php artisan serve --no-reload --port 8172 (pids 74443/74496); proxy :8173 (pid 75314)
+# DB proof: shared id228=0 / copy id228=1; GET :8172/api/v1/config cross_module_basket=True
+D1 carts user 6: deleted 987(item663x4) 988(item688) 989(item689); inserted 990 item200 Watermelon(store12)x1, 991 item216 Honey(store13)x3, 992 item573 Margherita(store51)x1
+D2 store_configs 91114 (store12) extra_packaging 0/0.000 -> 1/2.000 ; inserted 91119 (store51) extra_packaging 1/1.500
+D3 carts user 6 reseeded after live place 91662/91663: 993 item200 x1 (lead store12), 994 item216 x3 (store13), 995 item573 x1 (store51)
+D4 carts user 6 after Q10 (994 item216 store13, 995 item573 store51) + inserted: 994	216 996	200 995	573 
+D5 carts user 6 for Q9/STALE-TAX (2-store, lead 13): 994	216 997	573 
+D6 (Q8/Q16) addon_settings paypal+razor_pay is_active 1->0 (+ DB_DATABASE=nears_qa_3852 artisan cache:clear, copy cache rows 0 after; shared cache untouched); carts user 6 reseeded 998 item200 (lead store12) + 999 item573 (store51) after order 91703 cleared the cart
+D7 carts user 6 + 1000 item200 (store12); basket now 999 item573 (lead store51) + 1000 item200
+D8 business_settings 138 guest_checkout_status 0->1 (+ DB_DATABASE=nears_qa_3852 cache:clear)
+D9 guest 1971 carts inserted (is_guest=1): 1001	1971	200 1002	1971	573 
+D10 device emulator-5660 TalkBack Developer settings: Log output level ERROR -> VERBOSE (restore to ERROR at teardown)
+D11 device emulator-5660 geometry for Q14: wm size 960x2133, wm density 480 (=320dp wide), font_scale 1.3; app language -> Arabic (restore: wm size reset, wm density reset, font_scale 1.0, app English)
+D12 device emulator-5660 TalkBack ENABLED (enabled_accessibility_services + accessibility_enabled 1) for C3/Q14 (restore: delete + 0)
+D13 (R flag OFF) copy id228 1->0 + DB_DATABASE=nears_qa_3852 cache:clear
+D13b copy id228 0->1 + cache:clear (copy)
+DELTA TEARDOWN (copy only): user 6 carts restored to item663x4 + item688 + item689 (new ids 1003/1004/1005); guest 1971 carts removed; store_configs 91114 (store12) packaging back 0/0.000, 91119 (store51) deleted; paypal+razor_pay active again; guest_checkout_status 0; id228 left 1 (copy purpose); DB_DATABASE=nears_qa_3852 cache:clear. Orders 91662/91663 (group, PACKAGING+Q5) and 91703 (/order/place, Q9) remain on nears_qa_3852. Device: TalkBack disabled (enabled_accessibility_services deleted, accessibility_enabled 0), TalkBack log level back to ERROR, wm size/density reset, font_scale 1.0, app language English. multi_food_db: id228=0, MAX(orders.id)=91415 (never written).
