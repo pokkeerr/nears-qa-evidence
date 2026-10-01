@@ -1,0 +1,22 @@
+# AC7 — extra endpoint calls per group cart entry, head (805a1fbdb + one-line DI fix, PROVISIONAL) vs base dd7606671
+# same account/basket (Nears Mart Alpha20+Beta10, Fresh Mart ExampleA Large), same data on nears_qa_3971 (flag ON), same entry (store page -> View Cart), logcat cleared before the tap
+# mechanism: cart_controller.dart (NEARS-3971) re-runs calculationCart() on store-record landing -> PricingSummaryController.invalidateGroupFeesIfBasketChanged() -> groupBasketKey (pricing_summary_controller.dart:2102) includes g.subTotal, which flips legacy->server on landing -> _dropGroupFees + _clearGroupTax + debounced ensureGroupFeeSummary (second pipeline)
+## HEAD
+   4 [NET] GET endpoint=/api/v1/config/distance-api
+   2 [NET] GET endpoint=/api/v1/items/suggested
+   4 [NET] GET endpoint=/api/v1/stores/details/1
+   3 [NET] GET endpoint=/api/v1/stores/details/2
+   4 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   4 [NET] POST endpoint=/api/v1/config/delivery-quote
+   2 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   4 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+## BASE
+   2 [NET] GET endpoint=/api/v1/config/distance-api
+   2 [NET] GET endpoint=/api/v1/items/suggested
+   3 [NET] GET endpoint=/api/v1/stores/details/1
+   2 [NET] GET endpoint=/api/v1/stores/details/2
+   2 [NET] GET endpoint=/api/v1/vehicle/extra_charge
+   2 [NET] POST endpoint=/api/v1/config/delivery-quote
+   2 [NET] POST endpoint=/api/v1/customer/order/get-Tax
+   2 [NET] POST endpoint=/api/v1/customer/order/get-surge-price
+# n=1 entry each; the first pipeline is priced on the legacy subTotal and then discarded

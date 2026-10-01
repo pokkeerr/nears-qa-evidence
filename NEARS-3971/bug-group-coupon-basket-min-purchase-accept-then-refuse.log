@@ -1,0 +1,10 @@
+# PROVISIONAL scratch build (805a1fbdb + one-line get_di fix), emulator-5640, nears_qa_3971 flag 228=1
+# group basket: Nears Mart Alpha20+Beta10 (case 11, server 29.00) + Fresh Mart ExampleA Large (case 22, server 36.50); coupon QA3971HI percent 10, min_purchase 36.75
+# server per-store gate (GET coupon/apply): store1@29 -> 404, store2@36.5 -> 404 (server-coupon-apply-gate.txt)
+# checkout coupon field (coupon_section.dart:212, amount = basket (price-discount)+addOns+variationPrice = 65.50): ACCEPTED
+coupon_applied {coupon_id: 24, result: success, source: code_entry} ; checkout shows 'QA3971HI · 6.55 AED Off', 'Applied to Nears Mart', 'Applied to Fresh Mart Grocery'
+# Confirm & place order:
+ 30632 30632 I flutter : [NET] POST endpoint=/api/v1/customer/order/group/validate
+ 30632 30632 I flutter : [NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+ 30632 30632 I flutter : [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=200 type=PlaceOrderBlocked msg="checkout: group validate rejected failures=2 store_ids=1,2 reasons=coupon,coupon"
+# orders max(id) before/after: 91415 / 91415 (no order created); checkout still shows the coupon applied after the refusal
