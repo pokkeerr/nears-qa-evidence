@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3969
 
-**cycle 2 delta re-QA: PASS (AC1-AC7 + RB3 cart heal)**
+**cycle 2 delta re-QA: PASS (AC1-AC7 + RB3 cart heal); redact test phone in one dump**
 
 **7 screenshot(s).** Click any thumbnail for full resolution.
 
