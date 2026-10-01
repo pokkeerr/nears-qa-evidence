@@ -1,0 +1,13 @@
+# NEARS-1527 QA progress (phase 8, cycle 0)
+- AC2 (zero-order sophie id 4, pre-staging): All=No orders yet + Shop Now [SELECTED All]; Ongoing=No ongoing orders (no Shop Now); Cancelled=No cancelled orders (no Shop Now). Logs: only expected Firebase-absent [FAIL]s (no google-services.json), no order-list [FAIL]/[ERR]. PASS
+- Staged on nears_qa_1527: #167(processing)+#168(canceled) -> user 4. API proof on :8131: user 4 list=[168], running=[167] (copy-only data). Shared DB 167/168 still user 1 canceled.
+- Cell1 Cancelled: "No cancelled orders" (not blank, no group card). PASS
+- Cell2 All: "No orders yet" + Shop Now; Shop Now -> home (module home, Active Orders #167). PASS
+- Cell3 date filter 3 Jul-1 Oct (matches #168): All + Cancelled -> "No results found" + Clear Filter; Clear Filter -> chip resets, unfiltered empty state. filter_empty_result fired 3x over All->Cancelled->Ongoing->Cancelled->All (once per distinct-tab entry, signature guard pre-existing NEARS-3655), no per-rebuild fire. PASS
+- Cell4 Ongoing: ONE group card "Orders from multiple stores"; expanded #167 PROCESSING (orange), #168 CANCELLED (red error tone); View details #168 -> Order #168 screen, details 200. PASS
+- Cell5/AC3 live: staged emily (id 2) on copy: 7 in-flight groups (one child kept pending/picked_up, rest canceled = 10 canceled children = page 1), + 15 oldest delivered orders of user 6 (ids 1-14,16) -> history total 25. API: offset1 = 10 group children, offset2 = #16..#6. App All tab: renders #16,#14,#13,#12... (page-2-only data) with exactly 2 GET /order/list; scroll -> 3rd GET and #5..#1 render (page-3-only data). No repeated offset-2 fetch. Cancelled = "No cancelled orders" after all pages; Ongoing = 7 group cards + 2 plain. PASS
+- Cell8 james (id 1, unstaged after 167/168 moved): Cancelled shows ordinary cards (#91415, #91412, #91411...) + fully-cancelled group 30ba64b6 as ONE "Orders from multiple stores" card; All tab renders cards. No [FAIL]/[ERR]. PASS
+- Cell3 module filter (emily, Cancelled, Grocery = only the 10 canceled in-flight children): "No results found" + Clear Filter; filter_empty_result fired once; Clear Filter -> "No cancelled orders". Fresh Cancelled entry: 3 GET /order/list (pages 1-3) then empty state. PASS
+- Cell6 failed auto page fetch: not run live (optional); unit-pinned by test (f).
+- Cell9 logging: no AppLogger line for unfiltered empty state; no 'order list auto page fetch failed'; only [FAIL]s are environmental Firebase/FCM (no google-services.json in worktree, by design). PASS
+- Backstop: flutter test test/features/order/ -> 468/468 pass.
