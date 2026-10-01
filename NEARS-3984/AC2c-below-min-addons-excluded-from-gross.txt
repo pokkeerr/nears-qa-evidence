@@ -1,0 +1,28 @@
+=== AC2c-below-min-addons-excluded-from-gross ===
+--- discounts row 1 / digit_after_decimal_point (private DB nears_qa_3984)
+id	store_id	discount	min_purchase	max_discount
+1	1	10.00	30.00	3.00
+key	value
+digit_after_decimal_point	2
+--- REQUEST POST http://127.0.0.1:8984/api/v1/vendor/pos/place-order
+{"store_id":1,"payment_method":"cash","paid_amount":37.68,"cart":[{"item_id":106,"quantity":1,"variation":[],"variant":[],"add_on_ids":[13],"add_on_qtys":[1]},{"item_id":103,"quantity":2,"variation":[],"variant":[],"add_on_ids":[13],"add_on_qtys":[1]}]}
+--- RESPONSE
+HTTP/1.1 200 OK
+Content-Type: application/json
+X-RateLimit-Limit: 300
+X-RateLimit-Remaining: 293
+X-Request-Id: 2db0c0dc-19d1-4d57-b84e-117f239af59d
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+
+{"message":"Order placed successfully","order_id":91420,"total_ammount":37.68}
+
+--- orders after id 91419
+id	order_type	order_status	payment_status	store_id	order_amount	store_discount_amount	flash_admin_discount_amount	flash_store_discount_amount	total_tax_amount	discount_on_product_by	transaction_reference	delivery_charge
+91420	pos	delivered	paid	1	37.68	0.00	0.000	0.000	1.79	vendor	37.68	0.00
+--- order_details
+order_id	item_id	quantity	price	discount_on_item	discount_type	discount_percentage	discount_on_product_by	tax_amount	total_add_on_price
+91420	106	1	21.19	0.00	product_discount	10.00000000	product_discount	1.06	5.00
+91420	103	2	2.35	0.00	product_discount	10.00000000	product_discount	0.12	5.00
+--- order count: 1 new rows

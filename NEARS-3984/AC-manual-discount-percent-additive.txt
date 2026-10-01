@@ -1,0 +1,28 @@
+=== AC-manual-discount-percent-additive ===
+--- discounts row 1 / digit_after_decimal_point (private DB nears_qa_3984)
+id	store_id	discount	min_purchase	max_discount
+1	1	10.00	30.00	3.00
+key	value
+digit_after_decimal_point	2
+--- REQUEST POST http://127.0.0.1:8984/api/v1/vendor/pos/place-order
+{"store_id":1,"payment_method":"cash","paid_amount":48.02,"cart":[{"item_id":106,"quantity":2,"variation":[],"variant":[],"add_on_ids":[],"add_on_qtys":[]},{"item_id":107,"quantity":1,"variation":[],"variant":[],"add_on_ids":[],"add_on_qtys":[]}],"discount":10,"discount_type":"percent"}
+--- RESPONSE
+HTTP/1.1 200 OK
+Content-Type: application/json
+X-RateLimit-Limit: 300
+X-RateLimit-Remaining: 289
+X-Request-Id: 82aac3ee-fc5c-4363-8db8-c044d83c5064
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+
+{"message":"Order placed successfully","order_id":91424,"total_ammount":48.02}
+
+--- orders after id 91423
+id	order_type	order_status	payment_status	store_id	order_amount	store_discount_amount	flash_admin_discount_amount	flash_store_discount_amount	total_tax_amount	discount_on_product_by	transaction_reference	delivery_charge
+91424	pos	delivered	paid	1	48.02	8.42	0.000	0.000	2.29	vendor	48.02	0.00
+--- order_details
+order_id	item_id	quantity	price	discount_on_item	discount_type	discount_percentage	discount_on_product_by	tax_amount	total_add_on_price
+91424	106	2	21.19	2.35	precentage	10.00000000	store_discount	1.06	0.00
+91424	107	1	11.77	0.65	precentage	10.00000000	store_discount	0.59	0.00
+--- order count: 1 new rows

@@ -1,0 +1,23 @@
+=== AC4-scale0-reject-tampered-low ===
+--- discounts row 1 / digit_after_decimal_point (private DB nears_qa_3984)
+id	store_id	discount	min_purchase	max_discount
+1	1	10.00	30.00	3.00
+key	value
+digit_after_decimal_point	0
+--- REQUEST POST http://127.0.0.1:8984/api/v1/vendor/pos/place-order
+{"store_id":1,"payment_method":"cash","paid_amount":10,"cart":[{"item_id":106,"quantity":2,"variation":[],"variant":[],"add_on_ids":[],"add_on_qtys":[]},{"item_id":107,"quantity":1,"variation":[],"variant":[],"add_on_ids":[],"add_on_qtys":[]}]}
+--- RESPONSE
+HTTP/1.1 422 Unprocessable Content
+Content-Type: application/json
+X-RateLimit-Limit: 300
+X-RateLimit-Remaining: 294
+X-Request-Id: 8062fa97-9b13-4a7f-8178-8fa637a1b1ab
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+
+{"errors":[{"code":"paid_amount","message":"Paid amount does not match the order amount"}]}
+
+--- orders after id 91425
+--- order_details
+--- order count: 0 new rows
