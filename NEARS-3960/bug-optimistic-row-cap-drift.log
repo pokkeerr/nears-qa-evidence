@@ -1,0 +1,25 @@
+# NEARS-3960 QA: cap/min-binding basket drifts at checkout when the line was added from a listing ("Add To Cart" on the store page)
+# Device emulator-5590, UserApp debug @ e136e6065, own backend :8120 (worktree Admin @ e136e6065) on private copy nears_qa_3960.
+
+## Payload fact (curl against :8120)
+LISTING   /api/v1/items/latest   QA3960 Loaf100 Own5 discount= 10 percent  has item_discount key: False   (merged store %, raw own absent)
+CART/LIST /api/v1/customer/cart/list QA3960 Loaf100 Own5 discount= 10 percent item_discount= 5 percent (raw own present)
+
+## Client path
+CartController._buildOptimisticRow (UserApp/lib/features/cart/controllers/cart_controller.dart:2183) builds the row from the listing Item.
+CartController._adoptServerRow (cart_controller.dart:1954-1969) stamps only the server cart id; the listing Item (no itemDiscount) stays.
+CartScreen.initCall (cart_screen.dart:146-147) refetches cart/list only when the local list is empty; checkout does not refetch.
+PricingService._lineShare (pricing_service.dart, NEARS-3960) reads own = item.itemDiscount ?? item.discount -> the merged STORE % (10),
+so every store-won line reads own == store: tie -> store-won, unit = min(store, max(own=store, f*store)) = store. Cap and min never bind.
+
+## Live figures (store 1 discount 10%)
+cell 1, case 3 (Loaf100 own 5%, cap 5.00), store-page add, no refresh:
+  checkout   Subtotal 100.00 | Discount -10.00 | VAT +4.75 | Total 94.75
+  confirm    Subtotal 100.00 | Discount  -5.00 | VAT +4.75 | "Your order total has been updated. Please review before confirming." | Total 99.75
+  order 91416: order_amount 99.75, store_discount_amount 5.00
+  same basket after cart/list refresh (module switch): checkout -5.00 / 99.75, confirm 99.75 no notice, order 91417 99.75 / 5.00
+cell 2, case 11 (Alpha20 + Beta10, cap 1.00), store-page adds, no refresh:
+  checkout Discount -3.00 | VAT +1.45 | Total 28.45 ; confirm Discount -1.00 | Total 30.45 + "total updated" notice
+cell 3, case 4 (store 91112: FoodA20 + add-on 5 via sheet, FoodB10 via store-page add; min 32 unmet):
+  checkout Discount -1.00 | VAT +1.75 | Total 35.75 ; confirm no Discount | Total 36.75 + "total updated" notice  (checkout UNDER-states the charge)
+No [FAIL]/[ERR] line is emitted for this divergence (it is a value drift, not an error path).
