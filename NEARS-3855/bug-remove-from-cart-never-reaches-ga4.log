@@ -1,0 +1,13 @@
+# bug-remove-from-cart-never-reaches-ga4 — pre-existing (base 133c98fd4 and HEAD 56697cbaf identical: call sites pass price, never currency)
+# Mirror shows 4 remove_from_cart dispatches; FA-SVC shows ZERO remove_from_cart 'Logging event' lines in the same capture, while every other event logs.
+
+10-01 12:07:05.887 17563 17563 I flutter : 📊 analytics: remove_from_cart {item_id: 688, price: 6.5, quantity: 1, value: 6.5, store_id: 59, method: remove_button, module_id: 4, screen: basket, section: basket_lines}
+10-01 12:07:05.888 17563 17563 I flutter : 📊 analytics: remove_from_cart {item_id: 689, price: 4.0, quantity: 1, value: 4.0, store_id: 59, method: remove_button, module_id: 4, screen: basket, section: basket_lines}
+10-01 12:07:27.718 17563 17563 I flutter : 📊 analytics: remove_from_cart {item_id: 663, price: 36.1652, quantity: 3, value: 108.4956, store_id: 57, method: remove_button, module_id: 3, screen: basket, section: basket_lines}
+10-01 12:17:58.518 17563 17563 I flutter : 📊 analytics: remove_from_cart {item_id: 97, price: 13.527, quantity: 1, value: 13.527, store_id: 1, method: stepper_to_zero, module_id: 1, screen: basket, section: basket_lines}
+
+FA-SVC remove_from_cart Logging event count: 0
+FA-SVC add_to_cart Logging event count (control): 7
+
+# Mechanism: firebase_analytics-12.4.2/lib/src/firebase_analytics.dart:747 logRemoveFromCart -> _requireValueAndCurrencyTogether(value, currency) (:1369-1372) throws ArgumentError when value!=null && currency==null;
+# AnalyticsService.logRemoveFromCart passes value: price*quantity with currency null (cart_controller.dart confirmRemoval + removeStoreFromCart loop); AnalyticsService._safe catches and only calls dart:developer log() (VM-service stream, never logcat, no AppLogger.failure).
