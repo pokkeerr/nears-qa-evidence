@@ -1,0 +1,319 @@
+diff --git a/UserApp/lib/features/cart/controllers/cart_controller.dart b/UserApp/lib/features/cart/controllers/cart_controller.dart
+index 83e3e8ff8..41fa0458b 100644
+--- a/UserApp/lib/features/cart/controllers/cart_controller.dart
++++ b/UserApp/lib/features/cart/controllers/cart_controller.dart
+@@ -488,9 +488,10 @@ class CartController extends GetxController implements GetxService {
+         } else if (_cartList[idx].id == null) {
+           // Narrow race (documented in the solution doc's blast radius): a
+           // debounced re-add already recreated the local row by the time this
+-          // gate ran. Stamp the id only, same as `_adoptServerRow` — never
++          // gate ran. Stamp the id and own discount, same as `_adoptServerRow` — never
+           // insert a duplicate row.
+           _cartList[idx].id = serverRow.id;
++          _adoptServerOwnDiscount(_cartList[idx], serverRow);
+         }
+       }
+       // Not found: the original ADD genuinely never landed — clear the marker,
+@@ -2021,12 +2022,28 @@ class CartController extends GetxController implements GetxService {
+     if (serverCartId != null) {
+       // Adopt only the server id; keep the authoritative local quantity.
+       _cartList[idx].id = serverCartId;
++      for (final CartModel row in cartServiceInterface
++          .formatOnlineCartToLocalCart(onlineCartModel: onlineCartList)) {
++        if (row.item?.id == itemId) {
++          _adoptServerOwnDiscount(_cartList[idx], row);
++          break;
++        }
++      }
+     }
+     calculationCart();
+     update([cartBadgeId(itemId), cartSummaryId]);
+     return serverCartId;
+   }
+ 
++  // NEARS-3960: a listing-card row has no item_discount, so pricing would read the merged
++  // store % as the own discount and the store cap/min never bind. A server 0 is a real value.
++  void _adoptServerOwnDiscount(CartModel local, CartModel server) {
++    final num? own = server.item?.itemDiscount;
++    final String? ownType = server.item?.itemDiscountType;
++    if (own != null) local.item?.itemDiscount = own;
++    if (ownType != null) local.item?.itemDiscountType = ownType;
++  }
++
+   /// AC7 — reconcile a SINGLE item once after a failed outward sync, converging
+   /// its authoritative quantity to [serverAllowedQty] (the server's current qty,
+   /// or the stock cap). Non-blocking message; never a global re-fetch. Because
+diff --git a/UserApp/lib/features/cart/domain/services/pricing_service.dart b/UserApp/lib/features/cart/domain/services/pricing_service.dart
+index 02836ef7d..d93087b97 100644
+--- a/UserApp/lib/features/cart/domain/services/pricing_service.dart
++++ b/UserApp/lib/features/cart/domain/services/pricing_service.dart
+@@ -1,3 +1,6 @@
++import 'dart:math' as math;
++
++import 'package:flutter/foundation.dart';
+ import 'package:nears/common/models/config_model.dart';
+ import 'package:nears/features/cart/domain/models/cart_model.dart';
+ import 'package:nears/features/cart/domain/services/pricing_service_interface.dart';
+@@ -482,46 +485,30 @@ class PricingService implements PricingServiceInterface {
+   }) {
+     double discount = 0;
+     double flashDiscount = 0;
+-    // NEARS-3953: mirrors the server at be31596f4 (OrderDetailBuilder.php:603-608) — the
+-    // non-flash sum is uncapped; only finalize()'s store term sees max_discount/min_purchase.
+-    // Superseded by the owner's Q2 rule; client re-mirror NEARS-3960 ships with NEARS-3946.
+-    final bool storeDiscountLive = calStoreDiscount &&
+-        store != null &&
+-        store.discount != null &&
+-        DateConverter.isAvailable(store.discount!.startTime, store.discount!.endTime);
+-    double productPrice = 0;
+-    bool hasFlash = false;
++    // NEARS-3960: a live store discount's max/min bind the pooled store share of the whole
++    // group (NEARS-3946 finalize), so its non-flash lines are settled together below.
++    final Discount? liveStoreDiscount = store?.discount != null &&
++            DateConverter.isAvailable(store!.discount!.startTime, store.discount!.endTime)
++        ? store.discount
++        : null;
+     final List<CartModel?>? cartList = groupCartList;
+     if (store != null && cartList != null) {
+       for (var cartModel in cartList) {
+         // NEARS-3945: server charges a running flash sale exclusively (flash rate,
+         // never stacked/capped with the store discount) — mirror it in both arms.
+         final bool isFlash = cartModel?.item?.flashSale == 1;
+-        hasFlash = hasFlash || isFlash;
+-        final (double?, String?)? storePick = !isFlash && storeDiscountLive
+-            ? _storeLinePick(cartModel!.item!, store.discount!)
+-            : null;
++        if (!isFlash && calStoreDiscount && liveStoreDiscount != null) continue;
+         double lineAcc = isFlash ? flashDiscount : discount;
+         double? dis = isFlash
+             ? cartModel!.item!.discount
+-            : storePick != null
+-            ? storePick.$1
+-            : (calStoreDiscount
+-                  ? cartModel!.item!.discount
+-                  // NEARS-2212: raw own-discount, fall back to the merged field for older cart rows.
+-                  : (cartModel!.item!.itemDiscount?.toDouble() ??
+-                        cartModel.item!.discount));
++            // NEARS-2212: raw own-discount, fall back to the merged field for older cart rows.
++            : (cartModel!.item!.itemDiscount?.toDouble() ?? cartModel.item!.discount);
+ 
+         String? disType = isFlash
+-            ? cartModel?.item!.discountType
+-            : storePick != null
+-            ? storePick.$2
+-            : (calStoreDiscount
+-                  ? cartModel?.item!.discountType
+-                  : (cartModel?.item!.itemDiscountType ??
+-                        cartModel?.item!.discountType));
++            ? cartModel.item!.discountType
++            : (cartModel.item!.itemDiscountType ?? cartModel.item!.discountType);
+ 
+-        if (newVariationOf(cartModel!.item!.moduleType)) {
++        if (newVariationOf(cartModel.item!.moduleType)) {
+           double d =
+               ((cartModel.item!.price! -
+                   PriceConverter.convertWithDiscount(
+@@ -534,19 +521,8 @@ class PricingService implements PricingServiceInterface {
+           if (disType == 'percent' && lineAcc != 0) {
+             lineAcc =
+                 lineAcc +
+-                _calculateFoodVariationDiscount(
+-                  cartModel: cartModel,
+-                  pick: storePick,
+-                );
++                _calculateFoodVariationDiscount(cartModel: cartModel);
+           }
+-          productPrice +=
+-              cartModel.item!.price! * cartModel.quantity! +
+-              calculateCheckoutVariationPrice(
+-                store: store,
+-                cartList: [cartModel],
+-                newVariationOf: newVariationOf,
+-                calculateWithoutDiscount: true,
+-              ).$1;
+         } else {
+           String variationType = '';
+           double variationPrice = 0;
+@@ -571,7 +547,6 @@ class PricingService implements PricingServiceInterface {
+             }
+             lineAcc =
+                 lineAcc + (variationWithoutDiscountPrice - variationPrice);
+-            productPrice += variationWithoutDiscountPrice;
+           } else {
+             double d =
+                 ((cartModel.item!.price! -
+@@ -582,7 +557,6 @@ class PricingService implements PricingServiceInterface {
+                     )!) *
+                 cartModel.quantity!);
+             lineAcc = lineAcc + d;
+-            productPrice += cartModel.item!.price! * cartModel.quantity!;
+           }
+         }
+         if (isFlash) {
+@@ -591,43 +565,117 @@ class PricingService implements PricingServiceInterface {
+           discount = lineAcc;
+         }
+       }
+-    }
+-
+-    // NEARS-3946 residual: the server gates this term on the last line's type; a group with
+-    // any flash line gets none here.
+-    if (storeDiscountLive && !hasFlash) {
+-      final double storeTerm = _checkAdminDiscount(productPrice, store.discount!);
+-      if (storeTerm > discount) discount = storeTerm;
++      if (liveStoreDiscount != null) {
++        final List<double?> units = storeLineUnits(
++          cartList: cartList, storeDiscount: liveStoreDiscount, newVariationOf: newVariationOf,
++        );
++        double charged = 0;
++        for (int i = 0; i < cartList.length; i++) {
++          if (units[i] != null) charged += units[i]! * cartList[i]!.quantity!;
++        }
++        // The server can charge less than the raw own sum (store won at base, applied at the
++        // line price), so the item arm never shows more than the charge.
++        discount = calStoreDiscount ? charged : math.min(discount, charged);
++      }
+     }
+     return PriceConverter.toFixed(discount + flashDiscount);
+   }
+ 
+-  // NEARS-3953: mirrors Helpers::product_discount_calculate at be31596f4 — own vs store
+-  // percent compared at the BASE item price, a tie goes to the store.
+-  (double?, String?) _storeLinePick(Item item, Discount storeDiscount) {
+-    final double basePrice = item.price ?? 0;
+-    // NEARS-2212: raw own-discount, fall back to the merged field for older cart rows.
+-    final double? own = item.itemDiscount?.toDouble() ?? item.discount;
+-    final String? ownType = item.itemDiscountType ?? item.discountType;
+-    final double ownAmount =
+-        ownType == 'percent' ? basePrice * (own ?? 0) / 100 : (own ?? 0);
+-    final double storeAmount = basePrice * (storeDiscount.discount ?? 0) / 100;
+-    return storeAmount >= ownAmount
+-        ? (storeDiscount.discount, 'percent')
+-        : (own, ownType);
++  // NEARS-3960: mirrors OrderDetailBuilder::finalize (NEARS-3946 @4894c8ef0). Store-won lines
++  // share one budget (0 below min_purchase on the non-flash subtotal, else the share capped at
++  // max_discount), floored at own but never above the uncapped store amount; own-won lines are
++  // never capped. S% of the non-flash gross (capped, min-gated, off at max <= 0) is a floor
++  // under the line sum; when it wins (ties included) lines are rewritten pro rata to gross.
++  // Null for a flash line, which keeps its flash discount only.
++  @visibleForTesting
++  List<double?> storeLineUnits({
++    required List<CartModel?> cartList,
++    required Discount storeDiscount,
++    required bool Function(String? moduleType) newVariationOf,
++  }) {
++    final shares = [
++      for (final cartModel in cartList)
++        cartModel == null || cartModel.item?.flashSale == 1
++            ? null
++            : _lineShare(cartModel, newVariationOf(cartModel.item!.moduleType), storeDiscount),
++    ];
++    double nonFlashGross = 0;
++    double storeShare = 0;
++    for (final share in shares) {
++      if (share == null) continue;
++      nonFlashGross += share.gross;
++      storeShare += share.storeWon ? share.store * share.qty : 0;
++    }
++    final double min = storeDiscount.minPurchase ?? 0;
++    final double max = storeDiscount.maxDiscount ?? 0;
++    final double budget = (min > 0 && nonFlashGross < min)
++        ? 0
++        : (max > 0 ? math.min(storeShare, max) : storeShare);
++    final double scale = storeShare > 0 ? budget / storeShare : 0;
++    final List<double?> units = [
++      for (final share in shares)
++        share == null
++            ? null
++            : (share.storeWon ? math.min(share.store, math.max(share.own, scale * share.store)) : share.own),
++    ];
++    double lineSum = 0;
++    for (int i = 0; i < shares.length; i++) {
++      if (shares[i] != null) lineSum += units[i]! * shares[i]!.qty;
++    }
++    double floor = 0;
++    if (nonFlashGross > 0) {
++      final double basketStore = nonFlashGross * (storeDiscount.discount ?? 0) / 100;
++      floor = ((min > 0 && nonFlashGross < min) || max <= 0) ? 0 : math.min(basketStore, max);
++    }
++    if (floor > 0 && floor >= lineSum) {
++      return [
++        for (final share in shares) share == null ? null : share.gross / nonFlashGross * floor / share.qty,
++      ];
++    }
++    return units;
+   }
+ 
+-  // NEARS-3953: literal mirror of Helpers::checkAdminDiscount at be31596f4 — a
+-  // max_discount of 0/null zeroes the term, and price <= 0 returns the raw percent.
+-  double _checkAdminDiscount(double price, Discount storeDiscount) {
+-    double discount = storeDiscount.discount ?? 0;
+-    if (price > 0 && discount > 0) {
+-      final double maxDiscount = storeDiscount.maxDiscount ?? 0;
+-      discount = price * discount / 100;
+-      discount = discount > maxDiscount ? maxDiscount : discount;
+-      discount = price >= (storeDiscount.minPurchase ?? 0) ? discount : 0;
++  // NEARS-3960: mirrors OrderDetailBuilder::lineShare — both amounts per unit at the LINE
++  // price (base + selected food options, or the matched variation price; never add-ons), the
++  // winner decided at the item BASE price (tie -> store), same expression order as the PHP.
++  ({int qty, double gross, double own, double store, bool storeWon}) _lineShare(
++    CartModel cartModel,
++    bool newVariation,
++    Discount storeDiscount,
++  ) {
++    final Item item = cartModel.item!;
++    final int qty = cartModel.quantity!;
++    double price = item.price ?? 0;
++    if (newVariation) {
++      double optionPrice = 0;
++      final List<List<bool?>> selected = cartModel.foodVariations ?? const [];
++      final List<FoodVariation> variations = item.foodVariations ?? const [];
++      for (int index = 0; index < variations.length && index < selected.length; index++) {
++        final List<VariationValue> values = variations[index].variationValues ?? const [];
++        for (int i = 0; i < values.length && i < selected[index].length; i++) {
++          if (selected[index][i] == true) optionPrice += values[i].optionPrice ?? 0;
++        }
++      }
++      price = price + optionPrice;
++    } else {
++      final List<Variation> chosen = cartModel.variation ?? const [];
++      final String? variationType = chosen.isEmpty ? null : chosen.last.type;
++      for (final Variation variation in item.variations ?? const <Variation>[]) {
++        if (variationType != null && variation.type == variationType) {
++          price = variation.price ?? price;
++          break;
++        }
++      }
+     }
+-    return discount;
++    // NEARS-2212: raw own-discount, fall back to the merged field for older cart rows.
++    final double own = item.itemDiscount?.toDouble() ?? item.discount ?? 0;
++    final String? ownType = item.itemDiscountType ?? item.discountType;
++    final double basePrice = item.price ?? 0;
++    final double ownUnit = ownType == 'percent' ? price / 100 * own : own;
++    final double storeUnit = price / 100 * (storeDiscount.discount ?? 0);
++    final double ownAtBase = ownType == 'percent' ? basePrice / 100 * own : own;
++    final double storeAtBase = basePrice / 100 * (storeDiscount.discount ?? 0);
++    return (qty: qty, gross: price * qty, own: ownUnit, store: storeUnit, storeWon: storeAtBase >= ownAtBase);
+   }
+ 
+   // Moved verbatim from CheckoutScreenState._getDiscountPrice.
+@@ -662,15 +710,12 @@ class PricingService implements PricingServiceInterface {
+   }
+ 
+   // Moved verbatim from CheckoutScreenState._calculateFoodVariationDiscount.
+-  double _calculateFoodVariationDiscount({
+-    required CartModel? cartModel,
+-    (double?, String?)? pick,
+-  }) {
++  double _calculateFoodVariationDiscount({required CartModel? cartModel}) {
+     double variationPrice = 0;
+     double variationDiscount = 0;
+     if (cartModel != null) {
+-      double? discount = pick != null ? pick.$1 : cartModel.item!.discount;
+-      String? discountType = pick != null ? pick.$2 : cartModel.item!.discountType;
++      double? discount = cartModel.item!.discount;
++      String? discountType = cartModel.item!.discountType;
+       for (
+         int index = 0;
+         index < cartModel.item!.foodVariations!.length;

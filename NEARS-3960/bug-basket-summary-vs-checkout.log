@@ -1,0 +1,11 @@
+NEARS-3960 cycle-2 QA - Basket (cart screen) summary vs checkout, emulator-5590, UserApp @0cc129423, backend :8120 nears_qa_3960
+The Basket screen's "Discount"/"Total" (pre-VAT) ignore the store discount's max_discount cap, the S% floor and min_purchase; checkout/confirm/charged agree with each other and with the server.
+cell | basket Discount / Total(pre-VAT) | checkout Discount / pre-VAT | charged (order)
+R1 case 3 cap 5.00      | -10.00 / 90.00            | -5.00 / 95.00  | 91431 99.75 (store_discount 5.00)
+R2 case 11 cap 1.00     | -3.00  / 27.00            | -1.00 / 29.00  | 91432 30.45 (1.00)
+R3 case 4 min 32 fail   | -3.00  / 32.00 (+addon 5)  | none  / 35.00  | 91433 36.75 (0.00)
+R4 own-0 cap 1.00       | -2.00  / 18.00            | -1.00 / 19.00  | 91434 19.95 (1.00)
+R6 ExA x2 floor wins    | -6.00  / 74.00            | -8.00 / 72.00  | 91435 75.60 (8.00)
+R7A ExA x1 floor wins   | -3.00  / 37.00            | -4.00 / 36.00  | 91436 37.80 (4.00)
+R10 case 1 (no bind)    | -4.53  / 30.05            | -4.53 / 30.05  | 91440 31.55 (4.53)   <- agrees when nothing binds
+Source dumps: cycle2/<cell>-cart.txt vs cycle2/<cell>-checkout.txt. Basket calc is not in this ticket's diff (cart_controller cycle-2 hunk only stamps own discount; pricing_service storeLineUnits feeds checkout).

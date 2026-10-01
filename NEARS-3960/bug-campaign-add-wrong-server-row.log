@@ -1,0 +1,16 @@
+NEARS-3960 cycle-2 QA R5 (campaign "+" add, Food home "Just for You" rail, no refresh) - emulator-5590, UserApp @0cc129423, backend :8120 nears_qa_3960
+Tap: "Add To Cart" on campaign card "Tasty Food Favorites" (item_campaigns.id=14, store 4 Burger Palace, module 2, price 25.00, own 10% percent)
+App log:
+  [NET] POST endpoint=/api/v1/customer/cart/add -> 200
+  analytics: add_to_cart {item_id: 14, price: 25.0, ... item_list_id: just_for_you, store_id: 4}
+Server cart row created (copy DB): carts.id=1006 item_id=14 item_type=App\Models\Item quantity=1 price=25.000 module_id=1
+  -> items.id=14 is "Organic Almond Milk" (store 3 Organic Paradise, module 1 grocery, price 5.50, own discount 0) - NOT the campaign.
+  Cause (pre-existing, not in this diff): the rail's add calls ItemController quick-add -> CartController.optimisticAddToCart(item, isCampaign: false) -> POST model=Item.
+Cycle-2 interaction (IN this diff): _adoptServerRow/_adoptServerOwnDiscount match the server row by bare row.item.id == itemId (14), ignoring item_type,
+  so the local campaign row adopts Organic Almond Milk's item_discount=0/percent.
+Cart screen: Items Total 25.00, Discount -2.50 (merged listing discount)
+Checkout: Subtotal 25.00, no Discount row, Delivery Free, Total 25.00   (campaign's own 10% dropped; pre-fix fallback to the merged 10% would give 22.50)
+Confirm sheet (get-Tax 200): Subtotal 0.00, "Your order total has been updated. Please review before confirming.", Total 0.00
+Place: POST /api/v1/customer/order/place -> 403
+  [FAIL] endpoint=/api/v1/customer/order/place http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=9b8e4b73-e57f-4839-bfb7-3fa278be5097
+  Screen: "Order Failed / Sorry, something went wrong / You can not place empty orders". No order row created.
