@@ -1,0 +1,42 @@
+# NEARS-3969 cell (a) — no active gateway, digital_payment ON (business + zones 2,400), wallet 15.84 < total 160.29, partial off
+# fix :8169 (worktree a2c2806b1) and base :8170 (scratch clone, CrossModuleBasket.php @ 45d554c9e), both DB nears_qa_3969; GET /config active_payment_method_list=[]
+## [cellA validate cash_on_delivery] :8169 POST /api/v1/customer/order/group/validate rid=7746f921-3986-480f-a96e-bb6cadb60e4f -> HTTP 200
+{"valid":true,"stores":[{"store_id":12,"store_name":"Fresh local","pass":true,"reason":null,"message":null,"amounts":{"order_amount":8.4,"items_total":8.4,"delivery_charge":0,"dm_tips":0,"discount_amount":0,"total_tax_amount":0.4,"extra_packaging_amount":0,"additional_charge":0}},{"store_id":57,"store_name":"Green Cross Pharmacy (Abu Dhabi)","pass":true,"reason":null,"message":null,"amounts":{"order_amount":151.89,"items_total":164.47,"delivery_charge":0,"dm_tips":0,"discount_amount":12.58,"total_tax_amount":7.23,"extra_packaging_amount":0,"additional_charge":0}}],"amounts":{"order_amount":160.29,"items_total":172.87,"delivery_charge":0,"dm_tips":0,"discount_amount":12.58},"cash_removed":false}
+## [cellA validate digital_payment] :8169 POST /api/v1/customer/order/group/validate rid=68c55967-d8f5-4704-8f93-f9c4349b9c86 -> HTTP 200
+{"valid":true,"stores":[{"store_id":12,"store_name":"Fresh local","pass":true,"reason":null,"message":null,"amounts":{"order_amount":8.4,"items_total":8.4,"delivery_charge":0,"dm_tips":0,"discount_amount":0,"total_tax_amount":0.4,"extra_packaging_amount":0,"additional_charge":0}},{"store_id":57,"store_name":"Green Cross Pharmacy (Abu Dhabi)","pass":true,"reason":null,"message":null,"amounts":{"order_amount":151.89,"items_total":164.47,"delivery_charge":0,"dm_tips":0,"discount_amount":12.58,"total_tax_amount":7.23,"extra_packaging_amount":0,"additional_charge":0}}],"amounts":{"order_amount":160.29,"items_total":172.87,"delivery_charge":0,"dm_tips":0,"discount_amount":12.58},"cash_removed":false}
+## [cellA validate wallet] :8169 POST /api/v1/customer/order/group/validate rid=81e3fcff-8c06-46cf-aacd-8010d3401d80 -> HTTP 200
+{"valid":false,"stores":[{"store_id":12,"store_name":"Fresh local","pass":true,"reason":null,"message":null,"amounts":{"order_amount":8.4,"items_total":8.4,"delivery_charge":0,"dm_tips":0,"discount_amount":0,"total_tax_amount":0.4,"extra_packaging_amount":0,"additional_charge":0}},{"store_id":57,"store_name":"Green Cross Pharmacy (Abu Dhabi)","pass":false,"reason":"order_amount","message":"Insufficient balance","amounts":null}],"amounts":null,"cash_removed":false}
+## [cellA validate cash_on_delivery] :8170 POST /api/v1/customer/order/group/validate rid=331ac386-f01b-421f-8fa3-82d2e16127fa -> HTTP 403
+{"errors":[{"code":"payment_method","reason":"mixed_basket_cash_unavailable","message":"Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]}
+## [cellA validate digital_payment] :8170 POST /api/v1/customer/order/group/validate rid=33bc5c07-4e07-47cb-bf54-4132cf76f0ed -> HTTP 200
+{"valid":true,"stores":[{"store_id":12,"store_name":"Fresh local","pass":true,"reason":null,"message":null,"amounts":{"order_amount":8.4,"items_total":8.4,"delivery_charge":0,"dm_tips":0,"discount_amount":0,"total_tax_amount":0.4,"extra_packaging_amount":0,"additional_charge":0}},{"store_id":57,"store_name":"Green Cross Pharmacy (Abu Dhabi)","pass":true,"reason":null,"message":null,"amounts":{"order_amount":151.89,"items_total":164.47,"delivery_charge":0,"dm_tips":0,"discount_amount":12.58,"total_tax_amount":7.23,"extra_packaging_amount":0,"additional_charge":0}}],"amounts":{"order_amount":160.29,"items_total":172.87,"delivery_charge":0,"dm_tips":0,"discount_amount":12.58},"cash_removed":true}
+## [cellA validate wallet] :8170 POST /api/v1/customer/order/group/validate rid=0f16b808-b209-4dda-b16a-e264133f0d8a -> HTTP 200
+{"valid":false,"stores":[{"store_id":12,"store_name":"Fresh local","pass":true,"reason":null,"message":null,"amounts":{"order_amount":8.4,"items_total":8.4,"delivery_charge":0,"dm_tips":0,"discount_amount":0,"total_tax_amount":0.4,"extra_packaging_amount":0,"additional_charge":0}},{"store_id":57,"store_name":"Green Cross Pharmacy (Abu Dhabi)","pass":false,"reason":"order_amount","message":"Insufficient balance","amounts":null}],"amounts":null,"cash_removed":true}
+
+## base laravel.log (positive control WARN):
+[2026-10-01 06:20:04] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"2769e29b74a7754891e888682dbcf976","correlation_id":"331ac386-f01b-421f-8fa3-82d2e16127fa","endpoint":"api/v1/customer/order/group/validate","request_id":"331ac386-f01b-421f-8fa3-82d2e16127fa","reason":"mixed_basket_cash_unavailable","store_count":2} 
+## fix laravel.log: 0 new lines during the fix calls
+
+## app (emulator-5600, UserApp debug from worktree, API_HOST=10.0.2.2:8169) checkout open -> place:
+[INFO] msg="checkout: payment method selected index=0"
+📊 analytics: add_payment_info {payment_type: cash_on_delivery, value: 151.66, currency: AED, screen: checkout, section: payment}
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+[INFO] msg="checkout: mixed basket probe cash_removed=false valid=true"
+📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 2, screen: checkout, section: place_order}
+📊 analytics: order_confirm_sheet_shown {store_count: 2, item_count: 2, value: 160.29, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+📊 analytics: order_confirm_confirmed {value: 160.29, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+[INFO] msg="checkout: group validate → valid=true"
+[NET] POST endpoint=/api/v1/customer/order/group/place
+[NET] endpoint=/api/v1/customer/order/group/place http_status=200
+[INFO] msg="checkout: group order placed groupId=c0aad6dc-0d06-42fc-8361-230c81d06ade children=2"
+[NET] GET endpoint=/api/v1/customer/order/group/details
+[NET] endpoint=/api/v1/customer/order/group/details http_status=200
+## FAIL/ERR lines on checkout->place path: 0 ; checkout_cash_removed_shown fired: 0
+## payment sheet nodes: Choose Payment Method, Total Bill, 160.29 AED, Cash on Delivery, Cash you'll pay with(AED), Need change?..., See Less, Select, Dismiss
+## orders: before MAX(id)=91415 count=179 ; after count=181 (+2 = store count)
+id	order_group_id	store_id	module_id	payment_method	order_status
+91443	c0aad6dc-0d06-42fc-8361-230c81d06ade	12	1	cash_on_delivery	pending
+91444	c0aad6dc-0d06-42fc-8361-230c81d06ade	57	3	cash_on_delivery	pending

@@ -1,0 +1,18 @@
+# AC6 regression — NEARS-3967 mixed-basket cell on this branch (a2c2806b1; 3967's own fix NOT on this base)
+# app config cached [paypal]; server gateway off at checkout open -> probe digital 200 cash_removed:false -> cash offered + Paypal row; cash selected; then paypal is_active=1 on server; Place -> Confirm
+  2697  2697 I flutter : 📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 2, screen: checkout, section: place_order}
+  2697  2697 I flutter : 📊 analytics: order_confirm_sheet_shown {store_count: 2, item_count: 2, value: 160.29, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+  2697  2697 I flutter : 📊 analytics: order_confirm_confirmed {value: 160.29, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+  2697  2697 I flutter : [NET] POST endpoint=/api/v1/customer/order/group/validate
+  2697  2697 I flutter : [NET] endpoint=/api/v1/customer/order/group/validate http_status=403
+  2697  2697 I flutter : [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=535c3470-503c-4eb4-927c-d8360337e2d6
+  2697  2697 I flutter : [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=535c3470-503c-4eb4-927c-d8360337e2d6
+  2697  2697 I flutter : [INFO] msg="checkout: payment method selected index=-1"
+  2697  2697 I flutter : 📊 analytics: checkout_cash_removed_shown {reason: mixed_basket_cash_unavailable}
+  2697  2697 I flutter : [INFO] msg="checkout: payment method selected index=2"
+  2697  2697 I flutter : 📊 analytics: add_payment_info {payment_type: digital_payment, value: 160.29, currency: AED, screen: checkout, section: payment}
+## BE:
+[2026-10-01 06:36:14] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"32a0e0d9cc3ab5d3ed3349f3c5925c53","correlation_id":"535c3470-503c-4eb4-927c-d8360337e2d6","endpoint":"api/v1/customer/order/group/validate","request_id":"535c3470-503c-4eb4-927c-d8360337e2d6","reason":"mixed_basket_cash_unavailable"
+## UI right after refusal: toast 'Cash on delivery isn't available for a basket with items from different store types...' + sheet [Choose Payment Method, Total Bill, 160.29 AED, Pay Via Online, Paypal, Select, Dismiss] — no cash row, Paypal row present (not zero-row)
+## Paypal + Select -> sheet closed, 'Digital Payment (Paypal)' selected (index=2). Tap-during-toast timing NOT measurable here (uiautomator dump latency ~2s/tap; toast already gone at the Select) — 3967's own AC, unchanged code (handleMixedBasketRejection not in this diff)
+## correlation join: app correlation_id 535c3470-... == backend request_id 535c3470-...; exactly 1 backend WARN

@@ -1,0 +1,23 @@
+# NEARS-3969 STALE-CONFIG cell (C1) — app config loaded with active_payment_method_list=[]; then paypal is_active=1 on the copy + cache:clear (server GET /config now [paypal]); app NOT relaunched
+# device emulator-5600, UserApp debug @ a2c2806b1, backend :8169 nears_qa_3969
+## checkout open (Basket -> Proceed to Checkout):
+[INFO] msg="checkout: payment method selected index=0"
+📊 analytics: add_payment_info {payment_type: cash_on_delivery, value: 151.66, currency: AED, screen: checkout, section: payment}
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=403
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=9acf7a32-736e-4234-b3b3-9a0f248934b6
+[INFO] msg="checkout: mixed basket probe method refused reason=mixed_basket_cash_unavailable"
+[FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: mixed basket probe — no payment method passes reason=mixed_basket_cash_unavailable" correlation_id=9acf7a32-736e-4234-b3b3-9a0f248934b6
+[INFO] msg="checkout: payment method selected index=-1"
+📊 analytics: checkout_cash_removed_shown {reason: mixed_basket_cash_unavailable}
+## payment section: 'Select Payment Method' — NO 'no payment method available' row; [FAIL] 'checkout: no payment method available for the basket' NOT emitted
+## tap payment 'Change' -> sheet nodes: Choose Payment Method | Total Bill | 160.29 AED | Select | Dismiss  (ZERO method rows)
+## Place Order -> confirm sheet 'SELECT PAYMENT METHOD' -> Confirm & place order -> the same zero-row sheet reopens. Repeated 3x:
+📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 2, screen: checkout, section: place_order}
+📊 analytics: screen_view {screen_name: order_confirm_sheet, source: checkout}
+📊 analytics: order_confirm_sheet_shown {store_count: 2, item_count: 2, value: 160.29, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+📊 analytics: order_confirm_confirmed {value: 160.29, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+📊 analytics: order_confirm_confirmed {value: 160.29, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+📊 analytics: order_confirm_confirmed {value: 160.29, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+## [FAIL]/[ERR] lines emitted across the 3 Place->Confirm iterations: 0 ; network calls: 0 ; orders count unchanged (183, MAX(id) 91448)
+## => LOOP with no [FAIL] (narrowing N premise 'does not loop, a [FAIL] is logged' does not hold)

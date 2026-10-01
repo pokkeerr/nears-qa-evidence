@@ -1,0 +1,33 @@
+# NEARS-3969 cell (b) — paypal is_active=1 on copy (GET /config active_payment_method_list=[paypal]); fix :8169
+## [cellB validate cash (paypal active)] :8169 POST /api/v1/customer/order/group/validate rid=1a66538b-1a0e-4458-9443-1ae7c64d4bb5 -> HTTP 403
+{"errors":[{"code":"payment_method","reason":"mixed_basket_cash_unavailable","message":"Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]}
+## [cellB place cash (paypal active)] :8169 POST /api/v1/customer/order/group/place rid=4f84b6bb-b747-406e-b71f-5f682e0698ae -> HTTP 403
+{"errors":[{"code":"payment_method","reason":"mixed_basket_cash_unavailable","message":"Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}],"group_placed":false}
+## [cellB validate digital (paypal active)] :8169 POST /api/v1/customer/order/group/validate rid=4bc3a71e-5349-4caf-a1df-f385455f2429 -> HTTP 200
+{"valid":true,"stores":[{"store_id":12,"store_name":"Fresh local","pass":true,"reason":null,"message":null,"amounts":{"order_amount":8.4,"items_total":8.4,"delivery_charge":0,"dm_tips":0,"discount_amount":0,"total_tax_amount":0.4,"extra_packaging_amount":0,"additional_charge":0}},{"store_id":57,"store_name":"Green Cross Pharmacy (Abu Dhabi)","pass":true,"reason":null,"message":null,"amounts":{"order_amount":151.89,"items_total":164.47,"delivery_charge":0,"dm_tips":0,"discount_amount":12.58,"total_tax_amount":7.23,"extra_packaging_amount":0,"additional_charge":0}}],"amounts":{"order_amount":160.29,"items_total":172.87,"delivery_charge":0,"dm_tips":0,"discount_amount":12.58},"cash_removed":true}
+## [cellB place digital (paypal active)] :8169 POST /api/v1/customer/order/group/place rid=8a05b7cb-32d7-47bb-8136-92ff5a7d7422 -> HTTP 200
+{"message":"Order placed successfully","group_id":"0f5342d2-3aaa-4b4b-96ba-eb2ee185f006","payment_token":"<redacted>","order_ids":[91447,91448],"total_amount":160.29,"group_placed":true,"orders":[{"order_id":91447,"store_id":12,"order_status":"failed"},{"order_id":91448,"store_id":57,"order_status":"failed"}]}
+## fix laravel.log (exactly one WARN per refused cash call):
+[2026-10-01 06:25:50] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"506c5100cad0b60881e4f7ea4bf8bfa1","correlation_id":"1a66538b-1a0e-4458-9443-1ae7c64d4bb5","endpoint":"api/v1/customer/order/group/validate","request_id":"1a66538b-1a0e-4458-9443-1ae7c64d4bb5","reason":"mixed_basket_cash_unavailable","store_count":2} 
+[2026-10-01 06:25:50] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"7258b07364f8eb6f1a4c21f93c2bf407","correlation_id":"4f84b6bb-b747-406e-b71f-5f682e0698ae","endpoint":"api/v1/customer/order/group/place","request_id":"4f84b6bb-b747-406e-b71f-5f682e0698ae","reason":"mixed_basket_cash_unavailable","store_count":2} 
+## children: 91447 (store 12) + 91448 (store 57) digital_payment/failed/unpaid — no external payment attempted
+
+# cell (c) — switch-to-cash recovery on group 0f5342d2 (child 91447)
+## gateway ACTIVE:
+## [cellC gateway ACTIVE payment-failed 91447] :8169 GET /api/v1/customer/order/payment-failed?order_id=91447 rid=fdeac61f-1a29-4f1e-9ee4-25bb52551e74 -> HTTP 200
+{"cash_on_delivery":false,"digital_payment":true,"offline_payment":false,"cod_eligible":true,"order_id":91447,"payment_token":"<redacted>","order_amount":8.4,"partially_paid_amount":0,"order_type":"delivery","user_id":6,"zone_id":2,"payment_status":"unpaid","payment_method":"digital_payment","contact_person_number":"<phone-redacted>"}
+## [cellC gateway ACTIVE switch-to-cash 91447] :8169 PUT /api/v1/customer/order/payment-method rid=07cc8bee-2169-4322-8310-b14f61f7d4e9 -> HTTP 403
+{"errors":[{"code":"payment_method","reason":"mixed_basket_cash_unavailable","message":"Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]}
+[2026-10-01 06:25:58] production.WARNING: [WARN] payment method switch rejected - mixed basket {"trace_id":"a0246410587fb5444c03529e05bfaa41","correlation_id":"07cc8bee-2169-4322-8310-b14f61f7d4e9","endpoint":"api/v1/customer/order/payment-method","request_id":"07cc8bee-2169-4322-8310-b14f61f7d4e9","reason":"mixed_basket_cash_unavailable","order_id":91447} 
+## gateway DEACTIVATED (apml=[]): base positive control then fix:
+## [cellC POSITIVE-CONTROL base, NO gateway, payment-failed 91447] :8170 GET /api/v1/customer/order/payment-failed?order_id=91447 rid=8c280648-ca2b-4257-9507-dc6ded9306cc -> HTTP 200
+{"cash_on_delivery":false,"digital_payment":true,"offline_payment":false,"cod_eligible":true,"order_id":91447,"payment_token":"<redacted>","order_amount":8.4,"partially_paid_amount":0,"order_type":"delivery","user_id":6,"zone_id":2,"payment_status":"unpaid","payment_method":"digital_payment","contact_person_number":"<phone-redacted>"}
+## [cellC POSITIVE-CONTROL base, NO gateway, switch-to-cash 91447] :8170 PUT /api/v1/customer/order/payment-method rid=a811e673-1508-477b-96e2-cf50334cbf5e -> HTTP 403
+{"errors":[{"code":"payment_method","reason":"mixed_basket_cash_unavailable","message":"Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]}
+## [cellC fix, NO gateway, payment-failed 91447] :8169 GET /api/v1/customer/order/payment-failed?order_id=91447 rid=6c94cc18-0899-4aeb-975c-952b1fcf70a8 -> HTTP 200
+{"cash_on_delivery":true,"digital_payment":true,"offline_payment":false,"cod_eligible":true,"order_id":91447,"payment_token":"<redacted>","order_amount":8.4,"partially_paid_amount":0,"order_type":"delivery","user_id":6,"zone_id":2,"payment_status":"unpaid","payment_method":"digital_payment","contact_person_number":"<phone-redacted>"}
+## [cellC fix, NO gateway, switch-to-cash 91447] :8169 PUT /api/v1/customer/order/payment-method rid=6d2e7fb1-ede7-406a-a9a4-959a5c1bf50a -> HTTP 200
+{"message":"Payment method updated successfully"}
+## base WARN (control):
+[2026-10-01 06:26:08] production.WARNING: [WARN] payment method switch rejected - mixed basket {"trace_id":"3ecfae1b1f2b80291fbb06cd02c65060","correlation_id":"a811e673-1508-477b-96e2-cf50334cbf5e","endpoint":"api/v1/customer/order/payment-method","request_id":"a811e673-1508-477b-96e2-cf50334cbf5e","reason":"mixed_basket_cash_unavailable","order_id":91447} 
+## fix: no switch WARN for rid 6d2e7fb1; 91447 -> cash_on_delivery/pending; 91448 untouched digital/failed

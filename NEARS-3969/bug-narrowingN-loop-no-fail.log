@@ -1,0 +1,22 @@
+# NARROWING-N exact shape — handleMixedBasketRejection with an EMPTY cached gateway list
+# server paypal off -> app relaunched (config active_payment_method_list=[]) -> checkout: probe cash 200 cash_removed=false, cash auto-selected (index=0)
+# then paypal is_active=1 on the copy + cache:clear (server [paypal]); app not relaunched; Place -> Confirm
+## 1st Confirm: 403 -> toast + sheet [Choose Payment Method, Total Bill, 160.29 AED, Select, Dismiss] = ZERO rows (the ONE sheet narrowing N allows)
+## then back -> Place -> Confirm, twice: each time the same zero-row sheet reopens (confirm sheet shows SELECT PAYMENT METHOD) = LOOP
+I flutter : 📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 2, screen: checkout, section: place_order}
+I flutter : 📊 analytics: order_confirm_sheet_shown {store_count: 2, item_count: 2, value: 160.29, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+I flutter : 📊 analytics: order_confirm_confirmed {value: 160.29, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+I flutter : [NET] POST endpoint=/api/v1/customer/order/group/validate
+I flutter : [NET] endpoint=/api/v1/customer/order/group/validate http_status=403
+I flutter : [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=ad5e954c-09b2-45ae-a2df-e73450dfff70
+I flutter : [FAIL] endpoint=/api/v1/customer/order/group/validate http_status=403 type=ApiFailure msg="checkout: group validate failed reason=mixed_basket_cash_unavailable" correlation_id=ad5e954c-09b2-45ae-a2df-e73450dfff70
+I flutter : [INFO] msg="checkout: payment method selected index=-1"
+I flutter : 📊 analytics: checkout_cash_removed_shown {reason: mixed_basket_cash_unavailable}
+I flutter : 📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 2, screen: checkout, section: place_order}
+I flutter : 📊 analytics: order_confirm_sheet_shown {store_count: 2, item_count: 2, value: 160.29, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+I flutter : 📊 analytics: order_confirm_confirmed {value: 160.29, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+I flutter : 📊 analytics: order_confirm_confirmed {value: 160.29, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+## BE:
+[2026-10-01 06:38:18] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"ca24f27e498fc72b29ef542367cc8a55","correlation_id":"ad5e954c-09b2-45ae-a2df-e73450dfff70","endpoint":"api/v1/customer/order/group/validate","request_id":"ad5e954c
+## [FAIL] lines on the 2 later Place->Confirm taps: 0 (advisor reading expected one per later Place tap); 'no payment method available for the basket' never emitted; orders unchanged 183
+## way out: checkout re-entry -> still zero rows (no /api/v1/config refetch); Home pull-to-refresh -> no /api/v1/config refetch; app relaunch -> /api/v1/config refetched, Paypal row offered (only way out)
