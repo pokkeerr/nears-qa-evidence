@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3940
 
-**cycle-1 delta: guest PASS, AC-LOG live B1, B2/B3 UNVERIFIABLE-by-construction**
+**cycle 2: 14c PASS live (401 -> setModule(null) mounted checkout)**
 
-**23 screenshot(s).** Click any thumbnail for full resolution.
+**25 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -43,6 +43,10 @@
 <tr>
 <td align="center" width="33%"><a href="c1-B2-zone-null-quote-line-verdict-shadowed.png"><img src="c1-B2-zone-null-quote-line-verdict-shadowed.png" width="240"></a><br><sub>c1 B2 zone null quote line verdict shadowed</sub></td>
 <td align="center" width="33%"><a href="c1-B3-quote-200-malformed-body-no-throw-cash-hidden.png"><img src="c1-B3-quote-200-malformed-body-no-throw-cash-hidden.png" width="240"></a><br><sub>c1 B3 quote 200 malformed body no throw cash hidden</sub></td>
+<td align="center" width="33%"><a href="c2-14c-01-during-401-window-coupon-sheet.png"><img src="c2-14c-01-during-401-window-coupon-sheet.png" width="240"></a><br><sub>c2 14c 01 during 401 window coupon sheet</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c2-14c-02-checkout-mounted-not-logged-in.png"><img src="c2-14c-02-checkout-mounted-not-logged-in.png" width="240"></a><br><sub>c2 14c 02 checkout mounted not logged in</sub></td>
 </tr>
 </table>
 
@@ -76,6 +80,13 @@
 - [`c1-B3-quote-200-malformed-body-no-throw-cash-hidden.xml`](c1-B3-quote-200-malformed-body-no-throw-cash-hidden.xml)
 - [`c1-app-flutter-lines.log.txt`](c1-app-flutter-lines.log.txt)
 - [`c1-proxy-all.log.txt`](c1-proxy-all.log.txt)
+- [`c2-14c-01-during-401-window-coupon-sheet.xml`](c2-14c-01-during-401-window-coupon-sheet.xml)
+- [`c2-14c-02-checkout-mounted-not-logged-in.xml`](c2-14c-02-checkout-mounted-not-logged-in.xml)
+- [`c2-14c-app-flutter-lines.log.txt`](c2-14c-app-flutter-lines.log.txt)
+- [`c2-14c-proxy-all.log.txt`](c2-14c-proxy-all.log.txt)
+- [`c2-php-server.log`](c2-php-server.log)
+- [`c2-proxy-harness.py.txt`](c2-proxy-harness.py.txt)
+- [`c2-shared-db-untouched.txt`](c2-shared-db-untouched.txt)
 - [`flutter-test-checkout.log.txt`](flutter-test-checkout.log.txt)
 - [`progress.md`](progress.md)
 - [`proxy-base-red.log.txt`](proxy-base-red.log.txt)
