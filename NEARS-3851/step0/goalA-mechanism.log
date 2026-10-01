@@ -1,0 +1,25 @@
+# NEARS-3851 step0 Goal A - base 0aa25890e, backend :8138 on nears_qa_3851 (cross_module_basket=1 on copy), emulator-5640, customer user 6, address zone [2,400] Abu Dhabi
+## GET /api/v1/customer/cart/list (curl, Bearer user 6) - zone header [2] / [2,3], with and without moduleId: all identical
+(cart_id, store_id, module_id): [(971,57,3),(939,59,4),(940,59,4)]  -> store 59 (zone 3) rows ARE returned
+## after staging store-12 row 978 via cart/add on copy: [(978,12,1),(971,57,3),(939,59,4),(940,59,4)]
+## Basket, 2-store cart, fresh open: sections on screen = Green Cross (57) + NEARS-257 Fixture Store (59) (goalA-basket-fresh-open-a11y-dump.xml)
+## Basket, 3-store cart: top-of-list dump shows ONLY Fresh local (12) + Green Cross (57); one scroll down shows 'NEARS-257 Fixture Store, 2 Items' (goalA-basket-3store-top / -scrolled dumps)
+## app log at basket open:
+[INFO] msg="cart restored with 3 items"
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: module badge omitted, module not in zone list store_id=59 module_id=4"
+[NET] GET endpoint=/api/v1/stores/details/59
+[NET] GET endpoint=/api/v1/stores/details/59
+[NET] endpoint=/api/v1/stores/details/59 http_status=403
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=59"
+## checkout entry:
+[NET] GET endpoint=/api/v1/stores/details/59
+[NET] endpoint=/api/v1/stores/details/59 http_status=403
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+[INFO] msg="checkout: mixed basket probe cash_removed=false valid=false"
+## curl group/validate replay (cash): 200 valid=false cash_removed=false stores: 12 pass | 57 store_closed | 59 out_of_coverage_area
+## Place Order -> Confirm & place order:
+[FAIL] endpoint=/api/v1/customer/order/group/place http_status=null type=ApiFailure msg="checkout: group store-detail load failed — placement aborted"
+[ERR] msg="error snackbar shown"
+[WARN] msg="showCustomSnackBar: modal route on top, used overlay"
+snackbar text (a11y): 'Not available for this address: NEARS-257 Fixture Store'; no group/validate or group/place request sent; orders MAX(id) unchanged 91415 -> 91415

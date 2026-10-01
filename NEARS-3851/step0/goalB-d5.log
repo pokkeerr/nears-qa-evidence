@@ -1,0 +1,20 @@
+# NEARS-3851 step0 Goal B (D5) - base 0aa25890e, :8138 on nears_qa_3851, emulator-5640, user 6, address zones [2,400]
+## fixture (copy only): cross_module_basket=1; digital_payment={status:true}; cash_on_delivery={status:true}; zones 2,400 digital_payment=1 (zone 2 flipped 0->1); addon_settings paypal+razor_pay is_active 1->0 (GET /config active_payment_method_list=[]); customer_wallet_status=1, partial_payment_status=0, user 6 wallet 15.84 vs basket total 160.29; store-59 rows 939/940 parked (user_id->999999006) so basket = store 12 (module 1, zone 2) + store 57 (module 3, zone 2)
+## curl POST /api/v1/customer/order/group/validate stores [12,57]:
+cash_on_delivery HTTP 403 -> {"errors":[{"code":"payment_method","reason":"mixed_basket_cash_unavailable","message":"Cash on delivery isn't available for a basket with items from different store types. Please pay online or with your wallet."}]}
+digital_payment HTTP 200 -> {"valid":false,"stores":[{"store_id":12,"store_name":"Fresh local","pass":true,"reason":null,"message":null,"amounts":{"order_amount":8.4,"items_total":8.4,"delivery_charge":0,"dm_tips":0,"discount_amount":0,"total_tax_amount":0.4,"extra_packaging_amount":0,"additional_charge":0}},{"store_id":57,"store_name":"Green Cross Pharmacy (Abu Dhabi)","pass":false,"reason":"store_closed","message":"Store is closed at order time","amounts":null}],"amounts":null,"cash_removed":true}
+wallet HTTP 200 -> {"valid":false,"stores":[{"store_id":12,"store_name":"Fresh local","pass":true,"reason":null,"message":null,"amounts":{"order_amount":8.4,"items_total":8.4,"delivery_charge":0,"dm_tips":0,"discount_amount":0,"total_tax_amount":0.4,"extra_packaging_amount":0,"additional_charge":0}},{"store_id":57,"store_name":"Green Cross Pharmacy (Abu Dhabi)","pass":false,"reason":"store_closed","message":"Store is closed at order time","amounts":null}],"amounts":null,"cash_removed":true}
+## laravel.log:
+[2026-10-01 04:43:42] production.WARNING: [WARN] group order rejected - mixed basket {"trace_id":"da45df72be8ad048db72552093cc1f91","correlation_id":"5f7e43d3-7d65-448c-bb07-c56538742d04","endpoint":"api/v1/customer/order/group/validate","request_id":"5f7e43d3-7d65-448c-bb07-c56538742d04","reason":"mixed_basket_cash_unavailable"
+## app checkout entry:
+[NET] POST endpoint=/api/v1/customer/order/group/validate
+[NET] endpoint=/api/v1/customer/order/group/validate http_status=200
+[INFO] msg="checkout: mixed basket probe cash_removed=true valid=false"
+📊 analytics: checkout_cash_removed_shown {reason: mixed_basket_cash_unavailable}
+## payment sheet (Change): nodes = 'Choose Payment Method', 'Total Bill', '160.29 AED', 'Select'(enabled), 'Dismiss' -> NO cash, NO digital, NO wallet, NO offline row, no explanatory text
+## checkout shows 'Select Payment Method'; no 'no payment method available' row; no [FAIL] 'checkout: no payment method available for the basket' logged
+## Place Order -> confirm sheet 'SELECT PAYMENT METHOD' -> Confirm & place order -> reopens the same empty sheet:
+📊 analytics: place_order_tapped {pricing_settled: 1, store_count: 2, screen: checkout, section: place_order}
+📊 analytics: order_confirm_sheet_shown {store_count: 2, item_count: 2, value: 160.29, currency: AED, price_changed: 0, stock_changed: 0, screen: order_confirm_sheet, source: checkout}
+📊 analytics: order_confirm_confirmed {value: 160.29, currency: AED, store_count: 2, price_changed: 0, screen: order_confirm_sheet, section: footer_cta}
+(no [FAIL]/[ERR] line on this path; orders MAX(id) 91415 before and after)
