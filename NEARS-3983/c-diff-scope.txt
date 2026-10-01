@@ -1,0 +1,27 @@
+# C. diff scope: git diff 56c630637..e5e8e307d --stat
+ Admin/app/CentralLogics/Helpers.php                |   3 +-
+ .../Feature/Nears3946FlashQtyTaxBasisReproTest.php |  29 ++--
+ .../Feature/Nears3983FlashQtyTaxBasisTest.php      | 100 ++++++++++++
+ .../Feature/Nears3983FlashQtyTaxParityTest.php     | 175 +++++++++++++++++++++
+ docs/solutions/NEARS-3983-flash-qty-tax-basis.md   |  66 ++++++++
+ docs/workflow/review-lessons.json                  |   9 ++
+ 6 files changed, 366 insertions(+), 16 deletions(-)
+
+# forbidden-path check (expect empty):
+(none)
+
+# helper diff
+diff --git a/Admin/app/CentralLogics/Helpers.php b/Admin/app/CentralLogics/Helpers.php
+index 17c68430a..097b21737 100644
+--- a/Admin/app/CentralLogics/Helpers.php
++++ b/Admin/app/CentralLogics/Helpers.php
+@@ -5388,7 +5388,8 @@ class Helpers
+ 
+             foreach ($details_data as $item) {
+                 $item_id = $item['item_id'] ?? $item['item_campaign_id'];
+-                $itemWiseDiscount = $item['discount_type'] === 'product_discount' ? $item['discount_on_item'] * $item['quantity'] : $item['discount_on_item'];
++                // NEARS-3983: the builder emits product_discount and flash_sale rows per unit; any other type is a line total.
++                $itemWiseDiscount = in_array($item['discount_type'], ['product_discount', 'flash_sale'], true) ? $item['discount_on_item'] * $item['quantity'] : $item['discount_on_item'];
+                 $productDiscountTotal += $itemWiseDiscount;
+ 
+                 $itemTotal = $item['price'] * $item['quantity'];

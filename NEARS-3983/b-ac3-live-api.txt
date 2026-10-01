@@ -1,0 +1,52 @@
+# B. AC3 live API (own php artisan serve --no-reload, DB copy multi_food_db_qa_nears3983)
+[backend-freshness-check] :8391 -> pid 37512 -> cwd /Users/Apple/Projects/nears-NEARS-3983-flash-qty-tax-basis
+  branch: fix/NEARS-3983-flash-qty-tax-basis
+  head:   e5e8e307d (e5e8e307dddc81a11d4a6890cc3738835fa94d95)
+  behind 'feat/userapp-reskin2': 2 commit(s)
+  ticket: NEARS-3983 — no ledger entry found for this key in /Users/Apple/Projects/nears/tasks/.atlassian-sync.json — treated as PASS (a brand-new ticket may not have a ledger row yet)
+-- PASS: /Users/Apple/Projects/nears-NEARS-3983-flash-qty-tax-basis @ e5e8e307d (ticket NEARS-3983, status: unknown) --
+
+listeners: :8391 pid 37512 cwd /Users/Apple/Projects/nears-NEARS-3983-flash-qty-tax-basis/Admin/public @ e5e8e307d DB_DATABASE=multi_food_db_qa_nears3983 ; :8392 pid 37645 cwd <scratch base>/Admin/public @ 56c630637 same copy
+copy-target proof: customer login on :8391 wrote 1 oauth_access_tokens row to the copy, 0 to multi_food_db
+
+## product-wise 20% on item 390 (setup id 5), flash_sale_items 7 percent 10 (2.00/unit), basket 390x2 + 388x1
+HEAD get-Tax: {"tax_amount":7.2,"tax_status":"excluded","tax_included":0,"product_price":50,"total_addon_price":0,"total_discount":4}  [X-Request-Id 59a64a2c-a171-4c0f-bcf9-37c7f41a59da]
+HEAD place: 200 X-Request-Id 16dc685a-d901-4856-9c74-3e8149fcedc1
+id	order_amount	total_tax_amount	tax_status	flash_admin_discount_amount	flash_store_discount_amount	store_discount_amount	coupon_discount_amount	delivery_charge
+91416	53.20	7.20	excluded	1.600	2.400	0.00	0.00	0.00
+item_id	price	quantity	discount_on_item	discount_type	discount_on_product_by	tax_amount
+390	20.00	2	2.00	flash_sale	flash_sale	7.20
+388	10.00	1	0.00	product_discount	product_discount	0.00
+tax_name	tax_type	tax_on	tax_rate	tax_amount	before_tax_amount	after_tax_amount	quantity	taxable_id
+QA3983-High	product_wise	basic	20.00000000	7.20000000	36.00000000	43.20000000	2	390
+
+BASE (control):
+== pw-base port 8392 get-Tax: {"tax_amount":7.283333333333332,"tax_status":"excluded","tax_included":0,"product_price":50,"total_addon_price":0,"total_discount":4}
+place: HTTP/1.1 200 OK X-Request-Id: 71d0aee2-3f58-401a-b36d-379d93dab2e6 order_id=91417 total_ammount=53.28
+id	order_amount	total_tax_amount	tax_status	flash_admin_discount_amount	flash_store_discount_amount
+91417	53.28	7.28	excluded	1.600	2.400
+item_id	price	quantity	discount_on_item	discount_type	discount_on_product_by	tax_amount
+390	20.00	2	2.00	flash_sale	flash_sale	7.28
+388	10.00	1	0.00	product_discount	product_discount	0.00
+tax_name	tax_type	tax_on	tax_rate	tax_amount	before_tax_amount	after_tax_amount	quantity	taxable_id
+QA3983-High	product_wise	basic	20.00000000	7.28333333	36.41666667	43.70000000	2	390
+
+## order-wise VAT 5% (setup id 3) — scope item 7
+== ow-head port 8391 get-Tax: {"tax_amount":2.3,"tax_status":"excluded","tax_included":0,"product_price":50,"total_addon_price":0,"total_discount":4}
+place: HTTP/1.1 200 OK X-Request-Id: 86b55224-6b09-4b86-9dc1-a4863481fb27 order_id=91418 total_ammount=48.3
+id	order_amount	total_tax_amount	tax_status	flash_admin_discount_amount	flash_store_discount_amount
+91418	48.30	2.30	excluded	1.600	2.400
+item_id	price	quantity	discount_on_item	discount_type	discount_on_product_by	tax_amount
+390	20.00	2	2.00	flash_sale	flash_sale	1.80
+388	10.00	1	0.00	product_discount	product_discount	0.50
+tax_name	tax_type	tax_on	tax_rate	tax_amount	before_tax_amount	after_tax_amount	quantity	taxable_id
+VAT	order_wise	basic	5.00000000	2.30000000	46.00000000	48.30000000	1	NULL
+== ow-base port 8392 get-Tax: {"tax_amount":2.3,"tax_status":"excluded","tax_included":0,"product_price":50,"total_addon_price":0,"total_discount":4}
+place: HTTP/1.1 200 OK X-Request-Id: c04f12ce-9396-40db-a5c2-5f7c5e20dacf order_id=91419 total_ammount=48.3
+id	order_amount	total_tax_amount	tax_status	flash_admin_discount_amount	flash_store_discount_amount
+91419	48.30	2.30	excluded	1.600	2.400
+item_id	price	quantity	discount_on_item	discount_type	discount_on_product_by	tax_amount
+390	20.00	2	2.00	flash_sale	flash_sale	1.82
+388	10.00	1	0.00	product_discount	product_discount	0.48
+tax_name	tax_type	tax_on	tax_rate	tax_amount	before_tax_amount	after_tax_amount	quantity	taxable_id
+VAT	order_wise	basic	5.00000000	2.30000000	46.00000000	48.30000000	1	NULL
