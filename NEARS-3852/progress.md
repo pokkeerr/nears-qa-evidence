@@ -67,3 +67,17 @@
 - R analytics PASS: begin_checkout {store_count 3|2, module_count 2}; remove_from_cart from every D1 removal {method remove_button, screen basket, section basket_lines, store_id, module_id}; group_order_placed/purchase module_count 2.
 - Backstop: flutter test (Tools/flutter) at 94769c93a on checkout_store_failure_{flow,offer,sheet}_test, cart_store_failure_test, mixed_place_cod_cap_s2_test, group_place_mixed_asap_test, mixed_cod_cap_cart_return_test -> +111 All tests passed (conductor runs the full suite separately)
 - DELTA VERDICT: FAIL — C3 (sheet announced twice under TalkBack). Every other cell PASS/observed.
+
+# FIX CYCLE 2 DELTA — HEAD 4f453fd6a (worktree nears-NEARS-3852-simplified-checkout), emulator-5660, UserApp debug via qa-run.sh (pkg com.izzes.nears.nears_nears_3852_simplified_checkout), API_HOST=10.0.2.2:8183 (QA proxy) -> backend :8182 (primary Admin /Users/Apple/Projects/nears @ 1e58fe464, DB nears_qa_3852, --no-reload, pids 65256/65319)
+- DB proof: GET :8182/api/v1/config cross_module_basket=True (copy id228=1, shared id228=0); freshness-check PASS
+- Build proof (symbol probe): the running app logs the NEW wording "store failure — remove sheet offered" (absent at 94769c93a)
+- 3a PASS: place-time validate store 51 store_closed -> D1 sheet; [FAIL] group validate rejected (pre-existing handled line) + [INFO] "checkout: store failure — remove sheet offered trigger=place_validate store_ids=51 reasons=store_closed"; no "returned to cart". dump fc2-3a-sheet-dump.xml
+- 3b PASS: Scrim dismiss -> Cart with "Golden Wok (Abu Dhabi), Store is closed now" card; only [INFO] "checkout: store-failure sheet dismissed store_id=51", NO second failure line
+- 3c PASS: place-time stock on 51 -> straight to Cart "Golden Wok (Abu Dhabi), Out of Stock", no D1 sheet; [INFO] "checkout: store failure returned to cart trigger=place_validate store_ids=51 reasons=stock"
+- 3d PASS: checkout-open probe store_closed on 51 -> Cart with card; EXACTLY ONE [FAIL] "checkout: store failure returned to cart trigger=checkout_validate store_ids=51 reasons=store_closed"
+- C3 PASS: TalkBack ON, D1 sheet opened (store_closed), nothing touched >=20-27 s after open: message "Golden Wok (Abu Dhabi), Store is closed now" spoken EXACTLY ONCE in each of run 1 (16:31:15.280), run 2 (16:33:32.080) and supplementary run 3 with TalkBack on before the tap (16:46:13.497), always TYPE_VIEW_ACCESSIBILITY_FOCUSED (initial focus); the live-region TYPE_WINDOW_CONTENT_CHANGED reading from the cycle-1 FAIL is gone. fc2-c3-talkback-once.log
+- C3 positive control PASS: zone payment refusal (both stores cash_unavailable_in_zone, place time, card in viewport): card label "Fresh local, Cash on delivery isn't available for this store's area (+1), Choose another payment method to continue." SPEAK on TYPE_WINDOW_CONTENT_CHANGED (live region) once. fc2-c3-positive-control-card-announced.log
+- Smoke PASS: Edit Cart -> Cart with card, nothing removed, one INFO; Remove & Continue -> DELETE remove-item 200, re-sync 1 store, forced single-store confirm sheet (Fresh local Subtotal 16.36 / VAT +0.82 / Total 17.18), not placed
+- PRE-EXISTING (regression lane): place-time refusal toast (showCustomSnackBar, NEARS-3788) read twice under TalkBack (live region + initial focus after the confirm sheet closes). bug-preexisting-refusal-toast-read-twice.log
+- Backstop: flutter test checkout_store_failure_sheet_test + checkout_store_failure_offer_test + checkout_mixed_assembly_test at 4f453fd6a -> +59 All tests passed
+- DELTA VERDICT (fix cycle 2): PASS

@@ -1,0 +1,22 @@
+# C3 POSITIVE CONTROL (fix cycle 2, HEAD 4f453fd6a) — payment-refusal card under the payment selector (announce default true) STILL announced
+# emulator-5660, TalkBack 17 verbose, EN, user 6, mixed 12+51, cash; checkout scrolled so the payment section is in the viewport; Confirm -> place-time validate (QA proxy mutate_py, 4 s delay) both stores cash_unavailable_in_zone (zone payment refusal, checkout-owned -> NO D1 sheet); TalkBack switched on during the delay
+## every TalkBack SPEAK action:
+## every Speaking fragment (TTS) line:
+16:41:37.863 text="TalkBack on" subtype:HINT_SUB_TYPE_TALKBACK_ON
+16:41:39.362 text="Nears" subtype:TYPE_WINDOWS_CHANGED
+16:41:40.150 text="Confirm your order" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+16:41:41.390 text="Fresh local: Cash on delivery isn't available for this store's area (+1)" subtype:TYPE_WINDOW_CONTENT_CHANGED
+16:41:45.710 text="Fresh local, Cash on delivery isn't available for this store's area (+1), Choose another payment method to continue." subtype:TYPE_WINDOW_CONTENT_CHANGED
+16:41:51.901 text=" " subtype:TYPE_WINDOW_STATE_CHANGED
+16:41:51.907 text="Fresh local: Cash on delivery isn't available for this store's area (+1)" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+16:41:56.186 text="Checkout" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+## RESULT: the card's live region fired — TYPE_WINDOW_CONTENT_CHANGED SPEAK 'Fresh local, Cash on delivery isn't available for this store's area (+1), Choose another payment method to continue.' (act 16:41:41.125, TTS 16:41:45.710) — exactly once
+## control note: an earlier attempt (checkout at scroll top, card inserted OFF-viewport) produced no card reading — Flutter omits off-viewport nodes from the semantics tree, so that attempt was not a valid control; re-run with the card in view above
+## earlier (off-viewport) attempt speech for completeness:
+16:38:19.924 text="TalkBack on" subtype:HINT_SUB_TYPE_TALKBACK_ON
+16:38:21.419 text="Nears" subtype:TYPE_WINDOWS_CHANGED
+16:38:22.232 text="Confirm your order" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+16:38:23.459 text="Fresh local: Cash on delivery isn't available for this store's area (+1)" subtype:TYPE_WINDOW_CONTENT_CHANGED
+16:38:27.778 text=" " subtype:TYPE_WINDOW_STATE_CHANGED
+16:38:27.790 text="Fresh local: Cash on delivery isn't available for this store's area (+1)" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+16:38:32.067 text="Checkout" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED

@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3852
 
-**NEARS-3852 delta re-QA cycle 1 @94769c93a: FAIL (C3 TalkBack double announcement); Q1-Q16, STALE-TAX, PACKAGING, 10b, R PASS**
+**fix cycle 2 delta PASS — C3 sheet read once under TalkBack (3 runs), positive control card still announced, F-LOG 3a-3d PASS, smoke PASS (HEAD 4f453fd6a)**
 
 **5 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -23,6 +23,7 @@
 - [`bug-coupon-store-fail-generic-retry.log`](bug-coupon-store-fail-generic-retry.log)
 - [`bug-preexisting-amount-roller-a11y.log`](bug-preexisting-amount-roller-a11y.log)
 - [`bug-preexisting-delivery-route-preview-key.log`](bug-preexisting-delivery-route-preview-key.log)
+- [`bug-preexisting-refusal-toast-read-twice.log`](bug-preexisting-refusal-toast-read-twice.log)
 - [`c1-checkout-bottom-dump.xml`](c1-checkout-bottom-dump.xml)
 - [`c1-checkout-top-dump.xml`](c1-checkout-top-dump.xml)
 - [`c10-address-only-missing-dump.xml`](c10-address-only-missing-dump.xml)
@@ -215,6 +216,9 @@
 - [`d1-r17-sheet-dump.xml`](d1-r17-sheet-dump.xml)
 - [`d1-stale-tax-pending-a-dump.xml`](d1-stale-tax-pending-a-dump.xml)
 - [`d1-stale-tax-pending-b-dump.xml`](d1-stale-tax-pending-b-dump.xml)
+- [`fc2-3a-sheet-dump.xml`](fc2-3a-sheet-dump.xml)
+- [`fc2-c3-positive-control-card-announced.log`](fc2-c3-positive-control-card-announced.log)
+- [`fc2-c3-talkback-once.log`](fc2-c3-talkback-once.log)
 - [`fixtures.log`](fixtures.log)
 - [`followup-proceed-disabled-after-oob-cart-delete-dump.xml`](followup-proceed-disabled-after-oob-cart-delete-dump.xml)
 - [`progress.md`](progress.md)

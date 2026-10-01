@@ -41,3 +41,15 @@ D12 device emulator-5660 TalkBack ENABLED (enabled_accessibility_services + acce
 D13 (R flag OFF) copy id228 1->0 + DB_DATABASE=nears_qa_3852 cache:clear
 D13b copy id228 0->1 + cache:clear (copy)
 DELTA TEARDOWN (copy only): user 6 carts restored to item663x4 + item688 + item689 (new ids 1003/1004/1005); guest 1971 carts removed; store_configs 91114 (store12) packaging back 0/0.000, 91119 (store51) deleted; paypal+razor_pay active again; guest_checkout_status 0; id228 left 1 (copy purpose); DB_DATABASE=nears_qa_3852 cache:clear. Orders 91662/91663 (group, PACKAGING+Q5) and 91703 (/order/place, Q9) remain on nears_qa_3852. Device: TalkBack disabled (enabled_accessibility_services deleted, accessibility_enabled 0), TalkBack log level back to ERROR, wm size/density reset, font_scale 1.0, app language English. multi_food_db: id228=0, MAX(orders.id)=91415 (never written).
+
+# ---- fix cycle 2 DELTA (HEAD 4f453fd6a) — ALL on private copy nears_qa_3852 only ----
+# backend: primary Admin @1e58fe464, DB_DATABASE=nears_qa_3852 php artisan serve --no-reload --port 8182 (pid 65256/65319); proxy :8183 (pid 65631)
+# DB proof: shared id228=0 / copy id228=1; GET :8182/api/v1/config cross_module_basket=True; freshness-check PASS
+E1 carts user 6: deleted 1003(item663x4, module3) 1004(item688 module4) 1005(item689 module4); inserted item200 Watermelon (store12, module1) x1 + item573 Margherita (store51, module2) x1
+E2 device emulator-5660 TalkBack Developer settings: Log output level ERROR -> VERBOSE (restore to ERROR at teardown)
+E3 cart 1007 (item573) qty 1->2 via the app's Increase quantity (to re-arm checkout after the seeded store_closed card)
+E4 carts user 6 + item573 (store51) x1 re-inserted on copy after the Remove & Continue smoke deleted 1007 (item_type copied from row 1006)
+E4b deleted 1008 again (app did not refetch); Margherita re-added through the app UI instead
+E5 (C3 run 3 mis-tap) Remove & Continue activated by a TalkBack-passthrough tap: cart 1009 (item573) deleted via the app (DELETE remove-item 200); no order placed
+E6 cart 1010 item573 re-added through the app (Search > Golden Wok > Add To Cart)
+FC2 TEARDOWN (copy only): user 6 carts restored to item663x4 (module 3) + item688 + item689 (module 4) — new ids 1011/1012/1013; no business_settings / store / zone / gateway rows touched this cycle (no cache:clear needed); id228 left 1 (copy purpose). No orders placed this cycle (copy MAX(orders.id) 91703 unchanged). Device emulator-5660: TalkBack disabled (enabled_accessibility_services null, accessibility_enabled 0), TalkBack Log output level back to ERROR, no wm/font changes this cycle (wm size 1344x2992 / density 480 / font_scale 1.0 untouched), emu geo fix 54.3790,24.4620 set for the pick-map (GPS mock only); APK com.izzes.nears.nears_nears_3852_simplified_checkout uninstalled; lock released; backend 65256/65319 + proxy 65631 stopped. multi_food_db: id228=0, MAX(orders.id)=91415 (never written).

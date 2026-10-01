@@ -1,0 +1,10 @@
+# PRE-EXISTING (not this fix): place-time refusal TOAST (showCustomSnackBar, groupValidationFailureMessage — NEARS-3788 faf6c2a06) is read TWICE under TalkBack
+# emulator-5660, HEAD 4f453fd6a, TalkBack 17; same trigger as the positive control (both stores cash_unavailable_in_zone at place time)
+# reading 1 = the snackbar's live region (TYPE_WINDOW_CONTENT_CHANGED); reading 2 = TalkBack initial focus lands on the snackbar after TYPE_WINDOW_STATE_CHANGED (the confirm sheet closing) ~10 s later
+16:41:41.390 text="Fresh local: Cash on delivery isn't available for this store's area (+1)" subtype:TYPE_WINDOW_CONTENT_CHANGED
+16:41:51.901 text=" " subtype:TYPE_WINDOW_STATE_CHANGED
+16:41:51.907 text="Fresh local: Cash on delivery isn't available for this store's area (+1)" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+# same pattern in the first (off-viewport) attempt:
+16:38:23.459 text="Fresh local: Cash on delivery isn't available for this store's area (+1)" subtype:TYPE_WINDOW_CONTENT_CHANGED
+16:38:27.778 text=" " subtype:TYPE_WINDOW_STATE_CHANGED
+16:38:27.790 text="Fresh local: Cash on delivery isn't available for this store's area (+1)" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED

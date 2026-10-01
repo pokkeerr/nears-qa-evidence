@@ -1,0 +1,44 @@
+# C3 RE-VERIFY (fix cycle 2, HEAD 4f453fd6a) — D1 store-failure sheet under TalkBack 17.0.0.889642762 (verbose log), emulator-5660, EN, logged-in user 6, mixed basket 12+51
+# trigger: Confirm & place order -> place-time group/validate (QA proxy, 4 s delay) store 51 store_closed -> D1 sheet; TalkBack switched on during the delay; NOTHING driven for 25 s after the tap
+# device clock runs ~8 s behind host; proxy 16:31:23 host == device ~16:31:15
+## run 1 — every TalkBack SPEAK action (Actors act()) in the 25 s window:
+16:31:10.317 HINT_SUB_TYPE_TALKBACK_ON text="TalkBack on"
+16:31:11.522 TYPE_WINDOWS_CHANGED text="Nears"
+16:31:11.735 TYPE_VIEW_ACCESSIBILITY_FOCUSED text="Confirm your order"
+16:31:15.280 TYPE_VIEW_ACCESSIBILITY_FOCUSED text="Golden Wok (Abu Dhabi), Store is closed now"
+## run 1 — every Speaking fragment (TTS) line:
+16:31:11.460 text="TalkBack on" subtype:HINT_SUB_TYPE_TALKBACK_ON
+16:31:13.065 text="Nears" subtype:TYPE_WINDOWS_CHANGED
+16:31:13.879 text="Confirm your order" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+16:31:15.281 text="Golden Wok (Abu Dhabi), Store is closed now" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+## run 1 — the CONTENT_CHANGED events on the message node are FOCUS placement only (initial focus), not SPEAK:
+16:31:15.242 TYPE_WINDOW_CONTENT_CHANGED focus action=FOCUS content="Golden Wok (Abu Dhabi), Store is closed now"
+10-01 16:31:15.242 D/talkback: Actors( 7087): act() eventId=type:EVENT_TYPE_ACCESSIBILITY subtype:TYPE_WINDOW_CONTENT_CHANGED displayId:0 time:25828714 part=Part= nodeAction= target= AccessibilityNodeInfoCompat  id=137832  class="android.view.View"  package="com.izzes.nears.nears_nears_3852_simplified_checkout"  content="Golden Wok (Abu Dhabi), Store is closed now"  viewIdResName=""  enabled  focusable  visible    actionId=ACTION_ACCESSIBILITY_FOCUS    
+## run 1 result: message spoken EXACTLY ONCE (16:31:15.280 TYPE_VIEW_ACCESSIBILITY_FOCUSED); capture ran to 16:31:35 device (20 s after the sheet opened) — no second reading
+## run 2 (clean repeat; proxy 16:33:40 host == device ~16:33:32) — every TalkBack SPEAK action in the window:
+16:33:27.034 HINT_SUB_TYPE_TALKBACK_ON text="TalkBack on"
+16:33:28.290 TYPE_WINDOWS_CHANGED text="Nears"
+16:33:28.370 TYPE_VIEW_ACCESSIBILITY_FOCUSED text="Confirm your order"
+16:33:32.080 TYPE_VIEW_ACCESSIBILITY_FOCUSED text="Golden Wok (Abu Dhabi), Store is closed now"
+## run 2 — every Speaking fragment (TTS) line:
+16:33:28.117 text="TalkBack on" subtype:HINT_SUB_TYPE_TALKBACK_ON
+16:33:29.646 text="Nears" subtype:TYPE_WINDOWS_CHANGED
+16:33:30.434 text="Confirm your order" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+16:33:32.082 text="Golden Wok (Abu Dhabi), Store is closed now" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+## run 2 — message-node CONTENT_CHANGED events (FOCUS/nodeAction only, no SPEAK):
+   1 actionId=ACTION_ACCESSIBILITY_FOCUS
+   1 part=Part= focus= action=FOCUS
+## run 2 result: message spoken EXACTLY ONCE (16:33:32.080 TYPE_VIEW_ACCESSIBILITY_FOCUSED); capture ran to 16:33:59 device (27 s after the sheet opened) — no second reading, no doubled announcement
+## vs the cycle-1 FAIL (bug-c3-sheet-announced-twice.log): the TYPE_WINDOW_CONTENT_CHANGED (live-region) SPEAK reading is gone; only the initial-focus reading remains
+## run 3 (SUPPLEMENTARY, TalkBack ON BEFORE the Confirm tap — the realistic path; adb taps pass straight through TalkBack on this image) — clean, nothing driven for 27 s after the sheet opened:
+16:46:05.080 HINT_SUB_TYPE_TALKBACK_ON text="TalkBack on"
+16:46:06.224 TYPE_WINDOWS_CHANGED text="Nears"
+16:46:06.299 TYPE_VIEW_ACCESSIBILITY_FOCUSED text="Confirm your order"
+16:46:13.496 TYPE_VIEW_ACCESSIBILITY_FOCUSED text="Golden Wok (Abu Dhabi), Store is closed now"
+## run 3 — every Speaking fragment (TTS) line:
+16:46:06.030 text="TalkBack on" subtype:HINT_SUB_TYPE_TALKBACK_ON
+16:46:07.535 text="Nears" subtype:TYPE_WINDOWS_CHANGED
+16:46:08.355 text="Confirm your order" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+16:46:13.497 text="Golden Wok (Abu Dhabi), Store is closed now" subtype:TYPE_VIEW_ACCESSIBILITY_FOCUSED
+## run 3 result: message spoken EXACTLY ONCE (16:46:13.497 TYPE_VIEW_ACCESSIBILITY_FOCUSED); capture to 16:46:40 device — no second reading
+## (a prior run-3 attempt was cut at ~3 s: a follow-up tap pass-through activated Remove & Continue; within those 3 s the message was also read once — 16:43:33.932 TYPE_VIEW_ACCESSIBILITY_FOCUSED — not counted as a clean run)
