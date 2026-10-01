@@ -37,12 +37,14 @@
 
 ### Other artifacts
 - [`ac11-key-absence.txt`](ac11-key-absence.txt)
+- [`ac12-this-run.txt`](ac12-this-run.txt)
 - [`ac13-after-place.txt`](ac13-after-place.txt)
 - [`ac13-db.txt`](ac13-db.txt)
 - [`ac13-journal.txt`](ac13-journal.txt)
 - [`ac2-live.txt`](ac2-live.txt)
 - [`ac3-belog.txt`](ac3-belog.txt)
 - [`ac3-live.txt`](ac3-live.txt)
+- [`ac4-live.txt`](ac4-live.txt)
 - [`ac5-after-retap.txt`](ac5-after-retap.txt)
 - [`ac5-belog.txt`](ac5-belog.txt)
 - [`ac5-db.txt`](ac5-db.txt)

@@ -14,3 +14,5 @@
 - AC11/17 key absence: 9 keys this run, 0 hits across logcat/logcat2/flutter.log/serve logs/laravel.log/laravel-structured.log; positive controls: 10 client group/place [NET] lines, 3+ BE replay INFO lines (ev/ac11-key-absence.txt).
 - C7 pay_again prompt also for b83dbd6d shows 38.98 AED (ev/c7-payagain-prompt-b83dbd6d.txt).
 - Backstop: flutter test of the 17 branch-changed UserApp test files (pinned 3.41.9): +388 all passed (flutter-test.txt).
+- AC4 PASS live (re-probed on real branch): no-key rid 704121ea -> 200 fresh group 66892b1a, replay absent; one [WARN] 'group order - placing without idempotency' {endpoint, action=place, reason=idempotency_key_missing, request_id} (ev/ac4-live.txt). Message wording differs from AC4 text (drift, as pre-QA).
+- AC12 PASS: group_order_placed=1 and purchase=1 for each client-confirmed group this run (64d2b6e7, fd994421, b83dbd6d, 31f65668, 2e48ddd4); 21b03190 (lost to the emulator restart) never confirmed -> 0 (ev/ac12-this-run.txt).
