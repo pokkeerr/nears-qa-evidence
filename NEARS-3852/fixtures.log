@@ -1,0 +1,23 @@
+# NEARS-3852 [8] fixtures — ALL on private copy nears_qa_3852 only (multi_food_db never written)
+F0 business_settings id=228 cross_module_basket 0->1 (+ DB_DATABASE=nears_qa_3852 artisan cache:clear)
+F1 carts user 6: deleted 971(item663 x4 store57) 939(item688 store59) 940(item689 store59); inserted item200 Watermelon (store 12 grocery) x1 + item573 Margherita Pizza (store 51 food) x1
+F2 business_settings 117 partial_payment_status NULL->1, 118 partial_payment_method NULL->both (+cache:clear on copy)
+F3 zones id=2 digital_payment 0->1 (paypal + razor_pay already active on copy)
+F4 users id=6 wallet_balance 15.84->1000 (cells 13/17)
+F5 business_settings 120 admin_free_delivery_status 1->0 (free_delivery_to_all_store masked any fee failure as 0 via applyFreeDeliveryOverride) (+cache:clear)
+F6 addon_settings paypal+razor_pay is_active 1->0 ; users 6 wallet 1000->15.84 ; zones 2 digital_payment=1 (cell 12 no-method config)
+F7 business_settings cash_on_delivery {"status":true}->{"status":false} (cell 12 empty-method-list config)
+F8 cash_on_delivery back to {"status":true}; zones 2 digital_payment=0; users 6 wallet=1000; module_zone id4 (grocery,zone2) maximum_cod_order_amount 1000.00->17.00 (store12 items 16.36 <= 17 < order 18.18); gateways still inactive
+F9 (cell 14) wallet 1000->15.84; cap 17->1000 for Cart pre-flight, then back to 17 before Proceed
+F10 (cell 16) gateways paypal+razor re-activated; zone2 digital=1; cap 17 kept; proxy mutates validate cash_removed->false so cash stays pickable after a passing digital probe
+F11 (live place C2/C19) zones 2 digital=0, cap back to 1000.00; rules cleared
+F12 stores id=12 name 'Fresh local' -> 'Fresh Supermarket Al Barsha' (cell 20 long name); carts user 6 reseeded (980 item200, 981 item573) after live place 91496/91497
+F13 (cell 20 card at 320dp / cell 17 cash variant) zones 2 cash_on_delivery 1->0 after checkout load
+F13b zones 2 cash_on_delivery back to 1
+F14 business_settings guest_checkout_status 0->1 (+cache:clear)
+F15 guest 1969 carts inserted item200 + item573 (is_guest=1)
+F16 (cells 14 guest/15) module_zone id4 cap -> 33.00 (guest store12 qty2: items 32.72 <= 33 < 35.36)
+F17 (cell 21) cap back 1000.00; user 6 carts -> item200 (store12) + item216 Honey x2 (store13 grocery) = same-module multi-store
+F18 deleted cart 983 (guest Margherita merged into user 6 on login)
+F19 (cell 21 flag OFF) id228 1->0 on copy + cache:clear; user 6 cart + item573 (store51) => mixed basket under flag OFF
+F20 id228 back to 1 on copy (cell 22)
