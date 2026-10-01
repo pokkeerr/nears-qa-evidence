@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3976
 
-**QA PASS 1 (apply-time cells; place_order cells pending) — PASS**
+**QA PASS 2 (server refusal, probe self-heal, Remove & Continue) - PASS**
 
 **11 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -31,6 +31,7 @@
 - [`bug-group-tax-preview-ignores-coupon-shown-ne-charged.log`](bug-group-tax-preview-ignores-coupon-shown-ne-charged.log)
 - [`c6-coupons-page-4store-dump.xml`](c6-coupons-page-4store-dump.xml)
 - [`c6-coupons-page-single-store-dump.xml`](c6-coupons-page-single-store-dump.xml)
+- [`pass2`](pass2)
 - [`progress.md`](progress.md)
 - [`proxy-coupon-ledger.log`](proxy-coupon-ledger.log)
 
