@@ -19,6 +19,8 @@
 - [`bug-c14-double-fail-on-4c-exit.log`](bug-c14-double-fail-on-4c-exit.log)
 - [`bug-coupon-store-fail-generic-retry-dump.xml`](bug-coupon-store-fail-generic-retry-dump.xml)
 - [`bug-coupon-store-fail-generic-retry.log`](bug-coupon-store-fail-generic-retry.log)
+- [`bug-preexisting-amount-roller-a11y.log`](bug-preexisting-amount-roller-a11y.log)
+- [`bug-preexisting-delivery-route-preview-key.log`](bug-preexisting-delivery-route-preview-key.log)
 - [`c1-checkout-bottom-dump.xml`](c1-checkout-bottom-dump.xml)
 - [`c1-checkout-top-dump.xml`](c1-checkout-top-dump.xml)
 - [`c10-address-only-missing-dump.xml`](c10-address-only-missing-dump.xml)
