@@ -1,0 +1,11 @@
+# NEARS-3971 cycle 1, ticket build c9a834487 (pkg com.izzes.nears.nears_nears_3971), emulator-5610, :8140 proxy -> :8139 on nears_qa_3971
+# SINGLE-store basket Nears Mart Alpha20+Beta10 (case 11, cap 1.00), flag 228=0, cold process (force-stop + relaunch), Grocery -> Basket. Screen settles: header 29.00, Discount -1.00, Total 29.00.
+# The fix awaits ensureStoreRecords only when cartSpansMultipleStores (cart_screen.dart initCall); a single-store basket still fires view_cart after getStoreDetails lands but before the snapshot fetch lands:
+10-01 09:08:51.891 I/flutter (27119): [INFO] msg="cart restored with 2 items"
+10-01 09:08:51.893 I/flutter (27119): [NET] GET endpoint=/api/v1/stores/details/1
+10-01 09:08:51.998 I/flutter (27119): [NET] GET endpoint=/api/v1/stores/details/1
+10-01 09:08:52.818 I/flutter (27119): [NET] endpoint=/api/v1/stores/details/1 http_status=200
+10-01 09:08:52.825 I/flutter (27119): 📊 analytics: view_cart {value: 27.0, currency: AED, item_count: 2, store_count: 1, screen: basket, source: bottom_nav}
+10-01 09:08:52.828 I/flutter (27119): [NET] endpoint=/api/v1/stores/details/1 http_status=200
+# contrast, same build, flag ON single-store cold entry at 08:50 (snapshot fetch landed first): view_cart {value: 29.0 ...} - i.e. race-dependent
+# multi-store cold entry on the same build: view_cart {value: 65.5, store_count: 2} once == resolved Total 65.50 (fixed)

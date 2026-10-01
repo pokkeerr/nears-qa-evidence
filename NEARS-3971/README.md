@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3971
 
-**NEARS-3971 QA [8] cycle 0: FAIL - DI crash get_di.dart:435 (PricingServiceInterface? not found); provisional pass on one-line-fixed scratch**
+**NEARS-3971 [8] cycle 1 re-QA PASS on c9a834487 (emulator-5610, nears_qa_3971)**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -17,6 +17,8 @@
 - [`bug-di-nullable-pricing-find-splash-hang.log`](bug-di-nullable-pricing-find-splash-hang.log)
 - [`bug-group-coupon-basket-min-purchase-accept-then-refuse.log`](bug-group-coupon-basket-min-purchase-accept-then-refuse.log)
 - [`bug-view-cart-cold-entry-legacy-value.log`](bug-view-cart-cold-entry-legacy-value.log)
+- [`bug-view-cart-single-store-cold-entry-legacy.log`](bug-view-cart-single-store-cold-entry-legacy.log)
+- [`c1`](c1)
 - [`progress.md`](progress.md)
 - [`provisional-scratch`](provisional-scratch)
 - [`seed-nears_qa_3971.sql`](seed-nears_qa_3971.sql)
