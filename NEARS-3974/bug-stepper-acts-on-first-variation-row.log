@@ -1,0 +1,24 @@
+# CHECK B [8b-confirm-2] (advisor-product -006), 2026-10-01, emulator-5660, DEBUG build com.izzes.nears.nears_nears_3974_group_stock_qty_item_ca from worktree d53bff3de
+# backend: own php artisan serve :8142, cwd /Users/Apple/Projects/nears @ a3f6ce491, DB_DATABASE=nears_qa_3974 (GET /api/v1/config cross_module_basket=true; multi_food_db value 0)
+# user 1 (james.wilson@demo.com), Grocery; Fresh local (store 12) group: row1 = 985 (100g q1), row2 = 995 (64g q3, seeded via POST /api/v1/customer/cart/add on the copy)
+## UI before (cb-cart-before.xml)
+[90,621][1254,1050]  'Tones Mild Chili Powder\n1 gm\n70.00 AED - 210.00 AED\n100.00 AED - 300.00 AED\n1'   <- row1 985 q1, stepper count 1
+[90,1080][1254,1509] 'Tones Mild Chili Powder\n3 gm\n70.00 AED - 210.00 AED\n100.00 AED - 300.00 AED\n1'   <- row2 995 q3, stepper count 1 (= row1 qty, MISMATCH)
+## DB before
+985 91 q1 [{"type":"100g","price":150}] 05:44:49
+995 91 q3 [{"type":"64g","price":100}]  10:56:28
+## 10:59:19 tap 'Increase quantity' of ROW 2 (2nd node, bounds [1080,1269][1224,1413] from dump)
+DB after: 985 q2 (updated 10:59:21)  | 995 q3 unchanged (10:56:28)
+log: [NET] POST /api/v1/customer/cart/update -> 200 ; analytics cart_quantity_changed {item_id: 91, from_qty: 4, to_qty: 2, position: 1}
+UI after (cb-after-increase-row2.xml): row1 '1 gm'->'2 gm' count 2 ; row2 '3 gm' count 2 (still row1's qty)
+## 10:59:35 tap 'Decrease quantity' of ROW 2 ([857,1269][1001,1413])
+DB after: 985 q1 (updated 10:59:38) | 995 q3 unchanged
+log: POST cart/update 200 ; cart_quantity_changed {from_qty: 2, to_qty: 1, position: 1}
+## 10:59:52 tap 'Decrease quantity' of ROW 2 again (row1 now q1)
+DB after: 985 DELETED | 995 q3 unchanged
+log: analytics remove_from_cart {item_id: 91, quantity: 1, method: stepper_to_zero} ; [NET] DELETE /api/v1/customer/cart/remove-item -> 200
+UI after (cb-after-decrease2-row2.xml): only 'Tones ... 3 gm ... 3' remains (the 64g row the user was stepping DOWN survives; the 100g row is gone)
+## second layout (after re-adding 100g as 996 + hot restart): row1 = 995 (64g q3) count 3, row2 = 996 (100g q1) '1 gm' count 3 -> row2 count again shows row1's qty
+## cause (code read): cart_item_widget.dart ~L636 stepper liveIndex/liveQty = cartList.indexWhere(c.item.id == id) (first row of the item);
+##   onIncrement/onDecrement -> cartController.optimisticStep(item, ...) -> _localIndexOf(item.id) (first row) -> _syncItem PATCHes that row's cart id.
+## no [ERR]/[FAIL] lines for these actions (the wrong row is mutated silently; every call 200)

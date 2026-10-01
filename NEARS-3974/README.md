@@ -1,44 +1,59 @@
 # QA Evidence — NEARS-3974
 
-**NEARS-3974 [8b] confirm-live: R2 USABLE (profile), R9 CONFIRMED**
+**NEARS-3974 [8b] confirm-live part 2: B stepper wrong row, V variation hidden behind toggle, N4 reproduced**
 
-**16 screenshot(s).** Click any thumbnail for full resolution.
+**18 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
 <td align="center" width="33%"><a href="bug-swipe-delete-removes-first-variation-row.png"><img src="bug-swipe-delete-removes-first-variation-row.png" width="240"></a><br><sub>bug swipe delete removes first variation row</sub></td>
+<td align="center" width="33%"><a href="cv-two-variation-rows.png"><img src="cv-two-variation-rows.png" width="240"></a><br><sub>cv two variation rows</sub></td>
+<td align="center" width="33%"><a href="n4-search-add-stepper-5-no-write.png"><img src="n4-search-add-stepper-5-no-write.png" width="240"></a><br><sub>n4 search add stepper 5 no write</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="q1-quantity-item-card.png"><img src="q1-quantity-item-card.png" width="240"></a><br><sub>q1 quantity item card</sub></td>
 <td align="center" width="33%"><a href="q11-single-store-checkout.png"><img src="q11-single-store-checkout.png" width="240"></a><br><sub>q11 single store checkout</sub></td>
+<td align="center" width="33%"><a href="q2-out-of-stock-item-card.png"><img src="q2-out-of-stock-item-card.png" width="240"></a><br><sub>q2 out of stock item card</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="q2-out-of-stock-item-card.png"><img src="q2-out-of-stock-item-card.png" width="240"></a><br><sub>q2 out of stock item card</sub></td>
 <td align="center" width="33%"><a href="q3-only-n-available-ar.png"><img src="q3-only-n-available-ar.png" width="240"></a><br><sub>q3 only n available ar</sub></td>
 <td align="center" width="33%"><a href="q3-only-n-available-en.png"><img src="q3-only-n-available-en.png" width="240"></a><br><sub>q3 only n available en</sub></td>
+<td align="center" width="33%"><a href="q5-two-item-cards.png"><img src="q5-two-item-cards.png" width="240"></a><br><sub>q5 two item cards</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="q5-two-item-cards.png"><img src="q5-two-item-cards.png" width="240"></a><br><sub>q5 two item cards</sub></td>
 <td align="center" width="33%"><a href="q6-variation-row-card.png"><img src="q6-variation-row-card.png" width="240"></a><br><sub>q6 variation row card</sub></td>
 <td align="center" width="33%"><a href="q7-row-card-after-refetch.png"><img src="q7-row-card-after-refetch.png" width="240"></a><br><sub>q7 row card after refetch</sub></td>
+<td align="center" width="33%"><a href="q7b-store-fallback-card.png"><img src="q7b-store-fallback-card.png" width="240"></a><br><sub>q7b store fallback card</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="q7b-store-fallback-card.png"><img src="q7b-store-fallback-card.png" width="240"></a><br><sub>q7b store fallback card</sub></td>
 <td align="center" width="33%"><a href="q8-guest-bounce-row-card.png"><img src="q8-guest-bounce-row-card.png" width="240"></a><br><sub>q8 guest bounce row card</sub></td>
 <td align="center" width="33%"><a href="q8-guest-checkout-blocked-row.png"><img src="q8-guest-checkout-blocked-row.png" width="240"></a><br><sub>q8 guest checkout blocked row</sub></td>
+<td align="center" width="33%"><a href="q9-mixed-fee-rows.png"><img src="q9-mixed-fee-rows.png" width="240"></a><br><sub>q9 mixed fee rows</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="q9-mixed-fee-rows.png"><img src="q9-mixed-fee-rows.png" width="240"></a><br><sub>q9 mixed fee rows</sub></td>
 <td align="center" width="33%"><a href="q9-mixed-quantity-fee-row.png"><img src="q9-mixed-quantity-fee-row.png" width="240"></a><br><sub>q9 mixed quantity fee row</sub></td>
 <td align="center" width="33%"><a href="q9-same-module-fee-rows.png"><img src="q9-same-module-fee-rows.png" width="240"></a><br><sub>q9 same module fee rows</sub></td>
-</tr>
-<tr>
 <td align="center" width="33%"><a href="q9mx-loggedin-bounce-row-card.png"><img src="q9mx-loggedin-bounce-row-card.png" width="240"></a><br><sub>q9mx loggedin bounce row card</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
 - [`bug-item-sheet-semantics-table-assert.log`](bug-item-sheet-semantics-table-assert.log)
+- [`bug-search-add-multivariation-no-write.log`](bug-search-add-multivariation-no-write.log)
+- [`bug-stepper-acts-on-first-variation-row.log`](bug-stepper-acts-on-first-variation-row.log)
 - [`bug-stock-refetch-double-on-fallback.log`](bug-stock-refetch-double-on-fallback.log)
 - [`bug-swipe-delete-removes-first-variation-row.log`](bug-swipe-delete-removes-first-variation-row.log)
+- [`cb-after-decrease-row2.xml`](cb-after-decrease-row2.xml)
+- [`cb-after-decrease2-row2.xml`](cb-after-decrease2-row2.xml)
+- [`cb-after-increase-row2.xml`](cb-after-increase-row2.xml)
+- [`cb-cart-before.xml`](cb-cart-before.xml)
+- [`cv-row1-variations-expanded.xml`](cv-row1-variations-expanded.xml)
+- [`cv-row2-variations-expanded.xml`](cv-row2-variations-expanded.xml)
+- [`cv-variation-row-text.log`](cv-variation-row-text.log)
+- [`n4-after-add-t2s.xml`](n4-after-add-t2s.xml)
+- [`n4-basket-after-restart.xml`](n4-basket-after-restart.xml)
+- [`n4-basket-after-search-add.xml`](n4-basket-after-search-add.xml)
+- [`n4-search-results.xml`](n4-search-results.xml)
 - [`progress.md`](progress.md)
 - [`q1-cart.xml`](q1-cart.xml)
 - [`q11-cart.xml`](q11-cart.xml)

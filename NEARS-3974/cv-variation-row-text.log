@@ -1,0 +1,10 @@
+# CHECK V [8b-confirm-2], 2026-10-01, emulator-5660 DEBUG build d53bff3de, Basket, Fresh local group, two Tones (item 91) rows
+## collapsed (default) row a11y labels, shot cv-two-variation-rows.png, dump cb-cart-before.xml:
+row 985 (100g q1): 'Tones Mild Chili Powder\n1 gm\n70.00 AED - 210.00 AED\n100.00 AED - 300.00 AED\n1'  + separate button '1 Variations'
+row 995 (64g q3):  'Tones Mild Chili Powder\n3 gm\n70.00 AED - 210.00 AED\n100.00 AED - 300.00 AED\n1'  + separate button '1 Variations'
+-> 'N gm' is quantity + item unit (cart_item_widget.dart ~L488 '${quantity} ${unitType}'), NOT the variation; the price text is the item's
+   min-max range and is identical on both rows; neither collapsed row names 64g/100g.
+## after tapping each row's '1 Variations' toggle (cv-row1-variations-expanded.xml, cv-row2-variations-expanded.xml):
+row 995: '...\n3\nVariations: \nSize - 64g'
+row 996 (100g, re-added): '...\n1 gm ...\nVariations: \nSize - 100g'
+-> variation IS named, but only behind a per-row tap-to-expand toggle labelled with a count ('1 Variations').

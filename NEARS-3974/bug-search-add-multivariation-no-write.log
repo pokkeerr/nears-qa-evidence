@@ -1,0 +1,20 @@
+# CHECK N4 [8b-confirm-2] (advisor-product -006), 2026-10-01, emulator-5660, DEBUG build (suffixed pkg) from worktree d53bff3de; backend own :8142 /Users/Apple/Projects/nears @ a3f6ce491 DB nears_qa_3974
+# user 1; basket before: 986 (270 q2, store 19), 987 (540 q3, module 2), 995 (91 64g q3), 996 (91 100g q1)
+## Search tab -> 'Tones' -> Items (1): card 'FRESH LOCAL / Tones Mild Chili Powder / gm / 100.00 / 70.00 AED / 30% OFF', stepper count '4' (= 3+1 summed), 'Remove' + 'Add'
+## basket bar before: badge 4, 'Basket · 3 stores · 500.08 AED' (n4-search-results.xml)
+## the first ui_tap 'Add' returned NOT FOUND: the a11y tree on the search-results screen collapsed to a 4-node stub at that moment, with 4x framework_error
+##   [FAIL] framework_error library=scheduler type=_AssertionError 'owner!._nodes.containsKey(id)' ... RenderTable.assembleSemanticsNode (table.dart:731)
+##   (same assert family as bug-item-sheet-semantics-table-assert.log, here WITHOUT the item sheet open)
+## 11:03:51 tap 'Add' (bounds [1188,993][1272,1077] from n4-search-results.xml; screen unchanged per screenshot)
+UI (n4-search-add-stepper-5-no-write.png): card stepper 4 -> 5 ; bottom badge stays 4
+app log 11:03:51 -> +23s: NO [NET] line at all (no cart/add, no cart/update), no [WARN]/[FAIL] other than the semantics asserts above
+php serve log: last request 11:02:41 (the search) -> nothing after the tap
+DB at +8s and +23s: 995 q3 (10:56:28), 996 q1 (11:00:19) -> NO row written, NO quantity changed
+## Basket tab (n4-basket-after-search-add.xml): Fresh local '2 Items, 385.00 AED' (was 315.00); row1 64g '4 gm' count 4; row2 100g '1 gm' count 4
+analytics view_cart value 570.08 (was 500.08), item_count 4 ; group/validate fired with the local basket ; still no cart write
+## Home tab -> Basket again: unchanged (385.00 / 4 gm), no cart write, no cart/list
+## hot restart (fresh cart/list) -> Basket: '2 Items, 315.00 AED', row1 '3 gm' count 3; view_cart 500.08  -> local +1 silently reverted to DB truth
+## cause (code read): search card + -> optimisticStep(item,true) -> first row by item id (995) local 3->4; _syncItem compares target 4 with
+##   _serverQty[91], which _refreshServerQtyFromCart builds as the SUM of all rows of item 91 (3+1 = 4) -> serverQty == target -> no PATCH, no ADD.
+##   Deterministic whenever (first row qty + 1) == sum of the item's rows, i.e. whenever the other variation rows total exactly 1.
+##   (Same summed map explains CHECK B analytics from_qty: 4.)
