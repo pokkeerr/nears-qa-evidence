@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3940
 
-**QA cycle 0: COD full-amount verdict (head cfd6b9341 vs base f04c3a21b)**
+**cycle-1 delta: guest PASS, AC-LOG live B1, B2/B3 UNVERIFIABLE-by-construction**
 
-**15 screenshot(s).** Click any thumbnail for full resolution.
+**23 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -30,6 +30,20 @@
 <td align="center" width="33%"><a href="12-head-rtl-arabic-cod-limit-row.png"><img src="12-head-rtl-arabic-cod-limit-row.png" width="240"></a><br><sub>head rtl arabic cod limit row</sub></td>
 <td align="center" width="33%"><a href="15-head-nocap-cash-offered.png"><img src="15-head-nocap-cash-offered.png" width="240"></a><br><sub>head nocap cash offered</sub></td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="c1-A1-guest-cap27.50-cash-hidden.png"><img src="c1-A1-guest-cap27.50-cash-hidden.png" width="240"></a><br><sub>c1 A1 guest cap27.50 cash hidden</sub></td>
+<td align="center" width="33%"><a href="c1-A2-guest-cap28.39-cash-hidden.png"><img src="c1-A2-guest-cap28.39-cash-hidden.png" width="240"></a><br><sub>c1 A2 guest cap28.39 cash hidden</sub></td>
+<td align="center" width="33%"><a href="c1-A3-guest-cap28.41-cash-offered.png"><img src="c1-A3-guest-cap28.41-cash-offered.png" width="240"></a><br><sub>c1 A3 guest cap28.41 cash offered</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c1-A4-guest-cod-order-placed.png"><img src="c1-A4-guest-cod-order-placed.png" width="240"></a><br><sub>c1 A4 guest cod order placed</sub></td>
+<td align="center" width="33%"><a href="c1-A5-guest-verdict-500-cash-kept.png"><img src="c1-A5-guest-verdict-500-cash-kept.png" width="240"></a><br><sub>c1 A5 guest verdict 500 cash kept</sub></td>
+<td align="center" width="33%"><a href="c1-B1-taxcomponents-missing-cash-kept.png"><img src="c1-B1-taxcomponents-missing-cash-kept.png" width="240"></a><br><sub>c1 B1 taxcomponents missing cash kept</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c1-B2-zone-null-quote-line-verdict-shadowed.png"><img src="c1-B2-zone-null-quote-line-verdict-shadowed.png" width="240"></a><br><sub>c1 B2 zone null quote line verdict shadowed</sub></td>
+<td align="center" width="33%"><a href="c1-B3-quote-200-malformed-body-no-throw-cash-hidden.png"><img src="c1-B3-quote-200-malformed-body-no-throw-cash-hidden.png" width="240"></a><br><sub>c1 B3 quote 200 malformed body no throw cash hidden</sub></td>
+</tr>
 </table>
 
 ### Other artifacts
@@ -52,9 +66,20 @@
 - [`app-head-cell5-rapid.log.txt`](app-head-cell5-rapid.log.txt)
 - [`app-head-cell6-fail-open.log.txt`](app-head-cell6-fail-open.log.txt)
 - [`bug-refusal-203-no-fail-log.log`](bug-refusal-203-no-fail-log.log)
+- [`c1-A1-guest-cap27.50-cash-hidden.xml`](c1-A1-guest-cap27.50-cash-hidden.xml)
+- [`c1-A2-guest-cap28.39-cash-hidden.xml`](c1-A2-guest-cap28.39-cash-hidden.xml)
+- [`c1-A3-guest-cap28.41-cash-offered.xml`](c1-A3-guest-cap28.41-cash-offered.xml)
+- [`c1-A4-guest-cod-order-placed.xml`](c1-A4-guest-cod-order-placed.xml)
+- [`c1-A5-guest-verdict-500-cash-kept.xml`](c1-A5-guest-verdict-500-cash-kept.xml)
+- [`c1-B1-taxcomponents-missing-cash-kept.xml`](c1-B1-taxcomponents-missing-cash-kept.xml)
+- [`c1-B2-zone-null-quote-line-verdict-shadowed.xml`](c1-B2-zone-null-quote-line-verdict-shadowed.xml)
+- [`c1-B3-quote-200-malformed-body-no-throw-cash-hidden.xml`](c1-B3-quote-200-malformed-body-no-throw-cash-hidden.xml)
+- [`c1-app-flutter-lines.log.txt`](c1-app-flutter-lines.log.txt)
+- [`c1-proxy-all.log.txt`](c1-proxy-all.log.txt)
 - [`flutter-test-checkout.log.txt`](flutter-test-checkout.log.txt)
 - [`progress.md`](progress.md)
 - [`proxy-base-red.log.txt`](proxy-base-red.log.txt)
+- [`proxy-harness-cycle1.py.txt`](proxy-harness-cycle1.py.txt)
 - [`proxy-harness.py.txt`](proxy-harness.py.txt)
 - [`proxy-head-boundary-2839.log.txt`](proxy-head-boundary-2839.log.txt)
 - [`proxy-head-cell10-fee-payable.log.txt`](proxy-head-cell10-fee-payable.log.txt)
@@ -65,6 +90,7 @@
 - [`proxy-head-cell6-recovery.log.txt`](proxy-head-cell6-recovery.log.txt)
 - [`proxy-head-cell8-packaging.log.txt`](proxy-head-cell8-packaging.log.txt)
 - [`proxy-head-headline.log.txt`](proxy-head-headline.log.txt)
+- [`shared-db-untouched-cycle1.txt`](shared-db-untouched-cycle1.txt)
 - [`shared-db-untouched.txt`](shared-db-untouched.txt)
 
 ---
