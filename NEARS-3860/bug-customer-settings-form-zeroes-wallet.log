@@ -1,0 +1,9 @@
+# bug-customer-settings-form-zeroes-wallet (pre-existing, Admin)
+Screen: Admin > Users > Customer Wallet > (legacy) Customer Settings  GET /admin/users/customer/settings  -> POST /admin/users/customer/update-settings
+Form inputs (resources/views/admin-views/customer/settings.blade.php): name="customer_wallet", name="refund_to_wallet", name="customer_loyalty_point", name="ref_earning_status"
+Controller (app/Http/Controllers/Admin/CustomerController.php update_settings ~L465): foreach $keys ['guest_checkout_status','toggle_veg_non_veg','wallet_status','wallet_add_refund','add_fund_status','loyalty_point_status',...] => value = $request->$key ?? 0
+=> names never match: every submit writes 0 to wallet_status, wallet_add_refund, add_fund_status, loyalty_point_status (and any other key not posted).
+Observed on private copy nears_qa_3860, 2026-10-02 01:30:16: one submit (intent: refund_to_wallet ON) -> wallet_status 1->0, loyalty_point_status 1->0, add_fund_status 1->0, wallet_add_refund stayed 0. Toast "Customer settings updated successfully".
+Impact: an admin who saves this screen silently disables the customer wallet (wallet payment + Add Fund) and loyalty; with cross_module_basket ON and cash refused on mixed baskets, mixed baskets become unpayable locally.
+Restore (screen action): Business setup > Customer tab (customer-index.blade.php, correct names) -> POST /admin/customer/update-settings 01:32:00 / 01:32:13; copy then differs from shared only by wallet_add_refund=1 (intended), cross_module_basket=1, daily-check date (id 139).
+Shared multi_food_db untouched (wallet_add_refund 0, wallet_status 1).

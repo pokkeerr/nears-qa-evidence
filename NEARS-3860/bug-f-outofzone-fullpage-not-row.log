@@ -1,0 +1,15 @@
+# bug-f-outofzone-fullpage-not-row (NEARS-3949 F cell, flag ON, admin free delivery ON)
+Arrange: basket built at address 45 (zones 400,2): Dama baqala 3168 (zone 400, module 1; TEMP schedule 29075 to be open) + Spice Route Kitchen (Abu Dhabi) 49 (zone 2, module 2). Home location switched to address 60 (zone 2) -> Basket -> Proceed to Checkout.
+Expected (packet F): mixed mobile store line row = out-of-zone reason + Edit Cart, no Retry, never a resolved free line; Total unresolved; Place disabled; exactly ONE store-detail request + ONE '[FAIL] checkout: group store out of zone store_id=3168'.
+Observed: checkout renders a FULL-PAGE block 'This store doesn't deliver to your area' / 'Change your delivery location or edit your cart to continue' / Change Location / Edit Cart (key checkout_item_not_available_here) - no store name, no per-store line, no Total, no Place. Never a resolved free line (good). Change Location -> address 45 resolves in place (good).
+Requests (proxy, ids only):
+02:32:09 GET /api/v1/stores/details/3168 403 106ms rid=81c78220-ffdd-4767-b769-a382ddaf2c8d resp={"errors":[{"code":"out_of_zone","message":
+02:32:10 GET /api/v1/stores/details/49 200 89ms rid=6412b750-3b23-4023-b278-db727021f5c2 resp={"id":49,"status":1,"tax":5,"zone_id":2,"modul
+02:32:11 GET /api/v1/stores/details/3168 403 297ms rid=a215b7c1-522e-4957-953e-5d8baac6c39d resp={"errors":[{"code":"out_of_zone","message":
+02:32:24 GET /api/v1/stores/details/3168 403 186ms rid=5bcfb7d9-40e0-46cd-83ba-a78e423fd991 resp={"errors":[{"code":"out_of_zone","message":
+App log:
+10-02 02:32:10.246  6801  6801 I flutter : [WARN] msg="store: details out of zone"
+10-02 02:32:11.252  6801  6801 I flutter : [FAIL] endpoint=/api/v1/stores/details/ http_status=403 type=ApiFailure msg="checkout: group store out of zone store_id=3168" correlation_id=a215b7c1-522e-4957-953e-5d8baac6c39d
+10-02 02:32:24.866  6801  6801 I flutter : [WARN] msg="store: details out of zone"
+10-02 02:32:24.867  6801  6801 I flutter : [FAIL] endpoint=/api/v1/stores/details/ http_status=403 type=ApiFailure msg="store: details out of zone" correlation_id=5bcfb7d9-40e0-46cd-83ba-a78e423fd991
+3-store variant (49 + 3168 + 13): Cart pre-flight '[FAIL] cart: store pre-flight flagged store_ids=3168 reasons=out_of_coverage_area' + Proceed disabled (02:38:31). In the 2-store run the Cart did NOT re-run pre-flight after the location change (basket signature unchanged since the address-45 pass), so checkout opened into the full-page block.

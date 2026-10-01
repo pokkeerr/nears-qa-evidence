@@ -1,0 +1,15 @@
+# bug-cart-add-list-race: client cart drops the just-added cross-module item
+## proxy (ids only)
+01:08:54 GET /api/v1/customer/cart/list 200 232ms rid=00c82667-47c4-4b1a-a867-12443c784d83 resp=[{"id":986,"module_id":1},{"id":987,"module_id":1},{"id":988,"module_id":2}]
+01:09:05 GET /api/v1/customer/cart/list 200 113ms rid=8e4a1863-1453-4062-ae8e-424cc1c8f8e4 resp=[{"id":986,"module_id":1},{"id":987,"module_id":1},{"id":988,"module_id":2}]
+01:09:05 POST /api/v1/customer/cart/add 200 317ms rid=a155fa1d-ffbe-4180-84f4-b6d80c441e3c req={} resp=[{"id":986,"module_id":1},{"id":987,"module_id":1},{"id":988,"module_id":2},{"id":989,"module_id":3}]
+## app log (flutter tag)
+10-02 01:09:05.449  4887  4887 I flutter : [NET] POST endpoint=/api/v1/customer/cart/add
+10-02 01:09:05.449  4887  4887 I flutter : [NET] GET endpoint=/api/v1/customer/cart/list
+10-02 01:09:06.009  4887  4887 I flutter : [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-02 01:09:06.010  4887  4887 I flutter : 📊 analytics: add_to_cart {item_id: 91156, price: 6.25, quantity: 1, currency: AED, value: 6.25, screen: product_sheet, item_list_id: product_details, item_list_name: product_details, store_id: 91160, is_available: 1, module_id: 3}
+10-02 01:09:06.012  4887  4887 I flutter : [NET] endpoint=/api/v1/customer/cart/list http_status=200
+## UI after add: store bar 'Basket · 2 stores · 36.50 AED'; Basket screen lists Grocery (20.75) + Kitchen (15.75) only; Items Total 36.50; server cart has 4 rows incl. 989 module 3
+## persistence: Basket pull-to-refresh did not refetch; Proceed to Checkout showed only Grocery 21.79 + Kitchen 16.54 (pharmacy store missing). Not placed.
+## recovery: app cold relaunch 01:11:56 -> "cart restored with 4 items", Basket shows 3 stores, Items Total 42.75 (server truth).
+## mechanism (from logs): POST cart/add and GET cart/list issued in the same tick (01:09:05.449); list response (pre-add, 3 rows) completed after the add response (4 rows) and replaced _cartList wholesale.

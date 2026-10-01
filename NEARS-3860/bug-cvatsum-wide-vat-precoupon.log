@@ -1,0 +1,11 @@
+# bug-cvatsum-wide-vat-precoupon (C-VAT-SUM, mixed basket + coupon, WIDE checkout; ENABLE-BLOCKER CANDIDATE)
+Basket: Grocery Rice 12.50 + Olive Oil 8.25 (store 91158, module 1), Kitchen Shawarma 15.75 (91159), Pharmacy Paracetamol 6.25 (91160); coupon NEARS2924AMT (5.00, grocery only); wallet.
+Viewport: wm density 160 on 1344x2992 (logical width 1344 >= 1300 -> ResponsiveHelper.isDesktop).
+WIDE checkout Order Summary (a11y dump 02:47-02:48):
+  Subtotal 42.75 | Coupon Discount -5.00 (chip 'Applied to NEARS-3858 QA Mixed Grocery') | VAT +2.14 | Delivery Fees 0.00 | Fee Breakdown per store 0.00 x3 | Total Amount 39.64
+  42.75 + 2.14 + 0.00 - 5.00 = 39.89  !=  39.64 shown Total  (delta 0.25 = 5% VAT on the 5.00 coupon)
+  VAT 2.14 = pre-coupon tax (get-Tax 1.0375 + 0.7875 + 0.3125); server post-coupon tax = 0.79 + 0.79 + 0.31 = 1.89
+WIDE confirm sheet: Items Total 44.64 | Delivery Fees 0.00 | Discount -5.00 | Total 39.64  (consistent; 44.64 = 42.75 + 1.89)
+Charged: group e31d9171-b35a-46b4-92c5-39e01abe30f5, place total_amount 39.64; orders 91570 16.54 (tax .79, coupon 5.00) / 91571 16.54 (.79) / 91572 6.56 (.31) -> SUM 39.64.
+MOBILE (same basket, earlier order d96a7f2f): no VAT row; 4-line block Items Total 44.64 / Fees 0 / Discount -5.00 / Total 39.64 -> sums correctly.
+=> Total and charge agree; the WIDE breakdown rows (VAT) do not sum to the shown Total. Code suspicion confirmed: VAT row = pricing.orderTax (code-less, pre-coupon) vs Total = probe post-coupon order_amount (bottom_section.dart:285-289, checkout_screen.dart:577).
