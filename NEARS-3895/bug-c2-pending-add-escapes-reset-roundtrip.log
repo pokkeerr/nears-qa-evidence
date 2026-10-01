@@ -1,0 +1,17 @@
+# NEARS-3895 cycle 2 - old-basket pending add escapes the reset when its 500ms debounce expires during the cart/remove round trip
+# build 96a23c9a6, emulator-5662, backend worktree :8100 via logging proxy :8101 (timestamps = request arrival, [ms] = round trip), DB multi_food_db_qa_bug3895
+# Steps (adb taps ~50-150ms apart, i.e. faster than a human): basket=[Zqx Rice mod 1]; '+' Zqx Rice Two (same module -> optimistic add, 500ms debounce); '+' Zqx Pill (mod 3) -> reset dialog; +0.15s Yes.
+22:52:22.196 DELETE /api/v1/customer/cart/remove q= moduleId='1' zoneId=None -> 200 [197ms]  rows=[]
+22:52:22.196 POST /api/v1/customer/cart/add q= moduleId='1' zoneId=[1] -> 200 [359ms] {"item_id":990008,"price":"15.03","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=
+22:52:23.201 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [440ms]  rows=[]
+22:52:23.202 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [790ms]  rows=[]
+22:52:23.203 GET /api/v1/customer/cart/list q= moduleId='3' zoneId=[1] -> 200 [1613ms]  rows=[]
+22:52:23.704 POST /api/v1/customer/cart/add q= moduleId='3' zoneId=[1] -> 200 [1554ms] {"item_id":990002,"price":"5.49","quantity":1,"add_on_ids":[],"add_ons":[],"add_on_qtys":[],"model":"Item"} rows=
+22:52:23.998 GET /api/v1/home/all q= moduleId='3' zoneId=[1] -> 200 [1867ms]  
+# DB after (carts, user 1):
+id	cart_mod	item_id	name	item_mod	q
+1058	1	990008	Zqx Rice Two	1	1
+1059	3	990002	Zqx Pill	3	1
+# Result: the pending add POST (990008, header moduleId=1) went out in the same ms as DELETE cart/remove; the DELETE finished first (197ms), the add after (359ms) -> stray old-module row 1058 survives server-side next to the new basket row 1059 (mod 3). App UI shows only Zqx Pill (cart/list is module-scoped) - the old row reappears on a switch back to Grocery.
+# Cause: clearCartOnline cancels the snapshotted debounce timers only AFTER a successful clear (by design: cancel only on success); a timer that fires during the round trip is not held.
+# Same family, stepper update variant (22:50:30): pending cart/update for row 1053 fired 500ms after the DELETE was sent -> 404 rowGone, logged [FAIL] 'cart: updateCartQuantityOnline rowGone' corr c0f40e34-5822-492c-9e1c-52c81ee2cec0, no toast, basket correct.
