@@ -1,0 +1,40 @@
+# R9 flag OFF (cross_module_basket=0 on nears_qa_3974, config false proven), user 1, Grocery Basket, profile build d53bff3de, emulator-5660
+## UI order (dump r9-flagoff-cart-before.xml): row1 'Tones ... | 1 gm' (qty1), row2 'Tones ... | 3 gm' (qty3); server cart/list order 985(100g,q1),986,991(64g,q3)
+## DB before
+id	item_id	quantity	variation
+985	91	1	[{"type":"100g","price":150}]
+986	270	2	[]
+991	91	3	[{"type":"64g","price":100}]
+10:46:49 swipe row2 left (row2 bounds [90,1002][1254,1431]) -> revealed unlabeled Button [1021,1002][1254,1431]; tap its centre
+## DB after (+6s)
+id	item_id	quantity	variation	updated_at
+986	270	2	[]	2026-10-01 10:18:08
+991	91	3	[{"type":"64g","price":100}]	2026-10-01 10:34:19
+## UI after (r9-flagoff-cart-after.xml)
+[90,543][1254,906] 'Tortilla Chips | 2 kg | \u206612.74 AED\u2069 | \u206614.48 AED\u2069 | 2'
+[1080,573][1224,717] 'Remove Tortilla Chips'
+[216,1220][964,1283] 'Fresh local'
+[90,1362][1254,1791] 'Tones Mild Chili Powder | 3 gm | \u206670.00 AED\u2069 - \u2066210.00 AED\u2069 | \u2066100.00 AED\u2069 - \u2066300.00 AED\u2069 | 3'
+[1080,1392][1224,1536] 'Remove Tones Mild Chili Powder'
+# R9 flag ON (cross_module_basket=1 on copy, config true proven), mixed basket (modules 1,2,3; 4 stores), user 1, profile d53bff3de, emulator-5660
+## UI Fresh local group: row1 'Tones | 3 gm' = 991 (64g q3), row2 'Tones | 1 gm' = 994 (100g q1)
+## DB before
+id	module_id	item_id	quantity	variation
+986	1	270	2	[]
+987	2	540	3	[]
+991	1	91	3	[{"type":"64g","price":100}]
+992	3	683	1	[]
+993	3	674	2	[]
+994	1	91	1	[{"type":"100g","price":150}]
+10:48:11 swipe row2 left (bounds [90,2163][1254,2395]) -> unlabeled Button [1021,2163][1254,2395]; tap centre
+## DB after (+6s)
+id	module_id	item_id	quantity	variation
+986	1	270	2	[]
+987	2	540	3	[]
+992	3	683	1	[]
+993	3	674	2	[]
+994	1	91	1	[{"type":"100g","price":150}]
+## UI after (r9-flagon-cart-after.xml)
+[90,1467][1254,1641] 'Fresh local, Grocery, 1 Item, \u2066105.00 AED\u2069'
+[90,1704][1254,2133] 'Tones Mild Chili Powder | 1 gm | \u206670.00 AED\u2069 - \u2066210.00 AED\u2069 | \u2066100.00 AED\u2069 - \u2066300.00 AED\u2069 | 1'
+[90,2325][1254,2395] 'Add More Items, Fresh local'
