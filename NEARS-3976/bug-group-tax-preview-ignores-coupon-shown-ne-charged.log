@@ -1,0 +1,11 @@
+NEARS-3976 QA pass 1, cell 2 (one live group order on private copy nears_qa_3976) — PRE-EXISTING, not this diff
+Basket: store 12 Fresh local 5 x 4.00 = 20.00 ; store 14 Online market 10 x 2.00 = 20.00 (same-module grocery, cross_module_basket ON on the copy); coupon Q3976M20 (amount 5.00, min 20.00)
+Checkout shown (screenshot c2-applied-summary-en.png + confirm sheet): Subtotal 40.00 / Coupon Discount -5.00 ("Applied to Fresh local" + "Applied to Online market") / VAT +2.00 / Delivery 2.00 / Total 39.00 ; confirm sheet Total Amount 39.00
+Per-store tax preview requests AFTER the coupon applied (proxy log, 14:29:25):
+  POST /api/v1/customer/order/get-Tax store_id=12 order_amount=20.0 coupon_discount_amount=0.0 -> tax_amount 1
+  POST /api/v1/customer/order/get-Tax store_id=14 order_amount=20.0 coupon_discount_amount=0.0 -> tax_amount 1
+POST /api/v1/customer/order/group/place 200 -> total_amount 38.75, order_ids [91418, 91419]
+DB (copy): 91418 store 12 order_amount 16.75 coupon_discount 5.00 tax 0.75 delivery 1.00 ; 91419 store 14 order_amount 22.00 coupon_discount 0.00 tax 1.00 delivery 1.00 ; SUM 38.75
+=> shown 39.00 != charged 38.75 (VAT preview 2.00 vs charged 1.75: server taxes store 12 on the post-coupon 15.00)
+Cause (code): UserApp/lib/features/checkout/controllers/pricing_summary_controller.dart:1521 group per-store tax body hardcodes couponDiscountAmount: 0, couponCode: null — present byte-identical on base 35c570766 (introduced 79dd517fd NEARS-3392 extraction); NEARS-3976 diff does not touch it.
+App log: analytics purchase {value: 38.75, coupon_id: 24, store_count: 2} vs order_confirm_confirmed {value: 39.0}
