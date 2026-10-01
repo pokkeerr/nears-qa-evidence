@@ -34,7 +34,6 @@
 - [`Nears3979GroupTaxCouponFixtureSeeder.php`](Nears3979GroupTaxCouponFixtureSeeder.php)
 - [`ac15-fail-line.log`](ac15-fail-line.log)
 - [`get-tax-group-place-bodies.log`](get-tax-group-place-bodies.log)
-- [`get-tax-group-place-bodies.log-E`](get-tax-group-place-bodies.log-E)
 - [`progress.md`](progress.md)
 
 ---
