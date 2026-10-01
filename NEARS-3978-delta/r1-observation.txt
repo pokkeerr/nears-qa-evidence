@@ -1,0 +1,17 @@
+# R1 observation (private copy nears3978_qa, build HEAD 92b3a2851 APK, no Undo involved)
+## cart rows seeded (carts table, stored)
+1055	2	13.990	[{"name":"Size","values":{"label":["Large"]}},{"name":"Toppings","values":{"label":["Pickles"]}}]	[2]	4170705C4D6F64656C735C4974656D
+1056	1	8.990	[{"name":"Size","values":{"label":["Regular"]}}]	[]	4170705C4D6F64656C735C4974656D
+
+## basket after cold-restart reload (a11y content-desc per row)
+row A (stored Large+Pickles, add-on 2 x1, qty 2): 'Classic Cheeseburger | 2 items | 8.99 AED | 2 | Variations: Size (Regular), Toppings (Pickles)'  <- WRONG label (stored Large)
+row B (stored Regular only, qty 1): 'Classic Cheeseburger | 1 items | 8.99 AED | 1 | Variations: Size (Regular), Toppings (Pickles)' <- WRONG label (Toppings Pickles never selected)
+basket header total shown 28.47 AED; minimum-order line 26.97; correct stored total 2x13.99 + 8.99 = 36.97
+checkout list lines: 1 x 8.99 and 2 x 8.99 (base price, no Large/add-on), Total Amount 30.22 AED; confirm sheet then says 'Your order total has been updated': Subtotal 34.97, VAT 1.75, Total 36.72
+
+## order 91416 (COD, unpaid, pending, store 4) order_amount 36.72
+id	item_id	quantity	price	tax_amount	variation	add_ons	total_add_on_price
+374	16	2	11.99	1.20	[{"name":"Size","type":"single","min":"0","max":"1","required":"on","values":[{"label":"Large","optionPrice":"2.50"}]},{"name":"Toppings","type":"multi","min":"0","max":"5","required":"off","values":[{"label":"Pickles","optionPrice":"0.50"}]}]	[{"id":2,"name":"Bacon","price":2,"quantity":1,"category_id":null}]	2.00
+375	16	1	8.99	0.45	[{"name":"Size","type":"single","min":"0","max":"1","required":"on","values":[{"label":"Regular","optionPrice":"0"}]}]	[]	0.00
+order_amount	total_tax_amount	delivery_charge	payment_method
+36.72	1.75	0.00	cash_on_delivery
