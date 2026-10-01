@@ -1,0 +1,15 @@
+# C12e LANE (informational, NEARS-3947 area out of scope): adopted session, group digital -> harness payment-FAIL redirect
+=== C12e LANE adopted payment-FAIL redirect placement 05:26:50
+05:27:01 POST /api/v1/customer/order/group/validate -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=8c128d34-84a7-4305-bc3b-3f847baf85c6 303ms
+05:27:02 POST /api/v1/customer/order/group/place -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=d090d743-80c2-4d6c-8313-848f676c65d9 352ms
+05:27:03 DELETE /api/v1/customer/cart/remove -> 200 auth=none guest_id+gtok z=- m=1 rid=f4321819-8976-4065-bc3d-48dcd354c654 148ms
+05:27:03 POST /api/v1/auth/login -> 200 auth=none guest_id z=[400,2] m=1 rid=5675f5e9-d3e0-41b5-b915-be1910485621 251ms
+05:27:04 GET /api/v1/customer/cart/list -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=f7d5d01b-2e55-478b-9e02-342271454aae 144ms
+05:27:07 GET /api/v1/customer/cart/list -> 200 auth=bearer - z=[400,2] m=1 rid=cca6077e-ff5f-463c-bd65-91cf56392daa 95ms
+05:27:09 GET /payment-mobile -> 302 auth=none - group_id=c423d2f3 z=- m=- rid=7deeb31c-cb88-4c92-9de7-64ef9549f8be 110ms
+05:28:05 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT to /payment-fail (after 28s) rid=-
+05:28:06 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=0883f5b5-ecef-4d93-bed3-00de71fa8c42 146ms
+# screen: 'Payment Failed / Order #<first child> / Due amount 41.20 AED (= the first child only) / Pay Now, Switch to Cash On Delivery, Cancel Order' (single-child screen for the group, pre-existing NEARS-3947 shape); no crash
+# [FAIL]/[ERR] since placement:
+05:26:59.416 I/flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="FCM registration id fetch failed"
+05:26:59.416 I/flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"

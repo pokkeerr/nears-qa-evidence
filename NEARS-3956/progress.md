@@ -19,3 +19,13 @@ Times are host-local (UTC+4); device clock is ~6s behind.
 | C10 unchanged paths | c10-unchanged-paths.log, c10d-cod-group-before-after.log, c10d-*.png |
 | C11 a11y / Arabic | c11-arabic-failed-roster-a11y-dump.xml, c11-arabic-retry-leave.png |
 | backstop | automated-backstop.txt |
+
+## Delta cycle (C12): AC7 payment-SUCCESS sub-cell driven live
+Harness (least invasive, no product code, no server-tree edit): the logging proxy answers the stub `GET /payment/paypal/pay` (Gateways module absent) with `302 -> <baseUrl>/payment-success` after 28s. The real `PaymentController@success` runs (200); the app's own webview URL check (`OrderService.paymentRedirect`) then routes. Gateway-confirm is simulated on the PRIVATE COPY only (children set pending/paid before the redirect), identical in every cell; the proxy rule is the only thing that fakes the gateway.
+| cell | build | file |
+|---|---|---|
+| C12a guest+Create account success | lane d1a86f5c1 | c12a-lane-adopted-payment-success.log, c12a-*.png |
+| C12b same on control | a9ded9971 | c12b-control-guest-payment-success.log, c12b-*.png |
+| C12c plain guest success | lane + control | c12c-lane-plain-guest-payment-success.log, c12c-control-plain-guest-payment-success.log, c12c-*.png |
+| C12d logged-in user success | lane | c12d-lane-loggedin-payment-success.log, c12d-*.png |
+| C12e payment-FAIL redirect (info) | lane, adopted | c12e-lane-adopted-payment-fail.log, c12e-*.png |

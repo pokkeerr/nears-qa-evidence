@@ -1,0 +1,16 @@
+# C12b CONTROL a9ded9971: guest + Create account, 2-store group, digital -> harness payment-success -> success route for the guest session (BEFORE)
+=== C12b CONTROL a9ded9971 guest+create-account digital group placement 05:31:02
+05:31:13 POST /api/v1/customer/order/group/validate -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=eceade81-7799-47d4-af6f-b992c7e8571b 326ms
+05:31:13 POST /api/v1/customer/order/group/place -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=ab6f494c-8df7-4fbd-84dc-850bc30fd559 307ms
+05:31:14 DELETE /api/v1/customer/cart/remove -> 200 auth=none guest_id+gtok z=- m=1 rid=feb183c5-cc5d-437c-a4a2-45053204c1bc 150ms
+05:31:15 GET /payment-mobile -> 302 auth=none - group_id=63a0d228 z=- m=- rid=9cb0acba-e93d-4b8a-b15e-45573ecc9caa 111ms
+05:31:15 GET /api/v1/customer/cart/list -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=c3ef812e-3802-4ca4-a852-78dffe59b981 84ms
+--- copy-only gateway-confirm simulation (b) 05:31:28
+05:32:11 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT to /payment-success (after 28s) rid=-
+05:32:12 GET /api/v1/customer/order/track -> 404 code=order auth=none guest_id+gtok z=[400,2] m=1 rid=aee7acdf-1293-4749-b97f-17f9c8dfa28b 217ms
+id	user_id	is_guest	order_status	payment_status
+91434	437	0	pending	paid
+91435	437	0	pending	paid
+# screen: 'Something went wrong / Please try again / Retry' (order/track 404 for the guest session; no order success rendered)
+# client [FAIL] lines:
+05:32:06.172 I/flutter : [FAIL] endpoint=/api/v1/customer/order/track http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=aee7acdf-1293-4749-b97f-17f9c8dfa28b

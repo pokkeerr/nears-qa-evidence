@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3956
 
-**NEARS-3956 QA PASS: guest create-account digital group recovers (login-adopt before payment route); AC7 payment-success subcell unit-test only; AC6 garbage-bearer is 401 not 403**
+**NEARS-3956 QA PASS (delta C12): payment-success redirect driven live - adopted guest reaches order success (control: Something went wrong / track 404)**
 
-**11 screenshot(s).** Click any thumbnail for full resolution.
+**19 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -16,12 +16,26 @@
 <td align="center" width="33%"><a href="c11-arabic-retry-leave.png"><img src="c11-arabic-retry-leave.png" width="240"></a><br><sub>c11 arabic retry leave</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="c4-after-failed-roster-retry-leave.png"><img src="c4-after-failed-roster-retry-leave.png" width="240"></a><br><sub>c4 after failed roster retry leave</sub></td>
-<td align="center" width="33%"><a href="c4b-locked-failed-retry-leave.png"><img src="c4b-locked-failed-retry-leave.png" width="240"></a><br><sub>c4b locked failed retry leave</sub></td>
-<td align="center" width="33%"><a href="c5-verification-on-retry-leave.png"><img src="c5-verification-on-retry-leave.png" width="240"></a><br><sub>c5 verification on retry leave</sub></td>
+<td align="center" width="33%"><a href="c12-control-home-after-success.png"><img src="c12-control-home-after-success.png" width="240"></a><br><sub>c12 control home after success</sub></td>
+<td align="center" width="33%"><a href="c12a-home-incomplete-sheet-after-success.png"><img src="c12a-home-incomplete-sheet-after-success.png" width="240"></a><br><sub>c12a home incomplete sheet after success</sub></td>
+<td align="center" width="33%"><a href="c12a-lane-adopted-success-screen.png"><img src="c12a-lane-adopted-success-screen.png" width="240"></a><br><sub>c12a lane adopted success screen</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="c12b-control-guest-success-something-went-wrong.png"><img src="c12b-control-guest-success-something-went-wrong.png" width="240"></a><br><sub>c12b control guest success something went wrong</sub></td>
+<td align="center" width="33%"><a href="c12c-control-plain-guest-success-screen.png"><img src="c12c-control-plain-guest-success-screen.png" width="240"></a><br><sub>c12c control plain guest success screen</sub></td>
+<td align="center" width="33%"><a href="c12c-lane-plain-guest-success-screen.png"><img src="c12c-lane-plain-guest-success-screen.png" width="240"></a><br><sub>c12c lane plain guest success screen</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c12d-lane-loggedin-success-screen.png"><img src="c12d-lane-loggedin-success-screen.png" width="240"></a><br><sub>c12d lane loggedin success screen</sub></td>
+<td align="center" width="33%"><a href="c12e-lane-adopted-payment-fail-screen.png"><img src="c12e-lane-adopted-payment-fail-screen.png" width="240"></a><br><sub>c12e lane adopted payment fail screen</sub></td>
+<td align="center" width="33%"><a href="c4-after-failed-roster-retry-leave.png"><img src="c4-after-failed-roster-retry-leave.png" width="240"></a><br><sub>c4 after failed roster retry leave</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="c4b-locked-failed-retry-leave.png"><img src="c4b-locked-failed-retry-leave.png" width="240"></a><br><sub>c4b locked failed retry leave</sub></td>
+<td align="center" width="33%"><a href="c5-verification-on-retry-leave.png"><img src="c5-verification-on-retry-leave.png" width="240"></a><br><sub>c5 verification on retry leave</sub></td>
 <td align="center" width="33%"><a href="c8a-basket-empty-after-adopt-flag0.png"><img src="c8a-basket-empty-after-adopt-flag0.png" width="240"></a><br><sub>c8a basket empty after adopt flag0</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="c8b-basket-empty-after-adopt-flag1.png"><img src="c8b-basket-empty-after-adopt-flag1.png" width="240"></a><br><sub>c8b basket empty after adopt flag1</sub></td>
 </tr>
 </table>
@@ -33,6 +47,12 @@
 - [`c10-unchanged-paths.log`](c10-unchanged-paths.log)
 - [`c10d-cod-group-before-after.log`](c10d-cod-group-before-after.log)
 - [`c11-arabic-failed-roster-a11y-dump.xml`](c11-arabic-failed-roster-a11y-dump.xml)
+- [`c12a-lane-adopted-payment-success.log`](c12a-lane-adopted-payment-success.log)
+- [`c12b-control-guest-payment-success.log`](c12b-control-guest-payment-success.log)
+- [`c12c-control-plain-guest-payment-success.log`](c12c-control-plain-guest-payment-success.log)
+- [`c12c-lane-plain-guest-payment-success.log`](c12c-lane-plain-guest-payment-success.log)
+- [`c12d-lane-loggedin-payment-success.log`](c12d-lane-loggedin-payment-success.log)
+- [`c12e-lane-adopted-payment-fail.log`](c12e-lane-adopted-payment-fail.log)
 - [`c2-after-cancel.log`](c2-after-cancel.log)
 - [`c4-failed-roster-a11y-dump.xml`](c4-failed-roster-a11y-dump.xml)
 - [`c4b-locked-leave.log`](c4b-locked-leave.log)

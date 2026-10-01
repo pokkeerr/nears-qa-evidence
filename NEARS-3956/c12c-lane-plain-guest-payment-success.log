@@ -1,0 +1,14 @@
+# C12c LANE: plain guest (no create account) digital group -> harness payment-success -> order success
+=== C12c LANE plain guest digital group placement 05:23:22
+05:23:33 POST /api/v1/customer/order/group/validate -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=cc78f586-2b37-4329-91f2-3080ff28e83b 293ms
+05:23:34 POST /api/v1/customer/order/group/place -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=2124b8c1-18c9-45aa-85ee-c3c53a0f5b03 272ms
+05:23:34 DELETE /api/v1/customer/cart/remove -> 200 auth=none guest_id+gtok z=- m=1 rid=96d3aabd-c3a9-41bd-bff9-54789d6e7481 100ms
+05:23:34 GET /payment-mobile -> 302 auth=none - group_id=e027fd6b z=- m=- rid=3edf376e-3dd0-499f-87a8-09ab75ea981e 89ms
+05:23:35 GET /api/v1/customer/cart/list -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=c96ce56e-5248-4750-a2a9-9ea360639394 105ms
+--- copy-only gateway-confirm simulation (c) 05:23:47
+05:24:31 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT to /payment-success (after 28s) rid=-
+05:24:32 GET /api/v1/customer/order/track -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=cb16be0f-c5ce-45fb-a1c9-316b46692b48 157ms
+05:24:33 GET /api/v1/customer/order/group/details -> 200 auth=none guest_id+gtok group_id=e027fd6b z=[400,2] m=1 rid=d233fc40-27c8-4463-9cf7-64354523b7f5 123ms
+id	user_id	is_guest	order_status	payment_status
+91426	1969	1	pending	paid
+91427	1969	1	pending	paid

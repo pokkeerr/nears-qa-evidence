@@ -1,0 +1,40 @@
+# C12a LANE d1a86f5c1: guest + Create account, 2-store same-module group, digital -> HARNESS payment-success -> order success
+# harness: logging proxy answers the stub GET /payment/paypal/pay with 302 -> <baseUrl>/payment-success after 28s (no product code touched, no server-tree edit); the real PaymentController@success (200) runs; the app's own webview URL check does the rest. DB confirm of the gateway hook simulated on the copy (orders pending/paid) before the redirect.
+=== C12a placement 05:14:00
+05:14:12 POST /api/v1/customer/order/group/validate -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=459b7197-76e2-4ea2-ba6e-d3b47abbc4fb 914ms
+05:14:13 POST /api/v1/customer/order/group/place -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=a1d0f58d-b5e1-448d-9e0f-8efc6f469b94 832ms
+05:14:13 DELETE /api/v1/customer/cart/remove -> 200 auth=none guest_id+gtok z=- m=1 rid=047fa327-f785-4c01-8212-2e08b65f4314 111ms
+05:14:14 POST /api/v1/auth/login -> 200 auth=none guest_id z=[400,2] m=1 rid=748fd62b-b9dc-430a-a707-670a634d1c84 551ms
+05:14:14 GET /api/v1/customer/cart/list -> 200 auth=none guest_id+gtok z=[400,2] m=1 rid=f57823c2-1088-4b6f-9a10-c0aeea507c21 121ms
+05:14:15 GET /api/v1/customer/info -> 200 auth=bearer - z=[400,2] m=1 rid=19475f41-02c1-43cc-a376-2dae100383dc 313ms
+05:14:18 POST /api/v1/customer/cm-firebase-token -> 200 auth=bearer - _method=put z=[400,2] m=1 rid=712deeec-3230-4ea6-8efd-030849f5d85c 113ms
+05:14:19 GET /api/v1/customer/cart/list -> 200 auth=bearer - z=[400,2] m=1 rid=6e5717d2-3a96-44b7-802d-10c4e0dc0808 160ms
+05:14:19 GET /api/v1/customer/info -> 200 auth=bearer - z=[400,2] m=1 rid=46337549-2e72-4e7b-81ad-a5b337c847c1 244ms
+05:14:19 GET /api/v1/customer/info -> 200 auth=bearer - z=[400,2] m=1 rid=e46560ac-5fff-44bb-a8cd-92c63cb66be6 244ms
+05:14:20 GET /payment-mobile -> 302 auth=none - group_id=bb3eea32 z=- m=- rid=16e2d5b1-e0cb-4833-ba08-0cfcca24490d 198ms
+--- copy-only gateway-confirm simulation applied 05:14:25
+05:15:17 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT to /payment-success (after 28s) rid=-
+05:15:17 GET /payment-success -> 200 auth=none - z=- m=- rid=e28ed8bb-8625-4220-bc14-7eb3be4d39d0 468ms
+05:15:23 GET /api/v1/customer/order/track -> 200 auth=bearer - z=[400,2] m=1 rid=b72b60d1-9741-4254-bf78-2da51c74e159 4580ms
+05:15:23 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=bb3eea32 z=[400,2] m=1 rid=9427a2e3-a2f6-4c2a-a97b-901760d6bc71 146ms
+--- Track Order tap 05:15:41
+05:15:44 GET /api/v1/customer/order/track -> 200 auth=bearer - z=[400,2] m=1 rid=fab06971-b32d-4fc6-a5a9-198eb17c8b11 370ms
+05:15:45 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=bb3eea32 z=[400,2] m=1 rid=69eab776-1238-4a75-b46e-4130068152ef 169ms
+05:15:45 GET /api/v1/config/geocode-api -> 200 auth=bearer - z=[400,2] m=1 rid=62a24043-d36f-4399-a804-50af940ec2b6 1362ms
+05:15:46 GET /api/v1/customer/order/track -> 200 auth=bearer - z=[400,2] m=1 rid=c7b151e0-fe4f-4ace-809b-542ccddaa963 515ms
+05:15:47 GET /api/v1/customer/order/track -> 200 auth=bearer - z=[400,2] m=1 rid=6df24c95-0fd5-4b7d-b918-2195e6af03cf 234ms
+05:15:59 GET /api/v1/customer/order/running-orders -> 200 auth=bearer - z=[400,2] m=1 rid=99cdf32b-39ad-4607-8167-fce7c1e6782d 715ms
+05:15:59 GET /api/v1/customer/order/payment-failed -> 200 auth=bearer - z=[400,2] m=1 rid=a3b8a938-26a2-4f03-8ef9-8dfe32b46210 858ms
+05:16:03 GET /api/v1/customer/info -> 200 auth=bearer - z=[400,2] m=1 rid=4bfba173-bd41-4505-a467-e4fe5dc01b8d 1695ms
+# DB after callback
+id	user_id	is_guest	order_status	payment_status	payment_method
+91418	435	0	pending	paid	digital_payment
+91419	435	0	pending	paid	digital_payment
+id	user_id	guest_id	child_count
+bb3eea32-534c-46a6-80fc-4b750a34696c	435	NULL	2
+# analytics mirror lines (suffixed build has no real FA; mirror = corroboration): purchase/login counts from placement
+10-01 05:14:06.421 I/flutter (26450): 📊 analytics: purchase {transaction_id: <group>, value: 55.5, currency: AED, store_count: 2, source: confirm_sheet}
+10-01 05:14:11.523 I/flutter (26450): 📊 analytics: login {method: phone}
+# [FAIL]/[ERR] since placement (FCM = suffixed build has no Firebase, pre-existing env)
+05:14:10.483 I/flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="FCM registration id fetch failed"
+05:14:10.483 I/flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"

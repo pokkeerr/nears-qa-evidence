@@ -1,0 +1,12 @@
+# C12d LANE: logged-in user digital group -> harness payment-success -> order success (copy-only gateway-confirm sim before redirect)
+05:19:05 POST /api/v1/customer/order/group/place -> 200 auth=bearer - z=[400,2] m=1 rid=7c51b6a3-5717-470a-a937-b69348f9a960 396ms
+05:19:06 GET /payment-mobile -> 302 auth=none - group_id=c1c9a365 z=- m=- rid=07bcb55d-2e35-4289-a7a8-01ddf306d424 139ms
+05:19:06 DELETE /api/v1/customer/cart/remove -> 200 auth=bearer - z=- m=1 rid=e9259f8a-e4e5-4dec-9fb2-06199977a23a 176ms
+05:19:07 GET /api/v1/customer/cart/list -> 200 auth=bearer - z=[400,2] m=1 rid=9104ed0c-99a9-47cc-accb-91305c2dc3ab 111ms
+--- copy-only gateway-confirm simulation (d) 05:19:17
+05:20:03 GET /payment/paypal/pay -> 302 HARNESS-REDIRECT to /payment-success (after 28s) rid=-
+05:20:03 GET /api/v1/customer/order/track -> 200 auth=bearer - z=[400,2] m=1 rid=406b589f-7eb2-4410-8aa1-bb416cc0f68a 425ms
+05:20:04 GET /api/v1/customer/order/group/details -> 200 auth=bearer - group_id=c1c9a365 z=[400,2] m=1 rid=26b5f2fb-27c9-4cad-bc9b-d8a006db0be2 93ms
+id	user_id	is_guest	order_status	payment_status
+91422	435	0	pending	paid
+91423	435	0	pending	paid
