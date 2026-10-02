@@ -1,0 +1,21 @@
+NEARS-3950 QA - bill delivery-fee failed row, isTotalOnGroupPath=false, AR (RTL), 320dp x 1.3
+device emulator-5684, wm size override 960x2136 @ density 480 (dpr 3.0 -> 320dp wide), font_scale 1.3, build 2aaa6ae2c (debug)
+instrument: flutter run key `t` (debugDumpRenderTree) -> logical px, printed to 1 decimal (+-0.05dp); cross-check uiautomator integer px (+-0.33dp at dpr 3)
+
+RenderWrap (Wrap <- NInlineRowError)            size 98.9 x 74.0   <-- ceiling 72 (widget test 72)
+  leaf NInlineStatusRow (ExcludeSemantics)      size 98.9 x 26.0   offset (0.0, 0.0)
+    message RenderParagraph "حدث خطأ ما"         size 78.9 x 26.0   (1 line)
+  runSpacing                                    4.0
+  action Wrap                                   size 77.7 x 44.0   offset (0.0, 30.0)
+    Retry ConstrainedBox (tapMin)               size 77.7 x 44.0
+      Retry RenderParagraph "أعد المحاولة"       size 77.7 x 26.0
+host Align (centerEnd, rtl)                     size 141.9 x 74.0 ; Wrap offset in host (0.0, 0.0) -> end-edge delta 0.0
+uiautomator: Button 'حدث خطأ ما, أعد المحاولة' bounds [105,1517][338,1649] = 233x132 px = 77.67x44.0 dp
+
+74.0 = 26.0 (message line) + 4.0 + 44.0. The widget test measured a 24.0 line (72 = 24+4+44).
+The test loads assets/font/NotoSansArabic-VariableFont_wdth_wght.ttf and injects it via
+DefaultTextStyle(fontFamilyFallback: ['NotoSansArabic']) (ninlinerowerror_sites_test.dart:163,:244).
+UserApp/pubspec.yaml declares only the Inter and PublicSans families, so on the device Arabic glyphs
+come from the Android system fallback font, whose line is 26.0 at this size (inference from reading
+the pubspec and the test, not probed on the device).
+Full condensed subtree: bill-single-ar-320x1.3.render.txt ; shot: bill-single-ar-320x1.3.png ; a11y: bill-single-ar-320x1.3.a11y.xml
