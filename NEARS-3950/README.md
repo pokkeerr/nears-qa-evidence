@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3950
 
-**QA resume - all 8 bill cells within the growth formula on device; AR literal 72 exceeded (74) pending advisor ruling**
+**QA - AC5 widgetbook: 3 NInlineRowError use cases render, console clean**
 
-**16 screenshot(s).** Click any thumbnail for full resolution.
+**19 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -32,6 +32,11 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="mixed-storeline-en-default.png"><img src="mixed-storeline-en-default.png" width="240"></a><br><sub>mixed storeline en default</sub></td>
+<td align="center" width="33%"><a href="widgetbook-ninlinerowerror-no-actions.png"><img src="widgetbook-ninlinerowerror-no-actions.png" width="240"></a><br><sub>widgetbook ninlinerowerror no actions</sub></td>
+<td align="center" width="33%"><a href="widgetbook-ninlinerowerror-retry-secondary.png"><img src="widgetbook-ninlinerowerror-retry-secondary.png" width="240"></a><br><sub>widgetbook ninlinerowerror retry secondary</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="widgetbook-ninlinerowerror-retry.png"><img src="widgetbook-ninlinerowerror-retry.png" width="240"></a><br><sub>widgetbook ninlinerowerror retry</sub></td>
 </tr>
 </table>
 
