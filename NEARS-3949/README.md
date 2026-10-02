@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3949
 
-**Re-open delta QA (8966e7be2): FAIL - R-AC9 Change Location from the named panel does not resolve in place on a multi-store basket; all other cells pass (reopen/)**
+**NEARS-3949 re-open delta re-QA cycle 1 @ 3afb21d76: PASS (R-AC9 F9 Change Location resolves in place)**
 
 **16 screenshot(s).** Click any thumbnail for full resolution.
 
