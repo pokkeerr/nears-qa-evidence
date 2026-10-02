@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3949
 
-**NEARS-3949 QA delta cycle 1: PASS - out_of_zone row under override ON and OFF, AC2 transient + Retry, AC4 latch live**
+**Re-open delta QA (8966e7be2): FAIL - R-AC9 Change Location from the named panel does not resolve in place on a multi-store basket; all other cells pass (reopen/)**
 
 **16 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -55,6 +55,7 @@
 - [`c1-hostB-wide-AR-overrideOFF-dump.xml`](c1-hostB-wide-AR-overrideOFF-dump.xml)
 - [`c1-hostB-wide-EN-overrideON-dump.xml`](c1-hostB-wide-EN-overrideON-dump.xml)
 - [`progress.md`](progress.md)
+- [`reopen`](reopen)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3949/` · public-repo scrub policy (no live secrets; verified clean).*
