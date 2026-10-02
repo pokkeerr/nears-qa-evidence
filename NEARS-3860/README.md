@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3860
 
-**NEARS-3860 [8] delta-1 evidence: F cart flag + fetch bound, AC2 refund status (wallet_add_refund=1)**
+**NEARS-3860 [8] delta re-QA cycle 2 (F cells): PASS 5/5 @ c9a5ee788**
 
-**23 screenshot(s).** Click any thumbnail for full resolution.
+**25 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -41,7 +41,11 @@
 <td align="center" width="33%"><a href="delta-f-editcart-from-block.png"><img src="delta-f-editcart-from-block.png" width="240"></a><br><sub>delta f editcart from block</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="delta2-f1-cart-addr60-card.png"><img src="delta2-f1-cart-addr60-card.png" width="240"></a><br><sub>delta2 f1 cart addr60 card</sub></td>
+<td align="center" width="33%"><a href="delta2-f2-panel-addr60-named.png"><img src="delta2-f2-panel-addr60-named.png" width="240"></a><br><sub>delta2 f2 panel addr60 named</sub></td>
 <td align="center" width="33%"><a href="f-checkout-addr60-outofzone.png"><img src="f-checkout-addr60-outofzone.png" width="240"></a><br><sub>f checkout addr60 outofzone</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="obs-basketbar-stale-after-pharmacy-add.png"><img src="obs-basketbar-stale-after-pharmacy-add.png" width="240"></a><br><sub>obs basketbar stale after pharmacy add</sub></td>
 </tr>
 </table>
@@ -59,6 +63,17 @@
 - [`delta-f-cart-direct-addr60.xml`](delta-f-cart-direct-addr60.xml)
 - [`delta-f-editcart-from-block.xml`](delta-f-editcart-from-block.xml)
 - [`delta-f-evidence.log`](delta-f-evidence.log)
+- [`delta2-f-evidence.log`](delta2-f-evidence.log)
+- [`delta2-f1-01-cart-addr60-card.xml`](delta2-f1-01-cart-addr60-card.xml)
+- [`delta2-f1-02-cart-addr60-after-proceed-tap.xml`](delta2-f1-02-cart-addr60-after-proceed-tap.xml)
+- [`delta2-f1-03-cart-from-panel-editcart.xml`](delta2-f1-03-cart-from-panel-editcart.xml)
+- [`delta2-f1-04-cart-after-remove.xml`](delta2-f1-04-cart-after-remove.xml)
+- [`delta2-f1-05-checkout-after-remove.xml`](delta2-f1-05-checkout-after-remove.xml)
+- [`delta2-f2-01-panel-addr60.xml`](delta2-f2-01-panel-addr60.xml)
+- [`delta2-f2-02-checkout-after-change-location-addr45.xml`](delta2-f2-02-checkout-after-change-location-addr45.xml)
+- [`delta2-f2-03-cart-after-change-location.xml`](delta2-f2-03-cart-after-change-location.xml)
+- [`delta2-f4-00-cart-addr45-baseline.xml`](delta2-f4-00-cart-addr45-baseline.xml)
+- [`delta2-f4-02-cart-back-addr45.xml`](delta2-f4-02-cart-back-addr45.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3860/` · public-repo scrub policy (no live secrets; verified clean).*
