@@ -1,0 +1,16 @@
+# NEARS-4005 QA: one scroll-to-end sends the SAME page twice (customer tab, page 2); both appended -> duplicate rows
+## backend requests.log (own :8105)
+2026-10-02T23:19:37+00:00 GET /api/v1/delivery-man/message/list?offset=1&limit=10&type=customer
+2026-10-02T23:19:41+00:00 GET /api/v1/delivery-man/message/list?offset=2&limit=10&type=customer
+2026-10-02T23:19:41+00:00 GET /api/v1/delivery-man/message/list?offset=2&limit=10&type=customer
+## app log (flutter tag), same trial
+10-03 03:19:32.616 10613 10613 I flutter : [NET] GET endpoint=/api/v1/delivery-man/message/list
+10-03 03:19:32.814 10613 10613 I flutter : [NET] endpoint=/api/v1/delivery-man/message/list http_status=200
+10-03 03:19:35.990 10613 10613 I flutter : [NET] GET endpoint=/api/v1/delivery-man/message/list
+10-03 03:19:36.084 10613 10613 I flutter : [NET] endpoint=/api/v1/delivery-man/message/list http_status=200
+10-03 03:19:36.088 10613 10613 I flutter : [NET] GET endpoint=/api/v1/delivery-man/message/list
+10-03 03:19:36.178 10613 10613 I flutter : [NET] endpoint=/api/v1/delivery-man/message/list http_status=200
+## rows after (top to junction), ids from preview text
+27 rows
+James Wilson(c30001);T U(c30002);QANears(c30003);QASeven(c30004);0(c30005);QA(c30006);QA FreshUser2559(c30007);QaTester1746(c30008);0(c30009);NEARS1678(c30010);NEARS1678B(c30011);QA Nears1867(c30012);QANears1867Two(c30013);QANears1867Three(c30014);QA CartBanner(c30015);QA Tester(c30016);QA_Tester(c30017);Requa Tester(c30018);QA Tester 3522(c30019);Emily Johnson(c30020);NEARS1678B(c30011);QA Nears1867(c30012);QANears1867Two(c30013);QANears1867Three(c30014);QA CartBanner(c30015);QA Tester(c30016);QA_Tester(c30017)
+dupes: {'0': 2, 'NEARS1678B': 2, 'QA Nears1867': 2, 'QANears1867Two': 2, 'QANears1867Three': 2, 'QA CartBanner': 2, 'QA Tester': 2, 'QA_Tester': 2}
