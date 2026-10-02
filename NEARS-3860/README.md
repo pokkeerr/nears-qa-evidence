@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-3860
 
-**NEARS-3860 [8] delta re-QA cycle 2 (F cells): PASS 5/5 @ c9a5ee788**
+**QA delta-3 final-tip money smoke PASS 5/5 @ 547c967e5 (emulator-5662)**
 
-**25 screenshot(s).** Click any thumbnail for full resolution.
+**29 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -46,6 +46,12 @@
 <td align="center" width="33%"><a href="f-checkout-addr60-outofzone.png"><img src="f-checkout-addr60-outofzone.png" width="240"></a><br><sub>f checkout addr60 outofzone</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="final-s3-21-sibling-undo-refused.png"><img src="final-s3-21-sibling-undo-refused.png" width="240"></a><br><sub>final s3 21 sibling undo refused</sub></td>
+<td align="center" width="33%"><a href="final-s4b-01-min-refused.png"><img src="final-s4b-01-min-refused.png" width="240"></a><br><sub>final s4b 01 min refused</sub></td>
+<td align="center" width="33%"><a href="final-s5a-01-fee-failed-row.png"><img src="final-s5a-01-fee-failed-row.png" width="240"></a><br><sub>final s5a 01 fee failed row</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="final-s5b-01-pending-skeleton.png"><img src="final-s5b-01-pending-skeleton.png" width="240"></a><br><sub>final s5b 01 pending skeleton</sub></td>
 <td align="center" width="33%"><a href="obs-basketbar-stale-after-pharmacy-add.png"><img src="obs-basketbar-stale-after-pharmacy-add.png" width="240"></a><br><sub>obs basketbar stale after pharmacy add</sub></td>
 </tr>
 </table>
@@ -74,6 +80,30 @@
 - [`delta2-f2-03-cart-after-change-location.xml`](delta2-f2-03-cart-after-change-location.xml)
 - [`delta2-f4-00-cart-addr45-baseline.xml`](delta2-f4-00-cart-addr45-baseline.xml)
 - [`delta2-f4-02-cart-back-addr45.xml`](delta2-f4-02-cart-back-addr45.xml)
+- [`final-app-fail-err-lines.log`](final-app-fail-err-lines.log)
+- [`final-persisted-rows.log`](final-persisted-rows.log)
+- [`final-proxy-money-lines.log`](final-proxy-money-lines.log)
+- [`final-s1-00-checkout-baseline.xml`](final-s1-00-checkout-baseline.xml)
+- [`final-s1-01-checkout-coupon.xml`](final-s1-01-checkout-coupon.xml)
+- [`final-s1-02-confirm-sheet.xml`](final-s1-02-confirm-sheet.xml)
+- [`final-s2-cart-after-remove.xml`](final-s2-cart-after-remove.xml)
+- [`final-s2-cart-lower.xml`](final-s2-cart-lower.xml)
+- [`final-s3-00-cart-before-remove.xml`](final-s3-00-cart-before-remove.xml)
+- [`final-s3-01-rows-expanded.xml`](final-s3-01-rows-expanded.xml)
+- [`final-s3-02-sibling-remove-snackbar.xml`](final-s3-02-sibling-remove-snackbar.xml)
+- [`final-s3-10-single-row-before.xml`](final-s3-10-single-row-before.xml)
+- [`final-s3-11-single-row-after-undo.xml`](final-s3-11-single-row-after-undo.xml)
+- [`final-s3-20-sibling-after-undo.xml`](final-s3-20-sibling-after-undo.xml)
+- [`final-s3-21-sibling-undo-refused.xml`](final-s3-21-sibling-undo-refused.xml)
+- [`final-s4a-00-cart-bar.xml`](final-s4a-00-cart-bar.xml)
+- [`final-s4a-01-checkout.xml`](final-s4a-01-checkout.xml)
+- [`final-s4a-02-checkout-summary.xml`](final-s4a-02-checkout-summary.xml)
+- [`final-s4a-03-confirm-sheet.xml`](final-s4a-03-confirm-sheet.xml)
+- [`final-s4b-00-cart-bar.xml`](final-s4b-00-cart-bar.xml)
+- [`final-s4b-01-min-refused.xml`](final-s4b-01-min-refused.xml)
+- [`final-s5a-01-fee-failed-row.xml`](final-s5a-01-fee-failed-row.xml)
+- [`final-s5a-02-after-retry.xml`](final-s5a-02-after-retry.xml)
+- [`final-s5b-02-resolved.xml`](final-s5b-02-resolved.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3860/` · public-repo scrub policy (no live secrets; verified clean).*
