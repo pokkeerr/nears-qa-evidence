@@ -1,0 +1,26 @@
+diff --git a/UserApp/lib/features/store/controllers/store_controller.dart b/UserApp/lib/features/store/controllers/store_controller.dart
+index 7627d616d..e10531716 100644
+--- a/UserApp/lib/features/store/controllers/store_controller.dart
++++ b/UserApp/lib/features/store/controllers/store_controller.dart
+@@ -371,17 +371,14 @@ class StoreController extends GetxController implements GetxService {
+ 
+   double getRestaurantDistance(LatLng storeLatLng) {
+     double distance = 0;
+-    if (AddressHelper.getUserAddressFromSharedPref() != null) {
++    final AddressModel? address = AddressHelper.getUserAddressFromSharedPref();
++    if (address != null) {
+       distance =
+           Geolocator.distanceBetween(
+             storeLatLng.latitude,
+             storeLatLng.longitude,
+-            double.parse(
+-              AddressHelper.getUserAddressFromSharedPref()?.latitude ?? '0',
+-            ),
+-            double.parse(
+-              AddressHelper.getUserAddressFromSharedPref()?.longitude ?? '0',
+-            ),
++            double.parse(address.latitude ?? '0'),
++            double.parse(address.longitude ?? '0'),
+           ) /
+           1000;
+     }
