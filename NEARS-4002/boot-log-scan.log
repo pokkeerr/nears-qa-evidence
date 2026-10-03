@@ -1,0 +1,17 @@
+# NEARS-4002 QA boot check - log scan results (debug build, emulator NEARS_2414_QA / emulator-5554, worktree backend :8102)
+# Scan: grep -E '\[ERR\]|\[FAIL\]|Unhandled Exception|StateError|Uneven calls|EXCEPTION CAUGHT' over the flutter run log + logcat -s AndroidRuntime:E; ui_errors for the signed-in relaunch
+
+## Run 1 (Firebase ready; boot, login, dashboard): matches:
+0
+## Run 2 (signed-in relaunch via am start, logcat -d after relaunch): matches: 0 (logcat grep empty; AndroidRuntime:E empty; ui_errors: 19 flutter-tag lines for pid 4958, 0 matches)
+## Run 3 (Firebase NOT ready): matches (excerpt, [NET]/[IMPORTANT] lines omitted):
+29:I/flutter ( 3559): [FAIL] endpoint=null http_status=null type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+48:E/flutter ( 3559): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+63:I/flutter ( 3559): [FAIL] endpoint=/api/v1/delivery-man/profile http_status=null type=ApiFailure msg="api request threw" correlation_id=<id>
+66:E/flutter ( 3559): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: Null check operator used on a null value
+365:I/flutter ( 3559): [FAIL] endpoint=/api/v1/delivery-man/profile http_status=null type=ApiFailure msg="api request threw" correlation_id=<id>
+367:I/flutter ( 3559): [FAIL] endpoint=/api/v1/delivery-man/latest-orders http_status=null type=ApiFailure msg="api request threw" correlation_id=<id>
+368:I/flutter ( 3559): [FAIL] endpoint=/api/v1/delivery-man/current-orders http_status=null type=ApiFailure msg="api request threw" correlation_id=<id>
+370:I/flutter ( 3559): [FAIL] endpoint=/api/v1/delivery-man/notifications http_status=null type=ApiFailure msg="api request threw" correlation_id=<id>
+
+## Run 3: grep for TimelineTask/boot span failure signatures: 'Uneven calls to start and finish' -> 0 ; 'main.dart' in any stack -> 0

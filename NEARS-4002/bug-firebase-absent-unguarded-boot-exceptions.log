@@ -1,0 +1,12 @@
+# bug-firebase-absent-unguarded-boot-exceptions (regression candidate, NOT a task bug; code untouched by NEARS-4002)
+# Condition: DeliveryApp debug build WITHOUT android/app/google-services.json (Firebase.initializeApp fails, firebaseReady=false), signed-in token on device.
+# Observed on the span build; the throwing frames are in code NEARS-4002 does not change (git diff 9222f9dc8 -- DeliveryApp/lib = main.dart only).
+29:I/flutter ( 3559): [FAIL] endpoint=null http_status=null type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+48:E/flutter ( 3559): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+52:E/flutter ( 3559): #3      AuthRepository._saveDeviceToken (package:nears_delivery/features/auth/domain/repositories/auth_repository.dart:88:47)
+53:E/flutter ( 3559): #4      AuthRepository.updateToken (package:nears_delivery/features/auth/domain/repositories/auth_repository.dart:54:27)
+56:E/flutter ( 3559): #7      SplashScreenState._handleDefaultRouting (package:nears_delivery/features/splash/screens/splash_screen.dart:145:44)
+66:E/flutter ( 3559): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: Null check operator used on a null value
+67:E/flutter ( 3559): #0      DisbursementHelper.enableDisbursementWarningMessage (package:nears_delivery/features/disbursement/domain/helpers/disbursement_helper.dart:18:125)
+68:E/flutter ( 3559): #1      DashboardScreenState.showDisbursementWarningMessage (package:nears_delivery/features/dashboard/screens/dashboard_screen.dart:110:26)
+69:E/flutter ( 3559): #2      DashboardScreenState.initState (package:nears_delivery/features/dashboard/screens/dashboard_screen.dart:62:5)
