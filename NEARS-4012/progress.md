@@ -1,0 +1,6 @@
+# NEARS-4012 step 3 QA evidence (sha 775fd4f73, nears-qa [8])
+PART A (device-free) AC1-AC11 PASS: cmp rc=0 vs base for both legacy files; shims one export; PARITY BODY shasum 7ee45ee24be7238781249f3836c9ea2ae120c757 x3; 5 new test files green alone (36/36/36/5/5); M5, M7 red in pkg+Vendor+Delivery (+31-5, +33-3), M6 identity +0-5 both apps with parity staying +36; unmoved copies green +36 and typo-red; Delivery analyzer 90 identical, pkg no issues.
+PART B/C live (AVD Pixel_10_Pro, emulator-5554, own backend :8412 from worktree @775fd4f73, DB copy nears_4012_s3_qa):
+- Vendor: attention dialog -> Set Default Payment Method -> WithdrawMethodScreen entry fired GET /vendor/get-withdraw-method-list 200 -> FAB -> add screen: idx0 hints 'bank name' 'account number'; pick QA PayPal -> 'paypal email'. Logs clean. No submit.
+- Delivery: Profile > Withdraw Method list entry fired GET /delivery-man/get-withdraw-method-list 200 -> FAB -> add: 'Bank name','Account number'; pick QA PayPal -> 'Paypal email' (label from input_name, differs in case from placeholder 'PayPal email'). Edit screen on saved method: fields render with saved values. Logs clean. No POST except login/fcm-token.
+Files: 2 PNG (vendor-add-withdraw-method-paypal.png 72800 B, delivery-add-withdraw-method-paypal.png 70192 B), a11y dumps xml, log excerpts, oracle json, m5/m7 diffs.
