@@ -8,6 +8,7 @@
 - [`boot-log-scan.log`](boot-log-scan.log)
 - [`boot-timeline-events.txt`](boot-timeline-events.txt)
 - [`bug-firebase-absent-unguarded-boot-exceptions.log`](bug-firebase-absent-unguarded-boot-exceptions.log)
+- [`bug-stale-inventory-totals.log`](bug-stale-inventory-totals.log)
 - [`progress.md`](progress.md)
 
 ---
