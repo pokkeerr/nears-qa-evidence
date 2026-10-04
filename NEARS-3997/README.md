@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3997
 
-**step 2 delta QA: FAIL (survivors R13 R15 R22 R27-R31 R34)**
+**step 2 delta2 QA: FAIL (survivors W18 W34-W38), cap reached**
 
 **7 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -22,9 +22,13 @@
 
 ### Other artifacts
 - [`delta-gate-and-seed-results.jsonl`](delta-gate-and-seed-results.jsonl)
+- [`delta2-gate-and-seed-results.jsonl`](delta2-gate-and-seed-results.jsonl)
+- [`delta2-mechanism-quoted-one-arg.txt`](delta2-mechanism-quoted-one-arg.txt)
+- [`delta2-mechanism-separate-words.txt`](delta2-mechanism-separate-words.txt)
 - [`gate-results.jsonl`](gate-results.jsonl)
 - [`mutation-control-results.jsonl`](mutation-control-results.jsonl)
 - [`qa-delta-mutations.md`](qa-delta-mutations.md)
+- [`qa-delta2-mutations.md`](qa-delta2-mutations.md)
 - [`qa-mutations.md`](qa-mutations.md)
 - [`shop-home-bottom-dump.xml`](shop-home-bottom-dump.xml)
 - [`shop-home-top-dump.xml`](shop-home-top-dump.xml)
