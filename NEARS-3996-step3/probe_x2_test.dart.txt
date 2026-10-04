@@ -1,0 +1,34 @@
+import 'dart:async';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
+import 'package:nears/features/item/domain/models/item_model.dart';
+import '../support/store_offers_support.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  tearDown(Get.reset);
+  for (final bool storeWide in <bool>[false, true]) {
+    test('PROBE stale offers page lands after a normal tab tap cleared the selection (storeWide=$storeWide)', () async {
+      final OffersRig r = await OffersRig.create(withAnalytics: true);
+      await r.open();
+      r.recordNotifies();
+      final Completer<ItemModel?> stalePage = Completer<ItemModel?>();
+      r.service.categoryItemsAnswer = (int c, int? s, int o) => o == 1 ? offerPage(<Item>[offerItem(30), offerItem(31)], totalSize: 10, offset: 1) : stalePage.future;
+      r.service.storeOffersAnswer = (int? s, int o) => o == 1 ? Future<ItemModel?>.value(offerPage(<Item>[offerItem(30), offerItem(31)], totalSize: 10, offset: 1)) : stalePage.future;
+      if (storeWide) {
+        await r.controller.selectAllOffers();
+      } else {
+        await r.controller.selectOfferCategory(3);
+      }
+      final Future<bool> stale = storeWide ? r.controller.getStoreOfferItemListPaginated(2) : r.controller.getOfferCategoryItemListPaginated(2);
+      r.controller.setCategoryIndex(0);
+      await pumpEventQueue();
+      final before = itemIds(r.controller.storeItemModel);
+      final int notifiesBefore = r.events.where((String e) => e.startsWith('notify')).length;
+      stalePage.complete(offerPage(<Item>[offerItem(32), offerItem(33)], totalSize: 40, offset: 2));
+      final bool res = await stale;
+      // ignore: avoid_print
+      print('PROBE storeWide=$storeWide selected=${r.controller.isOfferCategorySelected} listBefore=$before listAfter=${itemIds(r.controller.storeItemModel)} result=$res notifiesDuringStalePage=${r.events.where((String e) => e.startsWith('notify')).length - notifiesBefore}');
+    });
+  }
+}

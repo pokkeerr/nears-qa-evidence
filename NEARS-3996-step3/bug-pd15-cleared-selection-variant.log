@@ -1,0 +1,12 @@
+# bug-pd15-cleared-selection-variant (mutation survivor X2; behaviour identical at base because the blocks are verbatim)
+## probe (scratch copy only, not committed; source: probe_x2_test.dart.txt) at TIP (unmutated):
+00:00 +0: PROBE stale offers page lands after a normal tab tap cleared the selection (storeWide=false)
+PROBE storeWide=false selected=false listBefore=[100, 101, 102, 103] listAfter=[100, 101, 102, 103, 32, 33] result=true notifiesDuringStalePage=1
+00:00 +1: PROBE stale offers page lands after a normal tab tap cleared the selection (storeWide=true)
+PROBE storeWide=true selected=false listBefore=[100, 101, 102, 103] listAfter=[100, 101, 102, 103, 32, 33] result=true notifiesDuringStalePage=1
+## same probe with mutant X2 (guard: if (_offerCategoryId == null) return true; after the await in getOfferCategoryItemListPaginated):
+00:00 +0: PROBE stale offers page lands after a normal tab tap cleared the selection (storeWide=false)
+PROBE storeWide=false selected=false listBefore=[100, 101, 102, 103] listAfter=[100, 101, 102, 103] result=true notifiesDuringStalePage=0
+00:00 +1: PROBE stale offers page lands after a normal tab tap cleared the selection (storeWide=true)
+PROBE storeWide=true selected=false listBefore=[100, 101, 102, 103] listAfter=[100, 101, 102, 103, 32, 33] result=true notifiesDuringStalePage=1
+## all 17 test files (4 new + 13 pre-existing nets) stayed GREEN under X2 => the sub-category pager's cleared-selection write-back is unpinned.
