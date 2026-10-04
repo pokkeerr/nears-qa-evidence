@@ -1,0 +1,5 @@
+QA independent mutations that SURVIVE (new file store_availability_policy_test.dart 54/54 green AND 16 unmodified net files green) - all in StoreAvailabilityPolicy._minuteOfDay (UserApp/lib/features/store/domain/helpers/store_availability_policy.dart:91-100), the parser behind isStoreOpen24h / isStoreClosingSoon:
+S01 L93  r'^(\d{1,2}):(\d{2})'  ->  r'^(\d{2}):(\d{2})'   (single-digit hour "9:00" no longer parsed)  -> 54/54 green
+S02 L94  .firstMatch((time ?? '').trim())  ->  .firstMatch((time ?? ''))   (surrounding whitespace no longer trimmed)  -> 54/54 green
+S11 L93  r'^(\d{1,2}):(\d{2})'  ->  r'(\d{1,2}):(\d{2})'   (start anchor dropped; 'x09:00' parses)  -> 54/54 green
+No test feeds a single-digit-hour, whitespace-padded or prefixed time string to the minute reads (grep of the new file: only zero-padded HH:MM / HH:MM:SS fixtures). DB TIME columns serialise zero-padded, so this is a pin gap, not a user-visible defect.

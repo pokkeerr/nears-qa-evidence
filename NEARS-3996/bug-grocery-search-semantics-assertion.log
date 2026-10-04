@@ -1,0 +1,5 @@
+PRE-EXISTING (observed on the BASE build ca8f0d612, debug APK, emulator-5554, 2026-10-04 22:34-22:36 +04): on the Grocery search-results page (search "Sk General") the debug accessibility tree is stubbed (uifind: "stub-shaped dump (4 node(s), 0 labelled)") while logcat repeats:
+[FAIL] framework_error library=scheduler library type=_AssertionError msg="'package:flutter/src/semantics/semantics.dart': Failed assertion: line 3252 pos 12: 'owner!._nodes.containsKey(id)': is not true."
+[FAIL] framework_error   at #2      SemanticsNode.detach (package:flutter/src/semantics/semantics.dart:3252:12)
+[FAIL] framework_error   at #6      RenderTable.assembleSemanticsNode (package:flutter/src/rendering/table.dart:731:15)
+(also line 2990 pos 16 '!child.attached' via RenderTable.assembleSemanticsNode table.dart:791:10). One KEYCODE_BACK restores the tree. Debug-only assertion; release builds do not assert. Observed on the base build, i.e. not introduced by step 2; whether the step-2 build shows it too was not asserted (its walks recorded no framework_error lines).
