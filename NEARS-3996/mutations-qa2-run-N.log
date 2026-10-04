@@ -1,0 +1,488 @@
+[N01] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:16:04
+@@ -93 +93 @@
+-      r'^(\d{1,2}):(\d{2})',
++      r'^(\d{1,2}):(\d{1,2})',
+
+[N01] new file rc=1 last=00:00 +63 -1: Some tests failed. red=1
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) the minute needs two digits: 9:5 and 17:0 are skipped, 09:05 and 17:00 are read
+[N01] RESTORE diff rc=0 empty
+[N01] VERDICT KILLED
+[N02] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:16:11
+@@ -98 +98 @@
+-    if (hour > 24 || minute > 59) return null;
++    if (hour > 24 || minute > 60) return null;
+
+[N02] new file rc=1 last=00:00 +63 -1: Some tests failed. red=1
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) range limits: hour 24 and minute 59 are read, hour 25 and minute 60 are skipped
+[N02] RESTORE diff rc=0 empty
+[N02] VERDICT KILLED
+[N03] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:16:17
+@@ -98 +98 @@
+-    if (hour > 24 || minute > 59) return null;
++    if (hour > 25 || minute > 59) return null;
+
+[N03] new file rc=1 last=00:00 +62 -2: Some tests failed. red=2
+    RED: isStoreOpen24h hour 25 and minute 61 rows are skipped, not read as 24h
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) range limits: hour 24 and minute 59 are read, hour 25 and minute 60 are skipped
+[N03] RESTORE diff rc=0 empty
+[N03] VERDICT KILLED
+[N04] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:16:23
+@@ -99 +99 @@
+-    return hour * 60 + minute;
++    return hour * 60;
+
+[N04] new file rc=1 last=00:00 +52 -12: Some tests failed. red=12
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade delegates keep their literal answers on the same fixture (Mon 10:30 and Sun
+    RED: isStoreOpen24h 00:00-23:59 and 00:00-24:00 are 24h; 23:58 and an opening of 00:01 are not
+    RED: isStoreOpen24h Sunday reads day 0
+    RED: isStoreOpen24h inactive is false even with a full-day row; active null still counts
+    RED: isStoreOpen24h only today's rows count, and any one qualifying row among several is enough
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) PINNED: the regex has no end anchor, so trailing text after HH:MM is ignored
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) a time that starts with anything but digits is unparseable: the row is skipped, nev
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) positive control: clean 09:00-17:00 is soon at 16:30, so a parser that matches noth
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) range limits: hour 24 and minute 59 are read, hour 25 and minute 60 are skipped
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour (closing): 0:00-9:30 closes at minute 570, soon from 08:30, not f
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour: 0:00-23:59 is a 24h day, 0:00-23:58 and 1:00-23:59 are not
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) surrounding whitespace is trimmed on either time, in any padding
+[N04] RESTORE diff rc=0 empty
+[N04] VERDICT KILLED
+[N05] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:16:29
+@@ -89 +89 @@
+-  static const int _lastMinuteOfDay = 23 * 60 + 59;
++  static const int _lastMinuteOfDay = 23 * 60 + 58;
+
+[N05] new file rc=1 last=00:00 +62 -2: Some tests failed. red=2
+    RED: isStoreOpen24h 00:00-23:59 and 00:00-24:00 are 24h; 23:58 and an opening of 00:01 are not
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour: 0:00-23:59 is a 24h day, 0:00-23:58 and 1:00-23:59 are not
+[N05] RESTORE diff rc=0 empty
+[N05] VERDICT KILLED
+[N06] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:16:35
+@@ -79 +79 @@
+-      if (opening <= 0 && closing >= _lastMinuteOfDay) {
++      if (opening < 0 && closing >= _lastMinuteOfDay) {
+
+[N06] new file rc=1 last=00:00 +50 -14: Some tests failed. red=14
+    RED: PINNED-DEFECT rows restated on the policy (same expectations as the step-1 fixtures; none is fixed) PINNED-DEFECT PD-4: 00:00-24:00 is open24h at noon, yet the production
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade delegates keep their literal answers on the same fixture (Mon 10:30 and Sun
+    RED: isStoreClosingSoon a store open around the clock today is never closing soon (24:00 close included)
+    RED: isStoreOpen24h 00:00-23:59 and 00:00-24:00 are 24h; 23:58 and an opening of 00:01 are not
+    RED: isStoreOpen24h Sunday reads day 0
+    RED: isStoreOpen24h inactive is false even with a full-day row; active null still counts
+    RED: isStoreOpen24h only today's rows count, and any one qualifying row among several is enough
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) PINNED: the regex has no end anchor, so trailing text after HH:MM is ignored
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) a time that starts with anything but digits is unparseable: the row is skipped, nev
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) positive control: clean 09:00-17:00 is soon at 16:30, so a parser that matches noth
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) range limits: hour 24 and minute 59 are read, hour 25 and minute 60 are skipped
+[N06] RESTORE diff rc=0 empty
+[N06] VERDICT KILLED
+[N07] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:16:41
+@@ -140 +140 @@
+-      return closing - nowMinute <= thresholdMinutes;
++      return closing - nowMinute < thresholdMinutes;
+
+[N07] new file rc=1 last=00:00 +58 -6: Some tests failed. red=6
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade forwards thresholdMinutes: default 60 is soon at 16:29, an explicit 30 is n
+    RED: isStoreClosingSoon a custom threshold moves the inclusive edge: 30 -> 16:30 soon, 16:29 not; 0 -> never inside the window
+    RED: isStoreClosingSoon default threshold is 60 minutes inclusive: 16:00 soon, 15:59 not, close minute 17:00 not, before opening not
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour (closing): 0:00-9:30 closes at minute 570, soon from 08:30, not f
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour (opening): 9:00-17:00 reads the same as 09:00-17:00 on both sides
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) surrounding whitespace is trimmed on either time, in any padding
+[N07] RESTORE diff rc=0 empty
+[N07] VERDICT KILLED
+[N08] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:16:48
+@@ -139 +139 @@
+-      if (nowMinute < opening || nowMinute >= closing) continue;
++      if (nowMinute < opening || nowMinute > closing) continue;
+
+[N08] new file rc=1 last=00:00 +60 -4: Some tests failed. red=4
+    RED: PINNED-DEFECT rows restated on the policy (same expectations as the step-1 fixtures; none is fixed) PINNED-DEFECT PD-3: an HH:MM:SS row compares as a string, so 09:00 rea
+    RED: isStoreClosingSoon default threshold is 60 minutes inclusive: 16:00 soon, 15:59 not, close minute 17:00 not, before opening not
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour (closing): 0:00-9:30 closes at minute 570, soon from 08:30, not f
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour (opening): 9:00-17:00 reads the same as 09:00-17:00 on both sides
+[N08] RESTORE diff rc=0 empty
+[N08] VERDICT KILLED
+[N09] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:16:54
+@@ -139 +139 @@
+-      if (nowMinute < opening || nowMinute >= closing) continue;
++      if (nowMinute <= opening || nowMinute >= closing) continue;
+
+[N09] new file rc=1 last=00:00 +61 -3: Some tests failed. red=3
+    RED: isStoreClosingSoon a custom threshold moves the inclusive edge: 30 -> 16:30 soon, 16:29 not; 0 -> never inside the window
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour (closing): 0:00-9:30 closes at minute 570, soon from 08:30, not f
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour (opening): 9:00-17:00 reads the same as 09:00-17:00 on both sides
+[N09] RESTORE diff rc=0 empty
+[N09] VERDICT KILLED
+[N10] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:17:00
+@@ -98 +98 @@
+-    if (hour > 24 || minute > 59) return null;
++    if (hour >= 24 || minute > 59) return null;
+
+[N10] new file rc=1 last=00:00 +59 -5: Some tests failed. red=5
+    RED: PINNED-DEFECT rows restated on the policy (same expectations as the step-1 fixtures; none is fixed) PINNED-DEFECT PD-4: 00:00-24:00 is open24h at noon, yet the production
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+    RED: isStoreClosingSoon a store open around the clock today is never closing soon (24:00 close included)
+    RED: isStoreOpen24h 00:00-23:59 and 00:00-24:00 are 24h; 23:58 and an opening of 00:01 are not
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) range limits: hour 24 and minute 59 are read, hour 25 and minute 60 are skipped
+[N10] RESTORE diff rc=0 empty
+[N10] VERDICT KILLED
+[N11] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:17:06
+@@ -98 +98 @@
+-    if (hour > 24 || minute > 59) return null;
++    if (hour > 24 || minute >= 59) return null;
+
+[N11] new file rc=1 last=00:00 +53 -11: Some tests failed. red=11
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade delegates keep their literal answers on the same fixture (Mon 10:30 and Sun
+    RED: isStoreOpen24h 00:00-23:59 and 00:00-24:00 are 24h; 23:58 and an opening of 00:01 are not
+    RED: isStoreOpen24h Sunday reads day 0
+    RED: isStoreOpen24h inactive is false even with a full-day row; active null still counts
+    RED: isStoreOpen24h only today's rows count, and any one qualifying row among several is enough
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) PINNED: the regex has no end anchor, so trailing text after HH:MM is ignored
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) a time that starts with anything but digits is unparseable: the row is skipped, nev
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) positive control: clean 09:00-17:00 is soon at 16:30, so a parser that matches noth
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) range limits: hour 24 and minute 59 are read, hour 25 and minute 60 are skipped
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour: 0:00-23:59 is a 24h day, 0:00-23:58 and 1:00-23:59 are not
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) surrounding whitespace is trimmed on either time, in any padding
+[N11] RESTORE diff rc=0 empty
+[N11] VERDICT KILLED
+[N12] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:17:12
+@@ -79 +79 @@
+-      if (opening <= 0 && closing >= _lastMinuteOfDay) {
++      if (opening <= 0 && closing > _lastMinuteOfDay) {
+
+[N12] new file rc=1 last=00:00 +51 -13: Some tests failed. red=13
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade delegates keep their literal answers on the same fixture (Mon 10:30 and Sun
+    RED: isStoreClosingSoon a store open around the clock today is never closing soon (24:00 close included)
+    RED: isStoreOpen24h 00:00-23:59 and 00:00-24:00 are 24h; 23:58 and an opening of 00:01 are not
+    RED: isStoreOpen24h Sunday reads day 0
+    RED: isStoreOpen24h inactive is false even with a full-day row; active null still counts
+    RED: isStoreOpen24h only today's rows count, and any one qualifying row among several is enough
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) PINNED: the regex has no end anchor, so trailing text after HH:MM is ignored
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) a time that starts with anything but digits is unparseable: the row is skipped, nev
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) positive control: clean 09:00-17:00 is soon at 16:30, so a parser that matches noth
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) range limits: hour 24 and minute 59 are read, hour 25 and minute 60 are skipped
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour: 0:00-23:59 is a 24h day, 0:00-23:58 and 1:00-23:59 are not
+[N12] RESTORE diff rc=0 empty
+[N12] VERDICT KILLED
+[N13] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:17:18
+@@ -132 +132 @@
+-    final int nowMinute = now.hour * 60 + now.minute;
++    final int nowMinute = now.hour * 60;
+
+[N13] new file rc=1 last=00:00 +61 -3: Some tests failed. red=3
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade forwards thresholdMinutes: default 60 is soon at 16:29, an explicit 30 is n
+    RED: isStoreClosingSoon a custom threshold moves the inclusive edge: 30 -> 16:30 soon, 16:29 not; 0 -> never inside the window
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour (closing): 0:00-9:30 closes at minute 570, soon from 08:30, not f
+[N13] RESTORE diff rc=0 empty
+[N13] VERDICT KILLED
+[N14] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:17:24
+@@ -127 +126,0 @@
+-    if (isStoreOpen24h(store)) return false;
+
+[N14] new file rc=1 last=00:00 +59 -5: Some tests failed. red=5
+    RED: PINNED-DEFECT rows restated on the policy (same expectations as the step-1 fixtures; none is fixed) PINNED-DEFECT PD-4: 00:00-24:00 is open24h at noon, yet the production
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade delegates keep their literal answers on the same fixture (Mon 10:30 and Sun
+    RED: isStoreClosingSoon a store open around the clock today is never closing soon (24:00 close included)
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour: 0:00-23:59 is a 24h day, 0:00-23:58 and 1:00-23:59 are not
+[N14] RESTORE diff rc=0 empty
+[N14] VERDICT KILLED
+[N15] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:17:31
+@@ -73 +72,0 @@
+-    if (weekday == 7) weekday = 0;
+
+[N15] new file rc=1 last=00:00 +61 -3: Some tests failed. red=3
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade delegates keep their literal answers on the same fixture (Mon 10:30 and Sun
+    RED: isStoreOpen24h Sunday reads day 0
+[N15] RESTORE diff rc=0 empty
+[N15] VERDICT KILLED
+[N16] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:17:37
+@@ -65,3 +64,0 @@
+-    if (store.active == false) {
+-      return false;
+-    }
+
+[N16] new file rc=1 last=00:00 +63 -1: Some tests failed. red=1
+    RED: isStoreOpen24h inactive is false even with a full-day row; active null still counts
+[N16] RESTORE diff rc=0 empty
+[N16] VERDICT KILLED
+[N17] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:17:43
+@@ -94 +94 @@
+-    ).firstMatch((time ?? '').trim());
++    ).firstMatch((time ?? '').trimRight());
+
+[N17] new file rc=1 last=00:00 +63 -1: Some tests failed. red=1
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) surrounding whitespace is trimmed on either time, in any padding
+[N17] RESTORE diff rc=0 empty
+[N17] VERDICT KILLED
+[N18] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:17:49
+@@ -94 +94 @@
+-    ).firstMatch((time ?? '').trim());
++    ).firstMatch((time ?? '0:00').trim());
+
+[N18] new file rc=0 last=00:00 +64: All tests passed! red=0
+[N18] net(3 baseline files) rc=0 last=00:02 +45: All tests passed! red=0
+[N18] RESTORE diff rc=0 empty
+[N18] VERDICT SURVIVED
+[N19] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:18:01
+@@ -93 +93 @@
+-      r'^(\d{1,2}):(\d{2})',
++      r'^(\d{1,2})[:.](\d{2})',
+
+[N19] new file rc=0 last=00:00 +64: All tests passed! red=0
+[N19] net(3 baseline files) rc=0 last=00:01 +45: All tests passed! red=0
+[N19] RESTORE diff rc=0 empty
+[N19] VERDICT SURVIVED
+[N20] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:18:14
+@@ -96,2 +96,2 @@
+-    final int hour = int.parse(match.group(1)!);
+-    final int minute = int.parse(match.group(2)!);
++    final int hour = int.parse(match.group(2)!);
++    final int minute = int.parse(match.group(1)!);
+
+[N20] new file rc=1 last=00:00 +35 -29: Some tests failed. red=29
+    RED: PINNED-DEFECT rows restated on the policy (same expectations as the step-1 fixtures; none is fixed) PINNED-DEFECT PD-3: an HH:MM:SS row compares as a string, so 09:00 rea
+    RED: PINNED-DEFECT rows restated on the policy (same expectations as the step-1 fixtures; none is fixed) PINNED-DEFECT PD-4: 00:00-24:00 is open24h at noon, yet the production
+    RED: PINNED-DEFECT rows restated on the policy (same expectations as the step-1 fixtures; none is fixed) PINNED-DEFECT PD-6: the schedule reads never look at the vendor open f
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the closing-soon, 24h and transition delegates read `now` and ignore the splash clock
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade delegates keep their literal answers on the same fixture (Mon 10:30 and Sun
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade forwards thresholdMinutes: default 60 is soon at 16:29, an explicit 30 is n
+    RED: isStoreClosingSoon Sunday reads day 0
+    RED: isStoreClosingSoon a custom threshold moves the inclusive edge: 30 -> 16:30 soon, 16:29 not; 0 -> never inside the window
+    RED: isStoreClosingSoon a store open around the clock today is never closing soon (24:00 close included)
+    RED: isStoreClosingSoon active null passes through, active false is never soon, null/empty schedules and other-day rows are never soon
+    RED: isStoreClosingSoon default threshold is 60 minutes inclusive: 16:00 soon, 15:59 not, close minute 17:00 not, before opening not
+[N20] RESTORE diff rc=0 empty
+[N20] VERDICT KILLED
+[N21] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:18:20
+@@ -99 +99 @@
+-    return hour * 60 + minute;
++    return hour * 59 + minute;
+
+[N21] new file rc=1 last=00:00 +45 -19: Some tests failed. red=19
+    RED: PINNED-DEFECT rows restated on the policy (same expectations as the step-1 fixtures; none is fixed) PINNED-DEFECT PD-4: 00:00-24:00 is open24h at noon, yet the production
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade delegates keep their literal answers on the same fixture (Mon 10:30 and Sun
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade forwards thresholdMinutes: default 60 is soon at 16:29, an explicit 30 is n
+    RED: isStoreClosingSoon a custom threshold moves the inclusive edge: 30 -> 16:30 soon, 16:29 not; 0 -> never inside the window
+    RED: isStoreClosingSoon a store open around the clock today is never closing soon (24:00 close included)
+    RED: isStoreClosingSoon default threshold is 60 minutes inclusive: 16:00 soon, 15:59 not, close minute 17:00 not, before opening not
+    RED: isStoreOpen24h 00:00-23:59 and 00:00-24:00 are 24h; 23:58 and an opening of 00:01 are not
+    RED: isStoreOpen24h Sunday reads day 0
+    RED: isStoreOpen24h inactive is false even with a full-day row; active null still counts
+    RED: isStoreOpen24h only today's rows count, and any one qualifying row among several is enough
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) PINNED: the regex has no end anchor, so trailing text after HH:MM is ignored
+[N21] RESTORE diff rc=0 empty
+[N21] VERDICT KILLED
+[N22] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:18:26
+@@ -142 +142 @@
+-    return false;
++    return true;
+
+[N22] new file rc=1 last=00:00 +50 -14: Some tests failed. red=14
+    RED: PINNED-DEFECT rows restated on the policy (same expectations as the step-1 fixtures; none is fixed) PINNED-DEFECT PD-1: overnight 22:00-02:00 reads the 22:00 row at 01:30
+    RED: PINNED-DEFECT rows restated on the policy (same expectations as the step-1 fixtures; none is fixed) PINNED-DEFECT PD-3: an HH:MM:SS row compares as a string, so 09:00 rea
+    RED: PINNED-DEFECT rows restated on the policy (same expectations as the step-1 fixtures; none is fixed) PINNED-DEFECT PD-5: malformed times: unparseable and empty text throw 
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+    RED: isStoreClosingSoon active null passes through, active false is never soon, null/empty schedules and other-day rows are never soon
+    RED: isStoreClosingSoon default threshold is 60 minutes inclusive: 16:00 soon, 15:59 not, close minute 17:00 not, before opening not
+    RED: isStoreClosingSoon malformed rows are skipped without throwing, and the next row is still judged
+    RED: isStoreClosingSoon split service: the row that contains now decides, a gap between rows is not soon
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) a time that starts with anything but digits is unparseable: the row is skipped, nev
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) an unparseable row is skipped and the next Monday row is still judged
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) range limits: hour 24 and minute 59 are read, hour 25 and minute 60 are skipped
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour (closing): 0:00-9:30 closes at minute 570, soon from 08:30, not f
+[N22] RESTORE diff rc=0 empty
+[N22] VERDICT KILLED
+[N23] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:18:32
+@@ -14 +14 @@
+-  static const int defaultClosingSoonMinutes = 60;
++  static const int defaultClosingSoonMinutes = 59;
+
+[N23] new file rc=1 last=00:00 +59 -5: Some tests failed. red=5
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade forwards thresholdMinutes: default 60 is soon at 16:29, an explicit 30 is n
+    RED: isStoreClosingSoon default threshold is 60 minutes inclusive: 16:00 soon, 15:59 not, close minute 17:00 not, before opening not
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour (closing): 0:00-9:30 closes at minute 570, soon from 08:30, not f
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) single-digit hour (opening): 9:00-17:00 reads the same as 09:00-17:00 on both sides
+    RED: time-string shapes read by the minute parser (via isStoreClosingSoon / isStoreOpen24h) surrounding whitespace is trimmed on either time, in any padding
+[N23] RESTORE diff rc=0 empty
+[N23] VERDICT KILLED
+[N24] LANDED DIFF (CTRL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 03:51:14
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 07:18:38
+@@ -1972,4 +1972 @@
+-  }) => _availability.isStoreClosingSoon(
+-    store,
+-    thresholdMinutes: thresholdMinutes,
+-  );
++  }) => _availability.isStoreClosingSoon(store);
+
+[N24] new file rc=1 last=00:00 +62 -2: Some tests failed. red=2
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade forwards thresholdMinutes: default 60 is soon at 16:29, an explicit 30 is n
+[N24] RESTORE diff rc=0 empty
+[N24] VERDICT KILLED
+[N25] LANDED DIFF (CTRL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 03:51:14
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 07:18:45
+@@ -1967 +1967 @@
+-  bool isStoreOpen24h(Store store) => _availability.isStoreOpen24h(store);
++  bool isStoreOpen24h(Store store) => false;
+
+[N25] new file rc=1 last=00:00 +62 -2: Some tests failed. red=2
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade delegates keep their literal answers on the same fixture (Mon 10:30 and Sun
+[N25] RESTORE diff rc=0 empty
+[N25] VERDICT KILLED
+[N26] LANDED DIFF (CTRL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 03:51:14
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 07:18:51
+@@ -1956 +1956 @@
+-    isWithinWindow: DateConverter.isAvailable,
++    isWithinWindow: (String? o, String? c) => true,
+
+[N26] new file rc=1 last=00:00 +60 -4: Some tests failed. red=4
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) isStoreCurrentlyOpen (the facade caller) inherits the same split clocks
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the splash clock is read at CALL time on one controller: moving the stub A -> B change
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the window follows the SPLASH clock, not `now`: now Mon 12:00 + splash Mon 20:00 reads
+[N26] RESTORE diff rc=0 empty
+[N26] VERDICT KILLED
+[N27] LANDED DIFF (CTRL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 03:51:14
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 07:18:57
+@@ -1963 +1963 @@
+-      _availability.isStoreOpenNow(active, schedules);
++      _availability.isStoreOpenNow(true, schedules);
+
+[N27] new file rc=0 last=00:00 +64: All tests passed! red=0
+[N27] net(3 baseline files) rc=1 last=00:01 +43 -2: Some tests failed. red=2
+    NETRED: /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/test/baseline/store/store_availability_edge_fixtur
+    NETRED: /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/test/baseline/store/store_availability_weekday_mat
+[N27] RESTORE diff rc=0 empty
+[N27] VERDICT KILLED-by-net
+[N28] LANDED DIFF (CTRL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 03:51:14
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 07:19:09
+@@ -1960 +1960 @@
+-      _availability.isStoreClosed(today, active, schedules);
++      _availability.isStoreClosed(true, active, schedules);
+
+[N28] new file rc=1 last=00:00 +63 -1: Some tests failed. red=1
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) each of the five delegates returns exactly what the policy returns, on a multi-row mul
+[N28] RESTORE diff rc=0 empty
+[N28] VERDICT KILLED
+[N29] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:19:15
+@@ -18 +18 @@
+-      return true;
++      return false;
+
+[N29] new file rc=1 last=00:00 +62 -2: Some tests failed. red=2
+    RED: isStoreClosed inactive is closed before the schedules are read, so null schedules do not throw
+    RED: isWithinWindow call contract never asked when the store is closed for the day (no row for today) or inactive
+[N29] RESTORE diff rc=0 empty
+[N29] VERDICT KILLED
+[N30] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:19:21
+@@ -22 +22 @@
+-      date = date.add(const Duration(days: 1));
++      date = date.add(const Duration(days: 2));
+
+[N30] new file rc=1 last=00:00 +61 -3: Some tests failed. red=3
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the facade delegates keep their literal answers on the same fixture (Mon 10:30 and Sun
+    RED: isStoreClosed Sunday wraps 7 -> 0: today on Sunday matches day 0, tomorrow on Saturday matches day 0, tomorrow on Sunday is Monday
+    RED: isStoreClosed tomorrow reads the next weekday, not the one after
+[N30] RESTORE diff rc=0 empty
+[N30] VERDICT KILLED
+[N31] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:19:28
+@@ -37 +37 @@
+-    if (isStoreClosed(true, active, schedules)) {
++    if (isStoreClosed(false, active, schedules)) {
+
+[N31] new file rc=1 last=00:00 +58 -6: Some tests failed. red=6
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) isStoreCurrentlyOpen (the facade caller) inherits the same split clocks
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the splash clock is read at CALL time on one controller: moving the stub A -> B change
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the weekday follows `now`, not the splash clock: now Tue 12:00 + splash Mon 12:00 does
+    RED: StoreController facade wiring (the real controller, the real splash-clock tear-off) the window follows the SPLASH clock, not `now`: now Mon 12:00 + splash Mon 20:00 reads
+    RED: isWithinWindow call contract a Wednesday instant asks only the Wednesday row
+    RED: isWithinWindow call contract null open/close times are forwarded as nulls, not as empty strings
+[N31] RESTORE diff rc=0 empty
+[N31] VERDICT KILLED
+[N32] LANDED DIFF (POL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 04:29:15
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/domain/helpers/store_availability_policy.dart	2026-10-04 07:19:34
+@@ -174 +174 @@
+-        } else if (nowTime.compareTo(closeTime) < 0) {
++        } else if (nowTime.compareTo(closeTime) <= 0) {
+
+[N32] new file rc=1 last=00:00 +63 -1: Some tests failed. red=1
+    RED: getStoreNextTransition before open -> opening time; at open and before close -> closing time; at close -> next scheduled day
+[N32] RESTORE diff rc=0 empty
+[N32] VERDICT KILLED
+[N33] LANDED DIFF (CTRL):
+--- /Users/Apple/Projects/nears-NEARS-3996-u5-step2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 03:51:14
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/lib/features/store/controllers/store_controller.dart	2026-10-04 07:19:40
+@@ -1960 +1960 @@
+-      _availability.isStoreClosed(today, active, schedules);
++      _availability.isStoreClosed(today, true, schedules);
+
+[N33] new file rc=0 last=00:00 +64: All tests passed! red=0
+[N33] net(3 baseline files) rc=1 last=00:02 +43 -2: Some tests failed. red=2
+    NETRED: /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/test/baseline/store/store_availability_edge_fixtur
+    NETRED: /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s2/qa2/UserApp/test/baseline/store/store_availability_weekday_mat
+[N33] RESTORE diff rc=0 empty
+[N33] VERDICT KILLED-by-net

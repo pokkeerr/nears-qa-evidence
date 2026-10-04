@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3996
 
-**NEARS-3996 step 2 QA: PASS (AC-10 emulator base-vs-step2 walk identical; 3 vacuous-pin survivors Medium)**
+**fix-cycle-2 delta: S01/S02/S11 killed; N18/N19 Medium survivors**
 
 **11 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -31,6 +31,7 @@
 - [`analyze-step2-norm.txt`](analyze-step2-norm.txt)
 - [`bug-grocery-search-semantics-assertion.log`](bug-grocery-search-semantics-assertion.log)
 - [`bug-item-view-closed-now-divider-test-fails-on-base.log`](bug-item-view-closed-now-divider-test-fails-on-base.log)
+- [`bug-vacuous-pins-minuteofday-null-and-separator.log`](bug-vacuous-pins-minuteofday-null-and-separator.log)
 - [`bug-vacuous-pins-minuteofday.log`](bug-vacuous-pins-minuteofday.log)
 - [`compare-deep-TB.txt`](compare-deep-TB.txt)
 - [`compare-deep-TC.txt`](compare-deep-TC.txt)
@@ -38,6 +39,9 @@
 - [`compare-walk-TB.txt`](compare-walk-TB.txt)
 - [`compare-walk-TC.txt`](compare-walk-TC.txt)
 - [`mutations-qa.md`](mutations-qa.md)
+- [`mutations-qa2-run-N.log`](mutations-qa2-run-N.log)
+- [`mutations-qa2-run-S.log`](mutations-qa2-run-S.log)
+- [`mutations-qa2.md`](mutations-qa2.md)
 - [`progress.md`](progress.md)
 - [`tests-extra-consumers-summary.txt`](tests-extra-consumers-summary.txt)
 - [`tests-net-summary.txt`](tests-net-summary.txt)

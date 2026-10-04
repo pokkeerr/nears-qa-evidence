@@ -1,0 +1,8 @@
+NEARS-3996 fix cycle 2 QA2: two surviving mutations in private _minuteOfDay (store_availability_policy.dart:93-94), scratch copy of ae9bf9825.
+N18  .firstMatch((time ?? '').trim())  ->  .firstMatch((time ?? '0:00').trim())
+     new file 64/64 green; net (matrix 10 / edge 24 / facade_scope 11) 45/45 green => SURVIVED
+     probe (scratch only): isStoreClosingSoon(row(Mon,null,'17:00')) at Mon 16:30 expected false; isStoreOpen24h(row(Mon,null,'23:59')) expected false
+     probe unmutated +3 green; under N18 RED 2 ('null opening time is skipped (closing soon)', 'null opening time is never a 24h claim')
+N19  r'^(\d{1,2}):(\d{2})'  ->  r'^(\d{1,2})[:.](\d{2})'
+     new file 64/64 green; net 45/45 green => SURVIVED
+     probe: isStoreClosingSoon(row(Mon,'09.00','17:00')) at Mon 16:30 expected false; under N19 RED 1
