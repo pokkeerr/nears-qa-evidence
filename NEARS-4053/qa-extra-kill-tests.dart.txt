@@ -1,0 +1,124 @@
+// NEARS-4053 — the campaign "Order Now" checkout entry never calls updateFirstTime(), so after an
+// earlier checkout's get-Tax success the first-fetch latch stayed false and triggerOrderTaxIfNeeded
+// never dispatched. resetOrderTax() (run by CheckoutScreen.initCall on every entry) now re-arms it.
+// Driven through the real PricingSummaryController over the baseline pricing harness; the
+// service's getOrderTax is the only mocked seam. The race group CHARACTERISES current behaviour
+// (a reply from an abandoned entry is not dropped); it does not assert desired behaviour.
+import 'dart:async';
+
+import 'package:fake_async/fake_async.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:nears/features/cart/domain/models/cart_model.dart';
+import 'package:nears/features/item/domain/models/item_model.dart';
+
+import 'package:nears/features/coupon/domain/models/coupon_model.dart';
+import '../../baseline/support/checkout_pricing_harness.dart';
+
+const Duration _quoteWindow = Duration(milliseconds: 400);
+const String _componentsLine = 'checkout: cod cap verdict not scheduled (tax components missing)';
+
+// The campaign buy-now row: the same shape the item sheet hands checkout (isCampaign true).
+CartModel _campaignRow() => CartModel(
+      7, 10.0, 10.0, const [], const [], 0.0, 1, const [], const [], true, 0,
+      Item(
+        id: 7, storeId: 1, moduleId: 1, price: 10, discount: 0, discountType: 'amount', moduleType: 'grocery',
+        isPrescriptionRequired: false, foodVariations: const [], variations: const [],
+        availableTimeStarts: '00:00', availableTimeEnds: '23:59',
+      ),
+      0,
+    );
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(CheckoutPricingHarness.registerFallbacks);
+
+  late CheckoutPricingHarness h;
+  late List<CartModel> rows;
+  // Non-null: replies are held until the test completes them; null: replies are immediate (h.taxBody).
+  List<Completer<Response>>? held;
+  late int taxCalls;
+
+  setUp(() {
+    h = CheckoutPricingHarness.create();
+    rows = [_campaignRow()];
+    held = null;
+    taxCalls = 0;
+    when(() => h.cart.addCutlery).thenReturn(false);
+    when(() => h.cart.notAvailableIndex).thenReturn(-1);
+    h.taxBody = {'tax_amount': 2, 'tax_included': 0, 'product_price': 10, 'total_addon_price': 0, 'total_discount': 0};
+    when(() => h.service.getOrderTax(any(), handleError: any(named: 'handleError'))).thenAnswer((_) {
+      taxCalls++;
+      if (held != null) {
+        final Completer<Response> c = Completer<Response>();
+        held!.add(c);
+        return c.future;
+      }
+      return Future<Response>.value(Response(statusCode: 200, body: h.taxBody));
+    });
+  });
+  tearDown(() => h.tearDown());
+
+  Response ok(num tax) => Response(statusCode: 200, body: {
+        'tax_amount': tax, 'tax_included': 0, 'product_price': 10, 'total_addon_price': 0, 'total_discount': 0,
+      });
+
+  void trigger() => h.pricing.triggerOrderTaxIfNeeded(
+        storeId: null, cartList: rows, fromCart: false, subTotal: 10, discount: 0, guestPassword: '',
+      );
+
+  // What CheckoutScreen.initCall does at the top of every entry.
+  void enter({bool updateFirstTime = false}) {
+    if (updateFirstTime) h.pricing.updateFirstTime();
+    h.pricing.resetOrderTax();
+  }
+
+  int componentsLines() => h.recorder.reasons.where((String? r) => r == _componentsLine).length;
+  List<String?> notScheduledLines() =>
+      h.recorder.reasons.where((String? r) => r != null && r.contains('cod cap verdict not scheduled')).toList();
+
+  group('QA-4053 extra kill tests (scratch only)', () {
+    test('QA-K1: resetOrderTax notifies NO id-less listener either (kills Q2: plain update())', () {
+      fakeAsync((async) {
+        enter();
+        trigger();
+        async.flushMicrotasks();
+        int n = 0;
+        h.pricing.addListener(() => n++);
+        enter();
+        expect(h.pricing.isFirstTime, isTrue);
+        expect(n, 0);
+      });
+    });
+
+    test('QA-K2: the next entry re-arms even when the abandoned entry had a coupon discount (kills Q4)', () {
+      fakeAsync((async) {
+        h.couponDiscount = 5;
+        when(() => h.coupon.coupon).thenReturn(CouponModel(code: 'QA'));
+        enter();
+        trigger();
+        async.flushMicrotasks();
+        expect(h.pricing.isFirstTime, isFalse, reason: 'precondition: the coupon entry succeeded, latch flipped');
+        h.couponDiscount = 0;
+        enter();
+        expect(h.pricing.isFirstTime, isTrue);
+        final int before = taxCalls;
+        trigger();
+        async.flushMicrotasks();
+        expect(taxCalls, before + 1);
+      });
+    });
+
+    test('QA-K3: re-arm holds after a NON-zero-tax success (Q3 would pass only zero-tax priors)', () {
+      fakeAsync((async) {
+        enter();
+        trigger();
+        async.flushMicrotasks();
+        expect(h.pricing.orderTax, 2.0);
+        enter();
+        expect(h.pricing.isFirstTime, isTrue);
+      });
+    });
+  });
+}

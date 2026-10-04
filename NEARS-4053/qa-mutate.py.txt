@@ -1,0 +1,24 @@
+import sys,difflib
+S="/private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad"
+F=S+"/n4053/UserApp/lib/features/checkout/controllers/pricing_summary_controller.dart"
+p=open(S+"/ctrl.pristine.dart").read()
+LINE="    _isFirstTime = true; // NEARS-4053: the campaign entry skips updateFirstTime()\n"
+assert p.count(LINE)==1
+m=sys.argv[1]
+if m=="Q1":  # re-arm after _resetCodVerdict
+    q=p.replace(LINE,"").replace("    _beginCheckoutLogged = false;\n    _resetCodVerdict();\n  }\n","    _beginCheckoutLogged = false;\n    _resetCodVerdict();\n    _isFirstTime = true;\n  }\n",1)
+elif m=="Q2":  # plain update() after re-arm
+    q=p.replace(LINE,LINE+"    update();\n")
+elif m=="Q3":  # re-arm only if previous order tax was zero (moved to top, before _orderTax=0.0)
+    q=p.replace(LINE,"").replace("  void resetOrderTax() {\n    _orderTax = 0.0;\n","  void resetOrderTax() {\n    _isFirstTime = _orderTax == 0.0;\n    _orderTax = 0.0;\n",1)
+elif m=="Q4":  # re-arm unless previous entry had a coupon discount
+    q=p.replace(LINE,"").replace("  void resetOrderTax() {\n    _orderTax = 0.0;\n","  void resetOrderTax() {\n    _isFirstTime = !_hadCouponDiscount;\n    _orderTax = 0.0;\n",1)
+elif m=="Q5":  # unconditional re-arm at top of triggerOrderTaxIfNeeded
+    i=p.index("  void triggerOrderTaxIfNeeded({"); j=p.index("{",p.index(")",i))  # first '{' after params
+    j=p.index(") {",i)+3
+    q=p[:j]+"\n    _isFirstTime = true;"+p[j:]
+elif m=="pristine": q=p
+else: raise SystemExit("?")
+open(F,"w").write(q)
+d=list(difflib.unified_diff(p.splitlines(),q.splitlines(),"pristine","mutated",lineterm="",n=1))
+print("\n".join(d) if d else "NO DIFF")

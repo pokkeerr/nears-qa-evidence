@@ -1,0 +1,10 @@
+Scratch DB nears_n4053_qa ONLY (copy of multi_food_db). multi_food_db never written.
+- Seeded campaign 13 had stock 0 and its own tax column 5.00 percent (conductor set stock>0; 96 at QA start).
+- DEVIATION: campaign 13 (grocery module 1) has NO UI surface: JustForYouView renders only on the food/shop homes (grocery home has none, same finding as NEARS-4049 F1b).
+  QA inserted item_campaigns id 18 'N4053 Fresh Grocery Picks Shop' = verbatim clone of campaign 13 (price 25, 10 percent discount, tax 5 percent) on store 91116 / module 9 (ecommerce), stock 100, reachable via Shop home 'Just for You'. Server oracle identical for 13 and 18 (qa-server-oracle.txt).
+- user 434: password set to the documented 123456789 hash (copied from user 409), customer_address id 64 (Dhaka, zone 1) inserted.
+- store_schedule opened all day for pharmacy stores 42-45 and 7 (prescription entries).
+- module_zone maximum_cod_order_amount for modules 1 and 9 / zone 1: 500 at start, 46 during S5, restored to 500. Campaign 18 stock set 0 transiently for S4 (real server 403 code stock), restored 100.
+- carts for user 434: Mozzarella 200g (store 36) qty 2 (3 during S5), Red Apples (store 1) qty 3 for the group walks. Scratch-only.
+- Scratch counting/delaying proxy :18463 -> :8463 (this folder: qa-server-proxy-gettax.log) because artisan serve's request log carries no paths. APKs built with API_HOST=10.0.2.2:18463.
+- Builds (debug, scratch copy of UserApp+packages from git archive b7ab07c16): com.izzes.nears.n4053fix = b7ab07c16 verbatim; com.izzes.nears.n4053base = same tree with pricing_summary_controller.dart replaced by `git show 6cb68bd39:` (cmp equal to base; only lib change between base and b7ab07c16).

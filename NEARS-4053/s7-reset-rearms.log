@@ -1,0 +1,30 @@
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/n4053/UserApp/test/features/checkout/checkout_reset_rearms_order_tax_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: the campaign entry after an earlier get-Tax success (no updateFirstTime) RED on base: resetOrderTax alone re-arms the latch and the second entry dispatches get-Tax
+00:00 +1: the campaign entry after an earlier get-Tax success (no updateFirstTime) Place Order is held (isOrderTaxSettling) until the second entry's reply lands
+00:00 +2: the campaign entry after an earlier get-Tax success (no updateFirstTime) the second entry's Total carries the server tax and the COD verdict is quoted from it, never skipped
+00:00 +3: the campaign entry after an earlier get-Tax success (no updateFirstTime) a zero-tax success settles Place Order and the next entry still re-fetches
+00:00 +4: the campaign entry after an earlier get-Tax success (no updateFirstTime) control: the detector sees the line when a 200 carries no tax components
+[FAIL] endpoint=/api/v1/customer/order/get-Tax http_status=null type=ApiFailure msg="checkout: cod cap verdict not scheduled (tax components missing)"
+00:00 +5: the campaign entry after an earlier get-Tax success (no updateFirstTime) control: without any re-arm (latch left false) the second trigger does not dispatch
+00:00 +6: once per entry (entries that already call updateFirstTime before the push) updateFirstTime() then resetOrderTax() then trigger twice is exactly ONE get-Tax call
+00:00 +7: once per entry (entries that already call updateFirstTime before the push) a rebuild burst while the entry's fetch is in flight dispatches once
+00:00 +8: resetOrderTax runs in initState it re-arms without notifying listeners (the screen has not built yet)
+00:00 +9: failure branch is unchanged a non-200 keeps the latch armed, Place Order held, 3 attempts max, one paired [FAIL] each
+[NET] endpoint=unknown http_status=500
+[FAIL] endpoint=unknown http_status=500 type=ApiFailure msg="api request failed"
+[NET] endpoint=unknown http_status=500
+[FAIL] endpoint=unknown http_status=500 type=ApiFailure msg="api request failed"
+[NET] endpoint=unknown http_status=500
+[FAIL] endpoint=unknown http_status=500 type=ApiFailure msg="api request failed"
+00:00 +10: failure branch is unchanged after a success then a failing second entry the latch is armed again and stays armed
+[NET] endpoint=unknown http_status=500
+[FAIL] endpoint=unknown http_status=500 type=ApiFailure msg="api request failed"
+00:00 +11: resetOrderTax vs rearmOrderTaxForBasketChange a reset followed by a basket-change re-arm in the same entry still dispatches get-Tax once per trigger burst
+00:00 +12: CHARACTERISATION: a reply from an abandoned entry landing after the next entry's reset lands between the new entry's reset and its first trigger: the new entry never fetches its own tax
+00:00 +13: CHARACTERISATION: a reply from an abandoned entry landing after the next entry's reset replies in order: the stale reply settles the new entry early, the new reply then overwrites it
+00:00 +14: CHARACTERISATION: a reply from an abandoned entry landing after the next entry's reset replies out of order: the stale reply lands last and overwrites the new entry's tax
+00:00 +15: (tearDownAll)
+00:00 +15: All tests passed!
+mem-guard[NEARS-4053-qa-test-reset]: done rc=0 peak_tree_rss=1.38 GB (cap 6.0)
