@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3997
 
-**step 2 QA: FAIL (survivors) - AC-12 walk PASS**
+**step 2 delta QA: FAIL (survivors R13 R15 R22 R27-R31 R34)**
 
 **7 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -21,8 +21,10 @@
 </table>
 
 ### Other artifacts
+- [`delta-gate-and-seed-results.jsonl`](delta-gate-and-seed-results.jsonl)
 - [`gate-results.jsonl`](gate-results.jsonl)
 - [`mutation-control-results.jsonl`](mutation-control-results.jsonl)
+- [`qa-delta-mutations.md`](qa-delta-mutations.md)
 - [`qa-mutations.md`](qa-mutations.md)
 - [`shop-home-bottom-dump.xml`](shop-home-bottom-dump.xml)
 - [`shop-home-top-dump.xml`](shop-home-top-dump.xml)
