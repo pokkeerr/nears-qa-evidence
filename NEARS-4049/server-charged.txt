@@ -1,0 +1,8 @@
+Server-computed figures WITHOUT placing an order: POST /api/v1/customer/order/get-Tax (OrderTaxService::getCalculatedTax -> OrderDetailBuilder::build on the server cart rows / buy-now payload), backend :8461 scratch DB nears_n4049_qa.
+Server-charged item subtotal = product_price - total_discount (item flat discount is per unit x qty on the server).
+item 85 (P25 D5 flat)  N=2: product_price 50 total_discount 10 => 40 ; N=3: 75 / 15 => 60      (checkout review rows 2x20=40, 3x20=60: match)
+item 68 (P300 D30)     N=3: 900 / 90 => 810                                                    (row 3x270=810: match)
+item 76 (5% percent)   N=3: 60 / 3 => 57 ; item 40 (flash 10%) N=3: 69 / 6.90 => 62.10 ; item 73 (none) N=3: 60 / 0 => 60   (all match rows)
+campaign (P25 D5 flat, buy-now, item_type AppModelsItemCampaign) N=2: 50 / 10 => 40            (row 2x20=40: match)
+item 84 (variation 200, D20 flat) N=3: 600 / 60 => 540 ; qty2 => 360                            (server correct; checkout review row shows 2x360=720 / 3x360=1080: client display quirk, pre-existing, identical on base)
+No order was placed; no payment made.
