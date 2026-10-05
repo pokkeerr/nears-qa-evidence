@@ -13,6 +13,8 @@ Method: same label-driven op list replayed on both builds; a11y text = sorted un
 | V7_latest_all | text-equal | 0 | 0.0000% |
 | V8_pharm_bottom (pharmacy list bottom after page 2) | TEXT-DIFF | 1314451 | 34.4129% |
 
+NOTE on the last row (V8 pharmacy list bottom): TEXT-DIFF is the fling end offset (the base shot ends at "24h 12..15", the tip shot at "24h 7..11"); a flung scroll is not a deterministic position, so that pair is NOT a parity claim. List content/order parity for Pharmacy is carried by the full-list order section below (identical), and exactly 1 `offset=2` request fired on each build in that run.
+
 ## Same-state pairs from the full walk (a11y text equal AND pixel diff)
 | P02_grocery_bottom | text-equal | 0.0000% | 0 |
 | P03_food_bottom | text-equal | 0.0000% | 0 |
