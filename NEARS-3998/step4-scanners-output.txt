@@ -1,0 +1,53 @@
+# QA own scanners, run on base (14a8a12e9) vs tip (ceef9de9d)
+## (a) public member listing (comment/string-blanked depth-1 heads, async/body markers dropped, ctor head included)
+base heads:       87 public; tip:       87 public; diff:
+  DIFF EMPTY
+md5 2fd70db8cde56b0f717d91f805999f37 2fd70db8cde56b0f717d91f805999f37
+controls (each must be non-empty diff): extra param on getZone -> non-empty OK; extra public member -> non-empty OK (count       88); private rename to public -> non-empty OK
+(async added to a delegate is dropped by the counting rule on purpose: caught by the delegate check below, control: FAIL ['syncZoneData has async/await'])
+## (b) delegates
+OK []
+getZone ::  Future<ZoneResponseModel> getZone( String? lat, String? lng, bool markerLoad, { bool updateInAddress = false, bool handleError = false, }) => _zoneResolution.getZone(lat, lng, markerLoad, updateInAddress: updateInAddress, handleError: handleError);
+syncZoneData ::  Future<void> syncZoneData() => _zoneResolution.syncZoneData();
+control async/await on getZone delegate: FAIL ['getZone has async/await', 'getZone not a one-statement arrow to owner']
+## (d) moved private names, code occurrences base/tip:
+  _CachedZoneResponse: base 5 tip 0
+  _zoneRequestToken: base 4 tip 0
+  _inFlightZoneRequests: base 5 tip 0
+  _recentZoneByCoord: base 7 tip 0
+  _zoneResponseCacheTtl: base 3 tip 0
+  _zoneResponseCacheMaxEntries: base 2 tip 0
+  _pruneZoneResponseCache: base 2 tip 0
+  _reuseZoneResponse: base 2 tip 0
+  _fetchZone: base 2 tip 0
+## (census) update() calls (comment+string blanked)
+base_lc.dart bare 18 keyed 0 [359, 502, 509, 516, 528, 566, 651, 767, 829, 875, 910, 914, 975, 1440, 1495, 1682, 1701, 1946]
+tip_lc.dart bare 18 keyed 0 [265, 319, 462, 469, 476, 488, 526, 611, 647, 682, 719, 723, 784, 1249, 1304, 1491, 1510, 1755]
+/Users/Apple/Projects/nears-NEARS-3998-u7-step4-zone-resolution/UserApp/lib/features/location/controllers/location_zone_resolution.dart bare 0 keyed 0 []
+ctl_tear.dart bare 17 keyed 0 [319, 462, 469, 476, 488, 526, 611, 647, 682, 719, 723, 784, 1249, 1304, 1491, 1510, 1755]
+ctl_keyed.dart bare 17 keyed 1 [265, 462, 469, 476, 488, 526, 611, 647, 682, 719, 723, 784, 1249, 1304, 1491, 1510, 1755]
+## (c) verbatim move, base members vs owner after S1-S5 only
+_CachedZoneResponse            subs=-                      exact=True fmt-insensitive=True
+_zoneRequestToken              subs=-                      exact=True fmt-insensitive=True
+_inFlightZoneRequests          subs=-                      exact=True fmt-insensitive=True
+_recentZoneByCoord             subs=-                      exact=True fmt-insensitive=True
+_zoneResponseCacheTtl          subs=-                      exact=True fmt-insensitive=True
+_zoneResponseCacheMaxEntries   subs=-                      exact=True fmt-insensitive=True
+_pruneZoneResponseCache        subs=-                      exact=True fmt-insensitive=True
+getZone                        subs=-                      exact=True fmt-insensitive=True
+_reuseZoneResponse             subs=S1 x1                  exact=True fmt-insensitive=True
+_fetchZone                     subs=S2 head->beginFetch,S1 x1 exact=True fmt-insensitive=True
+syncZoneData                   subs=S3,S4,S5               exact=True fmt-insensitive=True
+ALL-MATCH
+positive controls (owner copies with one seeded edit; each must print RESIDUE-NONEMPTY):
+  ctl_owner_cache_key.dart -> RESIDUE-NONEMPTY
+  ctl_owner_cap20to21.dart -> RESIDUE-NONEMPTY
+  ctl_owner_guard_neq_to_eq_reuse.dart -> RESIDUE-NONEMPTY
+  ctl_owner_identical_inverted.dart -> RESIDUE-NONEMPTY
+  ctl_owner_log_reason.dart -> RESIDUE-NONEMPTY
+  ctl_owner_microtask_removed.dart -> RESIDUE-NONEMPTY
+  ctl_owner_tail_notify_dropped.dart -> RESIDUE-NONEMPTY
+  ctl_owner_ttl5to6.dart -> RESIDUE-NONEMPTY
+## head: base lines 761-768 vs facade _beginZoneFetch body
+  IDENTICAL BYTES (8 lines)
+  control (one char changed): differs OK
