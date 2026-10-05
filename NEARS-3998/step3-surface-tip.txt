@@ -1,0 +1,87 @@
+final LocationServiceInterface locationServiceInterface
+LocationController({ required this.locationServiceInterface, DateTime Function()? clock, }) : _clock
+final DateTime Function() _clock
+Position get position
+Position get pickPosition
+bool get usedLocationFallback
+PositionFallbackSource get lastFallbackSource
+bool get usedAdminDefaultFallback
+String get pinSource
+bool get loading
+bool get isLoading
+String? get address
+String? get pickAddress
+bool get inZone
+ZoneAvailabilityStatus get zoneAvailabilityStatus
+int get zoneID
+void markBootZoneFresh()
+bool consumeBootZoneFresh()
+bool get buttonDisabled
+bool get showLocationSuggestion
+int get addressTypeIndex
+List<String?> get addressTypeList
+GoogleMapController? get mapController
+List<PredictionModel> get predictionList
+bool get isCameraMoving
+void updateCameraMovingStatus(bool status)
+void showSuggestedLocation(bool status)
+bool hasUsableActiveAddress()
+LaunchAddressDecision resolveLaunchAddressDecision( AddressModel? persistedActiveAddress, List<AddressModel>? savedAddresses, )
+AddressModel? mostRecentSavedAddress(List<AddressModel>? savedAddresses)
+Future<void> resolveLaunchLocationFromSavedAddresses(String page)
+void primeLaunchHomeLocalCacheSuppression(LaunchAddressAction action)
+bool consumeLaunchHomeLocalCacheSuppression()
+void setAddressTypeIndex(int index, {bool isUpdate = true})
+void disableButton()
+void setAddAddressData()
+({Position position, String? address}) snapshotAddAddressData()
+void restoreAddAddressData(({Position position, String? address}) snapshot)
+void setUpdateAddress(AddressModel address)
+void setPickData()
+void setMapController(GoogleMapController mapController)
+Future<AddressModel> getCurrentLocation( bool fromAddress, { GoogleMapController? mapController, LatLng? defaultLatLng, bool notify = true, })
+Future<String> getAddressFromGeocode(LatLng latLng)
+Future<ZoneResponseModel> getZone( String? lat, String? lng, bool markerLoad, { bool updateInAddress = false, bool handleError = false, })
+Future<void> syncZoneData()
+Future<void> updatePosition(CameraPosition? position, bool fromAddress)
+void saveAddressAndNavigate( AddressModel? address, bool fromSignUp, String? route, bool canRoute, bool isDesktop, { String? confirmScreen, })
+Future<void> autoNavigate( AddressModel? address, bool fromSignUp, String? route, bool canRoute, bool isDesktop, )
+@visibleForTesting void routeToDestination( DestinationDecision? destination, bool fromSignUp, String? route, bool canRoute, )
+Future<AddressModel> setLocation( String? placeID, String? address, GoogleMapController? mapController, { bool resolveZoneOnNullMap = false, })
+Future<List<PredictionModel>> searchLocation( BuildContext context, String query, { bool filterServiceableZone = false, })
+static const int suggestionZoneCheckLimit
+bool isSuggestionUnavailable(String? placeId)
+bool isSuggestionAvailable(String? placeId)
+bool isSuggestionPending(String? placeId)
+void resetSuggestionAvailability()
+String suggestionAvailability(String? placeId)
+static String? suggestionArea(PredictionModel suggestion)
+void logSuggestionSelected( PredictionModel suggestion, { required int position, required int suggestionCount, })
+bool allTopSuggestionsUnavailable(List<PredictionModel> suggestions)
+@override void onClose()
+void setPlaceMark(String address)
+void clearPersonalData()
+Future<void> checkPermission(Function onTap)
+Future<void> onMyLocationTapped({GoogleMapController? mapController})
+void logMapLoadFailed({String screen = ''})
+void logMapRetryTapped(int attempt, {String screen = ''})
+Set<Polygon> get zoneOverlayPolygons
+Future<void> loadZoneOverlayOnMapReady( GoogleMapController mapController, { String screen = '', })
+Future<void> refreshZoneOverlayOnCameraIdle(GoogleMapController? mapController)
+static Set<Polygon> zoneOverlayPolygonsFor( List<ZoneDataModel> zones, LatLngBounds viewport, )
+void logSaveAddressFromPickMapTapped()
+Future<bool> checkLocationActive()
+@visibleForTesting LatLng configDefaultLatLng()
+@visibleForTesting bool resolveLocationActive( AddressModel? activeAddress, Position currentPosition, )
+Future<void> navigateToLocationScreen( String page, { bool offNamed = false, bool offAll = false, bool canRoute = false, bool coldStart = false, })
+@visibleForTesting Future<LocationPermission> readLocationPermission()
+void logLocationRationaleShown({String source = ''})
+Future<void> enableLocationFromRationale(String page)
+void dismissLocationRationale(String page)
+@visibleForTesting int get checkPermissionEpochForTest
+@visibleForTesting Future<void> resolvePermissionAndLocate( String page, { bool alreadyOnPickMap = false, })
+@visibleForTesting Future<void> resolveLocationAfterPermission( String page, int epoch, { bool alreadyOnPickMap = false, })
+@visibleForTesting PickAddressGateDecision resolvePickAddressGateDecision( String page, { AddressModel? resolvedAddress, })
+Future<bool> checkInternet()
+PickMapDecision pickAddressFromMap({ required bool hasOnPicked, required bool fromAddAddress, AddressModel? resolvedAddress, })
+Future<CurrentLocationDecision> resolveCurrentLocationZone()
