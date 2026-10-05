@@ -1,0 +1,21 @@
+# Build / backend identity
+
+tested sha: cf67afd23c2a99f14051858b1a53d807f8c02e08 (branch feat/NEARS-3996-u5-step4-discovery-family), git status clean before and after the QA run (vendor/.env/node are gitignored)
+base sha  : 0f4ab39799ca3ea07a9512f612fac386610465db (own detached worktree, removed at the end)
+device    : emulator-5554 (AVD Pixel_10_Pro), Android 17, 1344x2992, Night mode: no (light), language English; lock acquired with qa_lock_acquire, key NEARS-3996-S4, 5.0 GB free /data at acquisition
+tip package  : com.izzes.nears.nears_nears_3996_u5_step4 (scripts/qa-run.sh --root <tip worktree> --dart-define API_HOST=10.0.2.2:8240 UserApp emulator-5554), debug APK 3f6e9a6bef701293
+base package : com.izzes.nears.nears_nears_3996_u5_step4_qabase (same recipe, --root <qabase worktree>), debug APK a3b7f950cd7b22d4
+
+kernel_blob.bin string counts (assets/flutter_assets/kernel_blob.bin pulled from the installed APK):
+  store_discovery_owner: tip=4 base=0
+  StoreDiscoveryPort: tip=7 base=0
+  StoreDiscoveryOwner: tip=5 base=0
+  _StoreDiscoveryPort: tip=4 base=0
+  store_offers_owner: tip=4 base=4
+  StoreOffersGridPort: tip=5 base=5
+  (store_offers_owner / StoreOffersGridPort present on both = positive control that the kernel scan works; the discovery names are absent at base and present at tip)
+
+backend: own `php -d pcre.jit=0 -S 127.0.0.1:8241 server.php` from /Users/Apple/Projects/nears-NEARS-3996-u5-step4/Admin (cwd lsof, HEAD cf67afd23) behind a recording proxy on :8240 (c3996s4_proxy.py, one log line per request); `adb reverse tcp:80 tcp:8240` for images (product images are absent on the backend side: /storage/* 404 on BOTH builds, ImageLoadFailure noise).
+DB: scratch copy nears3996s4qa (mysqldump --single-transaction multi_food_db | mysql, read-only on the dev DB); proved served by temporarily renaming a store in the scratch copy and reading it through the API (dev DB row unchanged); the shared dev DB was never written.
+
+backend-freshness-check.sh 8241: PASS /Users/Apple/Projects/nears-NEARS-3996-u5-step4 @ cf67afd23 (ticket NEARS-3996, status unknown: no ledger row).

@@ -1,0 +1,49 @@
+# Logs (EN + light). Source: adb logcat -s flutter (tag flutter) of each walk + the QA proxy access log.
+
+## logcat_base_flutter.txt (    1205 lines)
+[FAIL]/[ERR] by type:
+   1 [FAIL] endpoint=/api/v1/stores/get-stores/all http_status=502 type=ApiFailure
+   1 [FAIL] endpoint=/api/v1/stores/popular http_status=502 type=ApiFailure
+   2 [FAIL] endpoint=null http_status=null type=FcmTopicConfigFailure
+   1 [FAIL] endpoint=null http_status=null type=FirebaseInitFailure
+   1 [FAIL] endpoint=null http_status=null type=GetPositionFailure
+   8 [FAIL] endpoint=null http_status=null type=ImageLoadFailure
+   1 [FAIL] endpoint=null http_status=null type=KilledLaunchNotificationFailure
+not-registered / not found / unhandled / framework / RenderFlex / EXCEPTION CAUGHT: 0
+
+## logcat_tip_flutter.txt (     998 lines)
+[FAIL]/[ERR] by type:
+   1 [FAIL] endpoint=/api/v1/stores/get-stores/all http_status=502 type=ApiFailure
+   2 [FAIL] endpoint=/api/v1/stores/popular http_status=502 type=ApiFailure
+   1 [FAIL] endpoint=null http_status=null type=FirebaseInitFailure
+   8 [FAIL] endpoint=null http_status=null type=ImageLoadFailure
+   1 [FAIL] endpoint=null http_status=null type=KilledLaunchNotificationFailure
+not-registered / not found / unhandled / framework / RenderFlex / EXCEPTION CAUGHT: 0
+
+## logcat_tip_flutter_final.txt (     327 lines)
+[FAIL]/[ERR] by type:
+   1 [FAIL] endpoint=null http_status=null type=FirebaseInitFailure
+   1 [FAIL] endpoint=null http_status=null type=GetPositionFailure
+   4 [FAIL] endpoint=null http_status=null type=ImageLoadFailure
+   1 [FAIL] endpoint=null http_status=null type=KilledLaunchNotificationFailure
+not-registered / not found / unhandled / framework / RenderFlex / EXCEPTION CAUGHT: 0
+
+FATAL EXCEPTION in the whole logcat buffer: 0
+
+[FAIL] classification: FirebaseInitFailure / KilledLaunchNotificationFailure / FcmTopicConfigFailure = suffixed QA build has no Firebase (environmental, both builds); GetPositionFailure = emulator GPS timeout (environmental); ImageLoadFailure = product images 404 on the scratch backend (environmental, both builds); ApiFailure 502 on /stores/get-stores/all and /stores/popular = the deliberate backend-down injection, each with its paired [FAIL] line (the first-fetch failure state and the warm-cache refresh).
+
+## analytics at the AnalyticsService choke point (discovery family: _logStoreListAnalytics), per-fetch events fire with the same shape on base and tip; ids/counts only, no PII
+- base: view_store_list stores_list events: 43; sample:
+    view_store_list {item_list_id: stores_list, item_list_name: stores_list, count: 12, screen: home, with_popular_items_count: 5}
+    view_store_list {item_list_id: stores_list, item_list_name: stores_list, count: 12, screen: home, with_popular_items_count: 1}
+    view_store_list {item_list_id: stores_list, item_list_name: stores_list, count: 12, screen: home, with_popular_items_count: 5}
+    view_item_list {item_list_id: store_card_popular_items, item_list_name: store_card_popular_items, item_count: 5, screen: home, store_id: 55, section: stores_list, position: 1}
+    view_item_list {item_list_id: store_card_popular_items, item_list_name: store_card_popular_items, item_count: 5, screen: home, store_id: 56, section: stores_list, position: 2}
+- tip: view_store_list stores_list events: 42; sample:
+    view_store_list {item_list_id: stores_list, item_list_name: stores_list, count: 12, screen: home, with_popular_items_count: 5}
+    view_store_list {item_list_id: stores_list, item_list_name: stores_list, count: 12, screen: home, with_popular_items_count: 5}
+    view_store_list {item_list_id: stores_list, item_list_name: stores_list, count: 12, screen: home, with_popular_items_count: 1}
+    view_item_list {item_list_id: store_card_popular_items, item_list_name: store_card_popular_items, item_count: 5, screen: home, store_id: 55, section: stores_list, position: 1}
+    view_item_list {item_list_id: store_card_popular_items, item_list_name: store_card_popular_items, item_count: 5, screen: home, store_id: 56, section: stores_list, position: 2}
+
+Firebase Analytics SDK wire: UNVERIFIABLE on the suffixed qa-run build (no Firebase); observed at the choke point only.

@@ -1,0 +1,115 @@
+# AC1 + AC2 (tested sha cf67afd23c2a99f14051858b1a53d807f8c02e08, base 0f4ab3979)
+
+## lib diff base..tip (name-status)
+M	UserApp/lib/features/store/controllers/store_controller.dart
+A	UserApp/lib/features/store/controllers/store_discovery_owner.dart
+
+## get_di / pubspec / pubspec.lock / assets / app_constants diff (expect empty)
+(empty)
+
+## test diff name-status (only additions)
+A	UserApp/test/baseline/mutation-logs/NEARS-3996-step4.md
+A	UserApp/test/baseline/store/store_discovery_family_characterization_baseline_test.dart
+A	UserApp/test/baseline/support/store_discovery_support.dart
+A	UserApp/test/features/store/store_discovery_extraction_source_scan_test.dart
+A	UserApp/test/features/store/store_discovery_facade_wiring_test.dart
+A	UserApp/test/features/store/store_discovery_independent_pass_test.dart
+A	UserApp/test/features/store/store_discovery_owner_test.dart
+
+## PNG added (expect 0)
+0
+
+## own public listing (names+kinds) base vs tip, scanner c3996s4_listing.py
+     164 /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s4/qa/pub_base.txt
+     164 /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/c3996s4/qa/pub_tip.txt
+IDENTICAL (164 rows = 1 ctor + 1 scanner artifact "field async" + 162 members; kinds:    1 ctor    3 field   67 getter   93 method )
+
+## ctor
+62:  StoreController({required this.storeServiceInterface, DateTime Function()? now})
+63-    : _now = now ?? DateTime.now;
+
+## update ids (explicit-id calls multiset base vs tip incl. owner)
+   3 update([fabVisibilityId])
+## id-less update(): base 50 = tip controller 41 + owner 10 - 1 (owner shim definition `void update() => _port.notify();` is not a call) -> grep counts base 50 / tip 41 / owner 12 (10 calls + shim def + 1 comment line)
+
+## verbatim block diffs (base store_controller.dart@0f4ab3979 vs owner), expect rc=0
+base 600-666 -> owner 102-168 : rc=0 (67 lines)
+base 668-681 -> owner 170-183 : rc=0 (14 lines)
+base 683-717 -> owner 185-219 : rc=0 (35 lines)
+base 856-908 -> owner 221-273 : rc=0 (53 lines)
+base 910-959 -> owner 275-324 : rc=0 (50 lines)
+base 961-983 -> owner 326-348 : rc=0 (23 lines)
+base 985-1002 -> owner 350-367 : rc=0 (18 lines)
+base 64-65 -> owner 36-37 : rc=0 (2 lines)
+base 157-160 -> owner 39-42 : rc=0 (4 lines)
+base 162-173 -> owner 44-55 : rc=0 (12 lines)
+base 178-183 -> owner 57-62 : rc=0 (6 lines)
+base 185-192 -> owner 64-71 : rc=0 (8 lines)
+## shifted positive controls, expect rc=1
+base 600-666 -> owner 103-169 : rc=1
+base 668-681 -> owner 171-184 : rc=1
+base 683-717 -> owner 186-220 : rc=1
+base 856-908 -> owner 222-274 : rc=1
+base 910-959 -> owner 276-325 : rc=1
+base 961-983 -> owner 327-349 : rc=1
+base 985-1002 -> owner 351-368 : rc=1
+base 64-65 -> owner 37-38 : rc=1
+base 157-160 -> owner 40-43 : rc=1
+base 162-173 -> owner 45-56 : rc=1
+base 178-183 -> owner 58-63 : rc=1
+base 185-192 -> owner 65-72 : rc=1
+base 601-667 -> owner 102-168 : rc=1
+base 669-682 -> owner 170-183 : rc=1
+base 857-909 -> owner 221-273 : rc=1
+
+## converse (removed lines of the controller diff)
+removed lines total 301 in moved ranges 268 outside 33
+moved range total lines 292
+moved-range lines NOT removed (kept/replaced-in-place by diff alignment): 24
+  base 600 '  Future<bool> getStoreList('
+  base 601 '    int offset,'
+  base 602 '    bool reload, {'
+  base 603 '    DataSourceEnum source = DataSourceEnum.local,'
+  base 604 '    bool emptyOnClientFailure = false,'
+  base 611 '    VoidCallback? onListSettled,'
+  base 856 '  Future<void> getPopularStoreList('
+  base 857 '    bool reload,'
+  base 858 '    String type,'
+  base 859 '    bool notify, {'
+  base 860 '    DataSourceEnum dataSource = DataSourceEnum.local,'
+  base 861 '    bool fromRecall = false,'
+  base 910 '  Future<void> getLatestStoreList('
+  base 911 '    bool reload,'
+  base 912 '    String type,'
+  base 913 '    bool notify, {'
+  base 914 '    DataSourceEnum dataSource = DataSourceEnum.local,'
+  base 915 '    bool fromRecall = false,'
+  base 961 '  Future<void> getFeaturedStoreList({'
+  base 962 '    DataSourceEnum dataSource = DataSourceEnum.local,'
+  base 168 ''
+  base 171 ''
+  base 187 ''
+  base 190 ''
+--- removed lines OUTSIDE moved ranges (retargeted sites etc.)
+70   // PAGE (the diff since the last sync — `_prepareStoreModel` grows
+71   // `_storeModel!.stores` via `addAll` in place, so identity only changes on
+77   // happened pre-open-first (raw server order). `_storeModel = null`
+85     final List<Store?>? stores = _storeModel?.stores;
+119     if (_storeModel == null) return null;
+409       _storeModel?.stores,
+527       _storeModel = null;
+597   // NEARS-1173: returns `false` when the load-more page (offset > 1) FAILED, so
+598   // PaginatedListView raises its retry row instead of dropping the page. The
+599   // offset==1 / recursion / settle paths are unchanged — their return is ignored.
+667 
+682 
+815     _popularStoreList = [];
+816     _popularStoreList!.addAll(stores);
+823     _latestStoreList = [];
+824     _latestStoreList!.addAll(stores);
+840     _popularStoreList = null;
+841     _latestStoreList = null;
+843     _featuredStoreList = null;
+845     _storeModel = null;
+846     _storeLoadFailed = false;
+847     // NEARS-2447: mirror _storeLoadFailed above so a stale failure from the
