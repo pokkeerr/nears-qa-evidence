@@ -1,0 +1,41 @@
+# bug-stale-min-gate-card: mixed basket (flag ON), Pizza Heaven min 10.00, Garlic Bread 4.99. Stepping qty 2->3 (14.97 >= 10.00) can leave the store gate card 'Minimum order amount not reached' and Proceed to Checkout DISABLED when group/validate (started with the PATCH) answers before the PATCH lands. Reproduces on BASE (H2) and TIP (H4); not on the other step in each variant -> pre-existing race, not tip-caused.
+
+[base H2-garlic3-late] Proceed clickable=false
+    label="Pizza Heaven, Restaurant, 1 Item, ⁦14.97 AED⁩"
+    label="Pizza Heaven, Minimum order amount not reached"
+    label="Garlic Bread\n3 items\n⁦4.99 AED⁩\n3"
+    label="Remove Garlic Bread"
+    label="Proceed to Checkout"
+
+[tip H4-garlic3-again-late] Proceed clickable=false
+    label="Pizza Heaven, Restaurant, 1 Item, ⁦14.97 AED⁩"
+    label="Pizza Heaven, Minimum order amount not reached"
+    label="Garlic Bread\n3 items\n⁦4.99 AED⁩\n3"
+    label="Remove Garlic Bread"
+    label="Proceed to Checkout"
+
+[tip H2-garlic3-late] Proceed clickable=true
+    label="Pizza Heaven, Restaurant, 1 Item, ⁦14.97 AED⁩"
+    label="Garlic Bread\n3 items\n⁦4.99 AED⁩\n3"
+    label="Remove Garlic Bread"
+    label="Minimum order met (⁦14.97 AED⁩ / ⁦10.00 AED⁩)"
+    label="⁦25.03 AED⁩ more for free delivery, Pizza Heaven"
+    label="Proceed to Checkout"
+
+[base H4-garlic3-again-late] Proceed clickable=true
+    label="Pizza Heaven, Restaurant, 1 Item, ⁦14.97 AED⁩"
+    label="Garlic Bread\n3 items\n⁦4.99 AED⁩\n3"
+    label="Remove Garlic Bread"
+    label="Minimum order met (⁦14.97 AED⁩ / ⁦10.00 AED⁩)"
+    label="⁦25.03 AED⁩ more for free delivery, Pizza Heaven"
+    label="Proceed to Checkout"
+
+# request timeline (HH:MM:SS tap -> validate/update completion offsets):
+ base rowtap 'Garlic Bread' 'Increase quantity'  19:18:28: validate +1s dur=307ms ; update +1s dur=419ms
+ base rowtap 'Garlic Bread' 'Increase quantity'  19:18:42: validate +0s dur=274ms ; update +0s dur=393ms
+ base rowtap 'Garlic Bread' 'Decrease quantity'  19:19:06: validate +1s dur=301ms ; update +1s dur=413ms
+ base rowtap 'Garlic Bread' 'Increase quantity'  19:19:29: update +0s dur=969ms ; validate +1s dur=1995ms
+ tip rowtap 'Garlic Bread' 'Increase quantity'  19:16:04: update +0s dur=1534ms ; validate +1s dur=1992ms
+ tip rowtap 'Garlic Bread' 'Increase quantity'  19:16:17: update +1s dur=1154ms ; validate +1s dur=2551ms
+ tip rowtap 'Garlic Bread' 'Decrease quantity'  19:16:42: update +0s dur=1061ms ; validate +1s dur=2081ms
+ tip rowtap 'Garlic Bread' 'Increase quantity'  19:17:04: validate +1s dur=271ms ; update +1s dur=840ms

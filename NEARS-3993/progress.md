@@ -1,0 +1,18 @@
+# NEARS-3993 U2 step2 QA progress (checkpoint file)
+- 16:3x tip sha 62c4f3d53ddb0e5689a63cfde0757c7f6843395c clean (git status empty); base f18db9b22 detached worktree qa-base (is ancestor of tip: yes)
+- AC-0 static: `git diff --name-only f18db9b22..62c4f3d53` outside UserApp/test + docs/solutions = exactly cart_screen.dart + NEW cart_memo_slot.dart; no pubspec/lock/golden/png/CartController/cart_model change (grep empty). lib delta +180/-14 (127/-14 + 67 new)
+- lessons_read: 97 active (selector exit 0)
+- backend: own artisan :8394 + logging proxy :8393 from qa-base/Admin (detached f18db9b22, Admin identical to tip: lib delta is UserApp only), DB copy multi_food_db_s3993; freshness check PASS
+- APKs built: app-tip.apk (pkg com.izzes.nears.nears_nears_3993_u2_step2), app-base.apk (com.izzes.nears.nears_3993_s2_qa_base), API_HOST=10.0.2.2:8393
+- device lock emulator-5554 held by NEARS-3998 (same claude session anchor); queued from 16:37
+- 17:02:56 device lock emulator-5554 ACQUIRED (key NEARS-3993), queued from 16:37 behind NEARS-3998
+- 17:03-18:14 TIP walk (grocery zone 1 Dhaka, the test customer, scratch DB copy multi_food_db_s3993, backend :8393 proxy->:8394): walk A (3-store +/- first/middle/last rows, 5-tap bursts, min boundary, Proceed flip), B (step-to-zero, close, undo, swipe-delete, Slidable declared difference, detail sheet after earlier removal, re-entry, pull), C (checkout entry, module switch, search add, logout/login), E (single store) captured: snaps+labels+request log under evidence/walk-tip/
+- tip observations: ONE cart/update per +/- step and per 5-tap burst; ONE remove-item per step-to-zero/close; Proceed flips enabled when min met; minimum caption/progress below/at/above render
+- tip: Slidable pane on row B stays open when +/- on another row in the SAME state (declared difference), but closes again after pricing refresh notify (invalidateOn checkout_pricing drops memo) -> intermittent
+- search-results screen: Flutter semantics assertion (RenderTable.assembleSemanticsNode '!child.attached' semantics.dart:2990) emptied the a11y tree (framework_error [FAIL] lines): screen NOT touched by this diff; compare on base (C3)
+- base APK installed (pkg ...qa_base) logged in; base walk A,B,C,E running from 18:14
+- 18:14-19:41 BASE walk (same fixtures) + SL/H/G/K/R/P probes on both: label+enabled-flag equality 190/216 snapshots identical, 17 scroll-offset/edge noise, 9 explained diffs (search history; validate/PATCH race H2/H4 reproduces on BASE too)
+- request totals (core cart endpoints): cart/update 28=28 (grocery) 25=25 (mixed), remove-item 12=12 / 6=6, cart/add 1=1 / 2=2, group/validate 19=19, cart/list 7=7; ONE update per burst (+5 and -5), ONE remove per step-to-zero
+- pixel diff base vs tip on 7 screens (3-store + mixed, light): 0..3 differing pixels of 3.17M
+- automated: 87 files green at tip (1311 tests), analyze 8 infos all pre-existing lines; mutation spot re-runs M1/M2/R3/S7/N1/N12/N15/N16/M3 red as logged (S11 survives: redundant after fee keys, stale log row)
+- base-lib run of tip tests: min-order edges green on base (AC-1); 5 flipped SCOPE pins red on base; step2 8 red; TREE twin 1 red; ID declared-difference 1 red; inventory 2 red (252 vs 251)
