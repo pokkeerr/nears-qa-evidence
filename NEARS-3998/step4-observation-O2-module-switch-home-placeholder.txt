@@ -1,0 +1,51 @@
+# Observation O-2 (pre-existing, identical base vs tip): after the FIRST saved-address switch to another zone/module post-login, the module-switch-triggered home reload is skipped and the flash-sale rail stays on its countdown placeholder
+
+Recipe: r13rep.sh (logged in customer@nears.com on the scratch DB copy; home chip -> Set Location -> 'Select address: Home, Demo Zone — Dhaka' (zone 1, Pharmacy -> Restaurant module switch), 40 s settle, then back to 'Marina Heights' and repeat x3). Runs: base 14a8a12e9 x2 (sbase1, sbase2), tip ceef9de9d x2 (stip1, stip2); every run, every iteration identical on both builds.
+
+Per step: (home-load-started, home-load-skipped, short-TTL reuse lines, get-zone-id requests, [FAIL] lines, flash-sale-countdown-placeholder-at-40s)
+== sbase1 d1=(1, 2, 2, 1, 0, True) m1=(1, 1, 2, 1, 0, False) d2=(1, 1, 2, 1, 0, False) m2=(1, 1, 2, 1, 0, False) d3=(1, 1, 2, 1, 0, False) m3=(1, 1, 2, 1, 0, False)
+== sbase2 d1=(1, 2, 2, 1, 0, True) m1=(1, 1, 2, 1, 0, False) d2=(1, 1, 2, 1, 0, False) m2=(1, 1, 2, 1, 0, False) d3=(1, 1, 2, 1, 0, False) m3=(1, 1, 2, 1, 0, False)
+== stip1 d1=(1, 2, 2, 1, 0, True) m1=(1, 1, 2, 1, 0, False) d2=(1, 1, 2, 1, 0, False) m2=(1, 1, 2, 1, 0, False) d3=(1, 1, 2, 1, 0, False) m3=(1, 1, 2, 1, 0, False)
+== stip2 d1=(1, 2, 2, 1, 0, True) m1=(1, 1, 2, 1, 0, False) d2=(1, 1, 2, 1, 0, False) m2=(1, 1, 2, 1, 0, False) d3=(1, 1, 2, 1, 0, False) m3=(1, 1, 2, 1, 0, False)
+
+## UI state at +40 s, iteration d1 (first switch) vs d2 (second switch), base run 1 (label|enabled|clickable, address text normalised)
+### d1
+View All | enabled=true | clickable=true
+Fast Market / #91150 / Pending / Waiting for store to accept your order | enabled=true | clickable=true
+Morning Mart / #91151 / Pending / Waiting for store to accept your order | enabled=true | clickable=true
+Afternoon spots near you | enabled=true | clickable=false
+Flash Sale | enabled=true | clickable=false
+00 | enabled=true | clickable=false
+00 | enabled=true | clickable=false
+00 | enabled=true | clickable=false
+00 | enabled=true | clickable=false
+Limited Time Offer | enabled=true | clickable=false
+Days | enabled=true | clickable=false
+Hours | enabled=true | clickable=false
+mins | enabled=true | clickable=false
+sec | enabled=true | clickable=false
+Home | enabled=true | clickable=true
+### d2
+View All | enabled=true | clickable=true
+Fast Market / #91150 / Pending / Waiting for store to accept your order | enabled=true | clickable=true
+Morning Mart / #91151 / Pending / Waiting for store to accept your order | enabled=true | clickable=true
+Afternoon spots near you | enabled=true | clickable=false
+Flash Sale / Limited Time Offer / See All | enabled=true | clickable=true
+Ends on ‪11 Jan, 2027‬ | enabled=true | clickable=false
+-18% / Double Bacon Burger / ⁦22.12 AED⁩ / ⁦26.98 AED⁩ | enabled=true | clickable=true
+Add To Cart | enabled=true | clickable=true
+-30% / Veggie Maki / ⁦20.61 AED⁩ / ⁦29.44 AED⁩ | enabled=true | clickable=true
+Add To Cart | enabled=true | clickable=true
+-14% / Salmon Nigiri (5pc) / ⁦11.17 AED⁩ / ⁦12.99 AED⁩ | enabled=true | clickable=true
+Best Reviewed Items | enabled=true | clickable=false
+See All | enabled=true | clickable=true
+Home | enabled=true | clickable=true
+Categories | enabled=true | clickable=true
+
+## main-walk timeline R13 (same switch, 16 s window), lines around module_switched; 'started' = the module-switch load ran, 'skipped' = guard hit
+-- base1: [INFO] msg="home load started"; [INFO] msg="home load skipped: alrea; 📊 analytics: module_switched {fro; [INFO] msg="home load skipped: alrea; 
+-- base2: [INFO] msg="home load started"; [INFO] msg="home load skipped: alrea; 📊 analytics: module_switched {fro; [INFO] msg="home load skipped: alrea; 
+-- base3: [INFO] msg="home load started"; [INFO] msg="home load skipped: alrea; 📊 analytics: module_switched {fro; [INFO] msg="home load skipped: alrea; 
+-- tip1: [INFO] msg="home load started"; [INFO] msg="home load skipped: alrea; 📊 analytics: module_switched {fro; [INFO] msg="home load started"; 
+-- tip2: [INFO] msg="home load started"; [INFO] msg="home load skipped: alrea; 📊 analytics: module_switched {fro; [INFO] msg="home load started"; 
+-- tip3: [INFO] msg="home load started"; [INFO] msg="home load skipped: alrea; 📊 analytics: module_switched {fro; [INFO] msg="home load skipped: alrea; 

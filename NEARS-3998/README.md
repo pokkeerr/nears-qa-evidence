@@ -114,6 +114,7 @@
 - [`step4-nets-base.tsv`](step4-nets-base.tsv)
 - [`step4-nets-table.md`](step4-nets-table.md)
 - [`step4-nets-tip.tsv`](step4-nets-tip.tsv)
+- [`step4-observation-O2-module-switch-home-placeholder.txt`](step4-observation-O2-module-switch-home-placeholder.txt)
 - [`step4-pd-s4-1-and-overtaken-probe.md`](step4-pd-s4-1-and-overtaken-probe.md)
 - [`step4-proxy-zoneid.jsonl`](step4-proxy-zoneid.jsonl)
 - [`step4-public-members-base.txt`](step4-public-members-base.txt)
