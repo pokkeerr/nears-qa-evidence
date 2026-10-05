@@ -1,0 +1,32 @@
+# Build / backend identity (NEARS-3996 step 5 QA)
+tested sha: f694d1ac56ae15bb1cc1e3bbf5ff781a2b3604e1 (branch feat/NEARS-3996-u5-step5-catalog-family; lib byte-equal to 6c423bba0: git diff 6c423bba0..f694d1ac5 -- UserApp/lib = 0 bytes; only docs/workflow/review-lessons.json changed after)
+base sha  : 31d404177d6512f30437916257d3fe934744b24a (private DETACHED worktree /Users/Apple/Projects/nears-NEARS-3996-u5-step5-qabase, removed at the end)
+device    : emulator-5554 (sdk_gphone16k_arm64, 1344x2992, Night mode: no = light, EN); lock acquired with qa_lock_acquire key NEARS-3996-S5, 5.0 GB free /data at acquisition; released right after the second walk
+tip package  : com.izzes.nears.nears_nears_3996_u5_step5          (flutter build apk --debug --target-platform android-arm64 --dart-define API_HOST=10.0.2.2:8250, NEARS_PKG_SUFFIX=nears_nears_3996_u5_step5)  md5 8e96af45a1a12ea3ccb4f5f3b9f307c7
+base package : com.izzes.nears.nears_nears_3996_u5_step5_qabase  (same recipe from the qabase worktree)                                                                                    md5 f93f3d73e04d69b0957a40baab4c3cd6
+(no google-services.json in either worktree: the Gradle google-services plugin is skipped, so Firebase/FCM init fails identically on both builds: [FAIL] FirebaseInitFailure, FcmTokenFetchFailure)
+
+kernel_blob.bin string counts (assets/flutter_assets/kernel_blob.bin unzipped from each APK):
+tip: size=127308456
+  StoreCatalogOwner: 5
+  StoreCatalogPort: 9
+  store_catalog_owner: 4
+  _StoreCatalogPort: 4
+  store_offers_owner: 4
+  StoreOffersGridPort: 5
+  store_discovery_owner: 4
+base: size=127305784
+  StoreCatalogOwner: 0
+  StoreCatalogPort: 0
+  store_catalog_owner: 0
+  _StoreCatalogPort: 0
+  store_offers_owner: 4
+  StoreOffersGridPort: 5
+  store_discovery_owner: 4
+(store_offers_owner / StoreOffersGridPort / store_discovery_owner present on both = positive control that the scan works; the catalog names are absent at base and present at tip.) API_HOST 10.0.2.2:8250 baked into both (1 hit each).
+
+backend: Backend: /Users/Apple/Projects/nears-NEARS-3996-u5-step5/Admin @ f694d1ac5
+         own php -d pcre.jit=0 -S 127.0.0.1:8251 server.php (restart-supervised loop: it exited rc=0 once at 22:58 before the walks and was restarted, no exit during either walk) behind my recording proxy :8250 (proxy.py: one line per request, Host header preserved so *_full_url resolves through the proxy; failure injection by a mode file)
+         backend-freshness-check.sh 8251: Backend: /Users/Apple/Projects/nears-NEARS-3996-u5-step5/Admin @ f694d1ac5
+DB: scratch copy nears3996s5qa (mysqldump --single-transaction --set-gtid-purged=OFF multi_food_db | mysql, read-only on the dev DB). Proof the server answers from the scratch copy: renamed store 12 in the scratch copy to 'Fresh local S5QA-PROBE', API returned that name while the dev DB row stayed 'Fresh local'; restored. The shared dev DB multi_food_db was never written and artisan cache:clear was never run.
+account: customer@nears.com (claimed via qa_account_claim, released). Zone 2 / Abu Dhabi (emulator geo fix 54.425 24.45), module Grocery, store 12 'Fresh local' (31 active items, 7 category tabs incl. an Offers chip) and store 13 'Fresh supermarket'.

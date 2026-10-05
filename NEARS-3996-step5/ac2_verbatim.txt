@@ -1,0 +1,125 @@
+# base-line-count 2238 owner-line-count 359
+base 192,193 vs owner 54,55: identical=True (n=2) shifted-controls identical=[False, False, False] (all must be False)
+base 195,202 vs owner 57,64: identical=True (n=8) shifted-controls identical=[False, False, False] (all must be False)
+base 204,208 vs owner 66,70: identical=True (n=5) shifted-controls identical=[False, False, False] (all must be False)
+base 210,211 vs owner 72,73: identical=True (n=2) shifted-controls identical=[False, False, False] (all must be False)
+base 260,261 vs owner 75,76: identical=True (n=2) shifted-controls identical=[False, False, False] (all must be False)
+base 302,303 vs owner 78,79: identical=True (n=2) shifted-controls identical=[False, False, False] (all must be False)
+base 305,310 vs owner 81,86: identical=True (n=6) shifted-controls identical=[False, False, False] (all must be False)
+base 312,324 vs owner 88,100: identical=True (n=13) shifted-controls identical=[False, False, False] (all must be False)
+base 1223,1445 vs owner 125,347: identical=True (n=223) shifted-controls identical=[False, False, False] (all must be False)
+base 1447,1451 vs owner 349,353: identical=True (n=5) shifted-controls identical=[False, False, False] (all must be False)
+base 1453,1455 vs owner 355,357: identical=True (n=3) shifted-controls identical=[False, False, False] (all must be False)
+FAIL ranges 0
+edited base 1446 '    _offers.clearSelection();' -> owner 348 '    _port.clearOffersSelection();'
+edited base 1452 '      getStoreItemList(_store!.id, 1, Get.find<StoreController>().type, false);' -> owner 354 '      getStoreItemList(_store!.id, 1, _port.registeredStoreType, false);'
+# converse: base lines outside moved ranges NOT retained in tip (non-blank): 22
+  REMOVED | import 'package:nears/features/item/controllers/item_controller.dart';
+  REMOVED | import 'package:nears/util/analytics_events.dart';
+  REMOVED |     _storeItemsFailed = false; // NEARS-1088: never carry a grid error into a new store
+  REMOVED |     _offers.clearSelection();
+  REMOVED |       getStoreItemList(_store!.id, 1, Get.find<StoreController>().type, false);
+  REMOVED |       !_isSearching && !_storeItemsFailed && _storeItemModel == null;
+  REMOVED |       !_isSearching &&
+  REMOVED |       !_storeItemsFailed &&
+  REMOVED |       _storeItemModel?.items?.isEmpty == true;
+  REMOVED |     if (_storeItemModel?.items == null) return 1000;
+  REMOVED |     for (var product in _storeItemModel!.items!) {
+  REMOVED |   ItemModel? get storeItemModel => _controller._storeItemModel;
+  REMOVED |   @override
+  REMOVED |   set storeItemModel(ItemModel? value) => _controller._storeItemModel = value;
+  REMOVED |   @override
+  REMOVED |   set storeItemsFailed(bool value) => _controller._storeItemsFailed = value;
+  REMOVED |   @override
+  REMOVED |   int get itemListSessionId => _controller._itemListSessionId;
+  REMOVED |   @override
+  REMOVED |   set itemListSessionId(int value) => _controller._itemListSessionId = value;
+  REMOVED |       _controller._retryLastGridLoad = value;
+  REMOVED |       _controller._dedupeAndPartitionStoreItems();
+# tip lines not in base-outside-moved (non-blank, added): 85
+  ADDED   | import 'package:nears/features/store/controllers/store_catalog_owner.dart';
+  ADDED   |   ItemModel? get storeItemModel => _catalog.storeItemModel;
+  ADDED   |   bool get storeItemsFailed => _catalog.storeItemsFailed;
+  ADDED   |   void retryLastGridLoad() => _catalog.retryLastGridLoad();
+  ADDED   |   ItemModel? get storeSearchItemModel => _catalog.storeSearchItemModel;
+  ADDED   |   String get searchText => _catalog.searchText;
+  ADDED   |   bool get isSearching => _catalog.isSearching;
+  ADDED   |   bool get searchItemsFailed => _catalog.searchItemsFailed;
+  ADDED   |   int get itemListSessionId => _catalog.itemListSessionId;
+  ADDED   |   );
+  ADDED   |   late final StoreCatalogOwner _catalog = StoreCatalogOwner(
+  ADDED   |     storeServiceInterface: storeServiceInterface,
+  ADDED   |     port: _StoreCatalogPort(this),
+  ADDED   |     _catalog.resetItemsFailed(); // NEARS-1088: never carry a grid error into a new store
+  ADDED   |   Future<bool> getStoreItemList(
+  ADDED   |     int? storeID,
+  ADDED   |     int offset,
+  ADDED   |     String type,
+  ADDED   |     bool notify,
+  ADDED   |   ) => _catalog.getStoreItemList(storeID, offset, type, notify);
+  ADDED   |   Future<bool> getStoreSearchItemList(
+  ADDED   |     String searchText,
+  ADDED   |     String? storeID,
+  ADDED   |     int offset,
+  ADDED   |     String type,
+  ADDED   |   ) => _catalog.getStoreSearchItemList(searchText, storeID, offset, type);
+  ADDED   |   void changeSearchStatus({bool isUpdate = true}) =>
+  ADDED   |       _catalog.changeSearchStatus(isUpdate: isUpdate);
+  ADDED   |   void initSearchData() => _catalog.initSearchData();
+  ADDED   |   void setCategoryIndex(int index, {bool itemSearching = false}) =>
+  ADDED   |       _catalog.setCategoryIndex(index, itemSearching: itemSearching);
+  ADDED   |       !_catalog.isSearching &&
+  ADDED   |       !_catalog.storeItemsFailed &&
+  ADDED   |       _catalog.storeItemModel == null;
+  ADDED   |       !_catalog.isSearching &&
+  ADDED   |       !_catalog.storeItemsFailed &&
+  ADDED   |       _catalog.storeItemModel?.items?.isEmpty == true;
+  ADDED   |     if (_catalog.storeItemModel?.items == null) return 1000;
+  ADDED   |     for (var product in _catalog.storeItemModel!.items!) {
+  ADDED   |   ItemModel? get storeItemModel => _controller._catalog.storeItemModel;
+  ADDED   |   @override
+  ADDED   |   set storeItemModel(ItemModel? value) =>
+  ADDED   |       _controller._catalog.storeItemModel = value;
+  ADDED   |   @override
+  ADDED   |   set storeItemsFailed(bool value) =>
+  ADDED   |       _controller._catalog.storeItemsFailed = value;
+  ADDED   |   @override
+  ADDED   |   int get itemListSessionId => _controller._catalog.itemListSessionId;
+  ADDED   |   @override
+  ADDED   |   set itemListSessionId(int value) =>
+  ADDED   |       _controller._catalog.itemListSessionId = value;
+  ADDED   |       _controller._catalog.setRetryLastGridLoad(value);
+  ADDED   |       _controller._catalog.dedupeAndPartitionStoreItems();
+  ADDED   | class _StoreCatalogPort implements StoreCatalogPort {
+  ADDED   |   _StoreCatalogPort(this._controller);
+  ADDED   |   final StoreController _controller;
+  ADDED   |   @override
+  ADDED   |   Store? get store => _controller._store;
+  ADDED   |   @override
+  ADDED   |   List<CategoryModel>? get categoryList => _controller._categoryList;
+  ADDED   |   @override
+  ADDED   |   int get categoryIndex => _controller._categoryIndex;
+  ADDED   |   @override
+  ADDED   |   set categoryIndex(int value) => _controller._categoryIndex = value;
+  ADDED   |   @override
+  ADDED   |   String get type => _controller.type;
+  ADDED   |   @override
+  ADDED   |   set type(String value) => _controller._type = value;
+  ADDED   |   @override
+  ADDED   |   String get registeredStoreType => Get.find<StoreController>().type;
+  ADDED   |   @override
+  ADDED   |   set searchType(String value) => _controller._searchType = value;
+  ADDED   |   @override
+  ADDED   |   List<String>? get filter => _controller._filter;
+  ADDED   |   @override
+  ADDED   |   int get rating => _controller._rating;
+  ADDED   |   @override
+  ADDED   |   double get lowerValue => _controller._lowerValue;
+  ADDED   |   @override
+  ADDED   |   double get upperValue => _controller._upperValue;
+  ADDED   |   @override
+  ADDED   |   void clearOffersSelection() => _controller._offers.clearSelection();
+  ADDED   |   @override
+  ADDED   |   void notify() => _controller.update();
+  ADDED   | }
+# owner non-blank lines not in a moved range (new code): 68
