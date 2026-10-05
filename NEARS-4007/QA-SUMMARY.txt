@@ -1,0 +1,17 @@
+NEARS-4007 step 7 (VA009) - independent QA gate [8], cycle 0
+Build under test: feat/NEARS-4007-v1-step7-va009 @ 331ea9f28622cb8332e60e36a39f4ce99b7f1b7f (clean worktree, asserted before and after); base e39308892
+SDK: Flutter 3.41.9 by absolute path. Device: Android emulator-5554 (Pixel_10_Pro AVD, API 37 arm64), VendorApp debug, EN, light.
+Backend: scratch php artisan serve from the worktree on :8407, scratch COPY db multi_food_db_qa4007 (shared multi_food_db read-only; SELECT + dump only).
+
+How "player count" evidence was gathered: the native ExoPlayer lifecycle lines (ExoPlayerImpl Init <id> / Release <id>) in the flutter run
+log (logcat), tallied in native-exoplayer-init-release-tally.txt. This is an observation of the lifecycle, NOT a performance measurement.
+Widget-tree state per step: ext.flutter.debugDumpApp over the Dart VM service (widget-tree-state-per-step.txt). No screenshots taken.
+
+Files:
+ A0-A9  automated runs + flip proof (new test file against base lib -> 12 RED)
+ C0     attempt 1: no google-services.json in worktree + persisted login token -> splash hang (pre-existing, environment)
+ C1     test build, walk steps 1-6 (edit, Reset, re-enter, create pick/replace/X/Reset, Details, logout)
+ C2     test build, Home->Create Ads, status tabs, Copy Ads
+ C3     test build, logout + re-login on a healthy backend
+ C4     BASE e39308892 build, same walk (comparison baseline)
+ bug-*  per-bug evidence
