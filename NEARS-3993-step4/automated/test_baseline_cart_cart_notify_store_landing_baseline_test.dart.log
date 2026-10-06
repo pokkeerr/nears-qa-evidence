@@ -1,0 +1,14 @@
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/NEARS-3993-s4/qa/tip/UserApp/test/baseline/cart/cart_notify_store_landing_baseline_test.dart
+00:00 +0: ensureStoreMinimums: one fetch at a time, in basket order 3 stores landing in request order (7, 8, 9): each landing is calc, inv, ONE structural listener; the basis flips for ALL groups only at the 3rd (every store resolved)
+[WARN] msg="isAvailable: minute-precision end time, treating as inclusive to :59 (item boundary degrade)"
+00:00 +1: ensureStoreMinimums: one fetch at a time, in basket order a second ensureStoreMinimums once everything is cached: no request, no notification, no calculationCart
+00:00 +2: ensureStoreMinimums: one fetch at a time, in basket order a store whose discount window is CLOSED at the clock (08:00-10:00 at 12:00): landing it leaves every figure at its client value, summary 26.00 (plain rows print the same on both bases; the basis itself is pinned by cart_grouping_pricing_basis F4b)
+00:00 +3: ensureStoreRecords: concurrent, any landing order all 3 stores are requested at once; landing 9, then 7, then 8 reads a different state at each event (the module of the store that landed, the basis only at the last)
+00:00 +4: ensureStoreRecords: concurrent, any landing order two ensureStoreMinimums callers in flight fetch each store ONCE (7, 8, 9): three landings, three structural listeners
+00:00 +5: the null-store branch (a failed or out-of-zone details answer) flag OFF: a null store notifies ONCE with NO calculationCart and NO hook, the minimum becomes known as "none", the groups do not move; the next store still lands normally
+00:00 +6: the null-store branch (a failed or out-of-zone details answer) flag ON (2 modules, module list loaded): the same shape - ONE structural listener, no calculationCart for the null store (the failure line it also writes is not asserted)
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=8"
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=7"
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=9"
+00:00 +7: All tests passed!
+mem-guard[NEARS-3993-s4-qa-A]: done rc=0 peak_tree_rss=1.05 GB (cap 6.0)

@@ -1,0 +1,24 @@
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/NEARS-3993-s4/qa/tip/UserApp/test/baseline/cart/cart_sync_timing_baseline_test.dart
+00:00 +0: debounce window a lone add is sent at exactly 500 ms idle: 499 ms nothing, 500 ms one ADD, the timer is gone
+[WARN] msg="isAvailable: minute-precision end time, treating as inclusive to :59 (item boundary degrade)"
+00:00 +1: debounce window every tap restarts the window: a second tap at 400 ms moves the send to 900 ms and it carries the new quantity
+00:00 +2: debounce window a burst of five taps is ONE request to the final quantity: no per-tap call and no cart list read
+00:00 +3: debounce window two items hold independent timers: A (tapped first) is sent at 500 ms, B (tapped at 200 ms) at 700 ms, in that order, once each
+00:00 +4: debounce window tapping B does not delay A: A is still sent at its own 500 ms
+00:00 +5: debounce window the sync is OUTWARD ONLY: the local row is never replaced by the ADD answer, only stamped with the server cart id
+00:00 +6: requests per action on a confirmed row a quantity burst +,+,-,+ is ONE patch to the net quantity, against the stamped cart id
+00:00 +7: requests per action on a confirmed row a burst that nets to the server quantity sends NOTHING (the timer fires and finds no dirty row)
+00:00 +8: requests per action on a confirmed row stepping a confirmed row to zero removes it AT ONCE (no debounce): one remove, the pending patch is cancelled, the row is gone
+00:00 +9: requests per action on a confirmed row an add then a decrement to zero before the debounce never reaches the server: no request, ever
+00:00 +10: requests per action on a confirmed row the remove button on a confirmed row is immediate too: one remove, nothing else, even with a patch pending
+00:00 +11: requests per action on a confirmed row a tap while the ADD is on the wire does not send a second ADD: it re-arms, then PATCHes the delta once the id is stamped
+00:00 +12: caps the stock cap stops the count at stock and the single ADD carries the capped quantity
+00:00 +13: listener ids each action notifies a NEW line notifies badge, summary and the nav count (and no id-less listener); a step on it only badge and summary
+00:00 +14: listener ids each action notifies the confirmed ADD stamps the id and notifies badge and summary only (not the structural listener)
+00:00 +15: listener ids each action notifies removing a confirmed row notifies the structural listener THEN the badge; the nav count id is not named
+00:00 +16: listener ids each action notifies dropping the LAST unpersisted line notifies the structural listener and the badge; dropping one of two names badge, summary and count
+00:00 +17: failure outcome a refused ADD drops the optimistic row, sends no other request (no re-fetch) and leaves the cart empty
+00:00 +18: failure outcome a failed PATCH with an unknown outcome reconciles THIS item once and does not re-fetch the cart
+[FAIL] endpoint=/api/v1/customer/cart/update http_status=500 type=ApiFailure msg="cart: updateCartQuantityOnline unknownFailure"
+00:00 +19: All tests passed!
+mem-guard[NEARS-3993-s4-qa-A]: done rc=0 peak_tree_rss=1.05 GB (cap 6.0)

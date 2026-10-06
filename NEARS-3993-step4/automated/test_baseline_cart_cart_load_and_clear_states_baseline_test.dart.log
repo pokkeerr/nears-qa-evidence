@@ -1,0 +1,25 @@
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/NEARS-3993-s4/qa/tip/UserApp/test/baseline/cart/cart_load_and_clear_states_baseline_test.dart
+00:00 +0: basket load states cold: empty list, idle, not failed, nothing requested
+00:00 +1: basket load states loading: in flight the controller reads loading with NO notification (the screen must not flip to a shimmer); success rebuilds once and adopts the rows
+[WARN] msg="isAvailable: minute-precision end time, treating as inclusive to :59 (item boundary degrade)"
+00:00 +2: basket load states error: a null answer flags the failure, leaves the list as it was, rebuilds once and stops loading
+00:00 +3: basket load states error then Retry: the flag clears AT ONCE (no notification, the Retry affordance owns its spinner) and a good answer recovers
+00:00 +4: basket load states a SILENT failure never raises the error state (post-clear reconcile), but still ends loading with one rebuild
+00:00 +5: basket load states a failure AFTER a success keeps the rows already shown and flags the failure
+00:00 +6: basket load states an empty answer is the success-empty state: no rows, no failure flag, the previous rows are replaced
+00:00 +7: clear request sequences clearCartList wipes the local basket BEFORE the request resolves, sends ONE clear (module of the old rows, not silent), then ONE reconcile read
+00:00 +8: clear request sequences logout style clearCartList(canRemoveOnline: false): local wipe only, ZERO requests
+00:00 +9: clear request sequences a GUEST basket is cleared online too (same single clear, then the reconcile read)
+00:00 +10: clear request sequences the wipe cancels a pending add: its debounce never fires
+00:00 +11: clear request sequences post-order clear, flag OFF: exactly clearCartList (module of the old rows, not silent) then one reconcile read
+00:00 +12: clear request sequences post-order clear, flag ON: one SILENT clear with no module fallback, then ONE awaited read (the reconcile read is off)
+00:00 +13: a debounce that fires DURING the clear round trip flag OFF, success: a NEW add (active module) is held through the trip and sent right after the clear, BEFORE the reconcile read
+00:00 +14: a debounce that fires DURING the clear round trip flag ON, success: the same sequence
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: item row has no module config, ambient rules kept module_type=grocery"
+00:00 +15: a debounce that fires DURING the clear round trip flag ON, a NEW add of ANOTHER module than the active one is a legitimate basket line: sent after the clear
+00:00 +16: a debounce that fires DURING the clear round trip flag OFF, a NEW add of ANOTHER module than the active one is dropped at release: no ADD, one send-phase warn, the row is gone
+00:00 +17: a debounce that fires DURING the clear round trip success: an OLD pending step is cancelled (never sent) while a round-trip add still goes out; order clear, add, list
+00:00 +18: a debounce that fires DURING the clear round trip FAILURE: every held fire goes out once after the verdict (old step as a PATCH, new add as an ADD), the old row stays, and there is NO reconcile read
+00:00 +19: a debounce that fires DURING the clear round trip state bracket: loading is true for the whole round trip and false after, with the clear counted once per call
+00:00 +20: All tests passed!
+mem-guard[NEARS-3993-s4-qa-A]: done rc=0 peak_tree_rss=1.06 GB (cap 6.0)

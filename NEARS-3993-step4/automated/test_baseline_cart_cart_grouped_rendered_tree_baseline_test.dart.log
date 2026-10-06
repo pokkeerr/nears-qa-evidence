@@ -1,0 +1,50 @@
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/NEARS-3993-s4/qa/tip/UserApp/test/baseline/cart/cart_grouped_rendered_tree_baseline_test.dart
+00:00 +0: the starting basket: the dump is the hand-computed D0 (26.00 / 17.00 / 11.00, Proceed disabled), and a bare update() leaves it
+[INFO] msg="cart restored with 6 items"
+00:00 +1: freshness-oracle premise, read from the rebuild probe (m.probe): a bare update() re-runs the whole grouped column; a summary-id update re-runs only the grouped builder (step 2: every memo slot hits) a bare update() re-runs the grouped builder: the whole column rebuilds once, through the id-less structural body
+[INFO] msg="cart restored with 6 items"
+00:00 +2: freshness-oracle premise, read from the rebuild probe (m.probe): a bare update() re-runs the whole grouped column; a summary-id update re-runs only the grouped builder (step 2: every memo slot hits) twin: update([cart_summary]) with nothing changed re-runs only the grouped builder (no structural rebuild); every memo slot hits, so no row, card, header, subtotal or min row rebuilds
+[INFO] msg="cart restored with 6 items"
+00:01 +3: quantity steps through the REAL stepper, first / middle / last row, up and down first row (item 11) +: store 7 36.00, met 36.00 / 30.00, summary 67.00 / 64.00, Proceed enabled
+[INFO] msg="cart restored with 6 items"
+00:01 +4: quantity steps through the REAL stepper, first / middle / last row, up and down first row (item 11) -: store 7 16.00, short by 14.00 with bar 0.5333, summary 47.00 / 44.00, Proceed disabled
+[INFO] msg="cart restored with 6 items"
+00:01 +5: quantity steps through the REAL stepper, first / middle / last row, up and down middle row (item 22) +: store 8 20.00 with the ENFORCED 24.00 in the caption, summary 61.00 / 57.00
+[INFO] msg="cart restored with 6 items"
+00:01 +6: quantity steps through the REAL stepper, first / middle / last row, up and down middle row (item 22) -: store 8 14.00 with the ENFORCED 16.00 in the caption, summary 53.00 / 51.00
+[INFO] msg="cart restored with 6 items"
+00:01 +7: quantity steps through the REAL stepper, first / middle / last row, up and down last row (item 32) +: store 9 14.00, met 14.00 / 10.00, summary 60.00 / 57.00
+[INFO] msg="cart restored with 6 items"
+00:01 +8: quantity steps through the REAL stepper, first / middle / last row, up and down last row (item 32) -: store 9 8.00 drops BELOW its minimum (short by 2.00, bar 0.8000), summary 54.00 / 51.00
+[INFO] msg="cart restored with 6 items"
+00:02 +9: quantity steps through the REAL stepper, first / middle / last row, up and down a 3-tap burst on item 11 (2 -> 5): store 7 56.00, summary 87.00 / 84.00, Proceed enabled, ONE debounced PATCH to qty 5
+[INFO] msg="cart restored with 6 items"
+00:02 +10: stepper to ZERO a PERSISTED non-last row (item 12, 1 -> 0): its row is gone, store 7 20.00 short by 10.00 (bar 0.6667), summary 51.00 / 48.00
+[INFO] msg="cart restored with 6 items"
+00:02 +11: stepper to ZERO a PERSISTED last row (item 32, 2 -> 1 -> 0): after the first tap it reads 1, after the second it is gone and store 9 reads 5.00 short by 5.00 (bar 0.5000)
+[INFO] msg="cart restored with 6 items"
+00:02 +12: optimistic add (a line the server has not confirmed yet) add item 13 to an EXISTING store, step it up, down and to zero (the last line): the new row appears at the end of store 7, the minimum row follows 28 / 30 / 28 / 26, and the end state is D0
+[INFO] msg="cart restored with 6 items"
+00:02 +13: optimistic add (a line the server has not confirmed yet) add item 51 to a NEW store: an unresolved minimum draws no row, the store landing and the seam fill it in, then stepper-to-zero of the non-last (item 13) and the last (item 51) optimistic line
+[INFO] msg="cart restored with 6 items"
+00:03 +14: minimum landing, in-place item discount, availableList flip minimum landing through the seam: 7 -> 20 (met, Proceed enabled), 8 -> 25 (short by 5.00, bar 0.8000), then back to 30 / 15 (D0)
+[INFO] msg="cart restored with 6 items"
+00:03 +15: minimum landing, in-place item discount, availableList flip a live store discount, then an in-place itemDiscount on item 12 (50 / 25 percent / cleared): the store 7 subtotal follows 20.80 / 19.00 / 20.50 / 20.80, the row prices do not move
+[INFO] msg="cart restored with 6 items"
+00:03 +16: minimum landing, in-place item discount, availableList flip availableList flip: one item window closes (row 21 shows the overlay), then the clock passes every window (all six rows), then both restored; Proceed stays enabled throughout
+[INFO] msg="cart restored with 6 items"
+00:03 +17: removal a single row (item 21) removed: store 8 reads 9.00 short by 3.00 (bar 0.8000), summary 49.00 / 46.00
+[INFO] msg="cart restored with 6 items"
+00:03 +18: removal the whole of store 9 removed row by row: the section shrinks (6.00 short by 4.00, bar 0.6000), then disappears, summary 52.00 / 49.00 then 46.00 / 43.00
+[INFO] msg="cart restored with 6 items"
+00:03 +19: mixed basket (flag ON, stores 7 / 8 / 9 on modules 1 / 2 / 1) gate set / clear: a seeded store_closed card appears in its own section, and clears when that store's rows change; Proceed follows
+[INFO] msg="cart restored with 6 items"
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: item row has no module config, ambient rules kept module_type=grocery"
+[WARN] msg="cart: store pre-flight skipped stores=3 address=false"
+[WARN] msg="cart: store pre-flight skipped stores=3 address=false"
+[WARN] msg="cart: store pre-flight skipped stores=3 address=false"
+00:04 +20: mixed basket (flag ON, stores 7 / 8 / 9 on modules 1 / 2 / 1) characterization only (the toggles are bare updates): free-delivery rows, extra packaging and cutlery in the sections: the dump follows the cutlery switch, the packaging checkboxes (total 57.50) and both flipped back
+[INFO] msg="cart restored with 6 items"
+[WARN] msg="cart: store pre-flight skipped stores=3 address=false"
+00:04 +21: All tests passed!
+mem-guard[NEARS-3993-s4-qa-A]: done rc=0 peak_tree_rss=1.58 GB (cap 6.0)

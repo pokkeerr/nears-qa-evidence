@@ -1,0 +1,25 @@
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/NEARS-3993-s4/qa/tip/UserApp/test/baseline/cart/cart_totals_calculator_source_baseline_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: the matchers see the shapes they pin (positive controls on inline sources) update call, Get use, await / async, import line: each matches its shape (and only it), so a zero on the real files is a clean file, not a blind matcher
+00:00 +1: the matchers see the shapes they pin (positive controls on inline sources) member scanner: ctor, fields, a getter, a method, a record-returning method and a private method come back with their kinds on an inline class shaped like the calculator
+00:00 +2: the matchers see the shapes they pin (positive controls on inline sources) writer scan: a field assignment, a list add and a getter hand-out are each reported with their enclosing member on an inline source
+00:00 +3: (i) the calculator's member inventory by name and kind the file declares exactly ONE top-level class, CartTotalsCalculator, and nothing else at the top level but imports
+00:00 +4: (i) the calculator's member inventory by name and kind exactly 20 members, by kind and name, in source order: the ctor, 2 service fields, then 7 accumulator fields each followed by its getter, then calculationCart, subTotalForRows, _serverBasisSummary
+00:00 +5: (i) the calculator's member inventory by name and kind every field and getter literal: each getter hands out ITS OWN field (no cross-wire), the six numeric accumulators start at 0 and the two lists at [], the service fields and the ctor are the two final collaborators
+00:00 +6: (i) the calculator's member inventory by name and kind the three method signatures (the two row lists and the snapshot are PARAMETERS, calculationCart returns void, subTotalForRows returns the record with a nullable server part)
+00:00 +7: (i) the calculator's member inventory by name and kind the calls that join the three methods: the global pass reads cartList, the server basis gets basketRows + storeSnapshot, and the per-store call passes entry.value with that store's own record
+00:00 +8: (i) the calculator's member inventory by name and kind the accumulators are written ONLY inside calculationCart (decl in their field, hand-out in their getter): 7 fields, each with its exact list of writing sites
+00:00 +9: (i) the calculator's member inventory by name and kind subTotalForRows and _serverBasisSummary never name an accumulator, and neither calls calculationCart or the other direction: subTotalForRows is a leaf, _serverBasisSummary calls only it
+00:00 +10: (ii) the calculator is plain Dart: no GetX, no notification, no await, no controller no `update(`, no `Get` (so no Get.find / Get.isRegistered), no await / async anywhere in the stripped file
+00:00 +11: (ii) the calculator is plain Dart: no GetX, no notification, no await, no controller the file imports exactly 8 libraries (cart / item / store models, the two service interfaces, the three helpers): no GetX package, no `controllers/` path, no screen
+00:00 +12: (ii) the calculator is plain Dart: no GetX, no notification, no await, no controller the only ambient statics the file reaches are ModuleHelper, DateConverter and PriceConverter (the ones the moved bodies already used), with these call counts
+00:00 +13: (iii) the controller side is exactly the facade the 7 public getters are `=> _totals.<same name>` (name -> target pairs, 7 of them: a cross-wired getter is a different pair)
+00:00 +14: (iii) the controller side is exactly the facade `_totals` is ONE `late final` field built from the controller's own two services (not a getter that would rebuild the calculator per access)
+00:00 +15: (iii) the controller side is exactly the facade the facade `double calculationCart()` is exactly: ONE `_totals.calculationCart(cartList, _cartList, _storeSnapshot)`, THEN the NEARS-3771 invalidation, THEN `return _totals.subTotal;` (positions strictly increasing, one of each)
+00:00 +16: (iii) the controller side is exactly the facade the whole controller holds ONE `_totals.calculationCart(` and ONE `invalidateGroupFeesIfBasketChanged(` call site, and ONE `_totals.subTotalForRows(` at the cache site with its per-store `store:` argument and its row list
+00:00 +17: (iii) the controller side is exactly the facade every `_totals.` use by enclosing member (13): the 7 getters, the facade (calculationCart + subTotal), the cache site, and the 3 facade reads (progress, remaining, packaging) on subTotal
+00:00 +18: (iii) the controller side is exactly the facade none of the 9 moved names is left in cart_controller.dart (7 accumulator fields, _subTotalForRows, _serverBasisSummary): no member, no identifier
+00:00 +19: (iii) the controller side is exactly the facade the calculator is imported by cart_controller.dart only and constructed ONCE in all of lib (the `_totals` field): not registered in get_di.dart, not built by any widget or service
+00:00 +20: (tearDownAll)
+00:00 +20: All tests passed!
+mem-guard[NEARS-3993-s4-qa-A]: done rc=0 peak_tree_rss=1.08 GB (cap 6.0)

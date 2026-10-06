@@ -1,0 +1,15 @@
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/NEARS-3993-s4/qa/tip/UserApp/test/baseline/cart/cart_group_totals_scope_baseline_test.dart
+00:00 +0: AC-2 (a) / (f) an unchanged basket derives nothing after its first read, through every API the first read derives the 5 rows in group order; the second and third read of the group list derive none
+[WARN] msg="isAvailable: minute-precision end time, treating as inclusive to :59 (item boundary degrade)"
+00:00 +1: AC-2 (a) / (f) an unchanged basket derives nothing after its first read, through every API (f) whichever API reads first pays the 5 rows once; the other three APIs and a later group read then derive none
+00:00 +2: AC-2 (a) / (f) an unchanged basket derives nothing after its first read, through every API (f) a single-store basket: singleOtherStoreBasket returns the section from the cache on later reads (3 rows derived once)
+00:00 +3: AC-2 (b) one store edited: only the rows of that store are derived again store 8 (the food row, quantity 2 -> 3 in place): only item 2 is derived; 45.00 / 45.00; the stores 7 and 9 are hits
+00:00 +4: AC-2 (b) one store edited: only the rows of that store are derived again store 7 (row 0 quantity 2 -> 3 in place): items 1 and 4 are derived (its two rows), the other stores are hits; 31.50 / 42.00
+00:00 +5: AC-2 (b) one store edited: only the rows of that store are derived again a row appended to store 9 in place derives the three rows of store 9 only (3 5 and the new item 6: 2.00 x 1)
+00:00 +6: AC-2 (c) store records landing one by one: the basis follows the per-read all-or-nothing rule, the derivations follow the landing 7 and 9 landed: the client basis for ALL three (store 8 has no record), 7 and 9 re-derived; then 8 lands: the basis flips for ALL to the server one, only store 8 derived
+00:00 +7: AC-2 (d) P21 the cart row id and its loading flag are not inputs of the derivation stamping a cart id and toggling isLoading on every row derives no row and moves no figure
+00:00 +8: AC-2 (e) a store that left the basket is dropped from the cache store 8 removed in place then its row put back: the same row object is derived again (an entry that survived would hit)
+00:00 +9: AC-2 (e) a store that left the basket is dropped from the cache an emptied basket clears the whole cache: the same rows put back derive all 5 again
+00:00 +10: DECLARED DIFFERENCE vs the step-2 base: a hit does not re-raise a failure that comes only from the cart service the cart service breaks AFTER a successful read: base derives on every read and throws, tip returns the cached figures (a replaced-service case: the real services are stateless)
+00:00 +11: All tests passed!
+mem-guard[NEARS-3993-s4-qa-A]: done rc=0 peak_tree_rss=1.53 GB (cap 6.0)

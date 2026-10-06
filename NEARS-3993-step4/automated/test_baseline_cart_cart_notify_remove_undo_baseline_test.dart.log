@@ -1,0 +1,23 @@
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/NEARS-3993-s4/qa/tip/UserApp/test/baseline/cart/cart_notify_remove_undo_baseline_test.dart
+00:00 +0: removeFromCart, every position a PERSISTED row removed at position 0: the structural listener then its badge (no summary, no count), the others re-indexed, then ONE delete
+[WARN] msg="isAvailable: minute-precision end time, treating as inclusive to :59 (item boundary degrade)"
+00:00 +1: removeFromCart, every position a PERSISTED row removed at position 1: the structural listener then its badge (no summary, no count), the others re-indexed, then ONE delete
+00:00 +2: removeFromCart, every position a PERSISTED row removed at position 2: the structural listener then its badge (no summary, no count), the others re-indexed, then ONE delete
+00:00 +3: removeFromCart, every position an UNPERSISTED row removed at position 0: the structural listener then its badge, its pending ADD cancelled, NO request for it
+00:00 +4: removeFromCart, every position an UNPERSISTED row removed at position 1: the structural listener then its badge, its pending ADD cancelled, NO request for it
+00:00 +5: removeFromCart, every position an UNPERSISTED row removed at position 2: the structural listener then its badge, its pending ADD cancelled, NO request for it
+00:00 +6: removeFromCart, every position the LAST row removed: structural listener then badge over no groups, a 0.00 summary and no rows
+00:00 +7: removeFromCart, every position an out-of-range index (3, -1) is a no-op: no notification, no calculationCart, no request
+00:00 +8: undoRemove: simple restore a removed row put back at position 0: structural listener, badge, summary over the FULL 3-store basket again, the row id-less; the debounced re-send then adopts a NEW cart id
+00:00 +9: undoRemove: simple restore a removed row put back at position 1: structural listener, badge, summary over the FULL 3-store basket again, the row id-less; the debounced re-send then adopts a NEW cart id
+00:00 +10: undoRemove: simple restore a removed row put back at position 2: structural listener, badge, summary over the FULL 3-store basket again, the row id-less; the debounced re-send then adopts a NEW cart id
+00:00 +11: undoRemove: simple restore an index past the end is clamped: the restored row lands LAST and its store becomes the last group
+00:00 +12: undoRemove: simple restore a second undo of the same row (double tap) is a no-op: no notification, no calculationCart, no second row
+00:00 +13: undoRemove: verdict restore (a row with an add-on is re-sent as itself through cart/add) restore lands: ONE burst with the row back and id-less (before the request), then a SECOND burst with the server id stamped; the two bursts are identical but for the id
+00:00 +14: undoRemove: verdict restore (a row with an add-on is re-sent as itself through cart/add) restore refused by the server: burst 1 (row back), then burst 2 with the row gone again over the 3-store basket; one failure toast
+[FAIL] endpoint=/api/v1/customer/cart/add http_status=500 type=ApiFailure msg="cart: undoRemove restore add failed item_id=4"
+00:00 +15: removeStoreFromCart a store with 2 interleaved PERSISTED rows (rows 0 and 2 of 4): structural listener, one badge per removed row in row order, then the refetch (calc, inv) and its closing structural listener; all four read the post-removal basket
+00:00 +16: removeStoreFromCart a store with a persisted and an UNPERSISTED row: only the persisted one is deleted, the unpersisted ADD is cancelled (nothing sent for it), same notification shape
+00:00 +17: removeStoreFromCart a store that is not in the basket: true back, no notification, no calculationCart, no request
+00:00 +18: All tests passed!
+mem-guard[NEARS-3993-s4-qa-A]: done rc=0 peak_tree_rss=1.11 GB (cap 6.0)

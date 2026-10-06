@@ -1,0 +1,36 @@
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/NEARS-3993-s4/qa/tip/UserApp/test/baseline/cart/cart_notify_reload_clear_baseline_test.dart
+00:00 +0: reload (_fetchCartOnline) success with changes: NO notification at the start; calc, inv, then one badge per CHANGED item in first-seen order (1 up, 3 gone, 4 new; 2 unchanged is silent) while still loading, then the closing structural listener
+[WARN] msg="isAvailable: minute-precision end time, treating as inclusive to :59 (item boundary degrade)"
+00:00 +1: reload (_fetchCartOnline) an IDENTICAL answer: calc and inv still run, no badge is named, only the closing structural listener
+00:00 +2: reload (_fetchCartOnline) a pending (unpersisted) add survives the reload: re-appended LAST, so its store group follows the server rows; one structural listener
+00:00 +3: reload (_fetchCartOnline) a FAILED reload: one structural listener that reads the failure flag SET (L0F1) over the UNCHANGED basket; no calculationCart, no hook
+00:00 +4: reload (_fetchCartOnline) a SILENT failed reload: the same single listener but the failure flag stays CLEAR (L0F0); basket unchanged, no calculationCart
+00:00 +5: reload (_fetchCartOnline) with no module to fetch for (flag OFF, no active and no cached module) the reload is skipped: ZERO notifications, ZERO requests, basket untouched
+[WARN] msg="cart getCartDataOnline: fetch skipped reason=no_module config_loaded=true"
+00:00 +6: clear INVARIANT: clearCartList (flag OFF, logged in): every notification reads NO groups and NO rows (they partition the empty list), begin of the server clear reads loading
+00:00 +7: clear PINNED-DEFECT (new, Low, no ticket): known defect, not intended behaviour: clearCartList notifies THREE times with the PRE-clear subTotal 26.00 over an empty basket; only the reconcile reload recalculates (0.00)
+00:00 +8: clear PINNED-DEFECT (new, Low, no ticket): known defect, not intended behaviour: the logout style clearCartList(canRemoveOnline: false) fires ONE listener with the stale 26.00, never recalculates, sends nothing; the summary stays 26.00 afterwards
+00:00 +9: clear PINNED-DEFECT (new, Low, no ticket) on the stale summary: known defect, not intended behaviour: clearBasketAfterOrder at flag OFF is exactly clearCartList: the same four notifications and the same two requests
+00:00 +10: clear PINNED-DEFECT (new, Low, no ticket) on the stale summary: known defect, not intended behaviour: clearBasketAfterOrder at flag ON (2 modules): reset, begin, end, then the AWAITED silent refetch (calc, inv) and its closing listener; one silent clear without a module fallback
+00:00 +11: clear PINNED-DEFECT (new, Low, no ticket) on the stale summary: known defect, not intended behaviour: a FAILED server clear: reset, begin, end with the rows already gone locally and the stale 26.00, NO reconcile, no calculationCart; the server still holds all three rows
+00:00 +12: clear clearCartOnline direct: begin reads the rows STILL there (pre-state, loading), end reads them still there, then the reconcile reload clears them: calc, inv, a badge per cleared item (the clear bracket already ended, so idle), and the closing listener
+00:00 +13: clear clearCartOnline refused by the server: the two bracket notifications over the UNCHANGED basket, no reconcile, no calculationCart
+00:00 +14: resolvePendingUnconfirmedAdds nothing pending: true, ZERO notifications, ZERO requests
+00:00 +15: resolvePendingUnconfirmedAdds an ADD that landed server-side but was never adopted: the server row is APPENDED (store 7 returns as the last group), marker cleared, calc, inv, one structural listener
+00:00 +16: resolvePendingUnconfirmedAdds an ADD that never landed: the marker is cleared, the basket is NOT changed, yet calc, inv and one structural listener still run over the same 2-store basket
+00:00 +17: resolvePendingUnconfirmedAdds the verify read fails: false back (checkout must not proceed), ZERO notifications, the marker is KEPT for a later attempt
+00:00 +18: view-state setters: a bare listener over the unchanged basket, no calculationCart setCurrentIndex(2, true) notifies the structural listener once; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +19: view-state setters: a bare listener over the unchanged basket, no calculationCart setCurrentIndex(2, false) notifies NOTHING; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +20: view-state setters: a bare listener over the unchanged basket, no calculationCart setExpanded(false) notifies the structural listener once; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +21: view-state setters: a bare listener over the unchanged basket, no calculationCart toggleExtraPackage() notifies the structural listener once; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +22: view-state setters: a bare listener over the unchanged basket, no calculationCart toggleExtraPackage(willUpdate: false) notifies NOTHING; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +23: view-state setters: a bare listener over the unchanged basket, no calculationCart updateCutlery() notifies the structural listener once; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +24: view-state setters: a bare listener over the unchanged basket, no calculationCart updateCutlery(willUpdate: false) notifies NOTHING; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +25: view-state setters: a bare listener over the unchanged basket, no calculationCart resetSubstitutionToDefault() notifies the structural listener once; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +26: view-state setters: a bare listener over the unchanged basket, no calculationCart resetSubstitutionToDefault(willUpdate: false) notifies NOTHING; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +27: view-state setters: a bare listener over the unchanged basket, no calculationCart setAvailableIndex(1) notifies the structural listener once; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +28: view-state setters: a bare listener over the unchanged basket, no calculationCart setAvailableIndex(1, willUpdate: false) notifies NOTHING; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +29: view-state setters: a bare listener over the unchanged basket, no calculationCart clearError() notifies NOTHING; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +30: view-state setters: a bare listener over the unchanged basket, no calculationCart setDirectlyAddToCartIndex(4) notifies NOTHING; the basket read is the unchanged 26.00 over 3 stores, no calc, no hook
+00:00 +31: All tests passed!
+mem-guard[NEARS-3993-s4-qa-A]: done rc=0 peak_tree_rss=0.70 GB (cap 6.0)

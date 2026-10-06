@@ -1,0 +1,83 @@
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/NEARS-3993-s4/qa/tip/UserApp/test/baseline/cart/cart_mutation_census_source_baseline_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: matcher self-proof on inline source (every shape the census counts is present, so a zero is not a blind spot) cartCode blanks comments and string text, keeps interpolations, and keeps every offset and newline
+00:00 +1: matcher self-proof on inline source (every shape the census counts is present, so a zero is not a blind spot) writerHits finds every writer shape on one name: plain, multi-line, cascade, element, index, alias, argument, interpolation, after a raw string
+00:00 +2: matcher self-proof on inline source (every shape the census counts is present, so a zero is not a blind spot) memberAssigns: multi-line, compound, nested chain and cascade writes count; comparisons, a ctor default, comments and strings do not
+00:00 +3: matcher self-proof on inline source (every shape the census counts is present, so a zero is not a blind spot) updateSites: every id form, multi-line, super / else / arrow callers; declarations, receiver calls, comments, strings and look-alike names are not notifications
+00:00 +4: matcher self-proof on inline source (every shape the census counts is present, so a zero is not a blind spot) callSites: calls count (also after if / return / =), the declaration, a receiver call, a comment and a string do not
+00:00 +5: matcher self-proof on inline source (every shape the census counts is present, so a zero is not a blind spot) getterUses: a write through the live getter is named (call, element, index), an alias is named, a plain read is a ref; comments and strings are blanked
+00:00 +6: matcher self-proof on inline source (every shape the census counts is present, so a zero is not a blind spot) refCount: raw refs, refs outside code (comment / block comment / literal text), definitions and code reads (an interpolation is a read)
+00:00 +7: matcher self-proof on inline source (every shape the census counts is present, so a zero is not a blind spot) the two-view agreement check can fail: ordinary source agrees, an escaped quote before a trailing comment makes the simple view disagree
+00:00 +8: matcher self-proof on inline source (every shape the census counts is present, so a zero is not a blind spot) scanMembers gives exact spans for a method after a getter, an arrow member and a map-literal field
+00:00 +9: matcher self-proof on inline source (every shape the census counts is present, so a zero is not a blind spot) memberUses, receiverToken, bare getterUses, enclosingBlock / aliasNameAt / aliasUsesIn and the output-writer span split find every shape they count
+00:00 +10: the census over the real files per-file agreement: the careful scan and the simple view count every census token the same in every lib file (a disagreement = a blind spot there)
+00:00 +11: the census over the real files _cartList in lib/features/cart/**: 19 structure writers (initializer, 5 assignments, 13 mutator calls), 6 element writers, 1 alias (never written through), the getter hand-out and the read-only argument hand-outs
+00:00 +11 -1: the census over the real files _cartList in lib/features/cart/**: 19 structure writers (initializer, 5 assignments, 13 mutator calls), 6 element writers, 1 alias (never written through), the getter hand-out and the read-only argument hand-outs [E]
+  Expected: {
+              'decl': 1,
+              '=': 5,
+              'call.add': 2,
+              'call.addAll': 2,
+              'call.insert': 2,
+              'call.removeAt': 4,
+              'call.removeWhere': 3,
+              'element=id': 2,
+              'element=quantity': 4,
+              'alias:listAtTap': 1,
+              'handout': 1,
+              'arg:identical': 3,
+              'arg:getCartId': 1,
+              'arg:verdict': 1,
+              'arg:isExistInCart': 1,
+              'arg:_quantityByItemId': 2,
+              'arg:cartQuantity': 1,
+              'arg:cartVariant': 1,
+              'arg:calculationCart': 2
+            }
+    Actual: {
+              'decl': 1,
+              'handout': 1,
+              'call.add': 2,
+              'element=id': 2,
+              'arg:calculationCart': 1,
+              'arg:getCartId': 1,
+              'call.removeAt': 4,
+              'arg:verdict': 1,
+              'call.insert': 2,
+              'alias:listAtTap': 1,
+              'arg:identical': 3,
+              'call.removeWhere': 3,
+              '=': 5,
+              'arg:isExistInCart': 1,
+              'element=quantity': 4,
+              'call.addAll': 2,
+              'arg:_quantityByItemId': 2,
+              'arg:cartQuantity': 1,
+              'arg:cartVariant': 1
+            }
+     Which: at location ['arg:calculationCart'] is <1> instead of <2>
+  
+  package:matcher                                                          expect
+  package:flutter_test/src/widget_tester.dart 473:18                       expect
+  test/baseline/cart/cart_mutation_census_source_baseline_test.dart 446:7  main.<fn>.<fn>
+  
+00:00 +11 -1: the census over the real files member assignments in lib/features/cart/** (summed over the tree): row id 6 / quantity 4, item own discount 2 (a possibly shared Item), render-list backfill 4 (Item), group output 2, suggestion item name 1
+00:00 +12 -1: the census over the real files store-state writers (the state the grouping getter reads): snapshot 2, minimum 3, in-flight 3, label-miss log set 1, free-delivery log set 1
+00:01 +13 -1: the census over the real files the summary state (_subTotal, _itemPrice, _itemDiscountPrice, _addOns, _variationPrice, _addOnsList, _availableList) is written ONLY inside calculationCart (its member span, in the files of the cart tree that declare calculationCart or `_subTotal`; CartModel's own `_addOns` is another member)
+00:01 +14 -1: the census over the real files CartStoreGroup output writers: indices.add 1 + rows.add 1 + subTotal 1 + enforcedTotal 1, all inside the cartGroupsByStore member, none outside it anywhere under lib/ (counts accumulate: a second write of a kind shows)
+00:02 +15 -1: the census over the real files update( in the cart tree, TEXTUAL: 62 occurrences, 18 in comments, 44 in code (40 notifications + 2 service receiver calls + 2 repository declarations); a comment mention moves this test, never the form / site tests below
+00:02 +16 -1: the census over the real files update( LIVE forms over the cart tree: 27 bare, 5 [badge], 3 [badge,summary], 3 [badge,summary,count], 1 [badge,summary,if count], 1 computed list, plus the 2 receiver calls of the repository (the only non-notification form)
+00:02 +17 -1: the census over the real files external CartController.update([..]) callers: exactly one, place_order_controller, [cartSummaryId] (the cart gate rebuild)
+00:02 +18 -1: the census over the real files calculationCart(), TEXTUAL, cart tree: 20 occurrences (controller 18 = 1 comment + 1 declaration + 16 calls; cart_screen 2 = 1 receiver call + 1 comment), 18 in code
+00:02 +19 -1: the census over the real files calculationCart() LIVE call sites: 16 receiver-less calls in the cart tree, 3 receiver calls outside the controller (cart_screen 1, bottom_cart_widget 2)
+00:02 +20 -1: the census over the real files readers of the four group APIs per file under lib/ ([raw refs, outside code, definitions, code reads]): cartGroupsByStore 38 in 12 files
+00:03 +21 -1: the census over the real files the live cartList getter outside the controller: 86 textual / 83 code refs in 28 files, ZERO writes through the receiver form, exactly 2 aliases (followed in C19; the controller's own bare reads are C18)
+00:03 +22 -1: the census over the real files the cart-adjacent files (CartModel / .cartList / CartController) write no row field outside the controller; staples_controller.quantity is a StapleItem (the control, not a row)
+00:03 +23 -1: the census over the real files external callers of the mutating entry points (file kind -> count; zero = reached only inside the controller)
+00:03 +24 -1: the census over the real files the collaborator calls the grouping reads (summed over the cart tree): 19 distinct cartServiceInterface methods (42 sites) and 3 pricing-service calls, all read-only on the rows by reading (cart_service.dart / pricing_service.dart assign no member)
+00:03 +25 -1: the census over the real files external inputs the getter reads, with their writers: ModuleController._moduleList (3 writes), config.crossModuleBasket (3 sites), SplashController _configModel / _data, currentTime = a bare DateTime.now() getter read by one caller
+00:04 +26 -1: the census over the real files C18: the controller's OWN reads of the live cartList (no receiver): 5 uses (getter declaration, 1 for-in loop, one `.any`, one argument to the totals calculator, one parameter named cartList), ZERO writes
+00:04 +27 -1: the census over the real files C19: the 2 aliases of the live cartList (checkout_screen `live`, place_order_controller `rows`): inside the block that binds each, ZERO writes; the hand-outs are read-only callees (read once, doc A)
+00:04 +28 -1: (tearDownAll)
+00:04 +28 -1: Some tests failed.
+mem-guard[NEARS-3993-s4-qa-mut]: done rc=1 peak_tree_rss=1.17 GB (cap 6.0)
