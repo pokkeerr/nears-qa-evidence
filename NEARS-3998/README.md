@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-3998
 
-**Step 4 (zone resolution extraction) QA evidence added to the NEARS-3998 gallery; step-3 files kept**
+**step 5 (UA-022 suggestions extraction) QA evidence added: text only, 0 new PNG; steps 3-4 files kept**
 
 **44 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -127,6 +127,51 @@
 - [`step4-walk-compare-pair2.txt`](step4-walk-compare-pair2.txt)
 - [`step4-walk-compare-pair3.txt`](step4-walk-compare-pair3.txt)
 - [`step4-walk-table.md`](step4-walk-table.md)
+- [`step5-analyze-base.txt`](step5-analyze-base.txt)
+- [`step5-analyze-tip.txt`](step5-analyze-tip.txt)
+- [`step5-data-probe.txt`](step5-data-probe.txt)
+- [`step5-home-load-race-probe.txt`](step5-home-load-race-probe.txt)
+- [`step5-kernel-proof.txt`](step5-kernel-proof.txt)
+- [`step5-nav-guide-patch.md`](step5-nav-guide-patch.md)
+- [`step5-nets-table.md`](step5-nets-table.md)
+- [`step5-scanner-controls.txt`](step5-scanner-controls.txt)
+- [`step5-scanners-output.txt`](step5-scanners-output.txt)
+- [`step5-scripts`](step5-scripts)
+- [`step5-uidump-base3.txt`](step5-uidump-base3.txt)
+- [`step5-uidump-base4.txt`](step5-uidump-base4.txt)
+- [`step5-uidump-baseB2.txt`](step5-uidump-baseB2.txt)
+- [`step5-uidump-baseX1.txt`](step5-uidump-baseX1.txt)
+- [`step5-uidump-tip3.txt`](step5-uidump-tip3.txt)
+- [`step5-uidump-tip4.txt`](step5-uidump-tip4.txt)
+- [`step5-uidump-tipB2.txt`](step5-uidump-tipB2.txt)
+- [`step5-uidump-tipX1.txt`](step5-uidump-tipX1.txt)
+- [`step5-walk-compare-baseB2-vs-tipB2.txt`](step5-walk-compare-baseB2-vs-tipB2.txt)
+- [`step5-walk-compare-baseB3-vs-tipB3.txt`](step5-walk-compare-baseB3-vs-tipB3.txt)
+- [`step5-walk-compare-baseT1-vs-tipT1.txt`](step5-walk-compare-baseT1-vs-tipT1.txt)
+- [`step5-walk-compare-baseT2-vs-tipT2.txt`](step5-walk-compare-baseT2-vs-tipT2.txt)
+- [`step5-walk-compare-baseX1-vs-tipX1.txt`](step5-walk-compare-baseX1-vs-tipX1.txt)
+- [`step5-walk-compare-baseX2-vs-tipX2.txt`](step5-walk-compare-baseX2-vs-tipX2.txt)
+- [`step5-walk-compare-pair1-base3-vs-tip3.txt`](step5-walk-compare-pair1-base3-vs-tip3.txt)
+- [`step5-walk-compare-pair2-base4-vs-tip4.txt`](step5-walk-compare-pair2-base4-vs-tip4.txt)
+- [`step5-walk-noise-base3-vs-base4.txt`](step5-walk-noise-base3-vs-base4.txt)
+- [`step5-walk-noise-tip3-vs-tip4.txt`](step5-walk-noise-tip3-vs-tip4.txt)
+- [`step5-winstats-base3.txt`](step5-winstats-base3.txt)
+- [`step5-winstats-base4.txt`](step5-winstats-base4.txt)
+- [`step5-winstats-baseB2.txt`](step5-winstats-baseB2.txt)
+- [`step5-winstats-baseB3.txt`](step5-winstats-baseB3.txt)
+- [`step5-winstats-baseT1.txt`](step5-winstats-baseT1.txt)
+- [`step5-winstats-baseT2.txt`](step5-winstats-baseT2.txt)
+- [`step5-winstats-baseX1.txt`](step5-winstats-baseX1.txt)
+- [`step5-winstats-baseX2.txt`](step5-winstats-baseX2.txt)
+- [`step5-winstats-tip3.txt`](step5-winstats-tip3.txt)
+- [`step5-winstats-tip4.txt`](step5-winstats-tip4.txt)
+- [`step5-winstats-tipB2.txt`](step5-winstats-tipB2.txt)
+- [`step5-winstats-tipB3.txt`](step5-winstats-tipB3.txt)
+- [`step5-winstats-tipT1.txt`](step5-winstats-tipT1.txt)
+- [`step5-winstats-tipT2.txt`](step5-winstats-tipT2.txt)
+- [`step5-winstats-tipX1.txt`](step5-winstats-tipX1.txt)
+- [`step5-winstats-tipX2.txt`](step5-winstats-tipX2.txt)
+- [`step5-wire-crosscheck-app-vs-proxy.txt`](step5-wire-crosscheck-app-vs-proxy.txt)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-3998/` · public-repo scrub policy (no live secrets; verified clean).*
