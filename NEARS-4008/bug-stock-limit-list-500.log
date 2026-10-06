@@ -1,0 +1,12 @@
+# regression (pre-existing, backend): GET /api/v1/vendor/item/stock-limit-list -> HTTP 500 (grocery vendor ts@ts.com store 35; identical on BASE and TIP builds; Admin code identical base..tip)
+## app (base build, pid 26771)
+10-07 03:10:08.422 26771 26771 I flutter : [NET] GET endpoint=/api/v1/vendor/item/stock-limit-list
+10-07 03:10:08.537 26771 26771 I flutter : [NET] endpoint=/api/v1/vendor/item/stock-limit-list http_status=500
+10-07 03:10:08.548 26771 26771 I flutter : [FAIL] endpoint=/api/v1/vendor/item/stock-limit-list http_status=500 type=ApiFailure msg="api request failed" correlation_id=85b63d7c-8785-46a3-818b-3beae9bbcd10
+## app (tip build, pid 29075)
+10-07 03:14:58.041 29075 29075 I flutter : [NET] GET endpoint=/api/v1/vendor/item/stock-limit-list
+10-07 03:14:58.182 29075 29075 I flutter : [NET] endpoint=/api/v1/vendor/item/stock-limit-list http_status=500
+10-07 03:14:58.198 29075 29075 I flutter : [FAIL] endpoint=/api/v1/vendor/item/stock-limit-list http_status=500 type=ApiFailure msg="api request failed" correlation_id=d39a4a13-0ee5-43bf-b17d-4daef209c945
+## backend laravel.log (own server, correlation-id join)
+[2026-10-07 03:10:15] production.ERROR: [FAIL] Call to a member function newQueryWithoutRelationships() on int {"correlation_id":"85b63d7c-8785-46a3-818b-3beae9bbcd10","type":"Error","endpoint":"/api/v1/vendor/item/stock-limit-list"} 
+[2026-10-07 03:15:05] production.ERROR: [FAIL] Call to a member function newQueryWithoutRelationships() on int {"correlation_id":"d39a4a13-0ee5-43bf-b17d-4daef209c945","type":"Error","endpoint":"/api/v1/vendor/item/stock-limit-list"} 
