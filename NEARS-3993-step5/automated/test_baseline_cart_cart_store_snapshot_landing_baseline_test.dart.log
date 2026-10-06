@@ -1,0 +1,24 @@
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/NEARS-3993-s5/qa/tip/UserApp/test/baseline/cart/cart_store_snapshot_landing_baseline_test.dart
+00:00 +0: a real record: maps first, then ONE calculationCart (+ ONE invalidation), then ONE update ensureStoreMinimums, landing 7, 8, 9: at calculation ENTRY, at its invalidation hook and inside the listener the minimum AND the record of the landing store are already held; the timeline is calc, inv, * three times
+[WARN] msg="isAvailable: minute-precision end time, treating as inclusive to :59 (item boundary degrade)"
+00:00 +1: a real record: maps first, then ONE calculationCart (+ ONE invalidation), then ONE update ensureStoreRecords, landing 9, then 7, then 8: the same maps-first rule at each landing (the view grows in LANDING order), one calc / inv / update per landing
+00:00 +2: a null record (failed / out-of-zone answer) flag OFF, stores 7 (null), 8 (real), 9 (null): the null ones cache the minimum as KNOWN none, hold no record, never calculate, notify ONCE each; the real one is the only calc / inv; NOTHING is logged
+00:00 +3: a null record (failed / out-of-zone answer) flag ON, all three stores null (sequential 7, 8, 9): ONE CartStoreModuleFailure per store, in landing order, each text carrying ONLY its store id; still no calc, ONE update each
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=7"
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=8"
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=9"
+00:00 +4: a null record (failed / out-of-zone answer) flag ON, ensureStoreRecords landing 9 (null), 7 (real), 8 (null): the log fires for 9 then 8 only (a real record never logs); the one real landing is the only calc / inv
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=9"
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=8"
+00:00 +5: a throwing invalidation hook (a throw inside calculationCart) ensureStoreMinimums: the landing 7 leaves both maps written, NO update, the Future errors with the hook error, and store 8 is NOT requested; a second call resumes at 8 then 9
+00:00 +6: a throwing invalidation hook (a throw inside calculationCart) ensureStoreRecords: all three landings throw; every map is written, NO update, and the call errors only after the LAST landing (8 and 9 were requested up front and finished too)
+00:00 +7: a FAILING fetch (the details future completes with an error) ensureStoreRecords: 7 fails while 8 and 9 are parked: the call is still pending after the failure and after 8, and errors only once 9 finished (Future.wait waits out every fetch); 8 and 9 land normally
+00:00 +8: a FAILING fetch (the details future completes with an error) LATENT DEFECT (Low, pinned as observed, never fixed): ensureStoreMinimums, store 7 fetch FAILS: the call errors, 8 and 9 are never requested; a second call skips 7 forever (its in-flight entry stays) and fetches 8, 9; 7 never becomes known
+00:00 +9: a FAILING fetch (the details future completes with an error) LATENT DEFECT (Low, pinned as observed, never fixed): after a failed fetch of 7, ensureStoreRecords re-throws the SAME error with no new request for 7, ensureStoreMinimums returns normally with no request
+00:00 +10: retention and the facade reads clearCartList (logout style) keeps BOTH maps: the three views and the three record instances survive, and re-adding the same rows requests nothing
+00:00 +11: retention and the facade reads clearCartList while store 7 is PARKED keeps its in-flight Future: re-adding the rows and calling ensureStoreRecords requests 8 and 9 only (3 requests in all), and waits out 7 until it lands
+00:00 +12: retention and the facade reads the cached minimum VALUE: a real record with minimum 0 caches 0.0 (known, not none), 5 caches 5.0, no minimum caches null; a second ensureStoreMinimums after a null record requests nothing
+00:00 +13: retention and the facade reads the seams: debugSetStoreMinimum writes ONLY the minimum (a number, or a known none), debugSetStoreSnapshot writes the record AND its minimum; neither notifies, recalculates, invalidates or requests
+00:00 +14: retention and the facade reads storeSnapshot: null for a store never landed, the SAME instance on every read for a landed one (7, 8, 9 each), not a copy
+00:00 +15: All tests passed!
+mem-guard[NEARS-3993-s5-qa-A]: done rc=0 peak_tree_rss=0.78 GB (cap 6.0)

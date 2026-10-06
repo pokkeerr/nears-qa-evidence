@@ -1,0 +1,30 @@
+00:00 +0: loading /private/tmp/claude-501/-Users-Apple-Projects-nears/6029ad35-768a-4271-8ca7-36fb0d931010/scratchpad/NEARS-3993-s5/qa/tip/UserApp/test/features/cart/cart_store_snapshot_loader_test.dart
+00:00 +0: callbacks: per landing recalculate THEN notify, both maps already written ensureStoreMinimums, landing 7, 8, 9 in order: each landing stamps `calc` then `*` and the view inside BOTH callbacks already holds that landing's minimum AND record
+00:00 +1: callbacks: per landing recalculate THEN notify, both maps already written ensureStoreRecords, landing 9, then 7, then 8: all three are requested up front (concurrent), the view grows in LANDING order, the call completes after the last one
+00:00 +2: callbacks: per landing recalculate THEN notify, both maps already written a landing does not touch the other stores: after 8 lands alone the other two stay unknown (minimum `?`, no record) and one calc + one notify ran
+00:00 +3: a null record (failed / out-of-zone answer) flag OFF, sequential 7 (null), 8 (real), 9 (null): the null ones write a KNOWN null minimum and no record, never recalculate, notify once each; nothing is logged
+00:00 +4: a null record (failed / out-of-zone answer) flag ON, concurrent 9 (null), 7 (real), 8 (null): the failure is logged for 9 then 8 only, each text carrying ONLY its store id and the CartStoreModuleFailure sentinel
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=9"
+[FAIL] endpoint=null http_status=null type=CartStoreModuleFailure msg="cart: store details unavailable, section falls back to row module store_id=8"
+00:00 +5: rows are read at CALL time two calls with different rows fetch the ids of EACH call (7 then 8, 9): nothing is cached from the first list
+00:00 +6: rows are read at CALL time duplicate rows and rows without a store id: one request per distinct id in first-appearance order 8, 7, 9, none for the null-id rows
+00:00 +7: rows are read at CALL time ensureStoreMinimums walks the ids it collected at ENTRY: the caller clearing its row list while 7 is parked does not stop the loop (8 and 9 are still requested)
+00:00 +8: rows are read at CALL time an empty basket and a basket of null-id rows request nothing, write nothing, call nothing
+00:00 +9: skip rules and the guard ensureStoreRecords started first, then ensureStoreMinimums while 7, 8, 9 are parked: no second request, the minimums call returns before any landing, the records call waits for all three
+00:00 +10: skip rules and the guard ensureStoreMinimums started first, then ensureStoreRecords: the records call awaits the fetch the other caller started (NEARS-3842) and requests 8 and 9 on its own
+00:00 +11: skip rules and the guard a known store is never requested again by either method (3 stores landed, then both methods run)
+00:00 +12: skip rules and the guard StoreController not registered: both methods return, request nothing, write nothing, call nothing
+00:00 +13: the live-map getters `minimums` and `snapshots` return the SAME map object on every access (a copy per access would hand the calculator a dead map)
+00:00 +14: the live-map getters a map reference taken BEFORE a landing sees the landing: the minimum 9.5 and the record of store 7, plus the null minimum of 9
+00:00 +15: throwing callbacks and fetches a throwing recalculate: both maps are written, notify never runs, the Future errors with the callback error, the sequential loop stops (8 not requested); a second call resumes at 8, 9
+00:00 +16: throwing callbacks and fetches a throwing notify: the maps are written and recalculate ran once; the Future errors with the notify error
+00:00 +17: throwing callbacks and fetches a FAILING fetch (store 7 completes with an error): ensureStoreRecords errors only after 8 and 9 finished and landed; the failed store writes nothing and is poisoned AS OBSERVED (a second call re-throws it, no new request)
+00:00 +18: the two test seams debugSetStoreMinimum writes ONLY the minimum (known, no record), debugSetStoreSnapshot writes the record AND its minimum; neither calls a callback or reaches the store controller
+00:00 +19: the two test seams a seed through the seams makes both ensure methods skip that id (no request): 7 seeded by minimum, 8 by snapshot, only 9 is requested
+00:00 +20: entered through the production facade (CartController) ensureStoreMinimums: the facade hands its CURRENT basket to the loader on EVERY call: call 1 sees stores 7, 8, 9; after the basket is replaced by stores 10, 7, 8, call 2 of the SAME method requests only 10 (a cached row list would request nothing)
+[WARN] msg="isAvailable: minute-precision end time, treating as inclusive to :59 (item boundary degrade)"
+00:00 +21: entered through the production facade (CartController) ensureStoreRecords: the facade hands its CURRENT basket to the loader on EVERY call: call 1 sees stores 7, 8, 9; after the basket is replaced by stores 10, 7, 8, call 2 of the SAME method requests only 10 (a cached row list would request nothing)
+00:00 +22: entered through the production facade (CartController) the loader's callbacks are the facade's own: per landing ONE virtual calculationCart (the probe stamps `calc`, then its invalidation `inv`) THEN ONE controller update (`*`), the listener already sees the minimum and the record
+00:00 +23: entered through the production facade (CartController) the facade reads and the loader share ONE state: a seam call on the controller is visible through storeMinimumOrder / storeMinimumKnown / storeSnapshot and makes ensureStoreMinimums skip that store
+00:00 +24: All tests passed!
+mem-guard[NEARS-3993-s5-qa-A]: done rc=0 peak_tree_rss=1.41 GB (cap 6.0)
