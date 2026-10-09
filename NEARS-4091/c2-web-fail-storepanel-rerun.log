@@ -1,0 +1,35 @@
+=== (c) RE-RUN store panel POST /vendor-panel/order/status canceled 9209 trigger ON (flash proven fresh)
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9209	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+789.50	124	3	164.500	1
+-- RESPONSE
+HTTP/1.1 302 Found
+Location: http://localhost:8493/vendor-panel/order/details/9209
+-- flash written by THIS request (session, only if newer than marker):
+"type";s:5:"error" "message";s:20:"Something went wrong" 
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9209	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+789.50	124	3	164.500	1
+-- LOG
+[2026-10-09 16:02:08] production.ERROR: [FAIL] cancel refund rolled back {"trace_id":"4f4cb7c68a9129a5c509065c31b788d4","correlation_id":"79a5b612-f46c-45fc-94cf-8039fa892236","endpoint":"/vendor-panel/order/status","order_id":9209,"type":"App\\Exceptions\\RefundFailedException"} 
+=== RETRY (c) store panel cancel 9209 trigger DROPPED
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9209	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+789.50	124	3	164.500	0
+-- RESPONSE
+HTTP/1.1 302 Found
+Location: http://localhost:8493/vendor-panel/order/details/9209
+-- flash written by THIS request (session, only if newer than marker):
+"type";s:7:"success" "message";s:20:"Order status updated" 
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9209	delivery	canceled	paid	2026-10-09 16:02:09	store	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+766.50	125	2	187.500	0
+-- LOG

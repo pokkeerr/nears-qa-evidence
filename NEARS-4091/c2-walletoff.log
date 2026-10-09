@@ -1,0 +1,38 @@
+k	value
+wallet_status before	1
+k	value
+wallet_status now	0
+=== WALLET-OFF vendor cancel 9207 (wallet_status=0, no trigger)
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9207	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+835.50	122	0	164.500	0
+-- RESPONSE
+{"message":"Status updated"}
+HTTP 200
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9207	delivery	canceled	paid	2026-10-09 16:01:57	store	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+812.50	123	0	164.500	0
+-- LOG (since call, [FAIL]/[WARN] only)
+[2026-10-09 16:01:57] production.WARNING: [WARN] refund recorded as manual {"trace_id":"ff30090cffba4ba3bd9734dfe0308f8a","correlation_id":"9e9b5522-bf24-4d29-97e2-106cbf5159d3","order_id":9207,"reason":"wallet_status_off"} 
+=== WALLET-OFF DM cancel 9208 (wallet_status=0, no trigger)
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9208	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+812.50	123	0	164.500	0
+-- RESPONSE
+{"message":"Status updated"}
+HTTP 200
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9208	delivery	canceled	paid	2026-10-09 16:01:57	deliveryman	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+789.50	124	0	164.500	0
+-- LOG (since call, [FAIL]/[WARN] only)
+[2026-10-09 16:01:57] production.WARNING: [WARN] refund recorded as manual {"trace_id":"c78eabe856bf06fedfd1033322466e0f","correlation_id":"88279012-01d2-4dff-8c4b-c5f0168a6197","order_id":9208,"reason":"wallet_status_off"} 
+k	value
+wallet_status restored	1

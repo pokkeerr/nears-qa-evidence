@@ -1,0 +1,35 @@
+=== (b) DM cancel 9203 trigger ON
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9203	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+967.00	119	3	74.000	1
+-- RESPONSE
+{"errors":[{"code":"wallet","message":"Something went wrong"}]}
+HTTP 500
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9203	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+967.00	119	3	74.000	1
+-- LOG (since call, [FAIL]/[WARN] only)
+[2026-10-09 15:56:43] production.ERROR: [FAIL] cancel refund rolled back {"trace_id":"c015a89903f65a30c8121de4387df31b","correlation_id":"65011b42-b2da-4ea0-bf61-4b43dc4eca2e","endpoint":"/api/v1/delivery-man/update-order-status","order_id":9203,"type":"App\\Exceptions\\RefundFai
+[2026-10-09 15:56:43] production.WARNING: [WARN] OTel export circuit breaker open -> half_open (signal=logs) {"trace_id":"c015a89903f65a30c8121de4387df31b","correlation_id":"65011b42-b2da-4ea0-bf61-4b43dc4eca2e","signal":"logs","from":"open","to":"half_open"} 
+[2026-10-09 15:56:43] production.WARNING: [WARN] OTel export circuit breaker half_open -> open (signal=logs) {"trace_id":"c015a89903f65a30c8121de4387df31b","correlation_id":"65011b42-b2da-4ea0-bf61-4b43dc4eca2e","signal":"logs","from":"half_open","to":"open"} 
+[2026-10-09 15:56:43] production.WARNING: [WARN] OpenTelemetry export failed (telemetry batch dropped): Export failure {"trace_id":"c015a89903f65a30c8121de4387df31b","correlation_id":"65011b42-b2da-4ea0-bf61-4b43dc4eca2e","suppressed_since_last":0,"source":"OpenTelemetry\\Contrib
+=== (b) DM cancel 9204 trigger ON
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9204	delivery	pending	partially_paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+967.00	119	3	74.000	1
+-- RESPONSE
+{"errors":[{"code":"wallet","message":"Something went wrong"}]}
+HTTP 500
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9204	delivery	pending	partially_paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+967.00	119	3	74.000	1
+-- LOG (since call, [FAIL]/[WARN] only)
+[2026-10-09 15:56:43] production.ERROR: [FAIL] cancel refund rolled back {"trace_id":"df3b0ee938bbf8bc43bb11300e21a2a0","correlation_id":"ba55ad6a-2f52-44a6-81f4-203b394a0130","endpoint":"/api/v1/delivery-man/update-order-status","order_id":9204,"type":"App\\Exceptions\\RefundFai

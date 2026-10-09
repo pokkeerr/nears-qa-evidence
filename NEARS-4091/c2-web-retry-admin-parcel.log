@@ -1,0 +1,34 @@
+=== RETRY (e5) admin parcel cancel 9215 trigger DROPPED
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9215	parcel	accepted	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+899.00	120	1	101.000	0
+-- RESPONSE
+HTTP/1.1 302 Found
+Location: http://localhost:8493/admin/order/details/9215
+-- flash written by THIS request (admin session, only if newer than marker):
+"type";s:7:"success" "message";s:28:"Parcel canceled successfully" 
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9215	parcel	canceled	paid	2026-10-09 16:01:27	admin_for_customer	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+890.25	120	1	109.750	0
+-- LOG
+=== RETRY (e6) admin parcel return 9216 trigger DROPPED
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9216	parcel	canceled	paid	NULL	deliveryman	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+890.25	120	1	109.750	0
+-- RESPONSE
+HTTP/1.1 302 Found
+Location: http://localhost:8493/admin/order/details/9216
+-- flash written by THIS request (admin session, only if newer than marker):
+"type";s:7:"success" "message";s:28:"Parcel returned successfully" 
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9216	parcel	returned	paid	2026-10-09 16:01:29	deliveryman	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+881.50	120	1	118.500	0
+-- LOG

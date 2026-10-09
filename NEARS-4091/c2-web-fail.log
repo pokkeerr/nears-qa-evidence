@@ -1,0 +1,20 @@
+login HTTP 302 -> http://localhost:8493/vendor-panel
+login HTTP 302 -> http://localhost:8493/admin
+=== (c) store panel POST /vendor-panel/order/status canceled 9206 trigger ON
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9206	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+1000.00	116	3	0.000	1
+-- RESPONSE
+HTTP/1.1 302 Found
+Location: http://localhost:8493/vendor-panel/order/details/9206
+-- flash left in the session (toastr::messages):
+"type";s:5:"error" "message";s:20:"Something went wrong" "type";s:5:"error" "message";s:20:"Something went wrong" 
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9206	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+1000.00	116	3	0.000	1
+-- LOG
+[2026-10-09 15:59:38] production.ERROR: [FAIL] cancel refund rolled back {"trace_id":"8d0490203293c97ddce40b83da889f21","correlation_id":"6df59282-688b-43c8-a11d-48a9172b84da","endpoint":"/vendor-panel/order/status","order_id":9206,"type":"App\\Exceptions\\RefundFailedException"} 

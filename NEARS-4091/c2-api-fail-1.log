@@ -1,0 +1,64 @@
+=== (a) vendor cancel 9221 trigger ON
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9221	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+1000.00	116	3	0.000	1
+-- RESPONSE
+{"errors":[{"code":"wallet","message":"Something went wrong"}]}
+HTTP 500
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9221	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+1000.00	116	3	0.000	1
+-- LOG (since call, [FAIL]/[WARN] only)
+[2026-10-09 15:59:20] production.ERROR: [FAIL] cancel refund rolled back {"trace_id":"a57044a2dbc081e70f12d628ab5a0e4c","correlation_id":"7c8e9e7b-e487-498a-965c-13e86884a8aa","endpoint":"/api/v1/vendor/update-order-status","order_id":9221,"type":"App\\Exceptions\\RefundFailedExc
+=== (a) vendor cancel 9222 trigger ON
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9222	delivery	pending	partially_paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+1000.00	116	3	0.000	1
+-- RESPONSE
+{"errors":[{"code":"wallet","message":"Something went wrong"}]}
+HTTP 500
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9222	delivery	pending	partially_paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+1000.00	116	3	0.000	1
+-- LOG (since call, [FAIL]/[WARN] only)
+[2026-10-09 15:59:20] production.ERROR: [FAIL] cancel refund rolled back {"trace_id":"0b5983af50e73ebc1b0a1b9eb3b65f0d","correlation_id":"592189c9-15a6-4d36-8bf5-4a4a86cf48e7","endpoint":"/api/v1/vendor/update-order-status","order_id":9222,"type":"App\\Exceptions\\RefundFailedExc
+=== (b) DM cancel 9203 trigger ON (DM1 current_orders=3 baseline)
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9203	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+1000.00	116	3	0.000	1
+-- RESPONSE
+{"errors":[{"code":"wallet","message":"Something went wrong"}]}
+HTTP 500
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9203	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+1000.00	116	3	0.000	1
+-- LOG (since call, [FAIL]/[WARN] only)
+[2026-10-09 15:59:20] production.ERROR: [FAIL] cancel refund rolled back {"trace_id":"8f3022f3ec12d052886b322ff3805d2d","correlation_id":"98213d3c-ee2e-449b-80c8-bae1d571cb68","endpoint":"/api/v1/delivery-man/update-order-status","order_id":9203,"type":"App\\Exceptions\\RefundFai
+=== (b) DM cancel 9204 trigger ON (DM1 current_orders=3 baseline)
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9204	delivery	pending	partially_paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+1000.00	116	3	0.000	1
+-- RESPONSE
+{"errors":[{"code":"wallet","message":"Something went wrong"}]}
+HTTP 500
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9204	delivery	pending	partially_paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+1000.00	116	3	0.000	1
+-- LOG (since call, [FAIL]/[WARN] only)
+[2026-10-09 15:59:21] production.ERROR: [FAIL] cancel refund rolled back {"trace_id":"e377a0a5172140758d85f772fed821f6","correlation_id":"f1fe326e-63ec-4145-a2c4-0568e12b49b6","endpoint":"/api/v1/delivery-man/update-order-status","order_id":9204,"type":"App\\Exceptions\\RefundFai

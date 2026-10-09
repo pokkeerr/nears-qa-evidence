@@ -1,0 +1,60 @@
+=== RETRY (e1) customer parcel cancel 9211 trigger DROPPED
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9211	parcel	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+934.00	120	1	66.000	0
+-- RESPONSE
+{"message":"Parcel canceled successfully"}
+HTTP 200
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9211	parcel	canceled	paid	2026-10-09 16:01:15	customer	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+925.25	120	1	74.750	0
+-- LOG (since call, [FAIL]/[WARN] only)
+=== RETRY (e2) DM parcel cancel 9212 trigger DROPPED
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9212	parcel	accepted	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+925.25	120	1	74.750	0
+-- RESPONSE
+{"message":"Parcel canceled successfully"}
+HTTP 200
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9212	parcel	canceled	paid	2026-10-09 16:01:16	deliveryman	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+916.50	120	1	83.500	0
+-- LOG (since call, [FAIL]/[WARN] only)
+=== RETRY (e3) customer parcel RETURN 9213 trigger DROPPED
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9213	parcel	canceled	paid	NULL	deliveryman	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+916.50	120	1	83.500	0
+-- RESPONSE
+{"message":"Parcel returned successfully"}
+HTTP 200
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9213	parcel	returned	paid	2026-10-09 16:01:17	deliveryman	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+907.75	120	1	92.250	0
+-- LOG (since call, [FAIL]/[WARN] only)
+=== RETRY (e4) DM parcel RETURN 9214 trigger DROPPED
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9214	parcel	canceled	paid	NULL	deliveryman	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+907.75	120	1	92.250	0
+-- RESPONSE
+{"message":"Parcel returned successfully"}
+HTTP 200
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9214	parcel	returned	paid	2026-10-09 16:01:18	deliveryman	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+899.00	120	1	101.000	0
+-- LOG (since call, [FAIL]/[WARN] only)

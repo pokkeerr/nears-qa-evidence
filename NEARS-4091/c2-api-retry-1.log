@@ -1,0 +1,75 @@
+=== RETRY (a) vendor cancel 9221 trigger DROPPED
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9221	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+1000.00	116	3	0.000	0
+-- RESPONSE
+{"message":"Status updated"}
+HTTP 200
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9221	delivery	canceled	paid	2026-10-09 16:01:05	store	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+977.00	117	3	23.000	0
+-- LOG (since call, [FAIL]/[WARN] only)
+=== RETRY (a) vendor cancel 9222 trigger DROPPED
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9222	delivery	pending	partially_paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+977.00	117	3	23.000	0
+-- RESPONSE
+{"message":"Status updated"}
+HTTP 200
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9222	delivery	canceled	partially_paid	2026-10-09 16:01:06	store	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+967.00	118	3	33.000	0
+-- LOG (since call, [FAIL]/[WARN] only)
+=== RETRY (a) vendor cancel 9221 AGAIN (double-submit)
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9221	delivery	canceled	paid	2026-10-09 16:01:05	store	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+967.00	118	3	33.000	0
+-- RESPONSE
+{"errors":[{"code":"order","message":"This order has already been canceled"}]}
+HTTP 409
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9221	delivery	canceled	paid	2026-10-09 16:01:05	store	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+967.00	118	3	33.000	0
+-- LOG (since call, [FAIL]/[WARN] only)
+=== RETRY (b) DM cancel 9203 trigger DROPPED
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9203	delivery	pending	paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+967.00	118	3	33.000	0
+-- RESPONSE
+{"message":"Status updated"}
+HTTP 200
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9203	delivery	canceled	paid	2026-10-09 16:01:07	deliveryman	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+944.00	119	2	56.000	0
+-- LOG (since call, [FAIL]/[WARN] only)
+=== RETRY (b) DM cancel 9204 trigger DROPPED
+-- BEFORE
+id	ot	st	ps	refund_at	cb	refund_rows
+9204	delivery	pending	partially_paid	NULL	NULL	0
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+944.00	119	2	56.000	0
+-- RESPONSE
+{"message":"Status updated"}
+HTTP 200
+-- AFTER
+id	ot	st	ps	refund_at	cb	refund_rows
+9204	delivery	canceled	partially_paid	2026-10-09 16:01:08	deliveryman	1
+admin_digital_received	item335_stock	dm1_current_orders	user6_wallet	triggers
+934.00	120	1	66.000	0
+-- LOG (since call, [FAIL]/[WARN] only)
