@@ -1,0 +1,3 @@
+NEARS-4102 QA progress (device-free, backend-only). Own server :8142 from this worktree @ a98868948, DB clone multi_food_db_test_nears4102_offline_gate (php artisan serve --no-reload). Detailed per-call before/after DB + BE-log evidence: live-http.log.
+AC1 PASS, row-gate-isolated PASS, AC2 PASS, AC3 PASS, AC4 PASS, VERB PASS (POST+_method=put reaches handler: same 403 / 200; plain POST w/o _method = 405), ar PASS, sibling regression PASS, track shape PASS, phpunit 95/578 PASS, red-at-base 17 tests / 11 failures (QA-verified in a git-archive scratch copy), strict-sites guard OK.
+Env note: host php segfaulted (execute_ex) 3x mid-run; server auto-restarted, see server-restarts.log; no impact on verdicts (blocks aborted by a crash were discarded and re-run).

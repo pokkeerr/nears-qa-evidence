@@ -1,0 +1,327 @@
+=== [AC1 verified+paid/processing (en)] order=92098  PUT body={"order_id":92098,"transaction_id":"HACK","customer_note":"hack","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=375a75ca-89f4-4f90-8013-36e2dff969b5
+body: {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+--- DB before
+order	92098	6	0	processing	paid
+row	287	92098	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92098","sender_note":"orig"}	orig-note-92098	verified
+notif_total	333
+notif_user_of_order	226
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 1   (other non-OTel lines below)
+[2026-10-09 18:11:31] production.WARNING: [WARN] offline_payment refused {"trace_id":"73f0cf87a90e758f9d433083d0259193","correlation_id":"375a75ca-89f4-4f90-8013-36e2dff969b5","order_id":92098,"reason":"order_state"} 
+
+=== [AC1 verified+paid/processing (ar)] order=92098  PUT body={"order_id":92098,"transaction_id":"HACK","customer_note":"hack","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=41b810e4-ab12-4999-ab01-8f8f03e53a21
+body: {"errors":[{"code":"order","message":"\u0644\u0627 \u064a\u0645\u0643\u0646\u0643 \u062a\u063a\u064a\u064a\u0631 \u0637\u0631\u064a\u0642\u0629 \u0627\u0644\u062f\u0641\u0639 \u0644\u0647\u0630\u0627 \u0627\u0644\u0637\u0644\u0628"}]}
+--- DB before
+order	92098	6	0	processing	paid
+row	287	92098	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92098","sender_note":"orig"}	orig-note-92098	verified
+notif_total	333
+notif_user_of_order	226
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 1   (other non-OTel lines below)
+[2026-10-09 18:11:31] production.WARNING: [WARN] offline_payment refused {"trace_id":"6fcf821347cabb8c6f2b3d63372efb02","correlation_id":"41b810e4-ab12-4999-ab01-8f8f03e53a21","order_id":92098,"reason":"order_state"} 
+[2026-10-09 18:11:31] production.WARNING: [WARN] OTel export circuit breaker closed -> open (signal=logs) {"trace_id":"6fcf821347cabb8c6f2b3d63372efb02","correlation_id":"41b810e4-ab12-4999-ab01-8f8f03e53a21","signal":"logs","from":"closed","to":"open","consecutive_failures":3} 
+
+=== [AC1 POSITIVE CONTROL pending row legit edit] order=92099  PUT body={"order_id":92099,"transaction_id":"NEW-TX-B","customer_note":"new note B","update_payment_info":1}
+response: HTTP/1.1 200 OK  x-request-id=0076bb9e-de94-4f97-922c-0db1176d0790
+body: {"payment":"Payment_Info_Updated_successfully"}
+--- DB before
+order	92099	6	0	pending	unpaid
+row	288	92099	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92099","sender_note":"orig"}	orig-note-92099	pending
+notif_total	333
+notif_user_of_order	226
+--- DB after: CHANGED
+order	92099	6	0	pending	unpaid
+row	288	92099	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"NEW-TX-B"}	new note B	pending
+notif_total	334
+notif_user_of_order	227
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 0   (other non-OTel lines below)
+[2026-10-09 18:11:32] production.WARNING: FCM Sending notification {"trace_id":"77a3255b592d62a628d0281924eb03a2","correlation_id":"0076bb9e-de94-4f97-922c-0db1176d0790","message_type":"token"} 
+[2026-10-09 18:11:33] production.ERROR: FCM API Error {"trace_id":"77a3255b592d62a628d0281924eb03a2","correlation_id":"0076bb9e-de94-4f97-922c-0db1176d0790","status":404,"reason":"Not Found","order_id":"92099"} 
+
+=== [ROW GATE ISOLATED verified row on pending unpaid order] order=92100  PUT body={"order_id":92100,"transaction_id":"HACK","customer_note":"hack","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=82bb9052-3526-4dab-8787-4951044fed78
+body: {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+--- DB before
+order	92100	6	0	pending	unpaid
+row	289	92100	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92100","sender_note":"orig"}	orig-note-92100	verified
+notif_total	334
+notif_user_of_order	227
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 1   (other non-OTel lines below)
+[2026-10-09 18:11:33] production.WARNING: [WARN] offline_payment refused {"trace_id":"82276b7351ef9b9460a3146aea36e09e","correlation_id":"82bb9052-3526-4dab-8787-4951044fed78","order_id":92100,"reason":"payment_verified"} 
+
+=== [AC2 delivered + pending row] order=92101  PUT body={"order_id":92101,"transaction_id":"HACK","customer_note":"note HACK","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=8d06a32f-5c58-4d7c-9029-86f3750d40c2
+body: {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+--- DB before
+order	92101	6	0	delivered	unpaid
+row	290	92101	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92101","sender_note":"orig"}	orig-note-92101	pending
+notif_total	334
+notif_user_of_order	227
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 1   (other non-OTel lines below)
+[2026-10-09 18:11:39] production.WARNING: [WARN] offline_payment refused {"trace_id":"652e8ae3dd10c11c4c500f204cb40133","correlation_id":"8d06a32f-5c58-4d7c-9029-86f3750d40c2","order_id":92101,"reason":"order_state"} 
+
+=== [AC2 canceled + pending row] order=92102  PUT body={"order_id":92102,"transaction_id":"HACK","customer_note":"note HACK","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=0c138177-c717-4563-ab88-0194072a0bdf
+body: {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+--- DB before
+order	92102	6	0	canceled	unpaid
+row	291	92102	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92102","sender_note":"orig"}	orig-note-92102	pending
+notif_total	334
+notif_user_of_order	227
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 1   (other non-OTel lines below)
+[2026-10-09 18:11:40] production.WARNING: [WARN] offline_payment refused {"trace_id":"6c61de1a77cdd11b4b1f1ef65985a71d","correlation_id":"0c138177-c717-4563-ab88-0194072a0bdf","order_id":92102,"reason":"order_state"} 
+
+=== [AC2 processing(unpaid) + pending row] order=92103  PUT body={"order_id":92103,"transaction_id":"HACK","customer_note":"note HACK","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=26d3bef5-bbbb-4ea3-9233-1f10965c3d93
+body: {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+--- DB before
+order	92103	6	0	processing	unpaid
+row	292	92103	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92103","sender_note":"orig"}	orig-note-92103	pending
+notif_total	334
+notif_user_of_order	227
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 1   (other non-OTel lines below)
+[2026-10-09 18:11:40] production.WARNING: [WARN] offline_payment refused {"trace_id":"d4e852a17747eaf35df8918e18ab4d43","correlation_id":"26d3bef5-bbbb-4ea3-9233-1f10965c3d93","order_id":92103,"reason":"order_state"} 
+
+=== [AC2 confirmed + pending row] order=92104  PUT body={"order_id":92104,"transaction_id":"HACK","customer_note":"note HACK","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=f9725cfc-7ce6-4606-9335-1bb3e40d42a6
+body: {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+--- DB before
+order	92104	6	0	confirmed	unpaid
+row	293	92104	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92104","sender_note":"orig"}	orig-note-92104	pending
+notif_total	334
+notif_user_of_order	227
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 1   (other non-OTel lines below)
+[2026-10-09 18:12:12] production.WARNING: [WARN] offline_payment refused {"trace_id":"ee338fe4f0aa8d6f250c8117f499ea8c","correlation_id":"f9725cfc-7ce6-4606-9335-1bb3e40d42a6","order_id":92104,"reason":"order_state"} 
+[2026-10-09 18:12:12] production.WARNING: [WARN] OTel export circuit breaker open -> half_open (signal=metrics) {"trace_id":"ee338fe4f0aa8d6f250c8117f499ea8c","correlation_id":"f9725cfc-7ce6-4606-9335-1bb3e40d42a6","signal":"metrics","from":"open","to":"half_open"} 
+[2026-10-09 18:12:12] production.WARNING: [WARN] OTel export circuit breaker half_open -> open (signal=metrics) {"trace_id":"ee338fe4f0aa8d6f250c8117f499ea8c","correlation_id":"f9725cfc-7ce6-4606-9335-1bb3e40d42a6","signal":"metrics","from":"half_open","to":"open"} 
+[2026-10-09 18:12:12] production.WARNING: [WARN] OTel export circuit breaker open -> half_open (signal=traces) {"trace_id":"ee338fe4f0aa8d6f250c8117f499ea8c","correlation_id":"f9725cfc-7ce6-4606-9335-1bb3e40d42a6","signal":"traces","from":"open","to":"half_open"} 
+[2026-10-09 18:12:12] production.WARNING: [WARN] OTel export circuit breaker half_open -> open (signal=traces) {"trace_id":"ee338fe4f0aa8d6f250c8117f499ea8c","correlation_id":"f9725cfc-7ce6-4606-9335-1bb3e40d42a6","signal":"traces","from":"half_open","to":"open"} 
+
+=== [AC2 pending + payment_status=paid + pending row] order=92105  PUT body={"order_id":92105,"transaction_id":"HACK","customer_note":"note HACK","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=6d6403f4-de16-4057-9ab6-7a21c4e93409
+body: {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+--- DB before
+order	92105	6	0	pending	paid
+row	294	92105	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92105","sender_note":"orig"}	orig-note-92105	pending
+notif_total	334
+notif_user_of_order	227
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 1   (other non-OTel lines below)
+[2026-10-09 18:12:12] production.WARNING: [WARN] offline_payment refused {"trace_id":"a4d5f5c1b3e70833a39fa79997a552e2","correlation_id":"6d6403f4-de16-4057-9ab6-7a21c4e93409","order_id":92105,"reason":"order_state"} 
+
+=== [AC3 pending unpaid + DENIED row -> 200 re-pend] order=92106  PUT body={"order_id":92106,"transaction_id":"NEW-TX-I","customer_note":"note NEW-TX-I","update_payment_info":1}
+response: HTTP/1.1 200 OK  x-request-id=5117f084-e9bc-42fc-bd67-b112a8bdf69b
+body: {"payment":"Payment_Info_Updated_successfully"}
+--- DB before
+order	92106	6	0	pending	unpaid
+row	295	92106	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92106","sender_note":"orig"}	orig-note-92106	denied
+notif_total	334
+notif_user_of_order	227
+--- DB after: CHANGED
+order	92106	6	0	pending	unpaid
+row	295	92106	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"NEW-TX-I"}	note NEW-TX-I	pending
+notif_total	335
+notif_user_of_order	228
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 0   (other non-OTel lines below)
+[2026-10-09 18:12:12] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"bab10e064d66a9bbcf347d4d23293b05","correlation_id":"5117f084-e9bc-42fc-bd67-b112a8bdf69b","cache_key":"fcm_oauth_access_token_nears-1d39b"} 
+[2026-10-09 18:12:12] production.WARNING: FCM Sending notification {"trace_id":"bab10e064d66a9bbcf347d4d23293b05","correlation_id":"5117f084-e9bc-42fc-bd67-b112a8bdf69b","message_type":"token"} 
+[2026-10-09 18:12:12] production.ERROR: FCM API Error {"trace_id":"bab10e064d66a9bbcf347d4d23293b05","correlation_id":"5117f084-e9bc-42fc-bd67-b112a8bdf69b","status":404,"reason":"Not Found","order_id":"92106"} 
+
+=== [AC3 FAILED order + pending row -> 200] order=92107  PUT body={"order_id":92107,"transaction_id":"NEW-TX-J","customer_note":"note NEW-TX-J","update_payment_info":1}
+response: HTTP/1.1 200 OK  x-request-id=423ff135-974f-4786-bee6-c96b29b20350
+body: {"payment":"Payment_Info_Updated_successfully"}
+--- DB before
+order	92107	6	0	failed	unpaid
+row	296	92107	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92107","sender_note":"orig"}	orig-note-92107	pending
+notif_total	335
+notif_user_of_order	228
+--- DB after: CHANGED
+order	92107	6	0	failed	unpaid
+row	296	92107	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"NEW-TX-J"}	note NEW-TX-J	pending
+notif_total	336
+notif_user_of_order	229
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 0   (other non-OTel lines below)
+[2026-10-09 18:12:13] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"0d739c6ffb3038877ce96af219f9c9e5","correlation_id":"423ff135-974f-4786-bee6-c96b29b20350","cache_key":"fcm_oauth_access_token_nears-1d39b"} 
+[2026-10-09 18:12:13] production.WARNING: FCM Sending notification {"trace_id":"0d739c6ffb3038877ce96af219f9c9e5","correlation_id":"423ff135-974f-4786-bee6-c96b29b20350","message_type":"token"} 
+[2026-10-09 18:12:13] production.ERROR: FCM API Error {"trace_id":"0d739c6ffb3038877ce96af219f9c9e5","correlation_id":"423ff135-974f-4786-bee6-c96b29b20350","status":404,"reason":"Not Found","order_id":"92107"} 
+
+=== [AC4 other customer's DELIVERED order (u6 token on u1 order)] order=92108  PUT body={"order_id":92108,"transaction_id":"HACK","customer_note":"note HACK","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=953e841a-96ae-43c4-9fa4-8ae69eeecee1
+body: {"errors":[{"code":"order","message":"Not found"}]}
+--- DB before
+order	92108	1	0	delivered	unpaid
+row	297	92108	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92108","sender_note":"orig"}	orig-note-92108	pending
+notif_total	336
+notif_user_of_order	6
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 0   (other non-OTel lines below)
+
+=== [AC4 other customer's PENDING order (u6 token on u1 order)] order=92109  PUT body={"order_id":92109,"transaction_id":"HACK","customer_note":"note HACK","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=4fd3fb7f-c1f2-4adf-91f9-deeaeef835b8
+body: {"errors":[{"code":"order","message":"Not found"}]}
+--- DB before
+order	92109	1	0	pending	unpaid
+row	298	92109	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92109","sender_note":"orig"}	orig-note-92109	pending
+notif_total	336
+notif_user_of_order	6
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 0   (other non-OTel lines below)
+
+=== [AC4 guest_id=6 + valid guest-6 token on USER 6's order (no bearer) -> id-overlap] order=92110  PUT body={"order_id":92110,"guest_id":6,"transaction_id":"HACK","customer_note":"hack"}
+response: HTTP/1.1 403 Forbidden  x-request-id=c0c8172a-9a06-4da4-a9b4-93bd9ebd8f51
+body: {"errors":[{"code":"order","message":"Not found"}]}
+--- DB before
+order	92110	6	0	pending	unpaid
+row	299	92110	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92110","sender_note":"orig"}	orig-note-92110	pending
+notif_total	336
+notif_user_of_order	229
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 0   (other non-OTel lines below)
+
+=== [AC4 POSITIVE CONTROL real guest 106 + token on own guest order -> 200] order=92113  PUT body={"order_id":92113,"guest_id":106,"transaction_id":"NEW-TX-P","customer_note":"guest note"}
+response: HTTP/1.1 200 OK  x-request-id=99a4c460-460f-476f-a55a-a908bc308f1f
+body: {"payment":"Payment_Info_Updated_successfully"}
+--- DB before
+order	92113	106	1	pending	unpaid
+row	302	92113	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92113","sender_note":"orig"}	orig-note-92113	pending
+notif_total	336
+notif_user_of_order	0
+--- DB after: CHANGED
+order	92113	106	1	pending	unpaid
+row	302	92113	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"NEW-TX-P"}	guest note	pending
+notif_total	337
+notif_user_of_order	0
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 0   (other non-OTel lines below)
+[2026-10-09 18:12:29] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"2645875a5dc0fea7e6c7a0d21906ba87","correlation_id":"99a4c460-460f-476f-a55a-a908bc308f1f","cache_key":"fcm_oauth_access_token_nears-1d39b"} 
+[2026-10-09 18:12:29] production.WARNING: FCM Sending notification {"trace_id":"2645875a5dc0fea7e6c7a0d21906ba87","correlation_id":"99a4c460-460f-476f-a55a-a908bc308f1f","message_type":"topic"} 
+[2026-10-09 18:12:30] production.WARNING: FCM Send Success {"trace_id":"2645875a5dc0fea7e6c7a0d21906ba87","correlation_id":"99a4c460-460f-476f-a55a-a908bc308f1f","status":200,"order_id":"92113"} 
+[2026-10-09 18:12:30] production.WARNING: FCM push skipped - empty or muted token {"trace_id":"2645875a5dc0fea7e6c7a0d21906ba87","correlation_id":"99a4c460-460f-476f-a55a-a908bc308f1f","order_id":92113} 
+[2026-10-09 18:12:30] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"2645875a5dc0fea7e6c7a0d21906ba87","correlation_id":"99a4c460-460f-476f-a55a-a908bc308f1f","cache_key":"fcm_oauth_access_token_nears-1d39b"} 
+[2026-10-09 18:12:30] production.WARNING: FCM Sending notification {"trace_id":"2645875a5dc0fea7e6c7a0d21906ba87","correlation_id":"99a4c460-460f-476f-a55a-a908bc308f1f","message_type":"topic"} 
+[2026-10-09 18:12:30] production.WARNING: FCM Send Success {"trace_id":"2645875a5dc0fea7e6c7a0d21906ba87","correlation_id":"99a4c460-460f-476f-a55a-a908bc308f1f","status":200,"order_id":"92113"} 
+
+=== [VERB POST+_method=put verified row (UserApp wire shape)] order=92112  POST body={"_method":"put","order_id":92112,"transaction_id":"HACK","customer_note":"hack","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=bc06cbef-9987-47cd-b6ec-9920f1081bdd
+body: {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+--- DB before
+order	92112	6	0	processing	paid
+row	301	92112	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92112","sender_note":"orig"}	orig-note-92112	verified
+notif_total	337
+notif_user_of_order	229
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 1   (other non-OTel lines below)
+[2026-10-09 18:12:37] production.WARNING: [WARN] offline_payment refused {"trace_id":"463a34f58c0b21c259986f24ce13bbdf","correlation_id":"bc06cbef-9987-47cd-b6ec-9920f1081bdd","order_id":92112,"reason":"order_state"} 
+[2026-10-09 18:12:37] production.WARNING: [WARN] OTel export circuit breaker open -> half_open (signal=logs) {"trace_id":"463a34f58c0b21c259986f24ce13bbdf","correlation_id":"bc06cbef-9987-47cd-b6ec-9920f1081bdd","signal":"logs","from":"open","to":"half_open"} 
+[2026-10-09 18:12:37] production.WARNING: [WARN] OTel export circuit breaker half_open -> open (signal=logs) {"trace_id":"463a34f58c0b21c259986f24ce13bbdf","correlation_id":"bc06cbef-9987-47cd-b6ec-9920f1081bdd","signal":"logs","from":"half_open","to":"open"} 
+
+=== [VERB POST+_method=put pending row (UserApp wire shape) -> 200] order=92111  POST body={"_method":"put","order_id":92111,"transaction_id":"NEW-TX-N","customer_note":"verb note","update_payment_info":1}
+response: HTTP/1.1 200 OK  x-request-id=aa1e22ec-7293-413b-ae84-20d4854a6fa4
+body: {"payment":"Payment_Info_Updated_successfully"}
+--- DB before
+order	92111	6	0	pending	unpaid
+row	300	92111	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92111","sender_note":"orig"}	orig-note-92111	pending
+notif_total	337
+notif_user_of_order	229
+--- DB after: CHANGED
+order	92111	6	0	pending	unpaid
+row	300	92111	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"NEW-TX-N"}	verb note	pending
+notif_total	338
+notif_user_of_order	230
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 0   (other non-OTel lines below)
+[2026-10-09 18:12:38] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"6b30c3951db8a677139e7344ad07a87b","correlation_id":"aa1e22ec-7293-413b-ae84-20d4854a6fa4","cache_key":"fcm_oauth_access_token_nears-1d39b"} 
+[2026-10-09 18:12:38] production.WARNING: FCM Sending notification {"trace_id":"6b30c3951db8a677139e7344ad07a87b","correlation_id":"aa1e22ec-7293-413b-ae84-20d4854a6fa4","message_type":"token"} 
+[2026-10-09 18:12:38] production.ERROR: FCM API Error {"trace_id":"6b30c3951db8a677139e7344ad07a87b","correlation_id":"aa1e22ec-7293-413b-ae84-20d4854a6fa4","status":404,"reason":"Not Found","order_id":"92111"} 
+
+=== [VERB plain POST WITHOUT _method (pending row) -> expect 405] order=92117  POST body={"order_id":92117,"transaction_id":"HACK","customer_note":"hack"}
+response: HTTP/1.0 405 Method Not Allowed  x-request-id=
+body: {
+    "message": "The POST method is not supported for route api/v1/customer/order/offline-payment-update. Supported methods: PUT."
+}
+--- DB before
+order	92117	6	0	processing	paid
+row	304	92117	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92117","sender_note":"orig"}	orig-note-92117	verified
+notif_total	338
+notif_user_of_order	230
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 0   (other non-OTel lines below)
+
+=== [VERB POST+_method=put verified row, ar locale] order=92117  POST body={"_method":"put","order_id":92117,"transaction_id":"HACK","customer_note":"hack","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=0aa199d3-21c4-46ad-bb18-4aaec76edd6a
+body: {"errors":[{"code":"order","message":"\u0644\u0627 \u064a\u0645\u0643\u0646\u0643 \u062a\u063a\u064a\u064a\u0631 \u0637\u0631\u064a\u0642\u0629 \u0627\u0644\u062f\u0641\u0639 \u0644\u0647\u0630\u0627 \u0627\u0644\u0637\u0644\u0628"}]}
+--- DB before
+order	92117	6	0	processing	paid
+row	304	92117	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92117","sender_note":"orig"}	orig-note-92117	verified
+notif_total	338
+notif_user_of_order	230
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 1   (other non-OTel lines below)
+[2026-10-09 18:12:38] production.WARNING: [WARN] offline_payment refused {"trace_id":"4c259af0328c5f8ebbf0fb1979986ef8","correlation_id":"0aa199d3-21c4-46ad-bb18-4aaec76edd6a","order_id":92117,"reason":"order_state"} 
+
+=== [VERB POST+_method=put verified row on PENDING-UNPAID order (row gate over wire shape)] order=92100  POST body={"_method":"put","order_id":92100,"transaction_id":"HACK","customer_note":"hack","update_payment_info":1}
+response: HTTP/1.1 403 Forbidden  x-request-id=6a0e9793-1bbd-4403-8ac4-e12640714a91
+body: {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+--- DB before
+order	92100	6	0	pending	unpaid
+row	289	92100	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"ORIG-92100","sender_note":"orig"}	orig-note-92100	verified
+notif_total	338
+notif_user_of_order	230
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 1   (other non-OTel lines below)
+[2026-10-09 18:12:46] production.WARNING: [WARN] offline_payment refused {"trace_id":"a922b29adb392af6d87cdcb645b1df2d","correlation_id":"6a0e9793-1bbd-4403-8ac4-e12640714a91","order_id":92100,"reason":"payment_verified"} 
+
+=== [REGRESSION sibling offline-payment (submit) pending order -> 200] order=92114  PUT body={"order_id":92114,"method_id":205,"transaction_id":"SUB-TX","customer_note":"submit"}
+response: HTTP/1.1 200 OK  x-request-id=50b43038-50e3-4090-98c5-3abf10db659a
+body: {"payment":"success"}
+--- DB before
+order	92114	6	0	pending	unpaid
+notif_total	338
+notif_user_of_order	230
+--- DB after: CHANGED
+order	92114	6	0	pending	unpaid
+row	305	92114	{"method_id":205,"method_name":"QA4102 Bank","transaction_id":"SUB-TX"}	submit	pending
+notif_total	338
+notif_user_of_order	230
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 0   (other non-OTel lines below)
+[2026-10-09 18:13:31] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"4876e6bf984e291b5d4c49a9fb91fb57","correlation_id":"50b43038-50e3-4090-98c5-3abf10db659a","cache_key":"fcm_oauth_access_token_nears-1d39b"} 
+[2026-10-09 18:13:31] production.WARNING: FCM Sending notification {"trace_id":"4876e6bf984e291b5d4c49a9fb91fb57","correlation_id":"50b43038-50e3-4090-98c5-3abf10db659a","message_type":"topic"} 
+[2026-10-09 18:13:31] production.WARNING: FCM Send Success {"trace_id":"4876e6bf984e291b5d4c49a9fb91fb57","correlation_id":"50b43038-50e3-4090-98c5-3abf10db659a","status":200,"order_id":"92114"} 
+
+=== [REGRESSION sibling offline-payment (submit) delivered order -> 403] order=92115  PUT body={"order_id":92115,"method_id":205,"transaction_id":"SUB-TX","customer_note":"submit"}
+response: HTTP/1.1 403 Forbidden  x-request-id=3da276d4-2b37-491f-9c42-92b88c07e903
+body: {"errors":[{"code":"order","message":"You can not change the payment method of this order"}]}
+--- DB before
+order	92115	6	0	delivered	unpaid
+notif_total	338
+notif_user_of_order	230
+--- DB after: IDENTICAL to before
+--- BE log (grep -F request-id, structured+plain, warn lines only)
+refused-lines-for-this-request-id: 0   (other non-OTel lines below)
+
