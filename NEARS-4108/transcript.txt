@@ -1,0 +1,1396 @@
+
+==== P0 DB proof + AC5 forgot-password uniformity + pending codes ====
+[01:34:02] POST /auth/verify-token
+   req-id=q4108-bf2946cece11 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "111111"}
+   -> HTTP 400 (0.543s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+DB PROOF: pwreset cache rows after a verify-token call on port 8408: laravel_cachepwreset:attempts:customer_email:789e76427ebc8be705585dbaf16138a85ef143f38c542bb27ba20ca958bc3672	i:1;
+
+==== AC5 forgot-password ====
+[01:34:03] POST /auth/forgot-password
+   req-id=q4108-53a77a63969d body={"verification_method": "email", "email": "james.wilson@demo.com"}
+   -> HTTP 200 (0.121s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+[01:34:03] POST /auth/forgot-password
+   req-id=q4108-cd021f372fec body={"verification_method": "email", "email": "nobody.4108@demo.com"}
+   -> HTTP 200 (0.102s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+[01:34:03] POST /auth/forgot-password
+   req-id=q4108-5ae57d867c70 body={"verification_method": "phone", "phone": "+101600000002"}
+   -> HTTP 200 (0.094s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+[01:34:03] POST /auth/forgot-password
+   req-id=q4108-bb04a3b1bf1f body={"verification_method": "phone", "phone": "+101699999999"}
+   -> HTTP 200 (0.091s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+[01:34:03] POST /auth/delivery-man/forgot-password
+   req-id=q4108-f61ad29c5307 body={"phone": "+101700000002"}
+   -> HTTP 200 (0.116s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+[01:34:03] POST /auth/delivery-man/forgot-password
+   req-id=q4108-f40be7e69373 body={"phone": "+101799999999"}
+   -> HTTP 200 (0.106s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+
+==== S1 (a) side-by-side wrong valid-shape code: UNREG vs REGISTERED(no pending code) ====
+[01:34:41] POST /auth/verify-token
+   req-id=q4108-e0b5dcf72e65 body={"verification_method": "email", "reset_token": "654321", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.124s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:34:41] POST /auth/verify-token
+   req-id=q4108-f1ee9ccc6135 body={"verification_method": "email", "reset_token": "654321", "email": "michael.brown@demo.com"}
+   -> HTTP 400 (0.083s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:34:41] PUT /auth/reset-password
+   req-id=q4108-1a271ab529b5 body={"verification_method": "email", "reset_token": "654321", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.106s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:34:41] PUT /auth/reset-password
+   req-id=q4108-70fb5d88c337 body={"verification_method": "email", "reset_token": "654321", "email": "michael.brown@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.141s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+(server restarted after first instance exited; pid 35063)
+
+==== S1 (a) side-by-side wrong valid-shape code: UNREG vs REGISTERED(no pending code) ====
+[01:34:57] POST /auth/verify-token
+   req-id=q4108-47dc8bbf9f64 body={"verification_method": "email", "reset_token": "654321", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.544s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:34:58] POST /auth/verify-token
+   req-id=q4108-08c554c480d2 body={"verification_method": "email", "reset_token": "654321", "email": "michael.brown@demo.com"}
+   -> HTTP 400 (0.102s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:34:58] PUT /auth/reset-password
+   req-id=q4108-3cbad81612a6 body={"verification_method": "email", "reset_token": "654321", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.090s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:34:58] PUT /auth/reset-password
+   req-id=q4108-1860caaa8f26 body={"verification_method": "email", "reset_token": "654321", "email": "michael.brown@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.077s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:34:58] POST /auth/verify-token
+   req-id=q4108-0763291f618b body={"verification_method": "phone", "reset_token": "654321", "phone": "+101699999999"}
+   -> HTTP 400 (0.079s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:34:58] POST /auth/verify-token
+   req-id=q4108-fef83b0f25f3 body={"verification_method": "phone", "reset_token": "654321", "phone": "+101600000003"}
+   -> HTTP 400 (0.077s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:34:58] PUT /auth/reset-password
+   req-id=q4108-b717ef08ce89 body={"verification_method": "phone", "reset_token": "654321", "phone": "+101699999999", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.074s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:34:58] PUT /auth/reset-password
+   req-id=q4108-1166d02de288 body={"verification_method": "phone", "reset_token": "654321", "phone": "+101600000003", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.071s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:34:58] POST /auth/delivery-man/verify-token
+   req-id=q4108-67613103ad4f body={"phone": "+101799999999", "reset_token": "654321"}
+   -> HTTP 400 (0.089s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:34:58] POST /auth/delivery-man/verify-token
+   req-id=q4108-6f4efb28f9c1 body={"phone": "+101700000003", "reset_token": "654321"}
+   -> HTTP 400 (0.077s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:34:59] PUT /auth/delivery-man/reset-password
+   req-id=q4108-7156139458de body={"phone": "+101799999999", "reset_token": "654321", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.446s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:34:59] PUT /auth/delivery-man/reset-password
+   req-id=q4108-9f5b7a4d4a86 body={"phone": "+101700000003", "reset_token": "654321", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.327s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+
+==== S3 (g/m) non-ASCII + JSON-number identifiers: registered-looking vs unregistered ====
+[01:34:59] POST /auth/verify-token
+   req-id=q4108-d2893613b43d body={"verification_method": "email", "reset_token": "654321", "email": "j\u00e1mes.wilson@demo.com"}
+   -> HTTP 403 (0.102s) code='email' message='The email format is invalid.'
+   raw={"errors":[{"code":"email","message":"The email format is invalid."}]}
+[01:34:59] POST /auth/verify-token
+   req-id=q4108-aae7825dbd10 body={"verification_method": "email", "reset_token": "654321", "email": "\u00f1obody.4108@demo.com"}
+   -> HTTP 403 (0.076s) code='email' message='The email format is invalid.'
+   raw={"errors":[{"code":"email","message":"The email format is invalid."}]}
+[01:34:59] POST /auth/verify-token
+   req-id=q4108-56a85a29247e body={"verification_method": "phone", "reset_token": "654321", "phone": 101600000001}
+   -> HTTP 403 (0.071s) code='phone' message='The phone must be a string.'
+   raw={"errors":[{"code":"phone","message":"The phone must be a string."}]}
+[01:34:59] POST /auth/verify-token
+   req-id=q4108-ccbf5e41e7b2 body={"verification_method": "phone", "reset_token": "654321", "phone": 101699999999}
+   -> HTTP 403 (0.066s) code='phone' message='The phone must be a string.'
+   raw={"errors":[{"code":"phone","message":"The phone must be a string."}]}
+[01:35:00] POST /auth/verify-token
+   req-id=q4108-7e10c9c0e4d4 body={"verification_method": "phone", "reset_token": "654321", "phone": "+\u0661\u0660\u0661\u0666\u0660\u0660\u0660\u0660\u0660\u0660\u0660\u0661"}
+   -> HTTP 403 (0.063s) code='phone' message='The phone format is invalid.'
+   raw={"errors":[{"code":"phone","message":"The phone format is invalid."}]}
+[01:35:00] POST /auth/verify-token
+   req-id=q4108-11d978217825 body={"verification_method": "phone", "reset_token": "654321", "phone": "+\u0661\u0660\u0661\u0666\u0669\u0669\u0669\u0669\u0669\u0669\u0669\u0669"}
+   -> HTTP 403 (0.071s) code='phone' message='The phone format is invalid.'
+   raw={"errors":[{"code":"phone","message":"The phone format is invalid."}]}
+[01:35:00] PUT /auth/reset-password
+   req-id=q4108-fa441f01535b body={"verification_method": "email", "reset_token": "654321", "email": "j\u00e1mes.wilson@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 403 (0.063s) code='email' message='The email format is invalid.'
+   raw={"errors":[{"code":"email","message":"The email format is invalid."}]}
+[01:35:00] PUT /auth/reset-password
+   req-id=q4108-67bcdb332e84 body={"verification_method": "email", "reset_token": "654321", "email": "\u00f1obody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 403 (0.063s) code='email' message='The email format is invalid.'
+   raw={"errors":[{"code":"email","message":"The email format is invalid."}]}
+[01:35:00] PUT /auth/reset-password
+   req-id=q4108-98a11699133a body={"verification_method": "phone", "reset_token": "654321", "phone": 101600000001, "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 403 (0.061s) code='phone' message='The phone must be a string.'
+   raw={"errors":[{"code":"phone","message":"The phone must be a string."}]}
+[01:35:00] PUT /auth/reset-password
+   req-id=q4108-43a02e39c2e9 body={"verification_method": "phone", "reset_token": "654321", "phone": 101699999999, "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 403 (0.065s) code='phone' message='The phone must be a string.'
+   raw={"errors":[{"code":"phone","message":"The phone must be a string."}]}
+[01:35:00] PUT /auth/reset-password
+   req-id=q4108-0c8cc14489ce body={"verification_method": "phone", "reset_token": "654321", "phone": "+\u0661\u0660\u0661\u0666\u0660\u0660\u0660\u0660\u0660\u0660\u0660\u0661", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 403 (0.062s) code='phone' message='The phone format is invalid.'
+   raw={"errors":[{"code":"phone","message":"The phone format is invalid."}]}
+[01:35:00] PUT /auth/reset-password
+   req-id=q4108-be26b74dc597 body={"verification_method": "phone", "reset_token": "654321", "phone": "+\u0661\u0660\u0661\u0666\u0669\u0669\u0669\u0669\u0669\u0669\u0669\u0669", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 403 (0.061s) code='phone' message='The phone format is invalid.'
+   raw={"errors":[{"code":"phone","message":"The phone format is invalid."}]}
+[01:35:00] POST /auth/delivery-man/verify-token
+   req-id=q4108-39f05a2e194b body={"phone": 101700000003, "reset_token": "654321"}
+   -> HTTP 403 (0.069s) code='phone' message='The phone must be a string.'
+   raw={"errors":[{"code":"phone","message":"The phone must be a string."}]}
+[01:35:00] POST /auth/delivery-man/verify-token
+   req-id=q4108-feefe8ddaada body={"phone": 101799999999, "reset_token": "654321"}
+   -> HTTP 403 (0.063s) code='phone' message='The phone must be a string.'
+   raw={"errors":[{"code":"phone","message":"The phone must be a string."}]}
+[01:35:00] PUT /auth/delivery-man/reset-password
+   req-id=q4108-dd8ee91d6743 body={"phone": 101700000003, "reset_token": "654321", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 403 (0.210s) code='phone' message='The phone must be a string.'
+   raw={"errors":[{"code":"phone","message":"The phone must be a string."}]}
+[01:35:01] PUT /auth/delivery-man/reset-password
+   req-id=q4108-75da5d14d3ac body={"phone": 101799999999, "reset_token": "654321", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 403 (0.254s) code='phone' message='The phone must be a string.'
+   raw={"errors":[{"code":"phone","message":"The phone must be a string."}]}
+
+==== S2 run A(verify x6, then reset) plan=['verify', 'verify', 'verify', 'verify', 'verify', 'verify', 'reset'] ====
+[01:35:16] POST /auth/verify-token
+   req-id=q4108-d9a65aba4ac4 body={"verification_method": "email", "reset_token": "700001", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.112s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:16] POST /auth/verify-token
+   req-id=q4108-2e1c1004d7d0 body={"verification_method": "email", "reset_token": "700001", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.080s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:17] POST /auth/verify-token
+   req-id=q4108-2adb194f52ad body={"verification_method": "phone", "reset_token": "700001", "phone": "+101699999999"}
+   -> HTTP 400 (0.072s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:17] POST /auth/verify-token
+   req-id=q4108-1019fba306d5 body={"verification_method": "phone", "reset_token": "700001", "phone": "+101600000004"}
+   -> HTTP 400 (0.070s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:17] POST /auth/delivery-man/verify-token
+   req-id=q4108-ebcdfb199157 body={"phone": "+101799999999", "reset_token": "700001"}
+   -> HTTP 400 (0.075s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:35:17] POST /auth/delivery-man/verify-token
+   req-id=q4108-dd4cdc63eeef body={"phone": "+101700000003", "reset_token": "700001"}
+   -> HTTP 400 (0.069s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:35:17] POST /auth/verify-token
+   req-id=q4108-0ecfeb7fb3cd body={"verification_method": "email", "reset_token": "700002", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.066s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:17] POST /auth/verify-token
+   req-id=q4108-0dd65fe31d60 body={"verification_method": "email", "reset_token": "700002", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.067s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:17] POST /auth/verify-token
+   req-id=q4108-8ddd2a5dec90 body={"verification_method": "phone", "reset_token": "700002", "phone": "+101699999999"}
+   -> HTTP 400 (0.064s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:17] POST /auth/verify-token
+   req-id=q4108-fa5ea3e8593e body={"verification_method": "phone", "reset_token": "700002", "phone": "+101600000004"}
+   -> HTTP 400 (0.065s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:17] POST /auth/delivery-man/verify-token
+   req-id=q4108-208932bda2fc body={"phone": "+101799999999", "reset_token": "700002"}
+   -> HTTP 400 (0.067s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:35:17] POST /auth/delivery-man/verify-token
+   req-id=q4108-bc461d2a4b4a body={"phone": "+101700000003", "reset_token": "700002"}
+   -> HTTP 400 (0.067s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:35:17] POST /auth/verify-token
+   req-id=q4108-e740dc218c15 body={"verification_method": "email", "reset_token": "700003", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.064s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:17] POST /auth/verify-token
+   req-id=q4108-079f070f285a body={"verification_method": "email", "reset_token": "700003", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.066s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:17] POST /auth/verify-token
+   req-id=q4108-11248a80f604 body={"verification_method": "phone", "reset_token": "700003", "phone": "+101699999999"}
+   -> HTTP 400 (0.066s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:17] POST /auth/verify-token
+   req-id=q4108-390f00ce69c9 body={"verification_method": "phone", "reset_token": "700003", "phone": "+101600000004"}
+   -> HTTP 400 (0.066s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:35:17] POST /auth/delivery-man/verify-token
+   req-id=q4108-80ae91ca8d3f body={"phone": "+101799999999", "reset_token": "700003"}
+   -> HTTP 400 (0.068s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:36:19] POST /auth/delivery-man/verify-token
+   req-id=q4108-83dcd3dc815f body={"phone": "+101700000003", "reset_token": "700003"}
+   -> HTTP 400 (0.100s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:36:19] POST /auth/verify-token
+   req-id=q4108-011ed38c8691 body={"verification_method": "email", "reset_token": "700004", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.075s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:36:19] POST /auth/verify-token
+   req-id=q4108-1710408af652 body={"verification_method": "email", "reset_token": "700004", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.068s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:36:19] POST /auth/verify-token
+   req-id=q4108-59959b79bfb9 body={"verification_method": "phone", "reset_token": "700004", "phone": "+101699999999"}
+   -> HTTP 400 (0.070s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:36:19] POST /auth/verify-token
+   req-id=q4108-e84fcfd5183a body={"verification_method": "phone", "reset_token": "700004", "phone": "+101600000004"}
+   -> HTTP 400 (0.070s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:36:19] POST /auth/delivery-man/verify-token
+   req-id=q4108-8a6514b32720 body={"phone": "+101799999999", "reset_token": "700004"}
+   -> HTTP 400 (0.072s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:36:19] POST /auth/delivery-man/verify-token
+   req-id=q4108-9dfefc1442d3 body={"phone": "+101700000003", "reset_token": "700004"}
+   -> HTTP 400 (0.066s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:36:19] POST /auth/verify-token
+   req-id=q4108-ef40e2d70fce body={"verification_method": "email", "reset_token": "700005", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.068s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:36:19] POST /auth/verify-token
+   req-id=q4108-b6e7dab3694a body={"verification_method": "email", "reset_token": "700005", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.065s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:36:19] POST /auth/verify-token
+   req-id=q4108-e9080c8349ee body={"verification_method": "phone", "reset_token": "700005", "phone": "+101699999999"}
+   -> HTTP 400 (0.068s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:36:19] POST /auth/verify-token
+   req-id=q4108-1927f4184fa3 body={"verification_method": "phone", "reset_token": "700005", "phone": "+101600000004"}
+   -> HTTP 400 (0.066s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:36:19] POST /auth/delivery-man/verify-token
+   req-id=q4108-80859b8b00c9 body={"phone": "+101799999999", "reset_token": "700005"}
+   -> HTTP 400 (0.067s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:36:19] POST /auth/delivery-man/verify-token
+   req-id=q4108-32e4071685ab body={"phone": "+101700000003", "reset_token": "700005"}
+   -> HTTP 400 (0.066s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:36:20] POST /auth/verify-token
+   req-id=q4108-8698a684ca89 body={"verification_method": "email", "reset_token": "700006", "email": "nobody.4108@demo.com"}
+   -> HTTP 405 (0.077s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:36:20] POST /auth/verify-token
+   req-id=q4108-6192086cfd95 body={"verification_method": "email", "reset_token": "700006", "email": "sophie.davis@demo.com"}
+   -> HTTP 405 (0.072s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:36:20] POST /auth/verify-token
+   req-id=q4108-542cb3d4b3d7 body={"verification_method": "phone", "reset_token": "700006", "phone": "+101699999999"}
+   -> HTTP 405 (0.070s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:36:20] POST /auth/verify-token
+   req-id=q4108-9ce8744a1622 body={"verification_method": "phone", "reset_token": "700006", "phone": "+101600000004"}
+   -> HTTP 405 (0.068s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:37:21] POST /auth/delivery-man/verify-token
+   req-id=q4108-325a69ffbc5a body={"phone": "+101799999999", "reset_token": "700006"}
+   -> HTTP 405 (0.110s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:37:21] POST /auth/delivery-man/verify-token
+   req-id=q4108-7e092196a3dc body={"phone": "+101700000003", "reset_token": "700006"}
+   -> HTTP 405 (0.141s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+
+#### NOTE: server pid died with SIGSEGV (exit 139) at 01:37:21 mid-run A (php built-in server, PCRE JIT; same crash at 01:34:41). Restarting with 'php -d pcre.jit=0' (as the other host servers do); run A..C restart from scratch below (results above this line for run A are superseded) ####
+
+#### server restarted as: php -d pcre.jit=0 -S 127.0.0.1:8408 (cwd Admin/public, router ../server.php), pid 46969; run script p2 restarted ####
+
+==== S2 run A(verify x6, then reset) plan=['verify', 'verify', 'verify', 'verify', 'verify', 'verify', 'reset'] ====
+[01:38:03] POST /auth/verify-token
+   req-id=q4108-415da7c290d0 body={"verification_method": "email", "reset_token": "700001", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.156s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:03] POST /auth/verify-token
+   req-id=q4108-8c3c9cf92b58 body={"verification_method": "email", "reset_token": "700001", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.097s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:03] POST /auth/verify-token
+   req-id=q4108-154a57546320 body={"verification_method": "phone", "reset_token": "700001", "phone": "+101699999999"}
+   -> HTTP 400 (0.082s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:03] POST /auth/verify-token
+   req-id=q4108-4e2f3c83d343 body={"verification_method": "phone", "reset_token": "700001", "phone": "+101600000004"}
+   -> HTTP 400 (0.074s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:03] POST /auth/delivery-man/verify-token
+   req-id=q4108-0ee6f6e43bc9 body={"phone": "+101799999999", "reset_token": "700001"}
+   -> HTTP 400 (0.110s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:38:03] POST /auth/delivery-man/verify-token
+   req-id=q4108-d767c778fd22 body={"phone": "+101700000003", "reset_token": "700001"}
+   -> HTTP 400 (0.084s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:38:03] POST /auth/verify-token
+   req-id=q4108-c68967215300 body={"verification_method": "email", "reset_token": "700002", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.073s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:03] POST /auth/verify-token
+   req-id=q4108-e9cd4cb283f8 body={"verification_method": "email", "reset_token": "700002", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.076s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:03] POST /auth/verify-token
+   req-id=q4108-074e6f7f28e0 body={"verification_method": "phone", "reset_token": "700002", "phone": "+101699999999"}
+   -> HTTP 400 (0.071s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:03] POST /auth/verify-token
+   req-id=q4108-03f88c2abf08 body={"verification_method": "phone", "reset_token": "700002", "phone": "+101600000004"}
+   -> HTTP 400 (0.072s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:03] POST /auth/delivery-man/verify-token
+   req-id=q4108-82930c80bfe2 body={"phone": "+101799999999", "reset_token": "700002"}
+   -> HTTP 400 (0.071s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:38:03] POST /auth/delivery-man/verify-token
+   req-id=q4108-7443cc3fbcc3 body={"phone": "+101700000003", "reset_token": "700002"}
+   -> HTTP 400 (0.071s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:38:04] POST /auth/verify-token
+   req-id=q4108-35aee2781b74 body={"verification_method": "email", "reset_token": "700003", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.068s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:04] POST /auth/verify-token
+   req-id=q4108-d57db49a2c64 body={"verification_method": "email", "reset_token": "700003", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.081s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:04] POST /auth/verify-token
+   req-id=q4108-135ea8e245f3 body={"verification_method": "phone", "reset_token": "700003", "phone": "+101699999999"}
+   -> HTTP 400 (0.069s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:04] POST /auth/verify-token
+   req-id=q4108-356e0dcc9484 body={"verification_method": "phone", "reset_token": "700003", "phone": "+101600000004"}
+   -> HTTP 400 (0.079s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:38:04] POST /auth/delivery-man/verify-token
+   req-id=q4108-427981e13fc8 body={"phone": "+101799999999", "reset_token": "700003"}
+   -> HTTP 400 (0.071s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:39:05] POST /auth/delivery-man/verify-token
+   req-id=q4108-8cdffd6d6cdd body={"phone": "+101700000003", "reset_token": "700003"}
+   -> HTTP 400 (0.113s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:39:05] POST /auth/verify-token
+   req-id=q4108-8a6b67d7fc4d body={"verification_method": "email", "reset_token": "700004", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.068s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:05] POST /auth/verify-token
+   req-id=q4108-c7268fe49eb5 body={"verification_method": "email", "reset_token": "700004", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.066s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:05] POST /auth/verify-token
+   req-id=q4108-413ca60fd4f9 body={"verification_method": "phone", "reset_token": "700004", "phone": "+101699999999"}
+   -> HTTP 400 (0.067s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:05] POST /auth/verify-token
+   req-id=q4108-3757a37e427c body={"verification_method": "phone", "reset_token": "700004", "phone": "+101600000004"}
+   -> HTTP 400 (0.066s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:05] POST /auth/delivery-man/verify-token
+   req-id=q4108-34a653750553 body={"phone": "+101799999999", "reset_token": "700004"}
+   -> HTTP 400 (0.070s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:39:05] POST /auth/delivery-man/verify-token
+   req-id=q4108-9893b149e463 body={"phone": "+101700000003", "reset_token": "700004"}
+   -> HTTP 400 (0.071s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:39:05] POST /auth/verify-token
+   req-id=q4108-c1e505b41d36 body={"verification_method": "email", "reset_token": "700005", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.066s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:05] POST /auth/verify-token
+   req-id=q4108-50f7c6b8bb0d body={"verification_method": "email", "reset_token": "700005", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.066s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:05] POST /auth/verify-token
+   req-id=q4108-1bb24283e61c body={"verification_method": "phone", "reset_token": "700005", "phone": "+101699999999"}
+   -> HTTP 400 (0.067s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:06] POST /auth/verify-token
+   req-id=q4108-ac2f2656a904 body={"verification_method": "phone", "reset_token": "700005", "phone": "+101600000004"}
+   -> HTTP 400 (0.064s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:06] POST /auth/delivery-man/verify-token
+   req-id=q4108-d5d9639985ea body={"phone": "+101799999999", "reset_token": "700005"}
+   -> HTTP 400 (0.069s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:39:06] POST /auth/delivery-man/verify-token
+   req-id=q4108-20181d134610 body={"phone": "+101700000003", "reset_token": "700005"}
+   -> HTTP 400 (0.067s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:39:06] POST /auth/verify-token
+   req-id=q4108-64eae2d0fc37 body={"verification_method": "email", "reset_token": "700006", "email": "nobody.4108@demo.com"}
+   -> HTTP 405 (0.145s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+
+#### Server crashed again (SIGSEGV in php_request_shutdown -> OTel shutdown-function Closure::call; host-wide, also seen in other sessions' php pids in DiagnosticReports; OTLP collector is down). Relaunching with env OTEL_SDK_DISABLED=true (process env, .env untouched; unrelated to password-reset code). Run p2 restarted from scratch ####
+#### server pid 50971 (OTEL_SDK_DISABLED=true) ####
+
+==== S2 run A(verify x6, then reset) plan=['verify', 'verify', 'verify', 'verify', 'verify', 'verify', 'reset'] ====
+[01:39:48] POST /auth/verify-token
+   req-id=q4108-c85451d87ba7 body={"verification_method": "email", "reset_token": "700001", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.097s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:48] POST /auth/verify-token
+   req-id=q4108-39d7f7163de6 body={"verification_method": "email", "reset_token": "700001", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.059s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:48] POST /auth/verify-token
+   req-id=q4108-894b6e3d35f7 body={"verification_method": "phone", "reset_token": "700001", "phone": "+101699999999"}
+   -> HTTP 400 (0.058s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:48] POST /auth/verify-token
+   req-id=q4108-d0c5ff831b39 body={"verification_method": "phone", "reset_token": "700001", "phone": "+101600000004"}
+   -> HTTP 400 (0.054s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:48] POST /auth/delivery-man/verify-token
+   req-id=q4108-2b74fdadbed8 body={"phone": "+101799999999", "reset_token": "700001"}
+   -> HTTP 400 (0.059s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:39:48] POST /auth/delivery-man/verify-token
+   req-id=q4108-eae9d4850647 body={"phone": "+101700000003", "reset_token": "700001"}
+   -> HTTP 400 (0.058s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:39:48] POST /auth/verify-token
+   req-id=q4108-23266e06d146 body={"verification_method": "email", "reset_token": "700002", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.053s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:48] POST /auth/verify-token
+   req-id=q4108-a707211a0348 body={"verification_method": "email", "reset_token": "700002", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:48] POST /auth/verify-token
+   req-id=q4108-a1c80e814844 body={"verification_method": "phone", "reset_token": "700002", "phone": "+101699999999"}
+   -> HTTP 400 (0.055s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:49] POST /auth/verify-token
+   req-id=q4108-74c8c00e4fea body={"verification_method": "phone", "reset_token": "700002", "phone": "+101600000004"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:49] POST /auth/delivery-man/verify-token
+   req-id=q4108-790da2f7ab8c body={"phone": "+101799999999", "reset_token": "700002"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:39:49] POST /auth/delivery-man/verify-token
+   req-id=q4108-c8b2c28ac2b9 body={"phone": "+101700000003", "reset_token": "700002"}
+   -> HTTP 400 (0.052s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:39:49] POST /auth/verify-token
+   req-id=q4108-2270173eeb40 body={"verification_method": "email", "reset_token": "700003", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:49] POST /auth/verify-token
+   req-id=q4108-038522a4ac82 body={"verification_method": "email", "reset_token": "700003", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:49] POST /auth/verify-token
+   req-id=q4108-7698bf59eae8 body={"verification_method": "phone", "reset_token": "700003", "phone": "+101699999999"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:49] POST /auth/verify-token
+   req-id=q4108-baf82cb6485e body={"verification_method": "phone", "reset_token": "700003", "phone": "+101600000004"}
+   -> HTTP 400 (0.054s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:39:49] POST /auth/delivery-man/verify-token
+   req-id=q4108-55a9ecb94407 body={"phone": "+101799999999", "reset_token": "700003"}
+   -> HTTP 400 (0.056s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:40:50] POST /auth/delivery-man/verify-token
+   req-id=q4108-1ed82bfd4384 body={"phone": "+101700000003", "reset_token": "700003"}
+   -> HTTP 400 (0.069s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:40:50] POST /auth/verify-token
+   req-id=q4108-481ae5d5c42a body={"verification_method": "email", "reset_token": "700004", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:40:50] POST /auth/verify-token
+   req-id=q4108-b7e077e69ec4 body={"verification_method": "email", "reset_token": "700004", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:40:50] POST /auth/verify-token
+   req-id=q4108-f3f0a9f84ce2 body={"verification_method": "phone", "reset_token": "700004", "phone": "+101699999999"}
+   -> HTTP 400 (0.053s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:40:50] POST /auth/verify-token
+   req-id=q4108-7ba3c998fe53 body={"verification_method": "phone", "reset_token": "700004", "phone": "+101600000004"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:40:51] POST /auth/delivery-man/verify-token
+   req-id=q4108-e3bad2405361 body={"phone": "+101799999999", "reset_token": "700004"}
+   -> HTTP 400 (0.052s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:40:51] POST /auth/delivery-man/verify-token
+   req-id=q4108-95c0555b3eac body={"phone": "+101700000003", "reset_token": "700004"}
+   -> HTTP 400 (0.051s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:40:51] POST /auth/verify-token
+   req-id=q4108-cccb77df80a0 body={"verification_method": "email", "reset_token": "700005", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:40:51] POST /auth/verify-token
+   req-id=q4108-59984990ff27 body={"verification_method": "email", "reset_token": "700005", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:40:51] POST /auth/verify-token
+   req-id=q4108-204ca7ff944d body={"verification_method": "phone", "reset_token": "700005", "phone": "+101699999999"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:40:51] POST /auth/verify-token
+   req-id=q4108-f3acf7c26c39 body={"verification_method": "phone", "reset_token": "700005", "phone": "+101600000004"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:40:51] POST /auth/delivery-man/verify-token
+   req-id=q4108-817b49dfa77e body={"phone": "+101799999999", "reset_token": "700005"}
+   -> HTTP 400 (0.048s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:40:51] POST /auth/delivery-man/verify-token
+   req-id=q4108-32939b73fb78 body={"phone": "+101700000003", "reset_token": "700005"}
+   -> HTTP 400 (0.051s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:40:51] POST /auth/verify-token
+   req-id=q4108-db1efaf721ca body={"verification_method": "email", "reset_token": "700006", "email": "nobody.4108@demo.com"}
+   -> HTTP 405 (0.061s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:40:51] POST /auth/verify-token
+   req-id=q4108-e66c41c26a2b body={"verification_method": "email", "reset_token": "700006", "email": "sophie.davis@demo.com"}
+   -> HTTP 405 (0.053s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:40:51] POST /auth/verify-token
+   req-id=q4108-6491e5be51bb body={"verification_method": "phone", "reset_token": "700006", "phone": "+101699999999"}
+   -> HTTP 405 (0.050s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:40:51] POST /auth/verify-token
+   req-id=q4108-4595b4832343 body={"verification_method": "phone", "reset_token": "700006", "phone": "+101600000004"}
+   -> HTTP 405 (0.050s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:41:53] POST /auth/delivery-man/verify-token
+   req-id=q4108-6a2fb8a8e6e3 body={"phone": "+101799999999", "reset_token": "700006"}
+   -> HTTP 405 (0.074s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:41:53] POST /auth/delivery-man/verify-token
+   req-id=q4108-536e5035f79a body={"phone": "+101700000003", "reset_token": "700006"}
+   -> HTTP 405 (0.054s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:41:53] PUT /auth/reset-password
+   req-id=q4108-97ee5641bcdc body={"verification_method": "email", "reset_token": "700007", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.056s) code='otp_block_time' message='Please try again after 8 minutes 58 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 58 seconds"}]}
+[01:41:53] PUT /auth/reset-password
+   req-id=q4108-fcbd14f09cbb body={"verification_method": "email", "reset_token": "700007", "email": "sophie.davis@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.051s) code='otp_block_time' message='Please try again after 8 minutes 58 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 58 seconds"}]}
+[01:41:53] PUT /auth/reset-password
+   req-id=q4108-4fb5e8eba80f body={"verification_method": "phone", "reset_token": "700007", "phone": "+101699999999", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.055s) code='otp_block_time' message='Please try again after 8 minutes 58 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 58 seconds"}]}
+[01:41:53] PUT /auth/reset-password
+   req-id=q4108-3a2eb148f0f0 body={"verification_method": "phone", "reset_token": "700007", "phone": "+101600000004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.051s) code='otp_block_time' message='Please try again after 8 minutes 58 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 58 seconds"}]}
+[01:41:53] PUT /auth/delivery-man/reset-password
+   req-id=q4108-c882822b8ede body={"phone": "+101799999999", "reset_token": "700007", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 405 (0.303s) code='otp_block_time' message='Please try again after 10 minutes'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 10 minutes"}]}
+[01:41:53] PUT /auth/delivery-man/reset-password
+   req-id=q4108-9be977ec0702 body={"phone": "+101700000003", "reset_token": "700007", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 405 (0.182s) code='otp_block_time' message='Please try again after 10 minutes'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 10 minutes"}]}
+RESULT A(verify x6, then reset) cust-email: positions identical(exact)=[True, True, True, True, True, True, True] identical(modulo seconds/minutes digits)=[True, True, True, True, True, True, True] statuses UNREG=[400, 400, 400, 400, 400, 405, 405] REG=[400, 400, 400, 400, 400, 405, 405]
+RESULT A(verify x6, then reset) cust-phone: positions identical(exact)=[True, True, True, True, True, True, True] identical(modulo seconds/minutes digits)=[True, True, True, True, True, True, True] statuses UNREG=[400, 400, 400, 400, 400, 405, 405] REG=[400, 400, 400, 400, 400, 405, 405]
+RESULT A(verify x6, then reset) dm: positions identical(exact)=[True, True, True, True, True, True, True] identical(modulo seconds/minutes digits)=[True, True, True, True, True, True, True] statuses UNREG=[400, 400, 400, 400, 400, 405, 405] REG=[400, 400, 400, 400, 400, 405, 405]
+cache keys: laravel_cachepwreset:attempts:customer_email:789e76427ebc8be705585dbaf16138a85ef143f38c542bb27ba20ca958bc3672	i:6;
+laravel_cachepwreset:attempts:customer_email:789e76427ebc8be705585dbaf16138a85ef143f38c542bb27ba20ca958bc3672:block	i:1791582051;
+laravel_cachepwreset:attempts:customer_email:fcd031b354ad26366fd32e11bee32a1a1b94d80445d4dbc301394cd92d55926f	i:6;
+laravel_cachepwreset:attempts:customer_email:fcd031b354ad26366fd32e11bee32a1a1b94d80445d4dbc301394cd92d55926f:block	i:1791582051;
+laravel_cachepwreset:attempts:customer_phone:a018de8dcb50dcfcd38611dee01dff17665677f7ca0105f1bd00cc645107d4da	i:6;
+laravel_cachepwreset:attempts:customer_phone:a018de8dcb50dcfcd38611dee01dff17665677f7ca0105f1bd00cc645107d4da:block	i:1791582051;
+laravel_cachepwreset:attempts:customer_phone:f86c4a377fbfbb604c7813367aeb805a8e386b7df218a64850dc9c534f482328	i:6;
+laravel_cachepwreset:attempts:customer_phone:f86c4a377fbfbb604c7813367aeb805a8e386b7df218a64850dc9c534f482328:block	i:1791582051;
+laravel_cachepwreset:attempts:dm_phone:4f2bfd34dd099643ebd0f2a7ebafad5013e74ac1a2ca02b225c0b28b5bb8e8a0	i:6;
+laravel_cachepwreset:attempts:dm_phone:4f2bfd34dd099643ebd0f2a7ebafad5013e74ac1a2ca02b225c0b28b5bb8e8a0:block	i:1791582113;
+laravel_cachepwreset:attempts:dm_phone:b5e79e2d55f6a5ec3bc72c1672b67242ba865f15dbfbfe65e486624f6211b79d	i:6;
+laravel_cachepwreset:attempts:dm_phone:b5e79e2d55f6a5ec3bc72c1672b67242ba865f15dbfbfe65e486624f6211b79d:block	i:1791582113;
+
+==== S2 run B(reset x6, then verify) plan=['reset', 'reset', 'reset', 'reset', 'reset', 'reset', 'verify'] ====
+[01:41:54] PUT /auth/reset-password
+   req-id=q4108-ba481d563b38 body={"verification_method": "email", "reset_token": "700001", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.071s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:54] PUT /auth/reset-password
+   req-id=q4108-c1b327b2162e body={"verification_method": "email", "reset_token": "700001", "email": "sophie.davis@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.053s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:54] PUT /auth/reset-password
+   req-id=q4108-7e6c82314f46 body={"verification_method": "phone", "reset_token": "700001", "phone": "+101699999999", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.052s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:54] PUT /auth/reset-password
+   req-id=q4108-647bc36cad78 body={"verification_method": "phone", "reset_token": "700001", "phone": "+101600000004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:54] PUT /auth/delivery-man/reset-password
+   req-id=q4108-ded20e7b8d78 body={"phone": "+101799999999", "reset_token": "700001", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.215s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:41:54] PUT /auth/delivery-man/reset-password
+   req-id=q4108-f84bfa3f4240 body={"phone": "+101700000003", "reset_token": "700001", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.197s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:41:54] PUT /auth/reset-password
+   req-id=q4108-fdaa9c68878c body={"verification_method": "email", "reset_token": "700002", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:55] PUT /auth/reset-password
+   req-id=q4108-c8d327c88fad body={"verification_method": "email", "reset_token": "700002", "email": "sophie.davis@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.060s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:55] PUT /auth/reset-password
+   req-id=q4108-47b5fe25766a body={"verification_method": "phone", "reset_token": "700002", "phone": "+101699999999", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.056s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:55] PUT /auth/reset-password
+   req-id=q4108-08f0b20e6f69 body={"verification_method": "phone", "reset_token": "700002", "phone": "+101600000004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:55] PUT /auth/delivery-man/reset-password
+   req-id=q4108-5a442e85f48c body={"phone": "+101799999999", "reset_token": "700002", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.171s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:41:55] PUT /auth/delivery-man/reset-password
+   req-id=q4108-a8964c11ceb6 body={"phone": "+101700000003", "reset_token": "700002", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.165s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:41:55] PUT /auth/reset-password
+   req-id=q4108-912936074e7d body={"verification_method": "email", "reset_token": "700003", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:55] PUT /auth/reset-password
+   req-id=q4108-b23181365667 body={"verification_method": "email", "reset_token": "700003", "email": "sophie.davis@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:55] PUT /auth/reset-password
+   req-id=q4108-76a6e3bc5436 body={"verification_method": "phone", "reset_token": "700003", "phone": "+101699999999", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:55] PUT /auth/reset-password
+   req-id=q4108-9a822c6431ce body={"verification_method": "phone", "reset_token": "700003", "phone": "+101600000004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:41:55] PUT /auth/delivery-man/reset-password
+   req-id=q4108-849a29d0a93b body={"phone": "+101799999999", "reset_token": "700003", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.167s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:42:56] PUT /auth/delivery-man/reset-password
+   req-id=q4108-deebd660ea89 body={"phone": "+101700000003", "reset_token": "700003", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.196s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:42:56] PUT /auth/reset-password
+   req-id=q4108-b77742701d81 body={"verification_method": "email", "reset_token": "700004", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:42:56] PUT /auth/reset-password
+   req-id=q4108-3d05469630a3 body={"verification_method": "email", "reset_token": "700004", "email": "sophie.davis@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:42:56] PUT /auth/reset-password
+   req-id=q4108-fada575a9d9e body={"verification_method": "phone", "reset_token": "700004", "phone": "+101699999999", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.054s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:42:56] PUT /auth/reset-password
+   req-id=q4108-8e71eb6a6e2e body={"verification_method": "phone", "reset_token": "700004", "phone": "+101600000004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.053s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:42:57] PUT /auth/delivery-man/reset-password
+   req-id=q4108-ad30bfa4e414 body={"phone": "+101799999999", "reset_token": "700004", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.162s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:42:57] PUT /auth/delivery-man/reset-password
+   req-id=q4108-3cccc8d18639 body={"phone": "+101700000003", "reset_token": "700004", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.163s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:42:57] PUT /auth/reset-password
+   req-id=q4108-5374dc895aff body={"verification_method": "email", "reset_token": "700005", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.045s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:42:57] PUT /auth/reset-password
+   req-id=q4108-19fb564b7464 body={"verification_method": "email", "reset_token": "700005", "email": "sophie.davis@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:42:57] PUT /auth/reset-password
+   req-id=q4108-127b052dbc13 body={"verification_method": "phone", "reset_token": "700005", "phone": "+101699999999", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:42:57] PUT /auth/reset-password
+   req-id=q4108-4abf5a5c6b01 body={"verification_method": "phone", "reset_token": "700005", "phone": "+101600000004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.047s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:42:57] PUT /auth/delivery-man/reset-password
+   req-id=q4108-f0f26cf94498 body={"phone": "+101799999999", "reset_token": "700005", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.161s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:42:57] PUT /auth/delivery-man/reset-password
+   req-id=q4108-a2c00e464ed1 body={"phone": "+101700000003", "reset_token": "700005", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.171s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:42:57] PUT /auth/reset-password
+   req-id=q4108-d1fabeb2f7b1 body={"verification_method": "email", "reset_token": "700006", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.052s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:42:57] PUT /auth/reset-password
+   req-id=q4108-eeab838edaa0 body={"verification_method": "email", "reset_token": "700006", "email": "sophie.davis@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.053s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:42:57] PUT /auth/reset-password
+   req-id=q4108-bd9f117538be body={"verification_method": "phone", "reset_token": "700006", "phone": "+101699999999", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.059s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:42:58] PUT /auth/reset-password
+   req-id=q4108-e1bc83805f49 body={"verification_method": "phone", "reset_token": "700006", "phone": "+101600000004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.056s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:43:59] PUT /auth/delivery-man/reset-password
+   req-id=q4108-f20c1b620cc9 body={"phone": "+101799999999", "reset_token": "700006", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 405 (0.210s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:43:59] PUT /auth/delivery-man/reset-password
+   req-id=q4108-14faf9bfce67 body={"phone": "+101700000003", "reset_token": "700006", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 405 (0.233s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:43:59] POST /auth/verify-token
+   req-id=q4108-b33d6b700470 body={"verification_method": "email", "reset_token": "700007", "email": "nobody.4108@demo.com"}
+   -> HTTP 405 (0.050s) code='otp_block_time' message='Please try again after 8 minutes 58 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 58 seconds"}]}
+[01:43:59] POST /auth/verify-token
+   req-id=q4108-7e8bd142b626 body={"verification_method": "email", "reset_token": "700007", "email": "sophie.davis@demo.com"}
+   -> HTTP 405 (0.051s) code='otp_block_time' message='Please try again after 8 minutes 58 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 58 seconds"}]}
+[01:43:59] POST /auth/verify-token
+   req-id=q4108-528099312a38 body={"verification_method": "phone", "reset_token": "700007", "phone": "+101699999999"}
+   -> HTTP 405 (0.052s) code='otp_block_time' message='Please try again after 8 minutes 58 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 58 seconds"}]}
+[01:43:59] POST /auth/verify-token
+   req-id=q4108-b2db96f7bbb4 body={"verification_method": "phone", "reset_token": "700007", "phone": "+101600000004"}
+   -> HTTP 405 (0.050s) code='otp_block_time' message='Please try again after 8 minutes 59 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 59 seconds"}]}
+[01:43:59] POST /auth/delivery-man/verify-token
+   req-id=q4108-6ae32bb3ca91 body={"phone": "+101799999999", "reset_token": "700007"}
+   -> HTTP 405 (0.047s) code='otp_block_time' message='Please try again after 10 minutes'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 10 minutes"}]}
+[01:43:59] POST /auth/delivery-man/verify-token
+   req-id=q4108-405bb73fa236 body={"phone": "+101700000003", "reset_token": "700007"}
+   -> HTTP 405 (0.048s) code='otp_block_time' message='Please try again after 10 minutes'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 10 minutes"}]}
+RESULT B(reset x6, then verify) cust-email: positions identical(exact)=[True, True, True, True, True, True, True] identical(modulo seconds/minutes digits)=[True, True, True, True, True, True, True] statuses UNREG=[400, 400, 400, 400, 400, 405, 405] REG=[400, 400, 400, 400, 400, 405, 405]
+RESULT B(reset x6, then verify) cust-phone: positions identical(exact)=[True, True, True, True, True, True, False] identical(modulo seconds/minutes digits)=[True, True, True, True, True, True, True] statuses UNREG=[400, 400, 400, 400, 400, 405, 405] REG=[400, 400, 400, 400, 400, 405, 405]
+RESULT B(reset x6, then verify) dm: positions identical(exact)=[True, True, True, True, True, True, True] identical(modulo seconds/minutes digits)=[True, True, True, True, True, True, True] statuses UNREG=[400, 400, 400, 400, 400, 405, 405] REG=[400, 400, 400, 400, 400, 405, 405]
+cache keys: laravel_cachepwreset:attempts:customer_email:789e76427ebc8be705585dbaf16138a85ef143f38c542bb27ba20ca958bc3672	i:6;
+laravel_cachepwreset:attempts:customer_email:789e76427ebc8be705585dbaf16138a85ef143f38c542bb27ba20ca958bc3672:block	i:1791582177;
+laravel_cachepwreset:attempts:customer_email:fcd031b354ad26366fd32e11bee32a1a1b94d80445d4dbc301394cd92d55926f	i:6;
+laravel_cachepwreset:attempts:customer_email:fcd031b354ad26366fd32e11bee32a1a1b94d80445d4dbc301394cd92d55926f:block	i:1791582177;
+laravel_cachepwreset:attempts:customer_phone:a018de8dcb50dcfcd38611dee01dff17665677f7ca0105f1bd00cc645107d4da	i:6;
+laravel_cachepwreset:attempts:customer_phone:a018de8dcb50dcfcd38611dee01dff17665677f7ca0105f1bd00cc645107d4da:block	i:1791582177;
+laravel_cachepwreset:attempts:customer_phone:f86c4a377fbfbb604c7813367aeb805a8e386b7df218a64850dc9c534f482328	i:6;
+laravel_cachepwreset:attempts:customer_phone:f86c4a377fbfbb604c7813367aeb805a8e386b7df218a64850dc9c534f482328:block	i:1791582178;
+laravel_cachepwreset:attempts:dm_phone:4f2bfd34dd099643ebd0f2a7ebafad5013e74ac1a2ca02b225c0b28b5bb8e8a0	i:6;
+laravel_cachepwreset:attempts:dm_phone:4f2bfd34dd099643ebd0f2a7ebafad5013e74ac1a2ca02b225c0b28b5bb8e8a0:block	i:1791582239;
+laravel_cachepwreset:attempts:dm_phone:b5e79e2d55f6a5ec3bc72c1672b67242ba865f15dbfbfe65e486624f6211b79d	i:6;
+laravel_cachepwreset:attempts:dm_phone:b5e79e2d55f6a5ec3bc72c1672b67242ba865f15dbfbfe65e486624f6211b79d:block	i:1791582239;
+
+==== S2 run C(3 verify + 2 reset shared budget, 6th verify, 7th reset) plan=['verify', 'verify', 'verify', 'reset', 'reset', 'verify', 'reset'] ====
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-eb9a92cfece8 body={"verification_method": "email", "reset_token": "700001", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.072s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-a0e5ba845642 body={"verification_method": "email", "reset_token": "700001", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-47289bd29419 body={"verification_method": "phone", "reset_token": "700001", "phone": "+101699999999"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-039c2763b906 body={"verification_method": "phone", "reset_token": "700001", "phone": "+101600000004"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/delivery-man/verify-token
+   req-id=q4108-e5a51f4d5343 body={"phone": "+101799999999", "reset_token": "700001"}
+   -> HTTP 400 (0.054s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:44:00] POST /auth/delivery-man/verify-token
+   req-id=q4108-8bb6ad7dc39d body={"phone": "+101700000003", "reset_token": "700001"}
+   -> HTTP 400 (0.051s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-3bc71eef48c7 body={"verification_method": "email", "reset_token": "700002", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-452e4c43bb96 body={"verification_method": "email", "reset_token": "700002", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-23aa929aaf01 body={"verification_method": "phone", "reset_token": "700002", "phone": "+101699999999"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-37affd21255c body={"verification_method": "phone", "reset_token": "700002", "phone": "+101600000004"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/delivery-man/verify-token
+   req-id=q4108-c68cd5645975 body={"phone": "+101799999999", "reset_token": "700002"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:44:00] POST /auth/delivery-man/verify-token
+   req-id=q4108-eab45e6475c3 body={"phone": "+101700000003", "reset_token": "700002"}
+   -> HTTP 400 (0.051s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-30cfd71a4807 body={"verification_method": "email", "reset_token": "700003", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-e9bbd7838b01 body={"verification_method": "email", "reset_token": "700003", "email": "sophie.davis@demo.com"}
+   -> HTTP 400 (0.047s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-a983d9e2fb78 body={"verification_method": "phone", "reset_token": "700003", "phone": "+101699999999"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/verify-token
+   req-id=q4108-290844f0d082 body={"verification_method": "phone", "reset_token": "700003", "phone": "+101600000004"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:44:00] POST /auth/delivery-man/verify-token
+   req-id=q4108-6106b815d9c8 body={"phone": "+101799999999", "reset_token": "700003"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:45:02] POST /auth/delivery-man/verify-token
+   req-id=q4108-a7c1f5ea0493 body={"phone": "+101700000003", "reset_token": "700003"}
+   -> HTTP 400 (0.066s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:45:02] PUT /auth/reset-password
+   req-id=q4108-d5da85f4373b body={"verification_method": "email", "reset_token": "700004", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.047s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:45:02] PUT /auth/reset-password
+   req-id=q4108-68d882cdf85f body={"verification_method": "email", "reset_token": "700004", "email": "sophie.davis@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:45:02] PUT /auth/reset-password
+   req-id=q4108-e64441aa316a body={"verification_method": "phone", "reset_token": "700004", "phone": "+101699999999", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:45:02] PUT /auth/reset-password
+   req-id=q4108-9cc0e8cf0440 body={"verification_method": "phone", "reset_token": "700004", "phone": "+101600000004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:45:02] PUT /auth/delivery-man/reset-password
+   req-id=q4108-5460500a2a74 body={"phone": "+101799999999", "reset_token": "700004", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.174s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:45:02] PUT /auth/delivery-man/reset-password
+   req-id=q4108-d052813be467 body={"phone": "+101700000003", "reset_token": "700004", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.234s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:45:02] PUT /auth/reset-password
+   req-id=q4108-eef3338de122 body={"verification_method": "email", "reset_token": "700005", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:45:03] PUT /auth/reset-password
+   req-id=q4108-e7d202ce6514 body={"verification_method": "email", "reset_token": "700005", "email": "sophie.davis@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:45:03] PUT /auth/reset-password
+   req-id=q4108-0a9e53332141 body={"verification_method": "phone", "reset_token": "700005", "phone": "+101699999999", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:45:03] PUT /auth/reset-password
+   req-id=q4108-34a3b2a6e1cb body={"verification_method": "phone", "reset_token": "700005", "phone": "+101600000004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.045s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:45:03] PUT /auth/delivery-man/reset-password
+   req-id=q4108-9d8268729250 body={"phone": "+101799999999", "reset_token": "700005", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.258s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:45:03] PUT /auth/delivery-man/reset-password
+   req-id=q4108-734694dc4e71 body={"phone": "+101700000003", "reset_token": "700005", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.175s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:45:03] POST /auth/verify-token
+   req-id=q4108-6533bfa33851 body={"verification_method": "email", "reset_token": "700006", "email": "nobody.4108@demo.com"}
+   -> HTTP 405 (0.050s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:45:03] POST /auth/verify-token
+   req-id=q4108-e315a67cfc87 body={"verification_method": "email", "reset_token": "700006", "email": "sophie.davis@demo.com"}
+   -> HTTP 405 (0.053s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:45:03] POST /auth/verify-token
+   req-id=q4108-11d5efd23e04 body={"verification_method": "phone", "reset_token": "700006", "phone": "+101699999999"}
+   -> HTTP 405 (0.047s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:45:03] POST /auth/verify-token
+   req-id=q4108-e68d069d2997 body={"verification_method": "phone", "reset_token": "700006", "phone": "+101600000004"}
+   -> HTTP 405 (0.051s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:46:04] POST /auth/delivery-man/verify-token
+   req-id=q4108-a5d04e0de2bb body={"phone": "+101799999999", "reset_token": "700006"}
+   -> HTTP 405 (0.073s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:46:04] POST /auth/delivery-man/verify-token
+   req-id=q4108-2fba0830d98c body={"phone": "+101700000003", "reset_token": "700006"}
+   -> HTTP 405 (0.053s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:46:04] PUT /auth/reset-password
+   req-id=q4108-f629729ee8bc body={"verification_method": "email", "reset_token": "700007", "email": "nobody.4108@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.050s) code='otp_block_time' message='Please try again after 8 minutes 59 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 59 seconds"}]}
+[01:46:04] PUT /auth/reset-password
+   req-id=q4108-6e1f6d5e4755 body={"verification_method": "email", "reset_token": "700007", "email": "sophie.davis@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.052s) code='otp_block_time' message='Please try again after 8 minutes 59 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 59 seconds"}]}
+[01:46:04] PUT /auth/reset-password
+   req-id=q4108-31cecb13134b body={"verification_method": "phone", "reset_token": "700007", "phone": "+101699999999", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.050s) code='otp_block_time' message='Please try again after 8 minutes 59 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 59 seconds"}]}
+[01:46:04] PUT /auth/reset-password
+   req-id=q4108-c74e4303bcbb body={"verification_method": "phone", "reset_token": "700007", "phone": "+101600000004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.050s) code='otp_block_time' message='Please try again after 8 minutes 59 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 8 minutes 59 seconds"}]}
+[01:46:05] PUT /auth/delivery-man/reset-password
+   req-id=q4108-3ce4f9f04a26 body={"phone": "+101799999999", "reset_token": "700007", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 405 (0.206s) code='otp_block_time' message='Please try again after 9 minutes 59 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 9 minutes 59 seconds"}]}
+[01:46:05] PUT /auth/delivery-man/reset-password
+   req-id=q4108-65ffecff0a9a body={"phone": "+101700000003", "reset_token": "700007", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 405 (0.177s) code='otp_block_time' message='Please try again after 9 minutes 59 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 9 minutes 59 seconds"}]}
+RESULT C(3 verify + 2 reset shared budget, 6th verify, 7th reset) cust-email: positions identical(exact)=[True, True, True, True, True, True, True] identical(modulo seconds/minutes digits)=[True, True, True, True, True, True, True] statuses UNREG=[400, 400, 400, 400, 400, 405, 405] REG=[400, 400, 400, 400, 400, 405, 405]
+RESULT C(3 verify + 2 reset shared budget, 6th verify, 7th reset) cust-phone: positions identical(exact)=[True, True, True, True, True, True, True] identical(modulo seconds/minutes digits)=[True, True, True, True, True, True, True] statuses UNREG=[400, 400, 400, 400, 400, 405, 405] REG=[400, 400, 400, 400, 400, 405, 405]
+RESULT C(3 verify + 2 reset shared budget, 6th verify, 7th reset) dm: positions identical(exact)=[True, True, True, True, True, True, True] identical(modulo seconds/minutes digits)=[True, True, True, True, True, True, True] statuses UNREG=[400, 400, 400, 400, 400, 405, 405] REG=[400, 400, 400, 400, 400, 405, 405]
+cache keys: laravel_cachepwreset:attempts:customer_email:789e76427ebc8be705585dbaf16138a85ef143f38c542bb27ba20ca958bc3672	i:6;
+laravel_cachepwreset:attempts:customer_email:789e76427ebc8be705585dbaf16138a85ef143f38c542bb27ba20ca958bc3672:block	i:1791582303;
+laravel_cachepwreset:attempts:customer_email:fcd031b354ad26366fd32e11bee32a1a1b94d80445d4dbc301394cd92d55926f	i:6;
+laravel_cachepwreset:attempts:customer_email:fcd031b354ad26366fd32e11bee32a1a1b94d80445d4dbc301394cd92d55926f:block	i:1791582303;
+laravel_cachepwreset:attempts:customer_phone:a018de8dcb50dcfcd38611dee01dff17665677f7ca0105f1bd00cc645107d4da	i:6;
+laravel_cachepwreset:attempts:customer_phone:a018de8dcb50dcfcd38611dee01dff17665677f7ca0105f1bd00cc645107d4da:block	i:1791582303;
+laravel_cachepwreset:attempts:customer_phone:f86c4a377fbfbb604c7813367aeb805a8e386b7df218a64850dc9c534f482328	i:6;
+laravel_cachepwreset:attempts:customer_phone:f86c4a377fbfbb604c7813367aeb805a8e386b7df218a64850dc9c534f482328:block	i:1791582303;
+laravel_cachepwreset:attempts:dm_phone:4f2bfd34dd099643ebd0f2a7ebafad5013e74ac1a2ca02b225c0b28b5bb8e8a0	i:6;
+laravel_cachepwreset:attempts:dm_phone:4f2bfd34dd099643ebd0f2a7ebafad5013e74ac1a2ca02b225c0b28b5bb8e8a0:block	i:1791582364;
+laravel_cachepwreset:attempts:dm_phone:b5e79e2d55f6a5ec3bc72c1672b67242ba865f15dbfbfe65e486624f6211b79d	i:6;
+laravel_cachepwreset:attempts:dm_phone:b5e79e2d55f6a5ec3bc72c1672b67242ba865f15dbfbfe65e486624f6211b79d:block	i:1791582364;
+
+==== S4 (g) case/trailing-space variants share ONE counter (REG james.wilson vs UNREG nobody.4108) ====
+[01:46:45] POST /auth/verify-token
+   req-id=q4108-fecd2e425d3c body={"verification_method": "email", "email": "JAMES.WILSON@demo.com", "reset_token": "810001"}
+   -> HTTP 400 (0.087s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:46:45] PUT /auth/reset-password
+   req-id=q4108-52b20975eabf body={"verification_method": "email", "email": "james.wilson@demo.com", "reset_token": "810002", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.053s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:46:45] POST /auth/verify-token
+   req-id=q4108-c9f9fc86981e body={"verification_method": "email", "email": "james.wilson@demo.com ", "reset_token": "810003"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:46:45] PUT /auth/reset-password
+   req-id=q4108-5523230a9505 body={"verification_method": "email", "email": "James.Wilson@Demo.com", "reset_token": "810004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:46:45] POST /auth/verify-token
+   req-id=q4108-6650afa9abea body={"verification_method": "email", "email": "JAMES.wilson@demo.COM", "reset_token": "810005"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:47:47] PUT /auth/reset-password
+   req-id=q4108-e327a8864ba9 body={"verification_method": "email", "email": "james.wilson@demo.com", "reset_token": "810006", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.062s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+variant-REG statuses=[(400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (405, 'otp_temp_blocked')]
+[01:47:47] POST /auth/verify-token
+   req-id=q4108-e41b1b3d40a0 body={"verification_method": "email", "email": "NOBODY.4108@demo.com", "reset_token": "810001"}
+   -> HTTP 400 (0.053s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:47:47] PUT /auth/reset-password
+   req-id=q4108-8d41b6339bc4 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "810002", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:47:47] POST /auth/verify-token
+   req-id=q4108-eb262a078440 body={"verification_method": "email", "email": "nobody.4108@demo.com ", "reset_token": "810003"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:47:47] PUT /auth/reset-password
+   req-id=q4108-d1e0d3f429ff body={"verification_method": "email", "email": "Nobody.4108@Demo.com", "reset_token": "810004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:47:47] POST /auth/verify-token
+   req-id=q4108-bf2f2f2ae78b body={"verification_method": "email", "email": "NOBODY.4108@demo.COM", "reset_token": "810005"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:49] PUT /auth/reset-password
+   req-id=q4108-e4c74291288c body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "810006", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 405 (0.063s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+variant-UNREG statuses=[(400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (405, 'otp_temp_blocked')]
+variant cache keys:
+laravel_cachepwreset:attempts:customer_email:789e76427ebc8be705585dbaf16138a85ef143f38c542bb27ba20ca958bc3672	i:6;
+laravel_cachepwreset:attempts:customer_email:789e76427ebc8be705585dbaf16138a85ef143f38c542bb27ba20ca958bc3672:block	i:1791582529;
+laravel_cachepwreset:attempts:customer_email:ec93b924b68f06cdecc04b76e80d92041dcea045568367c5ab558641bf3ddff3	i:6;
+laravel_cachepwreset:attempts:customer_email:ec93b924b68f06cdecc04b76e80d92041dcea045568367c5ab558641bf3ddff3:block	i:1791582467;
+
+==== S5 (h) vendor flow untouched (live) ====
+[01:48:50] POST /auth/vendor/verify-token
+   req-id=q4108-9545b145de41 body={"email": "demo.store@gmail.com", "reset_token": "123123"}
+   -> HTTP 400 (0.068s) code='reset_token' message='Invalid OTP.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid OTP."}]}
+[01:48:50] POST /auth/vendor/verify-token
+   req-id=q4108-820971e1730c body={"email": "nobody.4108@demo.com", "reset_token": "123123"}
+   -> HTTP 403 (0.052s) code='email' message='The selected email is invalid.'
+   raw={"errors":[{"code":"email","message":"The selected email is invalid."}]}
+vendor: registered->(400, 'reset_token', 'Invalid OTP.') unregistered->(403, 'email', 'The selected email is invalid.') (vendor flow is out of scope of NEARS-4108; pre-existing exists: validator behaviour)
+
+==== S6 (k) timing class: wrong-code, 10 REG-nocode vs 10 UNREG per endpoint (host busy with other sessions' flutter tests; noisy) ====
+[01:48:50] POST /auth/verify-token
+   req-id=q4108-97478cb18866 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900001"}
+   -> HTTP 400 (0.078s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:50] POST /auth/verify-token
+   req-id=q4108-a8f8f96a451a body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900001"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:50] POST /auth/verify-token
+   req-id=q4108-4624ca03296e body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900002"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:50] POST /auth/verify-token
+   req-id=q4108-86bbd38fe52a body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900002"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:50] POST /auth/verify-token
+   req-id=q4108-654bab16448e body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900003"}
+   -> HTTP 400 (0.047s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-b63fdb13b983 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900003"}
+   -> HTTP 400 (0.046s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-e7634577d08f body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900004"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-fc349e4ba9ee body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900004"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-7fdcf241c652 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900005"}
+   -> HTTP 400 (0.046s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-a7523b84a0a8 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900005"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-fe8c0771d612 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900011"}
+   -> HTTP 400 (0.070s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-82f9c532b1fd body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900011"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-04570628ef96 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900012"}
+   -> HTTP 400 (0.052s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-1f529526bcaa body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900012"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-c0203b6367f3 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900013"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-e95cfdaade75 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900013"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-ee69d63485b2 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900014"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-d9ebaca35257 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900014"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-d47f87f1ee5d body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900015"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:48:51] POST /auth/verify-token
+   req-id=q4108-8aaf8b158909 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900015"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+TIMING cust_verify: REG median=0.049s UNREG median=0.049s ratio=1.01 (min 0.046/0.046 max 0.078/0.051)
+[01:48:52] PUT /auth/reset-password
+   req-id=q4108-097ae7451170 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900001", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.073s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:52] PUT /auth/reset-password
+   req-id=q4108-3b8d36c075ec body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900001", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.052s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:52] PUT /auth/reset-password
+   req-id=q4108-30f11ea07197 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900002", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.047s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:52] PUT /auth/reset-password
+   req-id=q4108-2cc26ec78d8c body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900002", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:52] PUT /auth/reset-password
+   req-id=q4108-27dc4ca7dd6e body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900003", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:52] PUT /auth/reset-password
+   req-id=q4108-873b261a62bd body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900003", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:52] PUT /auth/reset-password
+   req-id=q4108-d5c79f3f2380 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:52] PUT /auth/reset-password
+   req-id=q4108-911cd53ae007 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900004", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.046s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:52] PUT /auth/reset-password
+   req-id=q4108-8e50c0f4cc1f body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900005", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:52] PUT /auth/reset-password
+   req-id=q4108-033a5983db78 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900005", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:53] PUT /auth/reset-password
+   req-id=q4108-166510fec423 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900011", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.070s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:53] PUT /auth/reset-password
+   req-id=q4108-2d967286b09f body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900011", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:53] PUT /auth/reset-password
+   req-id=q4108-d104be3ccb6a body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900012", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.046s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:53] PUT /auth/reset-password
+   req-id=q4108-6194241fef4f body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900012", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:53] PUT /auth/reset-password
+   req-id=q4108-4f1384b57316 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900013", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:53] PUT /auth/reset-password
+   req-id=q4108-115239658527 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900013", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.047s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:53] PUT /auth/reset-password
+   req-id=q4108-c0aa3fc3f3d0 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900014", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:53] PUT /auth/reset-password
+   req-id=q4108-bb60d7fc45e6 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900014", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.047s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:53] PUT /auth/reset-password
+   req-id=q4108-6273d0042d69 body={"verification_method": "email", "email": "michael.brown@demo.com", "reset_token": "900015", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:48:53] PUT /auth/reset-password
+   req-id=q4108-00852d822bc3 body={"verification_method": "email", "email": "nobody.4108@demo.com", "reset_token": "900015", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+TIMING cust_reset: REG median=0.049s UNREG median=0.048s ratio=1.00 (min 0.046/0.046 max 0.073/0.052)
+[01:48:53] POST /auth/delivery-man/verify-token
+   req-id=q4108-889173a8681d body={"phone": "+101700000003", "reset_token": "900001"}
+   -> HTTP 400 (0.072s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:53] POST /auth/delivery-man/verify-token
+   req-id=q4108-9d39da850457 body={"phone": "+101799999999", "reset_token": "900001"}
+   -> HTTP 400 (0.051s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:53] POST /auth/delivery-man/verify-token
+   req-id=q4108-d565d906ef6e body={"phone": "+101700000003", "reset_token": "900002"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:53] POST /auth/delivery-man/verify-token
+   req-id=q4108-27b1a3ce6b60 body={"phone": "+101799999999", "reset_token": "900002"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-354946b30060 body={"phone": "+101700000003", "reset_token": "900003"}
+   -> HTTP 400 (0.052s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-e842f7b0a577 body={"phone": "+101799999999", "reset_token": "900003"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-ed559170175d body={"phone": "+101700000003", "reset_token": "900004"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-7c88f44fef9d body={"phone": "+101799999999", "reset_token": "900004"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-26a5f6161e53 body={"phone": "+101700000003", "reset_token": "900005"}
+   -> HTTP 400 (0.049s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-0f926889d490 body={"phone": "+101799999999", "reset_token": "900005"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-73142353e9c4 body={"phone": "+101700000003", "reset_token": "900011"}
+   -> HTTP 400 (0.076s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-4a5ce4679c0f body={"phone": "+101799999999", "reset_token": "900011"}
+   -> HTTP 400 (0.051s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-b104b8511772 body={"phone": "+101700000003", "reset_token": "900012"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-b4011b573e80 body={"phone": "+101799999999", "reset_token": "900012"}
+   -> HTTP 400 (0.059s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-7398fe8398ca body={"phone": "+101700000003", "reset_token": "900013"}
+   -> HTTP 400 (0.051s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-f2be6e5c317d body={"phone": "+101799999999", "reset_token": "900013"}
+   -> HTTP 400 (0.049s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-db92676bc6e9 body={"phone": "+101700000003", "reset_token": "900014"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-b85ffeb2d979 body={"phone": "+101799999999", "reset_token": "900014"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:54] POST /auth/delivery-man/verify-token
+   req-id=q4108-234a128b8439 body={"phone": "+101700000003", "reset_token": "900015"}
+   -> HTTP 400 (0.048s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:48:55] POST /auth/delivery-man/verify-token
+   req-id=q4108-7040bc28e7b1 body={"phone": "+101799999999", "reset_token": "900015"}
+   -> HTTP 400 (0.046s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+TIMING dm_verify: REG median=0.050s UNREG median=0.050s ratio=1.01 (min 0.048/0.046 max 0.076/0.059)
+[01:48:55] PUT /auth/delivery-man/reset-password
+   req-id=q4108-c2dd837f7060 body={"phone": "+101700000003", "reset_token": "900001", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.254s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:55] PUT /auth/delivery-man/reset-password
+   req-id=q4108-e59281f35791 body={"phone": "+101799999999", "reset_token": "900001", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.226s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:55] PUT /auth/delivery-man/reset-password
+   req-id=q4108-8eb875bde387 body={"phone": "+101700000003", "reset_token": "900002", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.184s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:56] PUT /auth/delivery-man/reset-password
+   req-id=q4108-233bfadf1a3c body={"phone": "+101799999999", "reset_token": "900002", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.269s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:56] PUT /auth/delivery-man/reset-password
+   req-id=q4108-fdf32d485cbc body={"phone": "+101700000003", "reset_token": "900003", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.191s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:56] PUT /auth/delivery-man/reset-password
+   req-id=q4108-c1afb482c5b0 body={"phone": "+101799999999", "reset_token": "900003", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.265s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:56] PUT /auth/delivery-man/reset-password
+   req-id=q4108-dc6b065199d1 body={"phone": "+101700000003", "reset_token": "900004", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.187s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:57] PUT /auth/delivery-man/reset-password
+   req-id=q4108-ea801ccae8cb body={"phone": "+101799999999", "reset_token": "900004", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.178s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:57] PUT /auth/delivery-man/reset-password
+   req-id=q4108-dbc0262d422e body={"phone": "+101700000003", "reset_token": "900005", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.270s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:57] PUT /auth/delivery-man/reset-password
+   req-id=q4108-7adcd88ccec4 body={"phone": "+101799999999", "reset_token": "900005", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.170s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:57] PUT /auth/delivery-man/reset-password
+   req-id=q4108-b14f10b09bdf body={"phone": "+101700000003", "reset_token": "900011", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.210s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:58] PUT /auth/delivery-man/reset-password
+   req-id=q4108-ab3a01a84619 body={"phone": "+101799999999", "reset_token": "900011", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.168s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:58] PUT /auth/delivery-man/reset-password
+   req-id=q4108-20c33a6fb62c body={"phone": "+101700000003", "reset_token": "900012", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.254s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:58] PUT /auth/delivery-man/reset-password
+   req-id=q4108-fd75d3e6d515 body={"phone": "+101799999999", "reset_token": "900012", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.167s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:58] PUT /auth/delivery-man/reset-password
+   req-id=q4108-1dac1aecd76e body={"phone": "+101700000003", "reset_token": "900013", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.247s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:58] PUT /auth/delivery-man/reset-password
+   req-id=q4108-7b8dd3eb6784 body={"phone": "+101799999999", "reset_token": "900013", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.174s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:59] PUT /auth/delivery-man/reset-password
+   req-id=q4108-5be6efe29703 body={"phone": "+101700000003", "reset_token": "900014", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.173s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:59] PUT /auth/delivery-man/reset-password
+   req-id=q4108-863115746864 body={"phone": "+101799999999", "reset_token": "900014", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.239s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:59] PUT /auth/delivery-man/reset-password
+   req-id=q4108-bfaf748686a3 body={"phone": "+101700000003", "reset_token": "900015", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.171s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:48:59] PUT /auth/delivery-man/reset-password
+   req-id=q4108-cdb02e528940 body={"phone": "+101799999999", "reset_token": "900015", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.158s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+TIMING dm_reset: REG median=0.200s UNREG median=0.176s ratio=1.14 (min 0.171/0.158 max 0.270/0.269)
