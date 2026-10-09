@@ -1,0 +1,70 @@
+# size accept boundary + >2MB jpeg reject + uppercase ext (server pid 74963, php -d upload_max_filesize=3M)
+### [jpeg-over-2MB(2339935B)-reject] kind=item order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/jpg_2_5mb.jpg
+SNAP files=28 reviews=21 dm_reviews=9 | order=7 is_reviewed=0 item96 rating_count=9 avg=4.33333333333330 rating={"1":0,"2":0,"3":0,"4":6,"5":3} store_rating={"1":0,"2":0,"3":0,"4":6,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 must not be greater than 2048 kilobytes."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [jpeg-over-2MB(2339935B)-reject] kind=dm order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/jpg_2_5mb.jpg
+SNAP files=28 reviews=21 dm_reviews=9 | order=7 is_reviewed=0 item96 rating_count=9 avg=4.33333333333330 rating={"1":0,"2":0,"3":0,"4":6,"5":3} store_rating={"1":0,"2":0,"3":0,"4":6,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 must not be greater than 2048 kilobytes."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [ACCEPT big_ok.png(1379585B)] kind=item order=16
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=16 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/big_ok.png
+SNAP files=28 reviews=21 dm_reviews=9 | order=16 is_reviewed=0 item96 rating_count=9 avg=4.33333333333330 rating={"1":0,"2":0,"3":0,"4":6,"5":3} store_rating={"1":0,"2":0,"3":0,"4":6,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=29 reviews=22 dm_reviews=9 | order=16 is_reviewed=1 item96 rating_count=10 avg=4.30000000000000 rating={"1":0,"2":0,"3":0,"4":7,"5":3} store_rating={"1":0,"2":0,"3":0,"4":7,"5":5}
+files_delta=1
+### [ACCEPT big_edge.png(exactly 2097152B = 2048KB)] kind=item order=17
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=17 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/big_edge.png
+SNAP files=29 reviews=22 dm_reviews=9 | order=17 is_reviewed=0 item96 rating_count=10 avg=4.30000000000000 rating={"1":0,"2":0,"3":0,"4":7,"5":3} store_rating={"1":0,"2":0,"3":0,"4":7,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=30 reviews=23 dm_reviews=9 | order=17 is_reviewed=1 item96 rating_count=11 avg=4.27272727272730 rating={"1":0,"2":0,"3":0,"4":8,"5":3} store_rating={"1":0,"2":0,"3":0,"4":8,"5":5}
+files_delta=1
+### [uppercase-ext UP.PNG(real image)] kind=item order=18
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=18 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/UP.PNG
+SNAP files=30 reviews=23 dm_reviews=9 | order=18 is_reviewed=0 item96 rating_count=11 avg=4.27272727272730 rating={"1":0,"2":0,"3":0,"4":8,"5":3} store_rating={"1":0,"2":0,"3":0,"4":8,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=31 reviews=24 dm_reviews=9 | order=18 is_reviewed=1 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+files_delta=1
+### [ACCEPT big_ok.png(1379585B)] kind=dm order=16
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=16 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/big_ok.png
+SNAP files=31 reviews=24 dm_reviews=9 | order=16 is_reviewed=1 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=32 reviews=24 dm_reviews=10 | order=16 is_reviewed=1 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+files_delta=1
+### [ACCEPT big_edge.png(exactly 2097152B = 2048KB)] kind=dm order=17
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=17 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/big_edge.png
+SNAP files=32 reviews=24 dm_reviews=10 | order=17 is_reviewed=1 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=33 reviews=24 dm_reviews=11 | order=17 is_reviewed=1 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+files_delta=1
+### [uppercase-ext UP.PNG(real image)] kind=dm order=18
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=18 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/UP.PNG
+SNAP files=33 reviews=24 dm_reviews=11 | order=18 is_reviewed=1 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=34 reviews=24 dm_reviews=12 | order=18 is_reviewed=1 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+files_delta=1
+---- stored rows
+item order 16: ["review\/2026-10-09-6ac8d4b371493.webp"]
+dm   order 16: ["review\/2026-10-09-6ac8d4b663e79.webp"]
+item order 17: ["review\/2026-10-09-6ac8d4b4bef05.webp"]
+dm   order 17: ["review\/2026-10-09-6ac8d4b7a576a.webp"]
+item order 18: ["review\/2026-10-09-6ac8d4b511cc5.PNG"]
+dm   order 18: ["review\/2026-10-09-6ac8d4b7e0181.PNG"]
+-rw-r--r--@ 1 Apple  staff    3172 Oct  9 15:49 2026-10-09-6ac8d4b511cc5.PNG
+-rw-r--r--@ 1 Apple  staff    3172 Oct  9 15:49 2026-10-09-6ac8d4b7e0181.PNG
+reviews [('review/2026-10-09-6ac8d4b371493.webp', True)]
+reviews [('review/2026-10-09-6ac8d4b4bef05.webp', True)]
+reviews [('review/2026-10-09-6ac8d4b511cc5.PNG', True)]
+d_m_reviews [('review/2026-10-09-6ac8d4b663e79.webp', True)]
+d_m_reviews [('review/2026-10-09-6ac8d4b7a576a.webp', True)]
+d_m_reviews [('review/2026-10-09-6ac8d4b7e0181.PNG', True)]

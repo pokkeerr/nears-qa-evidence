@@ -1,0 +1,12 @@
+NEARS-4085 QA (API-only, device-free). HEAD 5f511d3c0. Own server from worktree Admin/, port 8485, DB multi_food_db_test_nears_4085 (clone).
+Backend: /Users/Apple/Projects/nears-NEARS-4085-review-upload-validation @ 5f511d3c0  (backend-freshness-check.sh 8485 -> PASS)
+Servers: (1) php artisan serve --no-reload (pid 65018, php defaults 2M/8M) for type/count/atomic/shape/valid/list; (2) php -d upload_max_filesize=3M -d post_max_size=20M -S (pid 74963) for >2MB max-rule + boundary.
+Files:
+ ac1-ac4-ac9-type-rejections.txt  AC1 AC4 AC9
+ ac2-ac5-size-default-php-ini.txt AC2/AC5 under PHP defaults (env fact: PHP drops >2M -> 'failed to upload', still 403 attachment.0)
+ ac2-ac5-size-raised-php-ini.txt  AC2/AC5 max:2048 rule proven (403 'must not be greater than 2048 kilobytes')
+ ac2-ac5-size-accept-and-extra.txt  1.38MB and exactly 2048KB accepted 200; 2.34MB jpeg 403; uppercase .PNG observed
+ ac3-ac6-count.txt   6 -> 403, 5 -> 200 both endpoints, saved JSON valid
+ ac7-ac10-atomic-and-shape.txt  atomic + non-array + JSON shapes
+ ac8-valid-path.txt, ac8-list-endpoints-and-disk.txt
+ extra-unauth-nonowner.txt, db-isolation-proof.txt, be-log-check.txt, phpunit-regression.txt

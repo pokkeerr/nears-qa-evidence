@@ -1,0 +1,28 @@
+# unauthenticated
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Accept: application/json' -F order_id=15 -F rating=4 -F comment=x -F 'attachment[]=@v1.png'
+{"message":"Unauthenticated."}
+HTTP 401
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Accept: application/json' -F order_id=15 -F rating=4 -F comment=x -F 'attachment[]=@v1.png'
+{"message":"Unauthenticated."}
+HTTP 401
+files delta (unauth): 0
+# non-owner order (user 6 token, order owned by another user)
+### [nonowner-valid-image] kind=item order=167
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=167 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png
+SNAP files=28 reviews=21 dm_reviews=9 | order=167 is_reviewed=0 item96 rating_count=9 avg=4.33333333333330 rating={"1":0,"2":0,"3":0,"4":6,"5":3} store_rating={"1":0,"2":0,"3":0,"4":6,"5":5}
+HTTP 403  body: {"errors":[{"code":"order_id","message":"Order data not found"}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [nonowner-valid-image] kind=dm order=167
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=167 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png
+SNAP files=28 reviews=21 dm_reviews=9 | order=167 is_reviewed=0 item96 rating_count=9 avg=4.33333333333330 rating={"1":0,"2":0,"3":0,"4":6,"5":3} store_rating={"1":0,"2":0,"3":0,"4":6,"5":5}
+HTTP 403  body: {"errors":[{"code":"order","message":"Not found"}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+# nonexistent order id
+### [missing-order] kind=item order=999999
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=999999 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png
+SNAP files=28 reviews=21 dm_reviews=9 | order=999999 is_reviewed= item96 rating_count=9 avg=4.33333333333330 rating={"1":0,"2":0,"3":0,"4":6,"5":3} store_rating={"1":0,"2":0,"3":0,"4":6,"5":5}
+HTTP 403  body: {"errors":[{"code":"order_id","message":"Order data not found"}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0

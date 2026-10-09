@@ -1,0 +1,73 @@
+# AC7 atomic, AC10 shape (order 9 unconsumed)
+### [atomic-2valid+bad.php] kind=item order=9
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=9 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v2.png -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/bad.php
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.2","message":"The attachment.2 must be an image."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [atomic-bad.html-first+2valid] kind=item order=9
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=9 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/bad.html -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v2.png
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 must be an image."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [atomic-2valid+text_as.jpg] kind=item order=9
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=9 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/s1.jpg -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v2.png -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/text_as.jpg
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.2","message":"The attachment.2 must be an image."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [single-nonarray-file] kind=item order=9
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=9 -F rating=4 -F comment=qa4085 -F attachment=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment","message":"The attachment must be an array."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [json-attachment-[a,b]] kind=item order=9 (JSON body)
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"item_id":96,"order_id":9,"rating":4,"comment":"qa4085","attachment":["a","b"]}'
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 must be a file."},{"code":"attachment.1","message":"The attachment.1 must be a file."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [json-attachment-string] kind=item order=9 (JSON body)
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"item_id":96,"order_id":9,"rating":4,"comment":"qa4085","attachment":"a"}'
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment","message":"The attachment must be an array."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [atomic-2valid+bad.php] kind=dm order=9
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=9 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v2.png -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/bad.php
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.2","message":"The attachment.2 must be an image."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [atomic-bad.html-first+2valid] kind=dm order=9
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=9 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/bad.html -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v2.png
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 must be an image."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [atomic-2valid+text_as.jpg] kind=dm order=9
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=9 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/s1.jpg -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v2.png -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/text_as.jpg
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.2","message":"The attachment.2 must be an image."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [single-nonarray-file] kind=dm order=9
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=9 -F rating=4 -F comment=qa4085 -F attachment=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment","message":"The attachment must be an array."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [json-attachment-[a,b]] kind=dm order=9 (JSON body)
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"delivery_man_id":6,"order_id":9,"rating":4,"comment":"qa4085","attachment":["a","b"]}'
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 must be a file."},{"code":"attachment.1","message":"The attachment.1 must be a file."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [json-attachment-string] kind=dm order=9 (JSON body)
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"delivery_man_id":6,"order_id":9,"rating":4,"comment":"qa4085","attachment":"a"}'
+SNAP files=10 reviews=16 dm_reviews=4 | order=9 is_reviewed=0 item96 rating_count=4 avg=4.75000000000000 rating={"1":0,"2":0,"3":0,"4":1,"5":3} store_rating={"1":0,"2":0,"3":0,"4":1,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment","message":"The attachment must be an array."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
