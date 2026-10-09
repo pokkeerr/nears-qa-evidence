@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4085
 
-**PASS cycle2 - FIR-1 dimension cap + delta sweep green, 40/188 phpunit**
+**PASS cycle3 - FIR-1b 2048px cap, 40/190 phpunit**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -21,6 +21,11 @@
 - [`cycle2-isolation-and-log.txt`](cycle2-isolation-and-log.txt)
 - [`cycle2-phpunit.txt`](cycle2-phpunit.txt)
 - [`cycle2-summary.txt`](cycle2-summary.txt)
+- [`cycle3-fir1b-dimensions.txt`](cycle3-fir1b-dimensions.txt)
+- [`cycle3-isolation-and-log.txt`](cycle3-isolation-and-log.txt)
+- [`cycle3-phpunit.txt`](cycle3-phpunit.txt)
+- [`cycle3-run1-server-segfaulted-discarded.txt`](cycle3-run1-server-segfaulted-discarded.txt)
+- [`cycle3-summary.txt`](cycle3-summary.txt)
 - [`db-isolation-proof.txt`](db-isolation-proof.txt)
 - [`extra-unauth-nonowner.txt`](extra-unauth-nonowner.txt)
 - [`phpunit-regression.txt`](phpunit-regression.txt)

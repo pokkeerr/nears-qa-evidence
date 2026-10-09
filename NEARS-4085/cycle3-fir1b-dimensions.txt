@@ -1,0 +1,141 @@
+# cycle3 FIR-1b (run 2). HEAD 81038ea60, MAX_DIMENSION_PX=2048. server: php -d pcre.jit=0 -d memory_limit=256M -S 127.0.0.1:8485 (pid 98924), DB_DATABASE=multi_food_db_test_nears_4085. (run 1 discarded: php -S segfaulted mid-request, see summary)
+fixture d2048.png bytes=590
+fixture d2049x10.png bytes=81
+fixture d10x2049.png bytes=85
+fixture d2049sq.png bytes=591
+fixture dim5000.png bytes=3112
+fixture dim4096.png bytes=2116
+## rejections, order 7
+### [reject-d2049x10.png] kind=item order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/d2049x10.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [reject-d10x2049.png] kind=item order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/d10x2049.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [reject-d2049sq.png] kind=item order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/d2049sq.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [reject-dim5000.png] kind=item order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/dim5000.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [reject-dim4096.png] kind=item order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/dim4096.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [atomic-valid+d2049x10] kind=item order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/d2049x10.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.1","message":"The attachment.1 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [reject-d2049x10.png] kind=dm order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/d2049x10.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [reject-d10x2049.png] kind=dm order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/d10x2049.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [reject-d2049sq.png] kind=dm order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/d2049sq.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [reject-dim5000.png] kind=dm order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/dim5000.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [reject-dim4096.png] kind=dm order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/dim4096.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.0","message":"The attachment.0 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+### [atomic-valid+d2049x10] kind=dm order=7
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=7 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/d2049x10.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=7 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 403  body: {"errors":[{"code":"attachment.1","message":"The attachment.1 has invalid image dimensions."}]}
+STATE_UNCHANGED (files/reviews/dm_reviews/is_reviewed/rating/store_rating identical)
+files_delta=0
+## accept 2048x2048 (order 8), jpeg 1600x1200 (order 9)
+### [accept-2048x2048] kind=item order=8
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=8 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/d2048.png
+SNAP files=60 reviews=15 dm_reviews=3 | order=8 is_reviewed=0 item96 rating_count=12 avg=4.25000000000000 rating={"1":0,"2":0,"3":0,"4":9,"5":3} store_rating={"1":0,"2":0,"3":0,"4":9,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=61 reviews=16 dm_reviews=3 | order=8 is_reviewed=1 item96 rating_count=13 avg=4.23076923076920 rating={"1":0,"2":0,"3":0,"4":10,"5":3} store_rating={"1":0,"2":0,"3":0,"4":10,"5":5}
+files_delta=1
+elapsed_s=0.83
+### [accept-jpeg-1600x1200(274764B)] kind=item order=9
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=9 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/phone1600x1200.jpg
+SNAP files=61 reviews=16 dm_reviews=3 | order=9 is_reviewed=0 item96 rating_count=13 avg=4.23076923076920 rating={"1":0,"2":0,"3":0,"4":10,"5":3} store_rating={"1":0,"2":0,"3":0,"4":10,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=62 reviews=17 dm_reviews=3 | order=9 is_reviewed=1 item96 rating_count=14 avg=4.21428571428570 rating={"1":0,"2":0,"3":0,"4":11,"5":3} store_rating={"1":0,"2":0,"3":0,"4":11,"5":5}
+files_delta=1
+### [accept-2048x2048] kind=dm order=8
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=8 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/d2048.png
+SNAP files=62 reviews=17 dm_reviews=3 | order=8 is_reviewed=1 item96 rating_count=14 avg=4.21428571428570 rating={"1":0,"2":0,"3":0,"4":11,"5":3} store_rating={"1":0,"2":0,"3":0,"4":11,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=63 reviews=17 dm_reviews=4 | order=8 is_reviewed=1 item96 rating_count=14 avg=4.21428571428570 rating={"1":0,"2":0,"3":0,"4":11,"5":3} store_rating={"1":0,"2":0,"3":0,"4":11,"5":5}
+files_delta=1
+elapsed_s=0.36
+### [accept-jpeg-1600x1200(274764B)] kind=dm order=9
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/delivery-man/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F delivery_man_id=6 -F order_id=9 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/phone1600x1200.jpg
+SNAP files=63 reviews=17 dm_reviews=4 | order=9 is_reviewed=1 item96 rating_count=14 avg=4.21428571428570 rating={"1":0,"2":0,"3":0,"4":11,"5":3} store_rating={"1":0,"2":0,"3":0,"4":11,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=64 reviews=17 dm_reviews=5 | order=9 is_reviewed=1 item96 rating_count=14 avg=4.21428571428570 rating={"1":0,"2":0,"3":0,"4":11,"5":3} store_rating={"1":0,"2":0,"3":0,"4":11,"5":5}
+files_delta=1
+## real 32x32 GIF / WEBP / PNG (item endpoint, orders 10,11,12)
+### [valid-gif] kind=item order=10
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=10 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/s3.gif
+SNAP files=64 reviews=17 dm_reviews=5 | order=10 is_reviewed=0 item96 rating_count=14 avg=4.21428571428570 rating={"1":0,"2":0,"3":0,"4":11,"5":3} store_rating={"1":0,"2":0,"3":0,"4":11,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=65 reviews=18 dm_reviews=5 | order=10 is_reviewed=1 item96 rating_count=15 avg=4.20000000000000 rating={"1":0,"2":0,"3":0,"4":12,"5":3} store_rating={"1":0,"2":0,"3":0,"4":12,"5":5}
+files_delta=1
+### [valid-webp] kind=item order=11
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=11 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/s4.webp
+SNAP files=65 reviews=18 dm_reviews=5 | order=11 is_reviewed=0 item96 rating_count=15 avg=4.20000000000000 rating={"1":0,"2":0,"3":0,"4":12,"5":3} store_rating={"1":0,"2":0,"3":0,"4":12,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=66 reviews=19 dm_reviews=5 | order=11 is_reviewed=1 item96 rating_count=16 avg=4.18750000000000 rating={"1":0,"2":0,"3":0,"4":13,"5":3} store_rating={"1":0,"2":0,"3":0,"4":13,"5":5}
+files_delta=1
+### [valid-png] kind=item order=12
+$ curl -s -X POST http://127.0.0.1:8485/api/v1/items/reviews/submit -H 'Authorization: Bearer <redacted>' -H 'Accept: application/json' -F item_id=96 -F order_id=12 -F rating=4 -F comment=qa4085 -F attachment[]=@/private/tmp/claude-501/-Users-Apple-Projects-nears/155b032c-28a5-4a05-ae80-f6dd961a5161/scratchpad/fx/v1.png
+SNAP files=66 reviews=19 dm_reviews=5 | order=12 is_reviewed=0 item96 rating_count=16 avg=4.18750000000000 rating={"1":0,"2":0,"3":0,"4":13,"5":3} store_rating={"1":0,"2":0,"3":0,"4":13,"5":5}
+HTTP 200  body: {"message":"Review submited successfully"}
+STATE_CHANGED
+SNAP files=67 reviews=20 dm_reviews=5 | order=12 is_reviewed=1 item96 rating_count=17 avg=4.17647058823530 rating={"1":0,"2":0,"3":0,"4":14,"5":3} store_rating={"1":0,"2":0,"3":0,"4":14,"5":5}
+files_delta=1
+reviews order 8 review/2026-10-09-6ac8d8644e789.webp exists True size (2048, 2048)
+reviews order 9 review/2026-10-09-6ac8d864f073e.webp exists True size (1600, 1200)
+reviews order 10 review/2026-10-09-6ac8d865f314f.gif exists True size (32, 32)
+reviews order 11 review/2026-10-09-6ac8d8664255f.webp exists True size (32, 32)
+reviews order 12 review/2026-10-09-6ac8d8668510c.webp exists True size (32, 32)
+d_m_reviews order 8 review/2026-10-09-6ac8d8655c6fa.webp exists True size (2048, 2048)
+d_m_reviews order 9 review/2026-10-09-6ac8d865b4526.webp exists True size (1600, 1200)
+server alive at end: 98924
