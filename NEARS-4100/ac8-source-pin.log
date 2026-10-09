@@ -1,0 +1,33 @@
+# AC8 source pin at cfea765bc (tip) vs 814f12893 (base)
+
+## TIP: definition + every call site of OrderTotals cap/net helpers
+app/Http/Controllers/Api/V1/Vendor/VendorController.php:1235:        $refBonus = OrderTotals::cappedReferralBonus((float) $order->ref_bonus_amount, $total_price);
+app/Http/Controllers/Vendor/OrderController.php:594:        $refBonus = OrderTotals::cappedReferralBonus((float) $order->ref_bonus_amount, $total_price);
+app/Services/Order/OrderTotals.php:12:    public static function cappedReferralBonus($amount, $basket)
+app/Services/Order/OrderPlacementService.php:862:                        $appliedRefBonus = OrderTotals::cappedReferralBonus(data_get($discount_data, 'calculated_amount'), $total_price);
+app/Services/Order/OrderTaxService.php:318:                $ref_bonus_amount = OrderTotals::cappedReferralBonus(data_get($discount_data, 'calculated_amount'), $total_price);
+app/Services/Order/OrderTaxService.php:438:        $bonus = $order ? OrderTotals::cappedReferralBonus((float) $order->ref_bonus_amount, $basket) : 0;
+
+app/Http/Controllers/Api/V1/Vendor/VendorController.php:1236:        $total_price = OrderTotals::netBasket($total_price, $refBonus);
+app/Http/Controllers/Vendor/OrderController.php:595:        $total_price = OrderTotals::netBasket($total_price, $refBonus);
+app/Services/Order/OrderTaxService.php:439:        $net = OrderTotals::netBasket($basket, $bonus);
+app/Services/Order/OrderTotals.php:23:    public static function netBasket($basket, $bonus)
+
+## TIP: any inline copy of the cap formula min(...max(...,0)) near a bonus (expect only OrderTotals.php)
+app/Services/Order/OrderTotals.php:14:        return min($amount, max($basket, 0));
+
+## TIP: inline max($basket / max($total_price hits
+app/Http/Controllers/Api/V1/Vendor/VendorController.php:1233:        $total_price = max($total_price, 0);
+app/Http/Controllers/Vendor/OrderController.php:592:        $total_price = max($total_price, 0);
+app/Services/Order/OrderPlacementService.php:870:                $total_price = max($total_price, 0);
+app/Services/Order/OrderTotals.php:14:        return min($amount, max($basket, 0));
+app/Services/Order/OrderTotals.php:25:        return max($basket - $bonus, 0);
+
+## BASE (scratch @814f12893): where the same formula lived
+app/Http/Controllers/Admin/OrderController.php:1528:        $refBonus = min((float) $order->ref_bonus_amount, max($total_price, 0));
+app/Services/Order/OrderPlacementService.php:862:                        $appliedRefBonus = min(data_get($discount_data, 'calculated_amount'), max($total_price, 0));
+app/Services/Order/OrderTaxService.php:318:                $ref_bonus_amount = min(data_get($discount_data, 'calculated_amount'), max($total_price, 0));
+
+## BASE HEAD and Admin/app diff vs 814f12893 (bytes, expect 0):
+814f12893d97c3b7bc7593b1453c3c9d49ef4da1
+       0
