@@ -1,0 +1,64 @@
+# NEARS-4099 QA regression-candidate executions (own server :8499 worktree tip e538c45c5 / base server :8498 = scratch copy @ 24ad0e512 controller; DB = multi_food_db_test_nears_4099_qa clone)
+
+## R4 (base vs tip, unchanged cart, tips 1.5 + packaging 0.5, bonus 0)
+=== [BASE] R4 tips+packaging, unchanged cart, bonus 0 (stored order_amount 8+1.5+0.5=10) (order 91851) spec={"bonus": 0, "order_amount": 10, "overrides": {"dm_tips": 1.5, "extra_packaging_amount": 0.5}}
+PRE  ORDER 91851 {"order_status":"pending","ref_bonus_amount":0,"order_amount":"10.00","adjusment":"0.00","total_tax_amount":"0.00","tax_status":null,"dm_tips":1.5,"extra_packaging_amount":0.5,"delivery_charge":"0.00","additional_charge":0,"flash_admin_discount_amount":0,"flash_store_discount_amount":0,"store_discount_amount":"0.00","coupon_discount_amount":"0.00"}
+  POST edit-order -> 302
+  POST update -> 302
+POST ORDER 91851 {"order_status":"pending","ref_bonus_amount":0,"order_amount":"8.00","adjusment":"2.00","total_tax_amount":"0.00","tax_status":"excluded","dm_tips":1.5,"extra_packaging_amount":0.5,"delivery_charge":"0.00","additional_charge":0,"flash_admin_discount_amount":0,"flash_store_discount_amount":0,"store_discount_amount":"0.00","coupon_discount_amount":"0.00"}
+   create_transaction => true
+TXN   91851 {"order_amount":"8.00","store_amount":"6.50","admin_commission":"0.00","admin_expense":"0.000","ref_bonus_amount":0,"delivery_charge":"0.00","tax":"0.00","dm_tips":1.5}
+=== [TIP] R4 tips+packaging, unchanged cart, bonus 0 (stored order_amount 8+1.5+0.5=10) (order 91852) spec={"bonus": 0, "order_amount": 10, "overrides": {"dm_tips": 1.5, "extra_packaging_amount": 0.5}}
+PRE  ORDER 91852 {"order_status":"pending","ref_bonus_amount":0,"order_amount":"10.00","adjusment":"0.00","total_tax_amount":"0.00","tax_status":null,"dm_tips":1.5,"extra_packaging_amount":0.5,"delivery_charge":"0.00","additional_charge":0,"flash_admin_discount_amount":0,"flash_store_discount_amount":0,"store_discount_amount":"0.00","coupon_discount_amount":"0.00"}
+  POST edit-order -> 302
+  POST update -> 302
+POST ORDER 91852 {"order_status":"pending","ref_bonus_amount":0,"order_amount":"8.00","adjusment":"2.00","total_tax_amount":"0.00","tax_status":"excluded","dm_tips":1.5,"extra_packaging_amount":0.5,"delivery_charge":"0.00","additional_charge":0,"flash_admin_discount_amount":0,"flash_store_discount_amount":0,"store_discount_amount":"0.00","coupon_discount_amount":"0.00"}
+   create_transaction => true
+TXN   91852 {"order_amount":"8.00","store_amount":"6.50","admin_commission":"0.00","admin_expense":"0.000","ref_bonus_amount":0,"delivery_charge":"0.00","tax":"0.00","dm_tips":1.5}
+
+## R5b
+##### R5b flash order 91854 : edit Rice qty 2 -> 3 (flash discount becomes 3 x 2.00 = 6.00)
+PRE  {'order_amount': '46.00', 'adjusment': '0.00', 'flash_admin_discount_amount': 1.6, 'flash_store_discount_amount': 2.4, 'store_discount_amount': '0.00'}
+add-to-cart -> 200 {"data":2}
+POST update -> 302
+POST {'order_amount': '64.00', 'adjusment': '-18.00', 'flash_admin_discount_amount': 1.6, 'flash_store_discount_amount': 2.4, 'store_discount_amount': '0.00'}
+id	item_id	quantity	discount_on_item	discount_type
+208	390	3	2.00	flash_sale
+209	388	1	0.00	product_discount
+
+settle: TXN 91854 order_amount 64.00 store_amount 65.60 admin_expense 1.600 (stored flash admin 1.6 / store 2.4 stale; real flash 6.00)
+
+## R6
+=== R6 delivered + paid + digital_payment + settled txn row (blade shows NO Edit button) order 91855
+PRE  {'order_status': 'delivered', 'payment_status': 'paid', 'payment_method': 'digital_payment', 'ref_bonus_amount': 0, 'order_amount': '6.00', 'adjusment': '0.00', 'tax_status': None}
+order-view contains Edit button (class edit-order): False
+direct POST admin.order.edit -> 302
+direct POST admin.order.update -> 302
+POST {'order_status': 'delivered', 'payment_status': 'paid', 'payment_method': 'digital_payment', 'ref_bonus_amount': 0, 'order_amount': '8.00', 'adjusment': '-2.00', 'tax_status': 'excluded'}
+txn rows: 1	6.00
+=== R6 pending + non-COD (digital_payment, unpaid) (blade hides Edit) order 91856
+PRE  {'order_status': 'pending', 'payment_status': 'unpaid', 'payment_method': 'digital_payment', 'ref_bonus_amount': 0, 'order_amount': '6.00', 'adjusment': '0.00', 'tax_status': None}
+order-view contains Edit button (class edit-order): False
+direct POST admin.order.edit -> 302
+direct POST admin.order.update -> 302
+POST {'order_status': 'pending', 'payment_status': 'unpaid', 'payment_method': 'digital_payment', 'ref_bonus_amount': 0, 'order_amount': '8.00', 'adjusment': '-2.00', 'tax_status': 'excluded'}
+txn rows: 0	NULL
+=== R6 pending + COD + stored bonus 2 (blade hides Edit: ref_bonus != 0) = the AC fixtures order 91857
+PRE  {'order_status': 'pending', 'payment_status': 'unpaid', 'payment_method': 'cash_on_delivery', 'ref_bonus_amount': 2, 'order_amount': '6.00', 'adjusment': '0.00', 'tax_status': None}
+order-view contains Edit button (class edit-order): False
+direct POST admin.order.edit -> 302
+direct POST admin.order.update -> 302
+POST {'order_status': 'pending', 'payment_status': 'unpaid', 'payment_method': 'cash_on_delivery', 'ref_bonus_amount': 2, 'order_amount': '6.00', 'adjusment': '0.00', 'tax_status': 'excluded'}
+txn rows: 0	NULL
+
+## R1 vendor-panel POST vendor-panel/order/update-order-amount (hand-built prescription order, stored bonus 2, order_amount 6; vendor freshlocal@demo.com)
+PRE  order 91842 ref_bonus_amount 2 order_amount 6.00
+POST order_amount=8 -> 302 ; order 91842 ref_bonus_amount 2 order_amount 8.00 (bonus not netted)
+settle: TXN order_amount 8.00 store_amount 10.00 admin_commission -2.00 admin_expense 2.000
+## R2 API PUT api/v1/vendor/update-order-amount (Bearer + vendorType: owner)
+prescription+bonus order 91847: 200 ; order_amount 6.00 -> 8.00, ref_bonus 2 ; TXN store_amount 10.00 admin_expense 2.000
+non-prescription+bonus order 91848: 403 {"code":"not_prescription","message":"Access denied"} (order untouched, 6.00)
+## R3 preview vs saved (order-wise VAT 10%, bonus 2, basket 8)
+session edit_tax_amount (preview) = 0.8 (rendered "Vat/tax + 1" at 0-decimal currency); saved total_tax_amount = 0.60; saved order_amount 6.60 (preview total would be 8 - 2 + 0.8 = 6.80)
+## R7 item discount > basket (item 51 per-unit discount 10 > price 4, qty 2, bonus 0)
+order 91858: stored order_amount -12.00, adjusment 12.00, store_discount_amount 20.00 (basket 8); item 51 discount restored to 0.00/percent afterward
