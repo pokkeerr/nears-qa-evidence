@@ -1,0 +1,53 @@
+== AC5 array identifiers; rate-limit cache cleared in clone before each request so each route is shown independently
+-- POST /api/v1/auth/login {"login_type":"manual","email_or_phone":["a@b.c"],"password":"x123456","field_type":"email"}
+HTTP 403 | rid=93158266-692e-43c1-a6f8-c5b0b860bf3b | {"errors":[{"code":"invalid_input","message":"Invalid input."}]}
+-- POST /api/v1/auth/login {"login_type":"manual","email_or_phone":{"k":"v"},"password":"x123456","field_type":"email"}
+HTTP 403 | rid=7e4f29cd-ae6d-481e-8e41-fac6e8732b5a | {"errors":[{"code":"invalid_input","message":"Invalid input."}]}
+-- POST /api/v1/auth/firebase-verify-token {"phone":["+10000000001"],"sessionInfo":"x","code":"123456"}
+HTTP 403 | rid=da232666-cb4d-4e14-b3c8-363972a8a572 | {"errors":[{"code":"invalid_input","message":"Invalid input."}]}
+-- POST /api/v1/auth/vendor/login {"email":["a@b.c"],"password":"x123456","vendor_type":"owner"}
+HTTP 403 | rid=9b934439-d511-417c-9376-ee58d1e201f1 | {"errors":[{"code":"invalid_input","message":"Invalid input."}]}
+-- POST /api/v1/auth/forgot-password {"email":["a@b.c"],"phone":"","verification_method":"email"}
+HTTP 403 | rid=8dc96d01-091f-4f53-88f9-d70d0578ce7f | {"errors":[{"code":"invalid_input","message":"Invalid input."}]}
+-- POST /api/v1/auth/forgot-password {"phone":["+10000000001"],"email":"","verification_method":"phone"}
+HTTP 403 | rid=5f567fba-f426-47f0-87d0-5ec1d0d72fbf | {"errors":[{"code":"invalid_input","message":"Invalid input."}]}
+-- POST /api/v1/auth/vendor/forgot-password {"email":["a@b.c"]}
+HTTP 403 | rid=5ec7bffa-d5fc-458f-bd48-11cd867cd2c3 | {"errors":[{"code":"invalid_input","message":"Invalid input."}]}
+-- POST /api/v1/auth/delivery-man/forgot-password {"phone":["+10000000001"]}
+HTTP 403 | rid=2d4f5853-aa90-4edf-b66b-db0b94be16b3 | {"errors":[{"code":"invalid_input","message":"Invalid input."}]}
+-- POST /api/v1/auth/delivery-man/forgot-password {"email":["a@b.c"]}
+HTTP 403 | rid=2fabf37c-06c3-4e10-b776-475838ecd6c2 | {"errors":[{"code":"invalid_input","message":"Invalid input."}]}
+-- POST /api/v1/auth/delivery-man/login {"phone":["+971565656656"],"password":"123456789"}
+HTTP 403 | rid=c2780d25-1330-47c1-aa55-2a2d7bf49513 | {"errors":[{"code":"invalid_input","message":"Invalid input."}]}
+-- rejects still consume the IP bucket: same array request x8 (auth bucket 5/min)
+HTTP 403 | rid=2777df29-9b9f-4e6d-b453-bbe05b46f51f | {"erro
+HTTP 403 | rid=389e8fc0-8e12-43c3-86ac-373eaaad7cc3 | {"erro
+HTTP 403 | rid=26714be8-b696-462a-8bde-a96c0e029de0 | {"erro
+HTTP 403 | rid=b5039167-82a1-47db-b7af-db56d7e35a0f | {"erro
+HTTP 403 | rid=f172bb0c-6d84-47f9-adb3-c6e955635add | {"erro
+HTTP 429 | rid=9909b714-ef7c-408b-a217-8d7494b519d5 | {
+    "message": "Too Many Attempts."
+}
+HTTP 429 | rid=592d689f-9f2f-4988-a689-8cc6b2e139a6 | {
+    "message": "Too Many Attempts."
+}
+HTTP 429 | rid=382ed496-1771-4d41-b742-3dc32396c0b4 | {
+    "message": "Too Many Attempts."
+}
+-- normal phone-mode (email:'') right after, same IP, no cache clear: still works (own bucket)
+HTTP 200 | rid=0e70dea5-6e02-41b1-bd6c-a4f8e1e2fd66 | {"token":"<redacted>
+-- junk email=<random> + real phone still throttles on the phone (7 wrong attempts, 7 different junk emails)
+HTTP 401 | rid=4802b6e4-240b-4fc3-8b6c-eb53a3862706 | {"errors":[{"cod
+HTTP 401 | rid=8a57ff20-f3c3-47dc-8a4e-d485f65d4d65 | {"errors":[{"cod
+HTTP 401 | rid=764e93e1-0f8e-4afc-909f-d6d6c682617e | {"errors":[{"cod
+HTTP 401 | rid=9493f842-2b01-4a17-99d8-6898e4d2cfeb | {"errors":[{"cod
+HTTP 401 | rid=61db6489-3f2b-41f3-be3b-970782345fcc | {"errors":[{"cod
+HTTP 429 | rid=8ec61fcc-ac82-4836-b754-7f33405a9467 | {
+    "message": "Too Many Attempts."
+}
+HTTP 429 | rid=f543e368-7552-4986-9dc6-0757ec3018a2 | {
+    "message": "Too Many Attempts."
+}
+-- log excerpt
+[2026-10-09 16:44:49] production.ERROR: [FAIL] auth.invalid_input {"trace_id":"99fd0fcbd3dc18a6752435210fe89c6a","correlation_id":"b5039167-82a1-47db-b7af-db56d7e35a0f","endpoint":"api/v1/auth/login","request_id":"b5039167-82a1-47db-b7af-db56d7e35a0f"} 
+[2026-10-09 16:44:50] production.ERROR: [FAIL] auth.invalid_input {"trace_id":"fceb2086122bc3834efd6739c0cb2453","correlation_id":"f172bb0c-6d84-47f9-adb3-c6e955635add","endpoint":"api/v1/auth/login","request_id":"f172bb0c-6d84-47f9-adb3-c6e955635add"} 

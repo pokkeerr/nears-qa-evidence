@@ -1,0 +1,29 @@
+== AC8 customer and delivery man with the same email (clone: delivery_men id 2 email set to the customer emily's email)
++------+----+------------------------+---------------+
+| t    | id | email                  | phone         |
++------+----+------------------------+---------------+
+| dm   |  2 | emily.johnson@demo.com | +101700000002 |
+| user |  2 | emily.johnson@demo.com | +101600000002 |
++------+----+------------------------+---------------+
+HTTP 200 | rid=9c74f1c3-e716-4899-b336-2e9b3bea3451 | {"message":"If a
+HTTP 200 | rid=ae1d2e87-ed4c-461d-afef-e8e8d62c073f | {"message":"If a
++----+------------------------+------------+---------------------+---------------+------+
+| id | email                  | created_by | created_at          | otp_hit_count | tlen |
++----+------------------------+------------+---------------------+---------------+------+
+| 16 | emily.johnson@demo.com | user       | 2026-10-09 16:48:30 |             0 |    6 |
+| 17 | emily.johnson@demo.com | dm_api     | 2026-10-09 16:48:30 |             0 |    6 |
++----+------------------------+------------+---------------------+---------------+------+
+-- DM wrong guesses do not touch the customer row; DM verify with the DM code passes, with the customer's code fails
+HTTP 400 | rid=09fcbc86-8c56-451a-ab26-a2d72c13c6cb | {"errors":[{"code":"reset_token","message":"Invalid token."}]}
+HTTP 200 | rid=fb8da2c3-6c91-4c77-a8e7-3418813e32eb | {"message":"Token found, you can proceed"}
+HTTP 400 | rid=0e92f570-31fe-4649-8e80-555c76af65c4 | {"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+HTTP 200 | rid=9162d0b5-02ca-46fb-8ba6-2b70b9941482 | {"message":"OTP found, you can proceed"}
++------------------------+------------+---------------+
+| email                  | created_by | otp_hit_count |
++------------------------+------------+---------------+
+| emily.johnson@demo.com | dm_api     |             1 |
+| emily.johnson@demo.com | user       |             1 |
++------------------------+------------+---------------+
+-- duplicate (created_by,email) on clone raises 1062 (see migration transcript too):
+ERROR 1062 (23000) at line 1: Duplicate entry 'user-emily.johnson@demo.com' for key 'password_resets.password_resets_created_by_email_unique'
+-- restore dm email

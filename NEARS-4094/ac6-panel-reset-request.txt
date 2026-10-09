@@ -1,0 +1,39 @@
+== AC6 panel reset-request routes (own cookie session; clone; limiter cache cleared at the start of each block)
+-- GET /reset-password x6 (admin link request)
+#1 HTTP 302 loc=http://127.0.0.1:8094/login/admin
+#2 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#3 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#4 HTTP 429 loc=
+#5 HTTP 429 loc=
+#6 HTTP 429 loc=
++------------+---+
+| created_by | n |
++------------+---+
+| admin      | 1 |
++------------+---+
+-- POST /vendor-reset-password (vendor ahmed.khan@demo.com) x6
+#1 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#2 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#3 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#4 HTTP 429 loc=
+#5 HTTP 429 loc=
+#6 HTTP 429 loc=
++------------+---------------------+---+
+| created_by | email               | n |
++------------+---------------------+---+
+| vendor     | ahmed.khan@demo.com | 1 |
++------------+---------------------+---+
+-- HEAD /reset-password with varying ?email= x6 (safe method reads no identifier -> one ip bucket)
+#1 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#2 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#3 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#4 HTTP 429 loc=
+#5 HTTP 429 loc=
+#6 HTTP 429 loc=
++------------+---+
+| created_by | n |
++------------+---+
+| admin      | 1 |
++------------+---+
+-- 429 log/limiter:
+cache_rows=6

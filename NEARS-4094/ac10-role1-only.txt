@@ -1,0 +1,17 @@
+== AC10 admin password update only affects role_id=1 (admins.email is UNIQUE, so a second row cannot share the email; two stale-link variants driven instead)
+-- variant A: stale panel link row for the role_id=3 admin zone1.manager@nears.test
+GET /password-reset (stale token)   : HTTP 302 loc=http://127.0.0.1:8094
+POST /reset-password-submit         : HTTP 302 loc=http://127.0.0.1:8094/password-reset?token=<s>
+role_id=3 admin password UNCHANGED
+-- variant B: link issued for root admin, then the row's role_id flipped to 2 before submit (clone)
+POST /reset-password-submit (root now role 2): HTTP 302 loc=http://127.0.0.1:8094/reset-password
+admin id1 (role_id=2) password UNCHANGED
++----+--------------------------+---------+
+| id | email                    | role_id |
++----+--------------------------+---------+
+|  1 | admin@admin.com          |       1 |
+|  3 | zone1.manager@nears.test |       3 |
++----+--------------------------+---------+
+-- log:
+[2026-10-09 16:51:06] production.ERROR: [FAIL] panel_reset.rejected {"correlation_id":"8d00cc03-5b7b-4a32-900c-05b69ae73f5d","endpoint":"reset-password-submit","request_id":"8d00cc03-5b7b-4a32-900c-05b69ae73f5d"} 
+[2026-10-09 16:51:07] production.ERROR: [FAIL] panel_reset.rejected {"correlation_id":"3fd270ba-6683-4032-bc57-4f2a41b67edc","endpoint":"reset-password-submit","request_id":"3fd270ba-6683-4032-bc57-4f2a41b67edc"} 

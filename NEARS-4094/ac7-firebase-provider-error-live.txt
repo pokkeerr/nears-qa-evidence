@@ -1,0 +1,13 @@
+== AC7 Firebase provider_error LIVE (clone: firebase_otp_verification=1; the app's own call goes to Google identitytoolkit with an EMPTY web api key + fake session/code/phone, so the real provider answers with an error JSON; no code change/stub needed)
+firebase_otp_verification	1
+firebase_web_api_key	<set>
+-- PUT /api/v1/auth/firebase-reset-password
+HTTP 403 | rid=acbec783-9f83-4ca7-b873-0dffee67155a | {"errors":[{"code":"403","message":"Invalid otp"}]}
+-- POST /api/v1/auth/firebase-verify-token
+HTTP 403 | rid=e9b81d1e-af7e-49ce-b158-b7a52a8f0c54 | {"errors":[{"code":"403","message":"Invalid otp"}]}
+-- POST /api/v1/auth/delivery-man/firebase-verify-token
+HTTP 403 | rid=a318117a-ce5f-4c0b-b6f1-1d3c0f76969f | {"errors":[{"code":"403","message":"Invalid otp"}]}
+-- log lines (firebase_otp.*), level ERROR, with request_id:
+[2026-10-09 16:52:42] production.ERROR: [FAIL] firebase_otp.provider_error {"correlation_id":"acbec783-9f83-4ca7-b873-0dffee67155a","endpoint":"api/v1/auth/firebase-reset-password","request_id":"acbec783-9f83-4ca7-b873-0dffee67155a"} 
+[2026-10-09 16:52:43] production.ERROR: [FAIL] firebase_otp.provider_error {"correlation_id":"e9b81d1e-af7e-49ce-b158-b7a52a8f0c54","endpoint":"api/v1/auth/firebase-verify-token","request_id":"e9b81d1e-af7e-49ce-b158-b7a52a8f0c54"} 
+[2026-10-09 16:52:43] production.ERROR: [FAIL] firebase_otp.provider_error {"correlation_id":"a318117a-ce5f-4c0b-b6f1-1d3c0f76969f","endpoint":"api/v1/auth/delivery-man/firebase-verify-token","request_id":"a318117a-ce5f-4c0b-b6f1-1d3c0f76969f"} 

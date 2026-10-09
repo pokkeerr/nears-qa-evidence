@@ -1,0 +1,62 @@
+== AC8/AC9/AC11 migration scratch run on clone multi_food_db_test_nears4094_qa (fake rows only)
+-- BEFORE migration: total / token='' / NULL created_by / dup(user,dup@qa.test)
++-------+-----------+---------+-----------+
+| total | empty_tok | null_by | dup_group |
++-------+-----------+---------+-----------+
+|    13 |         3 |       2 |         3 |
++-------+-----------+---------+-----------+
+-- UP #1
+
+  2026_10_09_120000_harden_password_resets_table ................ 61.88ms DONE
+
++-------+-----------+---------+-----------+
+| total | empty_tok | null_by | dup_group |
++-------+-----------+---------+-----------+
+|     7 |         0 |       2 |         1 |
++-------+-----------+---------+-----------+
++----+------------------+--------------+--------+---------------------+------------+
+| id | email            | phone        | token  | created_at          | created_by |
++----+------------------+--------------+--------+---------------------+------------+
+|  2 | dup@qa.test      | NULL         | 222222 | 2026-10-09 11:00:00 | user       |
+|  4 | dupphone@qa.test | NULL         | 444444 | 2026-10-09 09:00:00 | dm_api     |
+|  6 | NULL             | +10000000001 | 666666 | 2026-10-09 09:30:00 | user       |
+| 10 | nullby@qa.test   | NULL         | 777777 | 2026-10-09 09:00:00 | NULL       |
+| 11 | nullby@qa.test   | NULL         | 888888 | 2026-10-09 10:00:00 | NULL       |
+| 12 | same@qa.test     | NULL         | 121212 | 2026-10-09 09:00:00 | user       |
+| 13 | same@qa.test     | NULL         | 343434 | 2026-10-09 09:00:00 | dm_api     |
++----+------------------+--------------+--------+---------------------+------------+
+n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+n  PRIMARY KEY (`id`),
+n  UNIQUE KEY `password_resets_created_by_email_unique` (`created_by`,`email`),
+n  UNIQUE KEY `password_resets_created_by_phone_unique` (`created_by`,`phone`),
+n  KEY `password_resets_email_index` (`email`)
+-- UP #2 (idempotent): rerun up() directly
+up2 ok
++-------+
+| total |
++-------+
+|     7 |
++-------+
+-- duplicate (created_by,email) insert straight on clone:
+ERROR 1062 (23000) at line 1: Duplicate entry 'user-same@qa.test' for key 'password_resets.password_resets_created_by_email_unique'
+ERROR 1062 (23000) at line 1: Duplicate entry 'user-+10000000001' for key 'password_resets.password_resets_created_by_phone_unique'
+-- DOWN
+down ok
++-------+---------+
+| total | null_by |
++-------+---------+
+|     8 |       2 |
++-------+---------+
+n  KEY `password_resets_email_index` (`email`)
+-- UP after down
+up x2 ok
++-------+---------+-----------+
+| total | null_by | empty_tok |
++-------+---------+-----------+
+|     8 |       2 |         0 |
++-------+---------+-----------+
+n  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+n  PRIMARY KEY (`id`),
+n  UNIQUE KEY `password_resets_created_by_email_unique` (`created_by`,`email`),
+n  UNIQUE KEY `password_resets_created_by_phone_unique` (`created_by`,`phone`),
+n  KEY `password_resets_email_index` (`email`)

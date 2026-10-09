@@ -1,0 +1,17 @@
+== AC3 POST /verify-otp throttle (panel-verify-otp: 5/min ip|token, 10/min token, 20/min ip)
+issued panel link token length=15 (value not printed)
+-- 7 wrong OTP posts for token T1, same IP/session
+#1 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#2 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#3 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#4 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#5 HTTP 302 loc=http://127.0.0.1:8094/reset-password
+#6 HTTP 429 loc=
+#7 HTTP 429 loc=
+-- different token T2 from the same IP right after: not affected (within the per-IP 20/min ceiling)
+HTTP 302 loc=http://127.0.0.1:8094
+-- per-IP ceiling live: 25 posts with 25 different tokens from one IP, status histogram
+  20 302
+   5 429
+-- log for first refusals:
+[2026-10-09 16:50:12] production.ERROR: [FAIL] panel_reset.rejected {"correlation_id":"1b14c90d-248e-4ecd-adf6-f83b01eaa679","endpoint":"verify-otp","request_id":"1b14c90d-248e-4ecd-adf6-f83b01eaa679"} 

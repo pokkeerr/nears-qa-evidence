@@ -1,0 +1,31 @@
+== REGRESSION: /api/v1/auth/* with string-valued (valid-shape) input; PASS = no 500 and no invalid_input guard rejection; clone limiter cache cleared before each call
+POST /api/v1/auth/login -> HTTP 200 | {"token":"<redacted>
+POST /api/v1/auth/login -> HTTP 200 | {"token":"<redacted>
+POST /api/v1/auth/vendor/login -> HTTP 200 | {"token":"<redacted>","zone_wise_topic":"zone_1_store","store_id":2,"module_type":"grocery"}
+POST /api/v1/auth/delivery-man/login -> HTTP 200 | {"token":"<redacted>","topic":"delivery_man_2_2","zone_topic":"_push","store_id":null}
+POST /api/v1/auth/sign-up -> HTTP 403 | {"errors":[{"code":"name","message":"The name field is required."}]}
+POST /api/v1/auth/external-login -> HTTP 403 | {"errors":[{"code":"token","message":"The token field is required."}]}
+POST /api/v1/auth/verify-phone -> HTTP 403 | {"errors":[{"code":"verification_type","message":"The verification type field is required."}]}
+POST /api/v1/auth/update-info -> HTTP 403 | {"errors":[{"code":"email","message":"The email has already been taken."}]}
+POST /api/v1/auth/token/refresh -> HTTP 401 | {"message":"Unauthenticated."}
+POST /api/v1/auth/logout -> HTTP 401 | {"message":"Unauthenticated."}
+POST /api/v1/auth/firebase-verify-token -> HTTP 403 | {"errors":[{"code":"403","message":"Invalid otp"}]}
+POST /api/v1/auth/forgot-password -> HTTP 200 | {"message":"If an account matching that identifier exists, an OTP has been sent."}
+POST /api/v1/auth/forgot-password -> HTTP 200 | {"message":"If an account matching that identifier exists, an OTP has been sent."}
+POST /api/v1/auth/verify-token -> HTTP 400 | {"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+PUT /api/v1/auth/reset-password -> HTTP 400 | {"errors":[{"code":"invalid","message":"Invalid otp"}]}
+PUT /api/v1/auth/firebase-reset-password -> HTTP 403 | {"errors":[{"code":"403","message":"Invalid otp"}]}
+POST /api/v1/auth/guest/request -> HTTP 200 | {"message":"Guest verified","guest_id":910000036,"guest_token":"<redacted>"}
+POST /api/v1/auth/social-login -> HTTP 403 | {"error":"wrong credential."}
+POST /api/v1/auth/social-register -> HTTP 403 | {"error":"wrong credential."}
+POST /api/v1/auth/delivery-man/forgot-password -> HTTP 200 | {"message":"If an account matching that identifier exists, an OTP has been sent."}
+POST /api/v1/auth/delivery-man/verify-token -> HTTP 400 | {"errors":[{"code":"reset_token","message":"Invalid token."}]}
+PUT /api/v1/auth/delivery-man/reset-password -> HTTP 400 | {"errors":[{"code":"invalid","message":"Invalid token."}]}
+POST /api/v1/auth/delivery-man/firebase-verify-token -> HTTP 403 | {"errors":[{"code":"403","message":"Invalid otp"}]}
+POST /api/v1/auth/delivery-man/store -> HTTP 403 | {"errors":[{"code":"identity_type","message":"The identity type field is required."},{"code":"identity_number","message":"The identity numb
+POST /api/v1/auth/vendor/forgot-password -> HTTP 200 | {"message":"If an account matching that identifier exists, an OTP has been sent."}
+POST /api/v1/auth/vendor/verify-token -> HTTP 400 | {"errors":[{"code":"reset_token","message":"Invalid OTP."}]}
+PUT /api/v1/auth/vendor/reset-password -> HTTP 400 | {"errors":[{"code":"invalid","message":"Invalid otp"}]}
+POST /api/v1/auth/vendor/register -> HTTP 500 | {"message":"Something went wrong"} !!500
+-- 500s in log during sweep (production.ERROR with exception):
+7

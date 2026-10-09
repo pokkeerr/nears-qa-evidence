@@ -1,0 +1,66 @@
+== AC1 vendor API code expiry (clone multi_food_db_test_nears4094_qa; code overwritten with fake 482913 after issue; clone mail_config.status=0 so no SMTP)
+-- forgot-password
+HTTP 200 | rid=6a175b6a-7db7-428a-8799-8198d180c66d | {"message":"If an account matching that identifier exists, an OTP has been sent."}
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+| email               | token  | created_at          | otp_hit_count | is_blocked | is_temp_blocked | created_by | now_                |
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+| ahmed.khan@demo.com | 482913 | 2026-10-09 16:47:22 |             0 |          0 |               0 | vendor_api | 2026-10-09 16:47:22 |
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+-- age created_at by 20 min
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+| email               | token  | created_at          | otp_hit_count | is_blocked | is_temp_blocked | created_by | now_                |
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+| ahmed.khan@demo.com | 482913 | 2026-10-09 16:27:22 |             0 |          0 |               0 | vendor_api | 2026-10-09 16:47:22 |
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+-- verify-token (correct but expired)
+HTTP 400 | rid=a843f046-7e2c-4bc7-a8f4-85f4f82d3689 | {"errors":[{"code":"otp_expired","message":"This code has expired. Please request a new code."}]}
+-- reset-password (correct but expired)
+HTTP 400 | rid=74843924-a538-4eae-b1dc-f8c6633326e2 | {"errors":[{"code":"otp_expired","message":"This code has expired. Please request a new code."}]}
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+| email               | token  | created_at          | otp_hit_count | is_blocked | is_temp_blocked | created_by | now_                |
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+| ahmed.khan@demo.com | 482913 | 2026-10-09 16:27:22 |             0 |          0 |               0 | vendor_api | 2026-10-09 16:47:23 |
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+-- old pw still works (password unchanged):
+HTTP 200 | rid=29f1ecb6-320d-4e6d-971f-012810dd3914 | {"token":"<redacted>","zone_wise_topic":"zone_1_store","
+-- wrong guess does not extend life: wrong verify, then correct verify still expired
+HTTP 400 | rid=3a4ae4c1-fd32-4e63-882e-676b580242e2 | {"errors":[{"code":"reset_token","message":"Invalid OTP."}]}
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+| email               | token  | created_at          | otp_hit_count | is_blocked | is_temp_blocked | created_by | now_                |
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+| ahmed.khan@demo.com | 482913 | 2026-10-09 16:27:22 |             1 |          0 |               0 | vendor_api | 2026-10-09 16:47:23 |
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+HTTP 429 | rid=c905665f-0bb2-47ca-9a1c-3ee37eb630b5 | {
+    "message": "Too Many Attempts."
+}
+-- log (production-env lines)
+[2026-10-09 16:47:01] production.ERROR: [FAIL] password_reset.code_expired {"trace_id":"e9150a8213fbfc51045a82870e585db2","correlation_id":"7273b46d-da83-44b6-a584-6d75cf0e0607","endpoint":"v1/vendor/auth/reset-password","request_id":"7273b46d-da83-44b6-a584-6d75cf0e0607"} 
+[2026-10-09 16:47:22] production.ERROR: [FAIL] password_reset.code_expired {"correlation_id":"a843f046-7e2c-4bc7-a8f4-85f4f82d3689","endpoint":"v1/vendor/auth/verify-token","request_id":"a843f046-7e2c-4bc7-a8f4-85f4f82d3689"} 
+[2026-10-09 16:47:23] production.ERROR: [FAIL] password_reset.code_expired {"correlation_id":"74843924-a538-4eae-b1dc-f8c6633326e2","endpoint":"v1/vendor/auth/reset-password","request_id":"74843924-a538-4eae-b1dc-f8c6633326e2"} 
+-- FRESH code: forgot-password again (cache cleared to bypass otp-send 3/10min)
+HTTP 200 | rid=e69b7f3a-d904-4299-847a-cbaf6893f778 | {"message":"If an account matching that identifier exists, an OTP has been sent."}
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+| email               | token  | created_at          | otp_hit_count | is_blocked | is_temp_blocked | created_by | now_                |
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+| ahmed.khan@demo.com | 482914 | 2026-10-09 16:47:23 |             1 |          0 |               0 | vendor_api | 2026-10-09 16:47:23 |
++---------------------+--------+---------------------+---------------+------------+-----------------+------------+---------------------+
+HTTP 200 | rid=e492ed19-cd4d-4331-a237-8974ac80c5fe | {"message":"OTP found, you can proceed"}
+HTTP 200 | rid=5ed465e2-72d3-4254-a38a-1766da609246 | {"message":"Password changed successfully."}
+-- rows after reset:
+0
+-- login with new pw:
+HTTP 200 | rid=f687af0b-b0a5-4d0d-aa5f-4677185b587a | {"token":"<redacted>","zone_wise_topic":"zone_1_store","
+-- supplementary: wrong guess then correct verify on an expired row (cache cleared so the auth limiter does not interfere)
+HTTP 200 | rid=11e9cb19-3b9e-4703-b1ef-1
+HTTP 400 | rid=0690fd76-7feb-4351-a9a2-3e7a366b9f59 | {"errors":[{"code":"reset_token","message":"Invalid OTP."}]}
++--------+---------------------+---------------+---------------------+
+| token  | created_at          | otp_hit_count | now()               |
++--------+---------------------+---------------+---------------------+
+| 482913 | 2026-10-09 16:27:31 |             1 | 2026-10-09 16:47:32 |
++--------+---------------------+---------------+---------------------+
+HTTP 400 | rid=77974bec-fb28-4ba7-9618-65f5396283e1 | {"errors":[{"code":"otp_expired","message":"This code has expired. Please request a new code."}]}
++--------+---------------------+---------------+
+| token  | created_at          | otp_hit_count |
++--------+---------------------+---------------+
+| 482913 | 2026-10-09 16:27:31 |             1 |
++--------+---------------------+---------------+

@@ -1,0 +1,48 @@
+== AC14 DM reset_password_submit (rate-limit cache cleared before each call: throttle:auth would otherwise 429 the 6th call within a minute)
+HTTP 200 | rid=d02a0685-da4c-498f-9e8c-23b8af8a2951 | {"mess
++---------------------+--------+---------------------+---+----+-----------------+------------+---------------------+
+| email               | token  | created_at          | h | tb | temp_block_time | created_by | now_                |
++---------------------+--------+---------------------+---+----+-----------------+------------+---------------------+
+| ali.hassan@demo.com | 482916 | 2026-10-09 16:49:01 | 0 |  0 | NULL            | dm_api     | 2026-10-09 16:49:01 |
++---------------------+--------+---------------------+---+----+-----------------+------------+---------------------+
+-- wrong submit #1
+HTTP 400 | rid=c4735903-eac4-4f60-93e0-c0e5a7e5ae19 | {"errors":[{"code":"invalid","message":"Invalid token."}]}
+-- wrong submit #2
+HTTP 400 | rid=7f4f51b9-adf9-48f2-9814-2ad0e5a8cf30 | {"errors":[{"code":"invalid","message":"Invalid token."}]}
+-- wrong submit #3
+HTTP 400 | rid=9f016043-3233-4dad-ae6c-be5b17274291 | {"errors":[{"code":"invalid","message":"Invalid token."}]}
+-- wrong submit #4
+HTTP 400 | rid=f140c882-efca-4bd0-b498-0e1ee73155e0 | {"errors":[{"code":"invalid","message":"Invalid token."}]}
+-- wrong submit #5
+HTTP 400 | rid=7f78a070-fe91-4019-9bbb-dc0281bfa405 | {"errors":[{"code":"invalid","message":"Invalid token."}]}
+-- #6 wrong submit
+HTTP 405 | rid=f7a24ac8-1ea1-4604-9a08-844b9926476d | {"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
++---------------------+--------+---------------------+---+----+---------------------+------------+---------------------+
+| email               | token  | created_at          | h | tb | temp_block_time     | created_by | now_                |
++---------------------+--------+---------------------+---+----+---------------------+------------+---------------------+
+| ali.hassan@demo.com | 482916 | 2026-10-09 16:49:01 | 5 |  1 | 2026-10-09 16:49:03 | dm_api     | 2026-10-09 16:49:03 |
++---------------------+--------+---------------------+---+----+---------------------+------------+---------------------+
+-- #7 wrong submit (block time remaining)
+HTTP 405 | rid=88ba4f8e-e452-4bda-b158-36a9ba38d185 | {"errors":[{"code":"otp_block_time","message":"Please try again after 9 minutes 59 seconds"}]}
+-- CORRECT token during block
+HTTP 405 | rid=0f6e2309-f5fc-454d-9cc4-1979e59747e0 | {"errors":[{"code":"otp_block_time","message":"Please try again after 9 minutes 58 seconds"}]}
+-- verify-token during block (body shape to compare)
+HTTP 405 | rid=72b4537b-41d9-4096-b1ac-99608c75fc96 | {"errors":[{"code":"otp_block_time","message":"Please try again after 9 minutes 58 seconds"}]}
+-- pw unchanged (old login):
+HTTP 200 | rid=f248ebcf-2d9b-4339-a741-1cdd4b13b62a | {"token":"<redacted>","topic":"deliv
+-- block log:
+[2026-10-09 16:49:04] production.ERROR: [FAIL] password_reset.otp_blocked {"correlation_id":"0f6e2309-f5fc-454d-9cc4-1979e59747e0","endpoint":"api/v1/auth/delivery-man/reset-password","request_id":"0f6e2309-f5fc-454d-9cc4-1979e59747e0"} 
+[2026-10-09 16:49:04] production.ERROR: [FAIL] password_reset.otp_blocked {"correlation_id":"72b4537b-41d9-4096-b1ac-99608c75fc96","endpoint":"api/v1/auth/delivery-man/verify-token","request_id":"72b4537b-41d9-4096-b1ac-99608c75fc96"} 
+-- age temp_block_time by 11 min, correct token now resets
++---------------------+--------+---------------------+---+----+---------------------+------------+---------------------+
+| email               | token  | created_at          | h | tb | temp_block_time     | created_by | now_                |
++---------------------+--------+---------------------+---+----+---------------------+------------+---------------------+
+| ali.hassan@demo.com | 482916 | 2026-10-09 16:49:01 | 5 |  1 | 2026-10-09 16:38:04 | dm_api     | 2026-10-09 16:49:04 |
++---------------------+--------+---------------------+---+----+---------------------+------------+---------------------+
+HTTP 200 | rid=35449a09-9273-4a83-aebb-66d02d1519bb | {"message":"Password changed successfully."}
+rows_left=0
+-- new pw login:
+HTTP 200 | rid=3090d31f-4113-472c-a5a3-94d500c61e63 | {"token":"<redacted>","topic":"deliv
+== correct token with NO block resets immediately
+HTTP 200 | rid=b44d35b3-6e41-41ce-8dbb-d202b57ba996 | {"mess
+HTTP 200 | rid=b99ccedc-3fcb-4afd-ac70-c4dd710a9932 | {"message":"Password changed successfully."}

@@ -1,0 +1,29 @@
+== AC2 panel SMS-OTP step. Clone state toggles: notification_settings(admin,forget_password).sms_status + addon_settings.twilio.is_active
+### A. SMS toggle OFF (and no provider): flow unchanged
+GET /password-reset: HTTP 200 loc=
+  form (reset-password-submit action) present: 1
+  verify-otp form present: 0
+POST /reset-password-submit (no verify-otp, SMS off): HTTP 302 loc=http://127.0.0.1:8094/login/admin
+admin password CHANGED
+### B. SMS toggle ON + ACTIVE sms_config row (twilio is_active=1, no real credentials => send fails => fail closed)
+GET /password-reset (valid link token, SMS send fails): HTTP 302 loc=http://127.0.0.1:8094
+  reset form leaked? (count): 0
+  log:
+[2026-10-09 16:51:27] production.ERROR: [FAIL] panel_reset.sms_unavailable {"correlation_id":"08efefe2-5cef-4c1b-8a8c-38c0f76f5d6a","endpoint":"password-reset","request_id":"08efefe2-5cef-4c1b-8a8c-38c0f76f5d6a"} 
+POST /reset-password-submit WITHOUT verify-otp (valid token+email): HTTP 302 loc=http://127.0.0.1:8094/password-reset?token=<s>
+admin password UNCHANGED
+  log:
+[2026-10-09 16:51:28] production.ERROR: [FAIL] panel_reset.otp_step_missing {"correlation_id":"dd8c566d-3214-4ea2-b5d0-0904b78af56a","endpoint":"reset-password-submit","request_id":"dd8c566d-3214-4ea2-b5d0-0904b78af56a"} 
+### C. pass path: phone_verifications row for admin phone seeded in clone (fake OTP 12345)
+S1 POST /verify-otp (correct OTP): HTTP 200 loc=
+  reset-password form returned: 1
+S2 (second cookie session, same link token) POST /reset-password-submit: HTTP 302 loc=http://127.0.0.1:8094/login/admin
+admin password UNCHANGED
+S1 (same session that passed verify-otp) POST /reset-password-submit: HTTP 302 loc=http://127.0.0.1:8094/login/admin
+admin password CHANGED
+link rows after success: 0
+-- log (otp_step_missing x2 expected: B + S2):
+62
+-- AC2 log tail: production-env otp_step_missing lines since 16:51:20
+[2026-10-09 16:51:28] production.ERROR: [FAIL] panel_reset.otp_step_missing {"correlation_id":"dd8c566d-3214-4ea2-b5d0-0904b78af56a","endpoint":"reset-password-submit","request_id":"dd8c566d-3214-4ea2
+[2026-10-09 16:51:28] production.ERROR: [FAIL] panel_reset.otp_step_missing {"correlation_id":"d5f7488a-064a-4357-a272-b368c33b0b11","endpoint":"reset-password-submit","request_id":"d5f7488a-064a-4357

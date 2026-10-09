@@ -1,0 +1,41 @@
+== AC14 (customer + vendor): 5 wrong verify-token, 6th temp_blocked, correct code refused during the block on verify-token AND reset-password; cache cleared before each call
+---- customer (user)
+HTTP 200 | rid=88c35db2-e51a-4e2c-a2ba-db0a33c3eb5
+HTTP 400 | rid=74c1ccd8-0957-4312-9ed5-37835bbaf9b9 | {"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+HTTP 400 | rid=fca91fa3-b91b-4b2f-85b7-9968a47776e9 | {"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+HTTP 400 | rid=bf3cb9d0-ab6a-4359-9d30-b1ff9e051c0b | {"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+HTTP 400 | rid=dccb6a5d-7b7f-4bae-bd9a-bb5e9d815397 | {"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+HTTP 400 | rid=a880e449-c1d9-4509-bc73-b51bdd75feef | {"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+-- 6th wrong
+HTTP 405 | rid=35fe48d4-ca88-4778-a006-f4541ee4ec84 | {"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+-- correct on verify-token during block
+HTTP 405 | rid=c5cbd3f0-2685-487a-aa21-066ea7aeb5d7 | {"errors":[{"code":"otp_block_time","message":"Please try again after 9 minutes 59 seconds"}]}
+-- correct on reset-password during block
+HTTP 405 | rid=d818ef7d-a9de-42f7-93b6-0addb4109287 | {"errors":[{"code":"otp_block_time","message":"Please try again after 9 minutes 59 seconds"}]}
++---+
+| h |
++---+
+| 5 |
++---+
+-- after block window (temp_block_time aged 11 min) correct code resets
+HTTP 200 | rid=033b63f6-f814-4feb-a541-38c1b799f9a4 | {"message":"Password changed successfully."}
+---- vendor (vendor_api)
+HTTP 200 | rid=2a3c5f07-2578-4a2f-9ce6-44579ac7496
+HTTP 400 | rid=06fe0f63-9c2b-40bb-9a4b-07dedd20e77e | {"errors":[{"code":"reset_token","message":"Invalid OTP.
+HTTP 400 | rid=3eb72022-01ad-46ca-baab-08bcf8af7544 | {"errors":[{"code":"reset_token","message":"Invalid OTP.
+HTTP 400 | rid=3af653c9-a0be-41a7-8e56-c6d6c8be8e0d | {"errors":[{"code":"reset_token","message":"Invalid OTP.
+HTTP 400 | rid=313476d5-742f-457e-a3d8-2bd82c59fba8 | {"errors":[{"code":"reset_token","message":"Invalid OTP.
+HTTP 400 | rid=8295784c-4e5b-4738-8a84-a6ef44fad18d | {"errors":[{"code":"reset_token","message":"Invalid OTP.
+-- 6th wrong
+HTTP 405 | rid=9cab5bfc-5e83-43b5-9c64-da254d12b489 | {"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+-- correct on verify-token during block
+HTTP 405 | rid=5c127c93-c62b-4a38-9963-5a8672e2b330 | {"errors":[{"code":"otp_block_time","message":"Please try again after 9 minutes 58 seconds"}]}
+-- correct on reset-password during block
+HTTP 405 | rid=ef3aced3-e01e-48dd-b9ae-0145fb59b820 | {"errors":[{"code":"otp_block_time","message":"Please try again after 9 minutes 58 seconds"}]}
++---+
+| h |
++---+
+| 5 |
++---+
+-- after block window (temp_block_time aged 11 min) correct code resets
+HTTP 200 | rid=2fe68473-1fa4-4851-8dc5-864785603e4b | {"message":"Password changed successfully."}
