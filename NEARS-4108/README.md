@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4108
 
-**PARTIAL/BLOCKED: no-code lanes PASS live; with-code lanes need firebase_otp_verification=0 on QA clone**
+**Delta re-QA: AC4/AC8/AC9 PASS live (codes via app), expiry real 15min PASS**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 

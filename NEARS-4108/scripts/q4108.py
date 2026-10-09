@@ -14,6 +14,7 @@ EP = {
     "dm_forgot": ("POST", "/auth/delivery-man/forgot-password"),
     "vendor_verify": ("POST", "/auth/vendor/verify-token"),
     "cust_login": ("POST", "/auth/login"),
+    "dm_login": ("POST", "/auth/delivery-man/login"),
 }
 
 _hist = collections.defaultdict(list)  # bucket -> timestamps

@@ -1394,3 +1394,318 @@ TIMING dm_verify: REG median=0.050s UNREG median=0.050s ratio=1.01 (min 0.048/0.
    -> HTTP 400 (0.158s) code='invalid' message='Invalid token.'
    raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
 TIMING dm_reset: REG median=0.200s UNREG median=0.176s ratio=1.14 (min 0.171/0.158 max 0.270/0.269)
+ADMIN PANEL: logged in as admin@admin.com via /login_submit (custom captcha), POST /admin/business-settings/third-party/firebase-otp-update with firebase_otp_verification unchecked -> 0
+
+==== R0 delta re-QA: firebase_otp_verification flipped off via Admin panel; issue codes via app's forgot-password ====
+[01:51:52] POST /auth/forgot-password
+   req-id=q4108-a8b204f95504 body={"verification_method": "email", "email": "james.wilson@demo.com"}
+   -> HTTP 200 (0.139s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+[01:51:52] POST /auth/forgot-password
+   req-id=q4108-905713ce14bc body={"verification_method": "phone", "phone": "+101600000002"}
+   -> HTTP 200 (0.059s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+[01:51:52] POST /auth/delivery-man/forgot-password
+   req-id=q4108-e784b1f8fce5 body={"phone": "+101700000002"}
+   -> HTTP 200 (0.069s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+[01:51:52] POST /auth/forgot-password
+   req-id=q4108-ace732cd71ec body={"verification_method": "email", "email": "nobody.4108@demo.com"}
+   -> HTTP 200 (0.061s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+
+==== R1 issue codes for positive set (michael email+phone, DM carlos) through the app's forgot-password ====
+[01:52:37] POST /auth/forgot-password
+   req-id=q4108-ed41a591c671 body={"verification_method": "email", "email": "michael.brown@demo.com"}
+   -> HTTP 200 (0.071s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+[01:52:37] POST /auth/forgot-password
+   req-id=q4108-76005db28c57 body={"verification_method": "phone", "phone": "+101600000003"}
+   -> HTTP 200 (0.060s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+[01:52:38] POST /auth/delivery-man/forgot-password
+   req-id=q4108-f068f24f66bc body={"phone": "+101700000003"}
+   -> HTTP 200 (0.059s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+SELECTed tokens: michael email=652982 phone=142534 dm carlos=186306 (read-only SELECT)
+
+==== R1b side-by-side wrong code: registered-WITH-pending-code vs unregistered, all four endpoints ====
+[01:52:38] POST /auth/verify-token
+   req-id=q4108-0ebdf3de5f49 body={"verification_method": "email", "reset_token": "652983", "email": "michael.brown@demo.com"}
+   -> HTTP 400 (0.052s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:52:38] POST /auth/verify-token
+   req-id=q4108-a26916d79bfc body={"verification_method": "email", "reset_token": "652983", "email": "nobody.4108@demo.com"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:52:38] PUT /auth/reset-password
+   req-id=q4108-99f5363850e5 body={"verification_method": "email", "reset_token": "652983", "email": "michael.brown@demo.com", "password": "NewPass#4108a", "confirm_password": "NewPass#4108a"}
+   -> HTTP 400 (0.055s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:52:38] PUT /auth/reset-password
+   req-id=q4108-8e1d6225934e body={"verification_method": "email", "reset_token": "652983", "email": "nobody.4108@demo.com", "password": "NewPass#4108a", "confirm_password": "NewPass#4108a"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:52:38] POST /auth/verify-token
+   req-id=q4108-4eaeb9a9c54e body={"verification_method": "phone", "reset_token": "142535", "phone": "+101600000003"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:52:38] POST /auth/verify-token
+   req-id=q4108-51b5c52aaa44 body={"verification_method": "phone", "reset_token": "142535", "phone": "+101699999999"}
+   -> HTTP 400 (0.051s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:52:38] PUT /auth/reset-password
+   req-id=q4108-baf63b40eebb body={"verification_method": "phone", "reset_token": "142535", "phone": "+101600000003", "password": "NewPass#4108a", "confirm_password": "NewPass#4108a"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:52:38] PUT /auth/reset-password
+   req-id=q4108-fefae543f583 body={"verification_method": "phone", "reset_token": "142535", "phone": "+101699999999", "password": "NewPass#4108a", "confirm_password": "NewPass#4108a"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:52:38] POST /auth/delivery-man/verify-token
+   req-id=q4108-5c47edfba55b body={"phone": "+101700000003", "reset_token": "186307"}
+   -> HTTP 400 (0.050s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:52:38] POST /auth/delivery-man/verify-token
+   req-id=q4108-50442b875e86 body={"phone": "+101799999999", "reset_token": "186307"}
+   -> HTTP 400 (0.052s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:52:38] PUT /auth/delivery-man/reset-password
+   req-id=q4108-dbf6c5caf0fb body={"phone": "+101700000003", "reset_token": "186307", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.220s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:52:39] PUT /auth/delivery-man/reset-password
+   req-id=q4108-cb6bd462e621 body={"phone": "+101799999999", "reset_token": "186307", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.271s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+R1b all identical=True [True, True, True, True, True, True]
+
+==== R1c positive control: correct code verify=200 (counter released), then reset=200 + login with NEW pw, row cleared ====
+[01:52:39] POST /auth/login
+   req-id=q4108-530312e2a7c7 body={"login_type": "manual", "email_or_phone": "michael.brown@demo.com", "password": "123456789", "field_type": "email"}
+   -> HTTP 200 (0.139s) code=None message=None
+   raw={"token":"<jwt-redacted>
+[01:52:39] POST /auth/verify-token
+   req-id=q4108-ada3c5a7b2e3 body={"verification_method": "email", "reset_token": "652982", "email": "michael.brown@demo.com"}
+   -> HTTP 429 (0.047s) code=None message='Too Many Attempts.'
+   raw={
+    "message": "Too Many Attempts."
+}
+[01:53:40] PUT /auth/reset-password
+   req-id=q4108-134468c6133d body={"verification_method": "email", "reset_token": "652982", "email": "michael.brown@demo.com", "password": "NewPass#4108a", "confirm_password": "NewPass#4108a"}
+   -> HTTP 200 (0.117s) code=None message='Password changed successfully.'
+   raw={"message":"Password changed successfully."}
+[01:53:40] POST /auth/login
+   req-id=q4108-f527c9eb2f7e body={"login_type": "manual", "email_or_phone": "michael.brown@demo.com", "password": "123456789", "field_type": "email"}
+   -> HTTP 401 (0.258s) code='auth-001' message='User credential does not match'
+   raw={"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+[01:53:40] POST /auth/login
+   req-id=q4108-949878310ec6 body={"login_type": "manual", "email_or_phone": "michael.brown@demo.com", "password": "NewPass#4108a", "field_type": "email"}
+   -> HTTP 200 (0.109s) code=None message=None
+   raw={"token":"<jwt-redacted>
+[01:53:40] POST /auth/verify-token
+   req-id=q4108-4202fd968a5c body={"verification_method": "phone", "reset_token": "142534", "phone": "+101600000003"}
+   -> HTTP 200 (0.052s) code=None message='OTP found, you can proceed'
+   raw={"message":"OTP found, you can proceed"}
+[01:53:40] PUT /auth/reset-password
+   req-id=q4108-c377609ff856 body={"verification_method": "phone", "reset_token": "142534", "phone": "+101600000003", "password": "NewPass#4108b", "confirm_password": "NewPass#4108b"}
+   -> HTTP 200 (0.102s) code=None message='Password changed successfully.'
+   raw={"message":"Password changed successfully."}
+[01:53:40] POST /auth/login
+   req-id=q4108-371a4ce88783 body={"login_type": "manual", "email_or_phone": "+101600000003", "password": "NewPass#4108b", "field_type": "phone"}
+   -> HTTP 200 (0.117s) code=None message=None
+   raw={"token":"<jwt-redacted>
+[01:53:41] POST /auth/login
+   req-id=q4108-49f3625166c0 body={"login_type": "manual", "email_or_phone": "michael.brown@demo.com", "password": "NewPass#4108a", "field_type": "email"}
+   -> HTTP 401 (0.254s) code='auth-001' message='User credential does not match'
+   raw={"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+[01:53:41] POST /auth/delivery-man/login
+   req-id=q4108-4023411b08d8 body={"phone": "+101700000003", "password": "123456789"}
+   -> HTTP 200 (0.106s) code=None message=None
+   raw={"token":"zwuWYw0I3FAwU7jwrEMxHgdhL9e5cYmMKoE3IcKiiyRltCUhvYGuHB1lKALrBcshr73S8TROfX8p42E9RoJ0ZN1thPMSJUkx2jFkThJT4dJ1zj6UP2UcNjtu","topic":"zone_1_delivery_man","zone_topic":"zone_1_delivery_man_push","store_id":null}
+[01:53:41] POST /auth/delivery-man/verify-token
+   req-id=q4108-d434ec3968db body={"phone": "+101700000003", "reset_token": "186306"}
+   -> HTTP 200 (0.053s) code=None message='Token found, you can proceed'
+   raw={"message":"Token found, you can proceed"}
+[01:53:41] PUT /auth/delivery-man/reset-password
+   req-id=q4108-bdbf8bf7cfaa body={"phone": "+101700000003", "reset_token": "186306", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 200 (0.234s) code=None message='Password changed successfully.'
+   raw={"message":"Password changed successfully."}
+[01:53:41] POST /auth/delivery-man/login
+   req-id=q4108-e8f12c5f7990 body={"phone": "+101700000003", "password": "123456789"}
+   -> HTTP 401 (0.253s) code='auth-001' message='Incorrect credential  please try again'
+   raw={"errors":[{"code":"auth-001","message":"Incorrect credential  please try again"}]}
+[01:53:41] POST /auth/delivery-man/login
+   req-id=q4108-0618390a32af body={"phone": "+101700000003", "password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 200 (0.103s) code=None message=None
+   raw={"token":"tKJJhaEHothhs9AF3B1o0ituRwi4Dly4sBXX0zuCeqKGRTtdDazOPbfA3l7TRofnHLZ9Az10rr2E4b0WKp3GPRe9SPfz0TkXV0e13gP6LFg4pEz7fhH6C52D","topic":"zone_1_delivery_man","zone_topic":"zone_1_delivery_man_push","store_id":null}
+
+==== R2 customer-email verify=200 with correct code (redo, the first try hit the 429 limiter) ====
+[01:54:06] POST /auth/forgot-password
+   req-id=q4108-3ae835765a01 body={"verification_method": "email", "email": "robert.taylor@demo.com"}
+   -> HTTP 200 (0.070s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+SELECTed robert email token=592997
+[01:54:07] POST /auth/verify-token
+   req-id=q4108-c04bea6ea35c body={"verification_method": "email", "reset_token": "592997", "email": "robert.taylor@demo.com"}
+   -> HTTP 200 (0.063s) code=None message='OTP found, you can proceed'
+   raw={"message":"OTP found, you can proceed"}
+
+==== R3 block with a real pending code: 6 wrong -> 405; the CORRECT code during the block -> 405 on verify and reset; row kept ====
+SELECTed cust-email robert token=592997
+[01:54:07] POST /auth/verify-token
+   req-id=q4108-d105c318955d body={"verification_method": "email", "reset_token": "592998", "email": "robert.taylor@demo.com"}
+   -> HTTP 400 (0.050s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:54:07] PUT /auth/reset-password
+   req-id=q4108-a4a55a3a3c33 body={"verification_method": "email", "reset_token": "592998", "email": "robert.taylor@demo.com", "password": "NewPass#4108c", "confirm_password": "NewPass#4108c"}
+   -> HTTP 400 (0.047s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:54:07] POST /auth/verify-token
+   req-id=q4108-c8e045310efc body={"verification_method": "email", "reset_token": "592998", "email": "robert.taylor@demo.com"}
+   -> HTTP 400 (0.052s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:55:09] PUT /auth/reset-password
+   req-id=q4108-843f9fb2d162 body={"verification_method": "email", "reset_token": "592998", "email": "robert.taylor@demo.com", "password": "NewPass#4108c", "confirm_password": "NewPass#4108c"}
+   -> HTTP 400 (0.063s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:55:09] POST /auth/verify-token
+   req-id=q4108-f405b32e3d1c body={"verification_method": "email", "reset_token": "592998", "email": "robert.taylor@demo.com"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:55:09] PUT /auth/reset-password
+   req-id=q4108-6fa6fcbb7ca5 body={"verification_method": "email", "reset_token": "592998", "email": "robert.taylor@demo.com", "password": "NewPass#4108c", "confirm_password": "NewPass#4108c"}
+   -> HTTP 405 (0.050s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:55:09] POST /auth/verify-token
+   req-id=q4108-ca2058e3b1df body={"verification_method": "email", "reset_token": "592997", "email": "robert.taylor@demo.com"}
+   -> HTTP 405 (0.049s) code='otp_block_time' message='Please try again after 10 minutes'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 10 minutes"}]}
+[01:55:09] PUT /auth/reset-password
+   req-id=q4108-edc539147d15 body={"verification_method": "email", "reset_token": "592997", "email": "robert.taylor@demo.com", "password": "NewPass#4108c", "confirm_password": "NewPass#4108c"}
+   -> HTTP 405 (0.047s) code='otp_block_time' message='Please try again after 10 minutes'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 10 minutes"}]}
+RESULT cust-email robert wrong=[(400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (405, 'otp_temp_blocked')] correct-during-block verify=405/otp_block_time reset=405/otp_block_time row_kept=1
+[01:55:09] POST /auth/forgot-password
+   req-id=q4108-a8fee3f81ab9 body={"verification_method": "phone", "phone": "+101600000004"}
+   -> HTTP 200 (0.058s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+SELECTed cust-phone sophie token=945731
+[01:55:09] POST /auth/verify-token
+   req-id=q4108-d244af74d0ab body={"verification_method": "phone", "reset_token": "945732", "phone": "+101600000004"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:55:09] PUT /auth/reset-password
+   req-id=q4108-89cef9054694 body={"verification_method": "phone", "reset_token": "945732", "phone": "+101600000004", "password": "NewPass#4108c", "confirm_password": "NewPass#4108c"}
+   -> HTTP 400 (0.064s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:55:09] POST /auth/verify-token
+   req-id=q4108-927f0e043b88 body={"verification_method": "phone", "reset_token": "945732", "phone": "+101600000004"}
+   -> HTTP 400 (0.049s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:55:09] PUT /auth/reset-password
+   req-id=q4108-34f12f7d557b body={"verification_method": "phone", "reset_token": "945732", "phone": "+101600000004", "password": "NewPass#4108c", "confirm_password": "NewPass#4108c"}
+   -> HTTP 400 (0.048s) code='invalid' message='Invalid otp'
+   raw={"errors":[{"code":"invalid","message":"Invalid otp"}]}
+[01:56:11] POST /auth/verify-token
+   req-id=q4108-3e7278cf30e7 body={"verification_method": "phone", "reset_token": "945732", "phone": "+101600000004"}
+   -> HTTP 400 (0.064s) code='invalid' message='Invalid OTP.'
+   raw={"errors":[{"code":"invalid","message":"Invalid OTP."}]}
+[01:56:11] PUT /auth/reset-password
+   req-id=q4108-4d0971c3b8d7 body={"verification_method": "phone", "reset_token": "945732", "phone": "+101600000004", "password": "NewPass#4108c", "confirm_password": "NewPass#4108c"}
+   -> HTTP 405 (0.052s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:56:11] POST /auth/verify-token
+   req-id=q4108-e6dba0089e92 body={"verification_method": "phone", "reset_token": "945731", "phone": "+101600000004"}
+   -> HTTP 405 (0.048s) code='otp_block_time' message='Please try again after 10 minutes'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 10 minutes"}]}
+[01:56:11] PUT /auth/reset-password
+   req-id=q4108-d98715bf198b body={"verification_method": "phone", "reset_token": "945731", "phone": "+101600000004", "password": "NewPass#4108c", "confirm_password": "NewPass#4108c"}
+   -> HTTP 405 (0.048s) code='otp_block_time' message='Please try again after 10 minutes'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 10 minutes"}]}
+RESULT cust-phone sophie wrong=[(400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (400, 'invalid'), (405, 'otp_temp_blocked')] correct-during-block verify=405/otp_block_time reset=405/otp_block_time row_kept=1
+[01:56:12] POST /auth/delivery-man/forgot-password
+   req-id=q4108-e75b74afd53f body={"phone": "+971565656656"}
+   -> HTTP 200 (0.060s) code=None message='If an account matching that identifier exists, an OTP has been sent.'
+   raw={"message":"If an account matching that identifier exists, an OTP has been sent."}
+SELECTed dm ali token=985595
+[01:56:12] POST /auth/delivery-man/verify-token
+   req-id=q4108-e41599a0dd91 body={"phone": "+971565656656", "reset_token": "985596"}
+   -> HTTP 400 (0.053s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:56:13] PUT /auth/delivery-man/reset-password
+   req-id=q4108-097c37d9f949 body={"phone": "+971565656656", "reset_token": "985596", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (1.133s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:56:13] POST /auth/delivery-man/verify-token
+   req-id=q4108-00daf6d54cf2 body={"phone": "+971565656656", "reset_token": "985596"}
+   -> HTTP 400 (0.048s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:56:13] PUT /auth/delivery-man/reset-password
+   req-id=q4108-dc32e44427d4 body={"phone": "+971565656656", "reset_token": "985596", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.248s) code='invalid' message='Invalid token.'
+   raw={"errors":[{"code":"invalid","message":"Invalid token."}]}
+[01:57:14] POST /auth/delivery-man/verify-token
+   req-id=q4108-c24ef88ea2b3 body={"phone": "+971565656656", "reset_token": "985596"}
+   -> HTTP 400 (0.065s) code='reset_token' message='Invalid token.'
+   raw={"errors":[{"code":"reset_token","message":"Invalid token."}]}
+[01:57:14] PUT /auth/delivery-man/reset-password
+   req-id=q4108-a12b1ac7125f body={"phone": "+971565656656", "reset_token": "985596", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 405 (0.208s) code='otp_temp_blocked' message='Too many attemps'
+   raw={"errors":[{"code":"otp_temp_blocked","message":"Too many attemps"}]}
+[01:57:15] POST /auth/delivery-man/verify-token
+   req-id=q4108-b254a527d2cb body={"phone": "+971565656656", "reset_token": "985595"}
+   -> HTTP 405 (0.049s) code='otp_block_time' message='Please try again after 9 minutes 59 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 9 minutes 59 seconds"}]}
+[01:57:15] PUT /auth/delivery-man/reset-password
+   req-id=q4108-ebb25b790270 body={"phone": "+971565656656", "reset_token": "985595", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 405 (0.199s) code='otp_block_time' message='Please try again after 9 minutes 59 seconds'
+   raw={"errors":[{"code":"otp_block_time","message":"Please try again after 9 minutes 59 seconds"}]}
+RESULT dm ali wrong=[(400, 'reset_token'), (400, 'invalid'), (400, 'reset_token'), (400, 'invalid'), (400, 'reset_token'), (405, 'otp_temp_blocked')] correct-during-block verify=405/otp_block_time reset=405/otp_block_time row_kept=1
+
+==== R4 REAL expiry: codes issued 2026-10-10 01:51:52, tested at 2026-10-10 02:08:30.427127 (>15 min later); no created_at edits ====
+james.wilson@demo.com	NULL	user	2026-10-10 01:51:52	998
+NULL	+101600000002	user	2026-10-10 01:51:52	998
+david.miller@demo.com	NULL	dm_api	2026-10-10 01:51:52	998
+cust-email james counter before: (key absent = 0 claims)
+[02:08:31] POST /auth/verify-token
+   req-id=q4108-41b91d46e971 body={"verification_method": "email", "reset_token": "189807", "email": "james.wilson@demo.com"}
+   -> HTTP 400 (0.073s) code='otp_expired' message='This code has expired. Please request a new code.'
+   raw={"errors":[{"code":"otp_expired","message":"This code has expired. Please request a new code."}]}
+[02:08:31] PUT /auth/reset-password
+   req-id=q4108-cbfcc36040aa body={"verification_method": "email", "reset_token": "189807", "email": "james.wilson@demo.com", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.052s) code='otp_expired' message='This code has expired. Please request a new code.'
+   raw={"errors":[{"code":"otp_expired","message":"This code has expired. Please request a new code."}]}
+RESULT cust-email james verify=400/otp_expired/'This code has expired. Please request a new code.' reset=400/otp_expired/'This code has expired. Please request a new code.' row_kept=1 counter before=(key absent = 0 claims) after=i:0;
+cust-phone emily counter before: (key absent = 0 claims)
+[02:08:31] POST /auth/verify-token
+   req-id=q4108-85ded1cb2236 body={"verification_method": "phone", "reset_token": "915116", "phone": "+101600000002"}
+   -> HTTP 400 (0.057s) code='otp_expired' message='This code has expired. Please request a new code.'
+   raw={"errors":[{"code":"otp_expired","message":"This code has expired. Please request a new code."}]}
+[02:08:31] PUT /auth/reset-password
+   req-id=q4108-dd4a4a7d6c4e body={"verification_method": "phone", "reset_token": "915116", "phone": "+101600000002", "password": "Passw0rd!x1", "confirm_password": "Passw0rd!x1"}
+   -> HTTP 400 (0.049s) code='otp_expired' message='This code has expired. Please request a new code.'
+   raw={"errors":[{"code":"otp_expired","message":"This code has expired. Please request a new code."}]}
+RESULT cust-phone emily verify=400/otp_expired/'This code has expired. Please request a new code.' reset=400/otp_expired/'This code has expired. Please request a new code.' row_kept=1 counter before=(key absent = 0 claims) after=i:0;
+dm david counter before: (key absent = 0 claims)
+[02:08:32] POST /auth/delivery-man/verify-token
+   req-id=q4108-fea01b6dcf0c body={"phone": "+101700000002", "reset_token": "734319"}
+   -> HTTP 400 (0.056s) code='otp_expired' message='This code has expired. Please request a new code.'
+   raw={"errors":[{"code":"otp_expired","message":"This code has expired. Please request a new code."}]}
+[02:08:32] PUT /auth/delivery-man/reset-password
+   req-id=q4108-4f46baaf3ef2 body={"phone": "+101700000002", "reset_token": "734319", "password": "Zx9#qLm!Tr7vB2", "confirm_password": "Zx9#qLm!Tr7vB2"}
+   -> HTTP 400 (0.217s) code='otp_expired' message='This code has expired. Please request a new code.'
+   raw={"errors":[{"code":"otp_expired","message":"This code has expired. Please request a new code."}]}
+RESULT dm david verify=400/otp_expired/'This code has expired. Please request a new code.' reset=400/otp_expired/'This code has expired. Please request a new code.' row_kept=1 counter before=(key absent = 0 claims) after=i:0;
+[02:08:32] POST /auth/login
+   req-id=q4108-96ef3c448394 body={"login_type": "manual", "email_or_phone": "james.wilson@demo.com", "password": "123456789", "field_type": "email"}
+   -> HTTP 200 (0.113s) code=None message=None
+   raw={"token":"<jwt-redacted>
+[02:08:33] POST /auth/login
+   req-id=q4108-f1b5b35313cc body={"login_type": "manual", "email_or_phone": "+101600000002", "password": "123456789", "field_type": "phone"}
+   -> HTTP 200 (0.108s) code=None message=None
+   raw={"token":"<jwt-redacted>
+[02:08:33] POST /auth/delivery-man/login
+   req-id=q4108-61814654a694 body={"phone": "+101700000002", "password": "123456789"}
+   -> HTTP 200 (0.102s) code=None message=None
+   raw={"token":"wITo04A3siKkyLa0RbbV2i8VuvfvjwPhcErL5HeMcGefGtfs7GtEZzVMUXgle44Q9cgv0Ac1OMD1up4HuK8hboqpDcrw5mXC31T7FeJqJRdmOL3Ym0Mt22KQ","topic":"zone_1_delivery_man","zone_topic":"zone_1_delivery_man_push","store_id":null}
