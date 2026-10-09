@@ -1,0 +1,75 @@
+# NEARS-4081 QA self-test gate @ da3737959 (worktree feat/NEARS-4081-monitor-caller)
+== lifecycle
+  ok   mutation landed in the scratch copy
+  ok   mutant goes RED: bin/monitor never called, php artisan was
+PASS  monitor-lifecycle.test: 13/13 assertions (usage, SKIPs, bin/monitor args, exit=1 non-blocking, mutation RED)
+== syncboard
+  ok   mutant goes RED: bin/monitor never received monitor:reconcile
+  ok   mutant reached php artisan (the reverted path really ran)
+PASS  sync-board.test: 15/15 assertions (bin/monitor reconcile, WARN non-blocking, --check drift, mutation RED)
+== cycles
+  ok   mutant goes RED on (a): [8] is not done without the block
+  ok   mutant reproduces the reported bug: [8] = rerun (base FAIL)
+PASS  board-cycles.test: 22/22 assertions (4074 [8] done, latest FAIL rerun, base wins, numeric order, no-cycle identity, mutation RED)
+== cycles_live
+  ok   mutant goes RED on (a): [8] is not done without the block
+  ok   mutant reproduces the reported bug: [8] = rerun (base FAIL)
+PASS  board-cycles.test: 24/24 assertions (4074 [8] done, latest FAIL rerun, base wins, numeric order, no-cycle identity, mutation RED)
+== server
+
+server.test: 9 assertion(s), fail=0
+PASS  server.test: all pins green.
+== rootres
+
+-- result: PASS
+-- validity: 50 assertion(s) made across 16 case(s); 0 failed
+== driftt
+PASS  (iv) a later .md-only commit inside a range that also changed .toml passes
+PASS  (iv) Codex .md changed without its .toml fails naming the companion
+PASS  workflow-drift-check.test: alignment, parity, range, usage
+== driftpy
+PASS Codex workflow drift: definitions, companion files and Claude->Codex agent pairs are aligned
+== wjd
+        committed-lockstep: read 2 of 2 blob(s) from commit HEAD.
+OK    workflow-json-drift: clean.
+        validity: 18 file(s) in scope, 18 file(s) examined, 1 assertion(s)
+== catalog
+(none)
+
+OK — catalog consistent.
+== dupkey
+PASS json-dupkey-check: docs/workflow/workflow.json
+== cmp docs/workflow/workflow.json tasks/workflow.json.golden -> rc=0 (byte-identical)
+== census (a) git grep -n -E 'php artisan (monitor:|list monitor)' -- .claude .codex scripts/monitor docs/workflow tasks/workflow.json.golden -> rc=1, 0 lines @HEAD; positive control @43a96e495 -> 10 lines
+== census (b) git grep -n 'php artisan' -- .codex/scripts/monitor-lifecycle.sh scripts/monitor/sync-board.sh -> rc=1, 0 lines @HEAD; @base -> 2 lines (lifecycle.sh:16, sync-board.sh:48)
+
+## QA-independent mutations (scratch copies only)
+-- mutA sync-board.sh reverted to 'cd $MON; php artisan monitor:reconcile' -> sync-board.test rc=1:
+  FAIL bin/monitor trace: []
+  FAIL php invoked: artisan monitor:reconcile
+  FAIL missing bin/monitor WARN: [sync-board] root: /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//sync-board-test.kbC3wE/absent/nears (source: NEARS_ROOT)
+  FAIL non-executable bin/monitor (rc=0): [sync-board] root: /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//sync-board-test.kbC3wE/noexec/nears (source: NEARS_ROOT)
+  FAIL drift run trace empty
+  FAIL mutation did not land
+FAIL  sync-board.test: 6/15 assertions failed
+-- mutB board.html numeric comparator -> lexical .sort() -> board-cycles.test rc=1:
+  ok   fixture still carries the 4074 shape (8 FAIL, 8-fix1 FAIL, 8-fix2 PASS)
+  ok   (b) latest cycle FAIL -> rerun
+  ok   (c) [8b] base escalate + latest FAIL -> escalate
+  FAIL (d) 8-fix10 PASS is the latest over 8-fix2 FAIL -> done -- rerun
+  FAIL (d) cycle keys ordered numerically -- ["8-fix10","8-fix2"]
+  FAIL (d) reversed: 8-fix10 FAIL is the latest -> rerun -- done
+  ok   (e) no cycles: [8] FAIL stays rerun
+  ok   mutant reproduces the reported bug: [8] = rerun (base FAIL)
+FAIL  board-cycles.test: 3/22 assertions failed
+-- mutC board.html base active/escalate-wins branch removed -> rc=1:
+  ok   fixture still carries the 4074 shape (8 FAIL, 8-fix1 FAIL, 8-fix2 PASS)
+  ok   (b) latest cycle FAIL -> rerun
+  FAIL (c) base escalate + latest PASS -> escalate -- done
+  FAIL (c) base active + latest DONE -> active -- done
+  ok   (c) [8b] base escalate + latest FAIL -> escalate
+  ok   (d) 8-fix10 PASS is the latest over 8-fix2 FAIL -> done
+  ok   (d) reversed: 8-fix10 FAIL is the latest -> rerun
+  ok   (e) no cycles: [8] FAIL stays rerun
+  ok   mutant reproduces the reported bug: [8] = rerun (base FAIL)
+FAIL  board-cycles.test: 2/22 assertions failed
