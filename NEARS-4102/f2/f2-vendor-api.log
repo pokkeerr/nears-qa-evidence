@@ -1,0 +1,30 @@
+=== F2 vendor API (real endpoint, vendor freshlocal store 12) PUT /api/v1/vendor/update-order-status  order=92116 (offline_payment, pending row)
+--- DB before
+order	92116	6	pending	unpaid	offline_payment
+offline_row	303	92116	pending
+--- PUT status=confirmed
+--- DB after confirmed
+order	92116	6	confirmed	unpaid	offline_payment
+offline_row	303	92116	pending
+--- PUT status=processing
+--- DB after processing
+order	92116	6	confirmed	unpaid	offline_payment
+offline_row	303	92116	pending
+--- (step 2) PUT status=processing  (confirmed step above landed in DB; its HTTP response was lost to a host-php segfault, server restarted)
+--- DB before
+order	92116	6	confirmed	unpaid	offline_payment
+offline_row	303	92116	pending
+HTTP/1.1 200 OK
+X-Request-Id: 65861199-2bee-4429-aec0-4056f5b9f125
+{"message":"Status updated"}
+--- DB after processing
+order	92116	6	processing	unpaid	offline_payment
+offline_row	303	92116	pending
+=== clean 'confirmed' capture on order 92114
+order	92114	6	pending	unpaid	offline_payment
+offline_row	305	92114	pending
+HTTP/1.1 200 OK
+X-Request-Id: 406ac985-0148-4f7d-88e0-0a5eb830145a
+{"message":"Status updated"}
+order	92114	6	confirmed	unpaid	offline_payment
+offline_row	305	92114	pending
