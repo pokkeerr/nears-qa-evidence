@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4085
 
-**PASS - API-only: AC1-AC10 demonstrated live, 34/34 + regression phpunit green**
+**PASS cycle2 - FIR-1 dimension cap + delta sweep green, 40/188 phpunit**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -15,6 +15,12 @@
 - [`ac8-list-endpoints-and-disk.txt`](ac8-list-endpoints-and-disk.txt)
 - [`ac8-valid-path.txt`](ac8-valid-path.txt)
 - [`be-log-check.txt`](be-log-check.txt)
+- [`cycle2-delta-sweep.txt`](cycle2-delta-sweep.txt)
+- [`cycle2-fir1-dimensions-run1-on-since-dropped-clone.txt`](cycle2-fir1-dimensions-run1-on-since-dropped-clone.txt)
+- [`cycle2-fir1-dimensions.txt`](cycle2-fir1-dimensions.txt)
+- [`cycle2-isolation-and-log.txt`](cycle2-isolation-and-log.txt)
+- [`cycle2-phpunit.txt`](cycle2-phpunit.txt)
+- [`cycle2-summary.txt`](cycle2-summary.txt)
 - [`db-isolation-proof.txt`](db-isolation-proof.txt)
 - [`extra-unauth-nonowner.txt`](extra-unauth-nonowner.txt)
 - [`phpunit-regression.txt`](phpunit-regression.txt)
