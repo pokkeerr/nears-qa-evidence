@@ -35,6 +35,7 @@
 - [`c1-ac-ui-wallet-en-320dp-light.xml`](c1-ac-ui-wallet-en-320dp-light.xml)
 - [`c1-ac-ui-wallet-en-320dp-scrolled.xml`](c1-ac-ui-wallet-en-320dp-scrolled.xml)
 - [`c1-app-log-wallet-excerpt.log`](c1-app-log-wallet-excerpt.log)
+- [`c2-README.txt`](c2-README.txt)
 - [`c2-api-fail-1.log`](c2-api-fail-1.log)
 - [`c2-api-fail-2.log`](c2-api-fail-2.log)
 - [`c2-api-retry-1.log`](c2-api-retry-1.log)
