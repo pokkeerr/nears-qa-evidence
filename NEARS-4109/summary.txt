@@ -1,0 +1,15 @@
+NEARS-4109 QA [8] cycle 0 - evidence summary (api surface; NO device / emulator / device lock)
+Build: /Users/Apple/Projects/nears-NEARS-4109-vendor-reset-enumeration @ 976381018 (fix/NEARS-4109-vendor-reset-enumeration)
+Backend: /Users/Apple/Projects/nears-NEARS-4109-vendor-reset-enumeration @ 976381018   (php -S 127.0.0.1:8417, DB multi_food_db_qa4109 = clone of multi_food_db_test; backend-freshness-check PASS)
+Server flags: php -d pcre.jit=0 -d default_socket_timeout=2 -S ... (seeded business_settings mail_config -> mail.6amtech.com:587 hangs >30s and a max_execution_time fatal kills php -S; 2s socket timeout makes the mail failure fast and harmless, no setting changed)
+
+AC7 timing (curl time_total, wrong verify-token, 32 samples/state, 8 fresh emails/state x 4, interleaved, all HTTP 400):
+  unregistered         n=32 median=53.7ms p90=64.1ms min=48.6 max=72.2
+  registered-no-code   n=32 median=53.5ms p90=58.0ms min=44.5 max=133.1
+  registered-with-code n=32 median=53.7ms p90=56.9ms min=49.1 max=58.7
+Cache keys (SELECT key FROM cache WHERE key LIKE '%pwreset:attempts:vendor_email%'): laravel_cachepwreset:attempts:vendor_email:<64 hex>[ :block ]; 0 pwreset keys contain '@', 'demo.com' or 'qa4109'.
+405 refusal log (valid UUIDv4 X-Request-Id, grep -F on worktree Admin/storage/logs/laravel.log): exactly one line each:
+  [FAIL] password_reset.otp_blocked {"correlation_id":"7c2a2848-...","endpoint":"api/v1/auth/vendor/verify-token","request_id":"7c2a2848-..."}
+  [FAIL] password_reset.otp_blocked {"correlation_id":"a0c2f7eb-...","endpoint":"api/v1/auth/vendor/reset-password","request_id":"a0c2f7eb-..."}
+Final DB state (read-only SELECT): vendor_api rows 19, otp_hit_count<>0: 0, is_temp_blocked: 0, temp_block_time set: 0, rows whose email is not a vendor: 0, vendors 47 (unchanged count).
+NOTE: AC4 login 401s that omit vendor_type are void (route needs vendor_type=owner); the vendor_type=owner re-check is the valid evidence. Login token redacted.
