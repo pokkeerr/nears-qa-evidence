@@ -1,0 +1,23 @@
+# Admin edit contrast: basket nets exactly 0 via referral bonus (own item discount 0), fresh admin session
+item51 0.00	percent
+[contrast A: bonus 8 on basket 8 (net 0), fresh login] order 91829 PRE order_amount 0.00 bonus 8; edit 302 loc http://127.0.0.1:8571/admin sess {'edit_tax_amount': '0', 'edit_tax_included': None, 'has_cart': True}
+   update 200 {'message': 'Order updated successfully'}; POST order_amount 0.00 edited 1 bonus 8
+[contrast B: plain order unchanged (control that edit works in this session)] order 91830 PRE order_amount 8.00 bonus 0; edit 302 loc http://127.0.0.1:8571/admin sess {'edit_tax_amount': '0', 'edit_tax_included': None, 'has_cart': True}
+   update 200 {'message': 'Order updated successfully'}; POST order_amount 8.00 edited 1 bonus 0
+
+# Admin POS (session cart): control vs 100% item discount (run 1 of 3 identical; the host php -S crashed intermittently on one earlier control run, see keepalive note)
+DB multi_food_db_qa4100b
+item discount set
+  add-to-cart 200 {'data': {'id': 51, 'variations': [], 'variant': '', 'stock_quantity': 88, 'quantity': '1', 'price': 4, 'name': 'Brown Dinner Rolls', 'discount': 0, 'image': '2
+  address 200
+  [POS control no discount] POS order HTTP 200 rid b99531ed-cd2f-421a-9693-054bf2514a60 :: {'message': 'Order placed successfully'}
+item discount set
+  add-to-cart 500 {'message': 'Something went wrong'}
+  address 200
+  [POS 100% item discount] POS order HTTP 500 rid 2f252969-5eb3-432c-98cf-37daba0e1949 :: {'message': 'Something went wrong'}
+item discount set
+
+# repeat runs 2/3 results
+m7pos-run.out:    return self.request("POST", url, data=data, json=json, **kwargs)
+m7pos-run2.out:  [POS control no discount] POS order HTTP 200 rid 85f3a5a6-fb30-4447-8a2e-012ecafbd01d :: {'message': 'Order placed successfully'}
+m7pos-run2.out:  [POS 100% item discount] POS order HTTP 500 rid 423610e8-ae57-4988-9941-8e84e432bb6f :: {'message': 'Something went wrong'}

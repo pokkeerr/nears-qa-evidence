@@ -1,0 +1,51 @@
+DB multi_food_db_qa4100b marker NearsQA4100b
+addon_published_status(TaxModule) via php: 1
+
+######## VAT order-wise 10% setup: False
+item discount set
+-- item 51 own discount 100 percent --
+  [100% item discount, single item] customer 910000123 qty 1
+    get-Tax  HTTP 500 rid ee3e4140-8f5f-4c7f-a7e2-a4ec652c04cf :: {"message":"Something went wrong"}
+    place    HTTP 403 rid b34a28f8-23df-4091-9e84-5709db90fb62 :: {"errors":[{"code":"order","message":"Failed to place order"}]}
+  [100% item discount, qty 2] customer 910000124 qty 2
+    get-Tax  HTTP 500 rid 9e57232c-56af-45cf-adfd-e075f6209350 :: {"message":"Something went wrong"}
+    place    HTTP 403 rid 87465121-4bcf-43c1-ad1b-4b20c78cae15 :: {"errors":[{"code":"order","message":"Failed to place order"}]}
+  [Admin edit, items 100% item-discounted, unchanged cart] order 91819 PRE order_amount 0.00 lines [{'item_id': 51, 'quantity': 2, 'price': '4.00', 'discount_on_item': '0.00', 'discount_type': 'amount'}]
+    http edit (500, {'message': 'Something went wrong'}) update (500, {'message': 'Something went wrong'}) view 200
+    POST order_amount 0.00 edited 0 bonus 0
+item discount set
+-- item 51 own discount 0 (restored); contrast nets-to-0 via referral bonus 8 on basket 8 --
+  [Admin edit contrast: basket nets exactly 0 via bonus (own discount 0)] order 91820 PRE order_amount 0.00 lines [{'item_id': 51, 'quantity': 2, 'price': '4.00', 'discount_on_item': '0.00', 'discount_type': 'amount'}]
+    http edit (302, '') update (403, {'errors': [{'code': 'not_found', 'message': 'Order data not found'}]}) view 200
+    POST order_amount 0.00 edited 0 bonus 8
+   conn err, retry
+  [control: no item discount, qty 2] customer 910000125 qty 2
+    get-Tax  HTTP 200 rid 41848d46-1551-4f41-a1dd-e15d8ae71185 :: {"tax_amount":0,"tax_status":"excluded","tax_included":null,"product_price":8,"total_addon_price":0,"total_discount":0}
+    place    HTTP 200 rid 412f1fdc-6171-4b6b-a985-e20729b7c79e :: {"message":"Order placed successfully","order_id":91822,"payment_token":"eyJpdiI6ImNjOW9GNU5GSWxSWDVKQmx6NnlzeGc9PSIsInZhbHVlIjoibXpsNFZiOUhvVFdGbmJXSVVscWlqYVZQa0l6empadEFQTS9hVGwxTWZSaTZoQ2lkTS9YSE13dm16NElCOFV5YkpNZmtUZnJzUEVFWExjRUpHbjd0eXp3TWd2QVE5RjczaTB
+    placed row {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "9.00", "adjusment": "0.00", "total_tax_amount": "0.00", "tax_status": "excluded", "dm_tips": 0, "extra_packaging_amount": 0, "delivery_charge": "1.00", "additional_charge": 0, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 0}
+item discount set
+
+######## VAT order-wise 10% setup: True
+tax 11 setup 11
+item discount set
+-- item 51 own discount 100 percent --
+  [100% item discount, single item] customer 910000126 qty 1
+    get-Tax  HTTP 500 rid d9585317-4d4a-4e85-a12b-17c1ba4983dc :: {"message":"Something went wrong"}
+    place    HTTP 403 rid 7667b987-3060-4017-85b6-aa38dffb3d0e :: {"errors":[{"code":"order","message":"Failed to place order"}]}
+  [100% item discount, qty 2] customer 910000127 qty 2
+    get-Tax  HTTP 500 rid f3bf14cc-96f2-43f3-8fa2-0b795663899d :: {"message":"Something went wrong"}
+    place    HTTP 403 rid dcd6f184-e7e8-4904-a467-0c44c818d8bc :: {"errors":[{"code":"order","message":"Failed to place order"}]}
+  [Admin edit, items 100% item-discounted, unchanged cart] order 91823 PRE order_amount 0.00 lines [{'item_id': 51, 'quantity': 2, 'price': '4.00', 'discount_on_item': '0.00', 'discount_type': 'amount'}]
+    http edit (500, {'message': 'Something went wrong'}) update (500, {'message': 'Something went wrong'}) view 200
+    POST order_amount 0.00 edited 0 bonus 0
+item discount set
+-- item 51 own discount 0 (restored); contrast nets-to-0 via referral bonus 8 on basket 8 --
+  [Admin edit contrast: basket nets exactly 0 via bonus (own discount 0)] order 91824 PRE order_amount 0.00 lines [{'item_id': 51, 'quantity': 2, 'price': '4.00', 'discount_on_item': '0.00', 'discount_type': 'amount'}]
+    http edit (302, '') update (403, {'errors': [{'code': 'not_found', 'message': 'Order data not found'}]}) view 200
+    POST order_amount 0.00 edited 0 bonus 8
+  [control: no item discount, qty 2] customer 910000128 qty 2
+    get-Tax  HTTP 200 rid 5d2b4fc6-4306-445e-a61b-4e985ad3a177 :: {"tax_amount":0.8,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":0}
+    place    HTTP 200 rid 81eecb1d-833d-41a4-a0e4-2d1640e3fa87 :: {"message":"Order placed successfully","order_id":91825,"payment_token":"eyJpdiI6IjBjaVFFTWI3VllTUzJCWUk2OHhFSHc9PSIsInZhbHVlIjoia1A5UHlCNktKRjZBRmp3TkM0SUJwb2pVa3Uva1hRMlpXeHJVRW14YlJFK3dPNXpWMnF5aTRVMklVNko4TjBQek1HYlJoaW5zc3hONzhudWI4UFR6TS9oL2NqaXlYSXEySUh
+    placed row {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "9.80", "adjusment": "0.00", "total_tax_amount": "0.80", "tax_status": "excluded", "dm_tips": 0, "extra_packaging_amount": 0, "delivery_charge": "1.00", "additional_charge": 0, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 0}
+item discount set
+vat off

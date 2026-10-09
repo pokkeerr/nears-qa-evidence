@@ -1,0 +1,44 @@
+DB multi_food_db_qa4100b marker NearsQA4100b
+B settings {'admin_free_delivery_status': '0', 'admin_free_delivery_option': 'free_delivery_by_order_amount', 'free_delivery_over': '', 'additional_charge_status': '1', 'additional_charge': '3'}
+
+##### H1 B1 control: placed with additional_charge 3 == current setting 3, basket 8, order_amount 11
+  spec={"order_amount": 11, "overrides": {"additional_charge": 3}}
+  order 91814
+  PRE  {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "11.00", "adjusment": "0.00", "total_tax_amount": "0.00", "tax_status": null, "dm_tips": 0, "extra_packaging_amount": 0, "delivery_charge": "0.00", "additional_charge": 3, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 0}
+  http {"edit": [302, ""], "update": [200, {"message": "Order updated successfully"}]} | preview {'edit_tax_amount': '0', 'edit_tax_included': None, 'has_cart': True} | viewTotal د.إ.‏ 11.00
+  POST {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "11.00", "adjusment": "0.00", "total_tax_amount": "0.00", "tax_status": "excluded", "dm_tips": 0, "extra_packaging_amount": 0, "delivery_charge": "0.00", "additional_charge": 3, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 1}
+  DELTA order_amount 11.00 -> 11.00; delivery_charge 0.00 -> 0.00; adjusment 0.00 -> 0.00; additional_charge 3 -> 3
+
+##### H1 B2 placed with additional_charge 2, setting now 3 (raised), basket 8, order_amount 10
+  spec={"order_amount": 10, "overrides": {"additional_charge": 2}}
+  order 91815
+  PRE  {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "10.00", "adjusment": "0.00", "total_tax_amount": "0.00", "tax_status": null, "dm_tips": 0, "extra_packaging_amount": 0, "delivery_charge": "0.00", "additional_charge": 2, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 0}
+  http {"edit": [302, ""], "update": [200, {"message": "Order updated successfully"}]} | preview {'edit_tax_amount': '0', 'edit_tax_included': None, 'has_cart': True} | viewTotal د.إ.‏ 10.00
+  POST {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "11.00", "adjusment": "-1.00", "total_tax_amount": "0.00", "tax_status": "excluded", "dm_tips": 0, "extra_packaging_amount": 0, "delivery_charge": "0.00", "additional_charge": 3, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 1}
+  DELTA order_amount 10.00 -> 11.00; delivery_charge 0.00 -> 0.00; adjusment 0.00 -> -1.00; additional_charge 2 -> 3
+B3 settings {'admin_free_delivery_status': '0', 'admin_free_delivery_option': 'free_delivery_by_order_amount', 'free_delivery_over': '', 'additional_charge_status': '1', 'additional_charge': '1'}
+
+##### H1 B3 placed with additional_charge 2, setting now 1 (lowered), basket 8, order_amount 10
+  spec={"order_amount": 10, "overrides": {"additional_charge": 2}}
+  order 91816
+  PRE  {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "10.00", "adjusment": "0.00", "total_tax_amount": "0.00", "tax_status": null, "dm_tips": 0, "extra_packaging_amount": 0, "delivery_charge": "0.00", "additional_charge": 2, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 0}
+  http {"edit": [302, ""], "update": [200, {"message": "Order updated successfully"}]} | preview {'edit_tax_amount': '0', 'edit_tax_included': None, 'has_cart': True} | viewTotal د.إ.‏ 10.00
+  POST {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "9.00", "adjusment": "1.00", "total_tax_amount": "0.00", "tax_status": "excluded", "dm_tips": 0, "extra_packaging_amount": 0, "delivery_charge": "0.00", "additional_charge": 1, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 1}
+  DELTA order_amount 10.00 -> 9.00; delivery_charge 0.00 -> 0.00; adjusment 0.00 -> 1.00; additional_charge 2 -> 1
+B4 settings {'admin_free_delivery_status': '0', 'admin_free_delivery_option': 'free_delivery_by_order_amount', 'free_delivery_over': '', 'additional_charge_status': '0', 'additional_charge': '1'}
+
+##### H1 B4 placed with additional_charge 2, additional charge now DISABLED, order_amount 10
+  spec={"order_amount": 10, "overrides": {"additional_charge": 2}}
+  order 91817
+  PRE  {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "10.00", "adjusment": "0.00", "total_tax_amount": "0.00", "tax_status": null, "dm_tips": 0, "extra_packaging_amount": 0, "delivery_charge": "0.00", "additional_charge": 2, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 0}
+  http {"edit": [302, ""], "update": [200, {"message": "Order updated successfully"}]} | preview {'edit_tax_amount': '0', 'edit_tax_included': None, 'has_cart': True} | viewTotal د.إ.‏ 10.00
+  POST {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "8.00", "adjusment": "2.00", "total_tax_amount": "0.00", "tax_status": "excluded", "dm_tips": 0, "extra_packaging_amount": 0, "delivery_charge": "0.00", "additional_charge": 0, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 1}
+  DELTA order_amount 10.00 -> 8.00; delivery_charge 0.00 -> 0.00; adjusment 0.00 -> 2.00; additional_charge 2 -> 0
+
+##### H1 B5 as B4 with tip 1.5 + pkg 0.5 untouched, order_amount 12
+  spec={"order_amount": 12, "overrides": {"additional_charge": 2, "dm_tips": 1.5, "extra_packaging_amount": 0.5}}
+  order 91818
+  PRE  {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "12.00", "adjusment": "0.00", "total_tax_amount": "0.00", "tax_status": null, "dm_tips": 1.5, "extra_packaging_amount": 0.5, "delivery_charge": "0.00", "additional_charge": 2, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 0}
+  http {"edit": [302, ""], "update": [200, {"message": "Order updated successfully"}]} | preview {'edit_tax_amount': '0', 'edit_tax_included': None, 'has_cart': True} | viewTotal د.إ.‏ 12.00
+  POST {"order_status": "pending", "payment_method": "cash_on_delivery", "payment_status": "unpaid", "ref_bonus_amount": 0, "order_amount": "10.00", "adjusment": "2.00", "total_tax_amount": "0.00", "tax_status": "excluded", "dm_tips": 1.5, "extra_packaging_amount": 0.5, "delivery_charge": "0.00", "additional_charge": 0, "flash_admin_discount_amount": 0, "flash_store_discount_amount": 0, "store_discount_amount": "0.00", "coupon_discount_amount": "0.00", "edited": 1}
+  DELTA order_amount 12.00 -> 10.00; delivery_charge 0.00 -> 0.00; adjusment 0.00 -> 2.00; additional_charge 2 -> 0

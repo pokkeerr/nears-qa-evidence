@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4100
 
-**QA PASS NEARS-4100 at cfea765bc: AC1-AC8 live base vs tip on real routes, settlement via create_transaction, Chrome E2E, 260 backstop tests green**
+**delta confirm-live H1 (free delivery + additional charge unchanged-cart edit moves order_amount) CONFIRMED, M7 (100% item discount: quote 500, placement 403, Admin edit/POS 500) CONFIRMED; ticket verdict unchanged PASS**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -20,6 +20,12 @@
 - [`ac8-source-pin.log`](ac8-source-pin.log)
 - [`backend-freshness-check-8561.log`](backend-freshness-check-8561.log)
 - [`backstop-phpunit-sweep.log`](backstop-phpunit-sweep.log)
+- [`delta-00-summary.md`](delta-00-summary.md)
+- [`delta-h1-A-free-delivery-unchanged-cart-edit.log`](delta-h1-A-free-delivery-unchanged-cart-edit.log)
+- [`delta-h1-B-additional-charge-unchanged-cart-edit.log`](delta-h1-B-additional-charge-unchanged-cart-edit.log)
+- [`delta-m7-C-customer-quote-placement-admin-edit-100pct-item-discount.log`](delta-m7-C-customer-quote-placement-admin-edit-100pct-item-discount.log)
+- [`delta-m7-D-admin-edit-contrast-and-admin-pos.log`](delta-m7-D-admin-edit-contrast-and-admin-pos.log)
+- [`delta-m7-E-division-by-zero-log-lines.log`](delta-m7-E-division-by-zero-log-lines.log)
 - [`e2e-chrome-log.md`](e2e-chrome-log.md)
 - [`log-check-fail-lines-by-request-id.log`](log-check-fail-lines-by-request-id.log)
 - [`log-scan-tip-session-summary.log`](log-scan-tip-session-summary.log)
