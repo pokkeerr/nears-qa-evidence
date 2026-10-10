@@ -1,0 +1,10 @@
+own9 registered + approved via Admin route -> 200 store.status=1 model=commission vendor.status=1 suspended_at=NULL
+login 200
+APPROVED live store: make-collected-cash-payment -> HTTP 200 auth003? False {"redirect_link":"http:\/\/127.0.0.1:8414\/payment\/stripe\/pay?payment_id=28802ce2-a0ed-459f-a041-914800adb020"}
+PROXY (marker variant, NOT the no-marker cash-limit state): Admin POST store/status/92910/0 -> 200 store.status=0 model=commission vendor.status=1 suspended_at=2026-10-11 00:04:29
+SUSPENDED approved vendor: make-collected-cash-payment -> HTTP 401 auth-001 'Unauthorized.'
+SUSPENDED approved vendor: profile -> 401 auth-001 'Unauthorized.'
+money tables unchanged during suspended refusal: {}
+login while admin-suspended -> 403 auth-002 'Your account is suspended'
+Admin POST store/status/92910/1 (reactivate) -> 200 store.status=1 model=commission vendor.status=1 suspended_at=NULL
+after reactivation profile -> 401

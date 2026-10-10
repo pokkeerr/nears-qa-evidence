@@ -1,0 +1,14 @@
+register own3 -> business_model_fail store 92904 vendor 92564
+DB before: store.status=0 model=none vendor.status=NULL
+login (pending none) -> 200 token True
+POST business_plan=commission (pending bearer) -> HTTP 200 {"store_business_model":"commission","logo":"2026-10-10-6aca98cf6680f.webp","message":"Application placed successfully"}
+DB after : store.status=0 model=commission vendor.status=NULL
+Store::active() equivalent (status=1 AND model in commission/...): store.status = 0 -> not active
+money/state tables diff before/after business_plan: {'store_row_md5': ('d01779a135a15441c0e25acf4c5d153a0c759cd305d0d2e768f39b074ab377bf', '531eaf52b756b2d4dcbfdff17cb34b866d119b977dbdfd8186c8393a21e2c78d')}
+subsequent login -> 403 auth-002 'Your registration is not approved yet. You can login once admin approved the request' token False
+same token on vendor.api profile -> 403 auth-003
+same token on vendor.api current-orders -> 403 auth-003
+same token make-collected-cash-payment -> 403 auth-003
+business_plan again (outside group) -> 200 auth003? False
+customer listing /api/v1/stores/get-stores/all -> HTTP 200 contains QA store id False size 40915
+customer listing /api/v1/stores/latest -> HTTP 200 contains QA store id False size 35846

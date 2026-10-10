@@ -1,0 +1,12 @@
+relogin -> 200 True
+GET /api/v1/vendor/profile? -> HTTP 200 err=None rid=d9523ed3-34de-4a2d-8c46-12eacea29794 keys= ['id', 'f_name', 'l_name', 'phone', 'email', 'email_verified_at']
+GET /api/v1/vendor/subscription-transaction?limit=10&offset=1&from=2020-01-01&to=2030-01-01 -> HTTP 200 err=None rid=cb45518f-c58c-4162-8983-73f63c0d5032 keys= ['total_size', 'limit', 'offset', 'transactions']
+GET /api/v1/vendor/subscription-transaction?limit=10&offset=1&from=2020-01-01&to=2030-01-01 -> HTTP 200 err=None rid=019f8e42-13f3-4903-82e2-d48f3d8730b1 keys= ['total_size', 'limit', 'offset', 'transactions']
+POST+_method=put JSON update-fcm-token -> HTTP 200 None b4d026a7-5a30-48a9-9987-5132a52cf3f6
+PUT JSON update-fcm-token -> HTTP 200 None
+business_plan(bogus plan) with pending bearer -> HTTP 403 err business_plan auth003? False
+package-view with pending bearer -> HTTP 200 auth003? False
+make-collected-cash-payment again -> HTTP 403 auth-003 X-Request-Id df5d77eb-bf3f-4ed0-9887-ad95df72d7ca
+laravel.log grep -F <rid>: [2026-10-10 23:57:55] production.ERROR: [FAIL] vendor.account_suspended {"correlation_id":"df5d77eb-bf3f-4ed0-9887-ad95df72d7ca","vendor_id":92563,"store_id":92903,"state":"not_approved"}
+logout -> 200
+profile after logout (token nulled) -> HTTP 401 auth-001

@@ -1,0 +1,17 @@
+# own3 (commission, approved via Admin panel Approve button): old PRE-approval token
+old token /api/v1/vendor/profile -> HTTP 200 auth003? False
+old token /api/v1/vendor/current-orders?limit=10&offset=1&status=all -> HTTP 200 auth003? False
+old token /api/v1/vendor/notifications -> HTTP 200 auth003? False
+fresh login after approval -> 200 token True ['token', 'zone_wise_topic', 'store_id', 'module_type']
+stores listing positive control (approved store now visible to customers):
+  get-stores/all -> HTTP 200 contains store 92904 True
+## AC4a: approved vendor, live store (own3 commission, status 1): full sweep with fresh token
+own3 approved commission: swept 104 routes (+logout later); status histogram {422: 1, 403: 47, 200: 23, 500: 9, 404: 3, 201: 1, 401: 20}; auth-003 refusals: 0 []
+own3 make-collected-cash-payment (money route) -> HTTP 401 code auth-001 auth003? False body {"errors":[{"code":"auth-001","message":"Unauthorized."}]}
+own3 logout 401
+## AC4a(2): approved model-none vendor (own5: vendor.status=1, model none, store 1)
+DB own5: store.status=1 model=none vendor.status=1
+own5 login -> 200 ['subscribed']
+own5 approved none: swept 104 routes (+logout later); status histogram {422: 1, 403: 47, 200: 23, 500: 9, 404: 3, 201: 1, 401: 20}; auth-003 refusals: 0 []
+own5 make-collected-cash-payment -> HTTP 401 auth003? False {"errors":[{"code":"auth-001","message":"Unauthorized."}]}
+RESULT refusals approved-live: 0 approved-none: 0
