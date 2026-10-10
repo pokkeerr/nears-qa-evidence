@@ -1,0 +1,28 @@
+## AC2(c) live: order 91417 (Flow B, COD remainder row unpaid cash_on_delivery) -> REAL customer offline submit (NEARS-2925 gate allows pending order) -> REAL admin verify-yes
+### BEFORE customer offline submit (COD remainder) (order 91417) @ 2026-10-10 23:56:45
+id	order_status	payment_status	payment_method	order_amount	partially_paid_amount	updated_at
+91417	pending	partially_paid	cash_on_delivery	15.75	10.000	2026-10-10 23:56:12
+id	order_id	amount	payment_status	payment_method	updated_at
+5	91417	10.00	paid	wallet	2026-10-10 23:56:07
+6	91417	5.75	unpaid	cash_on_delivery	2026-10-10 23:56:12
+
+{"payment":"success"}
+### BEFORE verify-yes (COD remainder + pending offline_payments) (order 91417) @ 2026-10-10 23:56:45
+id	order_status	payment_status	payment_method	order_amount	partially_paid_amount	updated_at
+91417	pending	partially_paid	offline_payment	15.75	10.000	2026-10-10 23:56:45
+id	order_id	amount	payment_status	payment_method	updated_at
+5	91417	10.00	paid	wallet	2026-10-10 23:56:07
+6	91417	5.75	unpaid	cash_on_delivery	2026-10-10 23:56:12
+id	order_id	status	payment_info	updated_at
+53	91417	pending	{"method_id":4,"method_name":"NEARS-2647 Bank Transfer","transaction_id":"QA4113-TXN-B"}	2026-10-10 23:56:45
+
+verify http=302 -> http://127.0.0.1:8413/admin
+### AFTER verify-yes (order 91417) @ 2026-10-10 23:56:48
+id	order_status	payment_status	payment_method	order_amount	partially_paid_amount	updated_at
+91417	confirmed	paid	offline_payment	15.75	10.000	2026-10-10 23:56:46
+id	order_id	amount	payment_status	payment_method	updated_at
+5	91417	10.00	paid	wallet	2026-10-10 23:56:07
+6	91417	5.75	unpaid	cash_on_delivery	2026-10-10 23:56:12
+id	order_id	status	payment_info	updated_at
+53	91417	verified	{"method_id":4,"method_name":"NEARS-2647 Bank Transfer","transaction_id":"QA4113-TXN-B"}	2026-10-10 23:56:48
+

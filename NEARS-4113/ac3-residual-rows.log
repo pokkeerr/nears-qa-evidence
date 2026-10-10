@@ -1,0 +1,34 @@
+## AC3 residual query (SELECT only), SQL from docs/solutions/NEARS-4113 D5:
+SELECT o.payment_method AS order_pm, o.order_status, op.payment_method AS row_pm, COUNT(*) AS rows_n, COUNT(DISTINCT op.order_id) AS orders_n FROM order_payments op JOIN orders o ON o.id=op.order_id JOIN offline_payments f ON f.order_id=o.id WHERE op.payment_status='unpaid' AND op.payment_method<>'cash_on_delivery' AND f.status='verified' GROUP BY o.payment_method, o.order_status, op.payment_method;
+
+-- multi_food_db (shared, read-only SELECT) grouped result (empty set = no rows):
+(end of grouped result)
+residual_rows
+0
+-- multi_food_db context (read-only): verified offline_payments rows / order_payments rows total:
+verified_offline	order_payment_rows	unpaid_rows
+0	2	1
+
+-- QA clone multi_food_db_qa4113 after the flows:
+(end of grouped result)
+residual_rows
+0
+-- clone context: verified offline rows, remainder rows by state
+verified_offline_rows
+4
+order_id	payment_method	payment_status	offline_status
+172	cash_on_delivery	unpaid	NULL
+91416	NEARS-2647 Bank Transfer	paid	verified
+91417	cash_on_delivery	unpaid	verified
+91418	offline_payment	unpaid	NULL
+91419	NEARS-4113 QA Long Offline Method Name XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX	paid	verified
+91421	offline_payment	unpaid	pending
+
+## EXTRA read-only count (sibling class, switched_to_cod branch gated on orders.payment_method=='partial_payment'; NOT part of AC3 set):
+SELECT COUNT(*) AS cod_order_with_unpaid_noncod_remainder_row FROM order_payments op JOIN orders o ON o.id=op.order_id WHERE o.payment_method='cash_on_delivery' AND op.payment_status='unpaid' AND op.payment_method NOT IN ('cash_on_delivery','wallet');
+multi_food_db:
+cod_order_with_unpaid_noncod_remainder_row
+0
+clone:
+cod_order_with_unpaid_noncod_remainder_row
+1

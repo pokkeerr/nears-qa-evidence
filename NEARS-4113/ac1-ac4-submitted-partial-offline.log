@@ -1,0 +1,24 @@
+# NEARS-4113 QA live run - clone DB multi_food_db_qa4113, own server 127.0.0.1:8413 (php -S from worktree Admin/, tested sha 4a1a0082056b1db607df01cb906898f57fbd17e4)
+
+## Flow A: partial(wallet 10.000 + offline remainder) -> customer offline submit -> admin verify-yes
+(placement + submit done earlier: place API returned order_id 91416 status=failed; PUT customer/order/offline-payment {order_id:91416, method_id:4, transaction_id:QA4113-TXN-001} -> {"payment":"success"})
+### BEFORE verify (after customer offline submit) (order 91416) @ 2026-10-10 23:55:31
+id	order_status	payment_status	payment_method	order_amount	partially_paid_amount	updated_at
+91416	pending	partially_paid	offline_payment	15.75	10.000	2026-10-10 23:54:56
+id	order_id	amount	payment_status	payment_method	updated_at
+3	91416	10.00	paid	wallet	2026-10-10 23:54:44
+4	91416	5.75	unpaid	offline_payment	2026-10-10 23:54:44
+id	order_id	status	payment_info	updated_at
+51	91416	pending	{"method_id":4,"method_name":"NEARS-2647 Bank Transfer","transaction_id":"QA4113-TXN-001"}	2026-10-10 23:54:56
+
+## admin verify-yes: POST http://127.0.0.1:8413/admin/order/offline-payment?id=91416&verify=yes (exact data-url of the 'Yes, Payment Received' button on admin order details, CSRF as the panel sends)
+verify http=302 -> http://127.0.0.1:8413/admin/order/details/91416
+### AFTER verify-yes (1st call) (order 91416) @ 2026-10-10 23:55:39
+id	order_status	payment_status	payment_method	order_amount	partially_paid_amount	updated_at
+91416	confirmed	paid	offline_payment	15.75	10.000	2026-10-10 23:55:36
+id	order_id	amount	payment_status	payment_method	updated_at
+3	91416	10.00	paid	wallet	2026-10-10 23:54:44
+4	91416	5.75	paid	NEARS-2647 Bank Transfer	2026-10-10 23:55:39
+id	order_id	status	payment_info	updated_at
+51	91416	verified	{"method_id":4,"method_name":"NEARS-2647 Bank Transfer","transaction_id":"QA4113-TXN-001"}	2026-10-10 23:55:39
+

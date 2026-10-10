@@ -1,0 +1,16 @@
+## Control (a)/(ii): NON-partial offline order 91420 (partial_payment=0, full offline): place -> customer submit -> admin verify-yes
+### BEFORE verify-yes (order 91420) @ 2026-10-10 23:57:35
+id	order_status	payment_status	payment_method	order_amount	partially_paid_amount	updated_at
+91420	pending	unpaid	offline_payment	5.67	0.000	2026-10-10 23:57:35
+id	order_id	status	payment_info	updated_at
+55	91420	pending	{"method_id":4,"method_name":"NEARS-2647 Bank Transfer","transaction_id":"QA4113-TXN-E"}	2026-10-10 23:57:35
+
+verify http=302 -> http://127.0.0.1:8413/admin
+### AFTER verify-yes (order 91420) @ 2026-10-10 23:57:39
+id	order_status	payment_status	payment_method	order_amount	partially_paid_amount	updated_at
+91420	confirmed	paid	offline_payment	5.67	0.000	2026-10-10 23:57:35
+id	order_id	status	payment_info	updated_at
+55	91420	verified	{"method_id":4,"method_name":"NEARS-2647 Bank Transfer","transaction_id":"QA4113-TXN-E"}	2026-10-10 23:57:39
+
+order_payments_rows_for_order
+0
