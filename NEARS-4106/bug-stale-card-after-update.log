@@ -1,0 +1,11 @@
+regression-candidate (pre-existing, untouched code; NOT part of NEARS-4106 diff)
+Surface: UserApp order details > My Payment Info > Edit > Update
+Observed (order 91419, emulator-5554, 2026-10-10): Update returned 200
+  [NET] POST endpoint=/api/v1/customer/order/offline-payment-update
+  [NET] endpoint=/api/v1/customer/order/offline-payment-update http_status=200
+DB row updated (offline_payments.payment_info transaction_id ...-edited, status pending, updated_at bumped),
+but the visible card kept showing the OLD transaction id and old row status after the dialog closed;
+re-entering the order details showed the new value (TXN-QA4106-91419-edited).
+Cause (read, not changed): UserApp/lib/features/payment/widgets/offline_info_edit_dialog_widget.dart:121-125
+  only calls Get.back() on success; PaymentController.updateOfflineInfo (payment_controller.dart:89-100) does not refetch the order.
+Impact: a denied row stays displayed as "Denied" (and old note) until the user reopens the screen; Low.
