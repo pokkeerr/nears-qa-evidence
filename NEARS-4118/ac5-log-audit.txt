@@ -1,0 +1,24 @@
+AC5 audit of Admin/storage/logs/laravel.log lines since QA server start (2026-10-11 02:44, own server :8118)
+[WARN] courier order refused lines: 56
+distinct key sets: [('correlation_id', 'endpoint', 'order_id', 'reason', 'status')]
+max refusal lines sharing one correlation_id: 1
+reasons: {'order_status_failed': 16, 'order_not_claimable': 21, 'offline_payment_unverified': 6, 'no_payment_evidence': 13}
+status field values: {'accept': 41, 'picked_up': 5, 'confirmed': 3, 'handover': 3, 'delivered': 4}
+endpoints: {'/api/v1/delivery-man/accept-order': 41, '/api/v1/delivery-man/update-order-status': 15}
+courier-route evidence files: 67 | refusals (403/404) carrying a WARN: 26 | every one exactly 1 line and correlation_id==sent X-Request-Id: True
+HTTP 200 files: 33 | any with a refusal WARN: []
+403/404 files with NO warn (expected: DM-01 negatives, validator, courier-B, self-delivery):
+   ac4-neg-selfdelivery-accept-91424.log 404
+   ac4-neg-vehicle-mismatch-dm4-accept-156.log 404
+   ac4-neg-wrongzone-dm1-accept-156.log 404
+   probe-b-courierB-dm2-on-dm3-order-91439.log 403
+   probe-c1-status-array.log 403
+   probe-c2-status-garbage.log 403
+   probe-c3-status-missing.log 403
+ERROR/[FAIL] lines in window: 6
+   [2026-10-11 02:44:19] production.ERROR: [FAIL] The "--columns" option does not exist. {"type":"Symfony\\Component\\Console\\Exception\\RuntimeException","endpoint":"/"} 
+   [2026-10-11 02:48:21] production.ERROR: [FAIL] order status refused - offline payment unverified {"correlation_id":"2a1a3f3e-95ac-43d5-9f71-b19dc531e3b2","endpoint":"/admin/order/add-delivery-man/{order_id}/{delivery_man_id}","ord
+   [2026-10-11 02:48:49] production.ERROR: FCM API Error {"correlation_id":"d1615f50-4e4f-4142-bc0a-d54f6aa59161","status":404,"reason":"Not Found","order_id":"91401"} 
+   [2026-10-11 02:51:55] production.ERROR: [FAIL] order status refused - offline payment unverified {"correlation_id":"26640bf9-b1d8-4eb9-89de-bceac8587a4e","endpoint":"/admin/order/add-delivery-man/{order_id}/{delivery_man_id}","ord
+   [2026-10-11 02:53:05] production.ERROR: [FAIL] new_place_order failed {"correlation_id":"27ed68aa-1b6f-4018-a75e-b1cdc98ef51a","endpoint":"api/v1/customer/order/place","reason":"unhandled_exception","exception_type":"TypeError","l
+   [2026-10-11 02:55:17] production.ERROR: FCM API Error {"correlation_id":"ff4a8b0b-5f47-4f4b-b330-cdc9ac7f9e68","status":404,"reason":"Not Found","order_id":"156"} 

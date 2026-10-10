@@ -1,0 +1,8 @@
+### BASE (primary tree @729b0b8ea, :8119, QA DB) RED confirmation on order 91439 (failed + unpaid digital_payment, placed via customer API on the QA clone)
++-------+----------+---------+------------+--------------+----------------+-----------------+------+------+-------+--------------+----------+-----------+-----------+--------+----------+---------------------+
+| id    | store_id | zone_id | order_type | order_status | payment_status | payment_method  | dm   | veh  | pp    | order_amount | accepted | picked_up | delivered | failed | canceled | updated_at          |
++-------+----------+---------+------------+--------------+----------------+-----------------+------+------+-------+--------------+----------+-----------+-----------+--------+----------+---------------------+
+| 91439 |       39 |       1 | delivery   | failed       | unpaid         | digital_payment | NULL |    1 | 0.000 |        23.23 | NULL     | NULL      | NULL      | NULL   | NULL     | 2026-10-11 02:58:39 |
+BASE PUT accept-order {"order_id":91439} -> HTTP 200 {"message":"Order accepted successfully"}
+BASE PUT update-order-status {"order_id":91439,"status":"picked_up"} -> HTTP 200 {"message":"Status updated"}
+| 91439 |       39 |       1 | delivery   | picked_up    | unpaid         | digital_payment |    3 |    1 | 0.000 |        23.23 | 2026-10-11 02:58:50 | 2026-10-11 02:58:50 | NULL      | NULL   | NULL     | 2026-10-11 02:58:50 |
