@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4093
 
-**PASS - AC1-AC5 live over HTTP on own backend (541f39657), qa db multi_food_db_qa4093; regression: DM-cancel unpaid-digital credits courier (High, pre-existing)**
+**PASS - AC1-AC5 + AC4-payload live (sha 541f39657, qa db multi_food_db_qa4093)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -18,6 +18,7 @@
 - [`ac3-paid-wallet-admin-route.log`](ac3-paid-wallet-admin-route.log)
 - [`ac3-paid-wallet-courier-route.log`](ac3-paid-wallet-courier-route.log)
 - [`ac3-paid-wallet-customer-route.log`](ac3-paid-wallet-customer-route.log)
+- [`ac4-payload-order-details.log`](ac4-payload-order-details.log)
 - [`ac4-rollback-cod-admin-route.log`](ac4-rollback-cod-admin-route.log)
 - [`ac4-rollback-cod-courier-route.log`](ac4-rollback-cod-courier-route.log)
 - [`ac4-rollback-cod-customer-route.log`](ac4-rollback-cod-customer-route.log)

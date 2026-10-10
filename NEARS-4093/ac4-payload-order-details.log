@@ -1,0 +1,18 @@
+AC4-payload: client-rendered order payloads after parcel return (own backend, sha 541f39657, DB multi_food_db_qa4093). Fields only; tokens/PII not logged.
+Routes: GET /api/v1/customer/order/details?order_id=  (customer, bearer) | GET /api/v1/delivery-man/order?order_id= (courier, token param) | GET /api/v1/delivery-man/order-details?order_id= (courier line items)
+
+REFUSED digital, customer return route order 91806 | customer order/details HTTP 200: {'order_status': 'returned', 'payment_status': 'unpaid', 'parcel_cancellation.return_fee': 2.5, 'parcel_cancellation.return_fee_payment_status': 'unpaid'}
+REFUSED digital, customer return route order 91806 | delivery-man/order HTTP 200: {'order_status': 'returned', 'payment_status': 'unpaid', 'parcel_cancellation.return_fee': 2.5, 'parcel_cancellation.return_fee_payment_status': 'unpaid'}
+REFUSED digital, customer return route order 91806 | delivery-man/order-details HTTP 200: order_status=returned payment_status=unpaid parcel_cancellation key present=False
+
+REFUSED digital, courier return route order 91809 | customer order/details HTTP 200: {'order_status': 'returned', 'payment_status': 'unpaid', 'parcel_cancellation.return_fee': 2.5, 'parcel_cancellation.return_fee_payment_status': 'unpaid'}
+REFUSED digital, courier return route order 91809 | delivery-man/order HTTP 200: {'order_status': 'returned', 'payment_status': 'unpaid', 'parcel_cancellation.return_fee': 2.5, 'parcel_cancellation.return_fee_payment_status': 'unpaid'}
+REFUSED digital, courier return route order 91809 | delivery-man/order-details HTTP 200: order_status=returned payment_status=unpaid parcel_cancellation key present=False
+
+SETTLED COD, customer return route order 91805 | customer order/details HTTP 200: {'order_status': 'returned', 'payment_status': 'paid', 'parcel_cancellation.return_fee': 2.5, 'parcel_cancellation.return_fee_payment_status': 'paid'}
+SETTLED COD, customer return route order 91805 | delivery-man/order HTTP 200: {'order_status': 'returned', 'payment_status': 'paid', 'parcel_cancellation.return_fee': 2.5, 'parcel_cancellation.return_fee_payment_status': 'paid'}
+SETTLED COD, customer return route order 91805 | delivery-man/order-details HTTP 200: order_status=returned payment_status=paid parcel_cancellation key present=False
+
+SETTLED COD, courier return route order 91810 | customer order/details HTTP 200: {'order_status': 'returned', 'payment_status': 'paid', 'parcel_cancellation.return_fee': 2.5, 'parcel_cancellation.return_fee_payment_status': 'paid'}
+SETTLED COD, courier return route order 91810 | delivery-man/order HTTP 200: {'order_status': 'returned', 'payment_status': 'paid', 'parcel_cancellation.return_fee': 2.5, 'parcel_cancellation.return_fee_payment_status': 'paid'}
+SETTLED COD, courier return route order 91810 | delivery-man/order-details HTTP 200: order_status=returned payment_status=paid parcel_cancellation key present=False
