@@ -1,0 +1,24 @@
+# NEARS-4111 AC3 (part 2): Admin POS add-to-cart + order with the 100% item 51 qty 2 (delivery_fee 1 in the POS address)
+item 51 state: [['100.00', 'percent', '4.00']]
+
+## VAT active=0
+  [base] add_to_cart HTTP 500 rid c7364e7e-3d13-42b5-8eaa-5d35510559c0 body='{"message":"Something went wrong"}' log=['[FAIL] Division by zero {"correlation_id":"c7364e7e-3d13-42b5-8eaa-5d35510559c0","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+  [base] delivery    HTTP 200 rid ff6890e4-0766-4e5a-a39f-d7fca3208ac6 body='{"data":{"contact_person_name":"QA","contact_person_number":"+971565811199","address_type"' log=[]
+  [base] order       HTTP 500 rid 307d00d8-ae48-418b-90da-f7de97350555 body='{"message":"Something went wrong"}' log=['[FAIL] Division by zero {"correlation_id":"307d00d8-ae48-418b-90da-f7de97350555","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+  [base] orders max(id) 91882 -> 91882
+  [tip] add_to_cart HTTP 200 rid e2e52b61-1156-4292-a394-9d1867ea3eb6 body='{"data":{"id":51,"variations":[],"variant":"","stock_quantity":494,"quantity":"2","price":' log=[]
+  [tip] delivery    HTTP 200 rid f487cba8-8342-4dc5-8731-cdade9863049 body='{"data":{"contact_person_name":"QA","contact_person_number":"+971565811199","address_type"' log=[]
+  [tip] order       HTTP 200 rid ed61b176-2393-421f-a797-64f7ac3423cb body='{"message":"Order placed successfully"}' log=[]
+  [tip] orders max(id) 91882 -> 91883
+  new POS order: {'id': '91883', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} [['51', '2', '4.00', '4.00', '0.00', '0.00', '[]']]
+
+## VAT active=1
+  [base] add_to_cart HTTP 500 rid 2a881f24-9ef1-4acd-bf92-acea7cc0861b body='{"message":"Something went wrong"}' log=['[FAIL] Division by zero {"correlation_id":"2a881f24-9ef1-4acd-bf92-acea7cc0861b","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+  [base] delivery    HTTP 200 rid 1b2ca139-ad54-43b1-8a70-88d0a3c358e5 body='{"data":{"contact_person_name":"QA","contact_person_number":"+971565811199","address_type"' log=[]
+  [base] order       HTTP 500 rid 4a74b55a-3d3a-4cbd-a35e-dfd07bae0866 body='{"message":"Something went wrong"}' log=['[FAIL] Division by zero {"correlation_id":"4a74b55a-3d3a-4cbd-a35e-dfd07bae0866","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+  [base] orders max(id) 91883 -> 91883
+  [tip] add_to_cart HTTP 200 rid 7add9007-4b59-4438-a29e-0f7660d08eeb body='{"data":{"id":51,"variations":[],"variant":"","stock_quantity":492,"quantity":"2","price":' log=[]
+  [tip] delivery    HTTP 200 rid 50c3808d-ccb6-49ba-9dca-4a2fc59687fc body='{"data":{"contact_person_name":"QA","contact_person_number":"+971565811199","address_type"' log=[]
+  [tip] order       HTTP 200 rid c9ffe51a-931e-47e4-bf0b-3527fa98a8b3 body='{"message":"Order placed successfully"}' log=[]
+  [tip] orders max(id) 91883 -> 91884
+  new POS order: {'id': '91884', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} [['51', '2', '4.00', '4.00', '0.00', '0.00', '[]']]

@@ -1,0 +1,10 @@
+# automated backstop NOT re-run by QA (blocked by the repo's own DB guard, not skipped silently)
+# command: cd <tip scratch>/Admin && DB_DATABASE=multi_food_db_qa4111 php -d pcre.jit=0 vendor/bin/phpunit --configuration phpunit.xml --filter Nears4111
+
+
+ ABORT  NEARS-1199 test-DB guard: tests are pointed at 'multi_food_db_qa4111', which is not a recognised test database.
+  Allowed: multi_food_db_test, or a per-run clone multi_food_db_test_<suffix>.
+  The suite writes to whatever it is given — it will not run against an unexpected schema.
+
+# why not worked around: the only accepted names are multi_food_db_test or multi_food_db_test_<suffix>; creating such a clone is DDL outside QA's single allowed DB name, multi_food_db_test_nears4111 belongs to the engineer, and NEARS_TEST_DB_SHARED=1 would write into the shared twin other sessions clone from.
+# engineer's recorded result (tasks/runs/NEARS-4111.json 6-fix1.tests, NOT independently verified here): --filter Nears4111 78/78 (295 assertions), Nears3983 12/12, Nears4100 77/77, adjacent 689/689 (2 skipped).

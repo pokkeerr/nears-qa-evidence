@@ -1,0 +1,7 @@
+# NEARS-4111 observation: Admin order pages for a COD FREE-GOODS order (order_amount = delivery 1.00, tax 0, store/item discount 4.00) placed by the customer place route on TIP (AC2 pass 1)
+order 91809 {'id': '91809', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '4.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} item_details length [['4990']]
+GET /admin/order/details/91809?module_id=1: HTTP 200, length 210283, shows "91809" in the HTML: True
+GET /admin/order/list/pending?module_id=1: HTTP 200, length 505524, shows "91809" in the HTML: False
+GET /admin/order/list/all?module_id=1: HTTP 200, length 507770, shows "91809" in the HTML: False
+
+HARNESS NOTE: orders placed AFTER ~order 91858 render 500 on admin.order.details on BOTH servers (e.g. 91880). Cause = my harness, not the ticket: every Items bulk-update round trip re-escaped the item description (backslashes doubled), so order_details.item_details (TEXT, 65535) is TRUNCATED -> json null -> blade `$detail->item['id']` offset-on-null. Orders 91809-91812 (item_details ~4990 bytes) render fine. 128 order_details rows hit the 65535 cap in the private DB.

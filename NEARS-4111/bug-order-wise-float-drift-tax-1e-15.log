@@ -1,0 +1,27 @@
+# bug-order-wise-float-drift-tax-1e-15 (NEARS-4111, tip c4af5bb5e)
+# item 51 priced 123.45 at 100% own discount, order-wise 10% VAT ON, quote through POST /api/v1/customer/order/get-Tax (private DB)
+  [base] qty 1: HTTP 200 raw={"tax_amount":1.4210854715202005e-15,"tax_status":"excluded","tax_included":0,"product_price":123.45,"total_addon_price":0,"total_discount":123.44999999999999}
+  [tip] qty 1: HTTP 200 raw={"tax_amount":1.4210854715202005e-15,"tax_status":"excluded","tax_included":0,"product_price":123.45,"total_addon_price":0,"total_discount":123.44999999999999}
+  [base] qty 2: HTTP 200 raw={"tax_amount":2.842170943040401e-15,"tax_status":"excluded","tax_included":0,"product_price":246.9,"total_addon_price":0,"total_discount":246.89999999999998}
+  [tip] qty 2: HTTP 200 raw={"tax_amount":2.842170943040401e-15,"tax_status":"excluded","tax_included":0,"product_price":246.9,"total_addon_price":0,"total_discount":246.89999999999998}
+  [base] qty 3: HTTP 200 raw={"tax_amount":5.684341886080802e-15,"tax_status":"excluded","tax_included":0,"product_price":370.35,"total_addon_price":0,"total_discount":370.34999999999997}
+  [tip] qty 3: HTTP 200 raw={"tax_amount":5.684341886080802e-15,"tax_status":"excluded","tax_included":0,"product_price":370.35,"total_addon_price":0,"total_discount":370.34999999999997}
+  [base] qty 7: HTTP 200 raw={"tax_amount":1.1368683772161604e-14,"tax_status":"excluded","tax_included":0,"product_price":864.15,"total_addon_price":0,"total_discount":864.1499999999999}
+  [tip] qty 7: HTTP 200 raw={"tax_amount":1.1368683772161604e-14,"tax_status":"excluded","tax_included":0,"product_price":864.15,"total_addon_price":0,"total_discount":864.1499999999999}
+
+# same item under PRODUCT-WISE VAT (guard works there):
+  [base] qty 1: HTTP 200 raw={"tax_amount":1.4210854715202005e-15,"tax_status":"excluded","tax_included":0,"product_price":123.45,"total_addon_price":0,"total_discount":123.44999999999999}
+  [tip] qty 1: HTTP 200 raw={"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":123.45,"total_addon_price":0,"total_discount":123.44999999999999}
+  [base] qty 2: HTTP 200 raw={"tax_amount":2.842170943040401e-15,"tax_status":"excluded","tax_included":0,"product_price":246.9,"total_addon_price":0,"total_discount":246.89999999999998}
+  [tip] qty 2: HTTP 200 raw={"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":246.9,"total_addon_price":0,"total_discount":246.89999999999998}
+  [base] qty 3: HTTP 200 raw={"tax_amount":5.684341886080802e-15,"tax_status":"excluded","tax_included":0,"product_price":370.35,"total_addon_price":0,"total_discount":370.34999999999997}
+  [tip] qty 3: HTTP 200 raw={"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":370.35,"total_addon_price":0,"total_discount":370.34999999999997}
+  [base] qty 7: HTTP 200 raw={"tax_amount":1.1368683772161604e-14,"tax_status":"excluded","tax_included":0,"product_price":864.15,"total_addon_price":0,"total_discount":864.1499999999999}
+  [tip] qty 7: HTTP 200 raw={"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":864.15,"total_addon_price":0,"total_discount":864.1499999999999}
+  [base] qty 1 paid: HTTP 200 raw={"tax_amount":12.345,"tax_status":"excluded","tax_included":0,"product_price":123.45,"total_addon_price":0,"total_discount":0}
+  [tip] qty 1 paid: HTTP 200 raw={"tax_amount":12.345,"tax_status":"excluded","tax_included":0,"product_price":123.45,"total_addon_price":0,"total_discount":0}
+
+# mechanism (read in the tip tree): order-wise tax is computed from the CALLER's total_price, not the per-line finalPrice the H1 guard zeroes
+#   Admin/Modules/TaxModule/Services/CalculateTaxService.php:87  amount: $amount   (OrderTaxService passes $total_price = product_price - discounts = 1.4e-14 on a drifted 100% line)
+#   Admin/Modules/TaxModule/Services/CalculateTaxService.php:212/243/349 (product-wise) use after_discount_final_price, which H1 zeroes -> exact 0
+# money impact: none; the placed order books total_tax_amount 0.00 (order 91939/91940/91941/91942 in the first private DB: tax 0.00, order_amount 1.00 = delivery)

@@ -1,0 +1,23 @@
+# NEARS-4111 extra E3c: the Admin flash-sale route refuses a discount of exactly 100% (Item_discount_amount_exceeded: discount_amount >= price), but 99.99% is accepted and the stored discount_amount rounds to 4.000 = the whole price (flash price 0.000). A published flash row therefore nets item 51 (price 4.00) to 0 through a FLASH discount, not the own item discount.
+publish flash sale 36: HTTP 302 [['36', '1', '2026-10-09 17:53:57', '2026-11-09 17:53:57']] [['139', '51', '99.990', '4.000', '0.000', '1', '5', '5']]
+item 51 own discount 0 -> (302, ['0.00', 'percent', '4.00', '[]'])
+
+## VAT active=0
+  [base] get-Tax qty 1: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":null,"product_price":4,"total_addon_price":0,"total_discount":4} | log []
+  [tip] get-Tax qty 1: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":null,"product_price":4,"total_addon_price":0,"total_discount":4} | log []
+  [base] get-Tax qty 2: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":null,"product_price":8,"total_addon_price":0,"total_discount":8} | log []
+  [tip] get-Tax qty 2: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":null,"product_price":8,"total_addon_price":0,"total_discount":8} | log []
+  [base] place qty 2: HTTP 200 {"message":"Order placed successfully","order_id":91982,"payment_token":"<redacted>","total_ammount":1,"status":"pending","created | log []
+     order 91982: {'id': '91982', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '4.00', '0.00', '0.00', '[]']]
+  [tip] place qty 2: HTTP 200 {"message":"Order placed successfully","order_id":91983,"payment_token":"<redacted>","total_ammount":1,"status":"pending","created | log []
+     order 91983: {'id': '91983', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '4.00', '0.00', '0.00', '[]']]
+
+## VAT active=1
+  [base] get-Tax qty 1: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":4,"total_addon_price":0,"total_discount":4} | log []
+  [tip] get-Tax qty 1: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":4,"total_addon_price":0,"total_discount":4} | log []
+  [base] get-Tax qty 2: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":8} | log []
+  [tip] get-Tax qty 2: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":8} | log []
+  [base] place qty 2: HTTP 200 {"message":"Order placed successfully","order_id":91984,"payment_token":"<redacted>","total_ammount":1,"status":"pending","created | log []
+     order 91984: {'id': '91984', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '4.00', '0.00', '0.00', '[]']]
+  [tip] place qty 2: HTTP 200 {"message":"Order placed successfully","order_id":91985,"payment_token":"<redacted>","total_ammount":1,"status":"pending","created | log []
+     order 91985: {'id': '91985', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '4.00', '0.00', '0.00', '[]']]

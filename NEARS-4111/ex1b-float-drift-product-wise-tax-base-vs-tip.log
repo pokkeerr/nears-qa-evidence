@@ -1,0 +1,15 @@
+# NEARS-4111 extra E1b: float drift under PRODUCT-WISE VAT (system tax type product_wise set via the TaxModule route; Vat4111 10% assigned to item 51 through the Admin item update route). item 51 price 123.45 at 100% own discount.
+system tax: [['product_wise', '["11"]', '1']] taxables: [['51', '11']]
+item 51 -> (302, ['100.00', 'percent', '123.45', '[]'])
+  [base] qty 1: HTTP 200 raw={"tax_amount":1.4210854715202005e-15,"tax_status":"excluded","tax_included":0,"product_price":123.45,"total_addon_price":0,"total_discount":123.44999999999999} | log []
+  [tip] qty 1: HTTP 200 raw={"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":123.45,"total_addon_price":0,"total_discount":123.44999999999999} | log []
+  [base] qty 2: HTTP 200 raw={"tax_amount":2.842170943040401e-15,"tax_status":"excluded","tax_included":0,"product_price":246.9,"total_addon_price":0,"total_discount":246.89999999999998} | log []
+  [tip] qty 2: HTTP 200 raw={"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":246.9,"total_addon_price":0,"total_discount":246.89999999999998} | log []
+  [base] qty 3: HTTP 200 raw={"tax_amount":5.684341886080802e-15,"tax_status":"excluded","tax_included":0,"product_price":370.35,"total_addon_price":0,"total_discount":370.34999999999997} | log []
+  [tip] qty 3: HTTP 200 raw={"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":370.35,"total_addon_price":0,"total_discount":370.34999999999997} | log []
+  [base] qty 7: HTTP 200 raw={"tax_amount":1.1368683772161604e-14,"tax_status":"excluded","tax_included":0,"product_price":864.15,"total_addon_price":0,"total_discount":864.1499999999999} | log []
+  [tip] qty 7: HTTP 200 raw={"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":864.15,"total_addon_price":0,"total_discount":864.1499999999999} | log []
+control: same item PAID (discount 0), product-wise 10% -> (302, ['0.00', 'percent', '123.45', '[]'])
+  [base] qty 1 paid: HTTP 200 raw={"tax_amount":12.345,"tax_status":"excluded","tax_included":0,"product_price":123.45,"total_addon_price":0,"total_discount":0}
+  [tip] qty 1 paid: HTTP 200 raw={"tax_amount":12.345,"tax_status":"excluded","tax_included":0,"product_price":123.45,"total_addon_price":0,"total_discount":0}
+restore price 4.00 -> (302, ['0.00', 'percent', '4.00', '[]'])

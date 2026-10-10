@@ -1,0 +1,61 @@
+# NEARS-4111 extra E3: 100% STORE discount (Admin store discount route), item 51 own discount 0. Store discount is not an own discount so BASE is expected to be fine too (control: no regression).
+store discount set: HTTP 200 {"message":"Discount added successfully"} [['12', '100.00', '1000.00', '2026-10-09', '2027-10-10']]
+
+######## [100% store discount] order-wise 10% VAT active=0
+  [base] get-Tax qty 2: HTTP 500 :: {"message":"Something went wrong"}  | log ['[FAIL] Division by zero {"correlation_id":"6a221245-ae6a-45a4-ac47-fa613e25273b","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+  [base] place   qty 2: HTTP 403 :: {"errors":[{"code":"order","message":"Failed to place order"}]}  | log ['[FAIL] new_place_order failed {"correlation_id":"40302174-be1e-4653-82c5-f0abda7b9615","endpoint":"api/v1/customer/order']
+    admin POS add_to_cart: HTTP 500 | log ['[FAIL] Division by zero {"correlation_id":"4a3599de-dec7-4686-9c02-492f64704f3b","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+    admin POS order: HTTP 500 | log ['[FAIL] Division by zero {"correlation_id":"8fb5cc86-1ed2-4707-b7c8-ef155fd05bde","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+    store-panel POS add_to_cart: HTTP 500 | log ['[FAIL] Division by zero {"correlation_id":"896bbfad-1f38-4934-b65e-b64d93aad771","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+    store-panel POS order: HTTP 500 | log ['[FAIL] Division by zero {"correlation_id":"d9bcb1d6-c382-471e-ad34-c9ba53a2cb9e","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+  [tip] get-Tax qty 2: HTTP 200 :: {"tax_amount":0,"tax_status":"excluded","tax_included":null,"product_price":8,"total_addon_price":0,"total_discount":8}  | log []
+  [tip] place   qty 2: HTTP 200 :: {"message":"Order placed successfully","order_id":91943,"payment_token":"<redacted>","total_ammount":1,"status":"pending","created_at":"2026-10-10 17:  | log []
+    placed order 91943: {'id': '91943', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '8.00', '0.00', '0.00', '[]']]
+    admin edit HTTP 302, update HTTP 302 | log []
+    order after edit/update: {'id': '91943', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '1'}
+    admin POS add_to_cart: HTTP 200 | log []
+    admin POS order: HTTP 200 | log []
+    admin POS order 91944: {'id': '91944', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '8.00', '0.00', '0.00', '[]']]
+    store-panel POS add_to_cart: HTTP 200 | log []
+    store-panel POS order: HTTP 200 | log []
+    store-panel POS order 91945: {'id': '91945', 'order_status': 'delivered', 'payment_method': 'cash', 'payment_status': 'paid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '8.00', '0.00', '0.00', '[]']]
+  >> [100% store discount] VAT=False: BASE == TIP on every captured field? False
+     DIFF admin_pos: base=(500, 500) tip=(200, 200)
+     DIFF admin_pos_order: base=None tip={'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'}
+     DIFF edit_update: base=None tip=(302, 302)
+     DIFF order: base=None tip={'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'}
+     DIFF order_after_edit: base=None tip={'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '1'}
+     DIFF place: base=403 tip=200
+     DIFF quote: base=(500, '{"message":"Somethingwentwrong"}') tip=(200, '{"tax_amount":0,"tax_status":"excluded","tax_included":null,"product_price":8,"total_addon_price":0,"total_discount":8}')
+     DIFF vendor_pos: base=(500, 500) tip=(200, 200)
+     DIFF vendor_pos_order: base=None tip={'order_status': 'delivered', 'payment_method': 'cash', 'payment_status': 'paid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'}
+
+######## [100% store discount] order-wise 10% VAT active=1
+  [base] get-Tax qty 2: HTTP 500 :: {"message":"Something went wrong"}  | log ['[FAIL] Division by zero {"correlation_id":"56a664cc-e36f-4884-b836-358d9e572f0e","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+  [base] place   qty 2: HTTP 403 :: {"errors":[{"code":"order","message":"Failed to place order"}]}  | log ['[FAIL] new_place_order failed {"correlation_id":"3b0268c5-0e84-4191-a8b3-bb64d94ed276","endpoint":"api/v1/customer/order']
+    admin POS add_to_cart: HTTP 500 | log ['[FAIL] Division by zero {"correlation_id":"2aa2912e-e04d-4b57-a88a-f6e9e185679f","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+    admin POS order: HTTP 500 | log ['[FAIL] Division by zero {"correlation_id":"ab6b5c7e-4edc-41df-a11c-a77581f7ff9f","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+    store-panel POS add_to_cart: HTTP 500 | log ['[FAIL] Division by zero {"correlation_id":"97c83bff-211a-47e1-be74-993e4f5c2e74","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+    store-panel POS order: HTTP 500 | log ['[FAIL] Division by zero {"correlation_id":"b023090c-2d7b-4028-aaff-e4a83e9a16a7","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+  [tip] get-Tax qty 2: HTTP 200 :: {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":8}  | log []
+  [tip] place   qty 2: HTTP 200 :: {"message":"Order placed successfully","order_id":91946,"payment_token":"<redacted>","total_ammount":1,"status":"pending","created_at":"2026-10-10 17:  | log []
+    placed order 91946: {'id': '91946', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '8.00', '0.00', '0.00', '[]']]
+    admin edit HTTP 302, update HTTP 302 | log []
+    order after edit/update: {'id': '91946', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '1'}
+    admin POS add_to_cart: HTTP 200 | log []
+    admin POS order: HTTP 200 | log []
+    admin POS order 91947: {'id': '91947', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '8.00', '0.00', '0.00', '[]']]
+    store-panel POS add_to_cart: HTTP 200 | log []
+    store-panel POS order: HTTP 200 | log []
+    store-panel POS order 91948: {'id': '91948', 'order_status': 'delivered', 'payment_method': 'cash', 'payment_status': 'paid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '8.00', '0.00', '0.00', '[]']]
+  >> [100% store discount] VAT=True: BASE == TIP on every captured field? False
+     DIFF admin_pos: base=(500, 500) tip=(200, 200)
+     DIFF admin_pos_order: base=None tip={'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'}
+     DIFF edit_update: base=None tip=(302, 302)
+     DIFF order: base=None tip={'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'}
+     DIFF order_after_edit: base=None tip={'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '1'}
+     DIFF place: base=403 tip=200
+     DIFF quote: base=(500, '{"message":"Somethingwentwrong"}') tip=(200, '{"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":8}')
+     DIFF vendor_pos: base=(500, 500) tip=(200, 200)
+     DIFF vendor_pos_order: base=None tip={'order_status': 'delivered', 'payment_method': 'cash', 'payment_status': 'paid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'}
+store discount cleared: HTTP 302 [['0']]

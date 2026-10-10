@@ -1,0 +1,18 @@
+# NEARS-4111 extra E4: a free line (100% own discount) plus a PAID packaging charge (0.50, store 12 packaging ON via the vendor store-setup route, packaging tax on via the TaxModule route) must still tax the packaging: 10% of 0.50 = 0.05
+settings:  [['extra_packaging_charge_status', '1'], ['extra_packaging_data', '{"grocery":"1","food":0,"pharmacy":0,"ecommerce":0,"parcel":0,"rental":0}']] [['1', '0.500']] [['tax_on_packaging_charge', '["11"]', '1']]
+
+## control: PAID item (no discount) + packaging  -> (302, ['0.00', 'percent', '4.00', '[]'])
+  [base] get-Tax qty 2 +packaging: HTTP 200 {"tax_amount":0.8500000000000001,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":0} | log []
+  [base] place: HTTP 200 {"message":"Order placed successfully","order_id":91979,"payment_token":"<redacted>","total_ammount":10.35,"status":"pending","cre | log []
+     order 91979: {'id': '91979', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '10.35', 'total_tax_amount': '0.85', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.500', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '0.00', '0.80', '0.00', '[]']]
+  [tip] get-Tax qty 2 +packaging: HTTP 200 {"tax_amount":0.8500000000000001,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":0} | log []
+  [tip] place: HTTP 200 {"message":"Order placed successfully","order_id":91980,"payment_token":"<redacted>","total_ammount":10.35,"status":"pending","cre | log []
+     order 91980: {'id': '91980', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '10.35', 'total_tax_amount': '0.85', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.500', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '0.00', '0.80', '0.00', '[]']]
+
+## FREE item (100%) + packaging  -> (302, ['100.00', 'percent', '4.00', '[]'])
+  [base] get-Tax qty 2 +packaging: HTTP 500 {"message":"Something went wrong"} | log ['[FAIL] Division by zero {"correlation_id":"14613bdd-e5b7-47fe-8144-c3ba4dd372d7","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]']
+  [base] place: HTTP 403 {"errors":[{"code":"order","message":"Failed to place order"}]} | log ['[FAIL] new_place_order failed {"correlation_id":"0332b742-cb35-4778-9f23-fe6e212eecb1","endpoint":"api/v1/customer/order']
+  [tip] get-Tax qty 2 +packaging: HTTP 200 {"tax_amount":0.05,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":8} | log []
+  [tip] place: HTTP 200 {"message":"Order placed successfully","order_id":91981,"payment_token":"<redacted>","total_ammount":1.55,"status":"pending","crea | log []
+     order 91981: {'id': '91981', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.55', 'total_tax_amount': '0.05', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.500', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '4.00', '0.00', '0.00', '[]']]
+restore item 51 -> (302, ['0.00', 'percent', '4.00', '[]'])
