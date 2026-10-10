@@ -1,0 +1,33 @@
+NEARS-4115 QA - base contrast, environment, DML list
+
+BASE behaviour (before this fix), evidence from NEARS-4093 QA
+(https://github.com/pokkeerr/nears-qa-evidence/tree/main/NEARS-4093): same recipe (unpaid digital_payment parcel, courier accept -> picked_up -> canceled, then parcel-return with the OTP):
+  customer route (order 91815): return_fee_payment_status unpaid -> PAID ; dm 2 collected_cash 30.00 -> 32.50 ; total_earning 295.00 -> 297.50
+  courier route  (order 91816): return_fee_payment_status unpaid -> PAID ; dm 2 collected_cash 32.50 -> 35.00 ; total_earning 297.50 -> 300.00
+THIS build (f58d5403a), same recipe, 3 return routes x 2 cancel_by (+2 late variants): return_fee_payment_status stays unpaid, collected_cash/total_earning/admin commission unchanged, only orders.order_status canceled -> returned (see 01-matrix-before-after.txt and ac1-*.log).
+
+ENVIRONMENT
+  build: worktree /Users/Apple/Projects/nears-NEARS-4115-dmcancel-evidence, branch fix/NEARS-4115-dmcancel-evidence, HEAD f58d5403aa4d854b0c777d45e379c332f0a44818
+  server: own `php -d pcre.jit=0 -S 127.0.0.1:8415 -t public server.php` from <worktree>/Admin, OTEL_SDK_DISABLED=true, DB_DATABASE=multi_food_db_qa4115 exported (worktree .env not edited; server process env confirmed DB_DATABASE=multi_food_db_qa4115)
+  freshness pre-flight (scripts/newtask-guards/backend-freshness-check.sh 8415, run after boot): PASS /Users/Apple/Projects/nears-NEARS-4115-dmcancel-evidence @ f58d5403a (ticket NEARS-4115). Before boot: rc=2 (nothing listening, expected)
+  db: private disposable clone multi_food_db_qa4115 = mysqldump (read-only, --single-transaction) of multi_food_db_test, because the conductor's multi_food_db_test_nears4115 clone did not exist when QA started. The clone lacked 6 migrations the worktree ships; `php artisan migrate --force` was run on multi_food_db_qa4115 ONLY (DB_DATABASE exported; db:show confirmed target) - 6 DONE, 0 pending after.
+  No device lock / emulator: API + Admin web only, no UI surface.
+
+SETTINGS (only through the Admin panel's own routes, see 00-setup.log)
+  PUT  admin.parcel.cancellationSettingsUpdate : return fee 50% (=> 2.5 on the QA parcel), do_not_charge_return_fee_on_deliveryman_cancel 0, late-return penalty on (1 day, dm penalty 1.5)
+  POST admin customer wallet add-fund 100 for customer id 6 (paid-wallet controls)
+  POST admin.business-settings.third-party.payment-method-update digital_payment on
+  POST admin.business-settings.update-dm (all dm settings re-posted unchanged except dm_maximum_orders 2 -> 500)
+  POST admin.users.delivery-man.earning id=3 status=0 for the earning!=1 scenario, restored to 1 afterwards (ac5-setup-dm3-earning0.log)
+
+DML (QA db multi_food_db_qa4115 ONLY; each is also printed inside the scenario log that used it)
+  1. UPDATE parcel_cancellations SET return_date = NOW() - INTERVAL 1 DAY WHERE order_id=<oid>   (late variants: 91816, 91817, 91822, 91823, 91828, 91829)
+  2. UPDATE orders SET payment_status='paid', order_status='confirmed' WHERE id=<oid>             (paid digital_payment controls: 91830, 91831; simulates a gateway callback)
+  3. UPDATE orders SET delivery_man_id=NULL WHERE id=<oid>                                         (no-courier admin-commission branch: 91837, 91838)
+  nothing else; no DML on multi_food_db, multi_food_db_test or any other database.
+
+Orders 91806-91811 were placed by a first batch that aborted at courier accept (dm_maximum_orders=2 reached by the seed's DM 2); never returned, irrelevant noise.
+FCM (logs check): 'production.ERROR: FCM API Error {status 404, order_id}' appears on order placement/accept/cancel notification sends for every order (COD and paid alike; local env, seeded junk FCM tokens, no real Firebase).
+  Inside the RETURN requests themselves (34 X-Request-Ids grepped): 8 FCM API Error lines, ALL on the PAID controls (91824-91831) = the pre-existing post-commit refund push (parcelRefundNotification, NEARS-4091), caught and swallowed, order/wallet state unaffected.
+  Refused returns: the only line carrying their X-Request-Id is the single [WARN] parcel return settlement refused line; no [FAIL]/[ERR] from OrderLogic anywhere in the window.
+  Verdict handling: environment condition unrelated to this diff (the diff only adds a guard before the settlement) -> regression_bugs (low), not a FAIL.

@@ -1,0 +1,108 @@
+#### scenario ac5-control-COD-no-courier-null-delivery_man-customer-route | payment_method cash_on_delivery | return route: customer | cancel_by: courier | build f58d5403a | db multi_food_db_qa4115
+step place cash_on_delivery 200 {'message': 'Order placed successfully', 'order_id': 91838, 'total_ammount': 5, 'status': 'pending'} rid 1d64fb54-9a4d-459e-9ca2-f8fa0906ee96
+step dm accept 200 {'message': 'Order accepted successfully'}
+step dm picked_up 200 {'message': 'Status updated'}
+order 91838 state after pickup: ['picked_up', 'unpaid', 'cash_on_delivery']
+cancel by courier (expect parcel_cancellations.cancel_by=deliveryman) 200 {'message': 'Parcel canceled successfully'}
+cancel_by now: [['deliveryman']] order_status: ['canceled', 'unpaid', 'cash_on_delivery']
+post-cancel QA-DB DML: UPDATE orders SET delivery_man_id=NULL WHERE id=91838 (QA db only; no product route un-assigns a courier after pickup)
+== BEFORE return (order 91838)
+-- order
++-------+--------------+----------------+------------------+--------------+-----------------+---------+----------+
+| id    | order_status | payment_status | payment_method   | order_amount | delivery_man_id | user_id | is_guest |
++-------+--------------+----------------+------------------+--------------+-----------------+---------+----------+
+| 91838 | canceled     | unpaid         | cash_on_delivery |         5.00 |            NULL |       6 |        0 |
++-------+--------------+----------------+------------------+--------------+-----------------+---------+----------+
+-- parcel_cancellation
++----------+-------------+------------+---------------------------+---------------+----------------+---------------------+-------------+-------------------------------+---------+
+| order_id | cancel_by   | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date         | is_refunded | is_delivery_charge_refundable | has_otp |
++----------+-------------+------------+---------------------------+---------------+----------------+---------------------+-------------+-------------------------------+---------+
+|    91838 | deliveryman |        2.5 | unpaid                    |             0 |            1.5 | 2026-10-12 01:23:05 |           0 |                             0 |       1 |
++----------+-------------+------------+---------------------------+---------------+----------------+---------------------+-------------+-------------------------------+---------+
+-- order_transactions(order)
+(no rows)
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- parcel_return_fees(order)
+(no rows)
+-- parcel_penalty_fees(order)
+(no rows)
+-- global row counts
++--------------------+----------+----------------+----------------------+---------------------+--------------------+---------------------+
+| order_transactions | expenses | order_payments | account_transactions | wallet_transactions | parcel_return_fees | parcel_penalty_fees |
++--------------------+----------+----------------+----------------------+---------------------+--------------------+---------------------+
+|                 32 |       29 |              2 |                   30 |                  20 |                 17 |                   4 |
++--------------------+----------+----------------+----------------------+---------------------+--------------------+---------------------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    24.85 |           -35.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |          58.50 |        322.50 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  6 |        105.000 |
++----+----------------+
+RETURN via customer route -> (200, {'message': 'Parcel returned successfully'}) X-Request-Id: a8defbe2-f54a-47f1-ba88-33acf0719847
+== AFTER return (order 91838)
+-- order
++-------+--------------+----------------+------------------+--------------+-----------------+---------+----------+
+| id    | order_status | payment_status | payment_method   | order_amount | delivery_man_id | user_id | is_guest |
++-------+--------------+----------------+------------------+--------------+-----------------+---------+----------+
+| 91838 | returned     | unpaid         | cash_on_delivery |         5.00 |            NULL |       6 |        0 |
++-------+--------------+----------------+------------------+--------------+-----------------+---------+----------+
+-- parcel_cancellation
++----------+-------------+------------+---------------------------+---------------+----------------+---------------------+-------------+-------------------------------+---------+
+| order_id | cancel_by   | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date         | is_refunded | is_delivery_charge_refundable | has_otp |
++----------+-------------+------------+---------------------------+---------------+----------------+---------------------+-------------+-------------------------------+---------+
+|    91838 | deliveryman |        2.5 | paid                      |             0 |            1.5 | 2026-10-12 01:23:05 |           0 |                             0 |       1 |
++----------+-------------+------------+---------------------------+---------------+----------------+---------------------+-------------+-------------------------------+---------+
+-- order_transactions(order)
+(no rows)
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- parcel_return_fees(order)
+(no rows)
+-- parcel_penalty_fees(order)
+(no rows)
+-- global row counts
++--------------------+----------+----------------+----------------------+---------------------+--------------------+---------------------+
+| order_transactions | expenses | order_payments | account_transactions | wallet_transactions | parcel_return_fees | parcel_penalty_fees |
++--------------------+----------+----------------+----------------------+---------------------+--------------------+---------------------+
+|                 32 |       29 |              2 |                   30 |                  20 |                 17 |                   4 |
++--------------------+----------+----------------+----------------------+---------------------+--------------------+---------------------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    27.35 |           -35.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |          58.50 |        322.50 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  6 |        105.000 |
++----+----------------+
+CHANGED SECTIONS: ['order', 'parcel_cancellation', 'admin_wallet']
+LOG lines scoped to order 91838 / [FAIL] / [ERR] since scenario start:
+   (none)
+WARN '[WARN] parcel return settlement refused' count for order 91838: 0
+WARN count expectation (0): MET

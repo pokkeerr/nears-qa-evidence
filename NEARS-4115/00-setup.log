@@ -1,0 +1,8 @@
+#### SETUP via Admin panel's own routes (QA db multi_food_db_qa4115, build f58d5403a)
+business_settings BEFORE: [['wallet_status', '1'], ['wallet_add_refund', '1']]
+PUT admin.parcel.cancellationSettingsUpdate -> 302 http://127.0.0.1:8415/admin toastr: [('success', 'Parcel cancellation setup updated'), ('success', 'Text copied'), ('success', 'New message arrived'), ('success', 'Text copied to clipboard: ')]
+business_settings AFTER: [['parcel_cancellation_basic_setup', '{"return_fee_status":"1","return_fee":"50","do_not_charge_return_fee_on_deliveryman_cancel":"0"}'], ['parcel_return_time_fee', '{"status":"1","parcel_return_time":"1","return_time_type":"day","return_fee_for_dm":"1.5"}']]
+POST admin customer wallet add-fund (100) -> 200 None []
+customer 6 wallet_balance: [['100.000']]
+POST admin.business-settings.third-party.payment-method-update toggle_type=digital_payment status=1 -> 302 http://127.0.0.1:8415/admin; business_settings.digital_payment now [['{"status":"1"}']]
+POST admin.business-settings.update-dm (all current dm settings re-posted unchanged except dm_maximum_orders 2 -> 500, so QA dm 2 can accept >2 open orders; DM current_orders counter is not decremented by return) -> 302 http://127.0.0.1:8415/admin

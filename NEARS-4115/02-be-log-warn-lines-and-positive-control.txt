@@ -1,0 +1,23 @@
+BE log (Admin/storage/logs/laravel.log of THIS worktree, since QA server boot, byte offset 194615): every '[WARN] parcel return settlement refused' line
+Expected: exactly one per refused (unpaid digital_payment) order, none for COD / paid orders. correlation_id == X-Request-Id of the return request (join verified).
+
+[2026-10-11 01:19:01] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"1fab97d1-765c-4406-8b4a-9e625f51e86f","order_id":91804,"reason":"no_payment_evidence","penalty_skipped":false} 
+[2026-10-11 01:19:35] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"0ddaa3f5-8805-4c2e-a22d-80f284b7aeda","order_id":91805,"reason":"no_payment_evidence","penalty_skipped":false} 
+[2026-10-11 01:20:33] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"031252d4-9f7e-4d36-bff5-4419a17e8f9c","order_id":91812,"reason":"no_payment_evidence","penalty_skipped":false} 
+[2026-10-11 01:20:36] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"2b5e5dd3-65e6-468b-8190-c39b2acf8d37","order_id":91813,"reason":"no_payment_evidence","penalty_skipped":false} 
+[2026-10-11 01:20:38] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"603a2581-01f6-4467-af59-936ec88e4f04","order_id":91814,"reason":"no_payment_evidence","penalty_skipped":false} 
+[2026-10-11 01:20:41] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"3b8ac1ec-318a-4565-873f-e3dc83528f56","order_id":91815,"reason":"no_payment_evidence","penalty_skipped":false} 
+[2026-10-11 01:20:43] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"91413a86-6462-40a0-b71f-875f2747336b","order_id":91816,"reason":"no_payment_evidence","penalty_skipped":true} 
+[2026-10-11 01:20:46] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"ce875734-580b-4891-9ccc-ea7d4303cab7","order_id":91817,"reason":"no_payment_evidence","penalty_skipped":true} 
+[2026-10-11 01:22:45] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"4805c3c1-ac4c-4b9d-8a01-d60634ac8818","order_id":91832,"reason":"no_payment_evidence","penalty_skipped":false} 
+[2026-10-11 01:22:47] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"d1461068-2e00-4ae2-9c3c-87ad750de2d7","order_id":91833,"reason":"no_payment_evidence","penalty_skipped":false} 
+[2026-10-11 01:23:01] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"366aa588-5459-4292-842b-44718e21ecd6","order_id":91837,"reason":"no_payment_evidence","penalty_skipped":false} 
+[2026-10-11 01:23:47] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"4f6e74b6-5f6a-463b-b476-5019f0410001","order_id":91839,"reason":"no_payment_evidence","penalty_skipped":false} 
+[2026-10-11 01:23:50] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"0a947fc9-aca1-4644-9941-016bd666c9e7","order_id":91840,"reason":"no_payment_evidence","penalty_skipped":false} 
+[2026-10-11 01:23:56] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"9315e6bb-d77c-4356-a982-963a68bb5d77","order_id":91842,"reason":"no_payment_evidence","penalty_skipped":false} 
+
+--- aggregate check
+WARN lines: 14 | distinct orders: 14 | max per order: 1
+keys seen across all WARN lines: ['correlation_id', 'order_id', 'penalty_skipped', 'reason'] | penalty_skipped bool everywhere: True | penalty_skipped true for orders: [91816, 91817]
+WARN order set == set of returned unpaid digital_payment orders: True ( 14 orders )
+returned COD/paid control orders: 20 | of those with a WARN line: 0
