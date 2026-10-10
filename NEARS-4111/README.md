@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4111
 
-**QA cycle 1 delta PASS: 82cb7a7ee float-drift tax exactly 0, free baskets + add-on divisor, controls identical**
+**QA cycle 1: tip 45cea2277 order-wise float drift exact 0, free-basket + control rows PASS**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -17,6 +17,20 @@
 - [`ac5b-price0-addon-admin-edit-update-base-vs-tip.log`](ac5b-price0-addon-admin-edit-update-base-vs-tip.log)
 - [`backstop-phpunit-not-run.log`](backstop-phpunit-not-run.log)
 - [`bug-order-wise-float-drift-tax-1e-15.log`](bug-order-wise-float-drift-tax-1e-15.log)
+- [`c1-00-delta-summary.md`](c1-00-delta-summary.md)
+- [`c1-00-setup-state.log`](c1-00-setup-state.log)
+- [`c1-ac1-ac2-customer-quote-and-place-100pct-item-base-vs-tip.log`](c1-ac1-ac2-customer-quote-and-place-100pct-item-base-vs-tip.log)
+- [`c1-ac3a-admin-order-edit-update-100pct-item-base-vs-tip.log`](c1-ac3a-admin-order-edit-update-100pct-item-base-vs-tip.log)
+- [`c1-ac3b-admin-pos-100pct-item-base-vs-tip.log`](c1-ac3b-admin-pos-100pct-item-base-vs-tip.log)
+- [`c1-ac3c-store-panel-vendor-pos-100pct-item-base-vs-tip.log`](c1-ac3c-store-panel-vendor-pos-100pct-item-base-vs-tip.log)
+- [`c1-ac4a-controls-no-discount-and-partial-discount-base-vs-tip.log`](c1-ac4a-controls-no-discount-and-partial-discount-base-vs-tip.log)
+- [`c1-ac4b-control-referral-bonus-nets-to-zero-base-vs-tip.log`](c1-ac4b-control-referral-bonus-nets-to-zero-base-vs-tip.log)
+- [`c1-ac4c-control-referral-bonus-nets-to-zero-take-away-order_amount-0.00-base-vs-tip.log`](c1-ac4c-control-referral-bonus-nets-to-zero-take-away-order_amount-0.00-base-vs-tip.log)
+- [`c1-ac5-price0-addon-on-paid-item-no-discount-base-vs-tip.log`](c1-ac5-price0-addon-on-paid-item-no-discount-base-vs-tip.log)
+- [`c1-ex1-float-drift-price-123.45-at-100pct-base-vs-tip.log`](c1-ex1-float-drift-price-123.45-at-100pct-base-vs-tip.log)
+- [`c1-ex3-100pct-store-discount-base-vs-tip.log`](c1-ex3-100pct-store-discount-base-vs-tip.log)
+- [`c1-ex4-free-line-plus-paid-packaging-still-taxed-base-vs-tip.log`](c1-ex4-free-line-plus-paid-packaging-still-taxed-base-vs-tip.log)
+- [`c1-log-summary-division-by-zero-base-vs-tip.log`](c1-log-summary-division-by-zero-base-vs-tip.log)
 - [`delta-ac3a-admin-order-edit-update-100pct-item-base-vs-tip.log`](delta-ac3a-admin-order-edit-update-100pct-item-base-vs-tip.log)
 - [`delta-ac3b-admin-pos-100pct-item-base-vs-tip.log`](delta-ac3b-admin-pos-100pct-item-base-vs-tip.log)
 - [`delta-ac3c-store-panel-vendor-pos-100pct-item-base-vs-tip.log`](delta-ac3c-store-panel-vendor-pos-100pct-item-base-vs-tip.log)

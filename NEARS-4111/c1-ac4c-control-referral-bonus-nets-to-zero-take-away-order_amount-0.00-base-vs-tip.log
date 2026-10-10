@@ -1,0 +1,36 @@
+# NEARS-4111 AC4 control: a basket netting to exactly 0 through a first-order REFERRAL BONUS (own discount 0) -> admin update 200, order_amount 0.00 (TAKE-AWAY order so delivery is 0 before AND after the admin recompute and order_amount is exactly 0.00)
+item 51 -> (302, ['0.00', 'percent', '4.00', '[]'])
+settings before: [['toggle_veg_non_veg', '1'], ['wallet_status', '1'], ['loyalty_point_status', '1'], ['ref_earning_status', '1'], ['wallet_add_refund', '1'], ['guest_checkout_status', '0'], ['new_customer_discount_status', '1'], ['new_customer_discount_amount_type', 'percentage'], ['new_customer_discount_validity_type', 'day'], ['new_customer_discount_amount', '100'], ['new_customer_discount_amount_validity', '30']]
+update-settings HTTP 302 [['new_customer_discount_status', '1'], ['new_customer_discount_amount_type', 'percentage'], ['new_customer_discount_validity_type', 'day'], ['new_customer_discount_amount', '100'], ['new_customer_discount_amount_validity', '30']]
+free delivery OFF (take-away has no delivery charge) -> 302
+referrer ref_code present: True
+
+######## VAT active=0
+  [base] sign-up with ref_code: HTTP 200 token=True 
+  [base] get-Tax: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":null,"product_price":8,"total_addon_price":0,"total_discount":8} | log []
+  [base] place: HTTP 200 {"message":"Order placed successfully","order_id":91853,"payment_token":"<redacted>","total_ammount":0,"status":"pending","created_at":"2026-10-10 21:02:15","us | log []
+    order 91853: {'id': '91853', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '8.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '0.00', '0.00', '0.00', '[]']]
+    admin edit HTTP 302, update HTTP 302 | log []
+    after: {'id': '91853', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '8.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '1'}
+  [tip] sign-up with ref_code: HTTP 200 token=True 
+  [tip] get-Tax: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":null,"product_price":8,"total_addon_price":0,"total_discount":8} | log []
+  [tip] place: HTTP 200 {"message":"Order placed successfully","order_id":91854,"payment_token":"<redacted>","total_ammount":0,"status":"pending","created_at":"2026-10-10 21:02:17","us | log []
+    order 91854: {'id': '91854', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '8.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '0.00', '0.00', '0.00', '[]']]
+    admin edit HTTP 302, update HTTP 302 | log []
+    after: {'id': '91854', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '8.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '1'}
+  >> VAT=False: BASE == TIP: True
+
+######## VAT active=1
+  [base] sign-up with ref_code: HTTP 200 token=True 
+  [base] get-Tax: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":8} | log []
+  [base] place: HTTP 200 {"message":"Order placed successfully","order_id":91855,"payment_token":"<redacted>","total_ammount":0,"status":"pending","created_at":"2026-10-10 21:02:20","us | log []
+    order 91855: {'id': '91855', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '8.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '0.00', '0.00', '0.00', '[]']]
+    admin edit HTTP 302, update HTTP 302 | log []
+    after: {'id': '91855', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '8.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '1'}
+  [tip] sign-up with ref_code: HTTP 200 token=True 
+  [tip] get-Tax: HTTP 200 {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":8} | log []
+  [tip] place: HTTP 200 {"message":"Order placed successfully","order_id":91856,"payment_token":"<redacted>","total_ammount":0,"status":"pending","created_at":"2026-10-10 21:02:23","us | log []
+    order 91856: {'id': '91856', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '8.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'} details=[['51', '2', '4.00', '0.00', '0.00', '0.00', '[]']]
+    admin edit HTTP 302, update HTTP 302 | log []
+    after: {'id': '91856', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '0.00', 'total_tax_amount': '0.00', 'delivery_charge': '0.00', 'dm_tips': '0.00', 'ref_bonus_amount': '8.000', 'store_discount_amount': '0.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '1'}
+  >> VAT=True: BASE == TIP: True

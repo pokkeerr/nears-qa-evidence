@@ -1,0 +1,17 @@
+marker/digit2 -> 302
+  tip serves business_name=NearsQA4111 digit=2
+  base serves business_name=NearsQA4111 digit=2
+free delivery OFF -> 302
+tax setup -> ['add tax', 302, 'vendor status', 200, '{"id":11,"status":1,"message":"Vendor tax status updated"}', 'system put', 302, [['11', 'vendor', 'order_wise', '["11"]', '0', '1', '1'], ['12', 'prescription', 'order_wise', 'NULL', '1', '1', '0']]]
+activate tax 11: HTTP 200 [['11', 'Vat4111', '10.00000000', '1', '1']] [['11', 'vendor', 'order_wise', '["11"]', '0', '1'], ['12', 'prescription', 'order_wise', 'NULL', '1', '1']]
+pos_system: 302 [['1']]
+addon (302, [['12', 'QA4111 Free Sauce', '0.00', '12', '1']])
+addon (302, [['13', 'QA4111 Paid Sauce', '1.00', '12', '1']])
+addon (302, [['14', 'QA4111 Cent Sauce', '0.30', '12', '1']])
+order settings (packaging grocery): 302 [['admin_free_delivery_status', 'NULL'], ['extra_packaging_charge_status', '1'], ['extra_packaging_data', '{"grocery":"1","food":0,"pharmacy":0,"ecommerce":0,"parcel":0,"rental":0}']]
+store packaging: 302 [['1', '0.500']]
+packaging tax: 302 [['tax_on_packaging_charge', '["11"]', '1']] [['order_wise']]
+customer login 200
+item 51 -> (302, ['0.00', 'percent', '4.00', '[]'])
+  VAT-on non-vacuous paid control [base]: HTTP 200 {"tax_amount":0.8,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":0}
+  VAT-on non-vacuous paid control [tip]: HTTP 200 {"tax_amount":0.8,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":0}
