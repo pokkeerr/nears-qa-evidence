@@ -1,0 +1,50 @@
+# (rerun after activating the Vat4111 tax row via /taxvat/update-taxvat-status: the first pass had is_active=0 on the tax row, so the VAT-on rows of that pass were vacuous and are discarded)
+# NEARS-4111 AC1/AC2: customer get-Tax + place, item 51 (store 12, module 1, zone [2]) at 100% own discount
+# BASE = 778f4f877 on :8582, TIP = 82cb7a7ee on :8581, both on private DB multi_food_db_qa4111, own scratch trees
+discount set -> (302, ['100.00', 'percent', '4.00', '[]'])
+
+######## order-wise 10% VAT active=0 (system_tax_setups vendor row is_active)
+[base] get-Tax qty 1: HTTP 500 rid 0df805f1-d0b6-4bdd-bfc0-817d94e9a0de :: {"message":"Something went wrong"}
+    log lines for rid: {'error_lines': ['[FAIL] Division by zero {"correlation_id":"0df805f1-d0b6-4bdd-bfc0-817d94e9a0de","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]'], 'fcm_env_lines': 0, 'total_lines': 1}
+[base] get-Tax qty 2: HTTP 500 rid 6a919bbd-ccb6-43e0-8569-5ff66c336080 :: {"message":"Something went wrong"}
+    log lines for rid: {'error_lines': ['[FAIL] Division by zero {"correlation_id":"6a919bbd-ccb6-43e0-8569-5ff66c336080","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]'], 'fcm_env_lines': 0, 'total_lines': 1}
+[base] place qty 1: HTTP 403 rid f76b67a6-d482-4df8-a3e4-76d91ebf6487 :: {"errors":[{"code":"order","message":"Failed to place order"}]}
+    orders max(id) 91807 -> 91807; log lines for rid: {'error_lines': ['[FAIL] new_place_order failed {"correlation_id":"f76b67a6-d482-4df8-a3e4-76d91ebf6487","endpoint":"api/v1/customer/order'], 'fcm_env_lines': 0, 'total_lines': 2}
+[base] place qty 2: HTTP 403 rid d9dd6be3-63a9-4872-a86a-9f904b156527 :: {"errors":[{"code":"order","message":"Failed to place order"}]}
+    orders max(id) 91807 -> 91807; log lines for rid: {'error_lines': ['[FAIL] new_place_order failed {"correlation_id":"d9dd6be3-63a9-4872-a86a-9f904b156527","endpoint":"api/v1/customer/order'], 'fcm_env_lines': 0, 'total_lines': 2}
+[tip] get-Tax qty 1: HTTP 200 rid fa4e7dcc-381a-4eae-b8c2-d71a7be9414e :: {"tax_amount":0,"tax_status":"excluded","tax_included":null,"product_price":4,"total_addon_price":0,"total_discount":4}
+    log lines for rid: {'error_lines': [], 'fcm_env_lines': 0, 'total_lines': 0}
+[tip] get-Tax qty 2: HTTP 200 rid dab7c8c8-36f9-4eaa-8884-157bd6990966 :: {"tax_amount":0,"tax_status":"excluded","tax_included":null,"product_price":8,"total_addon_price":0,"total_discount":8}
+    log lines for rid: {'error_lines': [], 'fcm_env_lines': 0, 'total_lines': 0}
+[tip] place qty 1: HTTP 200 rid 64f7e137-6be5-4488-a3d3-1b13c7bc2569 :: {"message":"Order placed successfully","order_id":91808,"payment_token":"<redacted>","total_ammount":1,"status":"pending","created_at":"2026-10-10 19:34:04","user_id":6}
+    orders max(id) 91807 -> 91808; log lines for rid: {'error_lines': [], 'fcm_env_lines': 10, 'total_lines': 11}
+    order row: {'id': '91808', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '4.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'}
+    order_details: [['51', '1', '4.00', '4.00', '0.00', '0.00', '[]']]
+[tip] place qty 2: HTTP 200 rid 756f75db-0a0a-45e4-88b9-274831298399 :: {"message":"Order placed successfully","order_id":91809,"payment_token":"<redacted>","total_ammount":1,"status":"pending","created_at":"2026-10-10 19:34:06","user_id":6}
+    orders max(id) 91808 -> 91809; log lines for rid: {'error_lines': [], 'fcm_env_lines': 10, 'total_lines': 11}
+    order row: {'id': '91809', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'}
+    order_details: [['51', '2', '4.00', '4.00', '0.00', '0.00', '[]']]
+
+######## order-wise 10% VAT active=1 (system_tax_setups vendor row is_active)
+[base] get-Tax qty 1: HTTP 500 rid 578381d0-f23b-4d0e-832e-d28b8055c5a9 :: {"message":"Something went wrong"}
+    log lines for rid: {'error_lines': ['[FAIL] Division by zero {"correlation_id":"578381d0-f23b-4d0e-832e-d28b8055c5a9","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]'], 'fcm_env_lines': 0, 'total_lines': 1}
+[base] get-Tax qty 2: HTTP 500 rid 631ae2b1-4fc5-44d3-941c-e226bacd776e :: {"message":"Something went wrong"}
+    log lines for rid: {'error_lines': ['[FAIL] Division by zero {"correlation_id":"631ae2b1-4fc5-44d3-941c-e226bacd776e","type":"DivisionByZeroError","endpoint" [type=DivisionByZeroError]'], 'fcm_env_lines': 0, 'total_lines': 1}
+[base] place qty 1: HTTP 403 rid cbf1e59b-6669-465b-ba78-3e12af367940 :: {"errors":[{"code":"order","message":"Failed to place order"}]}
+    orders max(id) 91809 -> 91809; log lines for rid: {'error_lines': ['[FAIL] new_place_order failed {"correlation_id":"cbf1e59b-6669-465b-ba78-3e12af367940","endpoint":"api/v1/customer/order'], 'fcm_env_lines': 0, 'total_lines': 2}
+[base] place qty 2: HTTP 403 rid e32e52db-2525-4478-8993-29d69f5ed905 :: {"errors":[{"code":"order","message":"Failed to place order"}]}
+    orders max(id) 91809 -> 91809; log lines for rid: {'error_lines': ['[FAIL] new_place_order failed {"correlation_id":"e32e52db-2525-4478-8993-29d69f5ed905","endpoint":"api/v1/customer/order'], 'fcm_env_lines': 0, 'total_lines': 2}
+[tip] get-Tax qty 1: HTTP 200 rid f6e13729-8e91-4506-8ecc-cf92019ef646 :: {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":4,"total_addon_price":0,"total_discount":4}
+    log lines for rid: {'error_lines': [], 'fcm_env_lines': 0, 'total_lines': 0}
+[tip] get-Tax qty 2: HTTP 200 rid ec562fed-748e-4e03-9d7c-94305ad73280 :: {"tax_amount":0,"tax_status":"excluded","tax_included":0,"product_price":8,"total_addon_price":0,"total_discount":8}
+    log lines for rid: {'error_lines': [], 'fcm_env_lines': 0, 'total_lines': 0}
+[tip] place qty 1: HTTP 200 rid fcd9db43-a662-4231-9212-e2aa411a2d55 :: {"message":"Order placed successfully","order_id":91810,"payment_token":"<redacted>","total_ammount":1,"status":"pending","created_at":"2026-10-10 19:34:08","user_id":6}
+    orders max(id) 91809 -> 91810; log lines for rid: {'error_lines': [], 'fcm_env_lines': 10, 'total_lines': 11}
+    order row: {'id': '91810', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '4.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'}
+    order_details: [['51', '1', '4.00', '4.00', '0.00', '0.00', '[]']]
+[tip] place qty 2: HTTP 200 rid 44dca854-563e-44e8-bf0d-025cdc5e9542 :: {"message":"Order placed successfully","order_id":91811,"payment_token":"<redacted>","total_ammount":1,"status":"pending","created_at":"2026-10-10 19:34:10","user_id":6}
+    orders max(id) 91810 -> 91811; log lines for rid: {'error_lines': [], 'fcm_env_lines': 10, 'total_lines': 11}
+    order row: {'id': '91811', 'order_status': 'pending', 'payment_method': 'cash_on_delivery', 'payment_status': 'unpaid', 'order_amount': '1.00', 'total_tax_amount': '0.00', 'delivery_charge': '1.00', 'dm_tips': '0.00', 'ref_bonus_amount': '0.000', 'store_discount_amount': '8.00', 'coupon_discount_amount': '0.00', 'extra_packaging_amount': '0.000', 'tax_status': 'excluded', 'tax_percentage': '0.000', 'edited': '0'}
+    order_details: [['51', '2', '4.00', '4.00', '0.00', '0.00', '[]']]
+
+placed orders: {('tip', False, 1): 91808, ('tip', False, 2): 91809, ('tip', True, 1): 91810, ('tip', True, 2): 91811}

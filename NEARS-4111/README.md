@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4111
 
-**QA c4af5bb5e vs base c891fda8c: AC1-AC5 live PASS (base 500/403/500 -> tip 200), order-wise float-drift extra FAIL (1.4e-15)**
+**QA cycle 1 delta PASS: 82cb7a7ee float-drift tax exactly 0, free baskets + add-on divisor, controls identical**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -17,6 +17,22 @@
 - [`ac5b-price0-addon-admin-edit-update-base-vs-tip.log`](ac5b-price0-addon-admin-edit-update-base-vs-tip.log)
 - [`backstop-phpunit-not-run.log`](backstop-phpunit-not-run.log)
 - [`bug-order-wise-float-drift-tax-1e-15.log`](bug-order-wise-float-drift-tax-1e-15.log)
+- [`delta-ac3a-admin-order-edit-update-100pct-item-base-vs-tip.log`](delta-ac3a-admin-order-edit-update-100pct-item-base-vs-tip.log)
+- [`delta-ac3b-admin-pos-100pct-item-base-vs-tip.log`](delta-ac3b-admin-pos-100pct-item-base-vs-tip.log)
+- [`delta-ac3c-store-panel-vendor-pos-100pct-item-base-vs-tip.log`](delta-ac3c-store-panel-vendor-pos-100pct-item-base-vs-tip.log)
+- [`delta-r1-float-drift-price-123.45-at-100pct-order-wise-base-vs-tip.log`](delta-r1-float-drift-price-123.45-at-100pct-order-wise-base-vs-tip.log)
+- [`delta-r2-ac1-ac2-customer-quote-and-place-100pct-item-base-vs-tip.log`](delta-r2-ac1-ac2-customer-quote-and-place-100pct-item-base-vs-tip.log)
+- [`delta-r2-ac3-free-basket-admin-free-delivery-on-edit-update-base-vs-tip.log`](delta-r2-ac3-free-basket-admin-free-delivery-on-edit-update-base-vs-tip.log)
+- [`delta-r2-ex3-100pct-store-discount-base-vs-tip.log`](delta-r2-ex3-100pct-store-discount-base-vs-tip.log)
+- [`delta-r2-ex4-free-line-plus-paid-packaging-still-taxed-base-vs-tip.log`](delta-r2-ex4-free-line-plus-paid-packaging-still-taxed-base-vs-tip.log)
+- [`delta-r2-ex5-free-item-plus-paid-addon-normal-path-base-vs-tip.log`](delta-r2-ex5-free-item-plus-paid-addon-normal-path-base-vs-tip.log)
+- [`delta-r2-log-summary-base-place-DivisionByZeroError-vs-tip.log`](delta-r2-log-summary-base-place-DivisionByZeroError-vs-tip.log)
+- [`delta-r3-ac4a-controls-no-discount-and-partial-discount-base-vs-tip.log`](delta-r3-ac4a-controls-no-discount-and-partial-discount-base-vs-tip.log)
+- [`delta-r3-ac4b-control-referral-bonus-nets-to-zero-base-vs-tip.log`](delta-r3-ac4b-control-referral-bonus-nets-to-zero-base-vs-tip.log)
+- [`delta-r3-ac4c-control-referral-bonus-nets-to-zero-take-away-order_amount-0.00-base-vs-tip.log`](delta-r3-ac4c-control-referral-bonus-nets-to-zero-take-away-order_amount-0.00-base-vs-tip.log)
+- [`delta-r4-ac5-price0-addon-on-paid-item-no-discount-base-vs-tip.log`](delta-r4-ac5-price0-addon-on-paid-item-no-discount-base-vs-tip.log)
+- [`delta-r4-ac5b-price0-addon-admin-edit-update-base-vs-tip.log`](delta-r4-ac5b-price0-addon-admin-edit-update-base-vs-tip.log)
+- [`delta-r4-ex2-digit0-rounding-0.30-addon-base-vs-tip.log`](delta-r4-ex2-digit0-rounding-0.30-addon-base-vs-tip.log)
 - [`ex1-float-drift-price-123.45-at-100pct-base-vs-tip.log`](ex1-float-drift-price-123.45-at-100pct-base-vs-tip.log)
 - [`ex1b-float-drift-product-wise-tax-base-vs-tip.log`](ex1b-float-drift-product-wise-tax-base-vs-tip.log)
 - [`ex2-digit0-rounding-0.30-addon-base-vs-tip.log`](ex2-digit0-rounding-0.30-addon-base-vs-tip.log)
