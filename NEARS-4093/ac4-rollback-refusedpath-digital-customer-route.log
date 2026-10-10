@@ -1,0 +1,98 @@
+#### rollback probe ac4-rollback-refusedpath-digital-customer-route | method digital_payment | route customer | lock: orders
+step ('place digital_payment', 200, {'message': 'Order placed successfully', 'order_id': 91825, 'total_ammount': 5, 'status': 'failed'})
+step ('dm accept', 200, {'message': 'Order accepted successfully'})
+step ('dm picked_up', 200, {'message': 'Status updated'})
+cancel 200 {'message': 'Parcel canceled successfully'}
+== BEFORE return (order 91825)
+-- order
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| id    | order_status | payment_status | payment_method  | order_amount | delivery_man_id | user_id |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| 91825 | canceled     | unpaid         | digital_payment |         5.00 |               2 |       6 |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+-- pc
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+| order_id | cancel_by | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date | is_refunded | has_otp |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+|    91825 | customer  |        2.5 | unpaid                    |             0 |              0 | NULL        |           0 |       1 |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+-- order_transactions(order)
+(no rows)
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- counts
++------+------+------+------+------+
+| ot   | ex   | op   | at_  | wt   |
++------+------+------+------+------+
+|   40 |   29 |    2 |   34 |    7 |
++------+------+------+------+------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    64.85 |            25.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |          62.50 |        312.50 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  6 |          0.000 |
++----+----------------+
+RETURN (lock held; took 51s) -> (500, {'errors': [{'code': 'wallet', 'message': 'Something went wrong'}]})
+CHANGED SECTIONS vs BEFORE (rolled back => none): none
+== AFTER rollback (order 91825)
+-- order
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| id    | order_status | payment_status | payment_method  | order_amount | delivery_man_id | user_id |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| 91825 | canceled     | unpaid         | digital_payment |         5.00 |               2 |       6 |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+-- pc
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+| order_id | cancel_by | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date | is_refunded | has_otp |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+|    91825 | customer  |        2.5 | unpaid                    |             0 |              0 | NULL        |           0 |       1 |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+-- order_transactions(order)
+(no rows)
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- counts
++------+------+------+------+------+
+| ot   | ex   | op   | at_  | wt   |
++------+------+------+------+------+
+|   40 |   29 |    2 |   34 |    7 |
++------+------+------+------+------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    64.85 |            25.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |          62.50 |        312.50 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  6 |          0.000 |
++----+----------------+
+RETRY after lock released -> (200, {'message': 'Parcel returned successfully'}) | order now: {'order_status/payment_status/method': ['returned', 'unpaid', 'digital_payment'], 'return_fee/status': ['2.5', 'unpaid'], 'order_transactions': [], 'expenses': '0', 'order_payments': '0'}
+LOG lines scoped to order 91825:
+   [2026-10-10 21:18:30] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"5e66dfc2-8d63-41f2-a4f9-5bcbe87e52e8","order_id":91825,"reason":"no_payment_evidence","penalty_skipped":false} 
+   [2026-10-10 21:19:22] production.ERROR: [FAIL] parcel return rolled back {"correlation_id":"5e66dfc2-8d63-41f2-a4f9-5bcbe87e52e8","endpoint":"/api/v1/customer/order/parcel-return","order_id":91825,"type":"Illuminate\\Database\\QueryException"} 
+   [2026-10-10 21:19:22] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"1b595a12-82c6-40aa-a8f1-5c37d8f30105","order_id":91825,"reason":"no_payment_evidence","penalty_skipped":false} 

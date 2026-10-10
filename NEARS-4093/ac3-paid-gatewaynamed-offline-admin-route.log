@@ -1,0 +1,104 @@
+#### scenario ac3-paid-gatewaynamed-offline-admin-route | payment_method offline_payment | return route: admin | cancel_by: customer
+step ('place offline_payment', 200, {'message': 'Order placed successfully', 'order_id': 91819, 'total_ammount': 5, 'status': 'failed'})
+step ('customer offline-payment submit', 200, {'payment': 'success'})
+step ('admin verify offline payment', 302, {'redirect': 'http://127.0.0.1:8493/admin'})
+step ('state', 0, ['confirmed', 'paid', 'offline_payment'])
+step ('dm accept', 200, {'message': 'Order accepted successfully'})
+step ('dm picked_up', 200, {'message': 'Status updated'})
+order 91819 state after pickup: ['picked_up', 'paid', 'offline_payment']
+cancel by customer 200 {'message': 'Parcel canceled successfully'}
+== BEFORE return (order 91819)
+-- order
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| id    | order_status | payment_status | payment_method  | order_amount | delivery_man_id | user_id |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| 91819 | canceled     | paid           | offline_payment |         5.00 |               2 |       6 |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+-- pc
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+| order_id | cancel_by | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date | is_refunded | has_otp |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+|    91819 | customer  |        2.5 | unpaid                    |             0 |              0 | NULL        |           0 |       1 |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+-- order_transactions(order)
+(no rows)
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- counts
++------+------+------+------+------+
+| ot   | ex   | op   | at_  | wt   |
++------+------+------+------+------+
+|   35 |   29 |    2 |   31 |    7 |
++------+------+------+------+------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    39.85 |            15.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |          35.00 |        300.00 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  6 |          0.000 |
++----+----------------+
+RETURN -> (302, {'redirect': 'http://127.0.0.1:8493/admin', 'toastr': [('success', 'Parcel returned successfully'), ('success', 'Text copied'), ('success', 'New message arrived')]})
+== AFTER return (order 91819)
+-- order
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| id    | order_status | payment_status | payment_method  | order_amount | delivery_man_id | user_id |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| 91819 | returned     | paid           | offline_payment |         5.00 |               2 |       6 |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+-- pc
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+| order_id | cancel_by | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date | is_refunded | has_otp |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+|    91819 | customer  |        2.5 | paid                      |             0 |              0 | NULL        |           0 |       1 |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+-- order_transactions(order)
++----+----------+-------------+--------------+------------------+-----------------+-----------------+--------+
+| id | order_id | received_by | order_amount | admin_commission | delivery_charge | delivery_man_id | status |
++----+----------+-------------+--------------+------------------+-----------------+-----------------+--------+
+| 56 |    91819 | admin       |         5.00 |             5.00 |            5.00 |               2 | NULL   |
++----+----------+-------------+--------------+------------------+-----------------+-----------------+--------+
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- counts
++------+------+------+------+------+
+| ot   | ex   | op   | at_  | wt   |
++------+------+------+------+------+
+|   36 |   29 |    2 |   31 |    7 |
++------+------+------+------+------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    44.85 |            20.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |          37.50 |        302.50 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  6 |          0.000 |
++----+----------------+
+CHANGED SECTIONS: ['order', 'pc', 'order_transactions(order)', 'counts', 'admin_wallet', 'dm_wallet(dm 2)']
+REPLAY -> (302, {'redirect': 'http://127.0.0.1:8493/admin/order/list/all', 'note': 'admin replay (toast not parsed)'}) | writes on replay: none
+LOG lines (scoped to order 91819 / [FAIL]) since scenario start:
+   (none)

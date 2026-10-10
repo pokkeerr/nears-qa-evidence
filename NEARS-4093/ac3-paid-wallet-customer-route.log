@@ -1,0 +1,104 @@
+#### scenario ac3-paid-wallet-customer-route | payment_method wallet | return route: customer | cancel_by: customer
+step ('place wallet', 200, {'message': 'Order placed successfully', 'order_id': 91812, 'total_ammount': 5, 'status': 'confirmed'})
+step ('dm accept', 200, {'message': 'Order accepted successfully'})
+step ('dm picked_up', 200, {'message': 'Status updated'})
+order 91812 state after pickup: ['picked_up', 'paid', 'wallet']
+cancel by customer 200 {'message': 'Parcel canceled successfully'}
+== BEFORE return (order 91812)
+-- order
++-------+--------------+----------------+----------------+--------------+-----------------+---------+
+| id    | order_status | payment_status | payment_method | order_amount | delivery_man_id | user_id |
++-------+--------------+----------------+----------------+--------------+-----------------+---------+
+| 91812 | canceled     | paid           | wallet         |         5.00 |               2 |       3 |
++-------+--------------+----------------+----------------+--------------+-----------------+---------+
+-- pc
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+| order_id | cancel_by | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date | is_refunded | has_otp |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+|    91812 | customer  |        2.5 | unpaid                    |             0 |              0 | NULL        |           0 |       1 |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+-- order_transactions(order)
+(no rows)
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- counts
++------+------+------+------+------+
+| ot   | ex   | op   | at_  | wt   |
++------+------+------+------+------+
+|   32 |   29 |    2 |   31 |    5 |
++------+------+------+------+------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    24.85 |             0.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |          22.50 |        287.50 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  3 |         95.000 |
++----+----------------+
+RETURN -> (200, {'message': 'Parcel returned successfully'})
+== AFTER return (order 91812)
+-- order
++-------+--------------+----------------+----------------+--------------+-----------------+---------+
+| id    | order_status | payment_status | payment_method | order_amount | delivery_man_id | user_id |
++-------+--------------+----------------+----------------+--------------+-----------------+---------+
+| 91812 | returned     | paid           | wallet         |         5.00 |               2 |       3 |
++-------+--------------+----------------+----------------+--------------+-----------------+---------+
+-- pc
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+| order_id | cancel_by | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date | is_refunded | has_otp |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+|    91812 | customer  |        2.5 | paid                      |             0 |              0 | NULL        |           0 |       1 |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+-- order_transactions(order)
++----+----------+-------------+--------------+------------------+-----------------+-----------------+--------+
+| id | order_id | received_by | order_amount | admin_commission | delivery_charge | delivery_man_id | status |
++----+----------+-------------+--------------+------------------+-----------------+-----------------+--------+
+| 53 |    91812 | admin       |         5.00 |             5.00 |            5.00 |               2 | NULL   |
++----+----------+-------------+--------------+------------------+-----------------+-----------------+--------+
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- counts
++------+------+------+------+------+
+| ot   | ex   | op   | at_  | wt   |
++------+------+------+------+------+
+|   33 |   29 |    2 |   31 |    5 |
++------+------+------+------+------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    29.85 |             5.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |          25.00 |        290.00 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  3 |         95.000 |
++----+----------------+
+CHANGED SECTIONS: ['order', 'pc', 'order_transactions(order)', 'counts', 'admin_wallet', 'dm_wallet(dm 2)']
+REPLAY -> (403, {'errors': [{'code': 'parcel', 'message': 'You can return only canceled parcel orders'}]}) | writes on replay: none
+LOG lines (scoped to order 91812 / [FAIL]) since scenario start:
+   [2026-10-10 21:10:06] production.WARNING: FCM push skipped - empty or muted token {"correlation_id":"2760e371-50e1-4460-b411-273cab252d0d","order_id":91812} 
+   [2026-10-10 21:10:07] production.WARNING: FCM push skipped - empty or muted token {"correlation_id":"1afa216e-881b-4bdc-a264-a891d02b9cae","order_id":91812} 
+   [2026-10-10 21:10:07] production.WARNING: FCM push skipped - empty or muted token {"correlation_id":"f15ba468-1771-4ac6-891a-50f931110d05","order_id":91812} 
+   [2026-10-10 21:10:08] production.WARNING: FCM push skipped - empty or muted token {"correlation_id":"d4a49491-a212-4a61-8e15-4f5455a83d2a","order_id":91812} 

@@ -1,0 +1,97 @@
+#### scenario reg-a-dmcancel-unpaid-digital-customer-route | payment_method digital_payment | return route: customer | cancel_by: courier
+step ('place digital_payment', 200, {'message': 'Order placed successfully', 'order_id': 91815, 'total_ammount': 5, 'status': 'failed'})
+step ('dm accept', 200, {'message': 'Order accepted successfully'})
+step ('dm picked_up', 200, {'message': 'Status updated'})
+order 91815 state after pickup: ['picked_up', 'unpaid', 'digital_payment']
+cancel by courier 200 {'message': 'Parcel canceled successfully'}
+== BEFORE return (order 91815)
+-- order
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| id    | order_status | payment_status | payment_method  | order_amount | delivery_man_id | user_id |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| 91815 | canceled     | unpaid         | digital_payment |         5.00 |               2 |       6 |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+-- pc
++----------+-------------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+| order_id | cancel_by   | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date | is_refunded | has_otp |
++----------+-------------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+|    91815 | deliveryman |        2.5 | unpaid                    |             0 |              0 | NULL        |           0 |       1 |
++----------+-------------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+-- order_transactions(order)
+(no rows)
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- counts
++------+------+------+------+------+
+| ot   | ex   | op   | at_  | wt   |
++------+------+------+------+------+
+|   35 |   29 |    2 |   31 |    7 |
++------+------+------+------+------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    39.85 |            15.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |          30.00 |        295.00 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  6 |          0.000 |
++----+----------------+
+RETURN -> (200, {'message': 'Parcel returned successfully'})
+== AFTER return (order 91815)
+-- order
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| id    | order_status | payment_status | payment_method  | order_amount | delivery_man_id | user_id |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| 91815 | returned     | unpaid         | digital_payment |         5.00 |               2 |       6 |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+-- pc
++----------+-------------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+| order_id | cancel_by   | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date | is_refunded | has_otp |
++----------+-------------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+|    91815 | deliveryman |        2.5 | paid                      |             0 |              0 | NULL        |           0 |       1 |
++----------+-------------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+-- order_transactions(order)
+(no rows)
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- counts
++------+------+------+------+------+
+| ot   | ex   | op   | at_  | wt   |
++------+------+------+------+------+
+|   35 |   29 |    2 |   31 |    7 |
++------+------+------+------+------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    39.85 |            15.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |          32.50 |        297.50 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  6 |          0.000 |
++----+----------------+
+CHANGED SECTIONS: ['order', 'pc', 'dm_wallet(dm 2)']
+REPLAY -> (403, {'errors': [{'code': 'parcel', 'message': 'You can return only canceled parcel orders'}]}) | writes on replay: none
+LOG lines (scoped to order 91815 / [FAIL]) since scenario start:
+   (none)

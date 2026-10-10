@@ -1,0 +1,97 @@
+#### scenario ac1-refused-digital-customer | payment_method digital_payment | return route: customer | cancel_by: customer
+step ('place digital_payment', 200, {'message': 'Order placed successfully', 'order_id': 91806, 'total_ammount': 5, 'status': 'failed'})
+step ('dm accept', 200, {'message': 'Order accepted successfully'})
+step ('dm picked_up', 200, {'message': 'Status updated'})
+order 91806 state after pickup: ['picked_up', 'unpaid', 'digital_payment']
+cancel by customer 200 {'message': 'Parcel canceled successfully'}
+== BEFORE return (order 91806)
+-- order
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| id    | order_status | payment_status | payment_method  | order_amount | delivery_man_id | user_id |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| 91806 | canceled     | unpaid         | digital_payment |         5.00 |               2 |       6 |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+-- pc
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+| order_id | cancel_by | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date | is_refunded | has_otp |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+|    91806 | customer  |        2.5 | unpaid                    |             0 |              0 | NULL        |           0 |       1 |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+-- order_transactions(order)
+(no rows)
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- counts
++------+------+------+------+------+
+| ot   | ex   | op   | at_  | wt   |
++------+------+------+------+------+
+|   30 |   29 |    2 |   29 |    4 |
++------+------+------+------+------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    14.85 |             0.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |           7.50 |        282.50 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  6 |          0.000 |
++----+----------------+
+RETURN -> (200, {'message': 'Parcel returned successfully'})
+== AFTER return (order 91806)
+-- order
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| id    | order_status | payment_status | payment_method  | order_amount | delivery_man_id | user_id |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+| 91806 | returned     | unpaid         | digital_payment |         5.00 |               2 |       6 |
++-------+--------------+----------------+-----------------+--------------+-----------------+---------+
+-- pc
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+| order_id | cancel_by | return_fee | return_fee_payment_status | before_pickup | dm_penalty_fee | return_date | is_refunded | has_otp |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+|    91806 | customer  |        2.5 | unpaid                    |             0 |              0 | NULL        |           0 |       1 |
++----------+-----------+------------+---------------------------+---------------+----------------+-------------+-------------+---------+
+-- order_transactions(order)
+(no rows)
+-- expenses(order)
+(no rows)
+-- order_payments(order)
+(no rows)
+-- counts
++------+------+------+------+------+
+| ot   | ex   | op   | at_  | wt   |
++------+------+------+------+------+
+|   30 |   29 |    2 |   29 |    4 |
++------+------+------+------+------+
+-- admin_wallet
++--------------------------+------------------+-----------------+-----------------+
+| total_commission_earning | digital_received | manual_received | delivery_charge |
++--------------------------+------------------+-----------------+-----------------+
+|                    14.85 |             0.00 |           20.00 |           0.000 |
++--------------------------+------------------+-----------------+-----------------+
+-- dm_wallet(dm 2)
++-----------------+----------------+---------------+-----------------+------------------+
+| delivery_man_id | collected_cash | total_earning | total_withdrawn | pending_withdraw |
++-----------------+----------------+---------------+-----------------+------------------+
+|               2 |           7.50 |        282.50 |          150.00 |            30.00 |
++-----------------+----------------+---------------+-----------------+------------------+
+-- user_wallet
++----+----------------+
+| id | wallet_balance |
++----+----------------+
+|  6 |          0.000 |
++----+----------------+
+CHANGED SECTIONS: ['order']
+REPLAY -> (403, {'errors': [{'code': 'parcel', 'message': 'You can return only canceled parcel orders'}]}) | writes on replay: none
+LOG lines (scoped to order 91806 / [FAIL]) since scenario start:
+   [2026-10-10 21:08:48] production.WARNING: [WARN] parcel return settlement refused {"correlation_id":"d47fad39-d6e7-4b0d-bbc6-f59841506db4","order_id":91806,"reason":"no_payment_evidence","penalty_skipped":false} 
