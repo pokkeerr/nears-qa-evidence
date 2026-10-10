@@ -1,0 +1,52 @@
+DB multi_food_db_qa4110
+
+===== SETTINGS P1 all-store ON, ac off, VAT off
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_to_all_store', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+### REAL placement all-store: figures (compare BASE vs FIX placement) then unchanged edit
+  [BASE] PLACED order 91583: {"order_amount": "8.00", "delivery_charge": "0.00", "original_delivery_charge": "1.00", "free_delivery_by": "admin", "additional_charge": 0, "store_discount_amount": "0.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [BASE] edit1: order 91583 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 1.00 adj -1.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 9.0
+  [BASE] edit2: order 91583 qty=None http edit=302 update=200 | PRE amt 9.00 del 1.00 adj -1.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 1.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 9.0
+  [FIX] PLACED order 91584: {"order_amount": "8.00", "delivery_charge": "0.00", "original_delivery_charge": "1.00", "free_delivery_by": "admin", "additional_charge": 0, "store_discount_amount": "0.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [FIX] edit1: order 91584 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] edit2: order 91584 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+
+===== SETTINGS P2 by-amount over=6
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_by_order_amount', 'free_delivery_over': '6', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+### REAL placement by-amount over=6 basket 8
+  [BASE] PLACED order 91585: {"order_amount": "8.00", "delivery_charge": "0.00", "original_delivery_charge": "1.00", "free_delivery_by": "admin", "additional_charge": 0, "store_discount_amount": "0.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [BASE] edit1: order 91585 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] PLACED order 91586: {"order_amount": "8.00", "delivery_charge": "0.00", "original_delivery_charge": "1.00", "free_delivery_by": "admin", "additional_charge": 0, "store_discount_amount": "0.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [FIX] edit1: order 91586 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+
+### REAL placement by-amount over=6 basket 4 (qty 1: paid delivery)
+  [BASE] PLACED order 91587: {"order_amount": "5.00", "delivery_charge": "1.00", "original_delivery_charge": "1.00", "free_delivery_by": null, "additional_charge": 0, "store_discount_amount": "0.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [BASE] edit1: order 91587 qty=None http edit=302 update=200 | PRE amt 5.00 del 1.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 5.00 del 1.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 5.0
+  [FIX] PLACED order 91588: {"order_amount": "5.00", "delivery_charge": "1.00", "original_delivery_charge": "1.00", "free_delivery_by": null, "additional_charge": 0, "store_discount_amount": "0.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [FIX] edit1: order 91588 qty=None http edit=302 update=200 | PRE amt 5.00 del 1.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 5.00 del 1.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 5.0
+
+===== SETTINGS P3 admin free delivery OFF, additional charge 3
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': 'NULL', 'admin_free_delivery_option': 'NULL', 'free_delivery_over': 'NULL', 'additional_charge_status': '1', 'additional_charge': '3'}
+
+### REAL placement additional charge 3 (placed 3)
+  [BASE] PLACED order 91589: {"order_amount": "12.00", "delivery_charge": "1.00", "original_delivery_charge": "1.00", "free_delivery_by": null, "additional_charge": 3, "store_discount_amount": "0.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [BASE] edit1: order 91589 qty=None http edit=302 update=200 | PRE amt 12.00 del 1.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 12.00 del 1.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 12.0
+  [FIX] PLACED order 91590: {"order_amount": "12.00", "delivery_charge": "1.00", "original_delivery_charge": "1.00", "free_delivery_by": null, "additional_charge": 3, "store_discount_amount": "0.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [FIX] edit1: order 91590 qty=None http edit=302 update=200 | PRE amt 12.00 del 1.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 12.00 del 1.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 12.0
+
+===== SETTINGS P4 additional charge now 1 -> unchanged-cart edit of an order placed at 3
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': 'NULL', 'admin_free_delivery_option': 'NULL', 'free_delivery_over': 'NULL', 'additional_charge_status': '1', 'additional_charge': '1'}
+
+===== SETTINGS P5 restore: all-store, additional charge off
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_to_all_store', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+FAILS []

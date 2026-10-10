@@ -1,0 +1,26 @@
+
+===== SETTINGS D1 admin free delivery ON all-store, additional charge 2 placed? (ac 3)
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_to_all_store', 'free_delivery_over': 'NULL', 'additional_charge_status': '1', 'additional_charge': '3'}
+  DML(clone only): update items set discount=25, discount_type='percent' where id=51
+  [BASE] PLACED REAL store(item) discount 25% under all-store + additional 3 (H1-A with discount): order 91595 {"order_amount": "9.00", "delivery_charge": "0.00", "original_delivery_charge": "1.00", "free_delivery_by": "admin", "additional_charge": 3, "store_discount_amount": "2.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [FIX] PLACED REAL store(item) discount 25% under all-store + additional 3 (H1-A with discount): order 91596 {"order_amount": "9.00", "delivery_charge": "0.00", "original_delivery_charge": "1.00", "free_delivery_by": "admin", "additional_charge": 3, "store_discount_amount": "2.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [BASE] PLACED second for unchanged x2: order 91597 {"order_amount": "9.00", "delivery_charge": "0.00", "original_delivery_charge": "1.00", "free_delivery_by": "admin", "additional_charge": 3, "store_discount_amount": "2.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [FIX] PLACED second for unchanged x2: order 91598 {"order_amount": "9.00", "delivery_charge": "0.00", "original_delivery_charge": "1.00", "free_delivery_by": "admin", "additional_charge": 3, "store_discount_amount": "2.00", "total_tax_amount": "0.00", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+
+===== SETTINGS D2 additional charge now disabled
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_to_all_store', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+### REAL store-discount H1-A order (item discount still ON), unchanged edit: expect no change
+  [BASE] edit: order 91595 qty=None http edit=302 update=200 | PRE amt 9.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 7.00 del 1.00 adj 2.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 10.0
+  [FIX] edit: order 91596 qty=None http edit=302 update=200 | PRE amt 9.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 9.0
+### REAL store-discount H1-A order, 2nd unchanged edit
+  [BASE] edit: order 91595 qty=None http edit=302 update=200 | PRE amt 7.00 del 1.00 adj 2.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 7.00 del 1.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 7.0
+  [FIX] edit: order 91596 qty=None http edit=302 update=200 | PRE amt 9.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 9.0
+  DML(clone only): update items set discount=0, discount_type='percent' where id=51
+
+===== SETTINGS D3 restore
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_to_all_store', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}

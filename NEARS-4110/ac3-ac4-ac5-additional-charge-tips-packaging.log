@@ -1,0 +1,88 @@
+DB multi_food_db_qa4110 NearsQA4110
+
+===== SETTINGS G7 admin free delivery OFF, additional charge ON value 3
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': 'NULL', 'admin_free_delivery_option': 'NULL', 'free_delivery_over': 'NULL', 'additional_charge_status': '1', 'additional_charge': '3'}
+
+### AC3 H1-B placed additional_charge 2 (10.00), setting 3: x2
+  fixture={"order_amount": 10, "overrides": {"additional_charge": 2}}
+  [BASE] s1: order 91520 qty=None http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 11.00 del 0.00 adj -1.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 10.0
+  [BASE] s2: order 91520 qty=None http edit=302 update=200 | PRE amt 11.00 del 0.00 adj -1.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 11.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 11.0
+  [FIX] s1: order 91521 qty=None http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | previewTotal 10.0 | EXPECT (10, 0, 0, 2) -> OK | preview==save OK
+  [FIX] s2: order 91521 qty=None http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | previewTotal 10.0 | EXPECT (10, 0, 0, 2) -> OK | preview==save OK
+
+### AC3 control placed 3 (11.00), setting 3
+  fixture={"order_amount": 11, "overrides": {"additional_charge": 3}}
+  [BASE] s1: order 91522 qty=None http edit=302 update=200 | PRE amt 11.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 11.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 11.0
+  [FIX] s1: order 91523 qty=None http edit=302 update=200 | PRE amt 11.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 11.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 11.0 | EXPECT (11, 0, 0, 3) -> OK | preview==save OK
+
+### AC5 genuine qty change under setting 3 (placed 2): qty 2->3 -> basket 12 + placed 2 = 14, adjusment -4
+  fixture={"order_amount": 10, "overrides": {"additional_charge": 2}}
+  [BASE] s1: order 91524 qty=3 http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 15.00 del 0.00 adj -5.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 14.0
+  [FIX] s1: order 91525 qty=3 http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 14.00 del 0.00 adj -4.00 addl 2.00 tips 0.00 pkg 0.00 | previewTotal 14.0 | EXPECT (14, 0, -4, 2) -> OK | preview==save OK
+
+===== SETTINGS G8 additional charge value 1
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': 'NULL', 'admin_free_delivery_option': 'NULL', 'free_delivery_over': 'NULL', 'additional_charge_status': '1', 'additional_charge': '1'}
+
+### AC3 placed 2 (10.00), setting now 1
+  fixture={"order_amount": 10, "overrides": {"additional_charge": 2}}
+  [BASE] s1: order 91526 qty=None http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 0.00 adj 1.00 addl 1.00 tips 0.00 pkg 0.00 | previewTotal 10.0
+  [FIX] s1: order 91527 qty=None http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | previewTotal 10.0 | EXPECT (10, 0, 0, 2) -> OK | preview==save OK
+
+### AC3 control placed 3 (11.00), setting now 1: stays 11.00
+  fixture={"order_amount": 11, "overrides": {"additional_charge": 3}}
+  [BASE] s1: order 91528 qty=None http edit=302 update=200 | PRE amt 11.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 0.00 adj 2.00 addl 1.00 tips 0.00 pkg 0.00 | previewTotal 11.0
+  [FIX] s1: order 91529 qty=None http edit=302 update=200 | PRE amt 11.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 11.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 11.0 | EXPECT (11, 0, 0, 3) -> OK | preview==save OK
+
+===== SETTINGS G9 additional charge disabled
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': 'NULL', 'admin_free_delivery_option': 'NULL', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+### AC3 placed 2 (10.00), charge disabled
+  fixture={"order_amount": 10, "overrides": {"additional_charge": 2}}
+  [BASE] s1: order 91530 qty=None http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 2.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 10.0
+  [BASE] s2: order 91530 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 2.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] s1: order 91531 qty=None http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | previewTotal 10.0 | EXPECT (10, 0, 0, 2) -> OK | preview==save OK
+  [FIX] s2: order 91531 qty=None http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | previewTotal 10.0 | EXPECT (10, 0, 0, 2) -> OK | preview==save OK
+
+### AC3 control placed 3 (11.00), disabled: stays 11.00
+  fixture={"order_amount": 11, "overrides": {"additional_charge": 3}}
+  [BASE] s1: order 91532 qty=None http edit=302 update=200 | PRE amt 11.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 3.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 11.0
+  [FIX] s1: order 91533 qty=None http edit=302 update=200 | PRE amt 11.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 11.00 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 11.0 | EXPECT (11, 0, 0, 3) -> OK | preview==save OK
+
+### AC4 disabled, tips 1.5 + packaging 0.5, placed 2 -> 12.00 with tips and packaging kept
+  fixture={"order_amount": 12, "overrides": {"additional_charge": 2, "dm_tips": 1.5, "extra_packaging_amount": 0.5}}
+  [BASE] s1: order 91534 qty=None http edit=302 update=200 | PRE amt 12.00 del 0.00 adj 0.00 addl 2.00 tips 1.50 pkg 0.50 | POST amt 10.00 del 0.00 adj 2.00 addl 0.00 tips 1.50 pkg 0.50 | previewTotal 12.0
+  [FIX] s1: order 91535 qty=None http edit=302 update=200 | PRE amt 12.00 del 0.00 adj 0.00 addl 2.00 tips 1.50 pkg 0.50 | POST amt 12.00 del 0.00 adj 0.00 addl 2.00 tips 1.50 pkg 0.50 | previewTotal 12.0 | EXPECT (12, 0, 0, 2, (1.5, 0.5)) -> OK | preview==save OK
+
+### AC4b same + genuine qty 2->3: basket delta only (12 + 2 + 1.5 + 0.5 = 16)
+  fixture={"order_amount": 12, "overrides": {"additional_charge": 2, "dm_tips": 1.5, "extra_packaging_amount": 0.5}}
+  [BASE] s1: order 91536 qty=3 http edit=302 update=200 | PRE amt 12.00 del 0.00 adj 0.00 addl 2.00 tips 1.50 pkg 0.50 | POST amt 14.00 del 0.00 adj -2.00 addl 0.00 tips 1.50 pkg 0.50 | previewTotal 16.0
+  [FIX] s1: order 91537 qty=3 http edit=302 update=200 | PRE amt 12.00 del 0.00 adj 0.00 addl 2.00 tips 1.50 pkg 0.50 | POST amt 16.00 del 0.00 adj -4.00 addl 2.00 tips 1.50 pkg 0.50 | previewTotal 16.0 | EXPECT (16, 0, -4, 2, (1.5, 0.5)) -> OK | preview==save OK
+
+### AC5 genuine qty change charge disabled (placed 2): qty 2->1 -> 4+2 = 6, adj 4
+  fixture={"order_amount": 10, "overrides": {"additional_charge": 2}}
+  [BASE] s1: order 91538 qty=1 http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 4.00 del 0.00 adj 6.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 6.0
+  [FIX] s1: order 91539 qty=1 http edit=302 update=200 | PRE amt 10.00 del 0.00 adj 0.00 addl 2.00 tips 0.00 pkg 0.00 | POST amt 6.00 del 0.00 adj 4.00 addl 2.00 tips 0.00 pkg 0.00 | previewTotal 6.0 | EXPECT (6, 0, 4, 2) -> OK | preview==save OK
+
+### no additional charge placed (0), charge disabled -> 8/0/0 addl 0
+  fixture={"order_amount": 8, "overrides": {}}
+  [BASE] s1: order 91540 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] s1: order 91541 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0, 0) -> OK | preview==save OK
+
+===== SETTINGS G10 additional charge ON value 3 and a no-charge placed order (0)
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': 'NULL', 'admin_free_delivery_option': 'NULL', 'free_delivery_over': 'NULL', 'additional_charge_status': '1', 'additional_charge': '3'}
+
+### placed additional 0 under setting 3: edit must NOT add the live 3 -> 8/0/0 addl 0
+  fixture={"order_amount": 8, "overrides": {}}
+  [BASE] s1: order 91542 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 11.00 del 0.00 adj -3.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] s1: order 91543 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0, 0) -> OK | preview==save OK
+
+===== SETTINGS restore: additional charge off
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': 'NULL', 'admin_free_delivery_option': 'NULL', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+FAILS []

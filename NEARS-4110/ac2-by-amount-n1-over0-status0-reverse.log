@@ -1,0 +1,117 @@
+DB multi_food_db_qa4110 NearsQA4110
+
+===== SETTINGS G2 by-amount over=6
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_by_order_amount', 'free_delivery_over': '6', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+### AC2 control: free_delivery_by_order_amount over=6 placed waiver (label admin), basket 8 stays 8.00/0/0
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5, "free_delivery_by": "admin"}}
+  [BASE] s1: order 91488 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [BASE] s2: order 91488 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] s1: order 91489 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+  [FIX] s2: order 91489 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+
+### AC2 control: same, label NULL
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5}}
+  [BASE] s1: order 91490 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] s1: order 91491 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+
+### by-amount over=6: PAID delivery 5 (label NULL) is never newly waived -> 13/5
+  fixture={"order_amount": 13, "overrides": {"delivery_charge": 5, "original_delivery_charge": 5}}
+  [BASE] s1: order 91492 qty=None http edit=302 update=200 | PRE amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 5.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] s1: order 91493 qty=None http edit=302 update=200 | PRE amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0 | EXPECT (13, 5, 0) -> OK | preview==save OK
+
+### by-amount over=6 changed basket: qty 2->1 (basket 4<6) waiver drops -> 9/5/-1; then unchanged edit stays 9/5; then qty 1->2 (basket 8>=6) NOT re-granted -> 13/5/-4
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5, "free_delivery_by": "admin"}}
+  [BASE] s1: order 91494 qty=1 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 5.00 adj -1.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 9.0
+  [BASE] s2: order 91494 qty=None http edit=302 update=200 | PRE amt 9.00 del 5.00 adj -1.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 9.0
+  [BASE] s3: order 91494 qty=2 http edit=302 update=200 | PRE amt 9.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 1.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] s1: order 91495 qty=1 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 5.00 adj -1.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 9.0 | EXPECT (9, 5, -1) -> OK | preview==save OK
+  [FIX] s2: order 91495 qty=None http edit=302 update=200 | PRE amt 9.00 del 5.00 adj -1.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 9.0 | EXPECT (9, 5, 0) -> OK | preview==save OK
+  [FIX] s3: order 91495 qty=2 http edit=302 update=200 | PRE amt 9.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj -4.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0 | EXPECT (13, 5, -4) -> OK | preview==save OK
+
+### by-amount over=6 changed basket UP: qty 2->3 (basket 12>=6) waiver stands -> 12/0/-4
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5, "free_delivery_by": "admin"}}
+  [BASE] s1: order 91496 qty=3 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 12.00 del 0.00 adj -4.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 12.0
+  [FIX] s1: order 91497 qty=3 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 12.00 del 0.00 adj -4.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 12.0 | EXPECT (12, 0, -4) -> OK | preview==save OK
+
+===== SETTINGS G3 by-amount over moved to 10 after placement (N1)
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_by_order_amount', 'free_delivery_over': '10', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+### N1: placed waiver under over=6 (label admin), threshold now 10, basket 8: unchanged-cart edit STILL 8.00/0/0
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5, "free_delivery_by": "admin"}}
+  [BASE] s1: order 91498 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj -5.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0
+  [BASE] s2: order 91498 qty=None http edit=302 update=200 | PRE amt 13.00 del 5.00 adj -5.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0
+  [FIX] s1: order 91499 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+  [FIX] s2: order 91499 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+
+### N1: same label NULL
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5}}
+  [BASE] s1: order 91500 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj -5.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0
+  [FIX] s1: order 91501 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+
+### over=10 changed basket qty 2->3 (basket 12>=10) -> waiver stands 12/0/-4
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5, "free_delivery_by": "admin"}}
+  [BASE] s1: order 91502 qty=3 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 12.00 del 0.00 adj -4.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 12.0
+  [FIX] s1: order 91503 qty=3 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 12.00 del 0.00 adj -4.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 12.0 | EXPECT (12, 0, -4) -> OK | preview==save OK
+
+### over=10 changed basket qty 2->1 (4<10) -> delivery returns 9/5/-1
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5, "free_delivery_by": "admin"}}
+  [BASE] s1: order 91504 qty=1 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 5.00 adj -1.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 9.0
+  [FIX] s1: order 91505 qty=1 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 9.00 del 5.00 adj -1.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 9.0 | EXPECT (9, 5, -1) -> OK | preview==save OK
+
+===== SETTINGS G4 by-amount over=0
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_by_order_amount', 'free_delivery_over': '0', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+### over=0 never waives on a CHANGED basket: qty 2->3 -> 17/5/-9
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5, "free_delivery_by": "admin"}}
+  [BASE] s1: order 91506 qty=3 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 12.00 del 0.00 adj -4.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 12.0
+  [FIX] s1: order 91507 qty=3 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 17.00 del 5.00 adj -9.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 17.0 | EXPECT (17, 5, -9) -> OK | preview==save OK
+
+### over=0 unchanged-cart (N1 keeps placed): 8/0/0
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5, "free_delivery_by": "admin"}}
+  [BASE] s1: order 91508 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] s1: order 91509 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+
+===== SETTINGS G5 all-store -> by-amount switch (N1) : placed under all-store, setting now by-amount over=10
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_by_order_amount', 'free_delivery_over': '10', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+### placed under all-store (label NULL, 8/0), now by-amount over=10: unchanged edit stays 8/0/0
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5}}
+  [BASE] s1: order 91510 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj -5.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0
+  [FIX] s1: order 91511 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+
+===== SETTINGS G6 admin free delivery OFF (status 0) now; over cleared by panel
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  db now {'admin_free_delivery_status': 'NULL', 'admin_free_delivery_option': 'NULL', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+### placed waiver stands when admin free delivery is now OFF (status!=1): 8/0/0
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5, "free_delivery_by": "admin"}}
+  [BASE] s1: order 91512 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj -5.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0
+  [FIX] s1: order 91513 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+
+### paid-5 stays 13/5 with admin free delivery OFF
+  fixture={"order_amount": 13, "overrides": {"delivery_charge": 5, "original_delivery_charge": 5}}
+  [BASE] s1: order 91514 qty=None http edit=302 update=200 | PRE amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0
+  [FIX] s1: order 91515 qty=None http edit=302 update=200 | PRE amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0 | EXPECT (13, 5, 0) -> OK | preview==save OK
+  DML(clone only): update business_settings set value='6' where `key`='free_delivery_over'
+  db now {'admin_free_delivery_status': 'NULL', 'admin_free_delivery_option': 'NULL', 'free_delivery_over': '6', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+### AC2 reverse (legacy shape status=0 + free_delivery_over=6 left set): order that PAID delivery 5 stays 13.00 / delivery 5
+  fixture={"order_amount": 13, "overrides": {"delivery_charge": 5, "original_delivery_charge": 5}}
+  [BASE] s1: order 91516 qty=None http edit=302 update=200 | PRE amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 5.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [BASE] s2: order 91516 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 5.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] s1: order 91517 qty=None http edit=302 update=200 | PRE amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0 | EXPECT (13, 5, 0) -> OK | preview==save OK
+  [FIX] s2: order 91517 qty=None http edit=302 update=200 | PRE amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0 | EXPECT (13, 5, 0) -> OK | preview==save OK
+
+### reverse shape: H1-A placed waiver (status 0, over 6 left) stays 8/0/0
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5}}
+  [BASE] s1: order 91518 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0
+  [FIX] s1: order 91519 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+  DML(clone only): update business_settings set value=NULL where `key`='free_delivery_over'
+
+FAILS []

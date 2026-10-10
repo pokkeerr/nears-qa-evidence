@@ -1,0 +1,25 @@
+
+===== SETTINGS G11 free_delivery all-store ON (via panel)
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_to_all_store', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+  rows: free_delivery_over	51
+admin_free_delivery_status	120
+admin_free_delivery_option	158
+  saved row 51||2026-10-10 17:33:59
+  DML(clone only): delete from business_settings where `key`='free_delivery_over'
+  rows after delete: 0
+
+### MISSING KEY free_delivery_over row deleted (clone): H1-A edit preview + save must not 500
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5}}
+  [BASE] s1: order 91544 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj -5.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal None
+  [FIX] s1: order 91545 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+
+### MISSING KEY: paid-5 control
+  fixture={"order_amount": 13, "overrides": {"delivery_charge": 5, "original_delivery_charge": 5}}
+  [BASE] s1: order 91546 qty=None http edit=302 update=200 | PRE amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal None
+  [FIX] s1: order 91547 qty=None http edit=302 update=200 | PRE amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0 | EXPECT (13, 5, 0) -> OK | preview==save OK
+  DML(clone only): insert into business_settings (`key`,value,created_at,updated_at) values ('free_delivery_over', NULL, now(), now())
+  restored: free_delivery_over	NULL
+
+FAILS []

@@ -1,0 +1,23 @@
+
+===== SETTINGS N1 by-amount over=6 via panel, then over cleared to NULL by DML (legacy shape: status 1, option by-amount, over NULL)
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_by_order_amount', 'free_delivery_over': '6', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+  DML(clone only): update business_settings set value=NULL where `key`='free_delivery_over'
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_by_order_amount', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+### over NULL never waives on a CHANGED basket: qty 2->3 -> 17/5/-9
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5, "free_delivery_by": "admin"}}
+  [BASE] s1: order 91604 qty=3 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 17.00 del 5.00 adj -9.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 17.0
+  [FIX] s1: order 91605 qty=3 http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 17.00 del 5.00 adj -9.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 17.0 | EXPECT (17, 5, -9) -> OK | preview==save OK
+
+### over NULL unchanged-cart keeps placed 8/0/0
+  fixture={"order_amount": 8, "overrides": {"delivery_charge": 0, "original_delivery_charge": 5, "free_delivery_by": "admin"}}
+  [BASE] s1: order 91606 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 13.00 del 5.00 adj -5.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 13.0
+  [FIX] s1: order 91607 qty=None http edit=302 update=200 | PRE amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | POST amt 8.00 del 0.00 adj 0.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 8.0 | EXPECT (8, 0, 0) -> OK | preview==save OK
+
+===== SETTINGS restore
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_to_all_store', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+
+FAILS []

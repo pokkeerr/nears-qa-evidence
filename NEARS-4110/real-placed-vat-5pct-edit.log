@@ -1,0 +1,36 @@
+  DML(clone only): update system_tax_setups set is_active=1 where id=3
+
+===== SETTINGS V1 all-store ON + additional charge 3 + VAT 5% ON
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_to_all_store', 'free_delivery_over': 'NULL', 'additional_charge_status': '1', 'additional_charge': '3'}
+  [BASE] PLACED REAL H1-A under VAT 5% + additional 3: order 91600 {"order_amount": "11.40", "delivery_charge": "0.00", "original_delivery_charge": "1.00", "free_delivery_by": "admin", "additional_charge": 3, "store_discount_amount": "0.00", "total_tax_amount": "0.40", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [FIX] PLACED REAL H1-A under VAT 5% + additional 3: order 91601 {"order_amount": "11.40", "delivery_charge": "0.00", "original_delivery_charge": "1.00", "free_delivery_by": "admin", "additional_charge": 3, "store_discount_amount": "0.00", "total_tax_amount": "0.40", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+
+===== SETTINGS V2 additional charge now 1, still all-store
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_to_all_store', 'free_delivery_over': 'NULL', 'additional_charge_status': '1', 'additional_charge': '1'}
+### REAL H1-A + additional 3 + VAT: unchanged edit must keep the placed total
+  [BASE] edit: order 91600 qty=None http edit=302 update=200 | PRE amt 11.40 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 10.40 del 1.00 adj 1.00 addl 1.00 tips 0.00 pkg 0.00 | previewTotal 12.4
+  [FIX] edit: order 91601 qty=None http edit=302 update=200 | PRE amt 11.40 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 11.40 del 0.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 11.4
+
+===== SETTINGS V3 admin free delivery OFF, additional 3
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': 'NULL', 'admin_free_delivery_option': 'NULL', 'free_delivery_over': 'NULL', 'additional_charge_status': '1', 'additional_charge': '3'}
+  [BASE] PLACED REAL paid delivery + additional 3 + VAT: order 91602 {"order_amount": "12.40", "delivery_charge": "1.00", "original_delivery_charge": "1.00", "free_delivery_by": null, "additional_charge": 3, "store_discount_amount": "0.00", "total_tax_amount": "0.40", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+  [FIX] PLACED REAL paid delivery + additional 3 + VAT: order 91603 {"order_amount": "12.40", "delivery_charge": "1.00", "original_delivery_charge": "1.00", "free_delivery_by": null, "additional_charge": 3, "store_discount_amount": "0.00", "total_tax_amount": "0.40", "dm_tips": 0, "extra_packaging_amount": 0, "coupon_discount_amount": "0.00"}
+
+===== SETTINGS V4 additional disabled + all-store ON
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_to_all_store', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
+### REAL paid-delivery + additional 3 + VAT: unchanged edit keeps total
+  [BASE] edit: order 91602 qty=None http edit=302 update=200 | PRE amt 12.40 del 1.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 9.40 del 1.00 adj 3.00 addl 0.00 tips 0.00 pkg 0.00 | previewTotal 12.4
+  [FIX] edit: order 91603 qty=None http edit=302 update=200 | PRE amt 12.40 del 1.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | POST amt 12.40 del 1.00 adj 0.00 addl 3.00 tips 0.00 pkg 0.00 | previewTotal 12.4
+  DML(clone only): update system_tax_setups set is_active=0 where id=3
+
+===== SETTINGS V5 restore all-store, additional off, VAT off
+  fd via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/order')
+  ac via panel (302, 'http://127.0.0.1:8137/admin/business-settings/business-setup/business')
+  db now {'admin_free_delivery_status': '1', 'admin_free_delivery_option': 'free_delivery_to_all_store', 'free_delivery_over': 'NULL', 'additional_charge_status': 'NULL', 'additional_charge': 'NULL'}
