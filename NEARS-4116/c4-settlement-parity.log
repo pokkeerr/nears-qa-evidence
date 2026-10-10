@@ -1,0 +1,96 @@
+======== C2 positive control / COD admin-for-customer path (order 991416)
+--- BEFORE
+order: canceled,unpaid,cash_on_delivery
+pc: admin_for_customer,0,0,unpaid,0
+ot_for_order: 0 ot_total: 32 exp_for_order: 0 exp_total: 35
+admin_wallet: 11.65,0.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+POST valid token: 302 -> http://127.0.0.1:8416/admin/parcel/details/991416
+toast: toastr.success('Parcel returned successfully','') toastr.success('Text copied to clipboard: ' + input.value) toastr.error('Failed to copy text: ', error) 
+--- AFTER
+order: returned,paid,cash_on_delivery
+pc: admin_for_customer,0,0,paid,0
+ot_for_order: 1 ot_total: 33 exp_for_order: 0 exp_total: 35
+admin_wallet: 1016.65,0.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+ERROR 1054 (42S22) at line 1: Unknown column 'delivery_man_commission' in 'field list'
+ot rows: 
+exp rows: 
+pc: paid
+(991416 rows) ot: 33,991416,1005.00,5.00,NULL,deliveryman,NULL,1000.00
+======== paid-digital (wallet/paid) customer-cancel, DM 2 (order 991412)
+--- BEFORE
+order: canceled,paid,wallet
+pc: admin_for_customer,0,0,unpaid,0
+ot_for_order: 0 ot_total: 33 exp_for_order: 0 exp_total: 35
+admin_wallet: 1016.65,0.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+POST valid token: 302 -> http://127.0.0.1:8416/admin/parcel/details/991412
+toast: toastr.success('Parcel returned successfully' toastr.success('Successfully added' toastr.error('Out of coverage' 
+--- AFTER
+order: returned,paid,wallet
+pc: admin_for_customer,0,0,paid,0
+ot_for_order: 1 ot_total: 34 exp_for_order: 0 exp_total: 35
+admin_wallet: 1021.65,1005.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/1281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+ot rows: 34,1005.00,5.00,2,admin,NULL,1000.00
+exp rows: 
+pc return_fee_payment_status: paid
+log grep 'refused' for order 991412: 0
+======== unpaid-digital customer-cancel, DM 3 -> expect REFUSED (order 991413)
+--- BEFORE
+order: canceled,unpaid,digital_payment
+pc: admin_for_customer,0,0,unpaid,0
+ot_for_order: 0 ot_total: 34 exp_for_order: 0 exp_total: 35
+admin_wallet: 1021.65,1005.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/1281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+POST valid token: 302 -> http://127.0.0.1:8416/admin/parcel/details/991413
+toast: toastr.success('Parcel returned successfully' toastr.success('Successfully added' toastr.error('Out of coverage' 
+--- AFTER
+order: returned,unpaid,digital_payment
+pc: admin_for_customer,0,0,unpaid,0
+ot_for_order: 0 ot_total: 34 exp_for_order: 0 exp_total: 35
+admin_wallet: 1021.65,1005.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/1281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+ot rows: 
+exp rows: 
+pc return_fee_payment_status: unpaid
+log grep 'refused' for order 991413: 2
+======== COD deliveryman-cancel (admin_for_deliveryman path), no DM (order 991414)
+--- BEFORE
+order: canceled,unpaid,cash_on_delivery
+pc: admin_for_deliveryman,0,0,unpaid,0
+ot_for_order: 0 ot_total: 34 exp_for_order: 0 exp_total: 35
+admin_wallet: 1021.65,1005.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/1281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+POST valid token: 302 -> http://127.0.0.1:8416/admin/parcel/details/991414
+toast: toastr.success('Parcel returned successfully' toastr.success('Successfully added' toastr.error('Out of coverage' 
+--- AFTER
+order: returned,unpaid,cash_on_delivery
+pc: admin_for_deliveryman,0,0,paid,0
+ot_for_order: 0 ot_total: 34 exp_for_order: 0 exp_total: 35
+admin_wallet: 1021.65,1005.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/1281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+ot rows: 
+exp rows: 
+pc return_fee_payment_status: paid
+log grep 'refused' for order 991414: 0
+======== unpaid-digital deliveryman-cancel, DM 4 -> expect REFUSED (4115 path) (order 991415)
+--- BEFORE
+order: canceled,unpaid,digital_payment
+pc: admin_for_deliveryman,0,0,unpaid,0
+ot_for_order: 0 ot_total: 34 exp_for_order: 0 exp_total: 35
+admin_wallet: 1021.65,1005.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/1281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+POST valid token: 302 -> http://127.0.0.1:8416/admin/parcel/details/991415
+toast: toastr.success('Parcel returned successfully' toastr.success('Successfully added' toastr.error('Out of coverage' 
+--- AFTER
+order: returned,unpaid,digital_payment
+pc: admin_for_deliveryman,0,0,unpaid,0
+ot_for_order: 0 ot_total: 34 exp_for_order: 0 exp_total: 35
+admin_wallet: 1021.65,1005.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/1281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+ot rows: 
+exp rows: 
+pc return_fee_payment_status: unpaid
+log grep 'refused' for order 991415: 2

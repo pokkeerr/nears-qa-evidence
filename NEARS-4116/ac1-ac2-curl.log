@@ -1,0 +1,30 @@
+### BEFORE (991416, COD canceled before_pickup=0)
+order: canceled,unpaid,cash_on_delivery
+pc: admin_for_customer,0,0,unpaid,0
+ot_for_order: 0 ot_total: 32 exp_for_order: 0 exp_total: 35
+admin_wallet: 11.65,0.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+### AC1 GET (admin session cookie)
+GET 405
+### AC1 HEAD
+HEAD 405
+### AC1 GET with Accept json
+{
+    "message": "The GET method is not supported for route admin/order/parcel-return. Supported methods: POST."
+}
+GET-json 405
+### AC2 POST no _token
+POST-notoken 419
+### AC2 POST bad token
+POST-badtoken 419
+### AC2 POST valid token + _method=GET spoof
+POST-spoofGET 405
+### AC2 POST valid token + _method=PUT / DELETE spoof
+POST-spoofPUT 405
+### AFTER all negative legs
+order: canceled,unpaid,cash_on_delivery
+pc: admin_for_customer,0,0,unpaid,0
+ot_for_order: 0 ot_total: 32 exp_for_order: 0 exp_total: 35
+admin_wallet: 11.65,0.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+LEDGER IDENTICAL

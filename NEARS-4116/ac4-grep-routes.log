@@ -1,0 +1,18 @@
+$ cd Admin && grep -rn "admin.order.parcelReturn" resources public/assets/admin/js routes app Modules
+resources/views/admin-views/order/parcel-order-view.blade.php:660:                                                        data-url="{{ route('admin.order.parcelReturn', ['id' => $order['id'], 'order_status' => 'returned']) }}"
+(rc=0)
+$ grep -rn "parcel-return" resources public/assets/admin/js routes/admin.php routes/admin
+routes/admin.php:286:            Route::post('parcel-return', 'OrderController@parcelReturn')->name('parcelReturn'); // NEARS-4116
+$ grep -rn "parcelReturn" routes
+routes/api/v1/api.php:126:            Route::post('parcel-return', 'DeliverymanController@parcelReturn');
+routes/api/v1/api.php:136:            Route::get('parcel-return-earning-list', 'DeliverymanController@parcelReturnEarningList');
+routes/api/v1/api.php:460:                Route::post('parcel-return', 'OrderController@parcelReturn');
+routes/admin.php:286:            Route::post('parcel-return', 'OrderController@parcelReturn')->name('parcelReturn'); // NEARS-4116
+$ php artisan route:list --path=admin/order/parcel-return
+  POST       admin/order/parcel-return admin.order.parcelReturn › Admin\Order…
+                                                            Showing [1] routes
+$ php artisan route:list --name=parcelReturn --json
+[{"domain":null,"method":"POST","uri":"admin\/order\/parcel-return","name":"admin.order.parcelReturn","action":"App\\Http\\Controllers\\Admin\\OrderController@parcelReturn","middleware":["web","App\\Http\\Middleware\\AdminMiddleware","App\\Http\\Middleware\\CurrentModule","App\\Http\\Middleware\\ActivationCheckMiddleware:admin_panel","App\\Http\\Middleware\\ModulePermissionMiddleware:order"],"path":null}]
+
+ Admin/resources/views/admin-views/order/parcel-order-view.blade.php | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)

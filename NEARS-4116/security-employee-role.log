@@ -1,0 +1,36 @@
+login qa.role.b@nears-qa.test: 302 -> http://127.0.0.1:8416/admin
+login qa.role.d@nears-qa.test: 302 -> http://127.0.0.1:8416/admin
+--- employee B (role Campaign Only, no 'order' module)
+order: canceled,unpaid,cash_on_delivery
+pc: admin_for_customer,0,0,unpaid,0
+ot_for_order: 0 ot_total: 36 exp_for_order: 0 exp_total: 35
+admin_wallet: 2035.40,1005.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/1281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+B token len 40
+B POST valid token: 302 -> http://127.0.0.1:8416/admin
+LEDGER IDENTICAL after employee B POST
+--- employee D (role order-only) positive control, same order
+D token len 40
+D POST valid token: 404 -> 
+order: canceled,unpaid,cash_on_delivery
+pc: admin_for_customer,0,0,unpaid,0
+ot_for_order: 0 ot_total: 36 exp_for_order: 0 exp_total: 35
+admin_wallet: 2035.40,1005.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/1281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+--- employee D retry: switch module context first (session current_module=10, as the panel's module switcher does)
+module switch GET: 200
+D token len 0
+D POST valid token: 419 -> 
+order: canceled,unpaid,cash_on_delivery
+pc: admin_for_customer,0,0,unpaid,0
+ot_for_order: 0 ot_total: 36 exp_for_order: 0 exp_total: 35
+admin_wallet: 2035.40,1005.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/1281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00
+D details?module_id=10: 302 http://127.0.0.1:8416/admin/order/list/all
+D token len 0
+D POST valid token (module_id=10): 419 -> 
+order: canceled,unpaid,cash_on_delivery
+pc: admin_for_customer,0,0,unpaid,0
+ot_for_order: 0 ot_total: 36 exp_for_order: 0 exp_total: 35
+admin_wallet: 2035.40,1005.00,20.00,0.000
+dm_wallets: 1:0.00/352.00/224.00/0.00,2:28.41/1281.00/150.00/30.00,3:0.00/180.00/100.00/0.00,5:66.00/4.00/0.00/0.00,4:75.47/2.00/0.00/0.00

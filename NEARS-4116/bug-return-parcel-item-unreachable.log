@@ -1,0 +1,44 @@
+# Absence claim: 'Return parcel' item not rendered on canceled before_pickup=0 parcel 91405 (admin session, scratch DB)
+positive controls (instrument live, same HTML dump):
+  'Status' heading + Canceled present: 5 hits; 'Parcel Returned OTP' present: 1; return_otp (before_pickup=0 evidence): present: 1
+  csrf meta present: 3; status dropdown id dropdownMenuButton: 0  <- 0 means whole status dropdown absent on canceled orders
+  'admin/order/parcel-return' occurrences: 0; 'redirect-url-post-confirm' occurrences: 1
+
+# Root cause (Admin/resources/views/admin-views/order/parcel-order-view.blade.php, same on base 729b0b8ea):
+  line ~593: @if(!in_array($order['order_status'], [...,'canceled',...]))  <- opens the whole status dropdown block
+  line ~655-662: nested inside it: @if($order['order_status']=='canceled' && parcelCancellation && before_pickup==0) <a ... Return parcel>
+  => inner condition requires canceled, outer condition excludes canceled: item can never render
+                                @if (
+                                    !in_array($order['order_status'], [
+                                        'refund_requested',
+                                        'refunded',
+                                        'refund_request_canceled',
+                                        'delivered',
+                                        'canceled',
+                                        'failed',
+                                        'returned',
+                                    ]))
+
+...
+                                                @if (
+                                                    $order['order_status'] == 'canceled' &&
+                                                        $order?->parcelCancellation &&
+                                                        $order->parcelCancellation->before_pickup == 0)
+                                                    <a class="dropdown-item redirect-url-post-confirm"
+                                                        data-url="{{ route('admin.order.parcelReturn', ['id' => $order['id'], 'order_status' => 'returned']) }}"
+                                                        data-confirm-text="{{ translate('Return_the_parcel ?') }}"
+                                                        href="javascript:">{{ translate('messages.return_parcel') }}</a>
+                                                @endif
+
+# base (729b0b8ea) outer condition identical:
+                                @if (
+                                    !in_array($order['order_status'], [
+                                        'refund_requested',
+                                        'refunded',
+                                        'refund_request_canceled',
+                                        'delivered',
+                                        'canceled',
+                                        'failed',
+                                        'returned',
+                                    ]))
+# Playwright (ac3-ui-run.log): orders 91405/153/91128 -> 'Return parcel' count 0, #dropdownMenuButton count 0
