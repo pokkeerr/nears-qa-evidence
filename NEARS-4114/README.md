@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4114
 
-**PASS: pending model-none token refused on 101/105 vendor.api routes (4 allow-listed), business_plan/AC3/AC4/AC5 live+backstop**
+**AC4(b) live PASS: cash-overflow-blocked approved commission store (status 0, no marker) refused 403 auth-003 'Your account has been suspended'; pending token gets the not-approved text**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -11,6 +11,7 @@
 - [`ac3b-free-trial-pending-commission.log`](ac3b-free-trial-pending-commission.log)
 - [`ac3c-ac4a-post-approval.log`](ac3c-ac4a-post-approval.log)
 - [`ac4a-approved-vendor-sweep.log`](ac4a-approved-vendor-sweep.log)
+- [`ac4b-live-cash-overflow.log`](ac4b-live-cash-overflow.log)
 - [`ac4b-suspended-proxy-and-ac4c.log`](ac4b-suspended-proxy-and-ac4c.log)
 - [`ac5-live-hold-then-activate.log`](ac5-live-hold-then-activate.log)
 - [`phpunit-ac5-252-tests.txt`](phpunit-ac5-252-tests.txt)

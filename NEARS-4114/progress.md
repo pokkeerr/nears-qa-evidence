@@ -9,3 +9,6 @@ Tested sha 41764e6b33806571ea9f817554dbe2cd0fbf666f (branch fix/NEARS-4114-preap
 - AC5: phpunit 252 tests / 4295 assertions green (4105 + 4103 + 4086 + 4114 classes, one run); live: free_trial hold + activation after admin approval in ac3b/ac3c.
 
 Tokens and passwords are redacted; hashes in the logs are row digests, not secrets.
+
+## Delta (AC4b live)
+- AC4(b) PASS live: ac4b-live-cash-overflow.log (cash_in_hand_overflow_store on via Admin update-store, two COD take-away orders delivered by store 13's vendor via vendor API, overflow block fired: stores.status=0, suspended_at NULL, vendors.status=1, commission; token held from before the block -> make-collected-cash-payment 403 auth-003 'Your account has been suspended', money tables identical; pending token on same route -> not-approved message).

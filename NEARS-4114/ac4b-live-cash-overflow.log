@@ -1,0 +1,55 @@
+# AC4(b) LIVE: approved vendor freshsupermarket@demo.com (vendor 10), store 13 commission, cash_in_hand_overflow_store=1 amount=1 (set via Admin update-store route)
+settings: cash_in_hand_overflow_store=1,cash_in_hand_overflow_store_amount=1
+BEFORE state: store.status=1 model=commission suspended_at=NULL vendor.status=1
+BEFORE wallet: total_earning=0.00 collected_cash=0.00 total_withdrawn=0.00 pending_withdraw=0.00
+customer login 200
+cart clear 200
+cart add 200 [{"id":462,"user_id":1,"module_id":1,"item_id":203,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":8.89,"quantity":1,"variation":[],"created_at":"2026-10-10T2
+order place -> 200 {"message":"Order placed successfully","order_id":92525,"payment_token":"<REDACTED>
+order_id 92525
+order row: status=pending pm=cash_on_delivery type=take_away amount=9.00 store=13
+vendor update-order-status confirmed -> HTTP 200 {"message":"Status updated"}
+   order: status=confirmed payment_status=unpaid
+vendor update-order-status processing -> HTTP 200 {"message":"Status updated"}
+   order: status=processing payment_status=unpaid
+vendor update-order-status handover -> HTTP 200 {"message":"Status updated"}
+   order: status=handover payment_status=unpaid
+vendor update-order-status delivered -> HTTP 200 {"message":"Status updated"}
+   order: status=delivered payment_status=paid
+AFTER wallet: total_earning=9.00 collected_cash=9.00 total_withdrawn=0.00 pending_withdraw=0.00
+AFTER state: store.status=1 model=commission suspended_at=NULL vendor.status=1
+account_transactions for order: 97:cash_collection/cash_in/9.00
+--- order 1 delivered but wallet balance = 0 (store 13 comission was 0.00 -> earning == collected). Admin route POST store/update-settings/13 tab=business_plan (comission_status off) -> comission NULL, i.e. default admin_commission 5%. Order 2 follows.
+# AC4(b) LIVE: approved vendor freshsupermarket@demo.com (vendor 10), store 13 commission, cash_in_hand_overflow_store=1 amount=1 (set via Admin update-store route)
+settings: cash_in_hand_overflow_store=1,cash_in_hand_overflow_store_amount=1
+BEFORE state: store.status=1 model=commission suspended_at=NULL vendor.status=1
+BEFORE wallet: total_earning=9.00 collected_cash=9.00 total_withdrawn=0.00 pending_withdraw=0.00
+customer login 200
+cart clear 200
+cart add 200 [{"id":463,"user_id":1,"module_id":1,"item_id":203,"is_guest":false,"add_on_ids":[],"add_on_qtys":[],"item_type":"App\\Models\\Item","price":8.89,"quantity":1,"variation":[],"created_at":"2026-10-10T2
+order place -> 200 {"message":"Order placed successfully","order_id":92526,"payment_token":"<REDACTED>
+order_id 92526
+order row: status=pending pm=cash_on_delivery type=take_away amount=9.00 store=13
+vendor update-order-status confirmed -> HTTP 200 {"message":"Status updated"}
+   order: status=confirmed payment_status=unpaid
+vendor update-order-status processing -> HTTP 200 {"message":"Status updated"}
+   order: status=processing payment_status=unpaid
+vendor update-order-status handover -> HTTP 200 {"message":"Status updated"}
+   order: status=handover payment_status=unpaid
+vendor update-order-status delivered -> HTTP 200 {"message":"Status updated"}
+   order: status=delivered payment_status=paid
+AFTER wallet: total_earning=17.55 collected_cash=18.00 total_withdrawn=0.00 pending_withdraw=0.00
+AFTER state: store.status=0 model=commission suspended_at=NULL vendor.status=1
+account_transactions for order: 98:cash_collection/cash_in/9.00
+## STEP 3 target state (SELECT): stores.status=0 stores.suspended_at=NULL store_business_model=commission vendors.status=1 vendor=freshsupermarket@demo.com
+   wallet: total_earning=17.55 collected_cash=18.00 (balance<0)
+## STEP 4 token obtained BEFORE the block (block does not revoke it)
+make-collected-cash-payment (approved vendor, cash-blocked commission store, no marker) -> HTTP 403 auth-003 'Your account has been suspended' X-Request-Id fbdb245d-2370-481b-9aca-fbcd72b36660
+   laravel.log grep -F <rid>: [2026-10-11 00:12:51] production.ERROR: [FAIL] vendor.account_suspended {"correlation_id":"fbdb245d-2370-481b-9aca-fbcd72b36660","vendor_id":10,"store_id":13,"state":"suspended"}
+profile with same token -> 403 auth-003 'Your account has been suspended'
+money/state tables before vs after the refusal: IDENTICAL
+fresh login in this state -> 403 auth-002 'Your account is suspended'
+register pending model-none own10 -> business_model_fail
+pending login -> 200
+make-collected-cash-payment (PENDING token) -> HTTP 403 auth-003 'Your registration is not approved yet. You can login once admin approved the request'
+messages differ (suspended vs not-approved): True | both auth-003: True
