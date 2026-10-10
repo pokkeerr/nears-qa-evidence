@@ -1,0 +1,19 @@
+== AC3 controls (no gate refusal expected: FAIL_lines=0 and the order advances)
+COD C1 vendor API
+  [V] C1 91811 -> confirmed: HTTP 200 {"message":"Status updated"} | order_status=confirmed payment_status=unpaid dm=NULL FAIL_lines=0 rid=27b28de5-6ef9-4681-89ad-aefa60c0c155
+  [V] C1 91811 -> processing: HTTP 200 {"message":"Status updated"} | order_status=processing payment_status=unpaid dm=NULL FAIL_lines=0 rid=8c26f764-6918-4e16-a5ba-3673176282bd
+  [V] C1 91811 -> handover: HTTP 200 {"message":"Status updated"} | order_status=handover payment_status=unpaid dm=NULL FAIL_lines=0 rid=00bc2ade-c199-4d1c-bb3f-3246f5bb286f
+COD C2 store panel POST + PUT
+  [S1] C2 91812 -> confirmed: HTTP 302 flash=[('success', 'Order status updated'), ('success', 'New message arrived')] | order_status=confirmed payment_status=unpaid dm=NULL FAIL_lines=0 rid=415d9c4a-f811-4177-a85c-079b247af28b
+  [S2] C2 91812 -> processing: HTTP 302 flash=[('success', 'Order status updated'), ('success', 'New message arrived')] | order_status=processing payment_status=unpaid dm=NULL FAIL_lines=0 rid=4a320626-8f9f-4b4d-a8ae-25c4183833c6
+COD C3 admin status
+  [A] C3 91813 -> confirmed: HTTP 302 flash=[('success', 'Order status updated'), ('success', 'Text copied'), ('success', 'New message arrived'), ('success', 'Text copied to clipboard: '), ('error', 'Failed to copy text: ')] | order_status=confirmed payment_status=unpaid dm=NULL FAIL_lines=0 rid=5469cb11-5f16-48cc-8e96-e85b3eaa22d9
+  [A] C3 91813 -> processing: HTTP 302 flash=[('success', 'Order status updated'), ('success', 'Text copied'), ('success', 'New message arrived'), ('success', 'Text copied to clipboard: '), ('error', 'Failed to copy text: ')] | order_status=processing payment_status=unpaid dm=NULL FAIL_lines=0 rid=306e7d3e-1e70-4713-a970-97ba5735e779
+COD C4 admin assign rider
+  [G] C4 91814 -> accepted: HTTP 200 [] | order_status=accepted payment_status=unpaid dm=1 FAIL_lines=0 rid=2e506ddb-d8cc-48b6-9042-a5d254df97d2
+partial+COD remainder PC1 (V, S1, S2)
+  [V] PC1 91815 -> processing: HTTP 200 {"message":"Status updated"} | order_status=processing payment_status=partially_paid dm=NULL FAIL_lines=0 rid=37fcd6c9-45a9-4f59-870a-8ae4cd945f9b
+  [S1] PC1 91815 -> handover: HTTP 302 flash=[('success', 'Order status updated'), ('success', 'New message arrived')] | order_status=handover payment_status=partially_paid dm=NULL FAIL_lines=0 rid=e833c1db-0739-4f8e-9785-41e8d44a7627
+partial+COD remainder PC2 (G assign, A status)
+  [G] PC2 91816 -> accepted: HTTP 400 {"message":"Deliveryman not available!"} | order_status=confirmed payment_status=partially_paid dm=NULL FAIL_lines=0 rid=0e7ef8cf-d2c2-4eb7-a40f-9838d2e8dbd3
+  [A] PC2 91816 -> processing: HTTP 302 flash=[('success', 'Order status updated'), ('success', 'Text copied'), ('success', 'New message arrived'), ('success', 'Text copied to clipboard: '), ('error', 'Failed to copy text: ')] | order_status=processing payment_status=partially_paid dm=NULL FAIL_lines=0 rid=9b2669dc-0e2b-4d9c-9694-550e7678b3f2

@@ -1,0 +1,14 @@
+== B2: partial pre-submit (failed) V refusal, submit -> clause A, S1 refusal, verify, advance S2 then V
+ pre-state [{'payment_status': 'paid', 'payment_method': 'wallet'}, {'payment_status': 'unpaid', 'payment_method': 'offline_payment'}]
+ customer submits offline info B2: HTTP 200 {'payment': 'success'} -> status=pending method=offline_payment payment_status=partially_paid offline_rows=[{'status': 'pending'}] payments=[{'payment_status': 'paid', 'payment_method': 'wallet'}, {'payment_status': 'unpaid', 'payment_method': 'offline_payment'}]
+ admin verify B2: HTTP 302 -> status=confirmed payment_status=paid offline=[{'status': 'verified'}] payments=[{'payment_status': 'paid', 'payment_method': 'wallet'}, {'payment_status': 'unpaid', 'payment_method': 'offline_payment'}]
+  [S2] B2 91818 -> processing: HTTP 302 flash=[('success', 'Order status updated'), ('success', 'New message arrived')] | order_status=processing payment_status=paid dm=NULL FAIL_lines=0 rid=3aab2438-45cc-4343-bfb9-1f9a8f3fae6f
+  [V] B2 91818 -> handover: HTTP 200 {"message":"Status updated"} | order_status=handover payment_status=paid dm=NULL FAIL_lines=0 rid=13309dbc-8693-4ff1-b8d6-6865c81e921f
+== B3: A refusal pre-submit, submit, A refusal, verify, A advance
+ customer submits offline info B3: HTTP 200 {'payment': 'success'} -> status=pending method=offline_payment payment_status=partially_paid offline_rows=[{'status': 'pending'}] payments=[{'payment_status': 'paid', 'payment_method': 'wallet'}, {'payment_status': 'unpaid', 'payment_method': 'offline_payment'}]
+ admin verify B3: HTTP 302 -> status=confirmed payment_status=paid offline=[{'status': 'verified'}] payments=[{'payment_status': 'paid', 'payment_method': 'wallet'}, {'payment_status': 'unpaid', 'payment_method': 'offline_payment'}]
+  [A] B3 91819 -> processing: HTTP 302 flash=[('success', 'Order status updated'), ('success', 'Text copied'), ('success', 'New message arrived'), ('success', 'Text copied to clipboard: '), ('error', 'Failed to copy text: ')] | order_status=processing payment_status=paid dm=NULL FAIL_lines=0 rid=da118961-ea17-4048-b556-fa73eb00ab8e
+== B4: G refusal pre-submit, submit, G refusal, verify, G assign
+ customer submits offline info B4: HTTP 200 {'payment': 'success'} -> status=pending method=offline_payment payment_status=partially_paid offline_rows=[{'status': 'pending'}] payments=[{'payment_status': 'paid', 'payment_method': 'wallet'}, {'payment_status': 'unpaid', 'payment_method': 'offline_payment'}]
+ admin verify B4: HTTP 302 -> status=confirmed payment_status=paid offline=[{'status': 'verified'}] payments=[{'payment_status': 'paid', 'payment_method': 'wallet'}, {'payment_status': 'unpaid', 'payment_method': 'offline_payment'}]
+  [G] B4 91820 -> accepted: HTTP 200 [] | order_status=accepted payment_status=paid dm=5 FAIL_lines=0 rid=ecfadaf9-756e-4f75-aee3-11da7b2201ab

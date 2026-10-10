@@ -1,0 +1,17 @@
+== pre-verify refusals (same orders that get verified below)
+== verify via REAL admin route
+ verify P1 91806 HTTP 302 -> order_status=confirmed payment_status=paid method=offline_payment offline=[{'status': 'verified'}]
+ verify P2 91807 HTTP 302 -> order_status=confirmed payment_status=paid method=offline_payment offline=[{'status': 'verified'}]
+ verify P3 91808 HTTP 302 -> order_status=confirmed payment_status=paid method=offline_payment offline=[{'status': 'verified'}]
+ verify P4 91809 HTTP 302 -> order_status=confirmed payment_status=paid method=offline_payment offline=[{'status': 'verified'}]
+== advance after verify
+  [V] P1 91806 -> processing: HTTP 200 {"message":"Status updated"} | order_status=processing payment_status=paid dm=NULL FAIL_lines=0 rid=0b3aabf0-e740-4ca8-8fbf-cf097febdf44
+  [V] P1 91806 -> handover: HTTP 200 {"message":"Status updated"} | order_status=handover payment_status=paid dm=NULL FAIL_lines=0 rid=b9f6d700-9687-48c9-9389-15a5a409b63a
+  [V] P1 91806 -> delivered: HTTP 403 {"errors":[{"code":"status","message":"You can not delivered delivery order"}]} | order_status=handover payment_status=paid dm=NULL FAIL_lines=0 rid=c15337ae-5557-4b38-8fdd-1a86ab7f924a
+  [S1] P2 91807 -> processing: HTTP 302 flash=[('success', 'Order status updated'), ('success', 'New message arrived')] | order_status=processing payment_status=paid dm=NULL FAIL_lines=0 rid=88039ad7-80e0-408c-b75b-6f4537faa180
+  [S1] P2 91807 -> handover: HTTP 302 flash=[('success', 'Order status updated'), ('success', 'New message arrived')] | order_status=handover payment_status=paid dm=NULL FAIL_lines=0 rid=1c6a45c0-c5b0-41a1-98c2-32e0fc2c0c09
+  [S1] P2 91807 -> delivered: HTTP 302 flash=[('warning', 'You can not delivered delivery order'), ('success', 'New message arrived')] | order_status=handover payment_status=paid dm=NULL FAIL_lines=0 rid=8eb51772-8e91-4a5f-aa19-d0b24a05ed35
+  [A] P3 91808 -> processing: HTTP 302 flash=[('success', 'Order status updated'), ('success', 'Text copied'), ('success', 'New message arrived'), ('success', 'Text copied to clipboard: '), ('error', 'Failed to copy text: ')] | order_status=processing payment_status=paid dm=NULL FAIL_lines=0 rid=d3ae9f63-00f8-4185-9193-c2ef5839132f
+  [A] P3 91808 -> out_for_delivery: HTTP 302 flash=[('warning', 'Please assign deliveryman first'), ('success', 'Text copied'), ('success', 'New message arrived'), ('success', 'Text copied to clipboard: '), ('error', 'Failed to copy text: ')] | order_status=processing payment_status=paid dm=NULL FAIL_lines=0 rid=5304de0e-7ecf-4d92-949b-a7e8fd03c7b7
+  [A] P3 91808 -> delivered: HTTP 302 flash=[('warning', 'Add your paymen ref first'), ('success', 'Text copied'), ('success', 'New message arrived'), ('success', 'Text copied to clipboard: '), ('error', 'Failed to copy text: ')] | order_status=processing payment_status=paid dm=NULL FAIL_lines=0 rid=653623ac-0a22-40e3-b010-1cd5d0413525
+  [G] P4 91809 -> accepted: HTTP 200 [] | order_status=accepted payment_status=paid dm=1 FAIL_lines=0 rid=00c65196-38ef-416e-ad59-edb44a477145
