@@ -2,7 +2,7 @@
 
 **QA cycle0: AC1/2/3/6/7/8 PASS, AC4 FAIL (commission-picked pending relaunch -> dashboard 403), push cold start unverifiable**
 
-**20 screenshot(s).** Click any thumbnail for full resolution.
+**19 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -36,7 +36,6 @@
 <td align="center" width="33%"><a href="bug-ac4-r2-commission-relaunch-dashboard-403.png"><img src="bug-ac4-r2-commission-relaunch-dashboard-403.png" width="240"></a><br><sub>bug ac4 r2 commission relaunch dashboard 403</sub></td>
 </tr>
 <tr>
-<td align="center" width="33%"><a href="reg-r4-appbar-back-from-mybusinessplan.png"><img src="reg-r4-appbar-back-from-mybusinessplan.png" width="240"></a><br><sub>reg r4 appbar back from mybusinessplan</sub></td>
 <td align="center" width="33%"><a href="reg-r4-mybusinessplan.png"><img src="reg-r4-mybusinessplan.png" width="240"></a><br><sub>reg r4 mybusinessplan</sub></td>
 </tr>
 </table>
