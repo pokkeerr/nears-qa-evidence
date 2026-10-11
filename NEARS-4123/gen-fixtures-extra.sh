@@ -38,3 +38,5 @@ ord() {
 # extra: courier accept_order spot check (unassigned claimable + unassigned canceled), returned parcel for the courier writer
 ord 91591 39 handover unpaid cash_on_delivery delivery NULL
 ord 91592 39 canceled unpaid cash_on_delivery delivery NULL
+
+ord 91593 39 pending unpaid cash_on_delivery delivery 3

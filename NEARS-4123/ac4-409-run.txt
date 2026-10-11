@@ -1,0 +1,34 @@
+##### AC4 courier cancel-of-canceled 409 re-run (delta, grant extended by conductor: one UPDATE on clone business_settings)
+OLD value (read before UPDATE):
+id=81 key=canceled_by_deliveryman value=0
+--- UPDATE (clone multi_food_db_qa4123 only)
+rows_changed
+1
+NEW value=1
+
+--- 1. Admin cancels 91507 via the real route (confirmed is NULL, so the courier 'after confirm' 403 does not pre-empt the 409)
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91507
+toastr.success('Order status updated','')
+toastr.success('Text copied to clipboard: ' + input.value)
+91507 status=canceled canceled=2026-10-11 07:22:45 confirmed=- canceled_by=admin
+--- 2. courier cancel of the Admin-canceled order (expect 409 errors[{code:order}])
+PUT /api/v1/delivery-man/update-order-status order=91507 status=canceled request_id=qa4123-c6623123700
+{"errors":[{"code":"order","message":"This order has already been canceled"}]} HTTP=409 
+snapshot IDENTICAL (no state write)
+new closed-order/courier-refused WARN lines: 0
+new '[WARN] deliveryman cancel rejected - order already terminal' lines: 1
+[2026-10-11 07:22:46] production.WARNING: [WARN] deliveryman cancel rejected - order already terminal {"correlation_id":"dccdffa8-1f93-462b-b0c5-16ce136d12c3","endpoint":"/api/v1/delivery-man/update-order-status","order_id":91507,"reason":"order_already_canceled","request_id":"dccdffa8-1f93-462b-b0c5-16ce136d12c3"} 
+--- 3. control: courier cancel of a normal OPEN order 91593 (pending COD, confirmed NULL) still works
+before 91593 status=pending
+PUT /api/v1/delivery-man/update-order-status order=91593 status=canceled request_id=qa4123-c6668046600
+{"message":"Status updated"} HTTP=200 
+after 91593 status=canceled canceled_by=deliveryman canceled=2026-10-11 07:22:46
+closed-order/courier-refused WARN lines for 91593: 0
+--- REVERT to recorded old value 0 (clone only)
+rows_changed
+1
+
+REVERT PROOF (SELECT):
+canceled_by_deliveryman=0
+shared DB untouched: multi_food_db canceled_by_deliveryman=0, fixture orders there: 0

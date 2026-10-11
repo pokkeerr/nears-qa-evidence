@@ -1,11 +1,12 @@
 # QA Evidence — NEARS-4123
 
-**NEARS-4123 QA pass 1: 13 of 14 rows PASS live, courier cancel-of-canceled 409 needs a clone grant**
+**NEARS-4123 QA: all rows PASS incl. courier 409 re-run**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
 ### Other artifacts
 - [`ac1-3-run.txt`](ac1-3-run.txt)
+- [`ac4-409-run.txt`](ac4-409-run.txt)
 - [`ac4-run.txt`](ac4-run.txt)
 - [`ac5-controlA-switch-to-cod-failed-allowed.txt`](ac5-controlA-switch-to-cod-failed-allowed.txt)
 - [`ac5-controlB-refund-rejection-genuine.txt`](ac5-controlB-refund-rejection-genuine.txt)
@@ -22,6 +23,7 @@
 - [`be-log-gate-warn-lines.log`](be-log-gate-warn-lines.log)
 - [`blast-radius-spot-checks.txt`](blast-radius-spot-checks.txt)
 - [`fixtures-nears4123-clone-only-extra.sql`](fixtures-nears4123-clone-only-extra.sql)
+- [`fixtures-nears4123-clone-only-extra2.sql`](fixtures-nears4123-clone-only-extra2.sql)
 - [`fixtures-nears4123-clone-only.sql`](fixtures-nears4123-clone-only.sql)
 - [`gen-fixtures-extra.sh`](gen-fixtures-extra.sh)
 - [`gen-fixtures.sh`](gen-fixtures.sh)
