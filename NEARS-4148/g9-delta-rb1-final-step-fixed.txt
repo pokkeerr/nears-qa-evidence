@@ -1,0 +1,39 @@
+=== G9 DELTA RE-QA cycle 1: RB-1 final_step (production hunk b19102c7f) on FIXED :8148, base :8149 for byte comparison ===
+real-shape string built exactly as Processor::payment_response (Processor.php:93): external_redirect_link(?store_id=<id>) . "&" . "flag=<flag>&&token=" . base64(token_string)
+owner store 91158 via real POST /vendor/apply (session set=['91158']); foreign pending store 91108; store 91158 exists in clone: 1, in shared DB: 0 (served-DB write proof)
+PASS | RB-1.1 | owner jar real return success | GET /vendor/final-step?store_id=91158&flag=success | HTTP 200 SUCCESS | try-again href=None | log lines=0
+PASS | RB-1.1 | no jar real return success | GET /vendor/final-step?store_id=91158&flag=success | HTTP 200 SUCCESS | try-again href=None | log lines=0
+PASS | RB-1.1b | owner jar real return fail | GET /vendor/final-step?store_id=91158&flag=fail | HTTP 200 FAIL | try-again href=/vendor/back?store_id=91158 | log lines=0
+PASS | RB-1.1b | no jar real return fail | GET /vendor/final-step?store_id=91158&flag=fail | HTTP 200 FAIL | try-again href=/vendor/back | log lines=0
+PASS | RB-1.1c | owner jar real return CANCEL (Stripe/SSL/PayPal callbacks) | GET /vendor/final-step?store_id=91158&flag=cancel | HTTP 200 FAIL | try-again href=/vendor/back?store_id=91158 | log lines=0
+PASS | RB-1.1c | no jar real return CANCEL (Stripe/SSL/PayPal callbacks) | GET /vendor/final-step?store_id=91158&flag=cancel | HTTP 200 FAIL | try-again href=/vendor/back | log lines=0
+PASS | RB-1.2 | owner jar bare ?store_id=ID | GET /vendor/final-step?store_id=91158 | HTTP 200 FAIL | try-again href=/vendor/back?store_id=91158 | log lines=0
+PASS | RB-1.2 | no jar bare ?store_id=ID | GET /vendor/final-step?store_id=91158 | HTTP 200 FAIL | try-again href=/vendor/back | log lines=0
+PASS | RB-1.3 | owner jar legacy %3Fflag%3Dsuccess | GET /vendor/final-step?store_id=91158%3Fflag%3Dsuccess | HTTP 200 SUCCESS | try-again href=None | log lines=0
+PASS | RB-1.3 | no jar legacy %3Fflag%3Dsuccess | GET /vendor/final-step?store_id=91158%3Fflag%3Dsuccess | HTTP 200 SUCCESS | try-again href=None | log lines=0
+PASS | RB-1.3b | owner jar legacy %3Fflag%3Dfail | GET /vendor/final-step?store_id=91158%3Fflag%3Dfail | HTTP 200 FAIL | try-again href=/vendor/back?store_id=91158 | log lines=0
+PASS | RB-1.3b | no jar legacy %3Fflag%3Dfail | GET /vendor/final-step?store_id=91158%3Fflag%3Dfail | HTTP 200 FAIL | try-again href=/vendor/back | log lines=0
+PASS | RB-1.6a | owner jar flag=ok | GET /vendor/final-step?store_id=91158&flag=ok | HTTP 200 FAIL | try-again href=/vendor/back?store_id=91158 | log lines=0
+PASS | RB-1.6a | no jar flag=ok | GET /vendor/final-step?store_id=91158&flag=ok | HTTP 200 FAIL | try-again href=/vendor/back | log lines=0
+PASS | RB-1.6b | owner jar flag= (empty) | GET /vendor/final-step?store_id=91158&flag= | HTTP 200 FAIL | try-again href=/vendor/back?store_id=91158 | log lines=0
+PASS | RB-1.6b | no jar flag= (empty) | GET /vendor/final-step?store_id=91158&flag= | HTTP 200 FAIL | try-again href=/vendor/back | log lines=0
+PASS | RB-1.6c | owner jar flag[]=x | GET /vendor/final-step?store_id=91158&flag[]=x | HTTP 200 FAIL | try-again href=/vendor/back?store_id=91158 | log lines=0
+PASS | RB-1.6c | no jar flag[]=x | GET /vendor/final-step?store_id=91158&flag[]=x | HTTP 200 FAIL | try-again href=/vendor/back | log lines=0
+PASS | RB-1.6d | owner jar flag=SUCCESS (case) | GET /vendor/final-step?store_id=91158&flag=SUCCESS | HTTP 200 FAIL | try-again href=/vendor/back?store_id=91158 | log lines=0
+PASS | RB-1.6d | no jar flag=SUCCESS (case) | GET /vendor/final-step?store_id=91158&flag=SUCCESS | HTTP 200 FAIL | try-again href=/vendor/back | log lines=0
+PASS | RB-1.10 | owner jar precedence: legacy suffix fail + flag=success (query param wins) | GET /vendor/final-step?store_id=91158%3Fflag%3Dfail&flag=success | HTTP 200 SUCCESS | try-again href=None | log lines=0
+PASS | RB-1.10 | no jar precedence: legacy suffix fail + flag=success (query param wins) | GET /vendor/final-step?store_id=91158%3Fflag%3Dfail&flag=success | HTTP 200 SUCCESS | try-again href=None | log lines=0
+PASS | RB-1.1d | owner jar real-shape FAIL with a FOREIGN id | HTTP 200 href=/vendor/back (foreign id 91108 never echoed) log lines=0
+PASS | RB-1.1d | no jar real-shape FAIL with a FOREIGN id | HTTP 200 href=/vendor/back (foreign id 91108 never echoed) log lines=0
+PASS | RB-1.4 | owner jar no store_id vs BASE | fixed HTTP 200 SUCCESS len=29231; base HTTP 200 SUCCESS len=29231; normalized body identical=True
+PASS | RB-1.4 | no jar no store_id vs BASE | fixed HTTP 200 SUCCESS len=29231; base HTTP 200 SUCCESS len=29231; normalized body identical=True
+PASS | RB-1.5 | owner jar ?flag=success only vs BASE | fixed HTTP 200 SUCCESS len=29231; base HTTP 200 SUCCESS len=29231; normalized body identical=True
+PASS | RB-1.5 | no jar ?flag=success only vs BASE | fixed HTTP 200 SUCCESS len=29231; base HTTP 200 SUCCESS len=29231; normalized body identical=True
+(control) BASE real-shape success = HTTP 500 (expect 500: RB-1 RED still reproduces at base)
+PASS | RB-1.7 | owner free_trial flow end to end | POST /vendor/payment pkg1 free_trial -> HTTP 302 Location=http://127.0.0.1:8148/vendor/final-step echo=OK follow GET /vendor/final-step (no params) -> 200 SUCCESS toasts=[('success', 'Successfully Subscribed.')]; trial rows: CHANGED {"subscription_transactions": ["1", "2"], "store_subscriptions": ["1", "2"], "store91158": ["package_id=NULL model=commission", "package_id=1 model=subscription"]}; [FAIL] lines=0
+PASS | RB-1.8 | G1 smoke: non-owner POST /vendor/payment | HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK line ctx={'correlation_id': '6e0b1497-ba3a-4bf9-85c5-b12c7b73a4ce', 'store_id': 91108, 'reason': 'store_not_owned'} DB ZERO-DELTA (earlier behaviour unchanged at b19102c7f)
+SUMMARY: 30/30 rows PASS
+=== G9 setup (cycle 1) ===
+tip b19102c7f0e74626070cef70799dd30fada9dea4; production hunk since 7d9ddd080: VendorController::final_step +3/-1 only (git diff 7d9ddd080 b19102c7f -- Admin/app)
+clone multi_food_db_qa4148 re-created from READ-ONLY dump, suspended_at migration only, NO seeders, NO raw DML; owned store created by real POST /vendor/apply
+served-DB: ps eww pid 70442 (:8148 fixed, worktree Admin/) and pid 70681 (:8149 base scratch: base VendorController blob 89c1c17a... == git base) both DB_DATABASE=multi_food_db_qa4148; backend-freshness-check PASS @ b19102c7f; store 91158 created through :8148 exists in the clone and NOT in the shared DB

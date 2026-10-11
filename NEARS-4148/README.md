@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4148
 
-**PASS - web registration step binding: base RED (500 / retired trial rows / paypal link / unauth commission flip) -> fixed refused with ONE store_not_owned line + zero writes; owner positives; login resume + limiter; 4 phpunit files green**
+**PASS cycle 1 - RB-1 final_step real gateway-return shape now 200 with the gateway status (30/30 rows), base still 500, G1 smoke holds**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -17,6 +17,7 @@
 - [`g6-final-step-return-shapes.txt`](g6-final-step-return-shapes.txt)
 - [`g7-regression-sweep.txt`](g7-regression-sweep.txt)
 - [`g8-automated-backstop-and-ac6-citation.txt`](g8-automated-backstop-and-ac6-citation.txt)
+- [`g9-delta-rb1-final-step-fixed.txt`](g9-delta-rb1-final-step-fixed.txt)
 - [`harness`](harness)
 
 ---
