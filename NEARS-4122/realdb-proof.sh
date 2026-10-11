@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# read-only proof that multi_food_db is unchanged: CHECKSUM TABLE + COUNT(*) (SELECT-only)
+mysql -u root multi_food_db -e "CHECKSUM TABLE orders, parcel_cancellations, order_transactions, expenses, admin_wallets, delivery_man_wallets; SELECT 'orders' t, COUNT(*) c FROM orders UNION ALL SELECT 'parcel_cancellations', COUNT(*) FROM parcel_cancellations UNION ALL SELECT 'order_transactions', COUNT(*) FROM order_transactions UNION ALL SELECT 'expenses', COUNT(*) FROM expenses UNION ALL SELECT 'admin_wallets', COUNT(*) FROM admin_wallets UNION ALL SELECT 'delivery_man_wallets', COUNT(*) FROM delivery_man_wallets;"
