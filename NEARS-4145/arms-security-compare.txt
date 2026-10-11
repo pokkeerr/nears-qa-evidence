@@ -1,0 +1,52 @@
+### SECURITY: header/body comparison (wallet arms)
+-- ac1-wallet-retired
+HTTP/1.1 403 Forbidden
+Host: 127.0.0.1:8145
+Connection: close
+X-Powered-By: PHP/8.2.34
+Cache-Control: no-cache, private
+Content-Type: application/json
+X-RateLimit-Limit: 5
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Access-Control-Allow-Origin: *
+
+BODY: {"errors":{"code":"package_ineligible","message":"Something went wrong"}}
+-- ac3-wallet-nonexistent
+HTTP/1.1 403 Forbidden
+Host: 127.0.0.1:8145
+Connection: close
+X-Powered-By: PHP/8.2.34
+Cache-Control: no-cache, private
+Content-Type: application/json
+X-RateLimit-Limit: 5
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Access-Control-Allow-Origin: *
+
+BODY: {"errors":{"message":"Something went wrong"}}
+-- ac3-wallet-array-retired
+HTTP/1.1 403 Forbidden
+Host: 127.0.0.1:8145
+Connection: close
+X-Powered-By: PHP/8.2.34
+Cache-Control: no-cache, private
+Content-Type: application/json
+X-RateLimit-Limit: 5
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Access-Control-Allow-Origin: *
+
+BODY: {"errors":{"message":"Something went wrong"}}
+-- header diff retired vs nonexistent (excluding date/request-id):
+SAME
+-- header diff nonexistent vs array:
+SAME
+-- body diff retired vs nonexistent (jq normalized):
+3d2
+<     "code": "package_ineligible",
+-- body diff nonexistent vs array:
+SAME

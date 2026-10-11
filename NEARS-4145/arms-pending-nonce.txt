@@ -1,0 +1,55 @@
+### pending registrant store 91108 with VALID nonce (minted AFTER cache:clear; nonce via Helpers::mintRegistrationNonce in tinker = harness shortcut for the registration response; CACHE_DRIVER=database)
+== pend-valid-nonce-retired-ft rid=550c8cd0-49c2-4945-8a6a-368432bdc87a
+   status: HTTP/1.1 403 Forbidden   x-request-id-echo: X-Request-Id: 550c8cd0-49c2-4945-8a6a-368432bdc87a
+   body: {"errors":{"code":"package_ineligible","message":"Something went wrong"}}
+   BEFORE tx=4 pr=76 ss=4 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=0 bal=281.97
+   AFTER  tx=4 pr=76 ss=4 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=0 bal=281.97
+   DB: IDENTICAL
+     LOG: [2026-10-11 19:37:29] production.ERROR: [FAIL] subscription.api_purchase_refused {"trace_id":"c9911e49e6707a4b0e3508e54886dead","correlation_id":"550c8cd0-49c2-4945-8a6a-368432bdc87a","store_id":91108,"reason":"package_ineligible"} 
+   new [FAIL] lines since: 1
+-- replay SAME nonce, eligible pkg (single-use => 401)
+== pend-replay-nonce-pkg2-ft rid=6a8c0af2-779b-4bf4-931d-bd7eaae8b0e0
+   status: HTTP/1.1 401 Unauthorized   x-request-id-echo: X-Request-Id: 6a8c0af2-779b-4bf4-931d-bd7eaae8b0e0
+   body: {"errors":{"message":"Unauthorized"}}
+   BEFORE tx=4 pr=76 ss=4 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=0 bal=281.97
+   AFTER  tx=4 pr=76 ss=4 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=0 bal=281.97
+   DB: IDENTICAL
+   new [FAIL] lines since: 0
+-- fresh nonce, nonexistent id, free_trial
+== pend-valid-nonce-nonexistent-ft rid=eeb13fc7-ef36-4aa0-8e66-87bf67881569
+   status:    x-request-id-echo: 
+head: /private/tmp/claude-501/-Users-Apple-Projects-nears/a7f5d4bb-4211-4dfc-9952-11437c9104f3/scratchpad/n4145-qa/b.pend-valid-nonce-nonexistent-ft: No such file or directory
+   body: 
+   BEFORE tx=4 pr=76 ss=4 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=0 bal=281.97
+   AFTER  tx=4 pr=76 ss=4 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=0 bal=281.97
+   DB: IDENTICAL
+   new [FAIL] lines since: 0
+-- fresh nonce, ELIGIBLE pkg2, free_trial (trial grant)
+== pend-valid-nonce-pkg2-ft rid=a97fc296-653e-4add-9dcf-b5d6cf5afe7f
+   status:    x-request-id-echo: 
+head: /private/tmp/claude-501/-Users-Apple-Projects-nears/a7f5d4bb-4211-4dfc-9952-11437c9104f3/scratchpad/n4145-qa/b.pend-valid-nonce-pkg2-ft: No such file or directory
+   body: 
+   BEFORE tx=4 pr=76 ss=4 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=0 bal=281.97
+   AFTER  tx=4 pr=76 ss=4 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=0 bal=281.97
+   DB: IDENTICAL
+   new [FAIL] lines since: 0
+NULL	commission
+-- (continuation after server restart) fresh nonce, nonexistent id, free_trial
+== pend-valid-nonce-nonexistent-ft rid=4a8c77f4-4b49-4ca1-a1ec-7456446f81bd
+   status: HTTP/1.1 403 Forbidden   x-request-id-echo: X-Request-Id: 4a8c77f4-4b49-4ca1-a1ec-7456446f81bd
+   body: {"errors":{"message":"Something went wrong"}}
+   BEFORE tx=4 pr=76 ss=4 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=0 bal=281.97
+   AFTER  tx=4 pr=76 ss=4 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=0 bal=281.97
+   DB: IDENTICAL
+   new [FAIL] lines since: 0
+-- fresh nonce, ELIGIBLE pkg2, free_trial (trial grant)
+== pend-valid-nonce-pkg2-ft rid=9373cbcc-a5fe-4f6d-a015-d3b8d82cff9c
+   status: HTTP/1.1 200 OK   x-request-id-echo: X-Request-Id: 9373cbcc-a5fe-4f6d-a015-d3b8d82cff9c
+   body: {"store_business_model":"subscription","logo":"2026-08-15-6a80bb9cd5c27.webp","message":"Application placed successfully"}
+   BEFORE tx=4 pr=76 ss=4 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=0 bal=281.97
+   AFTER  tx=5 pr=76 ss=5 bh=2 withdrawn=850.00 store_pkg=1 trial_ss=1 bal=281.97
+   DB: CHANGED
+   new [FAIL] lines since: 0
+1000004	91108	2	9.990	free_trial	1	free_trial
+5	2	0	1	2026-10-18
+2	subscription

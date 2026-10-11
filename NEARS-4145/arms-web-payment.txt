@@ -1,0 +1,25 @@
+### REGRESSION-CANDIDATE: web VendorController::payment (POST /vendor/payment), unauthenticated, CSRF only  Sun Oct 11 19:38:25 +04 2026
+91109	NULL
+91110	NULL
+91119	NULL
+91120	NULL
+== WEB web-i-nonexistent-ft store=91109 pkg=99999 payment=free_trial
+   status: HTTP/1.1 500 Internal Server Error  location: 
+   BEFORE trans=5 ss=5 trial_tx=1 pr=76 pkg=NULL
+   AFTER  trans=5 ss=5 trial_tx=1 pr=76 pkg=NULL
+   body-head: <!DOCTYPE html> <html lang="en"> <head>     <!-- Required Meta Tags Always Come First -->     <meta charset="utf-8">     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-f
+== WEB web-ii-retired-ft store=91110 pkg=3 payment=free_trial
+   status: HTTP/1.1 302 Found  location: Location: http://127.0.0.1:8145/vendor/final-step
+   BEFORE trans=5 ss=5 trial_tx=1 pr=76 pkg=NULL
+   AFTER  trans=6 ss=6 trial_tx=2 pr=76 pkg=3
+   body-head: <!DOCTYPE html> <html>     <head>         <meta charset="UTF-8" />         <meta http-equiv="refresh" content="0;url='http://127.0.0.1:8145/vendor/final-step'" />          <title>Redirecting to http:/
+== WEB web-iii-retired-paypal store=91119 pkg=3 payment=paypal
+   status: HTTP/1.1 302 Found  location: Location: http://127.0.0.1:8145/payment/paypal/pay?payment_id=11ef8d90-6e49-4534-a0fb-7a8b63926bfd
+   BEFORE trans=6 ss=6 trial_tx=2 pr=76 pkg=NULL
+   AFTER  trans=6 ss=6 trial_tx=2 pr=77 pkg=NULL
+   body-head: <!DOCTYPE html> <html>     <head>         <meta charset="UTF-8" />         <meta http-equiv="refresh" content="0;url='http://127.0.0.1:8145/payment/paypal/pay?payment_id=11ef8d90-6e49-4534-a0fb-7a8b63
+1000005	91110	3	9.990	free_trial	1
+91110	3	0	1
+91109	NULL	commission
+91110	3	subscription
+91119	NULL	commission
