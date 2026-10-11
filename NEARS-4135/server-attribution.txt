@@ -1,0 +1,21 @@
+# Server attribution (NEARS-3549) and DB proof
+branch server :8135 pid 6677 cwd: /Users/Apple/Projects/nears-NEARS-4135-user-hidden-secrets/Admin
+branch HEAD: 9fdf7c8636adc3ff70ce176a6f2930acf6196b05
+User.php $hidden at served path:
+    protected $hidden = [
+        'password',
+        'remember_token',
+        'interest',
+        'temp_token',
+        'cm_firebase_token',
+        'social_id',
+    ];
+base server :8136 cwd: /private/tmp/claude-501/-Users-Apple-Projects-nears/a7f5d4bb-4211-4dfc-9952-11437c9104f3/scratchpad/q4135/base/Admin (scratch copy, cp -Rc of Admin/, only app/Models/User.php reverted to 067d02bdd)
+base User.php $hidden:
+    protected $hidden = [
+        'password',
+        'remember_token',
+        'interest',
+    ];
+freshness-check :8135 -> PASS (cwd=worktree, head 9fdf7c863); :8136 -> exit 2 (scratch copy not a git work tree, expected)
+DB proof: both servers launched with DB_DATABASE=multi_food_db_qa4135 in process env (php -S ... server.php); seeded customer qa.n4135.customer@nears.com present in clone (id 910000120), absent (count 0) in multi_food_db; customer login 200 on both ports
