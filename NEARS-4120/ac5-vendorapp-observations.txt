@@ -1,0 +1,10 @@
+NEARS-4120 AC5 - VendorApp (com.izzes.nearsvendor) on emulator-5554, BASE_URL=http://10.0.2.2:8120 (own server, worktree 290d4ae09, clone DB multi_food_db_qa4120)
+Owner tab, qa.n4120.mk-none@nears.com / 123456789 -> tap "Sign In":
+  a11y tree right after tap (ui_list): ... "SIGN IN" "Sign In" "Vendor Employee" "Vendor Owner" "Your account is suspended" "qa.n4120.mk-none@nears.com" (password bullets)   [still on the sign-in screen]
+  app logcat: [NET] POST endpoint=/api/v1/auth/vendor/login ; http_status=403 ; [FAIL] endpoint=/api/v1/auth/vendor/login http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=ac358081-1a6a-477c-b244-db8c20456ed3
+  backend laravel.log: [FAIL] vendor.login_suspended {"correlation_id":"ac358081-1a6a-477c-b244-db8c20456ed3","store_id":91158,"surface":"api"}   (app correlation_id == backend correlation_id)
+Employee tab, qa.n4120.mk-none.emp@nears.com / 123456789 -> tap "Sign In":
+  a11y tree: "Your account is suspended" visible, same sign-in screen, no navigation
+  app logcat: ... http_status=403 ... correlation_id=14b53b87-9d78-4f1e-b852-0407b92f0592
+  backend laravel.log: [FAIL] vendor.login_suspended {"correlation_id":"14b53b87-9d78-4f1e-b852-0407b92f0592","store_id":91158,"surface":"api"}
+App pid (adb shell pidof com.izzes.nearsvendor) 5659 before and after both attempts: no crash/restart; no FATAL/AndroidRuntime line.
