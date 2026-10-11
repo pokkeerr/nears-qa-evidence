@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4117
 
-**PASS - 3-state return-fee label live EN/AR (+es/bn), emulator-5554**
+**PASS - AC5 notification entry driven live (3 FCM sends) + AC1-7**
 
-**23 screenshot(s).** Click any thumbnail for full resolution.
+**32 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -22,6 +22,21 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="bn-refused-94173-full.png"><img src="bn-refused-94173-full.png" width="240"></a><br><sub>bn refused 94173 full</sub></td>
+<td align="center" width="33%"><a href="en-ac5-notif-background-94173-feerow.png"><img src="en-ac5-notif-background-94173-feerow.png" width="240"></a><br><sub>en ac5 notif background 94173 feerow</sub></td>
+<td align="center" width="33%"><a href="en-ac5-notif-background-94173-full.png"><img src="en-ac5-notif-background-94173-full.png" width="240"></a><br><sub>en ac5 notif background 94173 full</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="en-ac5-notif-background-94173-tray.png"><img src="en-ac5-notif-background-94173-tray.png" width="240"></a><br><sub>en ac5 notif background 94173 tray</sub></td>
+<td align="center" width="33%"><a href="en-ac5-notif-foreground-94173-feerow.png"><img src="en-ac5-notif-foreground-94173-feerow.png" width="240"></a><br><sub>en ac5 notif foreground 94173 feerow</sub></td>
+<td align="center" width="33%"><a href="en-ac5-notif-foreground-94173-full.png"><img src="en-ac5-notif-foreground-94173-full.png" width="240"></a><br><sub>en ac5 notif foreground 94173 full</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="en-ac5-notif-foreground-94173-tray.png"><img src="en-ac5-notif-foreground-94173-tray.png" width="240"></a><br><sub>en ac5 notif foreground 94173 tray</sub></td>
+<td align="center" width="33%"><a href="en-ac5-notif-killed-94173-feerow.png"><img src="en-ac5-notif-killed-94173-feerow.png" width="240"></a><br><sub>en ac5 notif killed 94173 feerow</sub></td>
+<td align="center" width="33%"><a href="en-ac5-notif-killed-94173-full.png"><img src="en-ac5-notif-killed-94173-full.png" width="240"></a><br><sub>en ac5 notif killed 94173 full</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="en-ac5-notif-killed-94173-tray.png"><img src="en-ac5-notif-killed-94173-tray.png" width="240"></a><br><sub>en ac5 notif killed 94173 tray</sub></td>
 <td align="center" width="33%"><a href="en-canceled-94171-collect-money-sheet.png"><img src="en-canceled-94171-collect-money-sheet.png" width="240"></a><br><sub>en canceled 94171 collect money sheet</sub></td>
 <td align="center" width="33%"><a href="en-collect-94171-feerow.png"><img src="en-collect-94171-feerow.png" width="240"></a><br><sub>en collect 94171 feerow</sub></td>
 </tr>
@@ -48,6 +63,7 @@
 
 ### Other artifacts
 - [`ac5-api-get-order-fields.txt`](ac5-api-get-order-fields.txt)
+- [`ac5-notification-evidence.md`](ac5-notification-evidence.md)
 - [`app-flutter-fail-lines-startup-stale-token.log`](app-flutter-fail-lines-startup-stale-token.log)
 - [`progress.md`](progress.md)
 
