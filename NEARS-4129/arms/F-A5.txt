@@ -1,0 +1,58 @@
+=== F-A5
+login token: yes
+NEARS-4125: case A ready, store 4, subscription id=2, open bills: none
+package-view grep -c nears4129-qa-fail-grant => 1 (expect 1 if delta=1)
+server env: DB_DATABASE=multi_food_db_qa4129
+--- BEFORE
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
+| t      | id | vendor_id | total_earning | total_withdrawn | pending_withdraw | collected_cash | balance |
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
+| wallet |  4 |         4 |       1200.00 |          800.00 |           100.00 |           0.00 |  300.00 |
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
++-----+---------+------------+-------------+----------+----------------------+--------------------------+------------+
+| t   | id      | package_id | paid_amount | validity | reference            | payment_method           | created_by |
++-----+---------+------------+-------------+----------+----------------------+--------------------------+------------+
+| txn | 1000001 |          1 |       50.00 |       30 | nears4125-qa-fixture | wallet_payment_by_vendor | Store      |
++-----+---------+------------+-------------+----------+----------------------+--------------------------+------------+
++-----+----+------------+--------+----------+-------------+-------------+
+| t   | id | package_id | status | is_trial | is_canceled | expiry_date |
++-----+----+------------+--------+----------+-------------+-------------+
+| sub |  2 |          1 |      1 |        0 |           0 | 2026-10-31  |
++-----+----+------------+--------+----------+-------------+-------------+
++-------+----+------------+----------------------+--------+--------------+
+| t     | id | package_id | store_business_model | status | suspended_at |
++-------+----+------------+----------------------+--------+--------------+
+| store |  4 |          1 | subscription         |      1 | NULL         |
++-------+----+------------+----------------------+--------+--------------+
+--- RESULT
+req1: HTTP/1.1 302 Found rid=fb446f90-6845-48e0-a716-faa9d4ce6e65 | 200 t=0.268670 | toast: toastr.success('Subscription Package Renewed Successfully.','') toastr.success('Successfully canceled the subscription!') 
+req2: HTTP/1.1 302 Found rid=4578e95b-b0ab-47e4-9d4b-820d5e23b62a | 200 t=0.302770 | toast: toastr.success('Subscription Package Renewed Successfully.','') toastr.success('Successfully canceled the subscription!') 
+req3: HTTP/1.1 302 Found rid=59d8a1c4-644b-4e36-9996-869080cf1a31 | 200 t=0.349440 | toast: toastr.success('Successfully canceled the subscription!') toastr.success('Successfully Switched To Commission!') 
+req4: HTTP/1.1 302 Found rid=503cc278-8576-42c6-a1aa-198c0d6bf78e | 200 t=0.331937 | toast: toastr.success('Successfully canceled the subscription!') toastr.success('Successfully Switched To Commission!') 
+req5: HTTP/1.1 302 Found rid=9e6ae500-8456-4bbd-9d7f-b87838cb9a14 | 200 t=0.293936 | toast: toastr.success('Subscription Package Renewed Successfully.','') toastr.success('Successfully canceled the subscription!') 
+--- STATE (F-A5.after.txt)
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
+| t      | id | vendor_id | total_earning | total_withdrawn | pending_withdraw | collected_cash | balance |
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
+| wallet |  4 |         4 |       1200.00 |         1050.00 |           100.00 |           0.00 |   50.00 |
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
++-----+---------+------------+-------------+----------+-------------------------+--------------------------+------------+
+| t   | id      | package_id | paid_amount | validity | reference               | payment_method           | created_by |
++-----+---------+------------+-------------+----------+-------------------------+--------------------------+------------+
+| txn | 1000001 |          1 |       50.00 |       30 | nears4125-qa-fixture    | wallet_payment_by_vendor | Store      |
+| txn | 1000002 |          1 |       50.00 |       30 | wallet_payment_by_admin | wallet_payment_by_admin  | Admin      |
+| txn | 1000003 |          1 |       50.00 |       30 | wallet_payment_by_admin | wallet_payment_by_admin  | Admin      |
+| txn | 1000004 |          1 |       50.00 |       30 | wallet_payment_by_admin | wallet_payment_by_admin  | Admin      |
+| txn | 1000005 |          1 |       50.00 |       30 | wallet_payment_by_admin | wallet_payment_by_admin  | Admin      |
+| txn | 1000006 |          1 |       50.00 |       30 | wallet_payment_by_admin | wallet_payment_by_admin  | Admin      |
++-----+---------+------------+-------------+----------+-------------------------+--------------------------+------------+
++-----+----+------------+--------+----------+-------------+-------------+
+| t   | id | package_id | status | is_trial | is_canceled | expiry_date |
++-----+----+------------+--------+----------+-------------+-------------+
+| sub |  2 |          1 |      1 |        0 |           0 | 2027-03-30  |
++-----+----+------------+--------+----------+-------------+-------------+
++-------+----+------------+----------------------+--------+--------------+
+| t     | id | package_id | store_business_model | status | suspended_at |
++-------+----+------------+----------------------+--------+--------------+
+| store |  4 |          1 | subscription         |      1 | NULL         |
++-------+----+------------+----------------------+--------+--------------+
