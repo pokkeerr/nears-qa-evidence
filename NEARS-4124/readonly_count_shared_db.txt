@@ -1,0 +1,20 @@
+courier_assigned_subset
+0
+count(*)
+0
+-- predicate SQL (SELECT only), run on multi_food_db (shared dev) and on the clone with id<94000:
+-- READ-ONLY. delivered + paid + non-COD (NULL/'' counted as non-COD) + no order_payments COD row
+-- (i)  additionally: no order_transactions row
+-- (ii) additionally: transaction_reference NULL/'' and no offline_payments row with status='verified'
+SELECT
+ COUNT(*) AS base_delivered_paid_nonCOD_noCODrow,
+ SUM(NOT EXISTS (SELECT 1 FROM order_transactions t WHERE t.order_id=o.id)) AS i_no_order_transactions,
+ SUM(NOT EXISTS (SELECT 1 FROM order_transactions t WHERE t.order_id=o.id)
+     AND (o.transaction_reference IS NULL OR o.transaction_reference='')
+     AND NOT EXISTS (SELECT 1 FROM offline_payments f WHERE f.order_id=o.id AND f.status='verified')) AS ii_no_tx_no_ref_no_verified_offline
+FROM orders o
+WHERE o.order_status='delivered' AND o.payment_status='paid'
+  AND COALESCE(o.payment_method,'')<>'cash_on_delivery'
+  AND NOT EXISTS (SELECT 1 FROM order_payments p WHERE p.order_id=o.id AND p.payment_method='cash_on_delivery');
+-- result shared DB: base=3 (i)=3 (ii)=2; all 3 rows payment_method='cash' (1 pos, 2 take_away), delivery_man_id NULL (none courier-assigned): courier-assigned subset = 0
+-- clone (id<94000) identical: 3 / 3 / 2

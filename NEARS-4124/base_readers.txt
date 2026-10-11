@@ -1,0 +1,32 @@
+DB=multi_food_db_qa4124
+wallet_status=1 wallet_add_refund=0
+
+[UNTOUCHED twin of 94001 (digital_payment, unpaid)] id=95001 order_status=delivered method=digital_payment payment_status=unpaid order_amount=28.41
+  paymentEvidenceRefusal           => 'no_payment_evidence'
+  refundCreditPlan(cancel path)    => {"attempt":false,"amount":0,"reason":"not_paid"}   (refund_before_delivered :709-710 credit gate, in-tx admin digital_received decrement fires when payment_status=paid: no)
+  refundCreditPlan(delivered/admin approve :620) => {"attempt":false,"amount":0,"reason":"not_paid"}
+  customer refund_request guard (Api/V1/OrderController:738: delivered && payment_status==paid) => false
+
+[94001 AFTER base courier PUT (digital_payment, paid)] id=94001 order_status=delivered method=digital_payment payment_status=paid order_amount=28.41
+  paymentEvidenceRefusal           => NULL
+  refundCreditPlan(cancel path)    => {"attempt":false,"amount":0,"reason":"add_refund_off"}   (refund_before_delivered :709-710 credit gate, in-tx admin digital_received decrement fires when payment_status=paid: YES -28.41)
+  refundCreditPlan(delivered/admin approve :620) => {"attempt":false,"amount":0,"reason":"add_refund_off"}
+  customer refund_request guard (Api/V1/OrderController:738: delivered && payment_status==paid) => true
+
+[94002 AFTER base PUT (stripe, paid)] id=94002 order_status=delivered method=stripe payment_status=paid order_amount=28.41
+  paymentEvidenceRefusal           => NULL
+  refundCreditPlan(cancel path)    => {"attempt":false,"amount":0,"reason":"add_refund_off"}   (refund_before_delivered :709-710 credit gate, in-tx admin digital_received decrement fires when payment_status=paid: YES -28.41)
+  refundCreditPlan(delivered/admin approve :620) => {"attempt":false,"amount":0,"reason":"add_refund_off"}
+  customer refund_request guard (Api/V1/OrderController:738: delivered && payment_status==paid) => true
+
+[94005 AFTER base PUT (wallet, paid)] id=94005 order_status=delivered method=wallet payment_status=paid order_amount=28.41
+  paymentEvidenceRefusal           => NULL
+  refundCreditPlan(cancel path)    => {"attempt":false,"amount":0,"reason":"add_refund_off"}   (refund_before_delivered :709-710 credit gate, in-tx admin digital_received decrement fires when payment_status=paid: YES -28.41)
+  refundCreditPlan(delivered/admin approve :620) => {"attempt":false,"amount":0,"reason":"add_refund_off"}
+  customer refund_request guard (Api/V1/OrderController:738: delivered && payment_status==paid) => true
+
+[94006 AFTER base PUT (offline_payment, paid)] id=94006 order_status=delivered method=offline_payment payment_status=paid order_amount=28.41
+  paymentEvidenceRefusal           => NULL
+  refundCreditPlan(cancel path)    => {"attempt":false,"amount":0,"reason":"add_refund_off"}   (refund_before_delivered :709-710 credit gate, in-tx admin digital_received decrement fires when payment_status=paid: YES -28.41)
+  refundCreditPlan(delivered/admin approve :620) => {"attempt":false,"amount":0,"reason":"add_refund_off"}
+  customer refund_request guard (Api/V1/OrderController:738: delivered && payment_status==paid) => true
