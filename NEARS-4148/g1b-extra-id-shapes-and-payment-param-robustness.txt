@@ -18,3 +18,6 @@ OWNER payment=free_trial&payment_platform=app -> HTTP 302 Location=http://127.0.
 refusal lines in laravel.log during this QA window by reason: {'store_not_owned': 136, 'package_missing': 22, 'package_ineligible': 15, 'store_not_pending': 14}; context key-sets seen: {('correlation_id', 'reason', 'store_id'): 186, ('reason', 'store_id'): 1}
 PII scan: refusal lines containing a registrant email/password/the word email|password: 0 (expect 0)
 CORRECTION to the line above: the one ('reason','store_id') key-set line (no correlation_id) is a `testing.ERROR` line written by MY phpunit run of VendorRegistrationStoreGuardTest (direct controller call, no SetRequestId middleware) into the same laravel.log; restricted to `production.ERROR` (the live server) every refusal line carries exactly {correlation_id, store_id, reason}.
+=== G1b-base: the same owner-side odd payment params measured at BASE 8149 (pre-existing check) ===
+BASE (owner-equivalent) payment[]=free_trial (array) -> HTTP 500 echo=OK log=['production.ERROR: [FAIL] Array to string conversion (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database:'] DB ZERO-DELTA
+BASE (owner-equivalent) payment=bogus_gateway -> HTTP 500 echo=OK log=['production.ERROR: [FAIL] Cannot redirect to an empty URL. {"correlation_id":"87fd5285-2e30-41f4-968d-7a7d08c4d'] DB CHANGED {"payment_requests": ["79", "80"]}
