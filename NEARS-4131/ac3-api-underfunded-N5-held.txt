@@ -1,0 +1,31 @@
+# ac3-api-underfunded-N5-held: surface=api N=5 package_id=1 gateway=wallet type=renew hold_lock=6.0s
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1000.00 / 100.00 / 0.00
+  subscription_transactions(store4): 5
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,50.00,50.00,50.00,50.00
+## row lock held by a separate MySQL session (SELECT ... FOR UPDATE on store_wallets vendor 4; no DML)
+## OVERLAP PROOF while holder holds: data_lock_waits = 15 waiting rows, distinct waiting trx = 5; innodb_trx LOCK WAIT = 5
+## AFTER
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1100.00 / 100.00 / 0.00
+  subscription_transactions(store4): 7
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,50.00,50.00,50.00,50.00,50.00,50.00
+## RESPONSES
+  {"rid": "9b6ce8d4-59b3-40f7-8410-0df6003943ca", "status": 200, "location": null, "echoed": "9b6ce8d4-59b3-40f7-8410-0df6003943ca", "body": "{\"store_business_model\":\"subscription\",\"logo\":\"2026-03-01-a45cdada5ebe.png\",\"message\":\"Application placed successfully\"}", "t": 6.087}
+  {"rid": "0a8a96fa-7e31-4588-86db-dc217d0f0a63", "status": 200, "location": null, "echoed": "0a8a96fa-7e31-4588-86db-dc217d0f0a63", "body": "{\"store_business_model\":\"subscription\",\"logo\":\"2026-03-01-a45cdada5ebe.png\",\"message\":\"Application placed successfully\"}", "t": 6.101}
+  {"rid": "1fdab881-7d03-466a-80e1-639872073286", "status": 403, "location": null, "echoed": "1fdab881-7d03-466a-80e1-639872073286", "body": "{\"errors\":{\"code\":\"insufficient_balance\",\"message\":\"Insufficient balance in wallet\"}}", "t": 6.103}
+  {"rid": "e6925425-77db-4b00-8821-eb32093d6544", "status": 403, "location": null, "echoed": "e6925425-77db-4b00-8821-eb32093d6544", "body": "{\"errors\":{\"code\":\"insufficient_balance\",\"message\":\"Insufficient balance in wallet\"}}", "t": 6.103}
+  {"rid": "532ecf4a-13dc-4fa5-b72a-572a456dabd2", "status": 403, "location": null, "echoed": "532ecf4a-13dc-4fa5-b72a-572a456dabd2", "body": "{\"errors\":{\"code\":\"insufficient_balance\",\"message\":\"Insufficient balance in wallet\"}}", "t": 6.104}
+## LOG (laravel.log new bytes, [FAIL] lines scoped by sent X-Request-Id; correlation check)
+  total [FAIL] subscription.* lines in window: 3
+  production.ERROR: [FAIL] subscription.api_purchase_refused {"correlation_id":"1fdab881-7d03-466a-80e1-639872073286","store_id":4,"reason":"insufficient_balance"}   ==> correlation_id in sent rids: True
+  production.ERROR: [FAIL] subscription.api_purchase_refused {"correlation_id":"e6925425-77db-4b00-8821-eb32093d6544","store_id":4,"reason":"insufficient_balance"}   ==> correlation_id in sent rids: True
+  production.ERROR: [FAIL] subscription.api_purchase_refused {"correlation_id":"532ecf4a-13dc-4fa5-b72a-572a456dabd2","store_id":4,"reason":"insufficient_balance"}   ==> correlation_id in sent rids: True
+  other ERROR/CRITICAL lines in window: 0

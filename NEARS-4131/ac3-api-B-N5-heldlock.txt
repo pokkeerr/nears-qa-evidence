@@ -1,0 +1,28 @@
+# ac3-api-B-N5-heldlock: surface=api N=5 package_id=1 gateway=wallet type=renew hold_lock=6.0s
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 800.00 / 100.00 / 0.00
+  subscription_transactions(store4): 1
+  store_subscriptions(store4): 1
+  billing_history(store4): 1
+  open_pending_bill_sum(store4): 25.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00
+## row lock held by a separate MySQL session (SELECT ... FOR UPDATE on store_wallets vendor 4; no DML)
+## OVERLAP PROOF while holder holds: data_lock_waits = 15 waiting rows, distinct waiting trx = 5; innodb_trx LOCK WAIT = 5
+## AFTER
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1075.00 / 100.00 / 0.00
+  subscription_transactions(store4): 6
+  store_subscriptions(store4): 1
+  billing_history(store4): 1
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,75.00,50.00,50.00,50.00,50.00
+## RESPONSES
+  {"rid": "2dd6abd1-df37-48b8-870a-b3cc775e6df0", "status": 200, "location": null, "echoed": "2dd6abd1-df37-48b8-870a-b3cc775e6df0", "body": "{\"store_business_model\":\"subscription\",\"logo\":\"2026-03-01-a45cdada5ebe.png\",\"message\":\"Application placed successfully\"}", "t": 6.081}
+  {"rid": "c0805a28-ccc1-4496-bafc-ea81c40b2735", "status": 200, "location": null, "echoed": "c0805a28-ccc1-4496-bafc-ea81c40b2735", "body": "{\"store_business_model\":\"subscription\",\"logo\":\"2026-03-01-a45cdada5ebe.png\",\"message\":\"Application placed successfully\"}", "t": 6.095}
+  {"rid": "7ddabe26-9a12-4795-b257-76faf4e904bf", "status": 200, "location": null, "echoed": "7ddabe26-9a12-4795-b257-76faf4e904bf", "body": "{\"store_business_model\":\"subscription\",\"logo\":\"2026-03-01-a45cdada5ebe.png\",\"message\":\"Application placed successfully\"}", "t": 6.109}
+  {"rid": "720cc5f1-1743-4541-833e-15327a91fea3", "status": 200, "location": null, "echoed": "720cc5f1-1743-4541-833e-15327a91fea3", "body": "{\"store_business_model\":\"subscription\",\"logo\":\"2026-03-01-a45cdada5ebe.png\",\"message\":\"Application placed successfully\"}", "t": 6.123}
+  {"rid": "5d9efc88-a2b6-4de0-9f1f-78a4a660cd91", "status": 200, "location": null, "echoed": "5d9efc88-a2b6-4de0-9f1f-78a4a660cd91", "body": "{\"store_business_model\":\"subscription\",\"logo\":\"2026-03-01-a45cdada5ebe.png\",\"message\":\"Application placed successfully\"}", "t": 6.134}
+## LOG (laravel.log new bytes, [FAIL] lines scoped by sent X-Request-Id; correlation check)
+  total [FAIL] subscription.* lines in window: 0
+  other ERROR/CRITICAL lines in window: 0

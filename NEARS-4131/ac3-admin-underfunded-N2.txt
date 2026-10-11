@@ -1,0 +1,24 @@
+# ac3-admin-underfunded-N2: surface=admin N=2 package_id=1 gateway=wallet type=renew hold_lock=0s
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1050.00 / 100.00 / 0.00
+  subscription_transactions(store4): 6
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,50.00,50.00,50.00,50.00,50.00
+## AFTER
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1100.00 / 100.00 / 0.00
+  subscription_transactions(store4): 7
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,50.00,50.00,50.00,50.00,50.00,50.00
+## RESPONSES
+  {"rid": "cdbd2615-6bd5-4b67-a018-314351549993", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "cdbd2615-6bd5-4b67-a018-314351549993", "body": "", "t": 0.069}
+  {"rid": "c8e21c23-0721-4602-beef-dcdde84974cd", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "c8e21c23-0721-4602-beef-dcdde84974cd", "body": "", "t": 0.07}
+## LOG (laravel.log new bytes, [FAIL] lines scoped by sent X-Request-Id; correlation check)
+  total [FAIL] subscription.* lines in window: 1
+  production.ERROR: [FAIL] subscription.admin_purchase_refused {"correlation_id":"c8e21c23-0721-4602-beef-dcdde84974cd","store_id":4,"reason":"insufficient_balance"}   ==> correlation_id in sent rids: True
+  other ERROR/CRITICAL lines in window: 0

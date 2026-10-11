@@ -1,0 +1,32 @@
+# ac3-panel-underfunded-N5-held: surface=panel N=5 package_id=1 gateway=wallet type=renew hold_lock=8.0s
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1000.00 / 100.00 / 0.00
+  subscription_transactions(store4): 5
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,50.00,50.00,50.00,50.00
+## row lock held by a separate MySQL session (SELECT ... FOR UPDATE on store_wallets vendor 4; no DML)
+## OVERLAP PROOF @t+2.0s while holder holds: data_lock_waits = 15 waiting rows, distinct waiting trx = 5; innodb_trx LOCK WAIT = 5
+## OVERLAP PROOF @t+4.8s while holder holds: data_lock_waits = 15 waiting rows, distinct waiting trx = 5; innodb_trx LOCK WAIT = 5
+## AFTER
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1100.00 / 100.00 / 0.00
+  subscription_transactions(store4): 7
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,50.00,50.00,50.00,50.00,50.00,50.00
+## RESPONSES
+  {"rid": "0ffc30f4-3550-4b05-b6ba-16e85cc7ec87", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "0ffc30f4-3550-4b05-b6ba-16e85cc7ec87", "body": "", "t": 7.972}
+  {"rid": "6224eadc-1b1f-435e-acd5-eb9c8197ab09", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "6224eadc-1b1f-435e-acd5-eb9c8197ab09", "body": "", "t": 7.987}
+  {"rid": "b4fb4138-e9ee-4acc-b3ee-72dad69875c5", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "b4fb4138-e9ee-4acc-b3ee-72dad69875c5", "body": "", "t": 7.989}
+  {"rid": "ac4731e3-dcb6-49d4-8147-1e2143cc82c6", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "ac4731e3-dcb6-49d4-8147-1e2143cc82c6", "body": "", "t": 7.99}
+  {"rid": "e4d6b694-8783-47a9-87cc-f01cc886798d", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "e4d6b694-8783-47a9-87cc-f01cc886798d", "body": "", "t": 7.991}
+## LOG (laravel.log new bytes, [FAIL] lines scoped by sent X-Request-Id; correlation check)
+  total [FAIL] subscription.* lines in window: 3
+  production.ERROR: [FAIL] subscription.panel_purchase_refused {"correlation_id":"b4fb4138-e9ee-4acc-b3ee-72dad69875c5","store_id":4,"reason":"insufficient_balance"}   ==> correlation_id in sent rids: True
+  production.ERROR: [FAIL] subscription.panel_purchase_refused {"correlation_id":"ac4731e3-dcb6-49d4-8147-1e2143cc82c6","store_id":4,"reason":"insufficient_balance"}   ==> correlation_id in sent rids: True
+  production.ERROR: [FAIL] subscription.panel_purchase_refused {"correlation_id":"e4d6b694-8783-47a9-87cc-f01cc886798d","store_id":4,"reason":"insufficient_balance"}   ==> correlation_id in sent rids: True
+  other ERROR/CRITICAL lines in window: 0

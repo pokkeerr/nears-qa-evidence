@@ -1,0 +1,26 @@
+# ac9-admin-retire-in-lock: package 6 (nears4145-qa-stale-offer, price 7, status 1) purchased by wallet on admin (server :8131); the package is changed via the REAL admin route while the purchase is parked on the wallet row lock
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 800.00 / 100.00 / 0.00
+  subscription_transactions(store4): 1
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00
+  package row: 6 / 7.000 / 1 / all
+## purchase POST parked on the wallet row lock: data_lock_waits rows = 1 (waited=True)
+## admin toggle POST /admin/business-settings/subscription/status/6 -> HTTP 302 (commits while the purchase is parked)
+  package row now (committed): 6 / 7.000 / 0 / all
+## AFTER (lock released, purchase resumed)
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 800.00 / 100.00 / 0.00
+  subscription_transactions(store4): 1
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00
+  last transaction: 1000001 / 1 / 50.000 / 50.00 / wallet_payment_by_vendor / nears4125-qa-fixture
+## RESPONSE
+  {"rid": "cba4758e-84e4-410c-bd0b-5bdb2e34eef7", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "cba4758e-84e4-410c-bd0b-5bdb2e34eef7", "body": "", "toast": ["error:Something went wrong!."], "t": 11.911}
+## LOG [FAIL] subscription.* lines: 1
+  production.ERROR: [FAIL] subscription.admin_purchase_refused {"correlation_id":"cba4758e-84e4-410c-bd0b-5bdb2e34eef7","store_id":4,"reason":"package_ineligible"}   ==> correlation_id == sent X-Request-Id: True

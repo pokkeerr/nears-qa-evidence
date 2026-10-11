@@ -1,0 +1,24 @@
+# ac3-panel-underfunded-N2: surface=panel N=2 package_id=1 gateway=wallet type=renew hold_lock=0s
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1050.00 / 100.00 / 0.00
+  subscription_transactions(store4): 6
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,50.00,50.00,50.00,50.00,50.00
+## AFTER
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1100.00 / 100.00 / 0.00
+  subscription_transactions(store4): 7
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,50.00,50.00,50.00,50.00,50.00,50.00
+## RESPONSES
+  {"rid": "80ff8791-9925-422f-a033-ab965e2f3326", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "80ff8791-9925-422f-a033-ab965e2f3326", "body": "", "t": 0.075}
+  {"rid": "13f52245-2ecc-443a-a8f5-15b74d3cac88", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "13f52245-2ecc-443a-a8f5-15b74d3cac88", "body": "", "t": 0.078}
+## LOG (laravel.log new bytes, [FAIL] lines scoped by sent X-Request-Id; correlation check)
+  total [FAIL] subscription.* lines in window: 1
+  production.ERROR: [FAIL] subscription.panel_purchase_refused {"correlation_id":"13f52245-2ecc-443a-a8f5-15b74d3cac88","store_id":4,"reason":"insufficient_balance"}   ==> correlation_id in sent rids: True
+  other ERROR/CRITICAL lines in window: 0

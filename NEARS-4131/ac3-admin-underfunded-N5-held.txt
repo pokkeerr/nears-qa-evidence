@@ -1,0 +1,32 @@
+# ac3-admin-underfunded-N5-held: surface=admin N=5 package_id=1 gateway=wallet type=renew hold_lock=8.0s
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1000.00 / 100.00 / 0.00
+  subscription_transactions(store4): 5
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,50.00,50.00,50.00,50.00
+## row lock held by a separate MySQL session (SELECT ... FOR UPDATE on store_wallets vendor 4; no DML)
+## OVERLAP PROOF @t+2.0s while holder holds: data_lock_waits = 15 waiting rows, distinct waiting trx = 5; innodb_trx LOCK WAIT = 5
+## OVERLAP PROOF @t+4.8s while holder holds: data_lock_waits = 15 waiting rows, distinct waiting trx = 5; innodb_trx LOCK WAIT = 5
+## AFTER
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1100.00 / 100.00 / 0.00
+  subscription_transactions(store4): 7
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,50.00,50.00,50.00,50.00,50.00,50.00
+## RESPONSES
+  {"rid": "0083f86d-f252-4112-9eee-2c12734b9815", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "0083f86d-f252-4112-9eee-2c12734b9815", "body": "", "t": 7.937}
+  {"rid": "91803078-1019-4413-8399-b4f6f900e816", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "91803078-1019-4413-8399-b4f6f900e816", "body": "", "t": 7.951}
+  {"rid": "3a9e5df0-52c5-44b7-a297-3cd0dd06a2ec", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "3a9e5df0-52c5-44b7-a297-3cd0dd06a2ec", "body": "", "t": 7.952}
+  {"rid": "70615f72-757e-48a9-9e12-7d7c10a48f99", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "70615f72-757e-48a9-9e12-7d7c10a48f99", "body": "", "t": 7.954}
+  {"rid": "b8a68b2d-f055-405e-9f9b-953682bdcd83", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "b8a68b2d-f055-405e-9f9b-953682bdcd83", "body": "", "t": 7.954}
+## LOG (laravel.log new bytes, [FAIL] lines scoped by sent X-Request-Id; correlation check)
+  total [FAIL] subscription.* lines in window: 3
+  production.ERROR: [FAIL] subscription.admin_purchase_refused {"correlation_id":"3a9e5df0-52c5-44b7-a297-3cd0dd06a2ec","store_id":4,"reason":"insufficient_balance"}   ==> correlation_id in sent rids: True
+  production.ERROR: [FAIL] subscription.admin_purchase_refused {"correlation_id":"70615f72-757e-48a9-9e12-7d7c10a48f99","store_id":4,"reason":"insufficient_balance"}   ==> correlation_id in sent rids: True
+  production.ERROR: [FAIL] subscription.admin_purchase_refused {"correlation_id":"b8a68b2d-f055-405e-9f9b-953682bdcd83","store_id":4,"reason":"insufficient_balance"}   ==> correlation_id in sent rids: True
+  other ERROR/CRITICAL lines in window: 0

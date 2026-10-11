@@ -1,0 +1,28 @@
+# ac3-admin-B-N5-heldlock: surface=admin N=5 package_id=1 gateway=wallet type=renew hold_lock=6.0s
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 800.00 / 100.00 / 0.00
+  subscription_transactions(store4): 1
+  store_subscriptions(store4): 1
+  billing_history(store4): 1
+  open_pending_bill_sum(store4): 25.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00
+## row lock held by a separate MySQL session (SELECT ... FOR UPDATE on store_wallets vendor 4; no DML)
+## OVERLAP PROOF while holder holds: data_lock_waits = 15 waiting rows, distinct waiting trx = 5; innodb_trx LOCK WAIT = 5
+## AFTER
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1075.00 / 100.00 / 0.00
+  subscription_transactions(store4): 6
+  store_subscriptions(store4): 1
+  billing_history(store4): 1
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,75.00,50.00,50.00,50.00,50.00
+## RESPONSES
+  {"rid": "61c969b9-8496-444e-a617-c796236e096f", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "61c969b9-8496-444e-a617-c796236e096f", "body": "", "t": 5.996}
+  {"rid": "7cfb4035-67c5-4178-8c6e-14fd9e2a9395", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "7cfb4035-67c5-4178-8c6e-14fd9e2a9395", "body": "", "t": 6.01}
+  {"rid": "34996e89-22ae-4b2c-97e4-af4ffea1d2ca", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "34996e89-22ae-4b2c-97e4-af4ffea1d2ca", "body": "", "t": 6.023}
+  {"rid": "5f92fc7f-b07b-4d77-8ef4-418feae13471", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "5f92fc7f-b07b-4d77-8ef4-418feae13471", "body": "", "t": 6.036}
+  {"rid": "eae1d195-4923-4770-b984-51b4dd8cd7a3", "status": 302, "location": "http://127.0.0.1:8131/admin/business-settings/subscription/subscriber-detail/4", "echoed": "eae1d195-4923-4770-b984-51b4dd8cd7a3", "body": "", "t": 6.049}
+## LOG (laravel.log new bytes, [FAIL] lines scoped by sent X-Request-Id; correlation check)
+  total [FAIL] subscription.* lines in window: 0
+  other ERROR/CRITICAL lines in window: 0

@@ -1,0 +1,23 @@
+# ac7-api-retired-gateway: surface=api N=1 package_id=4 gateway=stripe type=renew hold_lock=0s
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 800.00 / 100.00 / 0.00
+  subscription_transactions(store4): 1
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00
+## AFTER
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 800.00 / 100.00 / 0.00
+  subscription_transactions(store4): 1
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00
+## RESPONSES
+  {"rid": "0b6b87de-7b06-4376-a71c-df3af8c2d5cb", "status": 403, "location": null, "echoed": "0b6b87de-7b06-4376-a71c-df3af8c2d5cb", "body": "{\"errors\":{\"code\":\"package_ineligible\",\"message\":\"Something went wrong\"}}", "toast": null, "t": 0.073}
+## LOG (laravel.log new bytes, [FAIL] lines scoped by sent X-Request-Id; correlation check)
+  total [FAIL] subscription.* lines in window: 1
+  production.ERROR: [FAIL] subscription.api_purchase_refused {"correlation_id":"0b6b87de-7b06-4376-a71c-df3af8c2d5cb","store_id":4,"reason":"package_ineligible"}   ==> correlation_id in sent rids: True
+  other ERROR/CRITICAL lines in window: 0

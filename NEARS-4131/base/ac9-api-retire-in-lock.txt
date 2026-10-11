@@ -1,0 +1,25 @@
+# ac9-api-retire-in-lock: package 6 (nears4145-qa-stale-offer, price 7, status 1) purchased by wallet on api (server :8132); the package is changed via the REAL admin route while the purchase is parked on the wallet row lock
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 800.00 / 100.00 / 0.00
+  subscription_transactions(store4): 1
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00
+  package row: 6 / 7.000 / 1 / all
+## purchase POST parked on the wallet row lock: data_lock_waits rows = 1 (waited=True)
+## admin toggle POST /admin/business-settings/subscription/status/6 -> HTTP 302 (commits while the purchase is parked)
+  package row now (committed): 6 / 7.000 / 0 / all
+## AFTER (lock released, purchase resumed)
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 807.00 / 100.00 / 0.00
+  subscription_transactions(store4): 2
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,7.00
+  last transaction: 1000002 / 6 / 7.000 / 7.00 / wallet / wallet_payment_by_vendor
+## RESPONSE
+  {"rid": "14d684c5-ef1c-4a60-a631-1189519752c9", "status": 200, "location": null, "echoed": "14d684c5-ef1c-4a60-a631-1189519752c9", "body": "{\"store_business_model\":\"subscription\",\"logo\":\"2026-03-01-a45cdada5ebe.png\",\"message\":\"Application placed successfully\"}", "toast": null, "t": 12.097}
+## LOG [FAIL] subscription.* lines: 0

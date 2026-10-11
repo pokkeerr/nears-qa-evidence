@@ -1,0 +1,28 @@
+# AC8 raw API bodies (tested sha ec9a11cb193cc27ad4c0707e8caccc03c6ff5cbb); token never printed
+## case C (bills 25+251, wallet 300): single insufficient_balance POST; BEFORE (total_withdrawn; open bills count,sum; tx count):
+800.00
+2	276.000
+1
+HTTP/1.1 403 Forbidden
+X-Request-Id: d1075577-9aad-4636-a6ed-5c090589afb1
+{"errors":{"code":"insufficient_balance","message":"Insufficient balance in wallet"}}
+
+production.ERROR: [FAIL] subscription.api_purchase_refused {"correlation_id":"d1075577-9aad-4636-a6ed-5c090589afb1","store_id":4,"reason":"insufficient_balance"} 
+AFTER:
+800.00
+2	276.000
+1
+
+## failing grant (pkg nears4129-qa-fail-grant) type=shift: BEFORE store_subscriptions(id,status,package), total_earning, billing rows:
+2	1	1
+1200.00
+0
+HTTP/1.1 500 Internal Server Error
+X-Request-Id: 300b8d55-49ae-4f1a-a611-bf7ec5c33189
+{"errors":{"code":"grant_failed","message":"Something went wrong"}}
+
+production.ERROR: [FAIL] subscription.api_purchase_refused {"correlation_id":"300b8d55-49ae-4f1a-a611-bf7ec5c33189","store_id":4,"reason":"grant_failed"} 
+AFTER:
+2	1	1
+1200.00
+0

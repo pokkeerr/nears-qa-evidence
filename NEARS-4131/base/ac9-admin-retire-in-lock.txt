@@ -1,0 +1,25 @@
+# ac9-admin-retire-in-lock: package 6 (nears4145-qa-stale-offer, price 7, status 1) purchased by wallet on admin (server :8132); the package is changed via the REAL admin route while the purchase is parked on the wallet row lock
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 800.00 / 100.00 / 0.00
+  subscription_transactions(store4): 1
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00
+  package row: 6 / 7.000 / 1 / all
+## purchase POST parked on the wallet row lock: data_lock_waits rows = 1 (waited=True)
+## admin toggle POST /admin/business-settings/subscription/status/6 -> HTTP 302 (commits while the purchase is parked)
+  package row now (committed): 6 / 7.000 / 0 / all
+## AFTER (lock released, purchase resumed)
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 807.00 / 100.00 / 0.00
+  subscription_transactions(store4): 2
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,7.00
+  last transaction: 1000002 / 6 / 7.000 / 7.00 / wallet_payment_by_admin / wallet_payment_by_admin
+## RESPONSE
+  {"rid": "83854b5d-5093-4d45-bae6-a4f54eeef1ec", "status": 302, "location": "http://127.0.0.1:8132/admin/business-settings/subscription/subscriber-detail/4", "echoed": "83854b5d-5093-4d45-bae6-a4f54eeef1ec", "body": "", "toast": ["success:Subscription Package Renewed Successfully."], "t": 11.99}
+## LOG [FAIL] subscription.* lines: 0

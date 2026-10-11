@@ -1,0 +1,23 @@
+# ac7-panel-retired-gateway: surface=panel N=1 package_id=4 gateway=stripe type=renew hold_lock=0s
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 800.00 / 100.00 / 0.00
+  subscription_transactions(store4): 1
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00
+## AFTER
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 800.00 / 100.00 / 0.00
+  subscription_transactions(store4): 1
+  store_subscriptions(store4): 1
+  billing_history(store4): 0
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00
+## RESPONSES
+  {"rid": "e57d68ee-af50-4ca1-90de-cfe65bcb651b", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "e57d68ee-af50-4ca1-90de-cfe65bcb651b", "body": "", "toast": ["error:Something went wrong!."], "t": 0.142}
+## LOG (laravel.log new bytes, [FAIL] lines scoped by sent X-Request-Id; correlation check)
+  total [FAIL] subscription.* lines in window: 1
+  production.ERROR: [FAIL] subscription.panel_purchase_refused {"correlation_id":"e57d68ee-af50-4ca1-90de-cfe65bcb651b","store_id":4,"reason":"package_ineligible"}   ==> correlation_id in sent rids: True
+  other ERROR/CRITICAL lines in window: 0

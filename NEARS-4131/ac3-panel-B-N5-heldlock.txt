@@ -1,0 +1,28 @@
+# ac3-panel-B-N5-heldlock: surface=panel N=5 package_id=1 gateway=wallet type=renew hold_lock=6.0s
+## BEFORE
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 800.00 / 100.00 / 0.00
+  subscription_transactions(store4): 1
+  store_subscriptions(store4): 1
+  billing_history(store4): 1
+  open_pending_bill_sum(store4): 25.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00
+## row lock held by a separate MySQL session (SELECT ... FOR UPDATE on store_wallets vendor 4; no DML)
+## OVERLAP PROOF while holder holds: data_lock_waits = 15 waiting rows, distinct waiting trx = 5; innodb_trx LOCK WAIT = 5
+## AFTER
+  wallet(earn,withdrawn,pending_wd,collected): 1200.00 / 1075.00 / 100.00 / 0.00
+  subscription_transactions(store4): 6
+  store_subscriptions(store4): 1
+  billing_history(store4): 1
+  open_pending_bill_sum(store4): 0.000
+  payment_requests(all): 75
+  tx_paid_amounts: 50.00,75.00,50.00,50.00,50.00,50.00
+## RESPONSES
+  {"rid": "95ad6f21-7394-486c-8c6d-036983cad805", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "95ad6f21-7394-486c-8c6d-036983cad805", "body": "", "t": 5.981}
+  {"rid": "d2543629-cf29-4bb7-afe4-1478481965b9", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "d2543629-cf29-4bb7-afe4-1478481965b9", "body": "", "t": 6.001}
+  {"rid": "07e93443-6e30-4ec7-91da-bf37fec7692f", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "07e93443-6e30-4ec7-91da-bf37fec7692f", "body": "", "t": 6.02}
+  {"rid": "6c46da79-dd6a-4df7-95b0-cb89df214259", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "6c46da79-dd6a-4df7-95b0-cb89df214259", "body": "", "t": 6.035}
+  {"rid": "9efef6e5-8e48-4b92-a01b-9fe98fb54b0b", "status": 302, "location": "http://127.0.0.1:8131/vendor-panel/subscription/subscriber-detail?4", "echoed": "9efef6e5-8e48-4b92-a01b-9fe98fb54b0b", "body": "", "t": 6.051}
+## LOG (laravel.log new bytes, [FAIL] lines scoped by sent X-Request-Id; correlation check)
+  total [FAIL] subscription.* lines in window: 0
+  other ERROR/CRITICAL lines in window: 0
