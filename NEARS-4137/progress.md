@@ -1,0 +1,1 @@
+NEARS-4137 QA progress: all arms captured on clone multi_food_db_qa4137; base :8237 (87f15d3b0) vs fixed :8137 (3e049fcd5). See keypath-diff-base-vs-fixed.txt, ac1-keywalk-result.txt, harvest-and-store-results.txt, ac2-widget-test-result.txt, ac4-ac5-spotcheck.txt, phpunit-filtered-result.txt.

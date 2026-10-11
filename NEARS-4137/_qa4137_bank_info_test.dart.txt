@@ -1,0 +1,79 @@
+// NEARS-4137 QA throwaway (never committed): pumps BankInfoScreen with the REAL /vendor/profile JSON captured live.
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:nears_vendor/features/payment/screens/bank_info_screen.dart';
+import 'package:nears_vendor/features/profile/controllers/profile_controller.dart';
+import 'package:nears_vendor/features/profile/domain/models/profile_model.dart';
+import 'package:nears_vendor/features/profile/domain/services/profile_service_interface.dart';
+import 'package:nears_vendor/features/splash/controllers/splash_controller.dart';
+import 'package:nears_vendor/features/splash/domain/services/splash_service_interface.dart';
+
+class _MockProfileService extends Mock implements ProfileServiceInterface {}
+class _MockSplashService extends Mock implements SplashServiceInterface {}
+class _FakeSplash extends SplashController {
+  _FakeSplash() : super(splashServiceInterface: _MockSplashService());
+  @override
+  Future<void> setModule(int? moduleID, String? moduleType) async {}
+}
+
+Map<String, dynamic> _load(String env) => jsonDecode(File(Platform.environment[env]!).readAsStringSync()) as Map<String, dynamic>;
+
+Future<void> _pump(WidgetTester tester, Map<String, dynamic> json) async {
+  Get.testMode = true;
+  Get.put<SplashController>(_FakeSplash());
+  final service = _MockProfileService();
+  final model = ProfileModel.fromJson(json);
+  when(() => service.getProfileInfo()).thenAnswer((_) async => model);
+  when(() => service.updateHeader(any())).thenReturn(null);
+  final controller = ProfileController(profileServiceInterface: service);
+  Get.put<ProfileController>(controller);
+  await controller.getProfile();
+  await tester.pumpWidget(GetMaterialApp(home: const BankInfoScreen()));
+  await tester.pump();
+}
+
+void main() {
+  tearDown(Get.reset);
+
+  testWidgets('A fixed-arm live JSON as-is: parse keeps the 3 keys; screen takes the no-bank branch (bank_name absent in payload)', (tester) async {
+    final json = _load('N4137_FIXED_PROFILE');
+    final m = ProfileModel.fromJson(json);
+    expect(m.accountNo, 'N4137-QA-ACCOUNT-000111');
+    expect(m.holderName, 'N4137 QA Holder');
+    expect(m.branch, 'N4137 QA Branch');
+    expect(m.bankName, isNull);
+    await _pump(tester, json);
+    expect(find.text('currently_no_bank_account_added'.tr), findsOneWidget);
+    expect(find.text('N4137-QA-ACCOUNT-000111'), findsNothing);
+  });
+
+  testWidgets('A2 base-arm live JSON as-is renders the identical no-bank branch (pre-existing, not caused by the ticket)', (tester) async {
+    final json = _load('N4137_BASE_PROFILE');
+    await _pump(tester, json);
+    expect(find.text('currently_no_bank_account_added'.tr), findsOneWidget);
+  });
+
+  testWidgets('B fixed-arm live JSON + synthetic bank_name: screen renders account_no / holder_name / branch', (tester) async {
+    final json = _load('N4137_FIXED_PROFILE')..['bank_name'] = 'N4137 QA Bank';
+    await _pump(tester, json);
+    expect(find.text('N4137-QA-ACCOUNT-000111'), findsOneWidget);
+    expect(find.text('N4137 QA Holder'), findsOneWidget);
+    expect(find.text('N4137 QA Branch'), findsOneWidget);
+    expect(find.text('N4137 QA Bank'), findsOneWidget);
+  });
+
+  testWidgets('C negative control: same JSON with the three keys removed does NOT render them', (tester) async {
+    final json = _load('N4137_FIXED_PROFILE')..['bank_name'] = 'N4137 QA Bank'
+      ..remove('account_no')..remove('holder_name')..remove('branch');
+    await _pump(tester, json);
+    expect(find.text('N4137-QA-ACCOUNT-000111'), findsNothing);
+    expect(find.text('N4137 QA Holder'), findsNothing);
+    expect(find.text('N4137 QA Branch'), findsNothing);
+    // InfoWidget does data! on a null: the screen throws instead of rendering empty fields
+    expect(tester.takeException(), isNotNull);
+  });
+}

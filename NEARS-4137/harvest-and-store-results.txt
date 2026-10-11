@@ -1,0 +1,8 @@
+(f) harvest path: vendor + delivery-man POST message/send receiver_type=customer receiver_id=3 (users.id 3 "Michael", no order with the QA store; wallet 151 / loyalty 199 / ref_code present in DB)
+ base  :8237 -> HTTP 200 both; conversation.(sender|receiver).user carries wallet_balance=151, loyalty_point=199, ref_code=MBRW0011, login_medium, is_from_pos, ref_by, zone_id (RED)
+ fixed :8137 -> HTTP 200 both; same user party object carries none of those 7 keys (GREEN); remaining keys: created_at,current_language_key,email_verified_at,f_name,id,image,image_full_url,is_email_verified,is_phone_verified,l_name,module_ids,notify_*,order_count,status,storage,updated_at
+Store comission (non-null, clone-only DML stores.comission=12.5 for fixture store 91158 after the seeder run, because the stamped seeder leaves it NULL):
+ base  conv stores[0].comission = 12.5 ; fixed = <absent>
+ /vendor/profile stores[0] carries no comission key on EITHER arm (profile projection) -> VendorApp my_subscription_screen read (stores[0].comission) is already the null path at base; unchanged by this ticket
+Store tax columns (gst, tin, tin_expire_date, tin_certificate_image, suspended_at): absent on BOTH arms across all 38 store objects seen (positive control; the fixture store has all four non-null in DB)
+Regression sweep (live, identical key-path sets base vs fixed, 0 removed / 0 added): store details 91158, customer order list, customer loyalty / wallet transactions, vendor order?order_id=91416, vendor current-orders, DM current-orders, DM loyalty-point-list
