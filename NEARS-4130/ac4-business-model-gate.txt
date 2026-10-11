@@ -1,0 +1,4 @@
+Recorded, NOT decided (routed to Bug A). Clone state: commission_business_model=1, subscription_business_model=0 in dump; zone-1 admin first switched stores 36 and 37 to commission (in-zone, 200 both servers) leaving zone-2 store 21 as the only active subscription (active_subs_by_zone: 2 -> 1).
+POST /admin/business-settings/update-setup commission_business_model=1 (commission-only) as qa.zone1.subscription:
+ BASE  :8131 -> toastr.warning 'You need to switch your subscribers to commission first' (gate sees the zone-2 active sub; refused)
+ FIXED :8130 -> toastr.success 'Successfully updated to changes restart app' (gate scoped to zone 1: zone-2 sub invisible; passes)
