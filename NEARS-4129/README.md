@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4129
 
-**QA cycle 0 PASS: AC1-AC8 live base-vs-fixed on clone, VendorApp device arm**
+**QA cycle 0 PASS + [8b] M1 live confirmation**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -19,6 +19,7 @@
 - [`arms`](arms)
 - [`be-fail-lines-fixed-tree-qa-rids.log`](be-fail-lines-fixed-tree-qa-rids.log)
 - [`be-log-base-tree-proof.txt`](be-log-base-tree-proof.txt)
+- [`m1-live-confirmation.txt`](m1-live-confirmation.txt)
 - [`phpunit-summary.txt`](phpunit-summary.txt)
 - [`progress.md`](progress.md)
 - [`restarts.log`](restarts.log)

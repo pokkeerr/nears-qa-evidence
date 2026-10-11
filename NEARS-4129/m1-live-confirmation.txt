@@ -1,0 +1,57 @@
+=== M1 live confirmation (clone-only DML: INSERT package 4 status=0 price 9.99; package 5 module_type=rental price 5.00; copies of package 1)
+package_view lists only: nears4129-qa-fail-grant, QA NEARS-3285 Test Package, QA Single-Store Fixture (4 and 5 absent)
+--- FIXED fe3d56d65 (b20e56988 code blob-identical)
+| wallet |  4 |         4 |       1200.00 |          800.00 |           100.00 |           0.00 |  300.00 |
+| txn | 1000001 |          1 |       50.00 |       30 | nears4125-qa-fixture | wallet_payment_by_vendor | Store      |
+(a) status=0:
+
+M1.a: 200 t=0.163472 {"store_business_model":"subscription","logo":"2026-03-01-a45cdada5ebe.png","message":"Application placed successfully"}
+M1.b: 200 t=0.251323 {"store_business_model":"subscription","logo":"2026-03-01-a45cdada5ebe.png","message":"Application placed successfully"}
+STATE AFTER (a)+(b):
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
+| t      | id | vendor_id | total_earning | total_withdrawn | pending_withdraw | collected_cash | balance |
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
+| wallet |  4 |         4 |       1200.00 |          814.99 |           100.00 |           0.00 |  285.01 |
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
++-----+---------+------------+-------------+----------+--------------------------+--------------------------+------------+
+| t   | id      | package_id | paid_amount | validity | reference                | payment_method           | created_by |
++-----+---------+------------+-------------+----------+--------------------------+--------------------------+------------+
+| txn | 1000001 |          1 |       50.00 |       30 | nears4125-qa-fixture     | wallet_payment_by_vendor | Store      |
+| txn | 1000002 |          4 |        9.99 |       30 | wallet_payment_by_vendor | wallet                   | Store      |
+| txn | 1000003 |          5 |        5.00 |       30 | wallet_payment_by_vendor | wallet                   | Store      |
++-----+---------+------------+-------------+----------+--------------------------+--------------------------+------------+
++-----+----+------------+--------+----------+-------------+-------------+
+| t   | id | package_id | status | is_trial | is_canceled | expiry_date |
++-----+----+------------+--------+----------+-------------+-------------+
+| sub |  2 |          5 |      1 |        0 |           0 | 2026-12-30  |
++-----+----+------------+--------+----------+-------------+-------------+
++-------+----+------------+----------------------+--------+--------------+
+| t     | id | package_id | store_business_model | status | suspended_at |
++-------+----+------------+----------------------+--------+--------------+
+| store |  4 |          5 | subscription         |      1 | NULL         |
++-------+----+------------+----------------------+--------+--------------+
+--- BASE 87f15d3b0 controllers (scratch copy)
+M1base.a: 200 t=0.210531 {"store_business_model":"subscription","logo":"2026-03-01-a45cdada5ebe.png","message":"Application placed successfully"}
+M1base.b: 200 t=0.203499 {"store_business_model":"subscription","logo":"2026-03-01-a45cdada5ebe.png","message":"Application placed successfully"}
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
+| t      | id | vendor_id | total_earning | total_withdrawn | pending_withdraw | collected_cash | balance |
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
+| wallet |  4 |         4 |       1200.00 |          814.99 |           100.00 |           0.00 |  285.01 |
++--------+----+-----------+---------------+-----------------+------------------+----------------+---------+
++-----+---------+------------+-------------+----------+--------------------------+--------------------------+------------+
+| t   | id      | package_id | paid_amount | validity | reference                | payment_method           | created_by |
++-----+---------+------------+-------------+----------+--------------------------+--------------------------+------------+
+| txn | 1000001 |          1 |       50.00 |       30 | nears4125-qa-fixture     | wallet_payment_by_vendor | Store      |
+| txn | 1000002 |          4 |        9.99 |       30 | wallet_payment_by_vendor | wallet                   | Store      |
+| txn | 1000003 |          5 |        5.00 |       30 | wallet_payment_by_vendor | wallet                   | Store      |
++-----+---------+------------+-------------+----------+--------------------------+--------------------------+------------+
++-----+----+------------+--------+----------+-------------+-------------+
+| t   | id | package_id | status | is_trial | is_canceled | expiry_date |
++-----+----+------------+--------+----------+-------------+-------------+
+| sub |  2 |          5 |      1 |        0 |           0 | 2026-12-30  |
++-----+----+------------+--------+----------+-------------+-------------+
++-------+----+------------+----------------------+--------+--------------+
+| t     | id | package_id | store_business_model | status | suspended_at |
++-------+----+------------+----------------------+--------+--------------+
+| store |  4 |          5 | subscription         |      1 | NULL         |
++-------+----+------------+----------------------+--------+--------------+
