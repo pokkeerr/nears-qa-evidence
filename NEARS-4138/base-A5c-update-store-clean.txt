@@ -1,0 +1,12 @@
+### BASE (8139) A5c: master (role_id 1) denies new-product temp rows 2,3 (item_id NULL, makes the loop 404-free); then restricted qa.zone1.globalactions POSTs update-store with product_approval ABSENT
+deny temp#2 by bm -> 302
+deny temp#3 by bm -> 302
+product_approval=1
+RESP: HTTP/1.1 302 Found | X-Request-Id: 8eb28a4b-c441-4bc5-bd55-1edd3fd221f8 | Location: http://127.0.0.1:8139/admin/business-settings/business-setup
+TOAST: success('Successfully updated to changes restart app';
+product_approval=NULL
+-- tables changed: business_settings temp_products items (none if blank)
+-- new [FAIL]/ERROR/Exception log lines in served process log:
+temp#2 rejected=1
+temp#3 rejected=1
+item 91122 updated_at=2026-10-11 23:43:39 is_approved=1

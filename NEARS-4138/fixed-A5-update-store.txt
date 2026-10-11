@@ -1,0 +1,325 @@
+### FIXED (8138) A5a: as-seeded (3 pending temp rows, zone-1 and zone-2), restricted qa.zone1.globalactions POST update-setup-store with product_approval ABSENT
+-- BEFORE
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=1
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+RESP: HTTP/1.1 302 Found | X-Request-Id: 423cd9f5-5096-44a0-bee6-0b7fca544fd3 | Location: http://127.0.0.1:8138/admin/business-settings/business-setup
+TOAST: error('Access denied';
+-- AFTER
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=1
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+-- tables changed: (none if blank)
+-- new [FAIL]/ERROR/Exception log lines in served process log:
+[2026-10-11 23:53:13] production.ERROR: [FAIL] admin.global_action_refused {"correlation_id":"423cd9f5-5096-44a0-bee6-0b7fca544fd3","endpoint":"admin/business-settings/update-store","status":302,"reason":"role_not_super_admin"} 
+-- log lines carrying correlation_id==X-Request-Id(423cd9f5-5096-44a0-bee6-0b7fca544fd3): 1 [FAIL] / 1 total
+temp#1 rejected=0
+temp#2 rejected=0
+temp#3 rejected=0
+item 91122 updated_at=2026-09-08 00:03:54
+### FIXED (8138) A5b: zone-less non-master, product_approval ABSENT
+-- BEFORE
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=1
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+RESP: HTTP/1.1 302 Found | X-Request-Id: 3b2cdf71-64e2-48ca-9057-c3b67bb06e05 | Location: http://127.0.0.1:8138/admin/business-settings/business-setup
+TOAST: error('Access denied';
+-- AFTER
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=1
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+-- tables changed: (none if blank)
+-- new [FAIL]/ERROR/Exception log lines in served process log:
+[2026-10-11 23:53:17] production.ERROR: [FAIL] admin.global_action_refused {"correlation_id":"3b2cdf71-64e2-48ca-9057-c3b67bb06e05","endpoint":"admin/business-settings/update-store","status":302,"reason":"role_not_super_admin"} 
+-- log lines carrying correlation_id==X-Request-Id(3b2cdf71-64e2-48ca-9057-c3b67bb06e05): 1 [FAIL] / 1 total
+temp#1 rejected=0
+temp#2 rejected=0
+temp#3 rejected=0
+item 91122 updated_at=2026-09-08 00:03:54
+### FIXED (8138) A5c: restricted POST product_approval=1 + Update_product_price=1 + update_existing_products=1 (NOT refused expected)
+-- BEFORE
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=1
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+RESP: HTTP/1.1 302 Found | X-Request-Id: ebe61587-fbe2-4aaf-a300-3cc5f7542699 | Location: http://127.0.0.1:8138/admin/business-settings/business-setup
+TOAST: success('Successfully updated to changes restart app';
+-- AFTER
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=1
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+-- tables changed: business_settings (none if blank)
+-- new [FAIL]/ERROR/Exception log lines in served process log:
+-- log lines carrying correlation_id==X-Request-Id(ebe61587-fbe2-4aaf-a300-3cc5f7542699): 0 [FAIL] / 0 total
+temp#1 rejected=0
+temp#2 rejected=0
+temp#3 rejected=0
+item 91122 updated_at=2026-09-08 00:03:54
+### FIXED (8138) A5d: restricted POST product_approval='0' (string; takes neither branch - not gated by design; record outcome)
+-- BEFORE
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=1
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+RESP: HTTP/1.1 302 Found | X-Request-Id: d0ba211a-2eff-4ce9-a927-7b229e425fdf | Location: http://127.0.0.1:8138/admin/business-settings/business-setup
+TOAST: success('Successfully updated to changes restart app';
+-- AFTER
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=0
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+-- tables changed: business_settings (none if blank)
+-- new [FAIL]/ERROR/Exception log lines in served process log:
+-- log lines carrying correlation_id==X-Request-Id(d0ba211a-2eff-4ce9-a927-7b229e425fdf): 0 [FAIL] / 0 total
+temp#1 rejected=0
+temp#2 rejected=0
+temp#3 rejected=0
+item 91122 updated_at=2026-09-08 00:03:54
+### FIXED (8138) A5e: ROLE_ID 1 control, as-seeded state, product_approval ABSENT (gate passes; handler runs; temp#2 item_id NULL -> pre-existing 404 mid-loop at base too, see BASE A5b)
+-- BEFORE
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=1
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+RESP: HTTP/1.1 404 Not Found | X-Request-Id: ba471cdf-f916-4352-a84a-ab1dedcc5cd3 | 
+-- AFTER
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=1
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+-- tables changed: temp_products items (none if blank)
+-- new [FAIL]/ERROR/Exception log lines in served process log:
+-- log lines carrying correlation_id==X-Request-Id(ba471cdf-f916-4352-a84a-ab1dedcc5cd3): 0 [FAIL] / 0 total
+temp#2 rejected=0
+temp#3 rejected=0
+item 91122 updated_at=2026-10-11 23:53:27
+### FIXED (8138) A5f: ROLE_ID 1 control, rows 2,3 denied by master (app GET), product_approval ABSENT -> approves
+deny temp#2 -> 302
+deny temp#3 -> 302
+-- BEFORE
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=1
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+RESP: HTTP/1.1 302 Found | X-Request-Id: 03aa6cd4-1191-4518-b77b-ef158b061236 | Location: http://127.0.0.1:8138/admin/business-settings/business-setup
+TOAST: success('Successfully updated to changes restart app';
+-- AFTER
+business_name=Nears
+cash_on_delivery={"status":true}
+commission_business_model=1
+digital_payment={"status":true}
+maintenance_mode=0
+offline_payment_status=1
+product_approval=NULL
+subscription_business_model=0
+sub#1 store=21 zone=2 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#2 store=36 zone=1 pkg=1 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#3 store=37 zone=1 pkg=2 ss.status=1 canceled=0 store.model=subscription store.status=1
+sub#4 store=38 zone=1 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+sub#5 store=12 zone=2 pkg=1 ss.status=0 canceled=0 store.model=unsubscribed store.status=0
+pkg#1 status=1
+pkg#2 status=1
+stores zone1 unsubscribed=1
+stores zone1 commission=24
+stores zone1 subscription=2
+stores zone2 commission=62
+stores zone2 unsubscribed=1
+stores zone2 subscription=1
+-- tables changed: business_settings temp_products items (none if blank)
+-- new [FAIL]/ERROR/Exception log lines in served process log:
+-- log lines carrying correlation_id==X-Request-Id(03aa6cd4-1191-4518-b77b-ef158b061236): 0 [FAIL] / 0 total
+temp#2 rejected=1
+temp#3 rejected=1
+item 91122 updated_at=2026-10-11 23:53:30
