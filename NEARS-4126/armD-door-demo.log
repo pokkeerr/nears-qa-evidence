@@ -1,0 +1,41 @@
+=== ARM D door demo http://127.0.0.1:8129 multi_food_db_qa4126d
+--- PRE state
+db
+multi_food_db_qa4126d
+id	vendor_id	status	suspended_at	store_business_model	package_id
+4	4	1	NULL	subscription	1
+id	status	is_canceled	expiry_date	validity	package_id
+2	1	0	2026-11-01	30	1
+vendor_id	total_earning	total_withdrawn	pending_withdraw	collected_cash
+4	1200.00	800.00	100.00	0.00
+refund_rows
+0
+
+owner session open on http://127.0.0.1:8129/vendor-panel/subscription/subscriber-detail | shift msg: You Want To Migrate To Commission. You will get د.إ.‏ 33.20 To your wallet for remaining 19.919108807049 days subscription plan.
+admin swal: ! | Are you sure ? | × | You want to change this store status | No | Yes
+admin status request: [('POST', 302, '/admin/store/status/4/0')]
+--- state after ADMIN UI toggle (no SQL)
+id	vendor_id	status	suspended_at	store_business_model
+4	4	0	2026-10-12 01:56:35	subscription
+
+owner swal: ! | Are you sure ? | × | You Want To Migrate To Commission. You will get د.إ.‏ 33.20 To your wallet for remaining 19.919108807049 days subscription plan. | No | Yes
+no login nav: Timeout 8000ms exceeded.
+=========================== logs ==
+owner landed: http://127.0.0.1:8129/
+owner XHR hook (may be lost on nav): []
+owner responses: [('POST', 302, '/vendor-panel/subscription/switch-to-commission/4', 'http://127.0.0.1:8129/login/vendor'), ('GET', 200, '/login/vendor', None), ('GET', 200, '/', None)]
+navs: ['/login/vendor', '/vendor-panel', '/vendor-panel/subscription/subscriber-detail', '/']
+toast records: [{"cls": "toast toast-success", "msg": "Successfully Switched To Commission!", "at": "/vendor-panel/subscription/subscriber-detail"}, {"cls": "toast toast-success", "msg": "Successfully Switched To Commission!", "at": "/vendor-panel/subscription/subscriber-detail"}]
+visible toasts: []
+--- POST state
+db
+multi_food_db_qa4126d
+id	vendor_id	status	suspended_at	store_business_model	package_id
+4	4	0	2026-10-12 01:56:35	subscription	1
+id	status	is_canceled	expiry_date	validity	package_id
+2	1	0	2026-11-01	30	1
+vendor_id	total_earning	total_withdrawn	pending_withdraw	collected_cash
+4	1200.00	800.00	100.00	0.00
+refund_rows
+0
+

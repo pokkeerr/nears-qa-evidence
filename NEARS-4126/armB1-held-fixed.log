@@ -1,0 +1,56 @@
+=== ARM B base http://127.0.0.1:8127 db multi_food_db_qa4126 update True
+--- PRE state
+db
+multi_food_db_qa4126
+id	vendor_id	status	suspended_at	store_business_model	package_id
+4	4	1	NULL	subscription	1
+id	status	is_canceled	expiry_date	validity	package_id
+2	1	0	2026-11-01	30	1
+vendor_id	total_earning	total_withdrawn	pending_withdraw	collected_cash
+4	1200.00	800.00	100.00	0.00
+refund_rows
+0
+
+status
+1
+
+confirm message: You Want To Migrate To Commission. You will get د.إ.‏ 33.20 To your wallet for remaining 19.921820109317 days subscription plan.
+--- UPDATE (literal)
+ROW_COUNT()
+1
+
+--- post-UPDATE stores row
+id	vendor_id	status	suspended_at	store_business_model	package_id
+4	4	0	NULL	subscription	1
+
+swal text: ! | Are you sure ? | × | You Want To Migrate To Commission. You will get د.إ.‏ 33.20 To your wallet for remaining 19.921820109317 days subscription plan. | No | Yes
+landed: http://127.0.0.1:8127/vendor-panel/subscription/subscriber-detail
+XHR (in-page hook): [{"url": "http://127.0.0.1:8127/vendor-panel/subscription/switch-to-commission/4", "status": 403, "rid": "fd04b352-18c3-4de2-9269-e0c052ba057d", "ct": "application/json", "body": "{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}"}]
+POST responses: [
+ {
+  "url": "http://127.0.0.1:8127/vendor-panel/subscription/switch-to-commission/4",
+  "status": 403,
+  "method": "POST",
+  "hdr": {
+   "x-request-id": "fd04b352-18c3-4de2-9269-e0c052ba057d",
+   "content-type": "application/json"
+  },
+  "body": "<unreadable: Response.text: Protocol error (Network.getResponseBody): No resource with given >",
+  "redirected_from": null
+ }
+]
+navs: ['http://127.0.0.1:8127/login/vendor', 'http://127.0.0.1:8127/vendor-panel', 'http://127.0.0.1:8127/vendor-panel/subscription/subscriber-detail', 'http://127.0.0.1:8127/vendor-panel/subscription/subscriber-detail']
+toasts seen (DOM observer, across reloads): []
+toasts visible now: ['toast toast-error :: Your account has been suspended']
+--- POST state
+db
+multi_food_db_qa4126
+id	vendor_id	status	suspended_at	store_business_model	package_id
+4	4	0	NULL	subscription	1
+id	status	is_canceled	expiry_date	validity	package_id
+2	1	0	2026-11-01	30	1
+vendor_id	total_earning	total_withdrawn	pending_withdraw	collected_cash
+4	1200.00	800.00	100.00	0.00
+refund_rows
+0
+
