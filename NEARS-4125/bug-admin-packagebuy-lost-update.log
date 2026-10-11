@@ -1,0 +1,17 @@
+NEARS-4125 QA (regression candidate, NOT part of this ticket): admin-panel twin Admin/Subscription/SubscriptionController::packageBuy (:675-684, super_admin) exhibits the same lost update on the FIXED tree (served from the NEARS-4125 worktree @ 9c818529e, port 8125, PHP_CLI_SERVER_WORKERS=6, clone multi_food_db_qa4125, case A fixture, wallet 300, package 1 = 50.00).
+POST /admin/business-settings/subscription/package-buy x2 in parallel, same admin session+CSRF, payment_gateway=wallet type=renew store_id=4 package_id=1. Expected correct delta 100.00, observed 50.00 with 2 grants (sub_tx +2):
+--- run 1
+BEFORE withdrawn=800.00 sub_tx=1 renewed_ctr=0
+{"status": 302, "rid": "f0b37526-c90a-49d0-867b-d28ec3cae0e3", "loc": "http://127.0.0.1:8125/admin/business-settings/subscription/subscriber-detail/4"}
+{"status": 302, "rid": "987c5411-29c6-4883-8240-99422fd6dae2", "loc": "http://127.0.0.1:8125/admin/business-settings/subscription/subscriber-detail/4"}
+AFTER  withdrawn=850.00 sub_tx=3 renewed_ctr=1
+--- run 2
+BEFORE withdrawn=800.00 sub_tx=1 renewed_ctr=0
+{"status": 302, "rid": "bf34c391-0d88-4dc9-a87d-8d87c2c1dc1a", "loc": "http://127.0.0.1:8125/admin/business-settings/subscription/subscriber-detail/4"}
+{"status": 302, "rid": "2bbcb83d-dbc9-4e8f-b589-70ee635d26b4", "loc": "http://127.0.0.1:8125/admin/business-settings/subscription/subscriber-detail/4"}
+AFTER  withdrawn=850.00 sub_tx=3 renewed_ctr=1
+--- run 3
+BEFORE withdrawn=800.00 sub_tx=1 renewed_ctr=0
+{"status": 302, "rid": "230da95d-948a-4c49-9c0a-0b8493fb338c", "loc": "http://127.0.0.1:8125/admin/business-settings/subscription/subscriber-detail/4"}
+{"status": 302, "rid": "685685bb-1e92-4deb-9460-53bc043f4641", "loc": "http://127.0.0.1:8125/admin/business-settings/subscription/subscriber-detail/4"}
+AFTER  withdrawn=850.00 sub_tx=3 renewed_ctr=1
