@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4129
 
-**QA cycle0: pending verdict**
+**QA cycle 0 PASS: AC1-AC8 live base-vs-fixed on clone, VendorApp device arm**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
