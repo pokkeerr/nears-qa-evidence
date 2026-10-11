@@ -1,0 +1,79 @@
+== AC4 BEFORE normal flow 91503 + 4118 controls  (2026-10-11 07:12:02)
+order 91503: order_status=handover pay=paid pm=digital_payment dm=3 conf=2026-10-11 05:00:00 picked=- delivered=- canceled=- refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=0 store_amount=0.00 admin_commission=0.00
+  refunds=-  offline_payments=-  order_payments rows=0
+order 91504: order_status=failed pay=unpaid pm=digital_payment dm=3 conf=- picked=- delivered=- canceled=- refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=0 store_amount=0.00 admin_commission=0.00
+  refunds=-  offline_payments=-  order_payments rows=0
+order 91505: order_status=pending pay=unpaid pm=digital_payment dm=3 conf=- picked=- delivered=- canceled=- refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=0 store_amount=0.00 admin_commission=0.00
+  refunds=-  offline_payments=-  order_payments rows=0
+order 91506: order_status=pending pay=unpaid pm=offline_payment dm=3 conf=- picked=- delivered=- canceled=- refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=0 store_amount=0.00 admin_commission=0.00
+  refunds=-  offline_payments=pending  order_payments rows=0
+store39 vendor37 wallet total_earning=49.97 collected_cash=0.00
+store2 vendor2 wallet total_earning=500.00 collected_cash=0.00
+dm3 wallet total_earning=180.00 collected_cash=0.00
+dm3 current_orders=0 order_count=12
+customer6 wallet_balance=15.840
+user_notifications(user6) rows=331
+admin: order_transactions total rows=32 sum_admin_commission=11.85
+=== AC4a normal paid non-canceled 91503: picked_up then delivered
+PUT /api/v1/delivery-man/update-order-status order=91503 status=picked_up request_id=qa4123-c2286745600
+{"message":"Status updated"} HTTP=200 
+X-Request-Id: 7ebd246e-0339-4916-86a9-8d5a6c761a2f
+PUT /api/v1/delivery-man/update-order-status order=91503 status=delivered request_id=qa4123-c2300301600
+{"message":"Status updated"} HTTP=200 
+X-Request-Id: 4148a1e4-e794-42af-8bfd-28f107e1d3ad
+=== AC4b NEARS-4118 refusals: failed 91504, no evidence 91505, unverified offline 91506
+PUT /api/v1/delivery-man/update-order-status order=91504 status=picked_up request_id=qa4123-c2318617000
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+X-Request-Id: 40036361-5bf6-4cde-86b9-0325d2fe4c6a
+PUT /api/v1/delivery-man/update-order-status order=91505 status=picked_up request_id=qa4123-c2328699600
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+X-Request-Id: c85a9fa6-89ab-4c01-a941-8fd93239dc00
+PUT /api/v1/delivery-man/update-order-status order=91506 status=picked_up request_id=qa4123-c2338795900
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+X-Request-Id: 8497835c-1f54-4960-85ab-a81caa3be12e
+PUT /api/v1/delivery-man/update-order-status order=91504 status=delivered request_id=qa4123-c2348933300
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+X-Request-Id: e7bd02f6-5c51-46b5-875d-c1967facf895
+=== AC4c NEARS-3875 courier cancel twice on 91507
+PUT /api/v1/delivery-man/update-order-status order=91507 status=canceled request_id=qa4123-c2359916300
+{"errors":[{"code":"status","message":"You can not cancel this order"}]} HTTP=403 
+X-Request-Id: 9d6ef047-c185-48aa-bdd9-0f4e364f4cf7
+PUT /api/v1/delivery-man/update-order-status order=91507 status=canceled request_id=qa4123-c2377866400
+ HTTP=000 
+== AC4 AFTER  (2026-10-11 07:12:03)
+order 91503: order_status=delivered pay=paid pm=digital_payment dm=3 conf=2026-10-11 05:00:00 picked=2026-10-11 07:12:02 delivered=2026-10-11 07:12:03 canceled=- refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=1 store_amount=49.85 admin_commission=2.62
+  refunds=-  offline_payments=-  order_payments rows=0
+order 91504: order_status=failed pay=unpaid pm=digital_payment dm=3 conf=- picked=- delivered=- canceled=- refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=0 store_amount=0.00 admin_commission=0.00
+  refunds=-  offline_payments=-  order_payments rows=0
+order 91505: order_status=pending pay=unpaid pm=digital_payment dm=3 conf=- picked=- delivered=- canceled=- refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=0 store_amount=0.00 admin_commission=0.00
+  refunds=-  offline_payments=-  order_payments rows=0
+order 91506: order_status=pending pay=unpaid pm=offline_payment dm=3 conf=- picked=- delivered=- canceled=- refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=0 store_amount=0.00 admin_commission=0.00
+  refunds=-  offline_payments=pending  order_payments rows=0
+order 91507: order_status=pending pay=unpaid pm=cash_on_delivery dm=3 conf=- picked=- delivered=- canceled=- refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=0 store_amount=0.00 admin_commission=0.00
+  refunds=-  offline_payments=-  order_payments rows=0
+store39 vendor37 wallet total_earning=99.82 collected_cash=0.00
+store2 vendor2 wallet total_earning=500.00 collected_cash=0.00
+dm3 wallet total_earning=180.00 collected_cash=0.00
+dm3 current_orders=0 order_count=13
+customer6 wallet_balance=15.840
+user_notifications(user6) rows=331
+admin: order_transactions total rows=33 sum_admin_commission=14.47
+=== AC4c courier cancel target stays passable through the closed-order gate (canceled_by_deliveryman=0 on this clone, so the request stops at the pre-existing 403 'status'; NOT 403 not_found)
+PUT /api/v1/delivery-man/update-order-status order=91507 status=canceled request_id=qa4123-c9731433300
+{"errors":[{"code":"status","message":"You can not cancel this order"}]} HTTP=403 
+X-Request-Id: da4fd4ef-806e-45d9-8806-c5556999a2cc
+PUT /api/v1/delivery-man/update-order-status order=91501 status=canceled request_id=qa4123-c9747853600
+{"errors":[{"code":"status","message":"You can not cancel this order"}]} HTTP=403 
+X-Request-Id: 9913e08f-aba3-4926-8218-6d69544311e8
+PUT /api/v1/delivery-man/update-order-status order=91502 status=canceled request_id=qa4123-c9759971200
+{"errors":[{"code":"status","message":"You can not cancel this order"}]} HTTP=403 
+X-Request-Id: 534a67f0-86db-4514-a5a4-ebf3e5ae807f

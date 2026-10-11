@@ -1,0 +1,61 @@
+##### AC5 writer 5: Admin offline_payment verify=yes (store 39 offline_payment unpaid + pending offline_payments row: 91541 canceled, 91542 refunded, 91543 failed, 91544 returned)
+--- SNAPSHOT BEFORE
+orders_rows_md5=69d026a3e80d8e6e0225a708890a73c3
+row 91541 6856a25c0a967e2573c670c9f803a847ff7a85c5773f8efb02b28ebcd8bba95d
+row 91542 b0876e2230afba40b80e716bcf5533494d7b30f1f977a0d5af4d37d82be9e103
+row 91543 952eba02b5c4ee20c5afdc70130b0a49dcc4daba6745899db40107bb0d922c82
+row 91544 c7fe779926b89691fc108c287f63697a5395d17bab332110c5bd2b6170abae01
+tx_rows=0
+dm3 current_orders=0 order_count=13
+user_notifications(user6)=331
+wallets store39=99.82 store2=500.00 dm3=180.00 cust6=15.840
+refunds: -
+offline: 91541:pending,91542:pending,91543:pending,91544:pending
+-- Admin POST admin/order/offline-payment id=91541 verify=yes
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91541
+toastr.warning('You can not change the status of a completed order','')
+toastr.success('Text copied to clipboard: ' + input.value)
+-- Admin POST admin/order/offline-payment id=91542 verify=yes
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91542
+toastr.warning('You can not change the status of a completed order','')
+toastr.success('Text copied to clipboard: ' + input.value)
+-- Admin POST admin/order/offline-payment id=91543 verify=yes
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91543
+toastr.warning('You can not change the status of a completed order','')
+toastr.success('Text copied to clipboard: ' + input.value)
+-- Admin POST admin/order/offline-payment id=91544 verify=yes
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91544
+toastr.warning('You can not change the status of a completed order','')
+toastr.success('Text copied to clipboard: ' + input.value)
+--- courier delivered leg afterwards (must settle nothing)
+PUT /api/v1/delivery-man/update-order-status order=91541 status=delivered request_id=qa4123-c7985844900
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+X-Request-Id: b2ef0bee-ec9e-4ec5-a45d-bff2afd80e26
+PUT /api/v1/delivery-man/update-order-status order=91542 status=delivered request_id=qa4123-c7995762800
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+X-Request-Id: edd77d22-0225-4b94-94b1-e7f6b81f6e76
+PUT /api/v1/delivery-man/update-order-status order=91543 status=delivered request_id=qa4123-c8005326500
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+X-Request-Id: ca5429dd-295f-440a-a14c-f72073210af9
+PUT /api/v1/delivery-man/update-order-status order=91544 status=delivered request_id=qa4123-c8015183900
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+X-Request-Id: aef9f40b-2260-4494-84ba-cfa52d4d85ab
+--- SNAPSHOT AFTER
+orders_rows_md5=69d026a3e80d8e6e0225a708890a73c3
+row 91541 6856a25c0a967e2573c670c9f803a847ff7a85c5773f8efb02b28ebcd8bba95d
+row 91542 b0876e2230afba40b80e716bcf5533494d7b30f1f977a0d5af4d37d82be9e103
+row 91543 952eba02b5c4ee20c5afdc70130b0a49dcc4daba6745899db40107bb0d922c82
+row 91544 c7fe779926b89691fc108c287f63697a5395d17bab332110c5bd2b6170abae01
+tx_rows=0
+dm3 current_orders=0 order_count=13
+user_notifications(user6)=331
+wallets store39=99.82 store2=500.00 dm3=180.00 cust6=15.840
+refunds: -
+offline: 91541:pending,91542:pending,91543:pending,91544:pending
+--- DIFF before/after (empty = no state write)
+IDENTICAL
+--- closed-order WARN lines added by this group: 4

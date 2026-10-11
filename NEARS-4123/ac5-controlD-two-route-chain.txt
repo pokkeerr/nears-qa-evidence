@@ -1,0 +1,62 @@
+##### POSITIVE CONTROL / chain (d): Admin-canceled order 91581 -> reopen attempts through the two routes -> confirmed -> delivered never reachable
+== chain START (processing, paid, pending refund row)  (2026-10-11 07:17:08)
+order 91581: order_status=processing pay=paid pm=digital_payment dm=3 conf=2026-10-11 05:00:00 picked=- delivered=- canceled=- refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=0 store_amount=0.00 admin_commission=0.00
+  refunds=pending  offline_payments=-  order_payments rows=0
+--- 1. Admin cancel (real route)
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91581
+toastr.success('Order status updated','')
+toastr.success('Text copied to clipboard: ' + input.value)
+--- snapshot after cancel
+== after cancel  (2026-10-11 07:17:08)
+order 91581: order_status=canceled pay=paid pm=digital_payment dm=3 conf=2026-10-11 05:00:00 picked=- delivered=- canceled=2026-10-11 07:17:08 refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=0 store_amount=0.00 admin_commission=0.00
+  refunds=pending  offline_payments=-  order_payments rows=0
+--- 2. Admin status -> refund_request_canceled
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91581
+toastr.warning('You can not change the status of a completed order','')
+toastr.success('Text copied to clipboard: ' + input.value)
+--- 3. Admin status -> refund_requested
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91581
+toastr.warning('You can not change the status of a completed order','')
+toastr.success('Text copied to clipboard: ' + input.value)
+--- 4. Admin order_refund_rejection
+-- Admin PUT admin/refund/order_refund_rejection order_id=91581
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91581
+toastr.warning('You can not change the status of a completed order','')
+toastr.success('Text copied to clipboard: ' + input.value)
+--- 5. Admin status -> confirmed, delivered
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91581
+toastr.warning('You can not change the status of a completed order','')
+toastr.success('Text copied to clipboard: ' + input.value)
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91581
+toastr.warning('You can not change the status of a completed order','')
+toastr.success('Text copied to clipboard: ' + input.value)
+--- 6. vendor/courier legs
+PUT /api/v1/delivery-man/update-order-status order=91581 status=confirmed request_id=qa4123-c3043864400
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+X-Request-Id: 012155b9-0dd6-4636-b4c4-a69af6c30e01
+PUT /api/v1/delivery-man/update-order-status order=91581 status=picked_up request_id=qa4123-c3051624600
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+X-Request-Id: 943cb7bc-67bf-473a-b76c-581f1eed1bd6
+PUT /api/v1/delivery-man/update-order-status order=91581 status=delivered request_id=qa4123-c3059201600
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+X-Request-Id: ecf18ac2-49cf-4d69-8f16-6d5884f15188
+--- DIFF snapshot after-cancel vs end
+IDENTICAL
+== chain END  (2026-10-11 07:17:10)
+order 91581: order_status=canceled pay=paid pm=digital_payment dm=3 conf=2026-10-11 05:00:00 picked=- delivered=- canceled=2026-10-11 07:17:08 refunded=- rrc=- pending=2026-10-11 05:00:00
+  order_transactions rows=0 store_amount=0.00 admin_commission=0.00
+  refunds=pending  offline_payments=-  order_payments rows=0
+store39 vendor37 wallet total_earning=99.82 collected_cash=0.00
+dm3 wallet total_earning=180.00 collected_cash=0.00
+dm3 current_orders=0 order_count=13
+admin: order_transactions total rows=33 sum_admin_commission=14.47
+closed-order/courier WARN lines added by steps 2-6: 42
+NOTE (harness correction): the 42 above is a harness arithmetic slip (n0 counted only 'closed order' lines, the end count also the earlier courier lines). Direct count of order_id 91581 WARN lines after the cancel: 5 'closed order progression refused' (admin steps 2,3,4,5a,5b) + 3 'courier order refused' (courier steps 6) = 8 = number of refused calls.

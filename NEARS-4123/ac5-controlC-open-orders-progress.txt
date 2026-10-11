@@ -1,0 +1,35 @@
+##### POSITIVE CONTROL (c): OPEN orders still progress through every gated writer
+--- vendor API 91571 (pending COD, store 2): confirmed then processing
+  91571: status=pending pay=unpaid pm=cash_on_delivery confirmed=- processing=-
+PUT /api/v1/vendor/update-order-status order=91571 status=confirmed
+{"message":"Status updated"} HTTP=200 
+X-Request-Id: fac484f4-c8a0-4c2e-96d7-24b451da76a6
+  91571: status=confirmed pay=unpaid pm=cash_on_delivery confirmed=2026-10-11 07:16:53 processing=-
+PUT /api/v1/vendor/update-order-status order=91571 status=processing
+{"message":"Status updated"} HTTP=200 
+X-Request-Id: 2ecb603e-5130-4ee0-b301-14ef189dcdcf
+  91571: status=processing pay=unpaid pm=cash_on_delivery confirmed=2026-10-11 07:16:53 processing=2026-10-11 07:16:54
+--- Store Panel 91572 (pending COD, store 2): confirmed
+  91572: status=pending pay=unpaid pm=cash_on_delivery confirmed=- processing=-
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/vendor-panel/order/details/91572
+toastr.success('Order status updated','')
+  91572: status=confirmed pay=unpaid pm=cash_on_delivery confirmed=2026-10-11 07:16:55 processing=-
+--- Admin status 91573 (pending COD, store 39): confirmed
+  91573: status=pending pay=unpaid pm=cash_on_delivery confirmed=- processing=-
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91573
+toastr.success('Order status updated','')
+toastr.success('Text copied to clipboard: ' + input.value)
+  91573: status=confirmed pay=unpaid pm=cash_on_delivery confirmed=2026-10-11 07:16:56 processing=-
+--- Admin offline verify=yes 91574 (pending offline_payment, store 39)
+  91574: status=pending pay=unpaid pm=offline_payment confirmed=- processing=-
+  offline_payments=pending
+-- Admin POST admin/order/offline-payment id=91574 verify=yes
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91574
+toastr.success('Payment status updated','')
+toastr.success('Text copied to clipboard: ' + input.value)
+  91574: status=confirmed pay=paid pm=offline_payment confirmed=2026-10-11 07:16:57 processing=-
+  offline_payments=verified
+closed-order WARN lines added during control (c): 0

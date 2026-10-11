@@ -1,0 +1,13 @@
+##### POSITIVE CONTROL (b): genuine refund_requested (delivered+paid) order 91565 -> Admin refund rejection still works
+--- BEFORE
+91565 status=refund_requested pay=paid rrc=-
+refund row: status=pending order_status=delivered method=wallet note=-
+-- Admin PUT admin/refund/order_refund_rejection order_id=91565
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91565
+toastr.success('Refund Rejection Successfully','')
+toastr.success('Text copied to clipboard: ' + input.value)
+--- AFTER
+91565 status=refund_request_canceled pay=paid rrc=2026-10-11 07:16:46
+refund row: status=rejected order_status=refund_request_canceled method=canceled note=qa4123-note
+closed-order WARN lines added: 0

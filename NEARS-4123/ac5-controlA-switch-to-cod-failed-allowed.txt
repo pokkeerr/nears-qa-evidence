@@ -1,0 +1,12 @@
+##### POSITIVE CONTROL (a): FAILED digital-payment order 91554 -> Admin switch-to-cod is ALLOWED (recovery flow)
+--- BEFORE
+91554 status=failed pm=digital_payment pay=unpaid
+-- Admin POST admin/order/switch-to-cod/91554
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91554
+toastr.error('Failed to Send Email','')
+toastr.success('Order switched to cod','')
+toastr.success('Text copied to clipboard: ' + input.value)
+--- AFTER
+91554 status=pending pm=cash_on_delivery pay=unpaid
+closed-order WARN lines added: 0

@@ -1,0 +1,30 @@
+##### BLAST-RADIUS spot checks
+--- E1 courier accept_order (unchanged): normal claimable 91591 and canceled 91592
+before 91591 status=handover dm=- | 91592 status=canceled dm=-
+PUT /api/v1/delivery-man/accept-order order=91591
+{"message":"Order accepted successfully"} HTTP=200
+PUT /api/v1/delivery-man/accept-order order=91592
+{"errors":[{"code":"order","message":"Can not accept"}]} HTTP=404
+after 91591 status=handover dm=3 | 91592 status=canceled dm=-
+--- E2 courier on returned parcel 91508 (dm3, paid): confirmed / picked_up / handover / delivered
+PUT /api/v1/delivery-man/update-order-status order=91508 status=confirmed request_id=qa4123-c7404110600
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+PUT /api/v1/delivery-man/update-order-status order=91508 status=picked_up request_id=qa4123-c7412269600
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+PUT /api/v1/delivery-man/update-order-status order=91508 status=handover request_id=qa4123-c7420364600
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+PUT /api/v1/delivery-man/update-order-status order=91508 status=delivered request_id=qa4123-c7428451900
+{"errors":[{"code":"not_found","message":"You can not change the status of this order"}]} HTTP=403 
+91508 order_status=returned type=parcel
+91508 tx rows=0
+--- E3 vendor API cancel of already-canceled order 91511 (3875/3876 path unchanged: expect 409)
+PUT /api/v1/vendor/update-order-status order=91511 status=canceled
+{"errors":[{"code":"order","message":"This order has already been canceled"}]} HTTP=409 
+IDENTICAL
+--- E4 Admin cancel of already-canceled 91531 (target canceled stays passable through the gate)
+HTTP/1.1 302 Found
+Location: http://127.0.0.1:8471/admin/order/details/91531
+toastr.warning('You can not cancel a completed order','')
+toastr.success('Text copied to clipboard: ' + input.value)
+IDENTICAL
+--- E5 Admin refunded-source :520 message unchanged: 91532 (refunded) -> delivered shows the same 'completed order' toast (see ac5-writer4)
