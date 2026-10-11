@@ -1,0 +1,35 @@
+# R2 (commission-picked pending, token persisted) cold relaunch: client + server evidence
+## own-server request log (proxy)
+17:03:49 GET /api/v1/config status=200 rid=1971ec7e-dae5-4b55-99de-ff1dbc69cbc6
+17:03:50 POST /api/v1/vendor/update-fcm-token status=403 rid=3fa67027-e0b8-45d9-91a2-99a6beb82ca9
+17:03:51 GET /api/v1/vendor/profile status=403 rid=5339e8f1-1077-4604-9996-53e16816628a
+17:03:51 GET /api/v1/vendor/withdraw-method/list status=403 rid=08ba867f-b037-4091-b113-618210f31f75
+17:03:52 GET /api/v1/vendor/profile status=403 rid=21a5f194-1143-4df0-bbdb-d837d31305d2
+17:03:52 GET /api/v1/vendor/current-orders status=403 rid=925ac5b7-1e9b-40eb-91d6-ac786bfddbdf
+17:03:53 GET /api/v1/vendor/notifications status=403 rid=8097f5a3-d64d-46c6-9476-31931680a248
+## client log (app pid only)
+I flutter : [NET] GET endpoint=/api/v1/config
+I flutter : [NET] endpoint=/api/v1/config http_status=200
+I flutter : [NET] POST endpoint=/api/v1/vendor/update-fcm-token
+I flutter : [NET] endpoint=/api/v1/vendor/update-fcm-token http_status=403
+I flutter : [FAIL] endpoint=/api/v1/vendor/update-fcm-token http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=3fa67027-e0b8-45d9-91a2-99a6beb82
+I flutter : [NET] GET endpoint=/api/v1/vendor/profile
+I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=403
+I flutter : [FAIL] endpoint=/api/v1/vendor/profile http_status=403 type=ApiFailure msg="api request failed" correlation_id=5339e8f1-1077-4604-9996-53e16816628a
+I flutter : [NET] GET endpoint=/api/v1/vendor/withdraw-method/list
+I flutter : [NET] GET endpoint=/api/v1/vendor/profile
+I flutter : [NET] endpoint=/api/v1/vendor/withdraw-method/list http_status=403
+I flutter : [FAIL] endpoint=/api/v1/vendor/withdraw-method/list http_status=403 type=ApiFailure msg="api request failed" correlation_id=08ba867f-b037-4091-b113-618210f31
+I flutter : [NET] endpoint=/api/v1/vendor/profile http_status=403
+I flutter : [FAIL] endpoint=/api/v1/vendor/profile http_status=403 type=ApiFailure msg="api request failed" correlation_id=21a5f194-1143-4df0-bbdb-d837d31305d2
+I flutter : [NET] GET endpoint=/api/v1/vendor/current-orders
+I flutter : [NET] endpoint=/api/v1/vendor/current-orders http_status=403
+I flutter : [FAIL] endpoint=/api/v1/vendor/current-orders http_status=403 type=ApiFailure msg="api request failed" correlation_id=925ac5b7-1e9b-40eb-91d6-ac786bfddbdf
+I flutter : [NET] GET endpoint=/api/v1/vendor/notifications
+I flutter : [NET] endpoint=/api/v1/vendor/notifications http_status=403
+I flutter : [FAIL] endpoint=/api/v1/vendor/notifications http_status=403 type=ApiFailure msg="api request failed" correlation_id=8097f5a3-d64d-46c6-9476-31931680a248
+## laravel.log for profile rid
+[2026-10-11 17:03:51] production.ERROR: [FAIL] vendor.account_suspended {"correlation_id":"5339e8f1-1077-4604-9996-53e16816628a","vendor_id":91157,"store_id":91159,"state":"not_approved"} 
+## DB state (clone)
+NULL	0	commission
+## no 'launch routing' line: 0
