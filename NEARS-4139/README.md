@@ -5,6 +5,7 @@
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
 ### Other artifacts
+- [`bug-store-item-export-temptable-nosubtab.log`](bug-store-item-export-temptable-nosubtab.log)
 - [`optional-nears4138-product-approval-all.json`](optional-nears4138-product-approval-all.json)
 - [`probe-destructive-base-vs-fixed.json`](probe-destructive-base-vs-fixed.json)
 - [`probe-matrix.md`](probe-matrix.md)
