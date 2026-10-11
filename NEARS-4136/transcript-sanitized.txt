@@ -1,0 +1,390 @@
+=== NEARS-4136 QA transcript (BRANCH 4f657fbf3 :8136, BASE aaa425ba1 :8137, clone multi_food_db_qa4136, seeded 15:07:38) Sun Oct 11 15:09:07 +04 2026
+-- clone settings (SELECT): ref_earning_status=0 manual_login_status=1 firebase_otp_verification=0   [customer_verification row ABSENT on clone => null => falsy (not inserted); firebase_otp_verification UPDATEd 1->0 on clone only (declared)]
+-- seeder blob: ea51109294e4947501f0e8db59708def2c00f29f (stamped ea51109294...)
+-- oauth_clients: 3  personal-access client rows present
+################ BASE ARMS (:8137, pre-fix aaa425ba1) ################
+---- AC a (base RED)
+-- SELECT snapshot 15:09:07 where: u.email like 'n4136-qa-victim-%-takeover%' or u.email like 'n4136-qa-victim-flipped%'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+439	n4136-qa-victim-apple-takeover	<phone-1361>	apple	3e19ee	7ceef5	NULL	NULL	1	2026-10-11 15:07:38	0
+441	n4136-qa-victim-google-takeover	<phone-1363>	google	c868d7	dd9d6d	set	NULL	1	2026-10-11 15:07:38	0
+445	n4136-qa-victim-flipped	<phone-1365>	manual	81941a	0e5c2e	NULL	NULL	1	2026-10-11 15:07:38	0
+### [base] AC-a apple victim-apple-takeover (its code as unique_id, fresh phone)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:victim-apple-takeover>","phone":"<phone-9001>"}
+-> HTTP/1.1 200 OK | x-request-id=6e26671f-bee9-41fc-9796-751da041e9a0 | bytes=1017 md5=f26a4e70
+   body: {"token":"****","is_phone_verified":1}
+### [base] AC-a google victim-google-takeover (IdP id as unique_id, medium apple)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<idp-id:takeover>","phone":"<phone-9002>"}
+-> HTTP/1.1 200 OK | x-request-id=ad4bcc15-145e-4755-a868-a30603f689d2 | bytes=1017 md5=6e8ef13a
+   body: {"token":"****","is_phone_verified":1}
+### [base] AC-a flipped victim (its code as unique_id)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:victim-flipped>","phone":"<phone-9003>"}
+-> HTTP/1.1 200 OK | x-request-id=67ab70cc-2e9e-4c31-a74b-b8ad008b236e | bytes=1017 md5=fe233fdf
+   body: {"token":"****","is_phone_verified":1}
+-- SELECT snapshot 15:09:08 where: u.email like 'n4136-qa-victim-%-takeover%' or u.email like 'n4136-qa-victim-flipped%'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+439	n4136-qa-victim-apple-takeover	<phone-9001>	apple	3e19ee	f7595a	NULL	set	1	2026-10-11 15:09:08	1
+441	n4136-qa-victim-google-takeover	<phone-9002>	google	c868d7	a05c3f	set	set	1	2026-10-11 15:09:08	1
+445	n4136-qa-victim-flipped	<phone-9003>	manual	81941a	d26007	NULL	set	1	2026-10-11 15:09:08	1
+---- AC b / c / unknown-code / d on BASE
+-- SELECT snapshot 15:09:19 where: u.email in ('n4136-qa-claim-a@example.test','n4136-qa-claim-b@example.test','n4136-qa-claim-c@example.test','n4136-qa-claim-stale@example.test')
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+435	n4136-qa-claim-a	NULL	apple	fa2fdc	NULL	NULL	NULL	1	2026-10-11 15:07:38	0
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:07:38	0
+437	n4136-qa-claim-c	NULL	apple	c6fb9d	NULL	NULL	NULL	1	2026-10-11 15:07:38	0
+438	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:47:38	0
+### [base] AC-b claim-a first-time claim
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:claim-a>","phone":"<phone-9004>"}
+-> HTTP/1.1 200 OK | x-request-id=575672f6-f929-45e6-a805-1e4e69cb5a3f | bytes=1015 md5=447d16a0
+   body: {"token":"****","is_phone_verified":0}
+-- SELECT snapshot 15:09:19 where: u.email='n4136-qa-claim-a@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+435	n4136-qa-claim-a	<phone-9004>	apple	fa2fdc	0b338e	NULL	set	1	2026-10-11 15:09:19	1
+### [base] AC-b/item5 base: manual login of the newly claimed row, phone/phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-9004>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=70f35aac-59de-40eb-b259-c173b8ff1d82 | bytes=1191 md5=63d04f4d
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-claim-a@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+### [base] AC-c replay of the claim-a code (different fresh phone)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:claim-a>","phone":"<phone-9005>"}
+-> HTTP/1.1 200 OK | x-request-id=f995511a-0768-45da-87b7-124f198b5d21 | bytes=1017 md5=4354c780
+   body: {"token":"****","is_phone_verified":0}
+-- SELECT snapshot 15:09:20 where: u.email='n4136-qa-claim-a@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+435	n4136-qa-claim-a	<phone-9005>	manual	fa2fdc	ce7936	NULL	set	1	2026-10-11 15:09:20	3
+### [base] AC-c stale row (20 min old) claim
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:claim-stale>","phone":"<phone-9006>"}
+-> HTTP/1.1 200 OK | x-request-id=46df2f29-1ab0-4c1e-9199-561e1ee99c78 | bytes=1015 md5=6381ce96
+   body: {"token":"****","is_phone_verified":0}
+-- SELECT snapshot 15:09:20 where: u.email='n4136-qa-claim-stale@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+438	n4136-qa-claim-stale	<phone-9006>	apple	3e56b0	8ad32f	NULL	set	1	2026-10-11 15:09:20	1
+### [base] AC-c race on claim-b (two parallel requests)
+   racer phone=<phone-9007> -> HTTP 200 body={"token":"****","is_phone_verified":0}
+   racer phone=<phone-9008> -> HTTP 401 body={"errors":[{"code":"auth-001","message":"Unauthorized."}]}
+-- SELECT snapshot 15:09:20 where: u.email='n4136-qa-claim-b@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+436	n4136-qa-claim-b	<phone-9007>	apple	a1e28e	030bee	NULL	set	1	2026-10-11 15:09:20	1
+### [base] AC-c unknown code + unregistered phone + ref_code=whatever
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-no-such-code","phone":"<phone-9009>","ref_code":"whatever"}
+-> HTTP/1.1 403 Forbidden | x-request-id=df3b7891-7c1c-4e9f-b82b-032f2fc14225 | bytes=29 md5=d49a72a2
+   body: {"error":"wrong credential."}
+### [base] AC-c unknown code, no ref_code
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-no-such-code","phone":"<phone-9010>"}
+-> HTTP/1.1 403 Forbidden | x-request-id=e4d199b7-0d7f-4ada-8342-f21e5bbb7586 | bytes=29 md5=d49a72a2
+   body: {"error":"wrong credential."}
+### [base] ref_code arm: claim-c valid incomplete row + ref_code (ref_earning_status=0)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:claim-c>","phone":"<phone-9011>","ref_code":"whatever"}
+-> HTTP/1.1 405 Method Not Allowed | x-request-id=92a72f7b-1d7c-49c7-b894-309aa2ebc817 | bytes=60 md5=d563f86c
+   body: {"errors":[{"code":"ref_code","message":"Referer disable"}]}
+-- SELECT snapshot 15:09:21 where: u.email='n4136-qa-claim-c@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+437	n4136-qa-claim-c	<phone-9011>	apple	c6fb9d	8224ee	NULL	set	1	2026-10-11 15:09:21	0
+---- AC d legacy social-login apple (BASE)
+### [base] AC-d legacy POST /auth/social-login medium=apple
+POST /api/v1/auth/social-login  body={"medium":"apple","token":"x","unique_id":"<code:victim-apple-login>","email":"n4136-qa-victim-apple-login@example.test"}
+-> HTTP/1.1 403 Forbidden | x-request-id=a502969e-3cbc-4f47-af47-7e9ec4f1f046 | bytes=29 md5=d49a72a2
+   body: {"error":"wrong credential."}
+---- ITEM 5 on BASE (each login row probed ONCE; wrong-password reference first)
+-- SELECT snapshot 15:09:30 where: u.email in ('n4136-qa-victim-apple-login@example.test','n4136-qa-victim-google-login@example.test','n4136-qa-victim-otp-login@example.test','n4136-qa-victim-facebook-login@example.test','n4136-qa-control-phone-pw@example.test','n4136-qa-control-null-medium@example.test','n4136-qa-control-normal@example.test')
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+440	n4136-qa-victim-apple-login	<phone-1362>	apple	f08876	46806e	NULL	NULL	1	2026-10-11 15:07:38	0
+442	n4136-qa-victim-google-login	<phone-1364>	google	702762	32e582	set	NULL	1	2026-10-11 15:07:38	0
+443	n4136-qa-victim-otp-login	<phone-1368>	otp	NULL	82e01b	NULL	NULL	1	2026-10-11 15:07:38	0
+444	n4136-qa-victim-facebook-login	<phone-1370>	facebook	8b5a4a	2fb808	set	NULL	1	2026-10-11 15:07:38	0
+446	n4136-qa-control-phone-pw	<phone-1366>	manual	NULL	ec9a4e	NULL	NULL	1	2026-10-11 15:07:38	0
+447	n4136-qa-control-null-medium	<phone-1369>	NULL	NULL	fa36d6	NULL	NULL	1	2026-10-11 15:07:38	0
+448	n4136-qa-control-normal	<phone-1367>	manual	NULL	2f857b	NULL	NULL	1	2026-10-11 15:07:38	0
+### [base] reference: wrong password on victim-apple-login
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1362>","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=bf916532-5bf1-4128-9c96-b3d594ad0776 | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+### [base] item5 apple victim phone/phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1362>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=87786b84-402d-4bc6-8689-8dbb66676a22 | bytes=1202 md5=7e5bb3e9
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-victim-apple-login@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+### [base] item5 google victim phone/social_id
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1364>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=3bd032b0-7a0a-4dc6-9dde-457345e91710 | bytes=1203 md5=dad8b60b
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-victim-google-login@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+### [base] item5 otp victim phone/phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1368>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=96e40418-0361-490e-8e47-de158c7eb166 | bytes=1197 md5=3da55258
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-victim-otp-login@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+### [base] item5 facebook victim phone/social_id
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1370>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=491b02df-a30e-44b5-a73c-892b2ba0c63e | bytes=1205 md5=4a267c13
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-victim-facebook-login@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+### [base] twin control-null-medium phone/phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1369>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=41c65d49-9683-4767-a19f-a9842e66b750 | bytes=1201 md5=d4097121
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-control-null-medium@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+### [base] twin control-normal real password
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1367>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=664801f0-c436-41a0-8950-b9a476baa3a0 | bytes=1198 md5=3de8648a
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-control-normal@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+### [base] twin control-phone-pw (already flipped) phone/phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1366>","password":"****"}
+-> HTTP/1.1 429 Too Many Requests | x-request-id=e7f7dda4-03c9-47a4-84d1-a21aa078f5aa | bytes=39 md5=58b5db5c
+   body: {
+    "message": "Too Many Attempts."
+}
+-- SELECT snapshot 15:09:32 where: u.email in ('n4136-qa-victim-apple-login@example.test','n4136-qa-victim-google-login@example.test','n4136-qa-victim-otp-login@example.test','n4136-qa-victim-facebook-login@example.test','n4136-qa-control-phone-pw@example.test','n4136-qa-control-null-medium@example.test','n4136-qa-control-normal@example.test')
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+440	n4136-qa-victim-apple-login	<phone-1362>	manual	f08876	46806e	NULL	set	1	2026-10-11 15:09:31	1
+442	n4136-qa-victim-google-login	<phone-1364>	manual	702762	32e582	set	set	1	2026-10-11 15:09:31	1
+443	n4136-qa-victim-otp-login	<phone-1368>	manual	NULL	82e01b	NULL	set	1	2026-10-11 15:09:31	1
+444	n4136-qa-victim-facebook-login	<phone-1370>	manual	8b5a4a	2fb808	set	set	1	2026-10-11 15:09:31	1
+446	n4136-qa-control-phone-pw	<phone-1366>	manual	NULL	ec9a4e	NULL	NULL	1	2026-10-11 15:07:38	0
+447	n4136-qa-control-null-medium	<phone-1369>	manual	NULL	fa36d6	NULL	set	1	2026-10-11 15:09:31	1
+448	n4136-qa-control-normal	<phone-1367>	manual	NULL	2f857b	NULL	set	1	2026-10-11 15:07:38	1
+(note: auth throttle = 20/min per IP, 5/min per identifier: the previous probe hit 429 'Too Many Attempts' on the 8th login; row untouched; re-probed below after the window; requests are now paced 3.5s apart)
+### [base] twin control-phone-pw (already flipped) phone/phone [re-probe after 429]
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1366>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=be6785e5-109b-41ad-a5a9-50e20662da77 | bytes=1200 md5=39ca890b
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-control-phone-pw@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+-- SELECT snapshot 15:10:51 where: u.email='n4136-qa-control-phone-pw@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+446	n4136-qa-control-phone-pw	<phone-1366>	manual	NULL	ec9a4e	NULL	set	1	2026-10-11 15:07:38	1
+---- BASE: flipped victim login (re-armed fixture; seeder down()+run() at 15:11)
+-- SELECT snapshot 15:11:07 where: u.email='n4136-qa-victim-flipped@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+459	n4136-qa-victim-flipped	<phone-1365>	manual	81941a	7df82b	NULL	NULL	1	2026-10-11 15:11:01	0
+### [base] item5 flipped (temp_token-marked, manual) victim phone/phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1365>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=a0199131-051f-4bc8-a73c-53bff89f6e2f | bytes=1198 md5=71c51053
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-victim-flipped@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+-- SELECT snapshot 15:11:11 where: u.email='n4136-qa-victim-flipped@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+459	n4136-qa-victim-flipped	<phone-1365>	manual	81941a	7df82b	NULL	set	1	2026-10-11 15:11:01	1
+---- fixture re-armed (down()+run()) for the BRANCH arms at 15:11:12; claim window closes +15min
+-- SELECT snapshot 15:11:12 where: u.email like 'n4136-qa-%'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+463	n4136-qa-claim-a	NULL	apple	fa2fdc	NULL	NULL	NULL	1	2026-10-11 15:11:11	0
+464	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:11:11	0
+465	n4136-qa-claim-c	NULL	apple	c6fb9d	NULL	NULL	NULL	1	2026-10-11 15:11:11	0
+466	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:51:11	0
+467	n4136-qa-victim-apple-takeover	<phone-1361>	apple	3e19ee	4bf913	NULL	NULL	1	2026-10-11 15:11:11	0
+468	n4136-qa-victim-apple-login	<phone-1362>	apple	f08876	2acc70	NULL	NULL	1	2026-10-11 15:11:11	0
+469	n4136-qa-victim-google-takeover	<phone-1363>	google	c868d7	8007fe	set	NULL	1	2026-10-11 15:11:11	0
+470	n4136-qa-victim-google-login	<phone-1364>	google	702762	273a37	set	NULL	1	2026-10-11 15:11:11	0
+471	n4136-qa-victim-otp-login	<phone-1368>	otp	NULL	618fbf	NULL	NULL	1	2026-10-11 15:11:11	0
+472	n4136-qa-victim-facebook-login	<phone-1370>	facebook	8b5a4a	3e4daa	set	NULL	1	2026-10-11 15:11:11	0
+473	n4136-qa-victim-flipped	<phone-1365>	manual	81941a	f4bf2b	NULL	NULL	1	2026-10-11 15:11:11	0
+474	n4136-qa-control-phone-pw	<phone-1366>	manual	NULL	1f2b65	NULL	NULL	1	2026-10-11 15:11:11	0
+475	n4136-qa-control-null-medium	<phone-1369>	NULL	NULL	9d1d07	NULL	NULL	1	2026-10-11 15:11:12	0
+476	n4136-qa-control-normal	<phone-1367>	manual	NULL	96ec2e	NULL	NULL	1	2026-10-11 15:11:12	0
+
+################ BRANCH ARMS (:8136, fix 4f657fbf3) ################
+---- AC a (BRANCH): takeover of completed victims must be refused
+-- SELECT snapshot 15:11:20 where: u.email in ('n4136-qa-victim-apple-takeover@example.test','n4136-qa-victim-google-takeover@example.test','n4136-qa-victim-flipped@example.test')
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+467	n4136-qa-victim-apple-takeover	<phone-1361>	apple	3e19ee	4bf913	NULL	NULL	1	2026-10-11 15:11:11	0
+469	n4136-qa-victim-google-takeover	<phone-1363>	google	c868d7	8007fe	set	NULL	1	2026-10-11 15:11:11	0
+473	n4136-qa-victim-flipped	<phone-1365>	manual	81941a	f4bf2b	NULL	NULL	1	2026-10-11 15:11:11	0
+### [branch] AC-a apple victim-apple-takeover (its code, fresh phone)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:victim-apple-takeover>","phone":"<phone-9101>"}
+-> HTTP/1.1 403 Forbidden | x-request-id=cc7baf12-6d53-46d1-bef5-01e6393bb500 | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+### [branch] AC-a google victim-google-takeover (IdP id as unique_id)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<idp-id:takeover>","phone":"<phone-9102>"}
+-> HTTP/1.1 403 Forbidden | x-request-id=bc71e338-bea9-4146-b06f-adb1a41f31d8 | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+### [branch] AC-a flipped victim (its code)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:victim-flipped>","phone":"<phone-9103>"}
+-> HTTP/1.1 403 Forbidden | x-request-id=748588b7-0e69-4d49-94cf-c4ccb5d3b5f2 | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+-- SELECT snapshot 15:11:32 where: u.email in ('n4136-qa-victim-apple-takeover@example.test','n4136-qa-victim-google-takeover@example.test','n4136-qa-victim-flipped@example.test')
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+467	n4136-qa-victim-apple-takeover	<phone-1361>	apple	3e19ee	4bf913	NULL	NULL	1	2026-10-11 15:11:11	0
+469	n4136-qa-victim-google-takeover	<phone-1363>	google	c868d7	8007fe	set	NULL	1	2026-10-11 15:11:11	0
+473	n4136-qa-victim-flipped	<phone-1365>	manual	81941a	f4bf2b	NULL	NULL	1	2026-10-11 15:11:11	0
+---- AC a BE-log check (branch laravel.log + laravel-structured.log, grep by response X-Request-Id)
+request a1 rid=cc7baf12-6d53-46d1-bef5-01e6393bb500
+   laravel.log: [2026-10-11 15:11:24] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"d4ecbd4cc42bc780bc056dd7b99be3ec","correlation_id":"cc7baf12-6d53-46d1-bef5-01e6393bb500","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+   laravel-structured.log: {"tag":"[FAIL]","timestamp":"2026-10-11T15:11:24.733472+04:00","correlation_id":"cc7baf12-6d53-46d1-bef5-01e6393bb500","level":"error","message":"[FAIL] social_register.apple_claim_refused","context":{"trace_id":"d4ecbd4cc42bc780bc056dd7b99be3ec","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"}}
+request a2 rid=bc71e338-bea9-4146-b06f-adb1a41f31d8
+   laravel.log: [2026-10-11 15:11:28] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"d0b12378c4f24a5830daa5ba2ad19ea1","correlation_id":"bc71e338-bea9-4146-b06f-adb1a41f31d8","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+   laravel-structured.log: {"tag":"[FAIL]","timestamp":"2026-10-11T15:11:28.445332+04:00","correlation_id":"bc71e338-bea9-4146-b06f-adb1a41f31d8","level":"error","message":"[FAIL] social_register.apple_claim_refused","context":{"trace_id":"d0b12378c4f24a5830daa5ba2ad19ea1","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"}}
+request a3 rid=748588b7-0e69-4d49-94cf-c4ccb5d3b5f2
+   laravel.log: [2026-10-11 15:11:32] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"409d1f6e6a66740a6acbab59b3541697","correlation_id":"748588b7-0e69-4d49-94cf-c4ccb5d3b5f2","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+   laravel-structured.log: {"tag":"[FAIL]","timestamp":"2026-10-11T15:11:32.094002+04:00","correlation_id":"748588b7-0e69-4d49-94cf-c4ccb5d3b5f2","level":"error","message":"[FAIL] social_register.apple_claim_refused","context":{"trace_id":"409d1f6e6a66740a6acbab59b3541697","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"}}
+---- AC b (BRANCH): first-time claim of incomplete claim-a
+-- SELECT snapshot 15:11:48 where: u.email='n4136-qa-claim-a@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+463	n4136-qa-claim-a	NULL	apple	fa2fdc	NULL	NULL	NULL	1	2026-10-11 15:11:11	0
+### [branch] AC-b claim-a first-time claim
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:claim-a>","phone":"<phone-9104>"}
+-> HTTP/1.1 200 OK | x-request-id=1b88c41d-d3a0-4a32-b696-1446acd824d5 | bytes=1017 md5=577a4dc4
+   body: {"token":"****","is_phone_verified":0}
+-- SELECT snapshot 15:11:52 where: u.email='n4136-qa-claim-a@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+463	n4136-qa-claim-a	<phone-9104>	apple	NULL	8a67f4	NULL	set	1	2026-10-11 15:11:52	1
+   BE-log [AC-b claim-a] rid=1b88c41d-d3a0-4a32-b696-1446acd824d5 [FAIL]/[ERR] lines: <none>
+### [branch] AC-b/item5: manual login new row phone/phone must be refused
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-9104>","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=1afbf353-6b1f-4dd1-aa05-f98f06f1bde9 | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+   BE-log [claim-a phone/phone] rid=1afbf353-6b1f-4dd1-aa05-f98f06f1bde9 [FAIL]/[ERR] lines: <none>
+### [branch] reference wrong-password on claimed row
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-9104>","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=95c0e834-1123-4d38-84a2-fbb81a435e1b | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+-- SELECT snapshot 15:12:00 where: u.email='n4136-qa-claim-a@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+463	n4136-qa-claim-a	<phone-9104>	apple	NULL	8a67f4	NULL	set	1	2026-10-11 15:11:52	1
+---- AC c (BRANCH): replay / stale / unknown / uniform bytes
+### [branch] AC-c replay of the claim-a code (different fresh phone)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:claim-a>","phone":"<phone-9105>"}
+-> HTTP/1.1 403 Forbidden | x-request-id=2cf16990-6cf9-447d-af59-ba70c610dc90 | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+   BE-log [replay] rid=2cf16990-6cf9-447d-af59-ba70c610dc90 [FAIL]/[ERR] lines: [2026-10-11 15:12:03] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"119f45f63e91815b0bc2fab75ce12d6b","correlation_id":"2cf16990-6cf9-447d-af59-ba70c610dc90","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+-- SELECT snapshot 15:12:03 where: u.email='n4136-qa-claim-a@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+463	n4136-qa-claim-a	<phone-9104>	apple	NULL	8a67f4	NULL	set	1	2026-10-11 15:11:52	1
+### [branch] AC-c stale row claim-stale
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:claim-stale>","phone":"<phone-9106>"}
+-> HTTP/1.1 403 Forbidden | x-request-id=91a9eb47-96c6-476e-87aa-282f9f78c7c0 | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+   BE-log [stale] rid=91a9eb47-96c6-476e-87aa-282f9f78c7c0 [FAIL]/[ERR] lines: [2026-10-11 15:12:07] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"8d28f7def632f53c888aceba03036e5c","correlation_id":"91a9eb47-96c6-476e-87aa-282f9f78c7c0","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+-- SELECT snapshot 15:12:07 where: u.email='n4136-qa-claim-stale@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+466	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:51:11	0
+### [branch] AC-c unknown code + unregistered phone + ref_code=whatever
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-no-such-code","phone":"<phone-9109>","ref_code":"whatever"}
+-> HTTP/1.1 403 Forbidden | x-request-id=4ce2bda5-0fdf-4659-b27c-0e4314cb99b0 | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+   BE-log [unknown+ref] rid=4ce2bda5-0fdf-4659-b27c-0e4314cb99b0 [FAIL]/[ERR] lines: [2026-10-11 15:12:11] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"fb46d6fcf7b0b1563e36ca05520313c8","correlation_id":"4ce2bda5-0fdf-4659-b27c-0e4314cb99b0","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+### [branch] AC-c unknown code no ref_code
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-no-such-code","phone":"<phone-9110>"}
+-> HTTP/1.1 403 Forbidden | x-request-id=782e9516-7bd6-46b0-af93-6143ef0780b3 | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+   BE-log [unknown] rid=782e9516-7bd6-46b0-af93-6143ef0780b3 [FAIL]/[ERR] lines: [2026-10-11 15:12:14] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"d57cdba1bbaec2be63edb61bcce0f5e2","correlation_id":"782e9516-7bd6-46b0-af93-6143ef0780b3","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+---- AC c race (BRANCH)
+-- SELECT snapshot 15:12:21 where: u.email='n4136-qa-claim-b@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+464	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:11:11	0
+### [branch] AC-c race on claim-b, phones ...9107 vs ...9108 (two parallel requests)
+   racer phone=<phone-9107> -> HTTP 403 body={"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+   racer phone=<phone-9108> -> HTTP 200 body={"token":"****","is_phone_verified":0}
+-- SELECT snapshot 15:12:22 where: u.email='n4136-qa-claim-b@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+464	n4136-qa-claim-b	<phone-9108>	apple	NULL	aa6cc0	NULL	set	1	2026-10-11 15:12:22	1
+   BE-log race: [FAIL] lines in the last 60s window for claim_lost/not_claimable on social-register: [2026-10-11 15:12:11] production.ERROR: [FAIL] social_regist6d6fcf7b0b1563e36ca05520313c8","correlation_id":"4ce2bda5-0fdf-4659-b27c-0e4314cb99b0","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+[2026-10-11 15:12:14] production.ERROR: [FAIL] social_registcdba1bbaec2be63edb61bcce0f5e2","correlation_id":"782e9516-7bd6-46b0-af93-6143ef0780b3","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+[2026-10-11 15:12:22] production.ERROR: [FAIL] social_regist6f17f86d3b35eb995d553e3600e59","correlation_id":"ce1f6176-f732-40de-bbf9-4547d8213b5c","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"claim_lost"} 
+---- ref_code arms (BRANCH) on valid claimable incomplete row claim-c (ref_earning_status=0)
+-- SELECT snapshot 15:12:22 where: u.email='n4136-qa-claim-c@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+465	n4136-qa-claim-c	NULL	apple	c6fb9d	NULL	NULL	NULL	1	2026-10-11 15:11:11	0
+### [branch] ref_code present, ref_earning_status=0 -> 405, row must stay claimable
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:claim-c>","phone":"<phone-9111>","ref_code":"whatever"}
+-> HTTP/1.1 405 Method Not Allowed | x-request-id=4a929c40-538c-49e1-8bfd-6ff3012235b8 | bytes=60 md5=d563f86c
+   body: {"errors":[{"code":"ref_code","message":"Referer disable"}]}
+-- SELECT snapshot 15:12:26 where: u.email='n4136-qa-claim-c@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+465	n4136-qa-claim-c	NULL	apple	c6fb9d	NULL	NULL	NULL	1	2026-10-11 15:11:11	0
+### [branch] then plain claim of claim-c succeeds
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"<code:claim-c>","phone":"<phone-9111>"}
+-> HTTP/1.1 200 OK | x-request-id=ef326e2b-67bc-4750-bd12-655c0c9c7b69 | bytes=1017 md5=1d9bfe78
+   body: {"token":"****","is_phone_verified":0}
+-- SELECT snapshot 15:12:29 where: u.email='n4136-qa-claim-c@example.test'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+465	n4136-qa-claim-c	<phone-9111>	apple	NULL	753fc8	NULL	set	1	2026-10-11 15:12:29	1
+(branch server on :8136 died at ~15:12:30 for an unknown external reason, no data effect; restarted from the same worktree on the same port + clone DB, freshness check PASS again, fixture untouched in between)
+---- AC d legacy social-login apple (BRANCH)
+### [branch] AC-d legacy POST /auth/social-login medium=apple
+POST /api/v1/auth/social-login  body={"medium":"apple","token":"x","unique_id":"<code:victim-apple-login>","email":"n4136-qa-victim-apple-login@example.test"}
+-> HTTP/1.1 403 Forbidden | x-request-id=d5609702-51a5-4292-8d23-9aeda59fb2f8 | bytes=29 md5=d49a72a2
+   body: {"error":"wrong credential."}
+   BE-log [legacy social-login] rid=d5609702-51a5-4292-8d23-9aeda59fb2f8 [FAIL]/[ERR] lines: <none>
+---- ITEM 5 on BRANCH
+-- SELECT snapshot 15:13:44 where: u.email in ('n4136-qa-victim-apple-login@example.test','n4136-qa-victim-google-login@example.test','n4136-qa-victim-otp-login@example.test','n4136-qa-victim-facebook-login@example.test','n4136-qa-victim-flipped@example.test','n4136-qa-control-phone-pw@example.test','n4136-qa-control-null-medium@example.test','n4136-qa-control-normal@example.test')
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+468	n4136-qa-victim-apple-login	<phone-1362>	apple	f08876	2acc70	NULL	NULL	1	2026-10-11 15:11:11	0
+470	n4136-qa-victim-google-login	<phone-1364>	google	702762	273a37	set	NULL	1	2026-10-11 15:11:11	0
+471	n4136-qa-victim-otp-login	<phone-1368>	otp	NULL	618fbf	NULL	NULL	1	2026-10-11 15:11:11	0
+472	n4136-qa-victim-facebook-login	<phone-1370>	facebook	8b5a4a	3e4daa	set	NULL	1	2026-10-11 15:11:11	0
+473	n4136-qa-victim-flipped	<phone-1365>	manual	81941a	f4bf2b	NULL	NULL	1	2026-10-11 15:11:11	0
+474	n4136-qa-control-phone-pw	<phone-1366>	manual	NULL	1f2b65	NULL	NULL	1	2026-10-11 15:11:11	0
+475	n4136-qa-control-null-medium	<phone-1369>	NULL	NULL	9d1d07	NULL	NULL	1	2026-10-11 15:11:12	0
+476	n4136-qa-control-normal	<phone-1367>	manual	NULL	96ec2e	NULL	NULL	1	2026-10-11 15:11:12	0
+### [branch] reference: wrong password on victim-apple-login
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1362>","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=2cd82cfc-42a9-496c-be19-d9d13474bb42 | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+### [branch] item5 apple victim phone/phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1362>","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=137e19f6-e3c3-40c6-b1f9-df1a6032d4fd | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+   BE-log [apple-login] rid=137e19f6-e3c3-40c6-b1f9-df1a6032d4fd [FAIL]/[ERR] lines: [2026-10-11 15:13:52] production.ERROR: [FAIL] manual_login.idp_derived_password_refused {"trace_id":"02fc627b765aa0227444b3f686ff2bb1","correlation_id":"137e19f6-e3c3-40c6-b1f9-df1a6032d4fd","endpoint":"/api/v1/auth/login","http_status":401,"reason":"idp_derived_password"} 
+### [branch] item5 google victim phone/social_id
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1364>","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=eb02df57-5454-4d9b-b45b-00f1c74c06d0 | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+   BE-log [google-login] rid=eb02df57-5454-4d9b-b45b-00f1c74c06d0 [FAIL]/[ERR] lines: [2026-10-11 15:13:55] production.ERROR: [FAIL] manual_login.idp_derived_password_refused {"trace_id":"38792e688f0c777ec76f40dbd5c1d1f7","correlation_id":"eb02df57-5454-4d9b-b45b-00f1c74c06d0","endpoint":"/api/v1/auth/login","http_status":401,"reason":"idp_derived_password"} 
+### [branch] item5 flipped (temp_token-marked, manual) victim phone/phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1365>","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=9f2f83b0-fffe-41fa-895c-101ab3ff72c6 | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+   BE-log [flipped] rid=9f2f83b0-fffe-41fa-895c-101ab3ff72c6 [FAIL]/[ERR] lines: [2026-10-11 15:13:59] production.ERROR: [FAIL] manual_login.idp_derived_password_refused {"trace_id":"ee57c8053d88bdd626456b4929749008","correlation_id":"9f2f83b0-fffe-41fa-895c-101ab3ff72c6","endpoint":"/api/v1/auth/login","http_status":401,"reason":"idp_derived_password"} 
+### [branch] item5 otp victim phone/phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1368>","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=b8567d86-94f1-4925-ba02-fd6dabbcd04b | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+   BE-log [otp] rid=b8567d86-94f1-4925-ba02-fd6dabbcd04b [FAIL]/[ERR] lines: [2026-10-11 15:14:03] production.ERROR: [FAIL] manual_login.idp_derived_password_refused {"trace_id":"7ebbc70884a3ddff3d417dde132b073a","correlation_id":"b8567d86-94f1-4925-ba02-fd6dabbcd04b","endpoint":"/api/v1/auth/login","http_status":401,"reason":"idp_derived_password"} 
+### [branch] item5 facebook victim phone/social_id
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1370>","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=7e372f70-3e69-4f3d-a6c2-fafd75cc6de7 | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+   BE-log [facebook] rid=7e372f70-3e69-4f3d-a6c2-fafd75cc6de7 [FAIL]/[ERR] lines: [2026-10-11 15:14:06] production.ERROR: [FAIL] manual_login.idp_derived_password_refused {"trace_id":"1d9467cd85db4d259b17f7dfa01bf1d4","correlation_id":"7e372f70-3e69-4f3d-a6c2-fafd75cc6de7","endpoint":"/api/v1/auth/login","http_status":401,"reason":"idp_derived_password"} 
+-- SELECT snapshot 15:14:06 where: u.email in ('n4136-qa-victim-apple-login@example.test','n4136-qa-victim-google-login@example.test','n4136-qa-victim-otp-login@example.test','n4136-qa-victim-facebook-login@example.test','n4136-qa-victim-flipped@example.test','n4136-qa-control-phone-pw@example.test','n4136-qa-control-null-medium@example.test','n4136-qa-control-normal@example.test')
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+468	n4136-qa-victim-apple-login	<phone-1362>	apple	f08876	2acc70	NULL	NULL	1	2026-10-11 15:11:11	0
+470	n4136-qa-victim-google-login	<phone-1364>	google	702762	273a37	set	NULL	1	2026-10-11 15:11:11	0
+471	n4136-qa-victim-otp-login	<phone-1368>	otp	NULL	618fbf	NULL	NULL	1	2026-10-11 15:11:11	0
+472	n4136-qa-victim-facebook-login	<phone-1370>	facebook	8b5a4a	3e4daa	set	NULL	1	2026-10-11 15:11:11	0
+473	n4136-qa-victim-flipped	<phone-1365>	manual	81941a	f4bf2b	NULL	NULL	1	2026-10-11 15:11:11	0
+474	n4136-qa-control-phone-pw	<phone-1366>	manual	NULL	1f2b65	NULL	NULL	1	2026-10-11 15:11:11	0
+475	n4136-qa-control-null-medium	<phone-1369>	NULL	NULL	9d1d07	NULL	NULL	1	2026-10-11 15:11:12	0
+476	n4136-qa-control-normal	<phone-1367>	manual	NULL	96ec2e	NULL	NULL	1	2026-10-11 15:11:12	0
+---- NEGATIVE TWINS (BRANCH)
+### [branch] twin control-null-medium phone/phone (NULL medium; must log in, then flips to manual)
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1369>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=32d7682d-301e-446f-b20a-94201156adcc | bytes=1201 md5=90df121a
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-control-null-medium@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+   BE-log [null-medium] rid=32d7682d-301e-446f-b20a-94201156adcc [FAIL]/[ERR] lines: <none>
+### [branch] twin control-normal real password (regression: normal UserApp-shaped manual login)
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1367>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=9735c3be-ec4a-40b7-b66d-98035273466a | bytes=1196 md5=1af3c55c
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-control-normal@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+   BE-log [normal] rid=9735c3be-ec4a-40b7-b66d-98035273466a [FAIL]/[ERR] lines: <none>
+### [branch] twin control-phone-pw (already flipped manual, no marker) phone/phone (KNOWN GAP: not refused)
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"<phone-1366>","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=91762a73-01e5-4e54-9022-3ad4906d72a0 | bytes=1200 md5=a574c23a
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-control-phone-pw@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+   BE-log [phone-pw] rid=91762a73-01e5-4e54-9022-3ad4906d72a0 [FAIL]/[ERR] lines: <none>
+-- SELECT snapshot 15:14:24 where: u.email in ('n4136-qa-control-phone-pw@example.test','n4136-qa-control-null-medium@example.test','n4136-qa-control-normal@example.test')
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+474	n4136-qa-control-phone-pw	<phone-1366>	manual	NULL	1f2b65	NULL	set	1	2026-10-11 15:11:11	1
+475	n4136-qa-control-null-medium	<phone-1369>	manual	NULL	9d1d07	NULL	set	1	2026-10-11 15:14:17	1
+476	n4136-qa-control-normal	<phone-1367>	manual	NULL	96ec2e	NULL	set	1	2026-10-11 15:11:12	1
+---- regression sweep: GET /api/v1/config sanity (read-only)
+GET /api/v1/config [branch] -> 200 bytes=8929 has_business_name=1
+GET /api/v1/config [base] -> 200 bytes=8929
+---- teardown 15:15:09: servers :8136/:8137 stopped by their own PIDs; clone dropped after the final snapshot
+-- SELECT snapshot 15:15:09 where: u.email like 'n4136-qa-%'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+463	n4136-qa-claim-a	<phone-9104>	apple	NULL	8a67f4	NULL	set	1	2026-10-11 15:11:52	1
+464	n4136-qa-claim-b	<phone-9108>	apple	NULL	aa6cc0	NULL	set	1	2026-10-11 15:12:22	1
+465	n4136-qa-claim-c	<phone-9111>	apple	NULL	753fc8	NULL	set	1	2026-10-11 15:12:29	1
+466	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:51:11	0
+467	n4136-qa-victim-apple-takeover	<phone-1361>	apple	3e19ee	4bf913	NULL	NULL	1	2026-10-11 15:11:11	0
+468	n4136-qa-victim-apple-login	<phone-1362>	apple	f08876	2acc70	NULL	NULL	1	2026-10-11 15:11:11	0
+469	n4136-qa-victim-google-takeover	<phone-1363>	google	c868d7	8007fe	set	NULL	1	2026-10-11 15:11:11	0
+470	n4136-qa-victim-google-login	<phone-1364>	google	702762	273a37	set	NULL	1	2026-10-11 15:11:11	0
+471	n4136-qa-victim-otp-login	<phone-1368>	otp	NULL	618fbf	NULL	NULL	1	2026-10-11 15:11:11	0
+472	n4136-qa-victim-facebook-login	<phone-1370>	facebook	8b5a4a	3e4daa	set	NULL	1	2026-10-11 15:11:11	0
+473	n4136-qa-victim-flipped	<phone-1365>	manual	81941a	f4bf2b	NULL	NULL	1	2026-10-11 15:11:11	0
+474	n4136-qa-control-phone-pw	<phone-1366>	manual	NULL	1f2b65	NULL	set	1	2026-10-11 15:11:11	1
+475	n4136-qa-control-null-medium	<phone-1369>	manual	NULL	9d1d07	NULL	set	1	2026-10-11 15:14:17	1
+476	n4136-qa-control-normal	<phone-1367>	manual	NULL	96ec2e	NULL	set	1	2026-10-11 15:11:12	1
