@@ -1,0 +1,276 @@
+=== NEARS-4136 cycle-1 DELTA QA transcript (BRANCH 4f657fbf3 :8136 pid 38384, BASE aaa425ba1 :8137 pid 38387, clone multi_food_db_qa4136 created 15:17 by READ-ONLY mysqldump of multi_food_db, seeded ~15:18:35) Sun Oct 11 15:19:35 +04 2026
+-- clone recipe: mysqldump -u root --single-transaction --set-gtid-purged=OFF multi_food_db | mysql -u root multi_food_db_qa4136 ; NEARS_SEED_ALLOW_DB=multi_food_db_qa4136 DB_DATABASE=multi_food_db_qa4136 php artisan db:seed --class=Nears4136AppleSocialRegisterQaFixtureSeeder --force (14 rows inserted); cache:clear; clone-only UPDATE business_settings SET value='0' WHERE `key`='firebase_otp_verification' (was 1; declared in cycle 0)
+-- servers: DB_DATABASE=multi_food_db_qa4136 php artisan serve --no-reload --host=127.0.0.1 --port=8136|8137 from the branch / base worktree; freshness check PASS both (branch 4f657fbf3 fix/NEARS-4136..., base aaa425ba1 detached)
+Backend: /Users/Apple/Projects/nears-NEARS-4136-apple-social-register-takeover/Admin/public @ 4f657fbf3  |  /Users/Apple/Projects/nears-NEARS-4136-qa-base/Admin/public @ aaa425ba1
+-- MAIN DB read-only baseline (SELECT only): oauth_access_tokens=843 wallet_transactions=24 n4136_users=0
+-- clone settings (SELECT): ref_earning_status=0 manual_login_status=1 firebase_otp_verification=0
+-- SELECT snapshot 15:19:35 where: u.email like 'n4136-qa-%'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+435	n4136-qa-claim-a	NULL	apple	fa2fdc	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+437	n4136-qa-claim-c	NULL	apple	c6fb9d	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+438	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:58:39	0
+439	n4136-qa-victim-apple-takeover	+971500041361	apple	3e19ee	ca4e44	NULL	NULL	1	2026-10-11 15:18:39	0
+440	n4136-qa-victim-apple-login	+971500041362	apple	f08876	ea0a70	NULL	NULL	1	2026-10-11 15:18:39	0
+441	n4136-qa-victim-google-takeover	+971500041363	google	c868d7	3c427c	set	NULL	1	2026-10-11 15:18:39	0
+442	n4136-qa-victim-google-login	+971500041364	google	702762	799333	set	NULL	1	2026-10-11 15:18:39	0
+443	n4136-qa-victim-otp-login	+971500041368	otp	NULL	480d11	NULL	NULL	1	2026-10-11 15:18:39	0
+444	n4136-qa-victim-facebook-login	+971500041370	facebook	8b5a4a	bfa2bb	set	NULL	1	2026-10-11 15:18:39	0
+445	n4136-qa-victim-flipped	+971500041365	manual	81941a	68aea8	NULL	NULL	1	2026-10-11 15:18:39	0
+446	n4136-qa-control-phone-pw	+971500041366	manual	NULL	a200c4	NULL	NULL	1	2026-10-11 15:18:40	0
+447	n4136-qa-control-null-medium	+971500041369	NULL	NULL	915175	NULL	NULL	1	2026-10-11 15:18:40	0
+448	n4136-qa-control-normal	+971500041367	manual	NULL	3d09dd	NULL	NULL	1	2026-10-11 15:18:40	0
+---- DB PROOF (each server must read the CLONE: a fixture row exists only there). control-normal real-password login on both servers
+### [branch] dbproof control-normal
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"+971500041367","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=6720a181-abc3-4ab5-bd12-c4f1e6fb7983 | bytes=1198 md5=d2932752
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-control-normal@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+   BE-log [dbproof] rid=6720a181-abc3-4ab5-bd12-c4f1e6fb7983 [FAIL]/[ERR] lines: <none>
+### [base] dbproof control-normal
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"+971500041367","password":"****"}
+-> HTTP/1.1 200 OK | x-request-id=53f1eaf6-40ef-404b-bf84-3b85fdf288dd | bytes=1196 md5=b202cb82
+   body: {"token":"****","is_phone_verified":1,"is_email_verified":1,"is_personal_info":1,"is_exist_user":null,"login_type":"manual","email":"n4136-qa-control-normal@example.test","cart_merged":null,"cart_merge_clamped_count":0}
+   BE-log [dbproof] rid=53f1eaf6-40ef-404b-bf84-3b85fdf288dd [FAIL]/[ERR] lines: <none>
+-- clone oauth tokens for control-normal now: 0  MAIN oauth_access_tokens=843 (baseline 843)
+-- clone oauth tokens for control-normal (id 448): 2 (>=2 expected: one per server login) => both servers write the CLONE
+################ ROW A: blocked-row arm (status=0) on fixture row id 443 n4136-qa-victim-otp-login, phone +971500041368 (otp-marked; password = bcrypt(own phone))
+-- DECLARED CLONE-ONLY DML #1 (verbatim, on multi_food_db_qa4136 only), run BEFORE the BASE arm: UPDATE users SET status=0 WHERE id=443 AND email='n4136-qa-victim-otp-login@example.test'
+-- SELECT snapshot 15:20:04 where: u.id=443
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+443	n4136-qa-victim-otp-login	+971500041368	otp	NULL	480d11	NULL	NULL	0	2026-10-11 15:18:39	0
+---- BASE arm: blocked row + IdP-derived password (phone/phone)
+### [base] A-base blocked otp victim, password=own phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"+971500041368","password":"****"}
+-> HTTP/1.1 403 Forbidden | x-request-id=012f6cbd-77ca-411c-8a6f-28d418612e98 | bytes=68 md5=6bbc1625
+   body: {"errors":[{"code":"auth-003","message":"Your account is blocked"}]}
+   BE-log [A-base] rid=012f6cbd-77ca-411c-8a6f-28d418612e98 [FAIL]/[ERR] lines: <none>
+-- SELECT snapshot 15:20:08 where: u.id=443
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+443	n4136-qa-victim-otp-login	+971500041368	otp	NULL	480d11	NULL	NULL	0	2026-10-11 15:18:39	0
+---- BASE contrast: blocked row + WRONG password
+### [base] A-base blocked otp victim, WRONG password
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"+971500041368","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=023afdef-6812-468e-8854-16cc32e5f902 | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+   BE-log [A-base-wrong] rid=023afdef-6812-468e-8854-16cc32e5f902 [FAIL]/[ERR] lines: <none>
+---- revert: UPDATE users SET status=1 WHERE id=443 AND email='n4136-qa-victim-otp-login@example.test'  (clone only)
+-- SELECT snapshot 15:20:12 where: u.id=443
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+443	n4136-qa-victim-otp-login	+971500041368	otp	NULL	480d11	NULL	NULL	1	2026-10-11 15:18:39	0
+---- BRANCH arm: re-arm the same row blocked
+-- DECLARED CLONE-ONLY DML #1 (verbatim, second arm on the same single row, base left it untouched and it was reverted to 1): UPDATE users SET status=0 WHERE id=443 AND email='n4136-qa-victim-otp-login@example.test'
+-- SELECT snapshot 15:20:20 where: u.id=443
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+443	n4136-qa-victim-otp-login	+971500041368	otp	NULL	480d11	NULL	NULL	0	2026-10-11 15:18:39	0
+### [branch] A-branch blocked otp victim, password=own phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"+971500041368","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=6a517188-69bb-452c-b107-eecbc06a88b2 | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+   BE-log [A-branch] rid=6a517188-69bb-452c-b107-eecbc06a88b2 [FAIL]/[ERR] lines: [2026-10-11 15:20:23] production.ERROR: [FAIL] manual_login.idp_derived_password_refused {"trace_id":"5cdffad6c96d594287e0de64a26de950","correlation_id":"6a517188-69bb-452c-b107-eecbc06a88b2","endpoint":"/api/v1/auth/login","http_status":401,"reason":"idp_derived_password"} 
+### [branch] A-branch blocked otp victim, WRONG password (same row)
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"+971500041368","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=9514baed-7220-4359-bd7e-9269b7396f3a | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+   BE-log [A-branch-wrong] rid=9514baed-7220-4359-bd7e-9269b7396f3a [FAIL]/[ERR] lines: <none>
+-- byte-identity check: IdP-derived body md5=09dfa31a8a66bc80391f4b518a33b9bb  wrong-password body md5=09dfa31a8a66bc80391f4b518a33b9bb  => IDENTICAL
+-- SELECT snapshot 15:20:27 where: u.id=443
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+443	n4136-qa-victim-otp-login	+971500041368	otp	NULL	480d11	NULL	NULL	0	2026-10-11 15:18:39	0
+---- CONTROL on BRANCH (not blocked): same IdP-derived login on an ACTIVE otp row is also refused identically? (row 443 is the only otp row; use apple victim 440 active, phone/phone)
+### [branch] A-branch ACTIVE apple victim 440, password=own phone
+POST /api/v1/auth/login  body={"login_type":"manual","field_type":"phone","email_or_phone":"+971500041362","password":"****"}
+-> HTTP/1.1 401 Unauthorized | x-request-id=5356285f-8afd-4c5c-8aec-fc57b6722545 | bytes=75 md5=09dfa31a
+   body: {"errors":[{"code":"auth-001","message":"User credential does not match"}]}
+   BE-log [A-branch-active] rid=5356285f-8afd-4c5c-8aec-fc57b6722545 [FAIL]/[ERR] lines: [2026-10-11 15:20:31] production.ERROR: [FAIL] manual_login.idp_derived_password_refused {"trace_id":"a10098176a07ed15ab6d984b943fb31b","correlation_id":"5356285f-8afd-4c5c-8aec-fc57b6722545","endpoint":"/api/v1/auth/login","http_status":401,"reason":"idp_derived_password"} 
+md5 active=09dfa31a8a66bc80391f4b518a33b9bb
+---- revert: UPDATE users SET status=1 WHERE id=443 AND email='n4136-qa-victim-otp-login@example.test'  (clone only)
+-- SELECT snapshot 15:20:31 where: u.id in (440,443)
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+440	n4136-qa-victim-apple-login	+971500041362	apple	f08876	ea0a70	NULL	NULL	1	2026-10-11 15:18:39	0
+443	n4136-qa-victim-otp-login	+971500041368	otp	NULL	480d11	NULL	NULL	1	2026-10-11 15:18:39	0
+################ ROW B: duplicate-referral-reference guard. reference phone R1=+971500099201 (not in users: validator unique:users,phone must pass)
+-- R1 present in users on the clone? 0  wallet refs with R1 before: 0
+-- DECLARED CLONE-ONLY DML #2 (verbatim, on multi_food_db_qa4136 only; user_id 448 = fixture control-normal; zero amounts; columns per SHOW COLUMNS wallet_transactions): INSERT INTO wallet_transactions (user_id, transaction_id, credit, debit, admin_bonus, balance, transaction_type, reference, created_at, updated_at) VALUES (448, UUID(), 0.000, 0.000, 0.000, 0.000, 'n4136-qa-clone-only-fixture', '+971500099201', NOW(), NOW())
+-- wallet row now: 51	448	n4136-qa-clone-only-fixture	+971500099201	0.000	0.000  | total wallet rows=25 (24 before)
+---- BRANCH B2: valid claimable code claim-a + reference phone R1
+-- SELECT snapshot 15:20:45 where: u.id=435
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+435	n4136-qa-claim-a	NULL	apple	fa2fdc	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+### [branch] B2 branch valid code claim-a + reference phone
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-a","phone":"+971500099201"}
+-> HTTP/1.1 200 OK | x-request-id=6f1487b7-a7e8-4efe-9c0e-6f99315d9653 | bytes=69 md5=03029cf5
+   body: {"errors":{"code":"ref_code","message":"Referral code already used"}}
+   BE-log [B2] rid=6f1487b7-a7e8-4efe-9c0e-6f99315d9653 [FAIL]/[ERR] lines: <none>
+-- SELECT snapshot 15:20:49 where: u.id=435
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+435	n4136-qa-claim-a	NULL	apple	fa2fdc	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+---- BRANCH B3: SAME code claim-a then claims with fresh phone +971500099202
+### [branch] B3 branch same code, fresh phone
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-a","phone":"+971500099202"}
+-> HTTP/1.1 200 OK | x-request-id=aa559972-d604-4664-8aca-21ce833cd3f3 | bytes=1014 md5=f0a7ea8f
+   body: {"token":"****","is_phone_verified":0}
+   BE-log [B3] rid=aa559972-d604-4664-8aca-21ce833cd3f3 [FAIL]/[ERR] lines: <none>
+-- SELECT snapshot 15:20:53 where: u.id=435
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+435	n4136-qa-claim-a	+971500099202	apple	NULL	c90e2c	NULL	set	1	2026-10-11 15:20:53	1
+---- BRANCH ORACLE CHECK: refusals with the SAME reference phone R1
+### [branch] O1 branch UNKNOWN code + R1
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-does-not-exist","phone":"+971500099201"}
+-> HTTP/1.1 403 Forbidden | x-request-id=1e2fb540-e71b-464a-a756-730a80b1b1a7 | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+   BE-log [O1] rid=1e2fb540-e71b-464a-a756-730a80b1b1a7 [FAIL]/[ERR] lines: [2026-10-11 15:21:06] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"795ee8256d3172fcb1342e010aab7d1f","correlation_id":"1e2fb540-e71b-464a-a756-730a80b1b1a7","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+### [branch] O2 branch STALE code (claim-stale, 20 min old) + R1
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-stale","phone":"+971500099201"}
+-> HTTP/1.1 403 Forbidden | x-request-id=783d7a61-11e9-4b83-a460-5e2ba5792ca3 | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+   BE-log [O2] rid=783d7a61-11e9-4b83-a460-5e2ba5792ca3 [FAIL]/[ERR] lines: [2026-10-11 15:21:10] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"74e034db7234e5ff19d4093d29c28ea3","correlation_id":"783d7a61-11e9-4b83-a460-5e2ba5792ca3","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+### [branch] O3 branch CONSUMED code (claim-a, already claimed in B3) + R1
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-a","phone":"+971500099201"}
+-> HTTP/1.1 403 Forbidden | x-request-id=d3001e21-aacd-41ca-b551-30172a1764a0 | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+   BE-log [O3] rid=d3001e21-aacd-41ca-b551-30172a1764a0 [FAIL]/[ERR] lines: [2026-10-11 15:21:14] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"23e7c51e388b464b3a2ac935cb8ed86b","correlation_id":"d3001e21-aacd-41ca-b551-30172a1764a0","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+### [branch] O4 branch UNKNOWN code + R1 + ref_code param (would be the 405 shape if the ref checks ran before the code gate)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-does-not-exist","phone":"+971500099201","ref_code":"NOSUCHREF"}
+-> HTTP/1.1 403 Forbidden | x-request-id=ac3005d6-5683-43a4-aec7-f0b65fd177fc | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+   BE-log [O4] rid=ac3005d6-5683-43a4-aec7-f0b65fd177fc [FAIL]/[ERR] lines: [2026-10-11 15:21:17] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"982b68bd6a283b137a0ea99b8886add2","correlation_id":"ac3005d6-5683-43a4-aec7-f0b65fd177fc","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+---- BRANCH uniform-refusal REFERENCE (no reference phone involved): UNKNOWN code + fresh phone
+### [branch] O5 branch UNKNOWN code + fresh phone +971500099203
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-does-not-exist","phone":"+971500099203"}
+-> HTTP/1.1 403 Forbidden | x-request-id=15668643-321c-4bb9-93fc-fd99ebcba5ed | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+   BE-log [O5] rid=15668643-321c-4bb9-93fc-fd99ebcba5ed [FAIL]/[ERR] lines: [2026-10-11 15:21:21] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"6be385b513f2dc2f308754c9693dd417","correlation_id":"15668643-321c-4bb9-93fc-fd99ebcba5ed","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+### [branch] O6 branch STALE code + fresh phone +971500099204
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-stale","phone":"+971500099204"}
+-> HTTP/1.1 403 Forbidden | x-request-id=0680176f-6cf1-49fb-82e8-4037fdcb4dc3 | bytes=57 md5=04db98a6
+   body: {"errors":[{"code":"auth-001","message":"Unauthorized"}]}
+   BE-log [O6] rid=0680176f-6cf1-49fb-82e8-4037fdcb4dc3 [FAIL]/[ERR] lines: [2026-10-11 15:21:25] production.ERROR: [FAIL] social_register.apple_claim_refused {"trace_id":"e6627e4066d546cd40827f940fdd4e3f","correlation_id":"0680176f-6cf1-49fb-82e8-4037fdcb4dc3","endpoint":"/api/v1/auth/social-register","http_status":403,"reason":"not_claimable"} 
+-- md5 O1(unknown+R1)=04db98a6e79feee4399ebde411b44312 O2(stale+R1)=04db98a6e79feee4399ebde411b44312 O3(consumed+R1)=04db98a6e79feee4399ebde411b44312 O4(unknown+R1+ref_code)=04db98a6e79feee4399ebde411b44312 O5(unknown+fresh)=04db98a6e79feee4399ebde411b44312 O6(stale+fresh)=04db98a6e79feee4399ebde411b44312 => ALL-IDENTICAL
+-- B2 'Referral code already used' body md5= vs uniform refusal md5=04db98a6e79feee4399ebde411b44312 => distinct-as-designed
+-- SELECT snapshot 15:21:25 where: u.id in (435,436,437,438)
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+435	n4136-qa-claim-a	+971500099202	apple	NULL	c90e2c	NULL	set	1	2026-10-11 15:20:53	1
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+437	n4136-qa-claim-c	NULL	apple	c6fb9d	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+438	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:58:39	0
+-- (correction of the line above: B2 'Referral code already used' body md5=03029cf5 (69 bytes) differs from the uniform refusal md5=04db98a6 (57 bytes), as designed; the empty value was a shell-variable scope slip in my script, the md5 is in the B2 request line)
+################ BASE arms (:8137, aaa425ba1): same reference phone R1
+-- SELECT snapshot 15:21:31 where: u.id in (436,437,438)
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+437	n4136-qa-claim-c	NULL	apple	c6fb9d	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+438	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:58:39	0
+### [base] B-base valid code claim-b + R1
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-b","phone":"+971500099201"}
+-> HTTP/1.1 429 Too Many Requests | x-request-id=0cf24873-2897-4256-9ab2-f89ca61c92bd | bytes=39 md5=58b5db5c
+   body: {
+    "message": "Too Many Attempts."
+}
+   BE-log [B-base-valid] rid=0cf24873-2897-4256-9ab2-f89ca61c92bd [FAIL]/[ERR] lines: <none>
+-- SELECT snapshot 15:21:34 where: u.id=436
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+### [base] B-base UNKNOWN code + R1
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-does-not-exist","phone":"+971500099201"}
+-> HTTP/1.1 429 Too Many Requests | x-request-id=de357133-25e9-4280-a2bc-1c8e9d66103a | bytes=39 md5=58b5db5c
+   body: {
+    "message": "Too Many Attempts."
+}
+   BE-log [B-base-unknown] rid=de357133-25e9-4280-a2bc-1c8e9d66103a [FAIL]/[ERR] lines: <none>
+### [base] B-base STALE code (claim-stale) + R1
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-stale","phone":"+971500099201"}
+-> HTTP/1.1 429 Too Many Requests | x-request-id=8d1e553f-1fbf-46df-a946-16efc67c189a | bytes=39 md5=58b5db5c
+   body: {
+    "message": "Too Many Attempts."
+}
+   BE-log [B-base-stale] rid=8d1e553f-1fbf-46df-a946-16efc67c189a [FAIL]/[ERR] lines: <none>
+-- SELECT snapshot 15:21:42 where: u.id in (436,438)
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+438	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:58:39	0
+-- the three base requests above were 429 (shared per-IP auth throttle in the clone's database cache; no handler reached, rows untouched). Clearing the clone cache and re-running them, paced.
+
+### [base] B-base valid code claim-b + R1 (retry)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-b","phone":""}
+-> HTTP/1.1 403 Forbidden | x-request-id=4fb5c5aa-88b5-4518-9d23-64715a9eec1a | bytes=70 md5=67a26990
+   body: {"errors":[{"code":"phone","message":"The phone field is required."}]}
+   BE-log [B-base-valid] rid=4fb5c5aa-88b5-4518-9d23-64715a9eec1a [FAIL]/[ERR] lines: <none>
+-- SELECT snapshot 15:22:04 where: u.id=436
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+### [base] B-base UNKNOWN code + R1 (retry)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-does-not-exist","phone":""}
+-> HTTP/1.1 403 Forbidden | x-request-id=c6b3dca1-a2c3-40c5-bc26-be20b49767e1 | bytes=70 md5=67a26990
+   body: {"errors":[{"code":"phone","message":"The phone field is required."}]}
+   BE-log [B-base-unknown] rid=c6b3dca1-a2c3-40c5-bc26-be20b49767e1 [FAIL]/[ERR] lines: <none>
+### [base] B-base STALE code (claim-stale) + R1 (retry)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-stale","phone":""}
+-> HTTP/1.1 403 Forbidden | x-request-id=a28d6e81-a535-4873-874f-8eb5259f9649 | bytes=70 md5=67a26990
+   body: {"errors":[{"code":"phone","message":"The phone field is required."}]}
+   BE-log [B-base-stale] rid=a28d6e81-a535-4873-874f-8eb5259f9649 [FAIL]/[ERR] lines: <none>
+-- SELECT snapshot 15:22:20 where: u.id in (436,438)
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+438	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:58:39	0
+-- (the three 'phone:""' retries above are MY script slip: R1 was unset in that shell, so they hit the validator 'phone required' and prove nothing; re-run below with R1=+971500099201)
+### [base] B-base valid code claim-b + R1 (retry2)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-b","phone":"+971500099201"}
+-> HTTP/1.1 200 OK | x-request-id=e60021c2-af9b-471d-8e2e-d28b9e9b4aab | bytes=69 md5=03029cf5
+   body: {"errors":{"code":"ref_code","message":"Referral code already used"}}
+   BE-log [B-base-valid] rid=e60021c2-af9b-471d-8e2e-d28b9e9b4aab [FAIL]/[ERR] lines: <none>
+-- SELECT snapshot 15:22:29 where: u.id=436
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+### [base] B-base UNKNOWN code + R1 (retry2)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-does-not-exist","phone":"+971500099201"}
+-> HTTP/1.1 403 Forbidden | x-request-id=96ebd021-bcff-4d2a-b1e8-768f8f56d40f | bytes=29 md5=d49a72a2
+   body: {"error":"wrong credential."}
+   BE-log [B-base-unknown] rid=96ebd021-bcff-4d2a-b1e8-768f8f56d40f [FAIL]/[ERR] lines: <none>
+### [base] B-base STALE code (claim-stale) + R1 (retry2)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-stale","phone":"+971500099201"}
+->  | x-request-id=<none> | bytes= md5=
+   body: 
+   BE-log [B-base-stale] rid= [FAIL]/[ERR] lines: <none>
+-- SELECT snapshot 15:22:42 where: u.id in (436,438)
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+438	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:58:39	0
+-- base server :8137 (pid 38387) died at ~15:22:40 for an unknown external reason (same as cycle 0 for the branch server); the stale-code base request got connection-refused (no response, no data effect). Restarting from the same base worktree + clone DB.
+-- new base listener pid 52622
+[backend-freshness-check] :8137 -> pid 52622 -> cwd /Users/Apple/Projects/nears-NEARS-4136-qa-base
+  branch: HEAD
+  head:   aaa425ba1 (aaa425ba14864e1bc3ab23a10fd157e27db64e8b)
+  behind 'feat/userapp-reskin2': 2 commit(s)
+  ticket: none derivable from branch 'HEAD' — not a per-ticket worktree, no Done-status check applies
+-- PASS: /Users/Apple/Projects/nears-NEARS-4136-qa-base @ aaa425ba1, not a per-ticket worktree --
+Backend (base, restarted): /Users/Apple/Projects/nears-NEARS-4136-qa-base/Admin/public @ aaa425ba1
+### [base] B-base STALE code (claim-stale) + R1 (retry3, after restart)
+POST /api/v1/auth/social-register  body={"medium":"apple","token":"x","unique_id":"n4136-qa-code-claim-stale","phone":"+971500099201"}
+-> HTTP/1.1 200 OK | x-request-id=aa6fb80a-500b-4d80-a05b-f4dff6796641 | bytes=69 md5=03029cf5
+   body: {"errors":{"code":"ref_code","message":"Referral code already used"}}
+   BE-log [B-base-stale] rid=aa6fb80a-500b-4d80-a05b-f4dff6796641 [FAIL]/[ERR] lines: <none>
+-- SELECT snapshot 15:23:01 where: u.id in (436,438)
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+438	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:58:39	0
+---- teardown 15:23:12
+-- SELECT snapshot 15:23:12 where: u.email like 'n4136-qa-%'
+id	role	phone	medium	tt	pwh	sid	refc	st	updated_at	toks
+435	n4136-qa-claim-a	+971500099202	apple	NULL	c90e2c	NULL	set	1	2026-10-11 15:20:53	1
+436	n4136-qa-claim-b	NULL	apple	a1e28e	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+437	n4136-qa-claim-c	NULL	apple	c6fb9d	NULL	NULL	NULL	1	2026-10-11 15:18:39	0
+438	n4136-qa-claim-stale	NULL	apple	3e56b0	NULL	NULL	NULL	1	2026-10-11 14:58:39	0
+439	n4136-qa-victim-apple-takeover	+971500041361	apple	3e19ee	ca4e44	NULL	NULL	1	2026-10-11 15:18:39	0
+440	n4136-qa-victim-apple-login	+971500041362	apple	f08876	ea0a70	NULL	NULL	1	2026-10-11 15:18:39	0
+441	n4136-qa-victim-google-takeover	+971500041363	google	c868d7	3c427c	set	NULL	1	2026-10-11 15:18:39	0
+442	n4136-qa-victim-google-login	+971500041364	google	702762	799333	set	NULL	1	2026-10-11 15:18:39	0
+443	n4136-qa-victim-otp-login	+971500041368	otp	NULL	480d11	NULL	NULL	1	2026-10-11 15:18:39	0
+444	n4136-qa-victim-facebook-login	+971500041370	facebook	8b5a4a	bfa2bb	set	NULL	1	2026-10-11 15:18:39	0
+445	n4136-qa-victim-flipped	+971500041365	manual	81941a	68aea8	NULL	NULL	1	2026-10-11 15:18:39	0
+446	n4136-qa-control-phone-pw	+971500041366	manual	NULL	a200c4	NULL	NULL	1	2026-10-11 15:18:40	0
+447	n4136-qa-control-null-medium	+971500041369	NULL	NULL	915175	NULL	NULL	1	2026-10-11 15:18:40	0
+448	n4136-qa-control-normal	+971500041367	manual	NULL	3d09dd	NULL	set	1	2026-10-11 15:18:40	2
+-- clone wallet rows: 25 (24 + the 1 declared INSERT); fixture-tagged: 1
+-- MAIN DB read-only after (SELECT only): oauth_access_tokens=843 wallet_transactions=24 n4136_users=0  (baseline oauth=843 wallet=24 n4136=0)
+-- servers stopped by their own pids (38384/38370, 52622/52612); ports free: 0 listeners
+-- clone multi_food_db_qa4136 dropped; exists now: 0
