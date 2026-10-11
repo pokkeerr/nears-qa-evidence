@@ -1,0 +1,70 @@
+=== G0 BASE RED (port 8149 scratch tree = base VendorController+LoginController, no RegistrationSession) vs FIXED (8148), attacker jar, same arms, distinct victims ===
+pending victim store ids (SELECT vendors.status IS NULL): 91108 91109 91110 91119 91120 91126
+retired package id (nears4145-qa-retired): 3  rental: 4  eligible: 1
+--- BASE arms (attacker jar has only GET /vendor/apply: session + _token) ---
+[base] (a) nonexistent package 999999 + free_trial: POST /vendor/payment victim=91108 params={'store_id': '91108', 'package_id': '999999', 'payment': 'free_trial'} -> HTTP 500 echo=OK
+   body excerpt:  Error 500 | Nears 500 500 warning message Reload page Nears Support 
+   DB before {'subscription_transactions': '2', 'store_subscriptions': '2', 'payment_requests': '75', 'store91108': 'package_id=NULL model=commission'}
+   DB after  {'subscription_transactions': '2', 'store_subscriptions': '2', 'payment_requests': '75', 'store91108': 'package_id=NULL model=commission'}
+   => ZERO-DELTA
+   rid=5feef80f-ead3-404a-9c2d-cfe014c60580 log lines(1): [2026-10-11 21:34:17] production.ERROR: [FAIL] Attempt to read property "id" on null {"correlation_id":"5feef80f-ead3-404a-9c2d-cfe014c60580","type":"ErrorException","endpoint":"/vendor/payment"} 
+[base] (b) RETIRED package + free_trial: POST /vendor/payment victim=91109 params={'store_id': '91109', 'package_id': '3', 'payment': 'free_trial'} -> HTTP 302 Location=http://127.0.0.1:8149/vendor/final-step echo=OK
+   follow GET /vendor/final-step -> HTTP 200 toasts=[('success', 'Successfully Subscribed.')]
+   DB before {'subscription_transactions': '2', 'store_subscriptions': '2', 'payment_requests': '75', 'store91109': 'package_id=NULL model=commission'}
+   DB after  {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '75', 'store91109': 'package_id=3 model=subscription'}
+   => CHANGED {"subscription_transactions": ["2", "3"], "store_subscriptions": ["2", "3"], "store91109": ["package_id=NULL model=commission", "package_id=3 model=subscription"]}
+   rid=2eda2b07-314d-4c47-af90-2f51aa59814c log lines(0): none
+[base] (c) RETIRED package + paypal (active gateway): POST /vendor/payment victim=91110 params={'store_id': '91110', 'package_id': '3', 'payment': 'paypal'} -> HTTP 302 Location=http://127.0.0.1:8149/payment/paypal/pay?payment_id=14dff332-72b3-4915-af22-bd6ebe8c74a9 echo=OK
+   follow GET /payment/paypal/pay?payment_id=14dff332-72b3-4915-af22-bd6ebe8c74a9 -> HTTP 200 toasts=[]
+   DB before {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '75', 'store91110': 'package_id=NULL model=commission'}
+   DB after  {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91110': 'package_id=NULL model=commission'}
+   => CHANGED {"payment_requests": ["75", "76"]}
+   rid=efe74164-bee9-44e0-b495-8914ed3360e3 log lines(0): none
+[base] (AC1) GET /vendor/back non-owner reads victim step page: GET /vendor/back victim=91110 params={'store_id': '91110'} -> HTTP 200 echo=OK
+   DB before {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91110': 'package_id=NULL model=commission'}
+   DB after  {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91110': 'package_id=NULL model=commission'}
+   => ZERO-DELTA
+   rid=ffd60d1a-bec4-48ff-a82b-fdc9a64959fc log lines(0): none
+owner jar creates a real victim on base via POST /vendor/apply: HTTP 200 echo=OK body={"redirect_url":"http:\/\/127.0.0.1:8149\/vendor\/business-plan?store_id=91158&business_plan=subscription-base"}
+victim 91158: package_id=1 model=none
+[base] (AC1) NON-OWNER business_plan commission-base flips victim store_business_model: POST /vendor/business-plan victim=91158 params={'store_id': '91158', 'business_plan': 'commission-base'} -> HTTP 200 echo=OK
+   DB before {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91158': 'package_id=1 model=none'}
+   DB after  {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91158': 'package_id=1 model=commission'}
+   => CHANGED {"store91158": ["package_id=1 model=none", "package_id=1 model=commission"]}
+   rid=152d3a9f-26fc-4a42-b608-2b83b4fcbc20 log lines(0): none
+=== G0 BASE RED (port 8149 scratch tree = base VendorController+LoginController, no RegistrationSession) vs FIXED (8148), attacker jar, same arms, distinct victims ===
+pending victim store ids (SELECT vendors.status IS NULL): 91108 91109 91110 91119 91120 91126 91158
+retired package id (nears4145-qa-retired): 3  rental: 4  eligible: 1
+--- FIXED arms (same attacker shape, DIFFERENT victims; attacker jar has only GET /vendor/apply: session + _token) ---
+[fixed] (a) nonexistent package 999999 + free_trial: POST /vendor/payment victim=91119 params={'store_id': '91119', 'package_id': '999999', 'payment': 'free_trial'} -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK
+   follow GET /vendor/apply -> HTTP 200 toasts=[('error', 'Please follow the steps properly.')]
+   DB before {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91119': 'package_id=NULL model=commission'}
+   DB after  {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91119': 'package_id=NULL model=commission'}
+   => ZERO-DELTA
+   rid=a695e775-64a8-44a3-aff6-744163971b20 log lines(1): [2026-10-11 21:34:26] production.ERROR: [FAIL] subscription.web_registration_purchase_refused {"correlation_id":"a695e775-64a8-44a3-aff6-744163971b20","store_id":91119,"reason":"store_not_owned"} 
+[fixed] (b) RETIRED package + free_trial: POST /vendor/payment victim=91120 params={'store_id': '91120', 'package_id': '3', 'payment': 'free_trial'} -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK
+   follow GET /vendor/apply -> HTTP 200 toasts=[('error', 'Please follow the steps properly.')]
+   DB before {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91120': 'package_id=NULL model=commission'}
+   DB after  {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91120': 'package_id=NULL model=commission'}
+   => ZERO-DELTA
+   rid=ce1c5144-69fb-45a2-af8f-ae0af82335a0 log lines(1): [2026-10-11 21:34:26] production.ERROR: [FAIL] subscription.web_registration_purchase_refused {"correlation_id":"ce1c5144-69fb-45a2-af8f-ae0af82335a0","store_id":91120,"reason":"store_not_owned"} 
+[fixed] (c) RETIRED package + paypal (active gateway): POST /vendor/payment victim=91126 params={'store_id': '91126', 'package_id': '3', 'payment': 'paypal'} -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK
+   follow GET /vendor/apply -> HTTP 200 toasts=[('error', 'Please follow the steps properly.')]
+   DB before {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91126': 'package_id=NULL model=commission'}
+   DB after  {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91126': 'package_id=NULL model=commission'}
+   => ZERO-DELTA
+   rid=dafbf417-95bc-4fbc-a329-297f6b8806a6 log lines(1): [2026-10-11 21:34:26] production.ERROR: [FAIL] subscription.web_registration_purchase_refused {"correlation_id":"dafbf417-95bc-4fbc-a329-297f6b8806a6","store_id":91126,"reason":"store_not_owned"} 
+[fixed] (AC1) GET /vendor/back non-owner: GET /vendor/back victim=91126 params={'store_id': '91126'} -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK
+   follow GET /vendor/apply -> HTTP 200 toasts=[('error', 'Please follow the steps properly.')]
+   DB before {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91126': 'package_id=NULL model=commission'}
+   DB after  {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91126': 'package_id=NULL model=commission'}
+   => ZERO-DELTA
+   rid=a4c0214a-71f7-4a5c-a6e8-2032c8c7bcdf log lines(1): [2026-10-11 21:34:26] production.ERROR: [FAIL] subscription.web_registration_purchase_refused {"correlation_id":"a4c0214a-71f7-4a5c-a6e8-2032c8c7bcdf","store_id":91126,"reason":"store_not_owned"} 
+owner jar creates a real victim on FIXED via POST /vendor/apply: HTTP 200 echo=OK body={"redirect_url":"http:\/\/127.0.0.1:8148\/vendor\/business-plan?store_id=91159&business_plan=subscription-base"}
+victim 91159: package_id=1 model=none
+[fixed] (AC1) NON-OWNER business_plan commission-base on victim: POST /vendor/business-plan victim=91159 params={'store_id': '91159', 'business_plan': 'commission-base'} -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK
+   follow GET /vendor/apply -> HTTP 200 toasts=[('error', 'Please follow the steps properly.')]
+   DB before {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91159': 'package_id=1 model=none'}
+   DB after  {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91159': 'package_id=1 model=none'}
+   => ZERO-DELTA
+   rid=78761705-8ac8-43de-9923-ffa4e1aa0bdb log lines(1): [2026-10-11 21:34:27] production.ERROR: [FAIL] subscription.web_registration_purchase_refused {"correlation_id":"78761705-8ac8-43de-9923-ffa4e1aa0bdb","store_id":91159,"reason":"store_not_owned"} 

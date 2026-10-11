@@ -1,0 +1,36 @@
+=== G2 OWNER positive controls on FIXED 8148 (AC3): own session completes its own store ===
+(vi-a) POST /vendor/apply with f_name empty (right captcha): HTTP 200 echo=OK body={"errors":[{"code":"f_name","message":"The f name field is required."}]}
+      session cookie unchanged after validation failure: False; csrf token unchanged (same _token still accepted below)
+(vi-b) SAME session+token retry with valid payload: HTTP 200 echo=OK body={"redirect_url":"http:\/\/127.0.0.1:8148\/vendor\/business-plan?store_id=91162&business_plan=subscription-base"}  -> not 419: True
+      store created: 91162; session cookie rotated after success: True
+      CSRF token rotated after store(): old=VQb2id25.. new=didBq3dU.. rotated=True; set after store: registration_store_ids=None
+      session file registration_store_ids=['91162']
+(vi-c) wrong captcha early return: HTTP 200 echo=OK body={"errors":[{"code":"ReCAPTCHA","message":"ReCAPTCHA Failed"}]} cookie unchanged=False
+--- (i)/(ii) owner O1: store(), business_plan subscription-base, payment free_trial
+POST /vendor/apply -> HTTP 200 echo=OK {"redirect_url":"http:\/\/127.0.0.1:8148\/vendor\/business-plan?store_id=91163&business_plan=subscription-base"}; cookie rotated: True; token rotated: True; store 91163; session set=['91163']
+(i) POST /vendor/business-plan subscription-base pkg 1 -> HTTP 200 echo=OK view-has-store-id=True view-has-free-trial=True payment-options-in-view=['free_trial', 'paypal', 'razor_pay'] logs=0
+    GET secondStep (the store() redirect_url) -> HTTP 200 echo=OK logs=0
+(ii) POST /vendor/payment pkg 1 free_trial -> HTTP 302 Location=http://127.0.0.1:8148/vendor/final-step echo=OK follow->200 [('success', 'Successfully Subscribed.')] log lines=0
+     DB before {'subscription_transactions': '3', 'store_subscriptions': '3', 'payment_requests': '76', 'store91163': 'package_id=1 model=none'}
+     DB after  {'subscription_transactions': '4', 'store_subscriptions': '4', 'payment_requests': '76', 'store91163': 'package_id=1 model=subscription'}
+     trial rows: 1000003	91163	1	1	free_trial	success	free_trial | store_subscriptions: 4	91163	1	0
+--- (iii) owner O2: payment with eligible package 1 + active gateway paypal
+(iii) POST /vendor/payment pkg 1 paypal store 91164 -> HTTP 302 Location=http://127.0.0.1:8148/payment/paypal/pay?payment_id=b2a1ab4a-43e7-4770-be7d-6510c8937756 echo=OK log lines=0
+     DB before {'subscription_transactions': '4', 'store_subscriptions': '4', 'payment_requests': '76', 'store91164': 'package_id=1 model=none'}
+     DB after  {'subscription_transactions': '4', 'store_subscriptions': '4', 'payment_requests': '77', 'store91164': 'package_id=1 model=none'}
+     payment_requests row: b2a1ab4a-43e7-4770-be7d-6510c8937756	91164	paypal	store_subscription_new_join	1	0	web	1
+     trial rows written? 0 (expect 0: gateway not paid)
+--- (iv) owner O3: commission-base flips store_business_model
+(iv) POST business-plan commission-base store 91165 -> HTTP 200 echo=OK complete-page=True logs=0
+     before package_id=1 model=none  after package_id=1 model=commission
+--- (v) two stores created in ONE jar both stay steppable
+stores 91166 91167; both created: 200,200; session set=['91166', '91167']
+   store 91166 business_plan -> HTTP 200 echo=OK logs=0
+   store 91167 business_plan -> HTTP 200 echo=OK logs=0
+=== G2 (vi) REDO: rotation measured by SESSION ID (session file basename), not the encrypted cookie value (which differs on every response) ===
+NOTE: the (vi-a)/(vi-c) lines above that print "cookie unchanged ...: False" compared the ENCRYPTED laravel_session cookie value, which Laravel re-encrypts (new IV) on every response; that comparison is invalid and is superseded by the session-id measurement below.
+start: session id=nWlFDiZC8K.. token=ocyxn3t4..
+(vi-a) validation failure (f_name empty): HTTP 200 {"errors":[{"code":"f_name","message":"The f name field is required."}]} | session id unchanged=True | token unchanged=True (no regenerate on early return)
+(vi-c) wrong captcha: HTTP 200 {"errors":[{"code":"ReCAPTCHA","message":"ReCAPTCHA Failed"}]} | session id unchanged=True
+(vi-b) same-session retry with the SAME token after those two failures: HTTP 200 (not 419: True) {"redirect_url":"http:\/\/127.0.0.1:8148\/vendor\/business-plan?store_id=91168&business_plan=subscription-base"}
+(vi) after successful store(): session id rotated=True (old session file still on disk: True); CSRF token rotated=True; new session id=06RfVrRSn2.. registration_store_ids=['91168']

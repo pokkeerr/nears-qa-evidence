@@ -1,0 +1,20 @@
+=== G1b EXTRA exploratory: odd store_id shapes (non-owner and owner) and owner-side odd payment param, FIXED 8148 ===
+non-owner store_id='091108'                           -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': 91108, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id='91108+'                           -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': 91108, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id='%2091108'                         -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': 91108, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id='91108%20'                         -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': 91108, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id='%2B91108'                         -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': None, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id='-91108'                           -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': None, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id='99999999999999999999'             -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': 9223372036854775807, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id='0'                                -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': 0, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id=''                                 -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': None, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id='%D9%A9%D9%A1%D9%A1%D9%A0%D9%A8'   -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': None, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id='91108.0'                          -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': None, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id='91108e0'                          -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': None, 'reason': 'store_not_owned'} DB ZERO-DELTA
+non-owner store_id='0x163e4'                          -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=1 ctx={'store_id': None, 'reason': 'store_not_owned'} DB ZERO-DELTA
+OWNER payment[]=free_trial (array) -> HTTP 500 echo=OK log-lines=['production.ERROR: [FAIL] Array to string conversion (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: multi_food_db_qa414'] DB ZERO-DELTA
+OWNER payment=bogus_gateway -> HTTP 500 echo=OK log-lines=['production.ERROR: [FAIL] Cannot redirect to an empty URL. {"correlation_id":"94ba186f-b76d-49d6-8527-4385b7b11bae","type":"Invalid'] DB CHANGED {"payment_requests": ["78", "79"]}
+OWNER payment=free_trial&payment_platform=app -> HTTP 302 Location=http://127.0.0.1:8148/vendor/final-step echo=OK log-lines=[] DB CHANGED {"subscription_transactions": ["7", "8"], "store_subscriptions": ["7", "8"], "store91178": ["package_id=1 model=none", "package_id=1 model=subscription"]}
+refusal lines in laravel.log during this QA window by reason: {'store_not_owned': 136, 'package_missing': 22, 'package_ineligible': 15, 'store_not_pending': 14}; context key-sets seen: {('correlation_id', 'reason', 'store_id'): 186, ('reason', 'store_id'): 1}
+PII scan: refusal lines containing a registrant email/password/the word email|password: 0 (expect 0)
+CORRECTION to the line above: the one ('reason','store_id') key-set line (no correlation_id) is a `testing.ERROR` line written by MY phpunit run of VendorRegistrationStoreGuardTest (direct controller call, no SetRequestId middleware) into the same laravel.log; restricted to `production.ERROR` (the live server) every refusal line carries exactly {correlation_id, store_id, reason}.

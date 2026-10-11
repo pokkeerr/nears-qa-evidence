@@ -1,0 +1,14 @@
+=== G7 REGRESSION SWEEP (bounded) FIXED 8148 ===
+GET /vendor/apply -> HTTP 200; has registration form fields: True; captcha input custome_recaptcha present: True; logs=0
+        packages variable passed to view = purchasableBy(null): rendered package names in page: ['QA NEARS-3285 Test Package', 'QA Single-Store Fixture', 'nears4145-qa-stale-offer']
+GET /vendor/get-module-type?id=1 (grocery) -> HTTP 200 module_type=grocery packages=['QA NEARS-3285 Test Package', 'QA Single-Store Fixture', 'nears4145-qa-stale-offer']; retired absent=True; rental-type absent=True
+GET /vendor/get-module-type?id=2 (food) -> HTTP 200 module_type=food packages=['QA NEARS-3285 Test Package', 'QA Single-Store Fixture', 'nears4145-qa-stale-offer']; retired absent=True; rental-type absent=True
+GET /vendor/get-module-type?id=7 (grocery-2288) -> HTTP 200 module_type=grocery packages=['QA NEARS-3285 Test Package', 'QA Single-Store Fixture', 'nears4145-qa-stale-offer']; retired absent=True; rental-type absent=True
+GET get-module-type unknown module -> HTTP 200 {"module_type":"","module_zone":false}
+GET /vendor/check-module-type?id=2&zone_id=1 -> HTTP 200 {"module_zone":true}
+GET /vendor/check-module-type?id=1&zone_id=2 -> HTTP 200 {"module_zone":true}
+GET /vendor/check-module-type?id=5&zone_id=1 -> HTTP 200 {"module_zone":true}
+GET /vendor/get-all-modules?zone_id=1&q=Rest -> HTTP 200 [{"id":2,"text":"Restaurant"}]
+(no rental module exists on the clone: select modules where module_type=rental returned 0 rows; Rental add-on is absent by design)
+vendor web login ahmed.khan@demo.com (store_business_model=commission) -> HTTP 302 Location=http://127.0.0.1:8148/vendor-panel echo=OK; GET /vendor-panel -> 200
+admin web login -> HTTP 302 Location=http://127.0.0.1:8148/admin echo=OK; GET /admin -> 200

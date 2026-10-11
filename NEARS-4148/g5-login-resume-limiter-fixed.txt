@@ -1,0 +1,30 @@
+=== G5 LOGIN RESUME + LIMITER on fixed server (http://127.0.0.1:8148) ===
+pending registrant created through real POST /vendor/apply: store 91173; vendors.status=NULL store_business_model=none (email is a throwaway @example.test)
+--- (a) WRONG password
+limiter before: no limiter key
+POST /login_submit role=vendor wrong password -> HTTP 302 Location=http://127.0.0.1:8148/login/vendor echo=OK; follow -> 200 errors=['Password does not match.']; payment view in POST body: False; store id in follow page: False
+limiter after: laravel_cachelogin-attempts:127.0.0.1	i:1;
+laravel_cachelogin-attempts:127.0.0.1:timer	i:1791740473;; registration_store_ids in this jar session: []
+same jar POST /vendor/payment for the registrant store -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK lines=['[FAIL] subscription.web_registration_purchase_refused {"correlation_id":"ae121ce3-cf9d-428c-aca2-9f136e6ce589","store_id":91173,"reason":"store_not_owned"} '] DB ZERO-DELTA  (expect store_not_owned refusal: jar NOT bound)
+--- (b) ARRAY password (6 elements, passes min:6)
+POST password[]x6 -> HTTP 302 Location=http://127.0.0.1:8148/login/vendor echo=OK; follow -> 200 errors=['Password does not match.']; payment view: False; NOT 500: True; limiter: laravel_cachelogin-attempts:127.0.0.1	i:1;
+laravel_cachelogin-attempts:127.0.0.1:timer	i:1791740473;
+--- (d) unknown email
+POST unknown email -> HTTP 302 Location=http://127.0.0.1:8148/login/vendor echo=OK; follow -> errors=['Email does not match.']
+--- (c) RIGHT password: resume positive control
+limiter before: no limiter key
+POST /login_submit right password -> HTTP 200 echo=OK; payment view with own store id 91173: True; package_id hidden field=1: True; free_trial option: True
+session id rotated at login: True (before 7la0OcEV.. after 3jwcmH6d..); csrf token rotated: True; registration_store_ids=['91173'] (only this registrant store)
+GET /vendor-panel (vendor dashboard) same jar -> HTTP 302 Location=http://127.0.0.1:8148 echo=OK (not logged into the panel: redirect, no 200)
+POST /vendor/payment package 1 free_trial from the login-resumed jar -> HTTP 302 Location=http://127.0.0.1:8148/vendor/final-step echo=OK follow->200 [('success', 'Successfully Subscribed.')] [FAIL] lines=0
+   DB before {'subscription_transactions': '6', 'store_subscriptions': '6', 'payment_requests': '77', 'store91173': 'package_id=1 model=none'}
+   DB after  {'subscription_transactions': '7', 'store_subscriptions': '7', 'payment_requests': '77', 'store91173': 'package_id=1 model=subscription'}
+   trial row: 91173	1	1	success
+--- (e) THROTTLE: 5 wrong passwords then the RIGHT one (second registrant)
+5 wrong attempts -> [['Password does not match.'], ['Password does not match.'], ['Password does not match.'], ['Password does not match.'], ['Password does not match.']]; limiter: laravel_cachelogin-attempts:127.0.0.1	i:5;
+laravel_cachelogin-attempts:127.0.0.1:timer	i:1791740475;
+6th attempt with the RIGHT password -> HTTP 302 Location=http://127.0.0.1:8148/login/vendor echo=OK; follow errors=['Too many login attempts']; payment view: False (expect refused by limiter)
+after cache:clear (limiter reset) right password -> HTTP 200 echo=OK payment view: True
+--- (f) 12 right-password logins in ONE jar (third registrant), then pay
+12 logins: [(200, True)]; registration_store_ids=['91175'] (deduped, no growth)
+then POST /vendor/payment paypal -> HTTP 302 Location=http://127.0.0.1:8148/payment/paypal/pay?payment_id=d2b650ce-b70d-4e8f-927b-f97bfcdd7bb2 echo=OK [FAIL] lines=0 DB CHANGED {"payment_requests": ["77", "78"]}

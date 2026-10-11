@@ -1,0 +1,44 @@
+=== G4 store_not_pending (real admin approve) + toggle_store_registration OFF (real admin form POST), FIXED 8148 ===
+(a) owner created store 91171; steppable before approval: business_plan -> HTTP 200 echo=OK
+    vendor status before approval: NULL
+    admin login: HTTP 302 Location=http://127.0.0.1:8148/admin echo=OK
+    GET admin pending-requests -> 200; lists store 91171: True
+    real admin approve action POST /admin/store/update-application/91171/1 -> HTTP 302 Location=http://127.0.0.1:8148/admin/store/pending-requests echo=OK
+    vendor status after approval: 1  store status/model: 1 none pkg=1
+PASS | approved-owner business_plan POST subscription-base | HTTP 403 echo=OK | lines=1 ctx={'correlation_id': 'af2f1932-75ab-4ab7-94a6-6a1f5fe61fe8', 'store_id': 91171, 'reason': 'store_not_pending'} | DB ZERO-DELTA
+PASS | approved-owner business_plan POST commission-base | HTTP 403 echo=OK | lines=1 ctx={'correlation_id': '2a906625-829c-4401-8a5f-b95d5191b684', 'store_id': 91171, 'reason': 'store_not_pending'} | DB ZERO-DELTA
+PASS | approved-owner secondStep GET | HTTP 403 echo=OK | lines=1 ctx={'correlation_id': '5a5ed55a-acf0-40a8-bad7-4c037b252165', 'store_id': 91171, 'reason': 'store_not_pending'} | DB ZERO-DELTA
+PASS | approved-owner back GET | HTTP 403 echo=OK | lines=1 ctx={'correlation_id': 'dc1e0bcc-92e8-480f-a65e-cbbae5eab8f0', 'store_id': 91171, 'reason': 'store_not_pending'} | DB ZERO-DELTA
+PASS | approved-owner payment POST package 1 free_trial | HTTP 403 echo=OK | lines=1 ctx={'correlation_id': '6e939fdf-a7f4-448f-8afc-0818180e844b', 'store_id': 91171, 'reason': 'store_not_pending'} | DB ZERO-DELTA
+PASS | approved-owner payment POST package 1 paypal | HTTP 403 echo=OK | lines=1 ctx={'correlation_id': 'f8afaea3-48ea-426b-8c07-417fdddc9f26', 'store_id': 91171, 'reason': 'store_not_pending'} | DB ZERO-DELTA
+PASS | approved-owner payment POST RETIRED package free_trial | HTTP 403 echo=OK | lines=1 ctx={'correlation_id': '05ea4147-53d9-4840-b873-eefa6da717ef', 'store_id': 91171, 'reason': 'store_not_pending'} | DB ZERO-DELTA
+G4a SUMMARY 7/7: owner of an APPROVED store gets HTTP 403 + ONE store_not_pending line, zero writes
+=== G4 store_not_pending (real admin approve) + toggle_store_registration OFF (real admin form POST), FIXED 8148 ===
+admin login HTTP 302 Location=http://127.0.0.1:8148/admin echo=OK
+toggle_store_registration before: 1
+real admin POST update-store with store self registration UNCHECKED -> HTTP 302 Location=http://127.0.0.1:8148/admin/business-settings/business-setup/store echo=OK; toggle now: NULL; cache:clear (inline DB) done
+business_settings keys changed by that form round-trip: ['toggle_store_registration']
+PASS | toggle OFF non-owner back GET | HTTP 302 Location=http://127.0.0.1:8148 echo=OK | follow(home)->200 toasts=[('error', 'Please follow the steps properly.')] (no further redirect: True) | line=1 ctx={'correlation_id': '3fd217cd-08b7-4a6d-8348-ad48f58797f8', 'store_id': 91108, 'reason': 'store_not_owned'} | DB ZERO-DELTA
+FAIL | toggle OFF non-owner payment POST | HTTP 419 echo=OK | follow(home)->None toasts=None (no further redirect: None) | line=0 ctx=None | DB ZERO-DELTA
+FAIL | toggle OFF non-owner business_plan POST | HTTP 419 echo=OK | follow(home)->None toasts=None (no further redirect: None) | line=0 ctx=None | DB ZERO-DELTA
+PASS | toggle OFF non-owner secondStep GET | HTTP 302 Location=http://127.0.0.1:8148 echo=OK | follow(home)->200 toasts=[('error', 'Please follow the steps properly.')] (no further redirect: True) | line=1 ctx={'correlation_id': '59700208-c292-46a2-9649-73385a7cd428', 'store_id': 91108, 'reason': 'store_not_owned'} | DB ZERO-DELTA
+INFO toggle OFF GET /vendor/apply -> HTTP 302 Location=http://127.0.0.1:8148 echo=OK (create() back() + Toastr, pre-existing)
+RESTORE: real admin POST update-store with self registration CHECKED -> HTTP 302 Location=http://127.0.0.1:8148/admin/business-settings/business-setup/store echo=OK; toggle now: 1
+business_settings keys differing from the ORIGINAL snapshot after restore: []
+toggle ON again: non-owner back GET -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK (expect /vendor/apply)
+G4b SUMMARY 2/4: toggle OFF non-owner -> HOME route (no loop), Toastr, one store_not_owned line, zero writes
+NOTE (QA): in the first G4b pass the two POST arms were 419 because with toggle OFF GET /vendor/apply redirects (no page, no CSRF token) - harness artifact; the second pass below takes the CSRF token from GET /login/vendor instead.
+=== G4 store_not_pending (real admin approve) + toggle_store_registration OFF (real admin form POST), FIXED 8148 ===
+admin login HTTP 302 Location=http://127.0.0.1:8148/admin echo=OK
+toggle_store_registration before: 1
+real admin POST update-store with store self registration UNCHECKED -> HTTP 302 Location=http://127.0.0.1:8148/admin/business-settings/business-setup/store echo=OK; toggle now: NULL; cache:clear (inline DB) done
+business_settings keys changed by that form round-trip: ['toggle_store_registration']
+PASS | toggle OFF non-owner back GET | HTTP 302 Location=http://127.0.0.1:8148 echo=OK | follow(home)->200 toasts=[('error', 'Please follow the steps properly.')] (no further redirect: True) | line=1 ctx={'correlation_id': 'b0357079-9f33-4059-a1f4-dfcdee8750b4', 'store_id': 91108, 'reason': 'store_not_owned'} | DB ZERO-DELTA
+PASS | toggle OFF non-owner payment POST | HTTP 302 Location=http://127.0.0.1:8148 echo=OK | follow(home)->200 toasts=[('error', 'Please follow the steps properly.')] (no further redirect: True) | line=1 ctx={'correlation_id': 'e7cad79e-e48b-42c7-a1ed-ace1dc3476c4', 'store_id': 91108, 'reason': 'store_not_owned'} | DB ZERO-DELTA
+PASS | toggle OFF non-owner business_plan POST | HTTP 302 Location=http://127.0.0.1:8148 echo=OK | follow(home)->200 toasts=[('error', 'Please follow the steps properly.')] (no further redirect: True) | line=1 ctx={'correlation_id': '9cab747e-6b18-4daf-ba9f-5e21b5da9444', 'store_id': 91108, 'reason': 'store_not_owned'} | DB ZERO-DELTA
+PASS | toggle OFF non-owner secondStep GET | HTTP 302 Location=http://127.0.0.1:8148 echo=OK | follow(home)->200 toasts=[('error', 'Please follow the steps properly.')] (no further redirect: True) | line=1 ctx={'correlation_id': 'd0905250-05ce-48a1-9f03-3e0cfccd2811', 'store_id': 91108, 'reason': 'store_not_owned'} | DB ZERO-DELTA
+INFO toggle OFF GET /vendor/apply -> HTTP 302 Location=http://127.0.0.1:8148 echo=OK (create() back() + Toastr, pre-existing)
+RESTORE: real admin POST update-store with self registration CHECKED -> HTTP 302 Location=http://127.0.0.1:8148/admin/business-settings/business-setup/store echo=OK; toggle now: 1
+business_settings keys differing from the ORIGINAL snapshot after restore: []
+toggle ON again: non-owner back GET -> HTTP 302 Location=http://127.0.0.1:8148/vendor/apply echo=OK (expect /vendor/apply)
+G4b SUMMARY 4/4: toggle OFF non-owner -> HOME route (no loop), Toastr, one store_not_owned line, zero writes

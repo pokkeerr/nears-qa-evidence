@@ -1,0 +1,55 @@
+=== 00 SETUP + SERVED-DB PROOF (NEARS-4148 QA, cycle 0) ===
+device-free ticket: web/backend only, NO device, NO emulator, NO device lock taken (qa_lock_* not used)
+tested tip: 7d9ddd0805b7609a7368b4aa2cd745b0879a1a9d branch fix/NEARS-4148-web-registration-payment-auth; base 1e2e8a2e123717c1537d70417f9fe90ee02a1cb5
+lessons_read (selector --arg role qa, exit 0): 17
+
+-- stamped seeder blobs (git hash-object must equal the advisor-data stamp)
+Nears4125PanelPurchaseWalletQaFixtureSeeder 6d375281d07f9d93a742de8e2b118c6f0e05595f
+Nears4145PackageEligibilityQaFixtureSeeder 3f3916d6e27a0cd636e170e14ab260cbda2f69c9
+expected 6d375281d07f9d93a742de8e2b118c6f0e05595f / 3f3916d6e27a0cd636e170e14ab260cbda2f69c9
+
+-- clone: DROP/CREATE multi_food_db_qa4148; mysqldump --single-transaction (READ-ONLY dump of multi_food_db) | mysql multi_food_db_qa4148
+dump lacked stores.suspended_at -> ran ONLY the committed migration 2026_10_10_120000_add_suspended_at_to_stores_table.php on the clone (inline DB_DATABASE)
+seeders (inline NEARS_SEED_ALLOW_DB=multi_food_db_qa4148 DB_DATABASE=multi_food_db_qa4148): 4125 case A -> 'case A ready, store 4'; 4145 -> 'retired id=3, rental id=4, stale-offer id=5'; then cache:clear (inline DB)
+no other seeder, no INSERT..SELECT, no raw DML on any database. Admin settings changed only through real admin POSTs (see below).
+
+-- clone-side reads
+id	package_name	status	module_type
+1	QA Single-Store Fixture	1	all
+2	QA NEARS-3285 Test Package (edited v2)	1	all
+3	nears4145-qa-retired	0	all
+4	nears4145-qa-rental	1	rental
+5	nears4145-qa-stale-offer	1	all
+key	value
+digital_payment	{"status":true}
+toggle_store_registration	1
+commission_business_model	1
+subscription_business_model	1
+subscription_free_trial_days	7
+subscription_free_trial_status	1
+key_name	is_active	mode
+paypal	1	live
+razor_pay	1	live
+shared DB has NO nears4145% package: 0 (so seeing it from a served process proves the clone is served)
+
+-- admin business-model toggle (needed: clone had subscription_business_model=0, so store() would never produce a 'none' registrant): real admin form round-trip POST /admin/business-settings/update-setup with the page's own pre-filled fields + subscription_business_model=1; business_settings keys changed by it: ['subscription_business_model'] only; cache:clear inline-DB after
+
+-- FIXED server 8148
+listening pid 55375 (parent 55355); cmd: /opt/homebrew/Cellar/php@8.2/8.2.34/bin/php -S 127.0.0.1:8148 /Users/Apple/Projects/nears-NEARS-4148-web-reg-auth/Admin/server.php
+OTEL_SDK_DISABLED=true
+SESSION_SECURE_COOKIE=false
+DB_DATABASE=multi_food_db_qa4148
+freshness: -- PASS: /Users/Apple/Projects/nears-NEARS-4148-web-reg-auth @ 7d9ddd080 (ticket NEARS-4148, status: unknown) --
+served-process probe: GET http://127.0.0.1:8148/vendor/get-module-type?id=1 lists nears4145-qa-stale-offer: 1 hit(s)
+
+-- BASE server 8149 (scratch APFS clone of Admin/ with BASE VendorController.php + LoginController.php, RegistrationSession.php deleted)
+listening pid 58648 cmd: /opt/homebrew/Cellar/php@8.2/8.2.34/bin/php -S 127.0.0.1:8149 /private/tmp/claude-501/-Users-Apple-Projects-nears/a7f5d4bb-4211-4dfc-9952-11437c9104f3/scratchpad/q4148/base/Admin/server.php
+OTEL_SDK_DISABLED=true
+SESSION_SECURE_COOKIE=false
+DB_DATABASE=multi_food_db_qa4148
+blob hashes scratch vs git base: VendorController 89c1c17a39b717cccfe2eaf82f16682946ae3017 == 89c1c17a39b717cccfe2eaf82f16682946ae3017; LoginController b568d8ae25b12fa3285ec978c3a6ff8c7ca097ae == b568d8ae25b12fa3285ec978c3a6ff8c7ca097ae
+scratch controller grep: assertPendingRegistrationStore x4; registrantStore|RegistrationSession x0; RegistrationSession.php present:        0
+scratch vs fixed tree: only these app/*.php differ -> 5 hash lines (3 files: 2 controllers + RegistrationSession)
+base probe: GET http://127.0.0.1:8149/vendor/get-module-type?id=1 lists nears4145-qa-stale-offer: 1 hit(s); base arm (a) logged 'Attempt to read property id on null' in the SCRATCH tree's own laravel.log
+
+harness note: SESSION_SECURE_COOKIE=false inline on both servers (Admin/.env has true; curl/requests over http would drop the cookie). OTEL disabled. Both servers share the one clone DB; cache driver=database so the login limiter is per clone.
