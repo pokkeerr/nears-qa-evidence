@@ -1,0 +1,49 @@
+log mark (lines) before D5 on FIXED server log: 1320
+### D5a FIXED restricted POST toggle-settings/CANARY4138xyz/CANARY4138val
+RESP: HTTP/1.1 302 Found | X-Request-Id: 307452a1-de3b-4812-bcbb-d0bfed387451 | 
+TOAST: error('Access denied';
+-- tables changed: (none if blank)
+[2026-10-12 00:23:59] production.ERROR: [FAIL] admin.global_action_refused {"correlation_id":"307452a1-de3b-4812-bcbb-d0bfed387451","endpoint":"admin/business-settings/toggle-settings/{key}/{value}","status":302,"reason":"role_not_super_admin"} 
+-- log lines carrying correlation_id==X-Request-Id(307452a1-de3b-4812-bcbb-d0bfed387451): 1 [FAIL] / 1 total
+canary row in business_settings: 0
+### D5 update-setup
+RESP: HTTP/1.1 302 Found | X-Request-Id: b8c2d8d5-af3d-4e8d-9a7a-9d50f1ab530d | 
+TOAST: error('Access denied';
+   records written by this request: 1  -> production.ERROR: [FAIL] admin.global_action_refused {"correlation_id":"b8c2d8d5-af3d-4e8d-9a7a-9d50f1ab530d","endpoint":"admin/business-settings/update-setup","status":302,"reason":"role_not_super_admin"} 
+### D5 switch-plan
+RESP: HTTP/1.1 302 Found | X-Request-Id: fcdef01d-4682-4778-a3c7-98b71c3b1c6c | 
+TOAST: error('Access denied';
+   records written by this request: 1  -> production.ERROR: [FAIL] admin.global_action_refused {"correlation_id":"fcdef01d-4682-4778-a3c7-98b71c3b1c6c","endpoint":"admin/business-settings/subscription/switch-plan","status":302,"reason":"role_not_super_admin"} 
+### D5 brand-module
+RESP: HTTP/1.1 302 Found | X-Request-Id: ae8d9eeb-2b1e-491c-a442-7d5ec0647da4 | 
+TOAST: error('Access denied';
+   records written by this request: 1  -> production.ERROR: [FAIL] admin.global_action_refused {"correlation_id":"ae8d9eeb-2b1e-491c-a442-7d5ec0647da4","endpoint":"admin/brand/module-upadte","status":302,"reason":"role_not_super_admin"} 
+### D5 payment-method
+RESP: HTTP/1.1 302 Found | X-Request-Id: beee9fb6-a0e1-4689-802d-02a5d8edf2c0 | 
+TOAST: error('Access denied';
+   records written by this request: 1  -> production.ERROR: [FAIL] admin.payment_toggle_key_refused {"correlation_id":"beee9fb6-a0e1-4689-802d-02a5d8edf2c0","endpoint":"admin/business-settings/third-party/payment-method-update","status":302,"reason":"key_not_allowed"} 
+### D5 addon
+RESP: HTTP/1.1 302 Found | X-Request-Id: 463c92ef-6798-41d2-9fac-c1e395ed79c5 | 
+TOAST: error('Access denied';
+   records written by this request: 1  -> production.ERROR: [FAIL] admin.addon_key_refused {"correlation_id":"463c92ef-6798-41d2-9fac-c1e395ed79c5","endpoint":"admin/business-settings/addon-activation/activation","status":302,"reason":"key_not_allowed"} 
+### CANARY grep over the WHOLE served laravel.log (and structured log):
+  CANARY4138xyz: laravel.log=4 laravel-structured.log=4
+  CANARY4138val: laravel.log=0 laravel-structured.log=0
+  CANARY4138name: laravel.log=0 laravel-structured.log=0
+  CANARY4138pk: laravel.log=0 laravel-structured.log=0
+### BASE contrast: same canary toggle at BASE writes the row
+RESP: HTTP/1.1 302 Found | X-Request-Id: f93ccd25-e042-4831-a823-07290c1136fe | 
+TOAST: success('App settings updated';
+   canary row at BASE: 1
+### CANARY re-scan SCOPED TO MY WINDOW (the 4 whole-file hits above are pre-existing 'testing.ERROR' lines timestamped 00:06 from the engineer's phpunit run, 17 min before this QA's D5 request at 00:23, env=testing, not produced by the served process):
+  CANARY4138xyz: laravel.log lines after mark 1320 = 0 ; laravel-structured.log lines stamped >= 2026-10-12T00:20 = 0
+  CANARY4138val: laravel.log lines after mark 1320 = 0 ; laravel-structured.log lines stamped >= 2026-10-12T00:20 = 0
+  CANARY4138name: laravel.log lines after mark 1320 = 0 ; laravel-structured.log lines stamped >= 2026-10-12T00:20 = 0
+  CANARY4138pk: laravel.log lines after mark 1320 = 0 ; laravel-structured.log lines stamped >= 2026-10-12T00:20 = 0
+  window [FAIL] records (laravel.log after mark): 6 ; distinct endpoints:
+   1 "endpoint":"admin/brand/module-upadte"
+   1 "endpoint":"admin/business-settings/addon-activation/activation"
+   1 "endpoint":"admin/business-settings/subscription/switch-plan"
+   1 "endpoint":"admin/business-settings/third-party/payment-method-update"
+   1 "endpoint":"admin/business-settings/toggle-settings/{key}/{value}"
+   1 "endpoint":"admin/business-settings/update-setup"

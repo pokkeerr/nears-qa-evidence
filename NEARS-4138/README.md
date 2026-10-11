@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4138
 
-**QA PASS pending verdict: global actions role_id 1 only (live BASE RED vs FIXED GREEN, text evidence)**
+**delta re-QA PASS: update_store strict gate, criteria-missing no-write, route-pattern log endpoints**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -22,6 +22,15 @@
 - [`base-A9-addon-activation.txt`](base-A9-addon-activation.txt)
 - [`base-lacks-middleware.txt`](base-lacks-middleware.txt)
 - [`bug-switch-to-commission-out-of-zone-500.log`](bug-switch-to-commission-out-of-zone-500.log)
+- [`delta-D1-base-before-shapes.txt`](delta-D1-base-before-shapes.txt)
+- [`delta-D1-update-store-strict-shapes.txt`](delta-D1-update-store-strict-shapes.txt)
+- [`delta-D2-D3-fixed.txt`](delta-D2-D3-fixed.txt)
+- [`delta-D3-base-before.txt`](delta-D3-base-before.txt)
+- [`delta-D4-role1-base-vs-fixed.txt`](delta-D4-role1-base-vs-fixed.txt)
+- [`delta-D5-log-canary.txt`](delta-D5-log-canary.txt)
+- [`delta-D6-smoke.txt`](delta-D6-smoke.txt)
+- [`delta-D7-phpunit.txt`](delta-D7-phpunit.txt)
+- [`delta-identity-proof.txt`](delta-identity-proof.txt)
 - [`fixed-A1-update-setup.txt`](fixed-A1-update-setup.txt)
 - [`fixed-A11-unauth.txt`](fixed-A11-unauth.txt)
 - [`fixed-A2a-switchplan-commission-restricted.txt`](fixed-A2a-switchplan-commission-restricted.txt)
