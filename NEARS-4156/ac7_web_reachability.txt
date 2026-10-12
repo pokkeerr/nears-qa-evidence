@@ -1,0 +1,14 @@
+NEARS-4156 AC7 web reachability: measured on a SCRATCH stock vhost (NOT the production vhost; production config is not readable from the repo)
+Instrument: Apache/2.4.67 (system httpd) + php-fpm 8.2.34 (homebrew), DocumentRoot = scratch copy of the tested tip's Admin/ (tree B), AllowOverride All
+(so the repo's stock root .htaccess is honoured), handler = <FilesMatch "\.php$"> SetHandler proxy:fcgi://127.0.0.1:19156 (the usual Apache+fpm shape).
+Positive control that .htaccess is live: GET /.env -> 403 (the root .htaccess `<Files .env>` deny).
+Probe files are harmless markers placed by hand in the scratch tree only.
+
+GET /storage/app/public/probe4156.php                                   -> 200 text/html  body "EXEC4156_5"   (a .php under storage/app IS served AND EXECUTED)
+GET /resources/views/layouts/landing/custom/index.blade.php (legacy)    -> 200 text/html  body "EXECLEG4156_5" (a planted legacy landing view IS served AND EXECUTED: *.blade.php matches \.php$)
+GET /storage/app/landing/custom/index.html (new store, base64 at rest)  -> 200 text/html  body = base64 text "PCEtLSBpZHg0MTU2LXNlY29uZCAtLT57eyAn..." (inert, never HTML/PHP)
+GET /storage/app/public/delivery-man/<existing>.png                     -> 200 image/png (existing static files in storage/app are URL-addressable when Admin/ is docroot)
+GET /nonexistent4156.php                                                -> 404 (Laravel front controller via the .htaccess rewrite)
+Conclusion: web reachability of storage/app/** and resources/views/** with docroot Admin/ is MEASURED as reachable and PHP-executing on a stock Apache+fpm handler.
+This is exactly the class the fix removes: at the tested tip the validator refuses every script-typed entry and the landing is stored as base64 text, so nothing executable is written.
+The PHP built-in server was NOT used for this measurement (docroot public/ under artisan serve; not representative).
