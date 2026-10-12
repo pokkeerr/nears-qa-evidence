@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4163
 
-**FAIL: no visible control at 1028 on 3-card fixture (owl hides nav+dots); RTL last-card blank**
+**FAIL: no visible control at 1028 on 3-card fixture (owl hides nav+dots); RTL last-card blank; options-matrix.json added**
 
 **71 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -136,6 +136,7 @@
 - [`bug-no-visible-control-1028-3cards.log`](bug-no-visible-control-1028-3cards.log)
 - [`bug-rtl-last-card-all-off-screen-1028.log`](bug-rtl-last-card-all-off-screen-1028.log)
 - [`dots-hover-measure.json`](dots-hover-measure.json)
+- [`options-matrix.json`](options-matrix.json)
 - [`progress.md`](progress.md)
 - [`synth-ltr.json`](synth-ltr.json)
 - [`synth-rtl.json`](synth-rtl.json)
