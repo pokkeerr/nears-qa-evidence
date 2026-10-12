@@ -1,0 +1,17 @@
+NEARS-4155 QA observations (fixed tree 29606d8c3 unless stated; clones qa4155/qa4155b; own servers :8155/:8165)
+O1 token-mismatch sibling: REPRODUCED, both arms. Admin suspension rotates vendors.login_remember_token (VendorAccountState.php:76); after the admin
+   reactivates, the owner's stale tab hits the "session expired" branch. Browser (fixed): POST switch-to-commission -> 302 -> login 200, toast
+   "Successfully Switched To Commission!" (x2 log entries = one toast element), reload lands on "/" (no copy), wallet/store state byte-identical, zero [FAIL].
+   curl twin on base and fixed: both 302 to /login/vendor. (A second login does NOT rotate the token: LoginController:114 reuses it.)
+O2 STUCK spinner (item/add-new, page function combination_update() invoked from the page): XHR POST item/variant-combination -> 403 auth-003; #loading display stays "block"
+   (spinner never hides), page stays on add-new, no message. After 2 simulated polls + reload it ended on "/" (see O4).
+O3 error-handler toast (store-setup > delete schedule > Yes): XHR POST remove-schedule/16 -> 403; toast text "Schedule not found" (wrong copy, NOT raw JSON as the census predicted);
+   no false success; schedule rows 7 -> 7; page stays; next navigation = login with the suspended copy.
+O4 poll vs key: FAILS in a real browser. XHR follows the 302 to "/", and that redirected GET consumes the one-shot key; reload then lands on "/" (no login, no copy). See bug-keep-key-consumed-by-xhr-redirect.log.
+   Poll was fired by hand ($.get get-store-data dataType json from the page, identical to layouts/vendor/app.blade.php:535) because order_notification_type=manual can only be set by rewriting the whole order-settings form.
+O5 stale-CSRF POST by held session: 419 {"message":"CSRF token mismatch."}, ajax, never reaches the door: zero vendor.session_suspended lines; the session was not consumed (the next correct-token POST was 403 auth-003).
+O6 different owner (maria.garcia, store 5) logging in in the same browser right after the guest session showed the keyed login copy: dashboard loads, 0 occurrences of "suspended". PASS.
+   Side note: a held session left un-navigated across an admin reactivation shows the suspended copy once on its next guest navigation (one-shot key, curl jar o).
+O7 two tabs, one session (curl same-cookie-jar simulation; the browser MCP exposes one page): 403 -> tab1 nav 302 /login/vendor (copy) -> tab2 nav 302 "/" . Exactly one tab gets the copy.
+O8 Set-Cookie on the XHR 403 applied by the browser: chrome network list shows the next request after the 403 (the reload) answered as a guest (GET subscriber-detail 302 -> /login/vendor);
+   XHR 403 headers (curl) carry a new laravel_session Set-Cookie. HttpOnly jar not readable (no evaluate_script exposed in this toolset).

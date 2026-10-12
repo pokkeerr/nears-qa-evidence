@@ -1,0 +1,17 @@
+O4 / task_bug (Low, breaks_ac false): the one-shot key vendor_door_refused is meant to survive an ajax guest poll via keep(), but a real
+browser XHR FOLLOWS the guest fall-through's 302 to "/" (home); that redirected GET is itself a session request and consumes the key.
+fixed tree 29606d8c3, own server :8155, clone qa4155. Held owner session, XHR 403 first, then:
+
+jar g: ajax POST switch-to-commission -> 403 JSON auth-003
+  poll1 (XHR, redirect FOLLOWED, like a browser) final=http://localhost:8155/ code=200 hops=1
+  poll2 (XHR, redirect FOLLOWED)                 final=http://localhost:8155/ code=200 hops=1
+  reload (plain navigation)                      -> 302 loc=[http://localhost:8155/]        <-- key already gone: no login, no copy (= base behaviour)
+jar h: ajax POST switch-to-commission -> 403 JSON auth-003
+  poll1 (XHR, redirect NOT followed)             code=302 loc=[http://localhost:8155/]
+  poll2 (XHR, redirect NOT followed)             code=302 loc=[http://localhost:8155/]
+  reload (plain navigation)                      -> 302 loc=[http://localhost:8155/login/vendor]   <-- survives only when the redirect is not followed (what a no-redirect test client measures)
+
+Real browser (Chrome), same shape: after the 403 on item/variant-combination, two $.get('/vendor-panel/get-store-data', dataType json):
+  network: GET get-store-data [302] -> GET / [200]  (twice), then reload GET item/add-new [302] -> GET / [200]  (no login page, no copy)
+Reachable only where the 10 s get-store-data poll runs (business_settings order_notification_type=manual) AND a poll lands between the 403 and the reload,
+or where a STUCK page stays open (the 9 sites) with the manual poll on. Failure mode degrades to the pre-fix landing (/), not worse.

@@ -1,0 +1,26 @@
+# AC1 fixed arm (worktree @29606d8c3, port 8155, clone multi_food_db_qa4155) - curl XHR from a marker-held owner session
+ajax 403 loc=[] ct=[application/json]
+{"errors":[{"code":"auth-003","message":"Your account has been suspended"}]}
+X-Request-Id: e5053945-6ee5-4aa0-8ea1-7f3b1ed076c9
+Set-Cookie: XSRF-TOKEN=<redacted>; expires=<redacted>; Max-Age=7200; path=/; samesite=lax
+Set-Cookie: laravel_session=<redacted>; expires=<redacted>; Max-Age=7200; path=/; httponly; samesite=lax
+
+# next plain navigation (guest): 
+nav 302 loc=[http://localhost:8155/login/vendor]
+X-Request-Id: 8508eac7-abd6-424b-aa7c-861a3cef6234
+
+# log lookup by X-Request-Id e5053945-6ee5-4aa0-8ea1-7f3b1ed076c9
+-- laravel.log: 1 line(s)
+[2026-10-12 07:17:01] production.ERROR: [FAIL] vendor.session_suspended {"correlation_id":"e5053945-6ee5-4aa0-8ea1-7f3b1ed076c9","store_id":4,"surface":"web"} 
+-- laravel-structured.log: 1 line(s)
+{"tag":"[FAIL]","timestamp":"2026-10-12T07:17:01.861579+04:00","correlation_id":"e5053945-6ee5-4aa0-8ea1-7f3b1ed076c9","level":"error","message":"[FAIL] vendor.session_suspended","context":{"store_id":4,"surface":"web"}}
+-- vendor.account_suspended lines for that id: 0
+
+# AC1 base-RED twin (dee1260131, port 8165, clone multi_food_db_qa4155b)
+ajax 302 loc=[http://127.0.0.1:8165/login/vendor] ct=[text/html; charset=utf-8]
+Location: http://127.0.0.1:8165/login/vendor
+X-Request-Id: f28e4991-6f79-4247-9f45-8e3fa5df3d90
+Set-Cookie: XSRF-TOKEN=<redacted>; expires=<redacted>; Max-Age=7200; path=/; samesite=lax
+Set-Cookie: laravel_session=<redacted>; expires=<redacted>; Max-Age=7200; path=/; httponly; samesite=lax
+nav 302 loc=[http://127.0.0.1:8165/]
+X-Request-Id: 2981b4f2-0855-4c53-9c8d-f05b63c50f7d
