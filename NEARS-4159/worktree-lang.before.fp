@@ -1,0 +1,11 @@
+. D - - 755
+./ar D - - 755
+./ar/messages.php F 750014 9607ab0019b3adeea157c1f35a2b3fddf99848bc 644
+./ar/new-messages.php F 720114 dfb7a6a1daf0ddc2dea64d13a9bc4654f15c4a80 644
+./en D - - 755
+./en/auth.php F 674 74aaefabd520f494dad99a933717ff0dd122a385 644
+./en/messages.php F 764258 ecd1af4cc610d7add8f2e359aa67286586259a75 644
+./en/order_texts.php F 281 d5afb6ab55cfb7f9414c314973bf1032def082d6 644
+./en/pagination.php F 534 a8ac7322e9b9a5d4b70c95b0e55df0f51411e337 644
+./en/passwords.php F 744 94d883ff92a4a36099ebfd7b357db534ff99145e 644
+./en/validation.php F 8450 25f701c2940a3b3bcf3ca05dc857314e03c74062 644

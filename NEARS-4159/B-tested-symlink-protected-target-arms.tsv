@@ -1,0 +1,30 @@
+CHECK OK legit auto-translate/ar -> 200 json, no refusal line
+CHECK OK outbound spy is LIVE (legit call produced exactly 1 googleapis URL with sl=en&tl=ar)
+OK	store	store code=lk (dir symlink)	HTTP 302	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	store	store code=lm (messages.php symlink)	HTTP 302	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	update	update old_code=lk	HTTP 302	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	update	update old_code=lm (messages.php symlink)	HTTP 302	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	update	update code=lk	HTTP 302	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	delete	delete/lk	HTTP 302	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	delete	delete/lm (inner messages.php symlink pre-walk)	HTTP 302	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	delete	delete/ld (child symlink pre-walk; real file must survive)	HTTP 302	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	translate	translate/lk	HTTP 302	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	translate	translate/lm	HTTP 302	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	remove-key	remove-key/lk	HTTP 403	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	remove-key	remove-key/lm	HTTP 403	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	translate-submit	translate-submit/lk	HTTP 403	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	translate-submit	translate-submit/lm	HTTP 403	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	auto-translate	auto-translate/lk	HTTP 403	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	auto-translate	auto-translate/lm	HTTP 403	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	auto-translate-all	auto-translate-all/lk	HTTP 403	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	auto-translate-all	auto-translate-all/lm	HTTP 403	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	auto-translate-all	auto-translate-all/ln (new-messages.php dangling symlink)	HTTP 403	reason=symlink_component	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+CHECK OK symlink targets untouched: dirtarget/messages.php, msgtarget.php, victim keep.txt, no never-created-newmsg.php
+OK	delete	delete/en	HTTP 302	reason=protected_locale	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	update	update old_code=en code=xx	HTTP 302	reason=protected_locale	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	update	update old_code=ar code=en	HTTP 302	reason=protected_locale	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	update	update en->en direction=rtl (en direction cannot change)	HTTP 302	reason=protected_locale	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	update	rename ar->ex (dir exists, not configured)	HTTP 302	reason=target_exists	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+CHECK OK legit add de: 302, dir created, mode 0755, messages.php written, system_language gains de, no refusal line
+OK	update	rename ar->de (dir exists AND configured)	HTTP 302	reason=target_exists	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
+OK	update	rename ar->de (configured in system_language, NO dir: in_array arm)	HTTP 302	reason=target_exists	log_laravel=1 structured=1	fs_changes=0	settings_identical=True	spy_new=0	correlation_id==X-Request-Id:True
