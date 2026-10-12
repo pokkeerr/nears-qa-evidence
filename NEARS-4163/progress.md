@@ -19,3 +19,12 @@
 - Overlap -16px: max 14px visible-content penetration (576/768 real; 5-card >=992 next arrow; 1200/1440 both); never over a Shift button; 375 no overlap/clip.
 - Controls: registration fragment tip==base; package-index slider tip==base; addon-activation 0 .dots-style2 elements on both (nothing to compare).
 - Backstop phpunit Nears4163PlanSliderTwinsTest OK (9 tests, 203 assertions). laravel.log: no new lines in my run (only the 2 round-1 anonymous-probe [FAIL] lines of 13:51:20); serve log: 0 ERROR/Exception/Fatal.
+
+## re-QA cycle 2 (final build VE768, tip 8caa96595) - checkpoints
+- PREFLIGHT: tip :8163 pid 94849 PWD=.../nears-NEARS-4163-plan-modal-carousel-nav/Admin DB_DATABASE=multi_food_db_qa4163; base :8164 pid 94859 PWD=.../nears-NEARS-4163-base/Admin DB_DATABASE=multi_food_db_qa4163; backend-freshness-check PASS on both. Clone store 4 = subscription pkg 1 (SELECT); shared multi_food_db store 4 = commission (SELECT).
+- C5 twin test: OK (10 tests, 239 assertions).
+- NOTE: every tip vendor-panel page logs a browser console line "Failed to load resource: 403" for /vendor-panel/message/list = NEARS-4171 marked denial (X-Panel-Refusal: denied, {"code":"subscription"}) inherited via the rebase; base (pre-4171) answers 302. Not a 4163 AC action. r4-chat403-probe.json.
+- C1 LTR: 80 tip cells + 8 base cells re-run (r4-ac3-tip-ltr-matrix.json) vs r2: 67 tip/base cells identical field-by-field; 13 cells differ at ONE sample each (the dot0 click, animation in flight at 550 ms). Old-code replica (route rewrite to the pre-VE768 init) vs new code on those 13: identical when settled (13/13, all fields); at 550 ms the old code differs from ITSELF between reps (4/13) and from r2 (11/13) = instrument sampling, not code. r4-ac3-ltr-diff.json, r4-ac3-ltr-AB-oldcode-vs-newcode.json.
+- C2: RTL 375/576/768/800/900 x 8 cells = 40 rows, (i)-(iv) 40/40 PASS, strict (load excluded) 40/40. Wide >=992: 45/45. C3: 768/800/900 7/7 each, 576 7/7, 375 0/7 (last card 22-23%). C6 arrow steps: 216 = 184 expected / 16 opposite / 16 no-op (all at 375/576), 768/800/900: 75/75 expected.
+- C5 twin test 10/239 OK. C4: Switch executed LAST: toast "Successfully Switched To Commission!" captured by init-script observer; reload shows Commission Base Plan; SELECT store 4 subscription -> commission (store_subscriptions.id 2 status 1 -> 0).
+- AC1/AC5/AC2a/controls/resize re-proofs done (r4-ac1-ac5-measure.json, r4-ac2-measure.json, r4-ctrl*.json, r4-resize.json).

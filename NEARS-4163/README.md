@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4163
 
-**r3 xprobe: VE768 items:2 at RTL 768**
+**re-QA cycle 2 (final build VE768) tip 8caa96595**
 
-**193 screenshot(s).** Click any thumbnail for full resolution.
+**256 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -323,6 +323,111 @@
 <tr>
 <td align="center" width="33%"><a href="r3-xprobe-VX-rtl-768-n3-s0.png"><img src="r3-xprobe-VX-rtl-768-n3-s0.png" width="240"></a><br><sub>r3 xprobe VX rtl 768 n3 s0</sub></td>
 <td align="center" width="33%"><a href="r3-xprobe-VX3-rtl-768-n3-s0.png"><img src="r3-xprobe-VX3-rtl-768-n3-s0.png" width="240"></a><br><sub>r3 xprobe VX3 rtl 768 n3 s0</sub></td>
+<td align="center" width="33%"><a href="r4-ac1-S1-base-1028.png"><img src="r4-ac1-S1-base-1028.png" width="240"></a><br><sub>r4 ac1 S1 base 1028</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac1-S1-tip-1028.png"><img src="r4-ac1-S1-tip-1028.png" width="240"></a><br><sub>r4 ac1 S1 tip 1028</sub></td>
+<td align="center" width="33%"><a href="r4-ac1-S2-base-1028.png"><img src="r4-ac1-S2-base-1028.png" width="240"></a><br><sub>r4 ac1 S2 base 1028</sub></td>
+<td align="center" width="33%"><a href="r4-ac1-S2-tip-1028.png"><img src="r4-ac1-S2-tip-1028.png" width="240"></a><br><sub>r4 ac1 S2 tip 1028</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac1-S3-base-1028.png"><img src="r4-ac1-S3-base-1028.png" width="240"></a><br><sub>r4 ac1 S3 base 1028</sub></td>
+<td align="center" width="33%"><a href="r4-ac1-S3-tip-1028.png"><img src="r4-ac1-S3-tip-1028.png" width="240"></a><br><sub>r4 ac1 S3 tip 1028</sub></td>
+<td align="center" width="33%"><a href="r4-ac2-S1-tip-1028-n4-s3.png"><img src="r4-ac2-S1-tip-1028-n4-s3.png" width="240"></a><br><sub>r4 ac2 S1 tip 1028 n4 s3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac2-S1-tip-1028-n5-s4.png"><img src="r4-ac2-S1-tip-1028-n5-s4.png" width="240"></a><br><sub>r4 ac2 S1 tip 1028 n5 s4</sub></td>
+<td align="center" width="33%"><a href="r4-ac2-S1-tip-1028-real3.png"><img src="r4-ac2-S1-tip-1028-real3.png" width="240"></a><br><sub>r4 ac2 S1 tip 1028 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac2-S1-tip-1440-n5-s4.png"><img src="r4-ac2-S1-tip-1440-n5-s4.png" width="240"></a><br><sub>r4 ac2 S1 tip 1440 n5 s4</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac2-S1-tip-375-real3.png"><img src="r4-ac2-S1-tip-375-real3.png" width="240"></a><br><sub>r4 ac2 S1 tip 375 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac2-S1-tip-576-real3.png"><img src="r4-ac2-S1-tip-576-real3.png" width="240"></a><br><sub>r4 ac2 S1 tip 576 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac2-S1-tip-768-real3.png"><img src="r4-ac2-S1-tip-768-real3.png" width="240"></a><br><sub>r4 ac2 S1 tip 768 real3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac2-S1-tip-992-n4-s3.png"><img src="r4-ac2-S1-tip-992-n4-s3.png" width="240"></a><br><sub>r4 ac2 S1 tip 992 n4 s3</sub></td>
+<td align="center" width="33%"><a href="r4-ac2b-1-modal-before.png"><img src="r4-ac2b-1-modal-before.png" width="240"></a><br><sub>r4 ac2b 1 modal before</sub></td>
+<td align="center" width="33%"><a href="r4-ac2b-2-confirm-dialog.png"><img src="r4-ac2b-2-confirm-dialog.png" width="240"></a><br><sub>r4 ac2b 2 confirm dialog</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac2b-4-after-reload.png"><img src="r4-ac2b-4-after-reload.png" width="240"></a><br><sub>r4 ac2b 4 after reload</sub></td>
+<td align="center" width="33%"><a href="r4-ac2b-5-S2-after.png"><img src="r4-ac2b-5-S2-after.png" width="240"></a><br><sub>r4 ac2b 5 S2 after</sub></td>
+<td align="center" width="33%"><a href="r4-ac2b-6-S1-fresh-after.png"><img src="r4-ac2b-6-S1-fresh-after.png" width="240"></a><br><sub>r4 ac2b 6 S1 fresh after</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac3-S1-base-1028-real3.png"><img src="r4-ac3-S1-base-1028-real3.png" width="240"></a><br><sub>r4 ac3 S1 base 1028 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac3-S1-base-1199-real3.png"><img src="r4-ac3-S1-base-1199-real3.png" width="240"></a><br><sub>r4 ac3 S1 base 1199 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac3-S1-base-1200-real3.png"><img src="r4-ac3-S1-base-1200-real3.png" width="240"></a><br><sub>r4 ac3 S1 base 1200 real3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac3-S1-base-1440-real3.png"><img src="r4-ac3-S1-base-1440-real3.png" width="240"></a><br><sub>r4 ac3 S1 base 1440 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac3-S1-base-375-real3.png"><img src="r4-ac3-S1-base-375-real3.png" width="240"></a><br><sub>r4 ac3 S1 base 375 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac3-S1-base-576-real3.png"><img src="r4-ac3-S1-base-576-real3.png" width="240"></a><br><sub>r4 ac3 S1 base 576 real3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac3-S1-base-768-real3.png"><img src="r4-ac3-S1-base-768-real3.png" width="240"></a><br><sub>r4 ac3 S1 base 768 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac3-S1-base-992-real3.png"><img src="r4-ac3-S1-base-992-real3.png" width="240"></a><br><sub>r4 ac3 S1 base 992 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac3-S1-tip-1028-real3.png"><img src="r4-ac3-S1-tip-1028-real3.png" width="240"></a><br><sub>r4 ac3 S1 tip 1028 real3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac3-S1-tip-1199-real3.png"><img src="r4-ac3-S1-tip-1199-real3.png" width="240"></a><br><sub>r4 ac3 S1 tip 1199 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac3-S1-tip-1200-real3.png"><img src="r4-ac3-S1-tip-1200-real3.png" width="240"></a><br><sub>r4 ac3 S1 tip 1200 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac3-S1-tip-1440-real3.png"><img src="r4-ac3-S1-tip-1440-real3.png" width="240"></a><br><sub>r4 ac3 S1 tip 1440 real3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac3-S1-tip-375-real3.png"><img src="r4-ac3-S1-tip-375-real3.png" width="240"></a><br><sub>r4 ac3 S1 tip 375 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac3-S1-tip-576-real3.png"><img src="r4-ac3-S1-tip-576-real3.png" width="240"></a><br><sub>r4 ac3 S1 tip 576 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac3-S1-tip-768-real3.png"><img src="r4-ac3-S1-tip-768-real3.png" width="240"></a><br><sub>r4 ac3 S1 tip 768 real3</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac3-S1-tip-992-real3.png"><img src="r4-ac3-S1-tip-992-real3.png" width="240"></a><br><sub>r4 ac3 S1 tip 992 real3</sub></td>
+<td align="center" width="33%"><a href="r4-ac5-S1-base-rtl-1028.png"><img src="r4-ac5-S1-base-rtl-1028.png" width="240"></a><br><sub>r4 ac5 S1 base rtl 1028</sub></td>
+<td align="center" width="33%"><a href="r4-ac5-S1-base-rtl-768.png"><img src="r4-ac5-S1-base-rtl-768.png" width="240"></a><br><sub>r4 ac5 S1 base rtl 768</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac5-S1-tip-rtl-1028.png"><img src="r4-ac5-S1-tip-rtl-1028.png" width="240"></a><br><sub>r4 ac5 S1 tip rtl 1028</sub></td>
+<td align="center" width="33%"><a href="r4-ac5-S1-tip-rtl-768.png"><img src="r4-ac5-S1-tip-rtl-768.png" width="240"></a><br><sub>r4 ac5 S1 tip rtl 768</sub></td>
+<td align="center" width="33%"><a href="r4-ac5-S2-base-rtl-1028.png"><img src="r4-ac5-S2-base-rtl-1028.png" width="240"></a><br><sub>r4 ac5 S2 base rtl 1028</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac5-S2-base-rtl-768.png"><img src="r4-ac5-S2-base-rtl-768.png" width="240"></a><br><sub>r4 ac5 S2 base rtl 768</sub></td>
+<td align="center" width="33%"><a href="r4-ac5-S2-tip-rtl-1028.png"><img src="r4-ac5-S2-tip-rtl-1028.png" width="240"></a><br><sub>r4 ac5 S2 tip rtl 1028</sub></td>
+<td align="center" width="33%"><a href="r4-ac5-S2-tip-rtl-768.png"><img src="r4-ac5-S2-tip-rtl-768.png" width="240"></a><br><sub>r4 ac5 S2 tip rtl 768</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac5-S3-base-rtl-1028.png"><img src="r4-ac5-S3-base-rtl-1028.png" width="240"></a><br><sub>r4 ac5 S3 base rtl 1028</sub></td>
+<td align="center" width="33%"><a href="r4-ac5-S3-base-rtl-768.png"><img src="r4-ac5-S3-base-rtl-768.png" width="240"></a><br><sub>r4 ac5 S3 base rtl 768</sub></td>
+<td align="center" width="33%"><a href="r4-ac5-S3-tip-rtl-1028.png"><img src="r4-ac5-S3-tip-rtl-1028.png" width="240"></a><br><sub>r4 ac5 S3 tip rtl 1028</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ac5-S3-tip-rtl-768.png"><img src="r4-ac5-S3-tip-rtl-768.png" width="240"></a><br><sub>r4 ac5 S3 tip rtl 768</sub></td>
+<td align="center" width="33%"><a href="r4-c2-S1-tip-rtl-375-n5-s4.png"><img src="r4-c2-S1-tip-rtl-375-n5-s4.png" width="240"></a><br><sub>r4 c2 S1 tip rtl 375 n5 s4</sub></td>
+<td align="center" width="33%"><a href="r4-c2-S1-tip-rtl-375-real3-s2.png"><img src="r4-c2-S1-tip-rtl-375-real3-s2.png" width="240"></a><br><sub>r4 c2 S1 tip rtl 375 real3 s2</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-c2-S1-tip-rtl-576-n5-s4.png"><img src="r4-c2-S1-tip-rtl-576-n5-s4.png" width="240"></a><br><sub>r4 c2 S1 tip rtl 576 n5 s4</sub></td>
+<td align="center" width="33%"><a href="r4-c2-S1-tip-rtl-576-real3-s2.png"><img src="r4-c2-S1-tip-rtl-576-real3-s2.png" width="240"></a><br><sub>r4 c2 S1 tip rtl 576 real3 s2</sub></td>
+<td align="center" width="33%"><a href="r4-c2-S1-tip-rtl-768-n3-s0.png"><img src="r4-c2-S1-tip-rtl-768-n3-s0.png" width="240"></a><br><sub>r4 c2 S1 tip rtl 768 n3 s0</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-c2-S1-tip-rtl-768-n5-s0.png"><img src="r4-c2-S1-tip-rtl-768-n5-s0.png" width="240"></a><br><sub>r4 c2 S1 tip rtl 768 n5 s0</sub></td>
+<td align="center" width="33%"><a href="r4-c2-S1-tip-rtl-768-n5-s4.png"><img src="r4-c2-S1-tip-rtl-768-n5-s4.png" width="240"></a><br><sub>r4 c2 S1 tip rtl 768 n5 s4</sub></td>
+<td align="center" width="33%"><a href="r4-c2-S1-tip-rtl-768-real3-s2.png"><img src="r4-c2-S1-tip-rtl-768-real3-s2.png" width="240"></a><br><sub>r4 c2 S1 tip rtl 768 real3 s2</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-c2-S1-tip-rtl-800-real3-s2.png"><img src="r4-c2-S1-tip-rtl-800-real3-s2.png" width="240"></a><br><sub>r4 c2 S1 tip rtl 800 real3 s2</sub></td>
+<td align="center" width="33%"><a href="r4-c2-S1-tip-rtl-900-real3-s2.png"><img src="r4-c2-S1-tip-rtl-900-real3-s2.png" width="240"></a><br><sub>r4 c2 S1 tip rtl 900 real3 s2</sub></td>
+<td align="center" width="33%"><a href="r4-ctrl-addon-activation-base.png"><img src="r4-ctrl-addon-activation-base.png" width="240"></a><br><sub>r4 ctrl addon activation base</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-ctrl-addon-activation-tip.png"><img src="r4-ctrl-addon-activation-tip.png" width="240"></a><br><sub>r4 ctrl addon activation tip</sub></td>
+<td align="center" width="33%"><a href="r4-ctrl-package-index-base.png"><img src="r4-ctrl-package-index-base.png" width="240"></a><br><sub>r4 ctrl package index base</sub></td>
+<td align="center" width="33%"><a href="r4-ctrl-package-index-tip.png"><img src="r4-ctrl-package-index-tip.png" width="240"></a><br><sub>r4 ctrl package index tip</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r4-wide-S1-tip-rtl-1028-n5-s0.png"><img src="r4-wide-S1-tip-rtl-1028-n5-s0.png" width="240"></a><br><sub>r4 wide S1 tip rtl 1028 n5 s0</sub></td>
+<td align="center" width="33%"><a href="r4-wide-S1-tip-rtl-1440-n5-s4.png"><img src="r4-wide-S1-tip-rtl-1440-n5-s4.png" width="240"></a><br><sub>r4 wide S1 tip rtl 1440 n5 s4</sub></td>
 <td align="center" width="33%"><a href="zoom-arrows-S1-1028-synth5-ltr.png"><img src="zoom-arrows-S1-1028-synth5-ltr.png" width="240"></a><br><sub>zoom arrows S1 1028 synth5 ltr</sub></td>
 </tr>
 <tr>
@@ -340,6 +445,7 @@
 - [`bug-no-visible-control-1028-3cards.log`](bug-no-visible-control-1028-3cards.log)
 - [`bug-resize-position-reset-4cards.log`](bug-resize-position-reset-4cards.log)
 - [`bug-rtl-dots-are-pages-not-plans.log`](bug-rtl-dots-are-pages-not-plans.log)
+- [`bug-rtl-fractional-last-step-arrow-opposite-or-noop-375-576.log`](bug-rtl-fractional-last-step-arrow-opposite-or-noop-375-576.log)
 - [`bug-rtl-last-card-all-off-screen-1028.log`](bug-rtl-last-card-all-off-screen-1028.log)
 - [`bug-rtl-last-card-shift-unreachable-768.log`](bug-rtl-last-card-shift-unreachable-768.log)
 - [`bug-rtl-le768-better-than-base-regressing-rows.log`](bug-rtl-le768-better-than-base-regressing-rows.log)
@@ -366,6 +472,32 @@
 - [`r3-xprobe-geometry-768-n5-s0.json`](r3-xprobe-geometry-768-n5-s0.json)
 - [`r3-xprobe-matrix.json`](r3-xprobe-matrix.json)
 - [`r3-xprobe-ve768-matrix.json`](r3-xprobe-ve768-matrix.json)
+- [`r4-ac1-ac5-measure.json`](r4-ac1-ac5-measure.json)
+- [`r4-ac2-measure.json`](r4-ac2-measure.json)
+- [`r4-ac2b-S1-fresh-after.json`](r4-ac2b-S1-fresh-after.json)
+- [`r4-ac2b-select-after.txt`](r4-ac2b-select-after.txt)
+- [`r4-ac2b-select-before.txt`](r4-ac2b-select-before.txt)
+- [`r4-ac2b-switch.json`](r4-ac2b-switch.json)
+- [`r4-ac3-ltr-AB-oldcode-vs-newcode.json`](r4-ac3-ltr-AB-oldcode-vs-newcode.json)
+- [`r4-ac3-ltr-diff.json`](r4-ac3-ltr-diff.json)
+- [`r4-ac3-ltr-quiet-rerun-of-delta-cells.json`](r4-ac3-ltr-quiet-rerun-of-delta-cells.json)
+- [`r4-ac3-tip-ltr-matrix.json`](r4-ac3-tip-ltr-matrix.json)
+- [`r4-c2-rows.json`](r4-c2-rows.json)
+- [`r4-c2-rtl-375-576.json`](r4-c2-rtl-375-576.json)
+- [`r4-c2-rtl-768.json`](r4-c2-rtl-768.json)
+- [`r4-c2-rtl-800-900.json`](r4-c2-rtl-800-900.json)
+- [`r4-c2-rtl-matrix.json`](r4-c2-rtl-matrix.json)
+- [`r4-c3-rows.json`](r4-c3-rows.json)
+- [`r4-c3-rtl-375-576.json`](r4-c3-rtl-375-576.json)
+- [`r4-c3-rtl-768-800-900.json`](r4-c3-rtl-768-800-900.json)
+- [`r4-c6-step-summary.json`](r4-c6-step-summary.json)
+- [`r4-chat403-probe.json`](r4-chat403-probe.json)
+- [`r4-ctrl-package-index.json`](r4-ctrl-package-index.json)
+- [`r4-ctrl.json`](r4-ctrl.json)
+- [`r4-resize.json`](r4-resize.json)
+- [`r4-tables.md`](r4-tables.md)
+- [`r4-wide-rows.json`](r4-wide-rows.json)
+- [`r4-wide-rtl-992-1028-1199-1200-1440.json`](r4-wide-rtl-992-1028-1199-1200-1440.json)
 - [`synth-ltr.json`](synth-ltr.json)
 - [`synth-rtl.json`](synth-rtl.json)
 
