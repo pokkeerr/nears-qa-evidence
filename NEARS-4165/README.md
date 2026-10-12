@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4165
 
-**FAIL: behaviour ACs pass live, AC5 mutant M3 survives (blade binding unpinned)**
+**cycle1: AC5 PASS, 22/22 killed, 3 extra survivors non-blocking**
 
 **12 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -35,8 +35,10 @@
 - [`arms_G.json`](arms_G.json)
 - [`arms_Gbase.json`](arms_Gbase.json)
 - [`bug-test-gap-blade-password-binding-unpinned.log`](bug-test-gap-blade-password-binding-unpinned.log)
+- [`cycle1_phpunit_six_login_classes_plus_new_at_TIP_summary.txt`](cycle1_phpunit_six_login_classes_plus_new_at_TIP_summary.txt)
 - [`logscan_post.json`](logscan_post.json)
 - [`logscan_pre.json`](logscan_pre.json)
+- [`mutation_table_cycle1_full.json`](mutation_table_cycle1_full.json)
 - [`mutation_table_full.json`](mutation_table_full.json)
 - [`phpunit_new_test_at_BASE_summary.txt`](phpunit_new_test_at_BASE_summary.txt)
 - [`phpunit_six_login_classes_plus_new_at_TIP_summary.txt`](phpunit_six_login_classes_plus_new_at_TIP_summary.txt)
