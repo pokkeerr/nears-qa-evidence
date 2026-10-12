@@ -1,0 +1,512 @@
+{
+ "baseline_and_restore": [
+  {
+   "id": "BASELINE-unmutated-tip",
+   "tests": 24,
+   "red": [],
+   "rc": 0,
+   "tail": " | OK, but there were issues! | Tests: 24, Assertions: 300, PHPUnit Deprecations: 33."
+  },
+  {
+   "id": "AFTER-restore",
+   "tests": 24,
+   "red": [],
+   "rc": 0,
+   "tail": " | OK, but there were issues! | Tests: 24, Assertions: 300, PHPUnit Deprecations: 33."
+  }
+ ],
+ "mutants": [
+  {
+   "id": "M1",
+   "desc": "restore p_token queue in login_attemp (remember branch)",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -120,0 +121 @@\n+                Cookie::queue('p_token', Crypt::encryptString($password), 120);\n"
+   },
+   "tests": 24,
+   "red_count": 3,
+   "red": [
+    "test_remember_login_sets_no_password_cookie with data set \"admin\"",
+    "test_remember_login_sets_no_password_cookie with data set \"vendor\"",
+    "test_remember_login_sets_no_password_cookie with data set \"vendor_employee\""
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 264, Failures: 3, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M2",
+   "desc": "restore password decrypt + $password in compact (blade binding still removed)",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -99,0 +100 @@\n+        $password = null;\n@@ -101,0 +103 @@\n+            $password = Cookie::has('p_token') ? Crypt::decryptString(Cookie::get('p_token')) : null;\n@@ -106 +108 @@\n-        return view('auth.login', compact('custome_recaptcha', 'email', 'role', 'site_direction', 'locale'));\n+        return view('auth.login', compact('custome_recaptcha', 'email', 'password', 'role', 'site_direction', 'locale'));\n"
+   },
+   "tests": 24,
+   "red_count": 4,
+   "red": [
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor_employee\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin_employee\""
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 248, Failures: 4, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M2b",
+   "desc": "restore ORIGINAL p_token requirement in the prefill condition (email prefill needs p_token again)",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -100 +100 @@\n-        if (Cookie::has('e_token') && Cookie::has('role') && Cookie::get('role') == $role) {\n+        if (Cookie::has('p_token') && Cookie::has('e_token') && Cookie::has('role') && Cookie::get('role') == $role) {\n"
+   },
+   "tests": 24,
+   "red_count": 3,
+   "red": [
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"admin\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor_employee\""
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 285, Failures: 3, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M2c",
+   "desc": "decrypt p_token into $password in login() but keep compact() clean (dead computation)",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -101,0 +102 @@\n+            $password = Cookie::has('p_token') ? Crypt::decryptString(Cookie::get('p_token')) : null;\n"
+   },
+   "tests": 24,
+   "red_count": 0,
+   "red": [],
+   "rc": 0,
+   "tail": " | OK, but there were issues! | Tests: 24, Assertions: 300, PHPUnit Deprecations: 33.",
+   "verdict": "SURVIVED"
+  },
+  {
+   "id": "M2d",
+   "desc": "$password = null defined and passed in compact (view data key present, value null)",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -99,0 +100 @@\n+        $password = null;\n@@ -106 +107 @@\n-        return view('auth.login', compact('custome_recaptcha', 'email', 'role', 'site_direction', 'locale'));\n+        return view('auth.login', compact('custome_recaptcha', 'email', 'password', 'role', 'site_direction', 'locale'));\n"
+   },
+   "tests": 24,
+   "red_count": 4,
+   "red": [
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor_employee\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin_employee\""
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 248, Failures: 4, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M3",
+   "desc": "restore blade password value binding only ($password undefined -> renders value=\"\")",
+   "landed": true,
+   "lint": {},
+   "diff": {
+    "bld": "--- tip\n+++ mutant\n@@ -80 +80 @@\n-                                    name=\"password\" id=\"signupSrPassword\" placeholder=\"{{translate('messages.password_length_placeholder',['length'=>'6+'])}}\"\n+                                    name=\"password\" id=\"signupSrPassword\" placeholder=\"{{translate('messages.password_length_placeholder',['length'=>'6+'])}}\" value=\"{{ $password ?? '' }}\"\n"
+   },
+   "tests": 24,
+   "red_count": 0,
+   "red": [],
+   "rc": 0,
+   "tail": " | OK, but there were issues! | Tests: 24, Assertions: 300, PHPUnit Deprecations: 33.",
+   "verdict": "SURVIVED"
+  },
+  {
+   "id": "M3b",
+   "desc": "M2 + M3 together = full pre-fix prefill path (decrypt, view data, blade value)",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -99,0 +100 @@\n+        $password = null;\n@@ -101,0 +103 @@\n+            $password = Cookie::has('p_token') ? Crypt::decryptString(Cookie::get('p_token')) : null;\n@@ -106 +108 @@\n-        return view('auth.login', compact('custome_recaptcha', 'email', 'role', 'site_direction', 'locale'));\n+        return view('auth.login', compact('custome_recaptcha', 'email', 'password', 'role', 'site_direction', 'locale'));\n",
+    "bld": "--- tip\n+++ mutant\n@@ -80 +80 @@\n-                                    name=\"password\" id=\"signupSrPassword\" placeholder=\"{{translate('messages.password_length_placeholder',['length'=>'6+'])}}\"\n+                                    name=\"password\" id=\"signupSrPassword\" placeholder=\"{{translate('messages.password_length_placeholder',['length'=>'6+'])}}\" value=\"{{ $password ?? '' }}\"\n"
+   },
+   "tests": 24,
+   "red_count": 4,
+   "red": [
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor_employee\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin_employee\""
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 244, Failures: 4, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M4",
+   "desc": "blade checkbox keyed on $password again (undefined variable)",
+   "landed": true,
+   "lint": {},
+   "diff": {
+    "bld": "--- tip\n+++ mutant\n@@ -102 +102 @@\n-                                <input type=\"checkbox\" class=\"custom-control-input\" id=\"termsCheckbox\" {{ $email ? 'checked' : '' }}\n+                                <input type=\"checkbox\" class=\"custom-control-input\" id=\"termsCheckbox\" {{ $password ? 'checked' : '' }}\n"
+   },
+   "tests": 24,
+   "red_count": 11,
+   "red": [
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor_employee\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin_employee\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"admin\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor_employee\"",
+    "test_login_page_without_cookies_renders_clean with data set \"admin\"",
+    "test_login_page_without_cookies_renders_clean with data set \"vendor\"",
+    "test_login_page_without_cookies_renders_clean with data set \"vendor_employee\"",
+    "test_login_page_with_role_mismatched_cookies_prefills_nothing"
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 190, Failures: 11, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M5",
+   "desc": "drop the unconditional Cookie::forget('p_token') in login()",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -104 +103,0 @@\n-        Cookie::queue(Cookie::forget('p_token'));\n"
+   },
+   "tests": 24,
+   "red_count": 11,
+   "red": [
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor_employee\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin_employee\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"admin\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor_employee\"",
+    "test_login_page_without_cookies_renders_clean with data set \"admin\"",
+    "test_login_page_without_cookies_renders_clean with data set \"vendor\"",
+    "test_login_page_without_cookies_renders_clean with data set \"vendor_employee\"",
+    "test_login_page_with_role_mismatched_cookies_prefills_nothing"
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 231, Failures: 11, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M5b",
+   "desc": "login() purge only when a p_token cookie is present",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -104 +104 @@\n-        Cookie::queue(Cookie::forget('p_token'));\n+        if (Cookie::has('p_token')) { Cookie::queue(Cookie::forget('p_token')); }\n"
+   },
+   "tests": 24,
+   "red_count": 6,
+   "red": [
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"admin\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor_employee\"",
+    "test_login_page_without_cookies_renders_clean with data set \"admin\"",
+    "test_login_page_without_cookies_renders_clean with data set \"vendor\"",
+    "test_login_page_without_cookies_renders_clean with data set \"vendor_employee\""
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 282, Failures: 6, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M6a",
+   "desc": "logout: drop forget('role')",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -578 +577,0 @@\n-            Cookie::forget('role'),\n"
+   },
+   "tests": 24,
+   "red_count": 3,
+   "red": [
+    "test_admin_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_employee_logout_forgets_role_e_token_and_p_token"
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 267, Failures: 3, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M6b",
+   "desc": "logout: drop forget('e_token')",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -579 +578,0 @@\n-            Cookie::forget('e_token'),\n"
+   },
+   "tests": 24,
+   "red_count": 3,
+   "red": [
+    "test_admin_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_employee_logout_forgets_role_e_token_and_p_token"
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 279, Failures: 3, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M6c",
+   "desc": "logout: drop forget('p_token')",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -580 +579,0 @@\n-            Cookie::forget('p_token'),\n"
+   },
+   "tests": 24,
+   "red_count": 3,
+   "red": [
+    "test_admin_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_employee_logout_forgets_role_e_token_and_p_token"
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 291, Failures: 3, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M6d",
+   "desc": "logout: drop the whole withCookies chain",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -577,5 +577 @@\n-        return redirect()->route('login', [$user_link])->withCookies([\n-            Cookie::forget('role'),\n-            Cookie::forget('e_token'),\n-            Cookie::forget('p_token'),\n-        ]);\n+        return redirect()->route('login', [$user_link]);\n"
+   },
+   "tests": 24,
+   "red_count": 3,
+   "red": [
+    "test_admin_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_employee_logout_forgets_role_e_token_and_p_token"
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 267, Failures: 3, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M7a",
+   "desc": "login() purge with wrong path",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -104 +104 @@\n-        Cookie::queue(Cookie::forget('p_token'));\n+        Cookie::queue(Cookie::forget('p_token', '/wrong'));\n"
+   },
+   "tests": 24,
+   "red_count": 11,
+   "red": [
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor_employee\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin_employee\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"admin\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor_employee\"",
+    "test_login_page_without_cookies_renders_clean with data set \"admin\"",
+    "test_login_page_without_cookies_renders_clean with data set \"vendor\"",
+    "test_login_page_without_cookies_renders_clean with data set \"vendor_employee\"",
+    "test_login_page_with_role_mismatched_cookies_prefills_nothing"
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 253, Failures: 11, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M7b",
+   "desc": "login() purge with wrong domain",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -104 +104 @@\n-        Cookie::queue(Cookie::forget('p_token'));\n+        Cookie::queue(Cookie::forget('p_token', '/', 'example.test'));\n"
+   },
+   "tests": 24,
+   "red_count": 11,
+   "red": [
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"vendor_employee\"",
+    "test_login_page_with_prefix_cookies_never_renders_the_password_and_purges_p_token with data set \"admin_employee\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"admin\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor\"",
+    "test_login_page_with_post_fix_cookies_prefills_email_without_p_token with data set \"vendor_employee\"",
+    "test_login_page_without_cookies_renders_clean with data set \"admin\"",
+    "test_login_page_without_cookies_renders_clean with data set \"vendor\"",
+    "test_login_page_without_cookies_renders_clean with data set \"vendor_employee\"",
+    "test_login_page_with_role_mismatched_cookies_prefills_nothing"
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 264, Failures: 11, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M7c",
+   "desc": "logout role purge wrong path",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -578 +578 @@\n-            Cookie::forget('role'),\n+            Cookie::forget('role', '/wrong'),\n"
+   },
+   "tests": 24,
+   "red_count": 3,
+   "red": [
+    "test_admin_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_employee_logout_forgets_role_e_token_and_p_token"
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 273, Failures: 3, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M7d",
+   "desc": "logout e_token purge wrong domain",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -579 +579 @@\n-            Cookie::forget('e_token'),\n+            Cookie::forget('e_token', '/', 'example.test'),\n"
+   },
+   "tests": 24,
+   "red_count": 3,
+   "red": [
+    "test_admin_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_employee_logout_forgets_role_e_token_and_p_token"
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 288, Failures: 3, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M7e",
+   "desc": "logout p_token purge wrong path",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -580 +580 @@\n-            Cookie::forget('p_token'),\n+            Cookie::forget('p_token', '/wrong'),\n"
+   },
+   "tests": 24,
+   "red_count": 3,
+   "red": [
+    "test_admin_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_logout_forgets_role_e_token_and_p_token",
+    "test_vendor_employee_logout_forgets_role_e_token_and_p_token"
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 297, Failures: 3, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M8",
+   "desc": "login_attemp: drop role/e_token queue (remember does nothing)",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -119,2 +118,0 @@\n-                Cookie::queue('role', $role, 120);\n-                Cookie::queue('e_token', Crypt::encryptString($email), 120);\n"
+   },
+   "tests": 24,
+   "red_count": 6,
+   "red": [
+    "test_instrument_control_valid_token_logs_in_and_sets_cookies_tokenless_is_419 with data set \"admin\"",
+    "test_instrument_control_valid_token_logs_in_and_sets_cookies_tokenless_is_419 with data set \"vendor\"",
+    "test_instrument_control_valid_token_logs_in_and_sets_cookies_tokenless_is_419 with data set \"vendor_employee\"",
+    "test_remember_login_sets_no_password_cookie with data set \"admin\"",
+    "test_remember_login_sets_no_password_cookie with data set \"vendor\"",
+    "test_remember_login_sets_no_password_cookie with data set \"vendor_employee\""
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 246, Failures: 6, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M9",
+   "desc": "login_attemp: queue role/e_token even when remember unticked",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -118 +118 @@\n-            if ($remember) {\n+            if (true) {\n"
+   },
+   "tests": 24,
+   "red_count": 3,
+   "red": [
+    "test_unticked_remember_login_forgets_the_whole_trio with data set \"admin\"",
+    "test_unticked_remember_login_forgets_the_whole_trio with data set \"vendor\"",
+    "test_unticked_remember_login_forgets_the_whole_trio with data set \"vendor_employee\""
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 270, Failures: 3, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  },
+  {
+   "id": "M10",
+   "desc": "submit(): drop p_token from the unticked forget list",
+   "landed": true,
+   "lint": {
+    "ctl": "ok"
+   },
+   "diff": {
+    "ctl": "--- tip\n+++ mutant\n@@ -270 +269,0 @@\n-                Cookie::forget('p_token'),\n"
+   },
+   "tests": 24,
+   "red_count": 3,
+   "red": [
+    "test_unticked_remember_login_forgets_the_whole_trio with data set \"admin\"",
+    "test_unticked_remember_login_forgets_the_whole_trio with data set \"vendor\"",
+    "test_unticked_remember_login_forgets_the_whole_trio with data set \"vendor_employee\""
+   ],
+   "rc": 1,
+   "tail": " | FAILURES! | Tests: 24, Assertions: 291, Failures: 3, PHPUnit Deprecations: 33.",
+   "verdict": "KILLED"
+  }
+ ]
+}
