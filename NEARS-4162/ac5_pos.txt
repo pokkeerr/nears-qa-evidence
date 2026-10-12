@@ -1,0 +1,18 @@
+=== AC6 CONTROL POS: add-to-cart success (approved not-held owner)
+ toasts ['Product has been added in cart'] swal None resp [(200, 'GET', '/vendor-panel/pos/quick-view?product_id=115', None), (200, 'POST', '/vendor-panel/pos/variant_price', None), (200, 'POST', '/vendor-panel/pos/add-to-cart', None), (200, 'POST', '/vendor-panel/pos/cart-items', None)]
+ cart: Item Qty Price Delete Thin Crust... د.إ.‏ 15.60 Addon: د.إ.‏ 0.00 Subtotal : د.إ.‏ 15.60 Discount : - د.إ.‏ 0.00 Delivery fee : د.إ.‏ 0.00 Extra discount : - د.إ.‏ 0.00 Tax : د.إ.‏ 0.78 Total: د.إ.‏ 1
+=== AC6 CONTROL POS business 403 (place order with no customer/payment): own toast, session alive, no modal
+ toasts ['Order placed successfully'] modal None resp [(200, 'POST', '/vendor-panel/pos/order', None)] latch False
+ session alive after business refusal: 200
+=== AC5 / pos:616 add-to-cart refused (session expired between page load and click)
+ responses [(401, 'POST', '/vendor-panel/pos/add-to-cart', 'ended')] MODAL ! × Your session has expired. Please log in again. OK buttons 1 #loading none toasts [] cart: Item Qty Price Delete Addon: د.إ.‏ 0.00 Subtotal : د.إ.‏ 0.00 Discount : - د.إ.‏ 0.00 Delivery fee : د.إ.‏ 0.00 Extra discount : - د.إ.‏ 0.00 Tax : د.إ.‏ 0.00 Total: د.إ.‏ 0.00 Paid by Cash Card Paid 
+ post-OK http://127.0.0.1:8162/login/vendor
+=== AC5 / pos:723 updateCart refused: add-to-cart 200 held, session ended, then released -> success runs updateCart() -> refused
+ responses [(200, 'POST', '/vendor-panel/pos/add-to-cart', None), (401, 'POST', '/vendor-panel/pos/cart-items', 'ended')]
+ MODAL ! × Your session has expired. Please log in again. OK buttons 1 #loading none toasts ['Product has been added in cart']
+ #cart text (must not contain login page): Item Qty Price Delete Addon: د.إ.‏ 0.00 Subtotal : د.إ.‏ 0.00 Discount : - د.إ.‏ 0.00 Delivery fee : د.إ.‏ 0.00 Extra discount : - د.إ.‏ 0.00 Tax : د.إ.‏ 0.00 Total: د.إ.‏ 0.00 Paid by Cash Card Paid  | login html pasted? False
+ post-OK http://127.0.0.1:8162/login/vendor
+=== AC5 / pos:256 place-order chained .fail (duplicate toast) under a marker-held owner
+ cart before: Item Qty Price Delete French Fri... د.إ.‏ 17.33 Addon: د.إ.‏ 0.00 Subtotal : د.إ.‏ 17.33 Discount : - د.إ.‏ 0.00 Delivery fee : د.إ.‏ 0.00 Extra discount : - د.إ.‏ 0.00 Tax : د.إ.‏ 0.87 Total: د.إ.‏ 1
+ responses [(403, 'POST', '/vendor-panel/pos/order', 'ended')] MODAL ! × Your account has been suspended OK toasts(.fail duplicate expected) ['Product has been added in cart', 'Your account has been suspended'] #loading none
+ post-OK http://127.0.0.1:8162/login/vendor

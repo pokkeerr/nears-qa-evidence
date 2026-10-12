@@ -1,0 +1,28 @@
+=== 1b setup: 4 owner sessions; vendor token db0ecae0
+approved-owner XHR control (200 expected): xrw_any   GET  /vendor-panel/                 -> 200 hdr=None loc=None code=None msg=None FAIL=0 echo=True
+admin suspend {'status': 200, 'url': 'http://127.0.0.1:8162/admin', 'redirected': True}
+admin reactivate {'status': 200, 'url': 'http://127.0.0.1:8162/admin', 'redirected': True}
+vendor token after suspend->reactivate: 87f65196 CHANGED
+xrw_any   GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:48.023919+04:00","correlation_id":"c19a17e7-2977-4a75-ad51-9799bb05806e","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"expired","actor":"owner","surface":"web","store_id":4}}
+json_only GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:48.376593+04:00","correlation_id":"49892104-2767-4513-9690-f1b952020a88","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"expired","actor":"owner","surface":"web","store_id":4}}
+xrw_html  GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:48.733421+04:00","correlation_id":"10a68306-bcba-44f3-a052-dad0f01f1573","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"expired","actor":"owner","surface":"web","store_id":4}}
+NAV control(no follow) nav       GET  /vendor-panel/                 -> 302 hdr=None loc=http://127.0.0.1:8162/login/vendor code=None msg=None FAIL=0 echo=True FAIL lines: 0 all lines for rid: 0
+NAV control (follow) 1b copy: ('http://127.0.0.1:8162/login/vendor', 200, True, False)
+=== 1e: no cookie
+xrw_any   GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=0 echo=True all lines for rid: 0
+json_only GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=0 echo=True all lines for rid: 0
+xrw_html  GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=0 echo=True all lines for rid: 0
+NAV control nav       GET  /vendor-panel/                 -> 302 hdr=None loc=http://127.0.0.1:8162 code=None msg=None FAIL=0 echo=True FAIL lines: 0 all: 0
+=== 4155 door + keyed guest: suspend with 4 live owner sessions
+admin suspend {'status': 200, 'url': 'http://127.0.0.1:8162/admin', 'redirected': True}
+DOOR   xrw_any   GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=auth-003 msg='Your account has been suspended' FAIL=0 echo=True | suspended_lines: 1 refused_lines: 0
+KEYED  xrw_any   GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=auth-003 msg='Your account has been suspended' FAIL=0 echo=True | suspended_lines: 0 refused_lines: 0
+DOOR   json_only GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=auth-003 msg='Your account has been suspended' FAIL=0 echo=True | suspended_lines: 1 refused_lines: 0
+KEYED  json_only GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=auth-003 msg='Your account has been suspended' FAIL=0 echo=True | suspended_lines: 0 refused_lines: 0
+DOOR   xrw_html  GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=auth-003 msg='Your account has been suspended' FAIL=0 echo=True | suspended_lines: 1 refused_lines: 0
+KEYED  xrw_html  GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=auth-003 msg='Your account has been suspended' FAIL=0 echo=True | suspended_lines: 0 refused_lines: 0
+NAV control door nav       GET  /vendor-panel/                 -> 302 hdr=None loc=http://127.0.0.1:8162/login/vendor code=None msg=None FAIL=0 echo=True FAIL lines: 0 suspended_lines: 1
+admin reactivate {'status': 200, 'url': 'http://127.0.0.1:8162/admin', 'redirected': True}

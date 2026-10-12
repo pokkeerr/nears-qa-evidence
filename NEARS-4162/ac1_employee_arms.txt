@@ -1,0 +1,36 @@
+PRE xrw_any   GET  /vendor-panel/                 -> 200 hdr=None loc=None code=None msg=None FAIL=0 echo=True
+PRE json_only GET  /vendor-panel/                 -> 200 hdr=None loc=None code=None msg=None FAIL=0 echo=True
+PRE xrw_html  GET  /vendor-panel/                 -> 200 hdr=None loc=None code=None msg=None FAIL=0 echo=True
+state before owner save (md5(token), is_logged_in): 29391bdd	1
+owner saved employee form -> http://127.0.0.1:8162/vendor-panel/employee/list ['Employee updated successfully!']
+state after owner save: 29391bdd	0
+=== 1d-i (employee is_logged_in=0) ===
+xrw_any   GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:08.020852+04:00","correlation_id":"44baff8e-21d7-4c69-8190-1bffc479389a","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"expired","actor":"employee","surface":"web","store_id":4}}
+json_only GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:08.374852+04:00","correlation_id":"f89d88b0-2f31-4971-9a5f-04bffe97b350","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"expired","actor":"employee","surface":"web","store_id":4}}
+xrw_html  GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:08.726358+04:00","correlation_id":"cf2bc7c5-ca48-4c39-a1ce-489e13c70289","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"expired","actor":"employee","surface":"web","store_id":4}}
+NAV control nav       GET  /vendor-panel/                 -> 302 hdr=None loc=http://127.0.0.1:8162 code=None msg=None FAIL=0 echo=True new FAIL lines for rid: 0 all lines for rid: 0
+=== 1d-iii setup: employees re-logged in; state 29391bdd	1
+admin suspend {'status': 200, 'url': 'http://127.0.0.1:8162/admin', 'redirected': True}
+stores 4 status/suspended_at: 0	2026-10-12 10:46:14
+xrw_any   GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=account_inactive msg='Store is inactive' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:14.933959+04:00","correlation_id":"7d198035-02aa-41e0-bcd4-6afe3c6c1600","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"inactive","actor":"employee","surface":"web","store_id":4}}
+json_only GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=account_inactive msg='Store is inactive' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:15.288880+04:00","correlation_id":"0a2895af-6e64-40e2-89bf-08aa31077772","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"inactive","actor":"employee","surface":"web","store_id":4}}
+xrw_html  GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=account_inactive msg='Store is inactive' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:15.640022+04:00","correlation_id":"7329ae9d-528c-42d8-817e-36379ad2eb86","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"inactive","actor":"employee","surface":"web","store_id":4}}
+NAV control nav       GET  /vendor-panel/                 -> 302 hdr=None loc=http://127.0.0.1:8162 code=None msg=None FAIL=0 echo=True FAIL lines: 0 all lines: 0
+admin reactivate {'status': 200, 'url': 'http://127.0.0.1:8162/admin', 'redirected': True}
+=== 1d-iv setup: employees logged in; state 3ce398d3	1
+admin suspend {'status': 200, 'url': 'http://127.0.0.1:8162/admin', 'redirected': True}
+admin reactivate {'status': 200, 'url': 'http://127.0.0.1:8162/admin', 'redirected': True}
+state after suspend->reactivate (token md5 changed?): 0199e842	1 CHANGED
+xrw_any   GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:21.760116+04:00","correlation_id":"6daa7a12-e45a-4ede-ba15-4353c90488d5","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"expired","actor":"employee","surface":"web","store_id":4}}
+json_only GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:22.114262+04:00","correlation_id":"d02929a8-9df5-4055-8a8a-77b194641a95","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"expired","actor":"employee","surface":"web","store_id":4}}
+xrw_html  GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-001 msg='Your session has expired. Please log in again.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T10:46:22.466968+04:00","correlation_id":"e3514e99-fd36-44a7-9391-78fc0964c6a8","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"expired","actor":"employee","surface":"web","store_id":4}}
+NAV control nav       GET  /vendor-panel/                 -> 302 hdr=None loc=http://127.0.0.1:8162/login/vendor-employee code=None msg=None FAIL=0 echo=True FAIL lines: 0 all lines: 0

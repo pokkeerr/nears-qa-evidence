@@ -1,0 +1,9 @@
+=== 1e live in browser, POST arm: owner tab open with a filled form, session cookie deleted, submit (expected: CSRF 419 precedes VendorMiddleware; D6 named residual)
+ responses [(419, 'POST', '/vendor-panel/item/store', None)] | MODAL None | #loading block
+=== 1e live in browser, GET arm: owner tab open, cookies deleted, then a page ajax GET (category change -> item/get-categories)
+ responses [(401, 'GET', '/vendor-panel/item/get-categories?parent_id=14', 'ended')] | MODAL ! × Your session has expired. Please log in again. OK | #loading none | toasts []
+ post-OK http://127.0.0.1:8162/login/vendor
+=== regression sweep: owner login -> dashboard -> logout -> login again
+ login landed http://127.0.0.1:8162/vendor-panel | dashboard 200: 200
+ logout -> http://127.0.0.1:8162/vendor-panel/auth/logout | next nav status 200 loc None
+ re-login landed http://127.0.0.1:8162/vendor-panel

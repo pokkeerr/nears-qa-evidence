@@ -1,0 +1,18 @@
+=== AC7 arm i (1d-i): owner saves the employee form while the employee tab is open
+ employee is_logged_in now: 0
+ [i] responses [(401, 'POST', '/vendor-panel/business-settings/remove-schedule/16', 'ended')]
+ [i] MODAL '! × Your session has expired. Please log in again. OK' buttons=1 #loading=none toasts=[]
+ [i] post-OK url http://127.0.0.1:8162/login/vendor-employee  (employee login URL expected /login/vendor-employee)
+ schedule rows unchanged: True
+=== AC7 arm iii (1d-iii): admin suspends the store, employee acts
+ admin suspend {'status': 200, 'url': 'http://127.0.0.1:8162/admin', 'redirected': True}
+ [iii] responses [(403, 'POST', '/vendor-panel/business-settings/remove-schedule/16', 'ended')]
+ [iii] MODAL '! × Store is inactive OK' buttons=1 #loading=none toasts=[]
+ [iii] post-OK url http://127.0.0.1:8162/login/vendor-employee  (employee login URL expected /login/vendor-employee)
+ admin reactivate {'status': 200, 'url': 'http://127.0.0.1:8162/admin', 'redirected': True}
+ schedule rows unchanged: True
+=== AC7 arm iv (1d-iv): employee tab idle through suspend -> reactivate
+ [iv] responses [(401, 'POST', '/vendor-panel/business-settings/remove-schedule/16', 'ended')]
+ [iv] MODAL '! × Your session has expired. Please log in again. OK' buttons=1 #loading=none toasts=[]
+ [iv] post-OK url http://127.0.0.1:8162/login/vendor-employee  (employee login URL expected /login/vendor-employee)
+ schedule rows unchanged: True

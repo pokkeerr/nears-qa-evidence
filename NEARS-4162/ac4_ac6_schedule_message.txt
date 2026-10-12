@@ -1,0 +1,33 @@
+=== AC6 CONTROL: schedule add / delete, message send (approved, not-held owner)
+schedule rows before: 15,16,17,18,19,20,21
+add-schedule toasts: ['Schedule added successfully'] resp: [(200, 'POST', '/vendor-panel/business-settings/add-schedule', None)] rows: 15,16,17,18,19,20,21,29054
+delete-schedule toasts: ['Schedule added successfully', 'Schedule removed successfully'] rows: 15,16,17,18,19,20,21 equals before: True
+message send toasts: ['Message sent'] resp: [(200, 'POST', '/vendor-panel/message/store/5/user', None)] messages before/after: 4 5
+=== AC4 4a schedule delete under a session-ended owner (expired)
+  [4a] responses: [(401, 'POST', '/vendor-panel/business-settings/remove-schedule/16', 'ended')]
+  [4a] MODAL '! × Your session has expired. Please log in again. OK' buttons=1 #loading=none toasts=[]
+  [4a] banned-copy toasts present: NONE
+  post-OK http://127.0.0.1:8162/login/vendor | schedule rows unchanged: True 15,16,17,18,19,20,21
+=== AC4 4b add-schedule under a marker-held owner (suspended)
+  [4b] responses: [(403, 'POST', '/vendor-panel/business-settings/add-schedule', 'ended')]
+  [4b] MODAL '! × Your account has been suspended OK' buttons=1 #loading=none toasts=[]
+  [4b] banned-copy toasts present: NONE
+  post-OK http://127.0.0.1:8162/login/vendor | schedule rows unchanged: True 15,16,17,18,19,20,21
+=== AC4 4c message send under a session-ended owner (expired)
+  [4c] responses: [(401, 'POST', '/vendor-panel/message/store/5/user', 'ended')]
+  [4c] MODAL '! × Your session has expired. Please log in again. OK' buttons=1 #loading=none toasts=[]
+  [4c] banned-copy toasts present: NONE
+  post-OK http://127.0.0.1:8162/login/vendor | messages unchanged: True
+=== restaurant-index:547 open/close toggle under a session-ended owner (expired)
+  [547] responses: [(401, 'POST', '/vendor-panel/business-settings/update-active-status', 'ended')]
+  [547] MODAL '! × Your session has expired. Please log in again. OK' buttons=1 #loading=none toasts=[]
+  [547] banned-copy toasts present: NONE
+  location.reload raced? url still http://127.0.0.1:8162/vendor-panel/business-settings/store-setup | stores.active before/after 1 1
+  post-OK http://127.0.0.1:8162/login/vendor
+=== BASE-EQUIVALENT CLIENT (vendor-session-refusal.js request aborted; server = 4155 door JSON) - NOT a base checkout
+  prefilter loaded on page?  undefined (undefined expected when blocked)
+  [4a base-equiv] responses [(403, 'POST', '/vendor-panel/business-settings/remove-schedule/16', 'ended')] | toasts ['Schedule not found'] | modal None | #loading none
+  prefilter loaded on page?  undefined (undefined expected when blocked)
+  [4b base-equiv] responses [(403, 'POST', '/vendor-panel/business-settings/add-schedule', 'ended')] | toasts ['{"errors":[{"code":"auth-003","message":"Your account has been suspended"}]}'] | modal None | #loading none
+  prefilter loaded on page?  undefined (undefined expected when blocked)
+  [4c base-equiv] responses [(403, 'POST', '/vendor-panel/message/store/5/user', 'ended')] | toasts ['Write something to send massage!'] | modal None | #loading none

@@ -1,0 +1,30 @@
+=== 1a owner !status: admin POST admin/store/update-application/4/0 (the real application-deny action; route accepts any store id)
+ vendor 4 status before: 1
+ admin deny: {'status': 200, 'url': 'http://127.0.0.1:8162/admin/store/pending-requests', 'redirected': True, 'body': '<!DOCTYPE html>\n<html dir="ltr" lang="en" class="">\n<head>\n    <meta charset="utf-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1, sh'}
+ vendor 4 status after: 0
+xrw_any   GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=account_inactive msg='Your account is inactive. Please contact the admin.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T11:20:25.265841+04:00","correlation_id":"6fc33618-99a0-4a5b-b24f-4f7b564f9e66","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"inactive","actor":"owner","surface":"web","store_id":4}}
+json_only GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=account_inactive msg='Your account is inactive. Please contact the admin.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T11:20:25.631914+04:00","correlation_id":"304a2e35-275e-4d06-a5e0-ff57d5c7f3df","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"inactive","actor":"owner","surface":"web","store_id":4}}
+xrw_html  GET  /vendor-panel/                 -> 403 hdr=ended loc=None code=account_inactive msg='Your account is inactive. Please contact the admin.' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T11:20:25.984926+04:00","correlation_id":"b903014d-14ce-4f62-a6ff-2a71c2287a81","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"inactive","actor":"owner","surface":"web","store_id":4}}
+NAV control nav       GET  /vendor-panel/                 -> 302 hdr=None loc=http://127.0.0.1:8162 code=None msg=None FAIL=0 echo=True FAIL lines 0 all lines 0
+ admin approve (restore): {'status': 200, 'url': 'http://127.0.0.1:8162/admin/store/pending-requests', 'redirected': True, 'body': '<!DOCTYPE html>\n<html dir="ltr" lang="en" class="">\n<head>\n    <meta charset="utf-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1, sh'}
+ vendor 4 status/store status after restore: 1	1
+=== 1a UI modal (account inactive copy)
+ MODAL ! × Your account is inactive. Please contact the admin. OK buttons 1 #loading none toasts []
+ post-OK http://127.0.0.1:8162/login/vendor
+=== 1d-ii employee null store: employee logged in, admin deletes the store (admin DELETE admin/store/delete/5)
+ role toasts ['Role added successfully']
+ employee toasts ['Employee added successfully!'] | rows: 2	5
+ admin delete store 5: {'status': 405, 'url': 'http://127.0.0.1:8162/admin', 'redirected': True, 'body': '{\n    "message": "The DELETE method is not supported for route admin. Supported methods: GET, HEAD."\n}'}
+ store 5 exists after: 0 | employee store_id 5
+xrw_any   GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-002 msg='No store found for this account' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T11:20:44.464956+04:00","correlation_id":"271f1a9a-3675-4200-a292-0e1e6602c0e7","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"no_store","actor":"employee","surface":"web"}} | all lines for rid: 2
+json_only GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-002 msg='No store found for this account' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T11:20:44.821538+04:00","correlation_id":"92d453ea-d230-457e-888a-b93db7a71c45","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"no_store","actor":"employee","surface":"web"}} | all lines for rid: 2
+xrw_html  GET  /vendor-panel/                 -> 401 hdr=ended loc=None code=auth-002 msg='No store found for this account' FAIL=1 echo=True
+   log: {"tag":"[FAIL]","timestamp":"2026-10-12T11:20:45.184252+04:00","correlation_id":"723f7899-830c-47d3-a790-d256825131aa","level":"error","message":"[FAIL] vendor.session_refused","context":{"reason":"no_store","actor":"employee","surface":"web"}} | all lines for rid: 2
+NAV control nav       GET  /vendor-panel/                 -> 302 hdr=None loc=http://127.0.0.1:8162 code=None msg=None FAIL=0 echo=True FAIL lines 0 all lines 1
+ UI MODAL (employee, no store) ! × No store found for this account OK buttons 1 #loading none
+ post-OK http://127.0.0.1:8162/login/vendor-employee
