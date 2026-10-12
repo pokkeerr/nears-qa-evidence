@@ -2,7 +2,7 @@
 
 **FAIL: no visible control at 1028 on 3-card fixture (owl hides nav+dots); RTL last-card blank**
 
-**69 screenshot(s).** Click any thumbnail for full resolution.
+**71 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -111,12 +111,16 @@
 <td align="center" width="33%"><a href="bug-arrow-covers-edge-card-text-768.png"><img src="bug-arrow-covers-edge-card-text-768.png" width="240"></a><br><sub>bug arrow covers edge card text 768</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="bug-no-visible-control-1028-3cards.png"><img src="bug-no-visible-control-1028-3cards.png" width="240"></a><br><sub>bug no visible control 1028 3cards</sub></td>
+<td align="center" width="33%"><a href="bug-rtl-last-card-all-off-screen-1028.png"><img src="bug-rtl-last-card-all-off-screen-1028.png" width="240"></a><br><sub>bug rtl last card all off screen 1028</sub></td>
 <td align="center" width="33%"><a href="ctrl-addon-activation-base.png"><img src="ctrl-addon-activation-base.png" width="240"></a><br><sub>ctrl addon activation base</sub></td>
-<td align="center" width="33%"><a href="ctrl-addon-activation-tip.png"><img src="ctrl-addon-activation-tip.png" width="240"></a><br><sub>ctrl addon activation tip</sub></td>
-<td align="center" width="33%"><a href="ctrl-package-index-base.png"><img src="ctrl-package-index-base.png" width="240"></a><br><sub>ctrl package index base</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="ctrl-addon-activation-tip.png"><img src="ctrl-addon-activation-tip.png" width="240"></a><br><sub>ctrl addon activation tip</sub></td>
+<td align="center" width="33%"><a href="ctrl-package-index-base.png"><img src="ctrl-package-index-base.png" width="240"></a><br><sub>ctrl package index base</sub></td>
 <td align="center" width="33%"><a href="ctrl-package-index-tip.png"><img src="ctrl-package-index-tip.png" width="240"></a><br><sub>ctrl package index tip</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="zoom-arrows-S1-1028-synth5-ltr.png"><img src="zoom-arrows-S1-1028-synth5-ltr.png" width="240"></a><br><sub>zoom arrows S1 1028 synth5 ltr</sub></td>
 <td align="center" width="33%"><a href="zoom-arrows-S1-1028-synth5-rtl.png"><img src="zoom-arrows-S1-1028-synth5-rtl.png" width="240"></a><br><sub>zoom arrows S1 1028 synth5 rtl</sub></td>
 </tr>
@@ -129,6 +133,8 @@
 - [`ac3-S1-tip-matrix.json`](ac3-S1-tip-matrix.json)
 - [`ac4-ac5-rtl-1028-real.json`](ac4-ac5-rtl-1028-real.json)
 - [`ac4-rtl-option-experiment.json`](ac4-rtl-option-experiment.json)
+- [`bug-no-visible-control-1028-3cards.log`](bug-no-visible-control-1028-3cards.log)
+- [`bug-rtl-last-card-all-off-screen-1028.log`](bug-rtl-last-card-all-off-screen-1028.log)
 - [`dots-hover-measure.json`](dots-hover-measure.json)
 - [`progress.md`](progress.md)
 - [`synth-ltr.json`](synth-ltr.json)

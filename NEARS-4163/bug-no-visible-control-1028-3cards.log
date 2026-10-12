@@ -1,0 +1,9 @@
+# tip :8163 bfdd86c24, S1/S2/S3 @1028 css px, store 4 on package 1 (3 cards: Commission, pkg2, pkg1), items(responsive)=3
+owl.current()=2 startPosition='2'  owl.items().length=3  settings.items=3  settings.nav=true  settings.dots=true
+DOM: <div class="owl-nav disabled"> display:none ; <div class="owl-dots disabled"> display:none  (dotsN=3 present but hidden)
+card visible%: Commission 0, pkg2 100, pkg1 100  (base identical: nav/dots absent, same visible%)
+Playwright click on #plan-modal .plan-slider .owl-prev -> Timeout 3000ms exceeded (element not visible)
+Same at 992/1199 (items 3) and 1200/1440 (items 4): nav+dots disabled; at 1200/1440 Commission only 42% visible.
+Cause, Admin/public/assets/admin/js/owl.min.js:870 (Owl Carousel v2.2.1 Navigation.draw):
+  d = this._core.items().length <= c.items ;  this._controls.$relative.toggleClass("disabled", !c.nav || d) ... this._controls.$absolute.toggleClass("disabled", !c.dots || d)
+-> with <= settings.items cards Owl itself hides arrows AND dots, regardless of nav:true/dots:true.
