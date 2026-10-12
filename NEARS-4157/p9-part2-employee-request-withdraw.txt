@@ -1,0 +1,46 @@
+PART 2 - employee request-withdraw probe (TIP :8157 scratch copy, clone multi_food_db_qa4157)
+tip delta check: worktree HEAD 7b7b5251d1a633a898eb3a3fc49ad28e3e54acfe; `git diff --stat 2e010e854 HEAD` = docs/solutions/NEARS-4157-update-bank-info-renamed-column.md only (1 insertion, 1 deletion); product + tests byte-identical to the Part 1 tested tip, so the tip/ scratch copy stays valid.
+
+STEP 1 stamp -003 fixture: re-hash right before run: git hash-object = aa55ab12eea0c2b7de99061ef5728999af0bfb16, sha256 = accf26b56fa2c2b7ef5e34bfb68ec51a36844f13e803d2943c761776f6ed705f (both match). Ran EXACTLY `mysql -u root multi_food_db_qa4157 < NEARS-4157-qa-wallet-fixture.sql` (rc 0). SELECT DATABASE() before and after = multi_food_db_qa4157.
+RESULT: 0 rows inserted. A store_wallets row for owner 91156 ALREADY EXISTED (id 27, created_at 2026-10-12 07:12:25, total_earning 0.00 / withdrawn 0.00 / pending 0.00 / collected_cash 0.00): created by the product when the OWNER web session in Part 1 GET /vendor-panel/wallet (owner control run, p7c_owner). The stamped INSERT is NOT EXISTS-guarded, so the wallet stayed at total_earning 0.00, balance 0.00. No UPDATE is stamped, so none was run. Consequence: the success arm (withdraw_requests row, pending_withdraw 0.01) could NOT be measured.
+
+STEP 2 mail: scratch tip Admin/.env MAIL_MAILER=log (worktree .env untouched). Effective config read on the clone via tinker (DB multi_food_db_qa4157):
+  DB name = multi_food_db_qa4157; config('mail.status') = true; config('mail.default') = NULL (the app REPLACES the mail config at runtime from business_settings.mail_config via ConfigServiceProvider: driver smtp, host mail.izzes.ae; the .env MAIL_MAILER=log is overridden and does NOT make the mailer log); default driver = smtp.
+  Helpers::get_mail_status('withdraw_request_mail_status_admin') = NULL (no business_settings row with a withdraw_request key on the clone: SELECT count 0); getNotificationStatusData('admin','withdraw_request','mail_status') = 1.
+  request_withdraw sends mail only if mail.status AND setting == '1' AND flag: the setting is NULL -> branch not taken -> no mail can leave, even though the runtime mailer is the real SMTP host. Verified by reading, not by configuring around it (no setting row was written). No success path was reached anyway.
+  server: ps eww on artisan parent 63716 and php child 63778: single DB_DATABASE=multi_food_db_qa4157; cwd scratch qa/tip/Admin; freshness check exit 2 (not a git work tree, UNVERIFIED-class); clone-only employee login 200 before any write.
+
+STEP 3 probes (employee token, vendorType employee, role modules = []; X-Request-Id ids below). Route: POST /api/v1/vendor/request-withdraw (api.php:193).
+wallet+withdraw_requests SELECT before:
+db
+multi_food_db_qa4157
+id	vendor_id	total_earning	total_withdrawn	pending_withdraw	collected_cash	created_at	updated_at	balance
+27	91156	0.00	0.00	0.00	0.00	2026-10-12 07:12:25	2026-10-12 07:12:25	0.00
+wr_owner_rows	wr_max_id
+0	0
+
+### login-emp-p2  X-Request-Id: fe984d74-1d2f-48d5-b7ea-5ccfd990c7c3  status line: HTTP/1.1 200 OK
+body: (token redacted)
+
+### p2-emp-withdraw  X-Request-Id: 418c0b0f-0c87-4292-bf68-99c9a2e85dea  status line: HTTP/1.1 403 Forbidden
+body: {"errors":[{"code":"amount","message":"Insufficient balance"}]}
+
+### p2-emp-withdraw-badid  X-Request-Id: 755a0ffe-3c61-48c7-9e08-c9e3c0f1414f  status line: HTTP/1.1 404 Not Found
+body: {"errors":[{"code":"withdraw_method","message":"Not found"}]}
+
+### p2-emp-withdraw-noamount  X-Request-Id: 9baee1c6-5286-4811-ba2a-996d763725cf  status line: HTTP/1.1 403 Forbidden
+body: {"errors":[{"code":"amount","message":"The amount field is required."}]}
+
+### p2-emp-withdraw-list  X-Request-Id: 12fe2c37-c086-43db-810a-b41b3c3ebdb9  status line: HTTP/1.1 200 OK
+body: []
+
+### login-owner-p2  X-Request-Id: 8a647970-93e8-4242-a006-5c8df6d6c9c2  status line: HTTP/1.1 200 OK
+body: (token redacted)
+
+### p2-owner-withdraw-control  X-Request-Id: a0446a49-9c45-44d2-8fe5-fcb9db0f2fea  status line: HTTP/1.1 403 Forbidden
+body: {"errors":[{"code":"amount","message":"Insufficient balance"}]}
+
+after the employee request-withdraw probe (diff vs before): NO CHANGE (wallet unchanged, 0 withdraw_requests rows for owner 91156). After the owner control: still 0 rows, pending_withdraw 0.00.
+Reading: the employee token, with NO modules, is NOT stopped by any permission gate on the API: with id=999999 it reaches the method lookup (404 withdraw_method), with a bad body it reaches validation (403 amount required), and with a valid body it reaches the OWNER's wallet row lock and fails ONLY on the balance check (403 code `amount` "Insufficient balance"), identical to the owner control (403 `amount`). That is the same behaviour class as update-bank-info / update-profile in Part 1; the Store Panel refuses the same employee for the wallet (302 back). A 403 `amount` is a balance refusal, not an authorization refusal.
+NOT PROVEN: the success arm (200 body, a new withdraw_requests row for the owner, pending_withdraw 0.00 -> 0.01, balance 5.00 -> 4.99). It needs store_wallets.total_earning >= 0.01 on the owner's existing row 27, which would be an UPDATE (not stamped; a fresh stamp for `UPDATE store_wallets SET total_earning = 5.00 WHERE vendor_id = 91156` on multi_food_db_qa4157 would unblock it).
+Logs: tip laravel.log for the whole Part 2 session: 0 lines, 0 [FAIL], 0 N4157 nonce hits. Mail log not applicable.

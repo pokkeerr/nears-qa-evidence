@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4157
 
-**QA part 1 (backend/API): AC1/AC2/AC4/AC6/AC7 PASS live tip vs base twin, AC3 amended PASS (literal (ii) count drift), employee facts recorded**
+**QA part 1 PASS + part 2: employee request-withdraw reaches owner wallet, success arm blocked (wallet row pre-existed at 0.00)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -14,6 +14,7 @@
 - [`p6-ac3-amended.txt`](p6-ac3-amended.txt)
 - [`p7-employee-facts.txt`](p7-employee-facts.txt)
 - [`p8-automated-backstop.txt`](p8-automated-backstop.txt)
+- [`p9-part2-employee-request-withdraw.txt`](p9-part2-employee-request-withdraw.txt)
 - [`progress.md`](progress.md)
 
 ---
