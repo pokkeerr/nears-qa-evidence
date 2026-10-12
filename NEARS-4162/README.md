@@ -51,6 +51,7 @@
 - [`ac6_product_controls.txt`](ac6_product_controls.txt)
 - [`ac7_employee_ui.txt`](ac7_employee_ui.txt)
 - [`bug-back-nav-serves-cached-auth-page.log`](bug-back-nav-serves-cached-auth-page.log)
+- [`bug-pos-initmap-console.log`](bug-pos-initmap-console.log)
 - [`bug-storeless-vendor-login-errorexception.log`](bug-storeless-vendor-login-errorexception.log)
 - [`driver`](driver)
 - [`f1_bfcache.txt`](f1_bfcache.txt)
