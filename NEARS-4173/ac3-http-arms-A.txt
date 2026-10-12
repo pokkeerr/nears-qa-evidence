@@ -1,0 +1,18 @@
+A1 anonymous                       own_store_order(152,store2)        -> (403, None, '<!DOCTYPE html> <html lang="en">     <head>         <meta ch')
+A2 bogus Bearer                    own_store_order(152,store2)        -> (403, None, '<!DOCTYPE html> <html lang="en">     <head>         <meta ch')
+A3 real customer Passport Bearer   own_store_order(152,store2)        -> (403, None, '{     "message": "" }')
+A1 anonymous                       other_store_order(141,store35)     -> (403, None, '<!DOCTYPE html> <html lang="en">     <head>         <meta ch')
+A2 bogus Bearer                    other_store_order(141,store35)     -> (403, None, '<!DOCTYPE html> <html lang="en">     <head>         <meta ch')
+A3 real customer Passport Bearer   other_store_order(141,store35)     -> (403, None, '{     "message": "" }')
+A1 anonymous                       nonexistent(999999999)             -> (403, None, '<!DOCTYPE html> <html lang="en">     <head>         <meta ch')
+A2 bogus Bearer                    nonexistent(999999999)             -> (403, None, '<!DOCTYPE html> <html lang="en">     <head>         <meta ch')
+A3 real customer Passport Bearer   nonexistent(999999999)             -> (403, None, '{     "message": "" }')
+login admin                        GET /login/admin=200 POST=302      -> Location=http://127.0.0.1:8173/admin cookies=['XSRF-TOKEN', 'e_token', 'laravel_session', 'p_token', 'role']
+login vendor                       GET /login/vendor=200 POST=302     -> Location=http://127.0.0.1:8173/vendor-panel cookies=['XSRF-TOKEN', 'e_token', 'laravel_session', 'p_token', 'role']
+login vendor_employee              GET /login/vendor-employee=200 POST=302 -> Location=http://127.0.0.1:8173/vendor-panel cookies=['XSRF-TOKEN', 'e_token', 'laravel_session', 'p_token', 'role']
+B panel session admin              other_store_order(141,store35)     -> (None, None, 'EXC RemoteDisconnected: Remote end closed connection without response')
+B panel session admin              nonexistent(999999999)             -> (None, None, 'EXC ConnectionRefusedError: [Errno 61] Connection refused')
+B panel session vendor             other_store_order(141,store35)     -> (None, None, 'EXC ConnectionRefusedError: [Errno 61] Connection refused')
+B panel session vendor             nonexistent(999999999)             -> (None, None, 'EXC ConnectionRefusedError: [Errno 61] Connection refused')
+B panel session vendor_employee    other_store_order(141,store35)     -> (None, None, 'EXC ConnectionRefusedError: [Errno 61] Connection refused')
+B panel session vendor_employee    nonexistent(999999999)             -> (None, None, 'EXC ConnectionRefusedError: [Errno 61] Connection refused')
