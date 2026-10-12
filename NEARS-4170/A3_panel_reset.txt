@@ -1,0 +1,8 @@
+A3(iv) owner BEFORE panel reset: BASE session=404 BASE recaller-only=404 | TIP session=404 TIP recaller-only=403
+A3(iv) forgot-password request (POST /vendor-reset-password) -> 302 (reset row issued by the product; mail not deliverable on the clone)
+A3(iv) reset token read by SELECT from password_resets (stand-in for the mailbox), length=15 (value not recorded)
+A3(iv) GET /password-reset?token=<t> -> 200 (reset form=True)
+A3(iv) POST /reset-password-submit -> 302 http://127.0.0.1:8171/login/vendor
+A3(iv) owner AFTER panel reset (old sessions + base-issued recaller): BASE session=404 BASE recaller-only=404 | TIP session=403 TIP recaller-only=403
+A3(iv) login with RESET password -> 302 http://127.0.0.1:8171/vendor-panel; guard-only route=404
+A3(iv) NEW owner password (via reset) = <redacted-clone-pw>

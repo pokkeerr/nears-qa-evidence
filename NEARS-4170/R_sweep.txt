@@ -1,0 +1,7 @@
+R TIP admin: login 302 | panel page /admin/store/list -> 200 | dashboard -> 200 | guard-only before logout=404 | GET /logout -> 302 http://127.0.0.1:8171/login/admin | guard-only after logout=403 | panel page after logout -> 302 http://127.0.0.1:8171
+R TIP admin_employee: login 302 | panel page /admin/store/list -> 302 | dashboard -> 200 | guard-only before logout=404 | GET /logout -> 302 http://127.0.0.1:8171/login/admin-employee | guard-only after logout=403 | panel page after logout -> 302 http://127.0.0.1:8171
+R TIP vendor: login 302 | panel page /vendor-panel/profile/view -> 200 | dashboard -> 200 | guard-only before logout=404 | GET /logout -> 302 http://127.0.0.1:8171/login/vendor | guard-only after logout=403 | panel page after logout -> 302 http://127.0.0.1:8171
+R TIP vendor_employee: login 302 | panel page /vendor-panel/profile/view -> 200 | dashboard -> 200 | guard-only before logout=404 | GET /logout -> 302 http://127.0.0.1:8171/login/vendor-employee | guard-only after logout=403 | panel page after logout -> 302 http://127.0.0.1:8171
+R API vendor login BASE: http 200 token_present=True keys=['token', 'zone_wise_topic', 'store_id', 'module_type']
+R API vendor login TIP: http 429 token_present=False keys=['message']
+R API vendor login TIP (retry after throttle window; earlier 429 was the 5/min throttle from my own probes): http 200 token_present=True keys=['token', 'zone_wise_topic', 'store_id', 'module_type']

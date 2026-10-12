@@ -1,0 +1,43 @@
+A5 TIP login admin -> 302 http://127.0.0.1:8171/admin
+A5 TIP admin session GET order-invoice(nonexistent id) -> 404 (404 = gate passed, controller findOrFail)
+A5 TIP admin session GET subscription-invoice(nonexistent) -> 404
+A5 TIP admin session GET dm-earning-invoice(nonexistent) -> 404
+A5 TIP admin session+CSRF POST /subscribeToTopic (no token) -> 422 {"message":"The token field is required.","errors":{"token":["The toke
+A5 TIP admin session+CSRF POST /subscribeToTopic (token=fake) -> 200 {"message":"Successfully subscribed to topic"}
+A5 TIP admin session GET title-auto-fill -> 422 {"message":"Please provide a product name so the AI can generate a suitable title or descr
+A5 TIP admin session POST generate-title-suggestions -> 422 {"message":"The keywords field is required.","errors":{"keywords":["The keywords field is 
+A5 TIP admin in-proc GET order-invoice(own store order 91357): status=302 loc=http://127.0.0.1:8171/admin/product/title-auto-fill ct=text/html; charset=utf-8 buffered_bytes=52605 head="%PDF-1.4" has_%%EOF=y db=multi_food_db_qa4170
+A5 TIP admin in-proc GET order-invoice(other store order 91113): status=302 loc=http://localhost/order-invoice/OTEzNTc= ct=text/html; charset=utf-8 buffered_bytes=52531 head="%PDF-1.4" has_%%EOF=y db=multi_food_db_qa4170
+A5 TIP admin in-proc GET subscription-invoice(1000000, store 21): status=302 loc=http://localhost/order-invoice/OTExMTM= ct=text/html; charset=utf-8 buffered_bytes=38337 head="%PDF-1.4" has_%%EOF=y db=multi_food_db_qa4170
+A5 TIP admin in-proc GET dm-earning-invoice(dm 1, no store): status=302 loc=http://localhost/subscription-invoice/MTAwMDAwMA== ct=text/html; charset=utf-8 buffered_bytes=52132 head="%PDF-1.4" has_%%EOF=y db=multi_food_db_qa4170
+A5 TIP admin still-logged-in check (nonexistent order -> 404 expected) -> 404
+A5 TIP login vendor -> 302 http://127.0.0.1:8171/vendor-panel
+A5 TIP vendor session GET order-invoice(nonexistent id) -> 404 (404 = gate passed, controller findOrFail)
+A5 TIP vendor session GET subscription-invoice(nonexistent) -> 404
+A5 TIP vendor session GET dm-earning-invoice(nonexistent) -> 404
+A5 TIP vendor session+CSRF POST /subscribeToTopic (no token) -> 422 {"message":"The token field is required.","errors":{"token":["The toke
+A5 TIP vendor session+CSRF POST /subscribeToTopic (token=fake) -> 200 {"message":"Successfully subscribed to topic"}
+A5 TIP vendor session GET title-auto-fill -> 422 {"message":"Please provide a product name so the AI can generate a suitable title or descr
+A5 TIP vendor session POST generate-title-suggestions -> 422 {"message":"The keywords field is required.","errors":{"keywords":["The keywords field is 
+A5 TIP vendor in-proc GET order-invoice(own store order 91357): status=302 loc=http://127.0.0.1:8171/admin/product/title-auto-fill ct=text/html; charset=utf-8 buffered_bytes=52605 head="%PDF-1.4" has_%%EOF=y db=multi_food_db_qa4170
+A5 TIP vendor in-proc GET order-invoice(other store order 91113): status=403 loc=- ct=text/html; charset=utf-8 buffered_bytes=0 head="" has_%%EOF=n db=multi_food_db_qa4170
+A5 TIP vendor in-proc GET subscription-invoice(1000000, store 21): status=403 loc=- ct=text/html; charset=utf-8 buffered_bytes=0 head="" has_%%EOF=n db=multi_food_db_qa4170
+A5 TIP vendor in-proc GET dm-earning-invoice(dm 1, no store): status=403 loc=- ct=text/html; charset=utf-8 buffered_bytes=0 head="" has_%%EOF=n db=multi_food_db_qa4170
+A5 TIP vendor still-logged-in check (nonexistent order -> 404 expected) -> 404
+A5 TIP login vendor_employee -> 302 http://127.0.0.1:8171/vendor-panel
+A5 TIP vendor_employee session GET order-invoice(nonexistent id) -> 404 (404 = gate passed, controller findOrFail)
+A5 TIP vendor_employee session GET subscription-invoice(nonexistent) -> 404
+A5 TIP vendor_employee session GET dm-earning-invoice(nonexistent) -> 404
+A5 TIP vendor_employee session+CSRF POST /subscribeToTopic (no token) -> 429 {
+    "message": "Too Many Attempts."
+}
+A5 TIP vendor_employee session+CSRF POST /subscribeToTopic (token=fake) -> 429 {
+    "message": "Too Many Attempts."
+}
+A5 TIP vendor_employee session GET title-auto-fill -> 422 {"message":"Please provide a product name so the AI can generate a suitable title or descr
+A5 TIP vendor_employee session POST generate-title-suggestions -> 422 {"message":"The keywords field is required.","errors":{"keywords":["The keywords field is 
+A5 TIP vendor_employee in-proc GET order-invoice(own store order 91357): status=302 loc=http://127.0.0.1:8171/admin/product/title-auto-fill ct=text/html; charset=utf-8 buffered_bytes=52605 head="%PDF-1.4" has_%%EOF=y db=multi_food_db_qa4170
+A5 TIP vendor_employee in-proc GET order-invoice(other store order 91113): status=403 loc=- ct=text/html; charset=utf-8 buffered_bytes=0 head="" has_%%EOF=n db=multi_food_db_qa4170
+A5 TIP vendor_employee in-proc GET subscription-invoice(1000000, store 21): status=403 loc=- ct=text/html; charset=utf-8 buffered_bytes=0 head="" has_%%EOF=n db=multi_food_db_qa4170
+A5 TIP vendor_employee in-proc GET dm-earning-invoice(dm 1, no store): status=403 loc=- ct=text/html; charset=utf-8 buffered_bytes=0 head="" has_%%EOF=n db=multi_food_db_qa4170
+A5 TIP vendor_employee still-logged-in check (nonexistent order -> 404 expected) -> 404

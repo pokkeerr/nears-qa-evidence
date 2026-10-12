@@ -1,0 +1,7 @@
+A3(iv-admin) admin BEFORE panel reset: BASE session=404 BASE recaller-only=404 | TIP session=404 TIP recaller-only=403
+A3(iv-admin) GET /reset-password (admin forgot-password; issues the reset row) -> 302
+A3(iv-admin) reset token read by SELECT (mailbox stand-in; SMS OTP step not required: no SMS gateway on clone), len=15
+A3(iv-admin) POST /reset-password-submit -> 302 http://127.0.0.1:8171/login/admin
+A3(iv-admin) admin AFTER panel reset (old sessions + base-issued recaller): BASE session=404 BASE recaller-only=404 | TIP session=403 TIP recaller-only=403
+A3(iv-admin) login with RESET password -> 302 http://127.0.0.1:8171/admin; guard-only=404
+A3(iv-admin) NEW admin password (via reset) = <redacted-clone-pw>

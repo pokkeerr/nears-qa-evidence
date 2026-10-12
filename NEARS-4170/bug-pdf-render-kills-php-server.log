@@ -1,0 +1,6 @@
+# host environment: any REAL order/subscription/dm PDF render over php -S (artisan serve) or php-fpm kills the PHP process (BASE and TIP alike)
+GET /order-invoice/<b64 91357> with a live admin session -> requests ConnectionError (RemoteDisconnected) on artisan serve (php 8.2.34, 8.3.32, 8.5.6 all); php-fpm+nginx -> 502
+nonexistent id on the same route -> clean 404 (gate + findOrFail OK)
+same controller path executed in php-cli (in-process kernel dispatch, same code/DB) -> %PDF-1.4 ... %%EOF (52605 bytes), no crash
+macOS crash report (DiagnosticReports php-2026-10-12-112631.ips, triggered by artisan serve child): EXC_BAD_ACCESS / SIGSEGV KERN_INVALID_ADDRESS 0x4b38
+  frames: ZEND_ASSIGN_DIM_SPEC_VAR_UNUSED_OP_DATA_CV_HANDLER <- zend_execute <- zend_execute_scripts <- php_cli_server_dispatch_router <- php_cli_server_recv_event_read_request <- do_cli_server
