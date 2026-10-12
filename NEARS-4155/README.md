@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4155
 
-**cycle 1 delta: O4 fix verified (reload path), poll-then-click ends on home via 419**
+**cycle 2 PASS: carry-fix verified firebase+manual arms**
 
-**6 screenshot(s).** Click any thumbnail for full resolution.
+**8 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -15,6 +15,10 @@
 <td align="center" width="33%"><a href="c1_poll_then_reload_ends_on_login_copy.png"><img src="c1_poll_then_reload_ends_on_login_copy.png" width="240"></a><br><sub>c1 poll then reload ends on login copy</sub></td>
 <td align="center" width="33%"><a href="c1_poll_then_shift_ends_on_home_no_copy.png"><img src="c1_poll_then_shift_ends_on_home_no_copy.png" width="240"></a><br><sub>c1 poll then shift ends on home no copy</sub></td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="c2_arm_firebase_login_copy.png"><img src="c2_arm_firebase_login_copy.png" width="240"></a><br><sub>c2 arm firebase login copy</sub></td>
+<td align="center" width="33%"><a href="c2_arm_manual_login_copy.png"><img src="c2_arm_manual_login_copy.png" width="240"></a><br><sub>c2 arm manual login copy</sub></td>
+</tr>
 </table>
 
 ### Other artifacts
@@ -26,6 +30,7 @@
 - [`bug-keep-key-consumed-by-xhr-redirect.log`](bug-keep-key-consumed-by-xhr-redirect.log)
 - [`c1_O4_live_poll_evidence.txt`](c1_O4_live_poll_evidence.txt)
 - [`c1_recheck_ac1_ac2_ac4_o5_o6_o7.txt`](c1_recheck_ac1_ac2_ac4_o5_o6_o7.txt)
+- [`c2_delta_evidence.txt`](c2_delta_evidence.txt)
 - [`observations_O1_O8.txt`](observations_O1_O8.txt)
 
 ---

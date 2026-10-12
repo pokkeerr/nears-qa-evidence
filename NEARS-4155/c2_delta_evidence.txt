@@ -1,0 +1,65 @@
+# CYCLE 2 evidence, tip db71581f1c077d4452f1bfcb98349a736d6623b0, own server :8155, fresh clone multi_food_db_qa4155 (4125 case A, blob 6d375281 verified); served-process env DB_DATABASE=clone; fixture package 'QA Single-Store Fixture' visible on the plan page (clone-only fact)
+
+## (0) order_notification_type (business_settings.key): fresh clone live value = firebase (1 row). Mode switched to manual through the real Admin route POST admin/business-settings/update-order (the order-settings form replayed with only order_notification_type changed); read back: after: manual
+
+## ARM FIREBASE (poll absent; first refusal = owner click). Browser XHR log:
+QA4155LOG [{"load":"/vendor-panel/subscription/subscriber-detail","nav":"navigate","t":"57:48"},
+{"xhr":"POST /vendor-panel/subscription/switch-to-commission/4","status":403,"respURL":"/vendor-panel/subscription/switch-to-commission/4","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"58:03"}]
+network: POST switch-to-commission [403] -> GET subscriber-detail [302] -> GET /login/vendor [200]; login page shows 'Your account has been suspended' (c2_arm_firebase_login_copy.png). [FAIL] vendor.session_suspended: 1 (e3b4f3ec-7145-47c8-be6a-42d462236c5f). Money SELECT before/after identical.
+
+## ARM MANUAL (poll present; poll is the FIRST refusal; click after >= 2 keyed ticks). Browser XHR log:
+QA4155LOG [{"load":"/vendor-panel/subscription/subscriber-detail","nav":"navigate","t":"58:33"},
+{"xhr":"GET /vendor-panel/get-store-data","status":200,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"success\":1,\"data\":{\"new_pending_order\":0,\"new_confirmed_order\":0,\"order_type\":\"store_order\"}}","t":"58:43"},
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"58:53"},
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"59:03"},
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"59:13"},
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"59:23"},
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"59:33"},
+{"xhr":"POST /vendor-panel/subscription/switch-to-commission/4","status":403,"respURL":"/vendor-panel/subscription/switch-to-commission/4","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"59:36"}]
+network list: get-store-data [200], [403] x4+ (no redirect hop, no GET /), POST switch-to-commission/4 [403] (NOT 419), GET subscriber-detail [302], GET /login/vendor [200] (c2_arm_manual_login_copy.png)
+[FAIL] vendor.session_suspended in the window poll-refusal -> 5 keyed polls -> POST -> reload: exactly 1 (0c6c8a9d-52b2-4002-a966-99c27ffc6a36, the poll); vendor.account_suspended: 0. Money SELECT before/after identical (wallet 1200.00/800.00/100.00, refund rows 0, subs row 2 status 1, txns 1, store model subscription, status 0 + suspended_at unchanged).
+
+## curl block (manual mode on): headers, controls, AC1, AC4
+## poll-first sequence (jar x), manual-mode shape, with headers
+poll1 (FIRST refusal) 403 loc=[] ct=[application/json]
+{"errors":[{"code":"auth-003","message":"Your account has been suspended"}]}
+X-Request-Id: cca7c530-1112-4460-8a13-683c8c89f4fe
+new laravel_session Set-Cookie count: 1
+poll2 (keyed guest) 403 loc=[] ct=[application/json]
+{"errors":[{"code":"auth-003","message":"Your account has been suspended"}]}
+poll3 (keyed guest) 403
+ajax 403 loc=[] ct=[application/json]
+{"errors":[{"code":"auth-003","message":"Your account has been suspended"}]}
+X-Request-Id: 93e72c4e-b834-47cc-a281-4db60b4417d4
+reload (non-ajax keyed guest):
+nav 302 loc=[http://localhost:8155/login/vendor]
+login page copy occurrences: 1
+second non-ajax guest GET after the landing (key consumed -> home):
+nav 302 loc=[http://localhost:8155/]
+log window: session_suspended total=1 (sessions w,c,d idle so far = this block only x) ; by first-refusal id cca7c530-1112-4460-8a13-683c8c89f4fe: 1; account_suspended total=0
+
+## wrong CSRF after the carry (jar w)
+poll1 (door refusal + carry) 403
+POST wrong token -> 419
+{"message":"CSRFtokenmismatch."}
+POST original token: ajax 302 loc=[http://localhost:8155/] ct=[text/html; charset=utf-8]
+POST original token: <!DOCTYPE html>
+
+## AC1 (jar c)
+ajax 403 loc=[] ct=[application/json]
+{"errors":[{"code":"auth-003","message":"Your account has been suspended"}]}
+X-Request-Id: 1adc2b48-1dde-45f2-8e33-d19d85fc91e5
+by id 1adc2b48-1dde-45f2-8e33-d19d85fc91e5: laravel.log=1 structured=1 account_suspended=0
+
+## AC4 (jar d, plain navigation)
+nav 302 loc=[http://localhost:8155/login/vendor]
+Location: http://localhost:8155/login/vendor
+copy occurrences: 1
+
+## ordinary ajax guest, no key
+302 loc=[http://localhost:8155/]
+
+FAIL total this block (x,w,c,d = 4 door refusals): 4; 419s add none
+
+## notes: a WRONG-token POST (419) still ages the key out (the following right-token POST on that jar got the ordinary guest 302 /). O6: maria.garcia login right after: dashboard, 0 'suspended'. Post-landing login by the reactivated owner (john): dashboard, 0 'suspended'.
+phpunit: Nears4155DoorAjaxRefusalTest 27 tests / 449 assertions OK; combined filter 75 tests / 955 assertions OK
