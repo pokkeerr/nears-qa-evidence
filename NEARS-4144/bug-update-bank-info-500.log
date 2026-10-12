@@ -1,0 +1,8 @@
+# regression candidate (pre-existing, NOT NEARS-4144): PUT /api/v1/vendor/update-bank-info with an ACTIVE approved owner token -> 500
+# Identical on BASE twin (:8145) and FIXED (:8144). Clone multi_food_db_qa4144, R4 approved (vendor.status 1, store.status 1, commission).
+request : PUT /api/v1/vendor/update-bank-info  body {bank_name,branch,holder_name,account_no}  (values <redacted>)
+response: 500 {"message":"Something went wrong"}
+laravel.log (both trees), values redacted by QA:
+[FAIL] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'bank_name' in 'field list' (SQL: update `vendors` set `branch` = <redacted>, `holder_name` = <redacted>, `account_no` = <redacted>, `bank_name` = <redacted>, `vendors`.`updated_at` = ... where `id` = <id>) {"correlation_id":"<== X-Request-Id of the request>","type":"Illuminate\\Database\\QueryException", ...}
+cause   : migration 2025_09_25_181108 renamed vendors.bank_name -> rejection_note; VendorController::update_bank_info (Admin/app/Http/Controllers/Api/V1/Vendor/VendorController.php:970-975) still assigns $bank->bank_name.
+side finding: the [FAIL] line carries the SQL with the bound holder_name/account_no values (bank details in the log: PII allow-list violation, docs/platform/logging-contract.md).

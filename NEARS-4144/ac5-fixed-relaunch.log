@@ -1,0 +1,21 @@
+# FIXED server (:8144 via proxy :8190) - pick + cold relaunch, R2, VendorApp as-is
+## proxy request log (method path -> status)
+04:27:44 port=8144 POST /api/v1/vendor/business_plan -> 200 rid=0ccdadbe-ab5c-408b-af28-0ff83d68864a
+04:27:44 port=8144 GET /api/v1/vendor/profile -> 200 rid=9889c9e4-3629-45e8-82ec-9885c2416adb
+04:28:05 port=8144 GET /api/v1/config -> 200 rid=450f85ac-9149-4dab-a7a7-664d054a217a
+04:28:06 port=8144 POST /api/v1/vendor/update-fcm-token -> 200 rid=8cb42f9c-131f-43a9-9046-458595a70ff1
+04:28:06 port=8144 GET /api/v1/vendor/profile -> 200 rid=58e48de0-653b-457c-ac1e-c08612731876
+04:28:06 port=8144 GET /api/v1/vendor/subscription-transaction -> 200 rid=85429d53-ff9c-4e6d-b040-0d35f966c721
+
+## app log (flutter tag) since relaunch
+10-12 04:27:57.362 I/flutter ( 5398): [NET] GET endpoint=/api/v1/config
+10-12 04:27:58.375 I/flutter ( 5398): [NET] endpoint=/api/v1/config http_status=200
+10-12 04:27:58.391 I/flutter ( 5398): [NET] POST endpoint=/api/v1/vendor/update-fcm-token
+10-12 04:27:58.490 I/flutter ( 5398): [NET] endpoint=/api/v1/vendor/update-fcm-token http_status=200
+10-12 04:27:58.491 I/flutter ( 5398): [NET] GET endpoint=/api/v1/vendor/profile
+10-12 04:27:58.573 I/flutter ( 5398): [NET] endpoint=/api/v1/vendor/profile http_status=200
+10-12 04:27:58.577 I/flutter ( 5398): [INFO] msg="launch routing: pending approval -> my subscription"
+10-12 04:27:58.599 I/flutter ( 5398): [NET] GET endpoint=/api/v1/vendor/subscription-transaction
+10-12 04:27:58.748 I/flutter ( 5398): [NET] endpoint=/api/v1/vendor/subscription-transaction http_status=200
+
+## burst red-pixel scan: f1 (~0s after am start) red region only x156-900,y2448-2748 = not a full-width snackbar, f2..f14 = 0 red samples

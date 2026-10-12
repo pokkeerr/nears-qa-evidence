@@ -1,0 +1,47 @@
+# BASE twin (:8145 via proxy :8190) - pick + cold relaunch, R2, VendorApp as-is (RED twin)
+## proxy request log
+04:31:30 port=8145 POST /api/v1/auth/vendor/login -> 200 rid=2b171060-9a95-491b-b755-fbbe3c124f6b
+04:31:30 port=8145 POST /api/v1/vendor/update-fcm-token -> 200 rid=c72a3ad8-f9ad-45f8-99ba-240afbc545e9
+04:31:30 port=8145 GET /api/v1/vendor/profile -> 200 rid=253628ff-0244-45f6-9bcc-4fc896353bda
+04:31:31 port=8145 GET /api/v1/vendor/subscription-transaction -> 200 rid=a01be211-fa39-4686-a3ac-1e144d5edfa2
+04:31:46 port=8145 GET /api/v1/vendor/package-view -> 200 rid=17c6cf69-f186-489e-8a0d-eb850096cb69
+04:32:08 port=8145 POST /api/v1/vendor/business_plan -> 200 rid=e85f0d69-8b35-4fa4-a4b1-395e0fe5a25e
+04:32:08 port=8145 GET /api/v1/vendor/profile -> 403 rid=921c5b73-da67-4078-bb2f-19040909f9dc
+04:32:32 port=8145 GET /api/v1/config -> 200 rid=b25e0134-a5cf-487b-92f3-01ee7cb0788a
+04:32:32 port=8145 POST /api/v1/vendor/update-fcm-token -> 403 rid=95c7c694-cb34-4db2-ae2b-b31c5449a8c7
+04:32:32 port=8145 GET /api/v1/vendor/profile -> 403 rid=71f61c58-c75b-482d-9255-f55027eb0b1f
+04:32:33 port=8145 GET /api/v1/vendor/withdraw-method/list -> 403 rid=62ec9ff6-e3dd-4f51-bb9d-e388e5961d57
+04:32:33 port=8145 GET /api/v1/vendor/profile -> 403 rid=823fdd33-0445-4e7a-a69f-c3fab7cd84af
+04:32:33 port=8145 GET /api/v1/vendor/current-orders -> 403 rid=4531ec25-cdb5-4402-8f5b-104384c5bffd
+04:32:33 port=8145 GET /api/v1/vendor/notifications -> 403 rid=d52e772f-de53-4d43-923f-eb07528529bc
+
+## app log: pick window
+10-12 04:32:00.518 I/flutter ( 5641): [NET] POST endpoint=/api/v1/vendor/business_plan
+10-12 04:32:00.796 I/flutter ( 5641): [NET] endpoint=/api/v1/vendor/business_plan http_status=200
+10-12 04:32:00.804 I/flutter ( 5641): [NET] GET endpoint=/api/v1/vendor/profile
+10-12 04:32:00.969 I/flutter ( 5641): [NET] endpoint=/api/v1/vendor/profile http_status=403
+10-12 04:32:00.970 I/flutter ( 5641): [FAIL] endpoint=/api/v1/vendor/profile http_status=403 type=ApiFailure msg="api request failed" correlation_id=921c5b73-da67-4078-bb2f-19040909f9dc
+
+## app log: relaunch window
+10-12 04:32:23.710 I/flutter ( 6193): [NET] GET endpoint=/api/v1/config
+10-12 04:32:24.808 I/flutter ( 6193): [NET] endpoint=/api/v1/config http_status=200
+10-12 04:32:24.814 I/flutter ( 6193): [NET] POST endpoint=/api/v1/vendor/update-fcm-token
+10-12 04:32:24.906 I/flutter ( 6193): [NET] endpoint=/api/v1/vendor/update-fcm-token http_status=403
+10-12 04:32:24.912 I/flutter ( 6193): [FAIL] endpoint=/api/v1/vendor/update-fcm-token http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=95c7c694-cb34-4db2-ae2b-b31c5449a8c7
+10-12 04:32:24.913 I/flutter ( 6193): [NET] GET endpoint=/api/v1/vendor/profile
+10-12 04:32:24.975 I/flutter ( 6193): [NET] endpoint=/api/v1/vendor/profile http_status=403
+10-12 04:32:24.977 I/flutter ( 6193): [FAIL] endpoint=/api/v1/vendor/profile http_status=403 type=ApiFailure msg="api request failed" correlation_id=71f61c58-c75b-482d-9255-f55027eb0b1f
+10-12 04:32:24.997 I/flutter ( 6193): [NET] GET endpoint=/api/v1/vendor/withdraw-method/list
+10-12 04:32:25.048 I/flutter ( 6193): [NET] GET endpoint=/api/v1/vendor/profile
+10-12 04:32:25.224 I/flutter ( 6193): [NET] endpoint=/api/v1/vendor/withdraw-method/list http_status=403
+10-12 04:32:25.225 I/flutter ( 6193): [FAIL] endpoint=/api/v1/vendor/withdraw-method/list http_status=403 type=ApiFailure msg="api request failed" correlation_id=62ec9ff6-e3dd-4f51-bb9d-e388e5961d57
+10-12 04:32:25.311 I/flutter ( 6193): [NET] endpoint=/api/v1/vendor/profile http_status=403
+10-12 04:32:25.312 I/flutter ( 6193): [FAIL] endpoint=/api/v1/vendor/profile http_status=403 type=ApiFailure msg="api request failed" correlation_id=823fdd33-0445-4e7a-a69f-c3fab7cd84af
+10-12 04:32:25.315 I/flutter ( 6193): [NET] GET endpoint=/api/v1/vendor/current-orders
+10-12 04:32:25.583 I/flutter ( 6193): [NET] endpoint=/api/v1/vendor/current-orders http_status=403
+10-12 04:32:25.583 I/flutter ( 6193): [FAIL] endpoint=/api/v1/vendor/current-orders http_status=403 type=ApiFailure msg="api request failed" correlation_id=4531ec25-cdb5-4402-8f5b-104384c5bffd
+10-12 04:32:25.586 I/flutter ( 6193): [NET] GET endpoint=/api/v1/vendor/notifications
+10-12 04:32:25.853 I/flutter ( 6193): [NET] endpoint=/api/v1/vendor/notifications http_status=403
+10-12 04:32:25.854 I/flutter ( 6193): [FAIL] endpoint=/api/v1/vendor/notifications http_status=403 type=ApiFailure msg="api request failed" correlation_id=d52e772f-de53-4d43-923f-eb07528529bc
+
+## burst scan: f4..f20 red full-width (x30-1308) 2869-7332 samples = red snackbars; f1 identical to fixed arm's f1 (splash element, x156-900)
