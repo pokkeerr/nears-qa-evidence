@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4156
 
-**QA cycle0: AC1,AC2,AC6,AC7,AC8 PASS live base-RED/tip-GREEN; AC3 6/8 routes live, 2 data-gap UNVERIFIABLE**
+**QA cycle1 delta: AC3-residual PASS (all 8 routes literal + sandbox CSP, base RED); cycle0 rows carried**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -25,6 +25,10 @@
 - [`ac8_B.json`](ac8_B.json)
 - [`ac_A_arms.json`](ac_A_arms.json)
 - [`backend_lines.txt`](backend_lines.txt)
+- [`cycle1_delta_base_RED_C2.json`](cycle1_delta_base_RED_C2.json)
+- [`cycle1_delta_tip_B.json`](cycle1_delta_tip_B.json)
+- [`cycle1_real_tree_guard_after.txt`](cycle1_real_tree_guard_after.txt)
+- [`cycle1_real_tree_guard_before.txt`](cycle1_real_tree_guard_before.txt)
 - [`direct_store_read.txt`](direct_store_read.txt)
 - [`fail_lines_sample_B.txt`](fail_lines_sample_B.txt)
 - [`phpunit_LandingZipSlipTest.txt`](phpunit_LandingZipSlipTest.txt)
