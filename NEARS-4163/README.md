@@ -472,6 +472,7 @@
 - [`r3-xprobe-geometry-768-n5-s0.json`](r3-xprobe-geometry-768-n5-s0.json)
 - [`r3-xprobe-matrix.json`](r3-xprobe-matrix.json)
 - [`r3-xprobe-ve768-matrix.json`](r3-xprobe-ve768-matrix.json)
+- [`r4-ab-instrument-validation-rtl768-n3-s0.json`](r4-ab-instrument-validation-rtl768-n3-s0.json)
 - [`r4-ac1-ac5-measure.json`](r4-ac1-ac5-measure.json)
 - [`r4-ac2-measure.json`](r4-ac2-measure.json)
 - [`r4-ac2b-S1-fresh-after.json`](r4-ac2b-S1-fresh-after.json)
