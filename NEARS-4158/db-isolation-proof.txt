@@ -1,0 +1,9 @@
+Fixed server (pid 19537, :8431) ps eww env: DB_DATABASE=multi_food_db_nears4158_qa OTEL_SDK_DISABLED=true PWD=<worktree>/Admin
+Base-control server (pid 20755, :8432) ps eww env: DB_DATABASE=multi_food_db_nears4158_qa OTEL_SDK_DISABLED=true PWD=<scratch copy>/Admin
+Request-level readback (performance_schema.table_io_waits_summary_by_table, GET /api/v1/config, read-only for me):
+  fixed :8431  clone business_settings count_read 684->855 (+171), clone cache read 36->60 / write 58->60 ; multi_food_db business_settings 359726->359726, cache 31947/4382 unchanged
+  base  :8432  clone business_settings count_read 1197->1368 (+171) ; multi_food_db unchanged
+Base-server RED line itself also carries "Database: multi_food_db_nears4158_qa" (driver text).
+Login (vendor owner qa.alwaysopenvendor, clone): clone vendors CHECKSUM 631595125 -> 2034434179 (auth_token written, clone only); multi_food_db.vendors CHECKSUM 631595125 before and after (unchanged).
+Provocation (fixed): vendors CHECKSUM 2034434179 before and after = zero vendors rows from the provocation. Base: 1987178939 before and after (second login re-wrote auth_token; provocation wrote nothing).
+Disclosed writes (clone only): vendors.auth_token (login x2), cache table rows (actch middleware + /config), Admin/config/system-addons.php domain rewritten by the server (tracked file in the worktree; reverted with git checkout of that one path).
