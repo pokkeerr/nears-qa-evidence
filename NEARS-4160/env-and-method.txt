@@ -1,0 +1,13 @@
+NEARS-4160 QA [8] cycle 0 - device-free backend API QA
+Tested tip: d0909527822a3ea523251b82b979e08b719fb4d0 (worktree clean, git status empty). Base: e937aa699e5033db01e8535f5958fd1df86d154f.
+Backend (B, tip, :8160): <scratch>/qa/B/Admin/public (git archive of the tip, no .git) @ d09095278
+Backend (C, base, :8161): <scratch>/qa/C/Admin/public (git archive of the base, no .git) @ e937aa699
+Freshness check (scripts/newtask-guards/backend-freshness-check.sh): exit 0 with "NOT a git work tree - cannot assert freshness" = UNVERIFIED by the guard (scratch trees by design); identity instead proven by git archive of the exact shas + ps eww DB_DATABASE=multi_food_db_qa4160 + a clone-only login (qa.n4137.vendor@nears.com absent from the shared DB).
+DB: private clone multi_food_db_qa4160 (NEW, read-only mysqldump --single-transaction --set-gtid-purged=OFF of multi_food_db). NEVER written: multi_food_db. All artisan prefixed DB_DATABASE=multi_food_db_qa4160.
+Seeder: Nears4137PartySecretsQaFixtureSeeder blob c4d0e2760973caefa3aac6e7d1ba88ac20a88f4e, run UNCHANGED on the clone only (24 rows inserted). Marker migration 2026_10_10_120000_add_suspended_at_to_stores_table blob 27ff08569c3e0860b39a5ca647bdb5b0361ba283 had to be run first with --path on the clone (the dump does NOT contain stores.suspended_at; the seeder refuses without it; documented recipe section 31/32).
+Roles/employees: created through the owner's Store Panel as app requests (web login /login/vendor, POST vendor-panel/custom-role/create, POST vendor-panel/employee/add-new, POST vendor-panel/custom-role/update/{id}). No SQL DML by QA. Admin suspension via /admin/store/status/91158/{0|1} (app request).
+Clone rebuilt between arms from the seeded+actors mysqldump (scratchpad clone-actors.sql).
+Rate limit: v1-blanket 300/min per IP: replays paced <=250 requests/minute.
+Volatile fields normalised in AC3 comparison: ISO timestamps, host:port inside *_full_url, headers date/x-request-id/host/connection/x-ratelimit-*/retry-after/content-length; tokens/passwords scrubbed.
+Mail precheck (request-withdraw): business_settings.mail_config has no status key (config('mail.status') effective = true), business_settings withdraw_request_mail_status_admin row ABSENT (get_mail_status -> null != '1') and the fixture vendor has NO store_wallets row, so the handler returns the balance refusal before any insert or mail attempt: no mail path reachable.
+Actors: owner qa.n4137.vendor@nears.com; employee qa.n4137.vendor.emp@nears.com (role id 4 modules []); employee qa.n4160.all@nears.com / qa.n4160.one@nears.com (roles 5 'QA4160 All Modules' = all 27 ALLOWED_MODULES, 6 'QA4160 Single Key' re-pointed through the panel per arm).
