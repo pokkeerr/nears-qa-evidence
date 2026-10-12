@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4163
 
-**r3 xprobe: RTL<=768 option variants VB/VX/VX3 vs base**
+**r3 xprobe: VE768 items:2 at RTL 768**
 
-**190 screenshot(s).** Click any thumbnail for full resolution.
+**193 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -316,6 +316,11 @@
 <td align="center" width="33%"><a href="r3-xprobe-VB-rtl-768-n3-s0.png"><img src="r3-xprobe-VB-rtl-768-n3-s0.png" width="240"></a><br><sub>r3 xprobe VB rtl 768 n3 s0</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="r3-xprobe-VE768-rtl-768-n3-s0.png"><img src="r3-xprobe-VE768-rtl-768-n3-s0.png" width="240"></a><br><sub>r3 xprobe VE768 rtl 768 n3 s0</sub></td>
+<td align="center" width="33%"><a href="r3-xprobe-VE768-rtl-768-n5-s0.png"><img src="r3-xprobe-VE768-rtl-768-n5-s0.png" width="240"></a><br><sub>r3 xprobe VE768 rtl 768 n5 s0</sub></td>
+<td align="center" width="33%"><a href="r3-xprobe-VE768-rtl-768-real3-s2.png"><img src="r3-xprobe-VE768-rtl-768-real3-s2.png" width="240"></a><br><sub>r3 xprobe VE768 rtl 768 real3 s2</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="r3-xprobe-VX-rtl-768-n3-s0.png"><img src="r3-xprobe-VX-rtl-768-n3-s0.png" width="240"></a><br><sub>r3 xprobe VX rtl 768 n3 s0</sub></td>
 <td align="center" width="33%"><a href="r3-xprobe-VX3-rtl-768-n3-s0.png"><img src="r3-xprobe-VX3-rtl-768-n3-s0.png" width="240"></a><br><sub>r3 xprobe VX3 rtl 768 n3 s0</sub></td>
 <td align="center" width="33%"><a href="zoom-arrows-S1-1028-synth5-ltr.png"><img src="zoom-arrows-S1-1028-synth5-ltr.png" width="240"></a><br><sub>zoom arrows S1 1028 synth5 ltr</sub></td>
@@ -360,6 +365,7 @@
 - [`r2-resize.json`](r2-resize.json)
 - [`r3-xprobe-geometry-768-n5-s0.json`](r3-xprobe-geometry-768-n5-s0.json)
 - [`r3-xprobe-matrix.json`](r3-xprobe-matrix.json)
+- [`r3-xprobe-ve768-matrix.json`](r3-xprobe-ve768-matrix.json)
 - [`synth-ltr.json`](synth-ltr.json)
 - [`synth-rtl.json`](synth-rtl.json)
 
