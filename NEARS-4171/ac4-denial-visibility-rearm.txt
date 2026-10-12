@@ -1,0 +1,9 @@
+1st denial: open=1 text=['Access denied'] icon=['swal2-warning swal2-animate-warning-icon']
+   visibility: {"topmost_inside_popup": true, "popup_rect": [470, 321, 500, 257], "quickview_modal_open": true}
+after Escape: swal_open=1 (Escape reaches the bootstrap modal first, closes it; the notice stays) bootstrap_modal_open=False latch=[None, True]
+after x dismiss: open=0 latch=[None, False] url=/vendor-panel/pos
+2nd user action after dismiss (open another product quick-view -> GET 403): open=1 text=['Access denied'] fire_calls=2 latch=[None, True]
+--- 2nd action requests
+{"t": 1791800539.53, "m": "GET", "u": "/vendor-panel/pos/quick-view?product_id=117", "s": 403, "rt": "xhr", "x-panel-refusal": "denied", "content-type": "application/json", "body": "{\"errors\":[{\"code\":\"access_denied\",\"message\":\"Access denied\"}]}"}
+{"console": "error", "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"}
+after OK (denied OK = dismiss only): url=/vendor-panel/pos open=0

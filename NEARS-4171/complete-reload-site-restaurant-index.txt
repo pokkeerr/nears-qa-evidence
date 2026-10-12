@@ -1,0 +1,13 @@
+role 4 modules: ["dashboard","profile","order","item","category","store_setup","chat"]
+stores.active/status before: 4	1	1
+employee on store-setup: url=http://127.0.0.1:8171/vendor-panel/business-settings/store-setup toggle present=1
+toggle checked before click: False
+confirm dialog open: ["You want to temporarily close this store"]
+role 4 modules after removing store_setup: ["dashboard","profile","order","item","category","chat"]
+AFTER confirm: marker=alive (alive => no reload) {"url": "/vendor-panel/business-settings/store-setup", "loading": "none", "swal_open": 1, "swal_text": ["Access denied"], "swal_icon": ["swal2-warning swal2-animate-warning-icon"], "swal_ok": ["OK"], "swal_close": [true], "toasts": [], "latch": [null, true]}
+  fire=["You want to temporarily close this store", "Access denied"]
+---   requests (document rows would show a reload GET)
+{"t": 1791800284.36, "m": "POST", "u": "/vendor-panel/business-settings/update-active-status", "s": 403, "rt": "xhr", "x-panel-refusal": "denied", "content-type": "application/json", "body": "{\"errors\":[{\"code\":\"access_denied\",\"message\":\"Access denied\"}]}"}
+{"console": "error", "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"}
+stores.active/status after: 4	1	1
+toggle checked after denial (visual): False

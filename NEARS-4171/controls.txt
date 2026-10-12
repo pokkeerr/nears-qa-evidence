@@ -1,0 +1,16 @@
+admin-employee login -> http://127.0.0.1:8171/admin
+## CONTROL admin panel (admin employee, module employee NOT held)
+   ajax GET /admin/users/employee: 302 location=http://127.0.0.1:8171/admin x-panel-refusal=None x-panel-session=None ct=text/html; charset=utf-8
+   non-ajax GET /admin/users/employee: 302 location=http://127.0.0.1:8171/admin
+   ajax GET /admin/store/list: 302 location=http://127.0.0.1:8171/admin x-panel-refusal=None x-panel-session=None ct=text/html; charset=utf-8
+   non-ajax GET /admin/store/list: 302 location=http://127.0.0.1:8171/admin
+   admin ajax POST stale token: 419 x-panel-refusal=None ct=application/json body={
+    "message": "CSRF token mismatch."
+}
+## CONTROL exempt CSRF routes never 419 (owner, XHR, bogus token)
+   POST /vendor-panel/item/food-variation-generate bogus token: [200, {"content-type": "application/json", "x-request-id": "c7e8f081-c3f8-4b23-9252-81c8708e8190"}, "{\"variation\":\"[]\"}"]
+   POST /vendor-panel/item/variation-generate bogus token: [200, {"content-type": "application/json", "x-request-id": "f17a2999-fc24-4a56-8093-e60a8e19d008"}, "{\"choice_options\":\"[]\",\"variation\":\"[]\",\"attributes\":\"[]\"}"]
+   POST /pay-via-ajax bogus token: 404 hdr={}
+## CONTROL POS business 403 (no header): place-order with empty cart; valid token
+   place-order empty cart: [403, {"content-type": "application/json", "x-request-id": "55269fa4-92f3-4b92-999f-7b8d0daa1aa7"}, "{\"errors\":[{\"code\":\"cart\",\"message\":\"Cart empty warning\"}]}"]
+## 4162 door responses carry no X-Panel-Refusal: see ac3-ac7 file

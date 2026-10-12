@@ -1,0 +1,18 @@
+## owner baseline (commission): add-to-cart works  (script t9.py part 1; transcript copied verbatim, scrubbed of cookies/tokens)
+baseline click: toast-success:Product has been added in cart ; POST /vendor-panel/pos/add-to-cart 200 ; cart '1f48bfea' -> '0dc23f5f' (item added)
+## SUBSCRIPTION ARM (a)
+readback BEFORE (a): multi_food_db_qa4171 | 4 | commission | 1 | NULL | NULL
+stamp (a) output: UPDATE stores SET store_business_model='unsubscribed' WHERE id=4 / Query OK, 1 row affected / Rows matched: 1  Changed: 1  Warnings: 0
+readback AFTER (a): multi_food_db_qa4171 | 4 | unsubscribed | 1 | NULL | NULL
+AFTER click: url /vendor-panel/pos (unchanged), swal_open 1, text "Your subscription is expired.You can only process your on going orders.", icon warning, OK button, toasts none, spinner transitions ["block","none"], Swal.fire calls 1, cart hash unchanged (0dc23f5f)
+request: POST /vendor-panel/pos/add-to-cart 403 x-panel-refusal=denied content-type=application/json body {"errors":[{"code":"subscription","message":"Your subscription is expired.You can only process your on going orders."}]} (no Location, no X-Panel-Session)
+REQ-LEVEL (own fetch): 403 x-panel-refusal=denied same body
+next request GET /vendor-panel (owner): 200  (session alive)
+AC6 non-ajax GET /vendor-panel/pos (own fetch, max_redirects=0): 302 Location=http://127.0.0.1:8171/vendor-panel
+## QUIET ARM owner, store unsubscribed (a): 5 navigations
+nav /vendor-panel -> /vendor-panel swal_open=0 toasts=[toast-error: subscription copy (the pre-existing Toastr flash from the redirect)] message-calls=[GET /vendor-panel/message/list 403 denied]
+nav /vendor-panel/item/list -> /vendor-panel swal_open=0 toasts=[same flash] message-calls=[GET message/list 403 denied]
+nav /vendor-panel/order/list/all -> /vendor-panel/order/list/all swal_open=0 toasts=[] message-calls=[GET message/list 403 denied]
+nav /vendor-panel/pos -> /vendor-panel/order/list/all swal_open=0 toasts=[same flash] message-calls=[GET message/list 403 denied]
+nav /vendor-panel/business-settings/store-setup -> /vendor-panel/order/list/all swal_open=0 toasts=[same flash] message-calls=[GET message/list 403 denied]
+(script then aborted at arm (b): POS page is unreachable once the store is unsubscribed, the quick-view modal must be opened BEFORE the flip; arm (b) re-run below)

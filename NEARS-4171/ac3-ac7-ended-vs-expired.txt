@@ -1,0 +1,34 @@
+## ORDER B (expired -> ended)  readback pre: multi_food_db_qa4171 | 4 | commission | 1 | NULL | NULL
+admin: toggled to 0
+  after stale POST: swal=['Your page has expired. Reload the page and try again.'] icon=['swal2-info swal2-animate-info-icon'] latch=[None, True]
+  after valid POST (ended): open=1 swal=['Your account has been suspended'] icon=['swal2-warning swal2-animate-warning-icon'] latch=[True, True] fire=['Your page has expired. Reload the page and try aga', 'Your account has been suspended']
+---   requests
+{"t": 1791799477.93, "m": "POST", "u": "/vendor-panel/item/variant-combination", "s": 419, "rt": "xhr", "x-panel-refusal": "expired", "content-type": "application/json", "body": "{\"errors\":[{\"code\":\"page_expired\",\"message\":\"Your page has expired. Reload the page and try again.\"}]}"}
+{"console": "error", "text": "Failed to load resource: the server responded with a status of 419 (unknown status)"}
+{"t": 1791799479.95, "m": "POST", "u": "/vendor-panel/item/variant-combination", "s": 403, "rt": "xhr", "x-panel-session": "ended", "content-type": "application/json", "body": "{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}"}
+{"console": "error", "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"}
+  OK -> url=http://127.0.0.1:8171/login/vendor
+admin: toggled to 1
+  readback: multi_food_db_qa4171 | 4 | commission | 1 | NULL | NULL
+## ORDER A (ended -> expired)
+admin: toggled to 0
+  after valid POST (ended): swal=['Your account has been suspended'] latch=[True, None]
+  after stale POST (419): open=1 swal=['Your account has been suspended'] icon=['swal2-warning swal2-animate-warning-icon'] latch=[True, None] fire_calls=['Your account has been suspended']
+---   requests
+{"t": 1791799498.57, "m": "POST", "u": "/vendor-panel/item/variant-combination", "s": 403, "rt": "xhr", "x-panel-session": "ended", "content-type": "application/json", "body": "{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}"}
+{"console": "error", "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"}
+{"t": 1791799501.07, "m": "POST", "u": "/vendor-panel/item/variant-combination", "s": 419, "rt": "xhr", "x-panel-refusal": "expired", "content-type": "application/json", "body": "{\"errors\":[{\"code\":\"page_expired\",\"message\":\"Your page has expired. Reload the page and try again.\"}]}"}
+{"console": "error", "text": "Failed to load resource: the server responded with a status of 419 (unknown status)"}
+  OK -> url=http://127.0.0.1:8171/login/vendor
+admin: toggled to 1
+  readback: multi_food_db_qa4171 | 4 | commission | 1 | NULL | NULL
+## 1b token-mismatch door + duplicate (QA's original repro shape)
+admin: toggled to 0
+admin: toggled to 1
+  readback: multi_food_db_qa4171 | 4 | commission | 1 | NULL | NULL
+  dup POSTs: open=1 swal=['Your session has expired. Please log in again.'] latch=[True, None] fire=['Your session has expired. Please log in again.'] spinner=none
+---   requests
+{"t": 1791799524.26, "m": "POST", "u": "/vendor-panel/item/variant-combination", "s": 401, "rt": "xhr", "x-panel-session": "ended", "content-type": "application/json", "body": "{\"errors\":[{\"code\":\"auth-001\",\"message\":\"Your session has expired. Please log in again.\"}]}"}
+{"console": "error", "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"}
+{"t": 1791799524.3, "m": "POST", "u": "/vendor-panel/item/variant-combination", "s": 419, "rt": "xhr", "x-panel-refusal": "expired", "content-type": "application/json", "body": "{\"errors\":[{\"code\":\"page_expired\",\"message\":\"Your page has expired. Reload the page and try again.\"}]}"}
+{"console": "error", "text": "Failed to load resource: the server responded with a status of 419 (unknown status)"}

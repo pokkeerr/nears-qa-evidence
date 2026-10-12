@@ -1,0 +1,16 @@
+quick-view ready: 1; cart before 1f48bfea
+readback BEFORE (b): multi_food_db_qa4171 | 4 | commission | 1 | NULL | NULL
+stamp (b) output: -------------- / UPDATE stores SET store_business_model='none' WHERE id=4 / -------------- / Query OK, 1 row affected / Rows matched: 1  Changed: 1  Warnings: 0 / Bye
+readback AFTER (b): multi_food_db_qa4171 | 4 | none | 1 | NULL | NULL
+AFTER click: {"url": "/vendor-panel/pos", "loading": "none", "swal_open": 1, "swal_text": ["Please chose a business plan to continue your services"], "swal_icon": ["swal2-warning swal2-animate-warning-icon"], "swal_ok": ["OK"], "swal_close": [true], "toasts": [], "latch": [null, true]}
+  fire=["Please chose a business plan to continue your serv"] spinner=["block", "none"] url_unchanged=True cart after 1f48bfea
+---   requests
+{"t": 1791799845.58, "m": "POST", "u": "/vendor-panel/pos/add-to-cart", "s": 403, "rt": "xhr", "x-panel-refusal": "denied", "content-type": "application/json", "body": "{\"errors\":[{\"code\":\"subscription\",\"message\":\"Please chose a business plan to continue your services\"}]}"}
+{"console": "error", "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"}
+  REQ-LEVEL: [403, {"content-type": "application/json", "x-panel-refusal": "denied", "x-request-id": "f8171199-55f8-4729-bebf-c95eebc9775c"}, "{\"errors\":[{\"code\":\"subscription\",\"message\":\"Please chose a business plan to continue your services\"}]}"]
+  ## stale-flash + QUIET ARM (store 'none'): first nav follows only ajax denials
+    nav /vendor-panel: docs=[('GET', '/vendor-panel', 200, None)] final=/vendor-panel swal_open=0 toasts=[] msg-calls=[('GET', '/vendor-panel/message/list', 403, 'denied')]
+    nav /vendor-panel/order/list/all: docs=[('GET', '/vendor-panel/order/list/all', 200, None)] final=/vendor-panel/order/list/all swal_open=0 toasts=[] msg-calls=[('GET', '/vendor-panel/message/list', 403, 'denied')]
+    nav /vendor-panel/item/list: docs=[('GET', '/vendor-panel/item/list', 302, 'http://127.0.0.1:8171/vendor-panel/order/list/all'), ('GET', '/vendor-panel/order/list/all', 200, None)] final=/vendor-panel/order/list/all swal_open=0 toasts=['toast-error:Please chose a business plan to continue your services'] msg-calls=[('GET', '/vendor-panel/message/list', 403, 'denied')]
+    nav /vendor-panel/pos: docs=[('GET', '/vendor-panel/pos', 302, 'http://127.0.0.1:8171/vendor-panel/order/list/all'), ('GET', '/vendor-panel/order/list/all', 200, None)] final=/vendor-panel/order/list/all swal_open=0 toasts=['toast-error:Please chose a business plan to continue your services'] msg-calls=[('GET', '/vendor-panel/message/list', 403, 'denied')]
+    nav /vendor-panel/business-settings/store-setup: docs=[('GET', '/vendor-panel/business-settings/store-setup', 302, 'http://127.0.0.1:8171/vendor-panel/order/list/all'), ('GET', '/vendor-panel/order/list/all', 200, None)] final=/vendor-panel/order/list/all swal_open=0 toasts=['toast-error:Please chose a business plan to continue your services'] msg-calls=[('GET', '/vendor-panel/message/list', 403, 'denied')]

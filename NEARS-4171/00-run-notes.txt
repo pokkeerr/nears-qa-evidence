@@ -1,0 +1,20 @@
+NEARS-4171 QA [8], tested sha 867d4ede648b7017a94331a673952d1eb2b5eb21, scratch tree /Users/Apple/Projects/nears-NEARS-4171-mut (detached), served on :8171
+DB proof before first write: ps eww -> DB_DATABASE=multi_food_db_qa4171; clone-only column stores.suspended_at present on clone, absent on shared;
+  a served wrong-password login wrote 2 rate-limit rows into the CLONE cache table (59 -> 61) and 0 into the shared one (59 -> 59).
+Stamped statements run (sha256 verified before each, `Rows matched: 1  Changed: 1` each time), order actually run: (a) unsubscribed, (c) commission, (b) none, (c) commission.
+  Deviation from the stamped order a,b,c: POS cannot be loaded while the store is unsubscribed, so the quick-view modal for arm (b) had to be opened under commission;
+  (c) was therefore run once between (a) and (b) (readback before: unsubscribed, after: commission), then (b) from commission, then the final (c).
+Readbacks (SELECT DATABASE(), id, store_business_model, status, package_id, suspended_at FROM stores WHERE id=4), in order:
+  start:        multi_food_db_qa4171 4 commission   1 NULL NULL
+  (a) before:   commission 1 NULL NULL   -> after: unsubscribed 1 NULL NULL
+  (c#1) before: unsubscribed 1 NULL NULL -> after: commission 1 NULL NULL
+  (b) before:   commission 1 NULL NULL   -> after: none 1 NULL NULL
+  (c#2) before: none 1 NULL NULL         -> after: commission 1 NULL NULL
+  final:        multi_food_db_qa4171 4 commission 1 NULL NULL
+AC7 admin suspend/reactivate via the admin UI on the clone (no SQL): status 1/NULL -> 0/<timestamp> -> 1/NULL, three cycles, readback status 1 suspended_at NULL after each.
+Shared-DB sentinel (multi_food_db), before (recorded earlier by the conductor) and after (this run):
+  before_1: multi_food_db 4 commission 1 NULL ; before_2: COUNT(*) unsubscribed/none = 0
+  after_1 : multi_food_db 4 commission 1 NULL ; after_2 : COUNT(*) unsubscribed/none = 0   (see sentinel_shared_after_*.txt)
+Clone fixtures created through the UI only: employee_roles 4 qa4171-posrole, 5 qa4171-nochat (store 4); vendor_employees 2 qa4171.pos@example.com, 3 qa4171.nochat@example.com;
+  admins 10 qa4171.admin@example.com (admin role 5); POS session carts. 0 qa4171 rows on the shared DB (read-only count).
+Client-side-validation bypass (harness only): `FormValidation.validateForm = () => true` before triggering #item_form submit (the page's own ajax handler then ran unmodified).
