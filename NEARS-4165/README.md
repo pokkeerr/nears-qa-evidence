@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4165
 
-**cycle1: AC5 PASS, 22/22 killed, 3 extra survivors non-blocking**
+**8b: recaller accepted on non-middleware routes, not revoked by password change**
 
 **12 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -42,6 +42,7 @@
 - [`mutation_table_full.json`](mutation_table_full.json)
 - [`phpunit_new_test_at_BASE_summary.txt`](phpunit_new_test_at_BASE_summary.txt)
 - [`phpunit_six_login_classes_plus_new_at_TIP_summary.txt`](phpunit_six_login_classes_plus_new_at_TIP_summary.txt)
+- [`recaller_rows_8b.json`](recaller_rows_8b.json)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-4165/` · public-repo scrub policy (no live secrets; verified clean).*
