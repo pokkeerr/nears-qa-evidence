@@ -1,0 +1,14 @@
+NEARS-4153 QA, regression candidate (Low, pre-existing, NOT part of 4153 ACs)
+Page: admin/business-settings/subscription/subscriptionackage/{id} (package-details.blade.php), status toggle (input.status_change_alert)
+Driven live as role_id 1 and as restricted admin on FIXED (96baac953) and on BASE (a337d82ce): identical behaviour.
+Click on the toggle label -> browser pageerror (Playwright pageerror event):
+  Cannot read properties of undefined (reading 'preventDefault')
+Cause (read from blade): lines ~327-345 bind a direct $('.status_change_alert').on('click', ...) that calls
+  status_change_alert(url, message, event)  -- but function status_change_alert is declared TWICE in the same script
+  (line ~333 3-arg, line ~406 2-arg); hoisting makes the 2-arg version win, so e = undefined -> TypeError.
+Effect observed: the throwing handler never reaches location.href=url (the GET that the POST-only status route would 405);
+  the delegated handler (line ~373) still opens the confirm modal; modal confirm -> nearsPostRoute POST -> works.
+  role_id 1: POST /status/2?0 -> 302, "Package Deacitvated successfully", status 1->0.
+  restricted (fixed): POST /status/2?0 -> 302, toast "Access denied", status unchanged.
+  restricted (base): POST /status/2?0 -> 302, deactivated successfully.
+So: harmless console error + dead duplicate handler; the working path is the modal POST. No functional breakage.
