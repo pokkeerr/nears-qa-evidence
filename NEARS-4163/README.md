@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4163
 
-**re-QA cycle 1: AC1/2/3(reach)/5 PASS, AC4(a) PASS, AC4(b) 12/24 rows FAIL, AC4(c) HIGH residual, resize 4-card position reset**
+**r3 xprobe: RTL<=768 option variants VB/VX/VX3 vs base**
 
-**187 screenshot(s).** Click any thumbnail for full resolution.
+**190 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -313,6 +313,11 @@
 <tr>
 <td align="center" width="33%"><a href="r2-overlap-S1-tip-992-n4.png"><img src="r2-overlap-S1-tip-992-n4.png" width="240"></a><br><sub>r2 overlap S1 tip 992 n4</sub></td>
 <td align="center" width="33%"><a href="r2-overlap-S1-tip-992-n5.png"><img src="r2-overlap-S1-tip-992-n5.png" width="240"></a><br><sub>r2 overlap S1 tip 992 n5</sub></td>
+<td align="center" width="33%"><a href="r3-xprobe-VB-rtl-768-n3-s0.png"><img src="r3-xprobe-VB-rtl-768-n3-s0.png" width="240"></a><br><sub>r3 xprobe VB rtl 768 n3 s0</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="r3-xprobe-VX-rtl-768-n3-s0.png"><img src="r3-xprobe-VX-rtl-768-n3-s0.png" width="240"></a><br><sub>r3 xprobe VX rtl 768 n3 s0</sub></td>
+<td align="center" width="33%"><a href="r3-xprobe-VX3-rtl-768-n3-s0.png"><img src="r3-xprobe-VX3-rtl-768-n3-s0.png" width="240"></a><br><sub>r3 xprobe VX3 rtl 768 n3 s0</sub></td>
 <td align="center" width="33%"><a href="zoom-arrows-S1-1028-synth5-ltr.png"><img src="zoom-arrows-S1-1028-synth5-ltr.png" width="240"></a><br><sub>zoom arrows S1 1028 synth5 ltr</sub></td>
 </tr>
 <tr>
@@ -353,6 +358,8 @@
 - [`r2-overlap-measure.json`](r2-overlap-measure.json)
 - [`r2-resize-base.json`](r2-resize-base.json)
 - [`r2-resize.json`](r2-resize.json)
+- [`r3-xprobe-geometry-768-n5-s0.json`](r3-xprobe-geometry-768-n5-s0.json)
+- [`r3-xprobe-matrix.json`](r3-xprobe-matrix.json)
 - [`synth-ltr.json`](synth-ltr.json)
 - [`synth-rtl.json`](synth-rtl.json)
 
