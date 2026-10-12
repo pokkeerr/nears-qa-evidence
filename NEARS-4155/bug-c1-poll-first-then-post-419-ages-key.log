@@ -1,0 +1,8 @@
+c1 task_bug (breaks AC2 only where the 10 s poll runs: order_notification_type=manual). Fixed tip f9d6b9f89.
+Sequence (Chrome, then reproduced in curl): owner page open, admin suspends, the page's own poll is the FIRST refusal (door: logout+invalidate+regenerateToken, 403 JSON, key flashed).
+Polls 2..n = keyed-guest 403 JSON with keep (works, O4 fixed). The owner then clicks Shift In This Plan > Yes:
+  POST switch-to-commission/4 [419 CSRF token mismatch] - VerifyCsrfToken runs before the vendor middleware, the page's meta token died with the door's regenerateToken,
+  so the keyed-guest branch never runs, its keep() never runs, and the request ages the one-shot key out.
+  jQuery $.post has no error handler: complete -> location.reload() -> guest GET with no key -> 302 "/" (curl: "reload after the 419 -> 302 loc=[http://localhost:8155/]").
+Owner sees: no toast, ends on "/" (home), never the suspended copy. Plain reload instead of the click: /login/vendor with the copy (Run B).
+No false success, no money movement (state unchanged). Pre-existing door shape (regenerateToken since 4127) + the key living only in the session; reachable on every manual-notification store.

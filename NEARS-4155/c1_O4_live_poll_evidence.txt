@@ -1,0 +1,42 @@
+# CYCLE 1 (tip f9d6b9f89, own server :8155, clone qa4155) - O4 live in Chrome, order_notification_type=manual set via the real admin route (form replay of POST admin/business-settings/update-order with only that field changed, value read back 'manual'; no raw DML)
+## Run A: not-held polls then held, 5 polls, then the owner clicks Shift > Yes. Browser network list (get-store-data):
+reqid 10723 [200], 10724 [200]  (owner not held)
+10725 [403] (first refusal = the poll itself, door), 10726 [403], 10727 [403], 10728 [403], 10729 [403]  (keyed guest) - no redirect hop, no GET /
+10730 POST switch-to-commission/4 [419]  (stale CSRF: the door's regenerateToken at the poll refusal invalidated the page token)
+then the page's complete->location.reload() lands on http://localhost:8155/ (no login, no copy), screenshot c1_poll_then_shift_ends_on_home_no_copy.png
+QA4155LOG [{"load":"http://localhost:8155/vendor-panel/subscription/subscriber-detail","nav":"navigate","t":"40:54","u":"/vendor-panel/subscription/subscriber-detail"},
+{"ui":"loading","text":"","t":"40:54","u":"/vendor-panel/subscription/subscriber-detail"},
+{"ui":"plan-modal","text":"Change Subscription Plan\n                        \n                        \n                           Renew or shift you","t":"40:54","u":"/vendor-panel/subscription/subscriber-detail"},
+{"xhr":"GET /vendor-panel/get-store-data","status":200,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"success\":1,\"data\":{\"new_pending_order\":0,\"new_confirmed_order\":0,\"order_type\":\"store_order\"}}","t":"41:04","u":"/vendo
+{"xhr":"GET /vendor-panel/get-store-data","status":200,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"success\":1,\"data\":{\"new_pending_order\":0,\"new_confirmed_order\":0,\"order_type\":\"store_order\"}}","t":"41:14","u":"/vendo
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"41:24","u":"/vendor-panel/subscription/
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"41:34","u":"/vendor-panel/subscription/
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"41:44","u":"/vendor-panel/subscription/
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"41:54","u":"/vendor-panel/subscription/
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"42:04","u":"/vendor-panel/subscription/
+{"xhr":"POST /vendor-panel/subscription/switch-to-commission/4","status":419,"respURL":"/vendor-panel/subscription/switch-to-commission/4","ct":"application/json","body":"{ \"message\": \"CSRF token mismatch.\" }","t":"42:11","u":"/vendor-panel/subscription/su
+
+[FAIL] lines in Run A window: exactly 1 (the poll refusal) correlation_id 0af1866b-f988-4320-8443-ebdca825470a
+
+## Run B: poll refusal then PLAIN RELOAD (no POST): polls 403 x3 (1 FAIL e9233229-...), reload -> /login/vendor with 'Your account has been suspended' (c1_poll_then_reload_ends_on_login_copy.png)
+QA4155LOG [{"load":"/vendor-panel/subscription/subscriber-detail","nav":"navigate","t":"42:49"},
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","t":"42:59"},
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","t":"43:09"},
+{"xhr":"GET /vendor-panel/get-store-data","status":403,"respURL":"/vendor-panel/get-store-data","t":"43:19"}]
+
+## Mechanism (curl)
+# jar x (page polled first, then the owner clicks Shift = POST with the page's now-stale CSRF)
+poll1 (first refusal, door) 403 loc=[] ct=[application/json]
+{"errors":[{"code":"auth-003","message":"Your account has been suspended"}]}
+X-Request-Id: 5f0e5e79-b894-4998-8a73-18f70e8fb75e
+poll2 (keyed guest) 403 loc=[]
+{"errors":[{"code":"auth-003","message":"Your account has been suspended"}]}
+ajax 419 loc=[] ct=[application/json]
+{
+    "message": "CSRF token mismatch."
+reload after the 419 -> 302 loc=[http://localhost:8155/]
+# jar y (poll first, then plain reload - no POST in between)
+poll1 403
+poll2 403
+reload -> 302 loc=[http://localhost:8155/login/vendor]
+session_suspended FAIL lines in this block: 2 (2 sessions, 1 refusal each)

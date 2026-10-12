@@ -1,0 +1,39 @@
+## cycle 1 AC1/AC4/O5/O7/ordinary-guest at f9d6b9f89 (firebase notification type restored via the same admin form)
+## AC1 at f9d6b9f89
+ajax 403 loc=[] ct=[application/json]
+{"errors":[{"code":"auth-003","message":"Your account has been suspended"}]}
+X-Request-Id: d08b3e80-caa5-4148-b97c-684c2aad0628
+Set-Cookie: XSRF-TOKEN=<redacted>; expires=<redacted>; Max-Age=7200; path=/; samesite=lax
+Set-Cookie: laravel_session=<redacted>; expires=<redacted>; Max-Age=7200; path=/; httponly; samesite=lax
+next plain nav:
+nav 302 loc=[http://localhost:8155/login/vendor]
+X-Request-Id: d8a8b434-7707-41df-ac43-eb2624377f09
+log by id d08b3e80-caa5-4148-b97c-684c2aad0628: laravel.log=1 structured=1 account_suspended=0
+[2026-10-12 07:44:09] production.ERROR: [FAIL] vendor.session_suspended {"correlation_id":"d08b3e80-caa5-4148-b97c-684c2aad0628","store_id":4,"surface":"web"} 
+
+## AC4 plain navigation by held owner (jar d, no prior refusal)
+nav 302 loc=[http://localhost:8155/login/vendor]
+X-Request-Id: ef1bfac1-82eb-43fd-ae7a-3953a689bcb7
+Location: http://localhost:8155/login/vendor
+copy occurrences on login page: 1
+
+## O5 stale CSRF (jar o)
+419 ct=[application/json]
+{"message":"CSRFtokenmismatch."}
+
+## O7 two tabs one session (jar n)
+ajax 403 loc=[] ct=[application/json]
+tab1 nav -> 302 loc=[http://localhost:8155/login/vendor]
+tab2 nav -> 302 loc=[http://localhost:8155/]
+
+## ordinary ajax GUEST (no key) must still 302 home
+fresh guest XHR -> 302 loc=[http://localhost:8155/]
+
+FAIL lines this block: 3 (sessions c,d,n = 3 refusals; o 419 = 0)
+
+## AC2 default config (no poll) browser: XHR log
+QA4155LOG [{"load":"/vendor-panel/subscription/subscriber-detail","nav":"navigate","t":"44:25"},
+{"xhr":"POST /vendor-panel/subscription/switch-to-commission/4","status":403,"respURL":"/vendor-panel/subscription/switch-to-commission/4","ct":"application/json","body":"{\"errors\":[{\"code\":\"auth-003\",\"message\":\"Your account has been suspended\"}]}","t":"44:39"}]
+[FAIL] in window: 1 (67b6eb51-aeee-4134-82cb-b7ae9d98f250); money pin SELECT before/after identical (wallet 1200.00/800.00/100.00, refund rows 0, subs row 2 status 1, txns 1)
+O6: maria.garcia (store 5) login right after: dashboard, 0 'suspended' occurrences
+phpunit: 4155 class 22 tests / 341 assertions OK; combined filter 70 tests / 847 assertions OK
