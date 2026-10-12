@@ -1,0 +1,42 @@
+P4 AC4 - log absence + positive control
+
+(a) TIP :8157 whole-session laravel.log (scratch tree): 0 lines, [FAIL] count 0; grep -cF of every nonce prefix N4157 -> 0, N4137 QA -> 0, SQL: -> 0 ; laravel-structured.log lines 0
+   Covers: P1 success, P3 refusals (403), P5 refusals (401/403), P6 web profile save, P7 employee calls, array-branch call. None emitted a log line at all (LOG_LEVEL=warning).
+
+(b) positive control ON THE BASE TWIN (see p2): provoked failure on this route -> one [FAIL] exception_reported line with type, endpoint, correlation_id and NO value.
+
+(c) positive control ON THE TIP CODE: a TRUE third scratch copy (qa/tip-strict: tip tree, only config/database.php strict=>true on :8159; app/ byte-identical to tip - diff -rq empty). Form-encoded raw 0xFF byte in holder_name (strict-mode 1366), same route:
+  request X-Request-Id 6a2aa25e-d78c-4cf0-94d8-9b2c05c8cbfe -> status 500 body {"message":"Something went wrong"}
+  log line: [2026-10-12 07:13:15] production.ERROR: [FAIL] exception_reported {"correlation_id":"6a2aa25e-d78c-4cf0-94d8-9b2c05c8cbfe","type":"Illuminate\\Database\\QueryException","code":"HY000","driver_code":1366,"file":"app/Http/Controllers/Api/V1/Vendor/VendorController.php","line":975,"endpoint":"/api/v1/vendor/update-bank-info"}
+  absence in that log: N4157-BANK-9=0 N4157-BR-9=0 N4157-HOLDER-9=0 N4157-ACCT-9=0 "update `vendors`"=0 "SQL:"=0 "Incorrect string"=0 ; owner row unchanged by the failed call
+
+NOTE (observation, not a ticket defect): the solution doc candidate 1 (2-element array for branch -> HY093) does NOT fire on this non-strict clone: the array is accepted and stored JSON-encoded in vendors.branch (see p4b). This is the Low "array-accepting trio validation" candidate pre-routed by the advisor in comment 24955.
+p4b array-branch request (tip):
+### p4-provoke-tip  
+X-Request-Id: 899efc4b-6b8e-4143-bbce-84abc78dc079
+status line: HTTP/1.1 200 OK
+response headers:
+  Host: 127.0.0.1:8157
+  Connection: close
+  X-Powered-By: PHP/8.2.34
+  Cache-Control: no-cache, private
+  Date: Mon, 12 Oct 2026 03:12:37 GMT
+  Content-Type: application/json
+  X-RateLimit-Limit: 300
+  X-RateLimit-Remaining: 298
+  X-Request-Id: 899efc4b-6b8e-4143-bbce-84abc78dc079
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Access-Control-Allow-Origin: *
+response body (52 bytes): {"message":"Bank info updated successfully","0":200}
+
+row diff (SELECT-only):
+12,14c12,14
+<             branch: N4157-BR-7
+<        holder_name: N4157-HOLDER-7
+<         account_no: N4157-ACCT-7
+---
+>             branch: ["N4157-BR-8a","N4157-BR-8b"]
+>        holder_name: N4157-HOLDER-8
+>         account_no: N4157-ACCT-8

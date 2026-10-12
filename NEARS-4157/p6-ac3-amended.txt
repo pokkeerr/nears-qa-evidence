@@ -1,0 +1,44 @@
+P6 AC3 amended (i)-(iv), TIP tree
+
+(i) route:list --path=vendor-panel (182 routes total) filtered strictly (uri|name|action ~ bank|withdraw|holder|account_no|branch|w_request):
+STRICT bank-adjacent (uri|name|action ~ bank|withdraw|holder|account_no|branch|w_request):
+  POST vendor-panel/wallet/request | vendor.wallet.withdraw-request | WalletController@w_request
+  GET|HEAD vendor-panel/withdraw-method | vendor.wallet-method.index | WalletMethodController@index
+  POST vendor-panel/withdraw-method/default/{id}/{default} | vendor.wallet-method.default | WalletMethodController@default
+  DELETE vendor-panel/withdraw-method/delete/{id} | vendor.wallet-method.delete | WalletMethodController@delete
+  POST vendor-panel/withdraw-method/store | vendor.wallet-method.store | WalletMethodController@store
+profile routes:
+  POST vendor-panel/profile/settings-password | vendor.profile.settings-password
+  POST vendor-panel/profile/update | vendor.profile.update
+  GET|HEAD vendor-panel/profile/view | vendor.profile.view
+
+Wide across ALL 1466 routes (uri|name|action ~ bank|holder|account_no|branch), excluding vendor-panel: only PUT api/v1/vendor/update-bank-info -> VendorController@update_bank_info.
+DRIFT: the withdraw-method group also has GET vendor-panel/withdraw-method (index, a list view); AC wording lists store/make-default/delete only.
+
+(ii) grep -rnE 'bank_name|holder_name|account_no' Admin/resources/views (identical on base twin and tip, views untouched by the diff):
+Admin/resources/views/file-exports/dm-withdraw-transaction.blade.php:31:                <th>{{ translate('messages.bank_account_no.') }}</th>
+Admin/resources/views/file-exports/dm-withdraw-transaction.blade.php:50:                <td>{{$wr->deliveryman && $wr->deliveryman->account_no ? $wr->deliveryman->account_no : 'No Data found'}}</td>
+Admin/resources/views/file-exports/store-withdraw-transaction.blade.php:32:                <th>{{ translate('messages.bank_account_no.') }}</th>
+Admin/resources/views/file-exports/store-withdraw-transaction.blade.php:52:                <td>{{$wr->vendor && $wr->vendor->account_no ? $wr->vendor->account_no : 'No Data found'}}</td>
+count = 4 (NOT 3). The two extra hits are file-exports/dm-withdraw-transaction.blade.php:31 and store-withdraw-transaction.blade.php:32, the <th> label translate('messages.bank_account_no.') (substring "account_no" in the translation KEY). custom-role/create.blade.php:521 (`@if ($m == 'bank_info')`) does NOT match the regex at all. <input / name= hits among them: 0. Direct input search: grep -rniE 'name="(bank|branch|holder|account)[a-z_]*"' Admin/resources/views -> 0 hits. Profile view page of the Store Panel renders inputs f_name,l_name,phone,email,image only (0 bank/branch/holder/account inputs).
+
+(iii) grep -rnE '->bank_name\s*=' Admin/app:
+  BASE twin: Admin/app/Http/Controllers/Api/V1/Vendor/VendorController.php:971:        $bank->bank_name = $request->bank_name;   (count 1, instrument live)
+  TIP copy : count 0
+
+(iv) Store Panel web profile save as the fixture owner (login /login/vendor role=vendor -> 302 /vendor-panel; POST /vendor-panel/profile/update changing f_name QA -> N4157-FNAME-WEB, other fields as rendered):
+  before vs after (SELECT-only; only f_name and updated_at differ):
+2c2
+<             f_name: QA
+---
+>             f_name: N4157-FNAME-WEB
+10c10
+<         updated_at: 2026-10-12 07:09:51
+---
+>         updated_at: 2026-10-12 07:11:04
+  branch, holder_name, account_no, rejection_note NOT in the diff = byte-identical.
+  f_name restored through the same web form (QA); before vs restored (only updated_at remains moved, un-restorable):
+10c10
+<         updated_at: 2026-10-12 07:09:51
+---
+>         updated_at: 2026-10-12 07:11:04

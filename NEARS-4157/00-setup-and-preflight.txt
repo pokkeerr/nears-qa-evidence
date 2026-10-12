@@ -1,0 +1,36 @@
+NEARS-4157 QA PART 1 - setup and pre-flight (cycle 0)
+worktree HEAD: 2e010e854e1bbe307ace3ee1ccde360fc8752d8e  (status clean: 0 dirty paths)
+base: dee1260131cae06130ba43d02bf89c7fc828942a
+blob checks: seeder c4d0e2760973caefa3aac6e7d1ba88ac20a88f4e (expect c4d0e276...), marker migration 27ff08569c3e0860b39a5ca647bdb5b0361ba283 (expect 27ff0856...)
+scratch trees (rsync, no .git): tip=qa/tip (:8157), base twin=qa/base (:8158, only VendorController.php replaced by git show dee1260131:...), third copy qa/tip-strict (:8159, tip + config/database.php 'strict'=>true, used only for the AC4 1366 control)
+twin proof: base twin `grep -n '$bank->bank_name'` -> 971:        $bank->bank_name = $request->bank_name; ; tip copy count -> 0
+diff -rq tip/Admin/app base/Admin/app -> Files tip/Admin/app/Http/Controllers/Api/V1/Vendor/VendorController.php and base/Admin/app/Http/Controllers/Api/V1/Vendor/VendorController.php differ
+Admin/.env in both copies: DB_DATABASE=multi_food_db_qa4157, APP_URL=own port, SESSION_SECURE_COOKIE=false, OTEL_SDK_DISABLED=true (config:clear with DB_DATABASE inline)
+clone: multi_food_db_qa4157 created from ONE read-only `mysqldump --single-transaction --set-gtid-purged=OFF multi_food_db`; marker migration 2026_10_10_120000 + Nears4137PartySecretsQaFixtureSeeder run (inserted 24 rows) on the clone only
+freshness pre-flight: backend-freshness-check.sh 8157 / 8158 before boot -> exit 2 (nothing listening); after boot -> exit 2 "NOT a git work tree" (scratch rsync copies carry no .git, cannot assert freshness): UNVERIFIED-class, NOT a verified PASS. Attribution done by hand below.
+server DB proof: ps eww on the php -S children and the artisan parents: single DB_DATABASE=multi_food_db_qa4157 each (no duplicate, no shared db)
+  tip   :8157 child pid 97891 parent 97870 cwd .../qa/tip/Admin(/public)
+  base  :8158 child pid 97892 parent 97872 cwd .../qa/base/Admin(/public)
+request-level readback BEFORE any write: login as the clone-only fixture owner qa.n4137.vendor@nears.com on :8157 -> 200 (owner exists only on the clone).
+Backend (for the QA comment): /private/tmp/claude-501/-Users-Apple-Projects-nears/a7f5d4bb-4211-4dfc-9952-11437c9104f3/scratchpad/n4157/qa/tip/Admin @ 2e010e854 (tip content; scratch rsync of the worktree) and /private/tmp/claude-501/-Users-Apple-Projects-nears/a7f5d4bb-4211-4dfc-9952-11437c9104f3/scratchpad/n4157/qa/base/Admin @ dee126013 + tip tree (base twin)
+SELECT-only helper snapshot: full vendors row of the fixture owner (secrets shown only as 12-char sha256 prefixes).
+owner baseline right after seeding:
+                id: 91156
+            f_name: QA
+            l_name: N4137 Vendor
+             phone: +971500041372
+             email: qa.n4137.vendor@nears.com
+ email_verified_at: NULL
+      password_md5: 9e14e0e4d277
+    remember_token: NULL
+        created_at: 2026-10-12 07:07:18
+        updated_at: 2026-10-12 07:07:18
+    rejection_note: n4137-qa-rejection-note
+            branch: N4137 QA Branch
+       holder_name: N4137 QA Holder
+        account_no: N4137-QA-ACCOUNT-000111
+             image: NULL
+            status: 1
+firebase_token_md5: 36d08c2ea86e
+    auth_token_md5: e3b0c44298fc
+           lrt_md5: f94d7224dbb9

@@ -1,0 +1,123 @@
+P5 AC7 - refusals identical base vs tip, and the legit-payload response shape on tip
+
+### p5-notoken-base  
+X-Request-Id: 06197556-1d29-431c-b3e9-2d345b4562b7
+status line: HTTP/1.1 401 Unauthorized
+response headers:
+  Host: 127.0.0.1:8158
+  Connection: close
+  X-Powered-By: PHP/8.2.34
+  Cache-Control: no-cache, private
+  Date: Mon, 12 Oct 2026 03:09:51 GMT
+  Content-Type: application/json
+  X-RateLimit-Limit: 300
+  X-RateLimit-Remaining: 289
+  X-Request-Id: 06197556-1d29-431c-b3e9-2d345b4562b7
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Access-Control-Allow-Origin: *
+response body (58 bytes): {"errors":[{"code":"auth-001","message":"Unauthorized."}]}
+
+### p5-notoken-tip  
+X-Request-Id: 4e22a07a-c23f-448e-9bae-6fc312e96eaf
+status line: HTTP/1.1 401 Unauthorized
+response headers:
+  Host: 127.0.0.1:8157
+  Connection: close
+  X-Powered-By: PHP/8.2.34
+  Cache-Control: no-cache, private
+  Date: Mon, 12 Oct 2026 03:09:51 GMT
+  Content-Type: application/json
+  X-RateLimit-Limit: 300
+  X-RateLimit-Remaining: 292
+  X-Request-Id: 4e22a07a-c23f-448e-9bae-6fc312e96eaf
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Access-Control-Allow-Origin: *
+response body (58 bytes): {"errors":[{"code":"auth-001","message":"Unauthorized."}]}
+
+### p5-novt-base  
+X-Request-Id: 2d4865e9-9f77-4383-ae2c-6e663eb25dce
+status line: HTTP/1.1 403 Forbidden
+response headers:
+  Host: 127.0.0.1:8158
+  Connection: close
+  X-Powered-By: PHP/8.2.34
+  Cache-Control: no-cache, private
+  Date: Mon, 12 Oct 2026 03:09:51 GMT
+  Content-Type: application/json
+  X-RateLimit-Limit: 300
+  X-RateLimit-Remaining: 288
+  X-Request-Id: 2d4865e9-9f77-4383-ae2c-6e663eb25dce
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Access-Control-Allow-Origin: *
+response body (68 bytes): {"errors":[{"code":"vendor_type","message":"Vendor type required"}]}
+
+### p5-novt-tip  
+X-Request-Id: d8da0112-ed77-416b-8c3e-7ab8d7b5a739
+status line: HTTP/1.1 403 Forbidden
+response headers:
+  Host: 127.0.0.1:8157
+  Connection: close
+  X-Powered-By: PHP/8.2.34
+  Cache-Control: no-cache, private
+  Date: Mon, 12 Oct 2026 03:09:51 GMT
+  Content-Type: application/json
+  X-RateLimit-Limit: 300
+  X-RateLimit-Remaining: 291
+  X-Request-Id: d8da0112-ed77-416b-8c3e-7ab8d7b5a739
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Access-Control-Allow-Origin: *
+response body (68 bytes): {"errors":[{"code":"vendor_type","message":"Vendor type required"}]}
+
+### p5-badtoken-base  
+X-Request-Id: ff93e493-d5a1-4022-8279-250a360dfe52
+status line: HTTP/1.1 401 Unauthorized
+response headers:
+  Host: 127.0.0.1:8158
+  Connection: close
+  X-Powered-By: PHP/8.2.34
+  Cache-Control: no-cache, private
+  Date: Mon, 12 Oct 2026 03:09:51 GMT
+  Content-Type: application/json
+  X-RateLimit-Limit: 300
+  X-RateLimit-Remaining: 287
+  X-Request-Id: ff93e493-d5a1-4022-8279-250a360dfe52
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Access-Control-Allow-Origin: *
+response body (58 bytes): {"errors":[{"code":"auth-001","message":"Unauthorized."}]}
+
+### p5-badtoken-tip  
+X-Request-Id: 283f85a6-4bb9-45c5-8e7e-bb4afef2eb79
+status line: HTTP/1.1 401 Unauthorized
+response headers:
+  Host: 127.0.0.1:8157
+  Connection: close
+  X-Powered-By: PHP/8.2.34
+  Cache-Control: no-cache, private
+  Date: Mon, 12 Oct 2026 03:09:51 GMT
+  Content-Type: application/json
+  X-RateLimit-Limit: 300
+  X-RateLimit-Remaining: 290
+  X-Request-Id: 283f85a6-4bb9-45c5-8e7e-bb4afef2eb79
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Access-Control-Allow-Origin: *
+response body (58 bytes): {"errors":[{"code":"auth-001","message":"Unauthorized."}]}
+
+cmp base vs tip:
+notoken: IDENTICAL BYTES
+novt: IDENTICAL BYTES
+badtoken: IDENTICAL BYTES
+
+Legit payload on tip: status 200, Content-Type application/json, body bytes exactly {"message":"Bank info updated successfully","0":200} (p1). Base cannot answer the legit payload (500) so byte identity vs the INTENDED shape is pinned by the unit test (18/18 OK) and by this cmp against the literal.
+Pending / suspended owner token refusals (403 auth-003): NOT driven live - the fixture owner is active and there is no pending/suspended vendor in the clone; covered by the unit tests (T4). Not fabricated.

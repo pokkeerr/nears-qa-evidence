@@ -1,0 +1,65 @@
+P1 AC1/AC6 - TIP :8157, active approved owner, legit body with nonces (bank_name=N4157-BANK-1 branch=N4157-BR-1 holder_name=N4157-HOLDER-1 account_no=N4157-ACCT-1)
+
+### p1-update-tip  (PUT update-bank-info)
+X-Request-Id: 4558c366-caeb-40c8-9f99-81d7b446afa9
+status line: HTTP/1.1 200 OK
+response headers:
+  Host: 127.0.0.1:8157
+  Connection: close
+  X-Powered-By: PHP/8.2.34
+  Cache-Control: no-cache, private
+  Date: Mon, 12 Oct 2026 03:08:48 GMT
+  Content-Type: application/json
+  X-RateLimit-Limit: 300
+  X-RateLimit-Remaining: 298
+  X-Request-Id: 4558c366-caeb-40c8-9f99-81d7b446afa9
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Access-Control-Allow-Origin: *
+response body (52 bytes): {"message":"Bank info updated successfully","0":200}
+
+raw body bytes (hex): 7b226d657373616765223a2242616e6b20696e666f2075706461746564207375636365737366756c6c79222c2230223a3230307d
+expected bytes of {"message":"Bank info updated successfully","0":200} -> exact match (cmp below)
+cmp: IDENTICAL
+
+full vendors row diff before -> after (SELECT-only; "<" before, ">" after):
+10c10
+<         updated_at: 2026-10-12 07:08:33
+---
+>         updated_at: 2026-10-12 07:08:48
+12,14c12,14
+<             branch: N4137 QA Branch
+<        holder_name: N4137 QA Holder
+<         account_no: N4137-QA-ACCOUNT-000111
+---
+>             branch: N4157-BR-1
+>        holder_name: N4157-HOLDER-1
+>         account_no: N4157-ACCT-1
+(rejection_note, f_name, phone, email, password, image, status NOT in the diff = byte-identical)
+
+bank_name nonce N4157-BANK-1 scan, every char/text/json column of every table of the clone (SELECT-only), 0 hits: scan-done nonce=N4157-BANK-1
+positive control of the scanner, run right after the write (the written branch nonce N4157-BR-1 must be found): "vendors: 1" then scan-done nonce=N4157-BR-1 (re-running it now would return 0 because later probes overwrote the branch; this paragraph records the live measurement made at 07:09). The N4157-BANK-1 scan above was likewise taken right after the write and printed only scan-done = no table, no column holds it.
+
+### p1-profile-tip  (GET profile as owner)
+X-Request-Id: 7a8ab20d-d4b7-4123-8a18-605249ba7f41
+status line: HTTP/1.1 200 OK
+response headers:
+  Host: 127.0.0.1:8157
+  Connection: close
+  X-Powered-By: PHP/8.2.34
+  Cache-Control: no-cache, private
+  Date: Mon, 12 Oct 2026 03:09:13 GMT
+  Content-Type: application/json
+  X-RateLimit-Limit: 300
+  X-RateLimit-Remaining: 297
+  X-Request-Id: 7a8ab20d-d4b7-4123-8a18-605249ba7f41
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Access-Control-Allow-Origin: *
+response body (5418 bytes): {"id":91156,"f_name":"QA","l_name":"N4137 Vendor","phone":"+971500041372","email":"qa.n4137.vendor@nears.com","email_verified_at":null,"created_at":"2026-10-12T03:07:18.000000Z","updated_at":"2026-10-12T03:08:48.000000Z","branch":"N4157-BR-1","holder_name":"N4157-HOLDER-1","account_no":"N4157-ACCT-1","image":null,"status":1,"order_count":1,"todays_order_count":0,"this_week_order_count":0,"this_month_order_count":0,"member_since_days":0,"cash_in_hands":0,"balance":0,"total_earning":0,"todays_earning":0,"this_week_earning":0,"this_month_earning":0,"Payable_Balance":0,"withdraw_able_balance":0,"adjust_able":false,"show_pay_now_button":false,"pending_withdraw":0,"total_withdrawn":0,"dynamic_balance":0,"dynamic_balance_type":"Payable Balance","over_flow_warning":false,"over_flow_block_warning":false,"translations":[],"subscription_transactions":false,"out_of_stock_count":0,"image_full_url":"http:\/\/127.0.0.1:8157\/public\/assets\/admin\/img\/160x160\/img1.jpg","storage":[],"stores":[{"id":91158,"name":"NEARS-4137 QA store","phone":"+971500041373","email":"qa.n4137.vendor@nears.com","logo":null,"latitude":"23.81695886557418","longitude":"90.36934144046135","address":"NEARS-4137 party-secrets QA fixture","footer_text":null,"minimum_order":0,"schedule_order":false,"status":1,"vendor_id":91156,"created_at":"2026-10-12T03:07:18.000000Z","updated_at":"2026-10-12T03:07:18.000000Z","free_delivery":false,"cover_photo":null,"delivery":true,"take_away":true,"item_section":true,"tax":0,"zone_id":1,"reviews_section":true,"active":true,"off_day":" ","self_delivery_system":0,"pos_system":false,"minimum_shipping_charge":0,"delivery_time":"30-40","veg":1,"non_veg":1,"order_count":0,"total_order":0,"module_id":1,"order_place_to_schedule_interval":0,"featured":0,"per_km_shipping_charge":0,"prescription_order":false,"slug":"nears-4137-qa-store","maximum_shipping_charge":null,"cutlery":false,"store_type":"regular","floor_number":null,"tower_name":null,"building_address":null,"delivery_mode":"car","meta_title":null,"meta_description":null,"meta_image":null,"meta_data":null,"announcement":0,"announcement_message":null,"store_business_model":"commission","package_id":null,"pickup_zone_id":null,"comment":null,"is_recommended":false,"minimum_stock_for_warning":0,"halal_tag_status":false,"extra_packaging_status":null,"extra_packaging_amount":0,"open":0,"ratings":[0,0,0,0,0],"avg_rating":0,"rating_count":0,"positive_rating":0,"total_items":0,"total_campaigns":null,"min":0,"max":0,"current_opening_time":"closed","min_delivery_time":null,"max_delivery_time":null,"discount":null,"logo_full_url":"http:\/\/127.0.0.1:8157\/public\/assets\/admin\/img\/160x160\/img1.jpg","cover_photo_full_url":"http:\/\/127.0.0.1:8157\/public\/assets\/admin\/img\/100x100\/2.jpg","meta_image_full_url":"http:\/\/127.0.0.1:8157\/public\/assets\/admin\/img\/160x160\/img1.jpg","gst_status":true,"gst_code":"N4137-QA-GST-0001","translations":[],"storage":[],"schedules":[],"module":{"id":1,"module_name":"Grocery","module_type":"grocery","thumbnail":"2026-03-01-9f4876593842.png","status":"1","stores_count":3,"created_at":"2023-08-15T23:31:17.000000Z","updated_at":"2026-09-20T18:21:04.000000Z","icon":"2026-03-01-098cf435341f.png","icon_key":"grocery","theme_id":1,"description":"<p><strong>We make grocery shopping more interesting.<\/strong><br \/>\nFind the greatest deals from the grocery stores near you.<br \/>\n<br \/>\n<strong>Nature &amp; Organic Products<\/strong><br \/>\nBring Nature into your home.<br \/>\n<br \/>\n<strong>Stay home &amp; get your daily needs from our shop<\/strong><br \/>\nStart your daily shopping with Nears.<\/p>","all_zone_service":0,"slug":"grocery-food","icon_full_url":"http:\/\/127.0.0.1:8157\/public\/assets\/admin\/img\/100x100\/2.jpg","thumbnail_full_url":"http:\/\/127.0.0.1:8157\/public\/assets\/admin\/img\/100x100\/2.jpg","translations":[{"id":1,"translationable_type":"App\\Models\\Module","translationable_id":1,"locale":"en","key":"module_name","value":"Grocery","created_at":"2026-09-20 22:21:04","updated_at":"2026-09-20 22:21:04"},{"id":2,"translationable_type":"App\\Models\\Module","translationable_id":1,"locale":"en","key":"description","value":"<p><strong>We make grocery shopping more interesting.<\/strong><br \/>\nFind the greatest deals from the grocery stores near you.<br \/>\n<br \/>\n<strong>Nature &amp; Organic Products<\/strong><br \/>\nBring Nature into your home.<br \/>\n<br \/>\n<strong>Stay home &amp; get your daily needs from our shop<\/strong><br \/>\nStart your daily shopping with Nears.<\/p>","created_at":null,"updated_at":null}],"storage":[{"id":29,"data_type":"App\\Models\\Module","data_id":1,"key":"thumbnail","value":"public","created_at":"2024-11-18 23:00:57","updated_at":"2024-11-18 23:00:57"},{"id":169,"data_type":"App\\Models\\Module","data_id":1,"key":"icon","value":"public","created_at":"2026-03-02 01:45:08","updated_at":"2026-03-02 01:45:08"},{"id":170,"data_type":"App\\Models\\Module","data_id":1,"key":"thumbnail","value":"public","created_at":"2026-03-02 01:45:08","updated_at":"2026-03-02 01:45:08"},{"id":299,"data_type":"App\\Models\\Module","data_id":1,"key":"icon","value":"public","created_at":"2026-03-02 01:49:15","updated_at":"2026-03-02 01:49:15"},{"id":300,"data_type":"App\\Models\\Module","data_id":1,"key":"thumbnail","value":"public","created_at":"2026-03-02 01:49:15","updated_at":"2026-03-02 01:49:15"}]}}]}
+
+profile trio: branch=N4157-BR-1 holder_name=N4157-HOLDER-1 account_no=N4157-ACCT-1 ; rejection_note key present but null (hidden from the owner per NEARS-4137) ; no bank_name key
+
+laravel.log join (tip scratch tree, scoped grep -F by id): lines for the 200 request id = 0, [FAIL] lines = 0 (whole tip log is empty, see p4)

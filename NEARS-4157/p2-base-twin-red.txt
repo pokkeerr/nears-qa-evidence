@@ -1,0 +1,28 @@
+P2 AC1 base RED + AC4 positive control - BASE TWIN :8158 (dee126013 product + the same tests tree), SAME legit-body shape with nonces N4157-*-2
+
+### p2-update-base  (PUT update-bank-info)
+X-Request-Id: abdd3763-4391-4383-8709-133fbcf208ed
+status line: HTTP/1.1 500 Internal Server Error
+response headers:
+  Host: 127.0.0.1:8158
+  Connection: close
+  X-Powered-By: PHP/8.2.34
+  Cache-Control: no-cache, private
+  Date: Mon, 12 Oct 2026 03:09:25 GMT
+  Content-Type: application/json
+  X-RateLimit-Limit: 300
+  X-RateLimit-Remaining: 295
+  X-Request-Id: abdd3763-4391-4383-8709-133fbcf208ed
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Access-Control-Allow-Origin: *
+response body (34 bytes): {"message":"Something went wrong"}
+
+owner row before vs after the failed call (SELECT-only):
+(no difference)
+
+laravel.log of the base twin, grep -F by that X-Request-Id:
+[2026-10-12 07:09:25] production.ERROR: [FAIL] exception_reported {"correlation_id":"abdd3763-4391-4383-8709-133fbcf208ed","type":"Illuminate\\Database\\QueryException","code":"42S22","driver_code":1054,"file":"app/Http/Controllers/Api/V1/Vendor/VendorController.php","line":975,"endpoint":"/api/v1/vendor/update-bank-info"} 
+lines for the id: 1, [FAIL] lines: 1, type=QueryException, code=42S22, driver_code=1054, endpoint=/api/v1/vendor/update-bank-info, correlation_id == the response X-Request-Id
+absence on the whole base log (grep -cF): N4157-BANK-2=0 N4157-BR-2=0 N4157-HOLDER-2=0 N4157-ACCT-2=0 "update `vendors`"=0 "SQL:"=0 "Unknown column"=0  (NEARS-4158 value-free hook already merged at base)
