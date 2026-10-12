@@ -7,3 +7,15 @@
 - AC5: S2/S3 identical to S1.
 - Backstop phpunit Nears4163PlanSliderTwinsTest: OK (7 tests, 116 assertions).
 - Session note: lang/ar is session-scoped server side; LTR sessions reset to en, RTL runs use separate logins.
+
+## RE-QA cycle 1 (tip 380b31e63 on :8163 vs base 21af7dcc8 on :8164; clone multi_food_db_qa4163; files prefixed r2-)
+- Pre-flight: freshness check PASS on 8163/8164; ps eww PWD+DB_DATABASE confirm tip/base worktrees and the clone DB. Lessons selector (qa) = 17 active.
+- AC1 PASS: S1/S2/S3 1028 LTR real 3 cards: base [0,100,100] (Commission 0%, btn not reachable) vs tip [100,100,100]; nav/dots disabled (expected). 4-card boundary at 1028 tip: centred, prev/next+dots present, all 4 reachable (clicks logged in r2-ac1-measure.json).
+- AC2 behaviour at 1028/768/4-5 cards: Commission Shift reachable with visible controls (0 clicks at 3 cards 1028, 2 at 768, 2-3 at 4-5 cards); arrows never cover a Shift button (btn depth 0 all states). Final Switch: see r2-ac2-switch.json (run last).
+- AC3 LTR tip matrix 80 cells (real3 x8 widths + 3/4/5 cards x 8 widths x first/mid/last): all cards reachable by visible controls or visible at load, all action buttons reachable, 0 console errors; dots==cards and active dot==current when dots visible; first/last arrow hides, dots stay. Resize: 3 cards == fresh; 4 cards: layout/controls == fresh but position resets to card 0 when the centre flag flips (start index != 0) - base keeps position.
+- AC4(a) RTL>=992 3 and 5 cards all starts: PASS (all reachable, no blank, arrows mirrored, dots dx 0, Commission rightmost). RTL dots are Owl pages (2 dots for 5 cards).
+- AC4(b) better-than-base literal table: 12/24 rows PASS, 12 FAIL (an 'other card' regresses vs base while current card improves) - see r2-ac4b-better-than-base-table.json. AC4(c): last-card Shift button unreachable at 375 and 768 (3 and 5 cards, synthetic all-Shift cells; real fixture last card is Renew) -> residual HIGH.
+- AC5 PASS: S2/S3 identical to S1 at 1028 LTR+RTL (+4/5 card synthetic).
+- Overlap -16px: max 14px visible-content penetration (576/768 real; 5-card >=992 next arrow; 1200/1440 both); never over a Shift button; 375 no overlap/clip.
+- Controls: registration fragment tip==base; package-index slider tip==base; addon-activation 0 .dots-style2 elements on both (nothing to compare).
+- Backstop phpunit Nears4163PlanSliderTwinsTest OK (9 tests, 203 assertions). laravel.log: no new lines in my run (only the 2 round-1 anonymous-probe [FAIL] lines of 13:51:20); serve log: 0 ERROR/Exception/Fatal.
