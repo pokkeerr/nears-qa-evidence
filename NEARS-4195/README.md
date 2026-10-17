@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4195
 
-**FAIL: AC9 pill remove x 30dp wide; RTL range thumb semantics swapped; AC13 single-1-option live-unreachable**
+**cycle-1 delta re-QA 24649fa37: PASS (AC9/QA-14/AC13/page2/embedded/AC1/AC5/AC10)**
 
 **26 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -58,6 +58,7 @@
 - [`bug-pill-remove-target-30dp.xml`](bug-pill-remove-target-30dp.xml)
 - [`bug-rtl-range-thumb-semantics-ar.log`](bug-rtl-range-thumb-semantics-ar.log)
 - [`bug-rtl-range-thumb-semantics-ar.xml`](bug-rtl-range-thumb-semantics-ar.xml)
+- [`cycle1`](cycle1)
 - [`log-fail-warn-lines.txt`](log-fail-warn-lines.txt)
 - [`obs-single-option-section-merged-node.xml`](obs-single-option-section-merged-node.xml)
 - [`progress.md`](progress.md)
