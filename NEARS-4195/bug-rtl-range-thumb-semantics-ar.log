@@ -1,0 +1,8 @@
+'|السعر' cls=View             px=(48,1879,1296,2245) dp=416x122
+'|السعر, AED 10' cls=SeekBar      CLK px=(1037,2029,1181,2173) dp=48x48
+'|السعر, AED 3' cls=SeekBar      CLK px=(782,2029,926,2173) dp=48x48
+'|عرض 3 نتائج' cls=Button       CLK px=(48,2800,654,2956) dp=202x52
+pill (applied): from AED 3 to AED 10 (min thumb visual = right edge side, pixel-verified): ac9-ar-full-sheet.png/ac13-ar-range-drag-from-right-thumb.png
+pixel: active track/thumb navy extent x=
+pixel (bug-rtl-range-thumb-semantics-ar.png, y=2101): thumb centres x~854 (max=10) and x~1109 (min=3); min value sits on the RIGHT (start side) = correctly mirrored visually; value labels row: wider "AED 10" cluster x 50-181 (left), narrower "AED 0" at right.
+BUT uiautomator: SeekBar at x=1037-1181 (the min=3 thumb) content-desc "السعر, AED 10"; SeekBar at x=782-926 (the max=10 thumb) content-desc "السعر, AED 3" => in RTL each thumb's semantics node announces the OTHER thumb's value. LTR control (full, EN): "Price, AED 0" at left x=54-198, "Price, AED 10" at x=418-562 (correct). Positive control in same dump: sheet title node 'السعر' and Apply 'عرض 3 نتائج' present.
