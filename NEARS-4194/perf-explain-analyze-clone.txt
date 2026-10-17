@@ -1,0 +1,14 @@
+== module 1 zones [2,400] TOGGLE
+-> Aggregate: count(0)  (cost=58.1 rows=1) (actual time=0.403..0.403 rows=1 loops=1)
+-> Hash semijoin (FirstMatch) (module_zone.zone_id = zones.id)  (cost=58.1 rows=0.0021) (actual time=0.401..0.401 rows=0 loops=1)
+
+== module 2 zones [1,2] TOGGLE
+-> Aggregate: count(0)  (cost=109 rows=1) (actual time=0.442..0.442 rows=1 loops=1)
+-> Hash semijoin (FirstMatch) (module_zone.zone_id = zones.id)  (cost=109 rows=0.00103) (actual time=0.182..0.438 rows=4 loops=1)
+
+== module 2 zones [1,2] TOTAL
+-> Aggregate: count(0)  (cost=109 rows=1) (actual time=0.414..0.414 rows=1 loops=1)
+-> Hash semijoin (FirstMatch) (module_zone.zone_id = zones.id)  (cost=109 rows=0.00103) (actual time=0.129..0.41 rows=21 loops=1)
+-> Group aggregate: count(distinct cuisine_store.store_id)  (actual time=0.271..0.274 rows=7 loops=1)
+n    -> Sort: cuisine_store.cuisine_id  (actual time=0.265..0.266 rows=12 loops=1)
+n        -> Stream results  (cost=23.8 rows=0.00721) (actual time=0.14..0.25 rows=12 loops=1)

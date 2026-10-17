@@ -1,0 +1,34 @@
+GET http://127.0.0.1:8194/api/v1/stores/get-data?data_type=all&limit=50 mod=2 zones=[1,2] rid=qa4194-07b8376b1bfe -> 200 141ms
+GET http://127.0.0.1:8194/api/v1/stores/get-data?data_type=all&limit=50&filter=free_delivery mod=2 zones=[1,2] rid=qa4194-983e589c215c -> 200 77ms
+GET http://127.0.0.1:8194/api/v1/stores/get-data?data_type=all&limit=50&filter=[free_delivery,top_rated] mod=2 zones=[1,2] rid=qa4194-1ee5e45c60ae -> 200 65ms
+GET http://127.0.0.1:8194/api/v1/stores/get-data?data_type=all&limit=50&filter=top_rated mod=2 zones=[1,2] rid=qa4194-6129b06a5d95 -> 200 61ms
+GET http://127.0.0.1:8194/api/v1/stores/get-data?data_type=all&limit=50&filter=nearby mod=2 zones=[1,2] rid=qa4194-fa74923f1880 -> 200 92ms
+GET http://127.0.0.1:8194/api/v1/stores/get-data?data_type=all&limit=50&filter=fast_delivery mod=2 zones=[1,2] rid=qa4194-4bef5f7c4a54 -> 200 89ms
+GET http://127.0.0.1:8194/api/v1/stores/get-data?data_type=all&limit=50&rating_count=3 mod=2 zones=[1,2] rid=qa4194-e87d5551980b -> 200 73ms
+GET http://127.0.0.1:8194/api/v1/stores/get-data?data_type=all&limit=50&filter[]=free_delivery&filter[]=currently_open mod=2 zones=[1,2] rid=qa4194-6398f380446e -> 200 63ms
+GET http://127.0.0.1:8194/api/v1/stores/get-data?data_type=all&limit=50&store_type=top_rated mod=2 zones=[1,2] rid=qa4194-dfc774888e8e -> 200 63ms
+GET http://127.0.0.1:8194/api/v1/stores/get-data?data_type=all&limit=5&with_filters=1&free_delivery=1 mod=2 zones=[1,2] rid=qa4194-6c63012bc780 -> 200 69ms
+GET http://127.0.0.1:8194/api/v1/stores/latest?limit=5&offset=1 mod=2 zones=[1,2] rid=qa4194-2d934cca1199 -> 200 61ms
+GET http://127.0.0.1:8194/api/v1/stores/popular?limit=5&offset=1 mod=2 zones=[1,2] rid=qa4194-c38ca610560c -> 200 62ms
+GET http://127.0.0.1:8194/api/v1/stores/top-rated?limit=5&offset=1 mod=2 zones=[1,2] rid=qa4194-f1db5a2d7d80 -> 200 51ms
+GET http://127.0.0.1:8194/api/v1/stores/discounted?limit=5&offset=1 mod=2 zones=[1,2] rid=qa4194-deac52a8af6e -> 200 62ms
+GET http://127.0.0.1:8194/api/v1/stores/recommended?limit=5&offset=1 mod=2 zones=[1,2] rid=qa4194-25377146fa30 -> 200 58ms
+GET http://127.0.0.1:8194/api/v1/stores/nearby?limit=5&offset=1 mod=2 zones=[1,2] rid=qa4194-32d9ab0cea8c -> 400 39ms
+
+PASS legacy get-data data_type=all&limit=50 -> 200 + stores :: (200, 21)
+PASS legacy get-data data_type=all&limit=50&filter=free_delivery -> 200 + stores :: (200, 4)
+PASS legacy filter=free_delivery ids == DB truth superset check :: ([39, 40, 41, 51], [39, 40, 41, 51])
+PASS legacy get-data data_type=all&limit=50&filter=[free_delivery,top_rated] -> 200 + stores :: (200, 1)
+PASS legacy get-data data_type=all&limit=50&filter=top_rated -> 200 + stores :: (200, 1)
+PASS legacy get-data data_type=all&limit=50&filter=nearby -> 200 + stores :: (200, 21)
+PASS legacy get-data data_type=all&limit=50&filter=fast_delivery -> 200 + stores :: (200, 21)
+PASS legacy get-data data_type=all&limit=50&rating_count=3 -> 200 + stores :: (200, 4)
+PASS legacy get-data data_type=all&limit=50&filter[]=free_delivery&filter[]=currently_open -> 200 + stores :: (200, 1)
+PASS legacy get-data data_type=all&limit=50&store_type=top_rated -> 200 + stores :: (200, 1)
+PASS legacy get-data ignores with_filters/free_delivery (no filters key; total unfiltered) :: 21
+PASS stores/latest 200 :: 200
+PASS stores/popular 200 :: 200
+PASS stores/top-rated 200 :: 200
+PASS stores/discounted 200 :: 200
+PASS stores/recommended 200 :: 200
+FAIL stores/nearby 200 :: 400

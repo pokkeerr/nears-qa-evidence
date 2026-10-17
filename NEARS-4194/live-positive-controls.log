@@ -1,0 +1,17 @@
+GET http://127.0.0.1:8194/api/v1/stores/get-stores/all?with_filters=1&limit=50&offset=1 mod=1 zones=[417] rid=qa4194-47cf86d490a8 -> 200 103ms
+GET http://127.0.0.1:8194/api/v1/stores/get-stores/all?with_filters=1&limit=50&offset=1 mod=1 zones=[417] rid=qa4194-9b965bcdbf69 -> 200 96ms
+GET http://127.0.0.1:8194/api/v1/stores/get-stores/all?with_filters=1&limit=50&offset=1 mod=1 zones=[417] rid=qa4194-8fc887870225 -> 200 94ms
+GET http://127.0.0.1:8194/api/v1/stores/get-stores/all?with_filters=1&limit=50&offset=1 mod=2 zones=[2] rid=qa4194-96379674b668 -> 200 82ms
+GET http://127.0.0.1:8194/api/v1/stores/get-stores/all?with_filters=1&limit=50&offset=1 mod=2 zones=[2] rid=qa4194-6d8fa914a991 -> 200 91ms
+GET http://127.0.0.1:8194/api/v1/stores/get-stores/all?with_filters=1&limit=50&offset=1 mod=2 zones=[2] rid=qa4194-4d1a52c98467 -> 200 84ms
+GET http://127.0.0.1:8194/api/v1/stores/get-stores/all?with_filters=1&limit=50&offset=1 mod=2 zones=[2] rid=qa4194-77292dccdccb -> 200 78ms
+GET http://127.0.0.1:8194/api/v1/stores/get-stores/all?with_filters=1&limit=50&offset=1 mod=2 zones=[2] rid=qa4194-aad821f20772 -> 200 84ms
+
+PASS AC2 control: zone 417 grocery has no free_delivery entry
+PASS AC2 positive: set ONE store free_delivery=1 (clone) -> toggle appears with count 1 :: [{'value': '1', 'names': {'ar': 'التوصيل مجاني', 'en': 'Free delivery'}, 'count': 1, 'selected': False}]
+PASS reverted: entry absent again
+PASS AC2 control: food zone 2 has no cuisine 4 option :: {'1': 1, '2': 2, '3': 1, '6': 1}
+PASS AC2 positive: tag one store with cuisine 4 (clone) -> option 4 appears count 1 :: {'1': 1, '2': 2, '3': 1, '4': 1, '6': 1}
+PASS reverted: cuisine 4 absent again
+PASS cuisine with status=0 not offered (zone 2 had cuisine 3 store) :: {'1': 1, '2': 2, '6': 1}
+PASS reverted: cuisine 3 back :: {'1': 1, '2': 2, '3': 1, '6': 1}
