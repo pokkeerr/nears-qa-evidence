@@ -27,3 +27,8 @@ Annotations on the two `FAIL` lines inside api-t1.log / api-t2.log:
 - api-t1 `sort=top_rated`: the finding bug-top-rated-chip-vanishes-empty-list.
 
 Analytics lines seen (debug mirror): filter_sheet_opened, filter_applied (section quick/sheet/sort, filter_key, value, applied_filters_count, result_count; fires after the reload succeeded), filter_removed, filters_cleared, filter_empty_result, select_store(filters_active, sort_key).
+
+## Delta re-QA (cycle 1) @ 97fe3664f
+- task_bug top_rated gate: RESOLVED. delta-top-rated-gate-matrix-v2.log (288 cells: 14 zone/module cells x 4 list endpoints x 6 filter variants): never offered-but-vanishing, never hidden-but-usable; unfiltered cells offered <=> top_rated returns >=1 (22 offered/>=1, 26 hidden/0). delta-top-rated-z1-z2-food.log: z2 food hidden on all 4 endpoints (0 rows); z1 food offered with 1 row, selected stays top_rated (recommended hidden, 0 rows).
+- unflagged vs base: delta-unflagged-vs-base.log (128 identical ignoring *_full_url; 2 recommended tie-order diffs = documented id tie-break).
+- PHPUnit Filters 253 OK, StoreList* 29 OK (twin DB). Device not re-run (backend-only diff).

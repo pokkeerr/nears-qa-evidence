@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4183
 
-**QA PASS (1 non-AC task_bug: top_rated gate)**
+**QA PASS (delta cycle 1: top_rated gate resolved)**
 
 **21 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -49,6 +49,10 @@
 - [`api-t3.log`](api-t3.log)
 - [`api-t4.log`](api-t4.log)
 - [`bug-top-rated-chip-vanishes-empty-list.log`](bug-top-rated-chip-vanishes-empty-list.log)
+- [`delta-top-rated-gate-matrix-v2.log`](delta-top-rated-gate-matrix-v2.log)
+- [`delta-top-rated-gate-matrix.log`](delta-top-rated-gate-matrix.log)
+- [`delta-top-rated-z1-z2-food.log`](delta-top-rated-z1-z2-food.log)
+- [`delta-unflagged-vs-base.log`](delta-unflagged-vs-base.log)
 - [`flutter-analyze-base.log`](flutter-analyze-base.log)
 - [`flutter-analyze-branch.log`](flutter-analyze-branch.log)
 - [`flutter-test-ft_branch.txt`](flutter-test-ft_branch.txt)
