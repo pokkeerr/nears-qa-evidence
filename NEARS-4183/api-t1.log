@@ -1,0 +1,31 @@
+zone1 food [4, 5, 6, 39, 40, 41, 91112] 7
+PASS z1 food min_rating=4 == SQL avg>=4 ([4, 6], {4, 6})
+PASS   store5(3.90) excluded & unreviewed excluded 
+PASS z1 food free_delivery [39, 40, 41]
+PASS z1 food offers == SQL discounted item ([4, 5, 6, 39, 40, 41], {4, 5, 6, 39, 40, 41})
+PASS z1 food cuisine_ids=1 [4, 39]
+PASS z1 food cuisine_ids=4 [5, 40]
+PASS z1 food cuisine_ids=5 [6]
+PASS z1 food cuisine_ids=3 [41]
+PASS z1 food cuisine_ids=1,4 [4, 5, 39, 40]
+PASS z1 food delivery_type=take_away (query) [4, 5, 6, 39, 40, 41, 91112]
+PASS   path segment take_away 
+PASS z1 food delivery_type=delivery (query) [4, 5, 6, 39, 40, 41, 91112]
+PASS   path segment delivery 
+PASS path take_away AND query delivery = intersection 
+PASS z1 food open_now == list open column ([4, 5, 6, 39, 40, 41, 91112], [4, 5, 6, 39, 40, 41, 91112])
+PASS combo rating+fd = empty []
+PASS combo rating+cuisine1 = {4} [4]
+PASS combo offers+fd+cuisine1 = {39} [39]
+PASS sort=all offers set stable / rating AND ([4, 5, 6, 39, 40, 41], [4, 6])
+PASS sort=newly_joined offers set stable / rating AND ([4, 5, 6, 39, 40, 41], [4, 6])
+PASS sort=popular offers set stable / rating AND ([4, 5, 6, 39, 40, 41], [4, 6])
+FAIL sort=top_rated offers set stable / rating AND ([39], [])
+PASS sort=nearest offers set stable / rating AND ([4, 5, 6, 39, 40, 41], [6, 4])
+PASS sort=fastest offers set stable / rating AND ([4, 5, 6, 39, 40, 41], [4, 6])
+PASS counts: free_delivery selected, option count still total (ignores own) {'value': '1', 'names': {'ar': 'التوصيل مجاني', 'en': 'Free delivery'}, 'count': 3, 'selected': True}
+PASS counts: cuisine option counts reflect fd selection (AND others) [('1', 1), ('3', 1), ('4', 1)]
+PASS applied block lists min_rating ['min_rating']
+PASS total_size equal p1/p2, p2 carries no block (7, 7, [4, 5], [6, 39])
+z2 pharm 24h 17 ['delivery_type', 'open_now', 'open_24h']
+pharm keys ['delivery_type', 'offers', 'free_delivery', 'open_now', 'open_24h'] quick ['free_delivery', 'open_now', 'open_24h'] sort ['all', 'newly_joined', 'popular', 'nearest']

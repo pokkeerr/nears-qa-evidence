@@ -1,0 +1,47 @@
+z2 grocery keys ['delivery_type', 'min_rating', 'offers', 'open_now']
+PASS z2 grocery: no free_delivery entry (no fd store) 
+PASS z2 grocery: no cuisine (module isolation) 
+PASS z2 grocery: no open_24h 
+z2 grocery quick []
+PASS z2 grocery free_delivery=1 zero-result (no fd store), 200 0
+SQL fd grocery z2 [['0']]
+z1 food keys ['cuisine', 'delivery_type', 'min_rating', 'offers', 'free_delivery', 'open_now'] quick ['cuisine', 'free_delivery']
+z1 pharm keys ['delivery_type', 'offers', 'free_delivery', 'open_now'] quick ['free_delivery', 'open_now']
+PASS z1 pharm no open_24h (none in scope) 
+z2 pharm quick ['free_delivery', 'open_now', 'open_24h']
+ open_24h count 17
+ecommerce (zone none) 200 ['delivery_type', 'open_now']
+z1 ecommerce ['delivery_type', 'open_now'] []
+PASS grocery ignores cuisine_ids/open_24h (same total) (15, 15)
+PASS food ignores open_24h 
+FAIL z2 food Offers discriminates: 4 of 15 ('5', '15')
+PASS malformed min_rating=3           http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed min_rating=abc         http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed min_rating=-1          http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed min_rating=99          http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed min_rating[]=4         http=200 total=2 ids=[4, 6]
+PASS malformed min_rating=4,5         http=200 total=2 ids=[4, 6]
+PASS malformed min_rating=3,4         http=200 total=2 ids=[4, 6]
+PASS malformed min_rating=            http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed delivery_type=bogus    http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed open_now=true          http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed open_now=0             http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed offers=0               http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed free_delivery=2        http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed cuisine_ids=abc        http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed cuisine_ids=99999      http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed cuisine_ids[]=1        http=200 total=2 ids=[4, 39]
+PASS malformed cuisine_ids=           http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed open_24h=1             http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed store_type=garbage     http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed store_type[]=nearest   http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS malformed with_filters=abc       http=200 total=7 ids=[4, 5, 6, 39, 40, 41, 91112]
+PASS no lat/lng headers 200 + filters ['all', 'newly_joined', 'popular', 'top_rated', 'fastest']
+PASS lat/lng 0: nearest withheld, rating filter works ([4, 6], 'all')
+PASS lat/lng empty: 200 
+z400 grocery total 5 5
+ tie in list [3168, 3380, 4004, 4006, 4009] [['3168', '24.453884', '54.3773438', '1'], ['3380', '24.453884', '54.3773438', '1'], ['4004', '24.453884', '54.3773438', '1'], ['4006', '24.453884', '54.3773438', '1'], ['4009', '24.453884', '54.3773438', '1']]
+PASS tie-break paging store_type=all: pages(limit3)==single page, no dup (5, 5, 5)
+PASS tie-break paging store_type=nearest: pages(limit3)==single page, no dup (5, 5, 5)
+PASS tie-break paging store_type=popular: pages(limit3)==single page, no dup (5, 5, 5)
+PASS tie-break paging store_type=newly_joined: pages(limit3)==single page, no dup (5, 5, 5)
