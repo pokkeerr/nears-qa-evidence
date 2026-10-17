@@ -1,0 +1,48 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "<string>", line 78, in <module>
+KeyError: 'filters'
+PASS AC3 417 unrated: products min_rating absent :: ['price', 'open_now', 'discounted', 'category_ids']
+PASS AC3 417 unrated: stores min_rating absent :: ['delivery_type', 'offers', 'open_now']
+PASS AC3 417 no free_delivery option (stores+products)
+PASS AC3 zone2 positive control min_rating present
+PASS AC3 zone1 free_delivery present :: {'1': 2}
+pruned-on-narrow example: ('47', ['price', 'open_now', 'category_ids'], 2)
+PASS AC3 option pruned when zero under narrowing (min_rating/discounted)
+PASS AC3 veg not a registry filter
+PASS AC3 garbage 200: stores=abc :: (200, 204)
+PASS AC3 garbage 200: stores[open_now][]=1 :: (200, 204)
+PASS AC3 garbage 200: products[category_ids]=[1,%22x%22] :: (200, 204)
+PASS AC3 garbage 200: products[sort][]=x :: (200, 204)
+PASS AC3 garbage 200: products[min_rating]=banana :: (200, 204)
+PASS AC3 garbage 200: products[price_min]=abc&products[price_max]=-5 :: (200, 204)
+PASS AC3 garbage 200: products=1 :: (200, 204)
+PASS AC3 garbage 200: products[open_now]=true :: (200, 204)
+PASS AC3 garbage 200: stores[bogus]=1 :: (200, 204)
+PASS AC3 garbage 200: products[bogus][a]=1 :: (200, 204)
+PASS AC3 garbage 200: products[sort]=%00 :: (200, 204)
+PASS AC3 garbage 200: products[category_ids][]=1&products[category_ids][ :: (200, 21)
+PASS AC3 garbage 200: products[category_ids]=99999999 :: (200, 204)
+PASS AC3 garbage 200: products[price_min]=1e999 :: (200, 204)
+PASS AC3 garbage 200: products[price_min]=5&products[price_max]=1 :: (200, 204)
+PASS AC3 garbage 200: products[open_now]=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA :: (200, 204)
+PASS AC3 garbage 200: products[category_ids]=0,1,2,3,4,5,6,7,8,9,10,11,1 :: (200, 204)
+PASS AC3/4 bad origin lon=1e999 lat=24.4 200 :: (200, 'relevance')
+PASS AC3/4 bad origin lon=54.3 lat=124.45 200 :: (200, 'relevance')
+PASS AC3/4 bad origin lon=abc lat=abc 200 :: (200, 'relevance')
+PASS AC3/4 bad origin lon=0 lat=0 200 :: (200, 'relevance')
+PASS AC3/4 bad origin lon=54.3526 lat=91 200 :: (200, 'relevance')
+PASS AC4 unknown products sort -> relevance order+selected
+PASS AC4 unknown stores sort -> relevance
+PASS AC4 top-level sort ignored
+PASS AC4 products sort relevance continuity+order across 21 pages :: 204
+PASS AC4 products sort price_asc continuity+order across 21 pages :: 204
+PASS AC4 products sort price_desc continuity+order across 21 pages :: 204
+PASS AC4 products sort rating continuity+order across 21 pages :: 204
+PASS AC4 products sort distance continuity+order across 21 pages :: 204
+PASS AC4 stores rating sort desc :: [5, 4.2, 3.4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+PASS AC4 stores distance asc :: [2801, 3248, 3857, 5721, 5838, 6698, 7357, 7375, 8014, 8694, 8736, 10202, 10843, 12576, 13797]
+distance products first [(315, None), (316, None), (317, None), (318, None), (319, None)]
+no-origin sort opts ['relevance', 'price_asc', 'price_desc', 'rating'] relevance ['relevance', 'rating'] relevance
+PASS AC4 distance withheld without origin
+python3 -I -c   0.19s user 0.03s system 0% cpu 1:02.51 total

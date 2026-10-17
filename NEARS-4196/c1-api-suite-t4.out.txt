@@ -1,0 +1,30 @@
+base 204 [204, 204, 204] 204
+PASS AC1 base total==rows
+PASS AC1 products min_rating positive :: (101, 101)
+PASS AC1 min_rating total==filtered, pages equal :: [101, 101]
+FAIL AC1 discounted positive :: (62, 63)
+PASS AC1 price range positive :: (68, 68)
+cats {'1': 21, '3': 36, '4': 14, '5': 20, '6': 28, '7': 15, '8': 19, '9': 39, '10': 11, '11': 43, '12': 8, '13': 10, '47': 2, '48': 1, '50': 1, '51': 1, '62': 1, '101': 12, '102': 8, '108': 9, '109': 8, '111': 2, '112': 3, '114': 1, '137': 2, '144': 12, '145': 6}
+PASS AC1 category positive count matches option count :: ('48', 1, 1)
+PASS AC1 AND of three :: (29, 29)
+PASS AC1 AND two :: 29
+PASS AC2 counts above page size (positive control) :: {'4': 101}
+PASS AC2 min_rating count == real set :: 101
+FAIL AC2 discounted count == real :: 62
+PASS AC2 min_rating selected keeps own count (ignores own selection) :: (101, 101)
+PASS AC2 discounted count under rating selection == AND :: (29, 29)
+page1 limit10 counts same as limit100: {'4': 101}
+PASS AC1 total_items identical across pages (limit10) :: [101, 101, 101, 101]
+PASS AC3 paging no dup/dropped :: (101, 101, 101)
+stores base 15 [15] ['delivery_type', 'min_rating', 'offers', 'open_now'] {'delivery_type': {'take_away': 15, 'delivery': 15}, 'min_rating': {'4': 2}, 'offers': {'1': 12}, 'open_now': {'1': 14}}
+PASS AC1 stores base total
+stores open_now 14 [14] [(4117, 1), (4118, 1), (35, 1), (12, 1), (13, 1), (14, 1), (15, 1), (16, 1), (17, 1), (18, 1), (19, 1), (20, 1), (21, 1), (22, 1)]
+PASS AC1 stores open_now positive :: (14, 15)
+PASS AC1 stores sel doesn't change products half
+PASS AC1 stores min_rating :: 2
+PASS AC1 stores delivery_type :: 15
+stores AND 12 {'1': 12} {'1': 12}
+PASS AC1 stores AND offers&open_now :: (12, 12)
+zone1 free_delivery stores [(37, True), (3, True)] {'1': 2}
+21 2 fails
+python3 -I -c   0.11s user 0.02s system 1% cpu 8.977 total
