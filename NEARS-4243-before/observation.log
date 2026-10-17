@@ -1,0 +1,10 @@
+# NEARS-4243 PRE-capture premise reproduction, UNFIXED base 24207ab85, VendorApp debug APK (BASE_URL=http://10.0.2.2:8643), emulator-5556, light mode
+# Backend: own php artisan serve :8643 from the worktree, scratch DB nears_qa_4243_pre (clone of multi_food_db); app [NET] lines from logcat tag flutter
+# Times relative to the Yes-tap (T0) on the Confirm dialog. Polls = details screen's own 10 s timer (GET /api/v1/vendor/order).
+run1 order 91110 : POST 200 at ~+0.6s; DB confirmed at +2s; screen 'Order is  Pending' + Confirm at +1,+3,+6,+8,+10s (dumps+shots); flips to 'Order is  Confirmed'+'Swipe to Process' only after the next poll GET at +10.1s. No GET /order between POST and that poll except the in-flight tick that raced the POST.
+run2 order 91141 : poll tick happened to land just after the POST committed -> UI refreshed at ~+2.5s (lucky phase, NOT a fix). Shows the staleness is poll-phase dependent (0..10s).
+run3 order 91163 : poll tick 2.6s BEFORE the POST -> POST 200 at +1.5s; Pending+Confirm still shown at +2.8..+7.3s; next poll +7.4s -> Confirmed.
+run4 order 91164 : same unlucky phase -> Pending+Confirm at +2,+4,+7 (p7.png verified Pending+Confirm, no dialog); poll at +8.3s -> Confirmed.
+run5 order 91200 : at +4.5s 'Status updated' snackbar covers the Confirm button (dlg_check.png) and swallows a second tap -> no 2nd POST (snackbar shield, ~4s).
+run6 order 91217 : second Confirm tap at +6.1s (snackbar gone, screen still Pending) opened the dialog, Yes at +6.75s -> SECOND POST /api/v1/vendor/update-order-status at +6.77s -> 200; DB 'confirmed' timestamp overwritten 21:13:38 -> 21:13:45 (server tolerates duplicate; analytics order_accept would refire).
+# [FAIL]/[ERR]/Exception grep over all run logcats (flutter tag): 0 lines. DB order_status=confirmed from the first POST on, in every run.
