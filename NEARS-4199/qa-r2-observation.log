@@ -1,0 +1,10 @@
+# QA-R2 re-observation (tip daae0515e), VendorApp, clone
+# order 91217: Confirm+Yes tapped 17:09:26; backend access log (query-scrubbed):
+17:09:29 POST /api/v1/vendor/update-order-status -> 200
+17:09:29 GET /api/v1/vendor/profile -> 200
+17:09:29 GET /api/v1/vendor/current-orders?limit=25&offset=1&status=pending&with_filters=1 -> 200
+17:09:35 GET /api/v1/vendor/order?order_id=91217 -> 200   <- details screen own 10 s poll; first refetch after the POST
+# details screen sampled every ~2 s: 17:09:28 and 17:09:33 'Order is  Pending' + Confirm button; 17:09:37 'Order is  Confirmed' + 'Swipe to Process'
+# no [FAIL]/[ERR] lines in the window; DB order_status=confirmed from the POST on
+# re-open of 91219 right after its confirm: 'Order is  Confirmed' + 'Swipe to Process' (GET order + order-details)
+# order 91200: a second Confirm POST inside the stale window -> 200 (server tolerates duplicate), status stays confirmed

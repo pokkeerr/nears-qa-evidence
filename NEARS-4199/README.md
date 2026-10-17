@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4199
 
-**FAIL cycle0: AC1-7,9,10 PASS live (vendor+delivery APIs/apps, emulator-5554, own serve+clone); AC8 FAIL order_search_submitted never reaches FA (bool param); 3 low task bugs**
+**PASS delta cycle2 @daae0515e: AC8 order_search_submitted now reaches FA; QA-R2 re-observed (pre-existing, <=10s stale)**
 
-**14 screenshot(s).** Click any thumbnail for full resolution.
+**17 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -17,6 +17,11 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="delivery-running-chips-light.png"><img src="delivery-running-chips-light.png" width="240"></a><br><sub>delivery running chips light</sub></td>
+<td align="center" width="33%"><a href="qa-r2-after-confirm-details-light.png"><img src="qa-r2-after-confirm-details-light.png" width="240"></a><br><sub>qa r2 after confirm details light</sub></td>
+<td align="center" width="33%"><a href="qa-r2-reopened-details-light.png"><img src="qa-r2-reopened-details-light.png" width="240"></a><br><sub>qa r2 reopened details light</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="qa-r2-second-confirm-light.png"><img src="qa-r2-second-confirm-light.png" width="240"></a><br><sub>qa r2 second confirm light</sub></td>
 <td align="center" width="33%"><a href="vendor-canceled-orders-light.png"><img src="vendor-canceled-orders-light.png" width="240"></a><br><sub>vendor canceled orders light</sub></td>
 <td align="center" width="33%"><a href="vendor-fetch-failure-light.png"><img src="vendor-fetch-failure-light.png" width="240"></a><br><sub>vendor fetch failure light</sub></td>
 </tr>
@@ -32,6 +37,8 @@
 </table>
 
 ### Other artifacts
+- [`ac8-delta-fa-events.log`](ac8-delta-fa-events.log)
+- [`ac8-delta-negative-grep.log`](ac8-delta-negative-grep.log)
 - [`ac8-evt-lines.log`](ac8-evt-lines.log)
 - [`ac8-fa-events.log`](ac8-fa-events.log)
 - [`ac9-delivery-fail-lines.log`](ac9-delivery-fail-lines.log)
@@ -40,9 +47,11 @@
 - [`bug-order-search-submitted-not-delivered.log`](bug-order-search-submitted-not-delivered.log)
 - [`bug-slider-rtl-thumb-labels-swapped.txt`](bug-slider-rtl-thumb-labels-swapped.txt)
 - [`delivery-tick-access-log-no-selection.txt`](delivery-tick-access-log-no-selection.txt)
+- [`delta-flutter-tests-summary.txt`](delta-flutter-tests-summary.txt)
 - [`flutter-tests-summary.txt`](flutter-tests-summary.txt)
 - [`phpunit-filters.log`](phpunit-filters.log)
 - [`progress.md`](progress.md)
+- [`qa-r2-observation.log`](qa-r2-observation.log)
 - [`vendor-sheet-ar-slider-a11y-dump.txt`](vendor-sheet-ar-slider-a11y-dump.txt)
 - [`vendor-sheet-ar-slider-a11y-dump.xml`](vendor-sheet-ar-slider-a11y-dump.xml)
 
