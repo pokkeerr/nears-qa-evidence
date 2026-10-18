@@ -1,0 +1,44 @@
+NEARS-4246 QA transcript (backend-only; HEAD 22e27dc70; own server :9247 on clone multi_food_db_qa4246; base d5070238 on :9248 for byte-identity)
+
+## scope sizes + flagged popular (clean cache)
+== 417 1 zones http 200 total_size 300 counts_omitted False 0.16 s
+   option counts: int=17 null=0 zero_int=0
+== 417+441 2 zones http 200 total_size 495 counts_omitted False 0.15 s
+   option counts: int=17 null=0 zero_int=0
+== 417+2 2 zones http 200 total_size 500 counts_omitted False 0.18 s
+   option counts: int=34 null=0 zero_int=0
+== 417+406 2 zones http 200 total_size 480 counts_omitted False 0.16 s
+   option counts: int=17 null=0 zero_int=0
+== 417+431 2 zones http 200 total_size 600 counts_omitted True 0.14 s
+   option counts: int=0 null=19 zero_int=0
+== 6zone 6 zones http 200 total_size 1575 counts_omitted True 0.19 s
+   option counts: int=0 null=19 zero_int=0
+== 50zone 50 zones http 200 total_size 4655 counts_omitted True 0.22 s
+   option counts: int=0 null=35 zero_int=0
+
+## closest-to-cap pairs (total, zoneA, zoneB, counts_omitted)
+(500,417,2,False) (500,431,2,False) (510,410,437,True) (510,417,442,True) (525,410,440,True)
+
+## category cap 300 sample
+cat 3 [417] http 200 total_size 140 counts_omitted False int_counts 5 null_counts 0 keys ['price', 'diet', 'in_stock', 'organic', 'discounte
+cat 3 [417,431,410] http 200 total_size 406 counts_omitted True int_counts 0 null_counts 6 keys ['price', 'min_rating', 'diet', 'in_stock', 
+cat 3 [417,2] http 200 total_size 176 counts_omitted False int_counts 6 null_counts 0 keys ['price', 'min_rating', 'diet', 'in_stock', 'orga
+cat 3 [417,431] http 200 total_size 280 counts_omitted False int_counts 5 null_counts 0 keys ['price', 'diet', 'in_stock', 'organic', 'disco
+cat 3 6zone http 200 total_size 735 counts_omitted True int_counts 0 null_counts 6 keys ['price', 'min_rating', 'diet', 'in_stock', 'organic
+cat 1 [417] http 200 total_size 60 counts_omitted False int_counts 5 null_counts 0 keys ['price', 'diet', 'in_stock', 'organic', 'discounted
+cat 1 [417,431,410] http 200 total_size 174 counts_omitted False int_counts 5 null_counts 0 keys ['price', 'diet', 'in_stock', 'organic', 'd
+cat 1 [417,2] http 200 total_size 91 counts_omitted False int_counts 6 null_counts 0 keys ['price', 'min_rating', 'diet', 'in_stock', 'organ
+cat 1 [417,431] http 200 total_size 120 counts_omitted False int_counts 5 null_counts 0 keys ['price', 'diet', 'in_stock', 'organic', 'disco
+cat 1 6zone http 200 total_size 315 counts_omitted True int_counts 0 null_counts 6 keys ['price', 'min_rating', 'diet', 'in_stock', 'organic
+cat 11 [417] http 200 total_size 40 counts_omitted False int_counts 2 null_counts 0 keys ['price', 'in_stock', 'organic']
+cat 11 [417,431,410] http 200 total_size 116 counts_omitted False int_counts 2 null_counts 0 keys ['price', 'in_stock', 'organic']
+cat 11 [417,2] http 200 total_size 83 counts_omitted False int_counts 6 null_counts 0 keys ['price', 'min_rating', 'diet', 'in_stock', 'orga
+cat 11 [417,431] http 200 total_size 80 counts_omitted False int_counts 2 null_counts 0 keys ['price', 'in_stock', 'organic']
+cat 11 6zone http 200 total_size 210 counts_omitted False int_counts 2 null_counts 0 keys ['price', 'in_stock', 'organic']
+
+## unflagged HEAD vs base byte-identity (port-normalised): 90/90 identical (see envelope)
+
+1) Tests\Feature\Filters\ItemListContractFixturesTest::test_the_published_fixtures_equal_the_live_responses
+2) Tests\Feature\Filters\ItemListContractFixturesTest::test_every_fixture_view_carries_the_block_and_the_sort_of_its_registry
+3) Tests\Feature\Filters\UnifiedSearchSqlSnapshotTest::test_search_stores_sql_is_unchanged_for_every_legacy_argument_shape
+Tests: 803, Assertions: 9416, Failures: 3, PHPUnit Deprecations: 38.
