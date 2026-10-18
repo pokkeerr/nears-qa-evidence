@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4197
 
-**PASS2 on tip 25f808d86: UserApp + backend live QA (EN light gate; AR/dark captured DEFERRED)**
+**PASS3 CR-17 OOS sink cell on tip 25f808d86**
 
-**68 screenshot(s).** Click any thumbnail for full resolution.
+**72 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -118,6 +118,12 @@
 <tr>
 <td align="center" width="33%"><a href="PASS2-j-320x13-viewall-strip.png"><img src="PASS2-j-320x13-viewall-strip.png" width="240"></a><br><sub>PASS2 j 320x13 viewall strip</sub></td>
 <td align="center" width="33%"><a href="PASS2-regress-item-from-filtered-list.png"><img src="PASS2-regress-item-from-filtered-list.png" width="240"></a><br><sub>PASS2 regress item from filtered list</sub></td>
+<td align="center" width="33%"><a href="PASS3-a-plain-bottom.png"><img src="PASS3-a-plain-bottom.png" width="240"></a><br><sub>PASS3 a plain bottom</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="PASS3-b-filtered-after-page2-bottom.png"><img src="PASS3-b-filtered-after-page2-bottom.png" width="240"></a><br><sub>PASS3 b filtered after page2 bottom</sub></td>
+<td align="center" width="33%"><a href="PASS3-b-filtered-page1-top.png"><img src="PASS3-b-filtered-page1-top.png" width="240"></a><br><sub>PASS3 b filtered page1 top</sub></td>
+<td align="center" width="33%"><a href="PASS3-c-priceasc-veil.png"><img src="PASS3-c-priceasc-veil.png" width="240"></a><br><sub>PASS3 c priceasc veil</sub></td>
 </tr>
 </table>
 
@@ -148,6 +154,7 @@
 - [`PASS2-h-analytics-matrix.txt`](PASS2-h-analytics-matrix.txt)
 - [`PASS2-h-privacy-grep.txt`](PASS2-h-privacy-grep.txt)
 - [`PASS2-i-term-at-rest.txt`](PASS2-i-term-at-rest.txt)
+- [`PASS2-jira-comment-queued.md`](PASS2-jira-comment-queued.md)
 - [`PASS2-logs-FAIL-ERR-summary.txt`](PASS2-logs-FAIL-ERR-summary.txt)
 - [`PASS2-phpunit.txt`](PASS2-phpunit.txt)
 - [`PASS2-progress.md`](PASS2-progress.md)
@@ -155,6 +162,8 @@
 - [`PASS2-server.log`](PASS2-server.log)
 - [`PASS2-server2.log`](PASS2-server2.log)
 - [`PASS2-userapp-tests.txt`](PASS2-userapp-tests.txt)
+- [`PASS3-oos-sink-transcript.txt`](PASS3-oos-sink-transcript.txt)
+- [`PASS3-server.log`](PASS3-server.log)
 - [`QApoints-allzone-module7-transcript.txt`](QApoints-allzone-module7-transcript.txt)
 - [`QApoints-cap-boundary-transcript.txt`](QApoints-cap-boundary-transcript.txt)
 - [`QApoints-instore-search-privacy-transcript.txt`](QApoints-instore-search-privacy-transcript.txt)

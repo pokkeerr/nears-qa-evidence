@@ -1,0 +1,29 @@
+## [8] Live QA PASS 2 of 2 (FINAL tree): verdict PASS (no AC-breaking finding; 2 non-blocking task findings + 2 pre-existing + 1 ruling needed)
+
+Tip `25f808d86` (clean tree at start). Device: emulator-5556, UserApp pkg `com.izzes.nears.nears_nears_4197_item_lists`, EN light gate (AR/dark captured: DEFERRED, not passed).
+Backend: /Users/Apple/Projects/nears-NEARS-4197-item-lists @ 25f808d86 (own `php artisan serve` :8196 behind a logging proxy :8197, DB clone multi_food_db_qa4197 proven by brand `nears-4197-second-brand`; freshness check PASS)
+
+| AC | status | evidence | logs |
+|---|---|---|---|
+| AC1 [api] | PASS | 7 surfaces flagged: `filters` at offset 1 only, total_size == paged count, no dups; unflagged has no block; 403 without moduleId on all 6 | BE log clean (no local.ERROR after 11:51) |
+| AC2 [api] | PASS | diet/pack_size data-decides: module 4 (all veg) / module 9 (all non-veg) no diet; store 12 + in-store search offer `250 g, 1 kg, 1 L, 6 pcs`; absent on category + popular, diet absent on popular; shared pack_size domain: 1 DISTINCT per entity per 300 s over 10 varied requests, 1 cache row per entity; pack_size 500_ml valid(0 in scope)/0.5_l/garbage/array/1000-char CSV -> 200, invalid dropped; diet=veg with type=non_veg -> empty 200 | clean |
+| AC3 [api] | PASS | discounted / in_stock (none in food) / top_rated sort per entity | clean |
+| AC4 [api] | PASS | min_price / max_price independent on all surfaces incl. items/search, garbage ignored HTTP 200 | clean |
+| AC5 [api] | PASS | flagged default order == legacy order on 8 scopes; caps 300/300/500 (others 5000); zone 417 popular=300 keeps counts, [2,417] and [1,2] counts_omitted:true with module-limited category facet (30/35 options, all module 1); flash 1 lists 13 (item 100 absent) | clean |
+| AC6 | PASS | same entry/pills/badge/filter-empty on store, in-store search, category, view-all popular + reviewed, brand, flash; a selection refetches page 1 and replaces list+filters; one shared sheet | no [FAIL] on happy paths |
+| AC7 | PASS | in-store sheet labels = facets (Organic -> organic=1, Discounted -> discounted=1, Veg/Non-veg, In stock, Category); 5 old widget/sheet files deleted (grep 0) | clean |
+| AC8 | PASS | sort options rendered from the server (popular: no Most popular; reviewed: no Top rated); store and in-store search one vocabulary | clean |
+| AC9 | PASS (EN light) | entries >= 44 dp (store 44x44, in-store 44x48, category/brand/flash 44x60, view-all 44x44); 320 dp x 1.3x: store entry/strip/filter-empty + view-all no clip. AR/RTL + dark captured, DEFERRED, not passed | clean |
+| AC10 | PASS (debug mirror) | all 5 events per list kind with screen/list_id/source/module_id/zone_id (store_screen/store_items/store_detail, store_item_search/store_item_search/store_search, category_items/category_items/category, item_view_all/item_view_all/see_all both feeds, brand_items/brand_items/brand, flash_sale_items/flash_sale_items/flash_sale); `search` carries screen+source; view_item_list carries source/module_id/zone_id on view-all. Term `secretmilk` in NO app/FA line (only my adbd driver lines); no term/len/hash key. NOTE: FA wire not observable (`Missing google_app_id` on the suffixed worktree package), mirror used per nav guide | clean |
+| AC11 | PASS | phpunit ItemList 337 tests OK; tests/Feature/Filters 769 tests, exactly 1 red (UnifiedSearchSqlSnapshotTest); UserApp item/baseline-item/brands/flash_sale/category/store +2177 -12 = exactly the 12 known base reds (8 item-detail/quick-add + 4 brands) | n/a |
+| (a) store | PASS (+ruling) | entry/badge/strip/scroll-away/tab keeps selection/filter-empty + Clear/leave+module reset OK. FOOD ORDERING POINT: premise NOT met: with item 17 (stock 0) made newer (clone write, restored) the default order is FIRST not LAST (UI + API); flagged == legacy; price_asc server order identical; no OOS veil in food (module stock flag off). Code: `latest` default_status hardcoded 1, sink applies only to non-food. NEEDS RULING if OOS-last was intended | OK |
+| (b)-(e), (j) | PASS | in-store search, category, view-all x2 (incl. multi-zone counts_omitted render), brand x2, flash (+ ended-sale 403 error state with paired [FAIL]), 320 dp x 1.3x | paired logs |
+| (f) shared F2 | PASS (+finding) | notice is a compact pill (no slab); superseded sort taps -> 1 filter_applied; reverted toggle -> none. FINDING: after the sheet closes the body is a full-page `Something went wrong` + Retry (list NOT intact) on all 6 lists | paired `[FAIL] ... filter_sort_apply_reload_failed` |
+| (g) old server | PASS (cited) | item_view_all_screen_filters_test / item_list_filter_hub_test / baseline store golden success_no_block pass in the run | n/a |
+| (i) term at rest | PASS | Drift `cache_response` 23 rows: none with the term; unsearched page-1 view-all row keyed `&flt=` | clean |
+
+**Findings (none breaks an AC):** (1) task: failed page-1 refetch replaces the list with a full-page error (f); (2) task: tab change with a selection fires two requests (filtered + plain unfiltered grid loader), a reverted toggle refetches the same selection; (3) regression (pre-existing, shared DLS sheet): switch rows toggle only on the switch thumb, tapping the label does nothing; (4) regression (pre-existing, NEARS-4183 StoreFilterHub): each Home module switch logs 6x `[FAIL] framework_error setState() or markNeedsBuild() called during build`; (5) note: brand lists are linked only from the Ecommerce home while the fixture items live in module 1, so the brand UI cell used a moduleId-rewriting proxy (harness).
+
+Harness: clone-only writes (flash sale 1 end_date, item 17 created_at, brand 5 module_id) all restored; device state restored (wm size, font_scale, language EN, appearance System); own suffixed package uninstalled; lock released.
+
+[Evidence gallery (68 shots + transcripts)](https://github.com/pokkeerr/nears-qa-evidence/tree/main/NEARS-4197)
