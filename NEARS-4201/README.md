@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4201
 
-**FAIL - AC6 new-address-from-checkout prompts; 13/14 rows PASS**
+**cycle2 delta: PASS - AC6 TB1 + TB2 verified, 1 low residual task bug**
 
-**23 screenshot(s).** Click any thumbnail for full resolution.
+**39 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -41,8 +41,34 @@
 <td align="center" width="33%"><a href="bug-new-address-from-checkout-prompts.png"><img src="bug-new-address-from-checkout-prompts.png" width="240"></a><br><sub>bug new address from checkout prompts</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="bug-new-address-picked-same-visit-prompts.png"><img src="bug-new-address-picked-same-visit-prompts.png" width="240"></a><br><sub>bug new address picked same visit prompts</sub></td>
 <td align="center" width="33%"><a href="bug-prompt-keyboard-covers-save-320dp-scrolled.png"><img src="bug-prompt-keyboard-covers-save-320dp-scrolled.png" width="240"></a><br><sub>bug prompt keyboard covers save 320dp scrolled</sub></td>
 <td align="center" width="33%"><a href="bug-prompt-keyboard-covers-save-320dp.png"><img src="bug-prompt-keyboard-covers-save-320dp.png" width="240"></a><br><sub>bug prompt keyboard covers save 320dp</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cycle2-ac1-smoke-tower-floor-required.png"><img src="cycle2-ac1-smoke-tower-floor-required.png" width="240"></a><br><sub>cycle2 ac1 smoke tower floor required</sub></td>
+<td align="center" width="33%"><a href="cycle2-ac6-initial-active-untyped-prompt.png"><img src="cycle2-ac6-initial-active-untyped-prompt.png" width="240"></a><br><sub>cycle2 ac6 initial active untyped prompt</sub></td>
+<td align="center" width="33%"><a href="cycle2-ac6-picker-untyped-prompt.png"><img src="cycle2-ac6-picker-untyped-prompt.png" width="240"></a><br><sub>cycle2 ac6 picker untyped prompt</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cycle2-ac6-tb1-add-from-address-sheet-no-prompt.png"><img src="cycle2-ac6-tb1-add-from-address-sheet-no-prompt.png" width="240"></a><br><sub>cycle2 ac6 tb1 add from address sheet no prompt</sub></td>
+<td align="center" width="33%"><a href="cycle2-ac6-tb1-add-while-saved-A-active-no-prompt.png"><img src="cycle2-ac6-tb1-add-while-saved-A-active-no-prompt.png" width="240"></a><br><sub>cycle2 ac6 tb1 add while saved A active no prompt</sub></td>
+<td align="center" width="33%"><a href="cycle2-ac6-tb1-new-address-active-no-prompt.png"><img src="cycle2-ac6-tb1-new-address-active-no-prompt.png" width="240"></a><br><sub>cycle2 ac6 tb1 new address active no prompt</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cycle2-prompt-failed-save-stays-open.png"><img src="cycle2-prompt-failed-save-stays-open.png" width="240"></a><br><sub>cycle2 prompt failed save stays open</sub></td>
+<td align="center" width="33%"><a href="cycle2-sweep-add-villa-hides-floor.png"><img src="cycle2-sweep-add-villa-hides-floor.png" width="240"></a><br><sub>cycle2 sweep add villa hides floor</sub></td>
+<td align="center" width="33%"><a href="cycle2-sweep-edit-tower-to-villa-floor-hidden.png"><img src="cycle2-sweep-edit-tower-to-villa-floor-hidden.png" width="240"></a><br><sub>cycle2 sweep edit tower to villa floor hidden</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cycle2-sweep-mobile-add-form-shared-control.png"><img src="cycle2-sweep-mobile-add-form-shared-control.png" width="240"></a><br><sub>cycle2 sweep mobile add form shared control</sub></td>
+<td align="center" width="33%"><a href="cycle2-tb2-ar-320dp-1.3x-tower-keypad-down.png"><img src="cycle2-tb2-ar-320dp-1.3x-tower-keypad-down.png" width="240"></a><br><sub>cycle2 tb2 ar 320dp 1.3x tower keypad down</sub></td>
+<td align="center" width="33%"><a href="cycle2-tb2-ar-320dp-1.3x-tower-keypad-up-scrolled.png"><img src="cycle2-tb2-ar-320dp-1.3x-tower-keypad-up-scrolled.png" width="240"></a><br><sub>cycle2 tb2 ar 320dp 1.3x tower keypad up scrolled</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cycle2-tb2-ar-320dp-1.3x-tower-keypad-up.png"><img src="cycle2-tb2-ar-320dp-1.3x-tower-keypad-up.png" width="240"></a><br><sub>cycle2 tb2 ar 320dp 1.3x tower keypad up</sub></td>
+<td align="center" width="33%"><a href="cycle2-tb2-en-1.0x-keypad-down.png"><img src="cycle2-tb2-en-1.0x-keypad-down.png" width="240"></a><br><sub>cycle2 tb2 en 1.0x keypad down</sub></td>
+<td align="center" width="33%"><a href="cycle2-tb2-en-1.0x-keypad-up.png"><img src="cycle2-tb2-en-1.0x-keypad-up.png" width="240"></a><br><sub>cycle2 tb2 en 1.0x keypad up</sub></td>
 </tr>
 </table>
 
@@ -53,7 +79,9 @@
 - [`api-matrix-rerun-apartment-office.txt`](api-matrix-rerun-apartment-office.txt)
 - [`api-matrix.txt`](api-matrix.txt)
 - [`bug-new-address-from-checkout-prompts.log`](bug-new-address-from-checkout-prompts.log)
+- [`bug-new-address-picked-same-visit-prompts.log`](bug-new-address-picked-same-visit-prompts.log)
 - [`bug-prompt-keyboard-covers-save-320dp.log`](bug-prompt-keyboard-covers-save-320dp.log)
+- [`cycle2-analytics-lines.txt`](cycle2-analytics-lines.txt)
 - [`progress.md`](progress.md)
 
 ---
