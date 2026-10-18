@@ -14,3 +14,5 @@
 - (j) 320dp x 1.3: store entry/strip/filter-empty + view-all popular OK. wm size / font_scale RESTORED.
 - (h) analytics: all 5 events x 7 list kinds (store/search/category/viewall/flash/brand + reviewed viewall food z1 partial) via debug mirror; privacy grep clean (adbd driver lines only); (i) drift cache clean.
 - AR + DARK captured (store, category, flash, view-all AR; view-all + store DARK): DEFERRED, not passed. Language restored EN, Appearance restored System.
+- FINAL: BE smoke incl. AC4 price + AC5 default==legacy appended to PASS2-BE-contract-smoke.txt. UserApp suites +2177 -12 (12 known base reds). Jira unreachable (atlassian MCP not connected): comment NOT posted.
+- Teardown done: servers/proxy/logcat pids stopped (own), own suffixed package uninstalled, adb reverse removed, wm/font/language/appearance restored, FA log props reset, lock released, clone restored (item 17 created_at, flash 1 end_date, brand 5 module_id=1).

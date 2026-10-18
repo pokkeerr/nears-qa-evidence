@@ -90,3 +90,33 @@ flash_items: p1 HTTP 200 total_size=13 n=10 filters_keys=['price', 'min_rating',
 == legacy (unflagged) sanity: items/search without with_filters keeps no filters block
  HTTP 200 filters key present: False total 28
  popular legacy HTTP 200 filters key present: False total 103
+== AC4 price smoke (min_price / max_price independent; garbage ignored 200)
+ store 2: base=29 bounds=(None,None) mid=None {'min_only': (200, 29), 'max_only': (200, 29), 'both': (200, 29), 'garbage': (200, 29), 'max<min': (200, 29)}
+ popular z2: base=200 bounds=(None,None) mid=None {'min_only': (200, 200), 'max_only': (200, 200), 'both': (200, 200), 'garbage': (200, 200), 'max<min': (200, 200)}
+ category 4: base=13 bounds=(None,None) mid=None {'min_only': (200, 13), 'max_only': (200, 13), 'both': (200, 13), 'garbage': (200, 13), 'max<min': (200, 13)}
+ brand 5 z2: base=3 bounds=(None,None) mid=None {'min_only': (200, 3), 'max_only': (200, 3), 'both': (200, 3), 'garbage': (200, 3), 'max<min': (200, 3)}
+ flash 1: base=13 bounds=(None,None) mid=None {'min_only': (200, 13), 'max_only': (200, 13), 'both': (200, 13), 'garbage': (200, 13), 'max<min': (200, 13)}
+ reviewed z2: base=4 bounds=(None,None) mid=None {'min_only': (200, 4), 'max_only': (200, 4), 'both': (200, 4), 'garbage': (200, 4), 'max<min': (200, 4)}
+ search store2: base=28 bounds=(None,None) mid=None {'min_only': (200, 28), 'max_only': (200, 28), 'both': (200, 28), 'garbage': (200, 28), 'max<min': (200, 28)}
+== AC4 price smoke (min_price / max_price independent; garbage ignored 200; max<min tolerated)
+ store 2: base=29 bounds=(1.5,1000) mid=500.75 {'min_only': (200, 1), 'max_only': (200, 28), 'both': (200, 0), 'garbage': (200, 29), 'max<min': (200, 29)}
+ popular z2: base=200 bounds=(1.8,500) mid=250.9 {'min_only': (200, 3), 'max_only': (200, 197), 'both': (200, 0), 'garbage': (200, 200), 'max<min': (200, 200)}
+ category 4: base=13 bounds=(1.5,300) mid=150.75 {'min_only': (200, 1), 'max_only': (200, 12), 'both': (200, 0), 'garbage': (200, 13), 'max<min': (200, 13)}
+ brand 5 z2: base=3 bounds=(4,500) mid=252.0 {'min_only': (200, 1), 'max_only': (200, 2), 'both': (200, 0), 'garbage': (200, 3), 'max<min': (200, 3)}
+ flash 1: base=13 bounds=(1.5,1000) mid=500.75 {'min_only': (200, 1), 'max_only': (200, 12), 'both': (200, 0), 'garbage': (200, 13), 'max<min': (200, 13)}
+ reviewed z2: base=4 bounds=(10,15.59) mid=12.79 {'min_only': (200, 2), 'max_only': (200, 2), 'both': (200, 0), 'garbage': (200, 4), 'max<min': (200, 4)}
+ search store2: base=28 bounds=(1.5,1000) mid=500.75 {'min_only': (200, 28), 'max_only': (200, 28), 'both': (200, 28), 'garbage': (200, 28), 'max<min': (200, 28)}
+ in-store search (items/search) base 200 28
+ in-store search (items/search) min_price=500.75 200 1
+ in-store search (items/search) max_price=500.75 200 27
+ in-store search (items/search) both 200 0
+ in-store search (items/search) garbage 200 28
+== AC5 default order == legacy (unflagged) order, page 1..all, 7 surfaces
+ store_items: flagged_default==legacy: True (n=29/29)
+ store_items food: flagged_default==legacy: True (n=15/15)
+ store_search: flagged_default==legacy: True (n=28/28)
+ category: flagged_default==legacy: True (n=31/31)
+ popular: flagged_default==legacy: True (n=90/90)
+ reviewed food: flagged_default==legacy: True (n=30/30)
+ brand 4: flagged_default==legacy: True (n=2/2)
+ flash 1: flagged_default==legacy: True (n=13/13)
