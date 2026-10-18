@@ -1,0 +1,84 @@
+NEARS-1199: using private test DB multi_food_db_test_nears_nears_4248_cold_facet_build
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/phpunit.xml
+
+...............................................................  63 / 822 (  7%)
+............................................................... 126 / 822 ( 15%)
+............................................................... 189 / 822 ( 22%)
+............................................................... 252 / 822 ( 30%)
+..........................................................F.F.. 315 / 822 ( 38%)
+............................................................... 378 / 822 ( 45%)
+............................................................... 441 / 822 ( 53%)
+............................................................... 504 / 822 ( 61%)
+............................................................... 567 / 822 ( 68%)
+............................................................... 630 / 822 ( 76%)
+............................................................... 693 / 822 ( 84%)
+............................................................... 756 / 822 ( 91%)
+......................F........................................ 819 / 822 ( 99%)
+...                                                             822 / 822 (100%)
+
+Time: 02:16.975, Memory: 309.00 MB
+
+There were 3 failures:
+
+1) Tests\Feature\Filters\ItemListContractFixturesTest::test_the_published_fixtures_equal_the_live_responses
+Expected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.
+
+The following errors occurred during the last request:
+
+{
+    "errors": [
+        {
+            "code": "flash_sale",
+            "message": "Not found"
+        }
+    ]
+}
+
+/Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/vendor/laravel/framework/src/Illuminate/Testing/TestResponseAssert.php:45
+/Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:175
+/Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/vendor/laravel/framework/src/Illuminate/Testing/Concerns/AssertsStatusCodes.php:16
+/Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/tests/Feature/Filters/ItemListContractFixturesTest.php:150
+/Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/tests/Feature/Filters/ItemListContractFixturesTest.php:176
+
+2) Tests\Feature\Filters\ItemListContractFixturesTest::test_every_fixture_view_carries_the_block_and_the_sort_of_its_registry
+Expected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.
+
+The following errors occurred during the last request:
+
+{
+    "errors": [
+        {
+            "code": "flash_sale",
+            "message": "Not found"
+        }
+    ]
+}
+
+/Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/vendor/laravel/framework/src/Illuminate/Testing/TestResponseAssert.php:45
+/Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:175
+/Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/vendor/laravel/framework/src/Illuminate/Testing/Concerns/AssertsStatusCodes.php:16
+/Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/tests/Feature/Filters/ItemListContractFixturesTest.php:150
+/Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/tests/Feature/Filters/ItemListContractFixturesTest.php:203
+
+3) Tests\Feature\Filters\UnifiedSearchSqlSnapshotTest::test_search_stores_sql_is_unchanged_for_every_legacy_argument_shape
+SQL drift in case m_filters
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    0 => 'select count(*) as aggregate from `stores` where exists (select * from `zones` where `stores`.`zone_id` = `zones`.`id` and exists (select * from `modules` inner join `module_zone` on `modules`.`id` = `module_zone`.`module_id` where `zones`.`id` = `module_zone`.`zone_id` and `modules`.`id` = ?)) and `off_day` not like ? and ((`name` like ? or `name` like ?) or (exists (select * from `translations` where `stores`.`id` = `translations`.`translationable_id` and `translations`.`translationable_type` = ? and (`value` like ? or `value` like ?)) or exists (select * from `items` where `stores`.`id` = `items`.`store_id` and exists (select * from `nutritions` inner join `item_nutrition` on `nutritions`.`id` = `item_nutrition`.`nutrition_id` where `items`.`id` = `item_nutrition`.`item_id` and (`nutrition` like ? or `nutrition` like ?))) or exists (select * from `items` where `stores`.`id` = `items`.`store_id` and exists (select * from `allergies` inner join `allergy_item` on `allergies`.`id` = `allergy_item`.`allergy_id` where `items`.`id` = `allergy_item`.`item_id` and (`allergy` like ? or `allergy` like ?))) or exists (select * from `items` where `stores`.`id` = `items`.`store_id` and exists (select * from `generic_names` inner join `item_generic_names` on `generic_names`.`id` = `item_generic_names`.`generic_name_id` where `items`.`id` = `item_generic_names`.`item_id` and (`generic_name` like ? or `generic_name` like ?))) or exists (select * from `items` where `stores`.`id` = `items`.`store_id` and exists (select * from `ecommerce_item_details` where `items`.`id` = `ecommerce_item_details`.`item_id` and exists (select * from `brands` where `ecommerce_item_details`.`brand_id` = `brands`.`id` and (`name` like ? or `name` like ?)))) or exists (select * from `items` where `stores`.`id` = `items`.`store_id` and exists (select * from `pharmacy_item_details` where `items`.`id` = `pharmacy_item_details`.`item_id` and exists (select * from `common_conditions` where `pharmacy_item_details`.`common_condition_id` = `common_conditions`.`id` and (`name` like ? or `name` like ?)))))) and `module_id` = ? and `zone_id` in (?) and `status` = ? and (`store_business_model` = ? or exists (select * from `store_subscriptions` inner join (select MAX(`store_subscriptions`.`id`) as `id_aggregate`, `store_subscriptions`.`store_id` from `store_subscriptions` group by `store_subscriptions`.`store_id`) as `latestOfMany` on `latestOfMany`.`id_aggregate` = `store_subscriptions`.`id` and `latestOfMany`.`store_id` = `store_subscriptions`.`store_id` where `stores`.`id` = `store_subscriptions`.`store_id` and (`max_order` = ? or `max_order` > ?) and `status` = ?)) and `stores`.`active` = ? and (select AVG(reviews.rating) from reviews inner join items on items.id = reviews.item_id where items.store_id = stores.id) >= ? and `rating` is not null and LENGTH(rating) > 0 and (exists (select * from `items` where `stores`.`id` = `items`.`store_id` and (`discount` > ? or exists (select * from `stores` where `items`.`store_id` = `stores`.`id` and exists (select * from `discounts` where `stores`.`id` = `discounts`.`store_id` and date(`start_date`) <= ? and date(`end_date`) >= ? and time(`start_time`) <= ? and time(`end_time`) >= ?)) or exists (select * from `flash_sale_items` where `items`.`id` = `flash_sale_items`.`item_id` and exists (select * from `flash_sales` where `flash_sale_items`.`flash_sale_id` = `flash_sales`.`id` and `is_publish` = ? and date(`start_date`) <= ? and date(`end_date`) >= ?))))) and `free_delivery` = ? and exists (select * from `coupons` where `stores`.`id` = `coupons`.`store_id` and `status` = ? and date(`expire_date`) >= ? and date(`start_date`) <= ?) and exists (select 1 from `store_schedule` where `store_schedule`.`store_id` = `stores`.`id` and `store_schedule`.`day` = ? and `store_schedule`.`opening_time` < ? and `store_schedule`.`closing_time` > ?) ["MODULE","%6%","%probe%","%x%","App\\Models\\Store","%probe%","%x%","%probe%","%x%","%probe%","%x%","%probe%","%x%","%probe%","%x%","%probe%","%x%","MODULE",2,1,"commission","unlimited",0,1,1,4,0,"2026-10-17","2026-10-17","12:00","12:00",1,"2026-10-17","2026-10-17",1,1,"2026-10-17","2026-10-17",6,"12:00:00","12:00:00"]',
++    0 => 'select count(*) as aggregate from `stores` where exists (select * from `zones` where `stores`.`zone_id` = `zones`.`id` and exists (select * from `modules` inner join `module_zone` on `modules`.`id` = `module_zone`.`module_id` where `zones`.`id` = `module_zone`.`zone_id` and `modules`.`id` = ?)) and `off_day` not like ? and ((`name` like ? or `name` like ?) or (exists (select * from `translations` where `stores`.`id` = `translations`.`translationable_id` and `translations`.`translationable_type` = ? and (`value` like ? or `value` like ?)) or exists (select * from `items` where `stores`.`id` = `items`.`store_id` and exists (select * from `nutritions` inner join `item_nutrition` on `nutritions`.`id` = `item_nutrition`.`nutrition_id` where `items`.`id` = `item_nutrition`.`item_id` and (`nutrition` like ? or `nutrition` like ?))) or exists (select * from `items` where `stores`.`id` = `items`.`store_id` and exists (select * from `allergies` inner join `allergy_item` on `allergies`.`id` = `allergy_item`.`allergy_id` where `items`.`id` = `allergy_item`.`item_id` and (`allergy` like ? or `allergy` like ?))) or exists (select * from `items` where `stores`.`id` = `items`.`store_id` and exists (select * from `generic_names` inner join `item_generic_names` on `generic_names`.`id` = `item_generic_names`.`generic_name_id` where `items`.`id` = `item_generic_names`.`item_id` and (`generic_name` like ? or `generic_name` like ?))) or exists (select * from `items` where `stores`.`id` = `items`.`store_id` and exists (select * from `ecommerce_item_details` where `items`.`id` = `ecommerce_item_details`.`item_id` and exists (select * from `brands` where `ecommerce_item_details`.`brand_id` = `brands`.`id` and (`name` like ? or `name` like ?)))) or exists (select * from `items` where `stores`.`id` = `items`.`store_id` and exists (select * from `pharmacy_item_details` where `items`.`id` = `pharmacy_item_details`.`item_id` and exists (select * from `common_conditions` where `pharmacy_item_details`.`common_condition_id` = `common_conditions`.`id` and (`name` like ? or `name` like ?)))))) and `module_id` = ? and `zone_id` in (?) and `status` = ? and (`store_business_model` = ? or exists (select * from `store_subscriptions` inner join (select MAX(`store_subscriptions`.`id`) as `id_aggregate`, `store_subscriptions`.`store_id` from `store_subscriptions` group by `store_subscriptions`.`store_id`) as `latestOfMany` on `latestOfMany`.`id_aggregate` = `store_subscriptions`.`id` and `latestOfMany`.`store_id` = `store_subscriptions`.`store_id` where `stores`.`id` = `store_subscriptions`.`store_id` and (`max_order` = ? or `max_order` > ?) and `status` = ?)) and `stores`.`active` = ? and (select AVG(reviews.rating) from reviews inner join items on items.id = reviews.item_id where items.store_id = stores.id) >= ? and `rating` is not null and LENGTH(rating) > 0 and (exists (select * from `items` where `stores`.`id` = `items`.`store_id` and (`discount` > ? or exists (select * from `stores` where `items`.`store_id` = `stores`.`id` and exists (select * from `discounts` where `stores`.`id` = `discounts`.`store_id` and date(`start_date`) <= ? and date(`end_date`) >= ? and time(`start_time`) <= ? and time(`end_time`) >= ?)) or exists (select * from `flash_sale_items` where `items`.`id` = `flash_sale_items`.`item_id` and exists (select * from `flash_sales` where `flash_sale_items`.`flash_sale_id` = `flash_sales`.`id` and `is_publish` = ? and date(`start_date`) <= ? and date(`end_date`) >= ?))))) and `free_delivery` = ? and exists (select * from `coupons` where `stores`.`id` = `coupons`.`store_id` and `status` = ? and date(`expire_date`) >= ? and date(`start_date`) <= ?) and exists (select 1 from `store_schedule` where `store_schedule`.`store_id` = `stores`.`id` and `store_schedule`.`day` = ? and `store_schedule`.`opening_time` < ? and `store_schedule`.`closing_time` > ?) ["MODULE","%6%","%probe%","%x%","App\\Models\\Store","%probe%","%x%","%probe%","%x%","%probe%","%x%","%probe%","%x%","%probe%","%x%","%probe%","%x%","MODULE",2,1,"commission","unlimited",0,1,1,4,0,"2026-10-17","2026-10-17","12:00","12:00",1,"2026-10-17","2026-10-17",1,1,"2026-10-18","2026-10-18",6,"12:00:00","12:00:00"]',
+ ]
+
+/Users/Apple/Projects/nears-NEARS-4248-cold-facet-build/Admin/tests/Feature/Filters/UnifiedSearchSqlSnapshotTest.php:143
+
+FAILURES!
+Tests: 822, Assertions: 9839, Failures: 3, PHPUnit Deprecations: 38.
+mem-guard[4248]: done rc=1 peak_tree_rss=0.33 GB (cap 6.0)
+exit=1
