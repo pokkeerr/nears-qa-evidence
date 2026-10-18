@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4198
 
-**QA cycle 0: FAIL - ACs 1-11 demonstrated, 1 breaks_ac task_bug (failure notice slab)**
+**QA cycle 1 (tip b909d7a44): TB1/TB2/TB3 fixed, delta clean**
 
 **21 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -48,6 +48,7 @@
 - [`bug-catalog-yaml-stale.log`](bug-catalog-yaml-stale.log)
 - [`bug-failure-notice-giant-slab.log`](bug-failure-notice-giant-slab.log)
 - [`bug-superseded-tap-filter-applied.log`](bug-superseded-tap-filter-applied.log)
+- [`cycle1`](cycle1)
 - [`fa-wire-events-capture.txt`](fa-wire-events-capture.txt)
 - [`pii-negative-control.txt`](pii-negative-control.txt)
 - [`reg-order-card-overflow-320dp.log`](reg-order-card-overflow-320dp.log)

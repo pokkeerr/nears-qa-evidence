@@ -1,0 +1,10 @@
+# TB2 replays (real FA wire, tip b909d7a44), proxy request log + FA lines
+## A. two chips 150ms apart (Refunds then Delivered): 2 requests, ONE event
+08:04:12 GET order/list?status_group=refund ; 08:04:13 GET order/list?status_group=delivered
+08:04:12.199 filter_applied {filter_key=status_group, value=delivered, applied_filters_count=1, list_id=history, result_count=43, section=quick}
+## B. chip A then un-tap 0.6s later with a 3s-slow delivered fetch (pill x): no filter_applied, one filter_removed
+08:04:55.384 filter_removed {filter_key=status_group:delivered, remaining_filters_count=0, list_id=history, section=applied_filters_bar}
+## B2. same via chip un-tap: only filter_removed (08:05:10.711), no filter_applied
+## C. search sheet (Stores tab) sort Relevance->Top rated 150ms apart: ONE filter_applied
+08:07:39.504 filter_applied {filter_key=stores:sort, value=rating, sort_key=rating, applied_filters_count=1, list_id=stores, result_count=1, section=sheet}
+## C2. Top rated then Relevance 150ms apart: only filter_removed {filter_key=stores:sort:rating} (08:07:26.103), no filter_applied
