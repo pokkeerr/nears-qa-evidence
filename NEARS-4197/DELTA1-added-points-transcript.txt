@@ -1,0 +1,32 @@
+
+##### DELTA1-added-points-transcript.txt
+--- (a) many-zone headers on omitted scopes (response time, status)
+(a) 7 zones popular: HTTP 200 total=798 counts_omitted=True time cold/repeat=0.21s/0.17s category options=35 foreign=[]
+(a) 7 zones category 3: HTTP 200 total=302 counts_omitted=True time cold/repeat=0.14s/0.15s category options=n/a foreign=None
+    (unflagged popular same header: HTTP 200 0.14s)
+(a) 20 zones popular: HTTP 200 total=1578 counts_omitted=True time cold/repeat=0.19s/0.29s category options=35 foreign=[]
+(a) 20 zones category 3: HTTP 200 total=666 counts_omitted=True time cold/repeat=0.28s/0.17s category options=n/a foreign=None
+    (unflagged popular same header: HTTP 200 0.17s)
+(a) 50 zones popular: HTTP 200 total=3933 counts_omitted=True time cold/repeat=0.38s/0.53s category options=35 foreign=[]
+(a) 50 zones category 3: HTTP 200 total=1765 counts_omitted=True time cold/repeat=0.35s/0.27s category options=n/a foreign=None
+    (unflagged popular same header: HTTP 200 0.33s)
+--- (b) missing/unresolvable moduleId header -> 403
+(b) items/latest: no moduleId=403 | no moduleId+flag=403 | moduleId=999999=403 | moduleId=999999+flag=403 | moduleId=abc=403 | moduleId=abc+flag=403 | moduleId=0=403 | moduleId=0+flag=403 | moduleId=1 (control)=200 | moduleId=1 (control)+flag=200
+(b) items/search: no moduleId=403 | no moduleId+flag=403 | moduleId=999999=403 | moduleId=999999+flag=403 | moduleId=abc=403 | moduleId=abc+flag=403 | moduleId=0=403 | moduleId=0+flag=403 | moduleId=1 (control)=200 | moduleId=1 (control)+flag=200
+(b) categories/items/3: no moduleId=403 | no moduleId+flag=403 | moduleId=999999=403 | moduleId=999999+flag=403 | moduleId=abc=403 | moduleId=abc+flag=403 | moduleId=0=403 | moduleId=0+flag=403 | moduleId=1 (control)=200 | moduleId=1 (control)+flag=200
+(b) items/popular: no moduleId=403 | no moduleId+flag=403 | moduleId=999999=403 | moduleId=999999+flag=403 | moduleId=abc=403 | moduleId=abc+flag=403 | moduleId=0=403 | moduleId=0+flag=403 | moduleId=1 (control)=200 | moduleId=1 (control)+flag=200
+(b) items/most-reviewed: no moduleId=403 | no moduleId+flag=403 | moduleId=999999=403 | moduleId=999999+flag=403 | moduleId=abc=403 | moduleId=abc+flag=403 | moduleId=0=403 | moduleId=0+flag=403 | moduleId=1 (control)=200 | moduleId=1 (control)+flag=200
+(b) brand/items/4: no moduleId=403 | no moduleId+flag=403 | moduleId=999999=403 | moduleId=999999+flag=403 | moduleId=abc=403 | moduleId=abc+flag=403 | moduleId=0=403 | moduleId=0+flag=403 | moduleId=1 (control)=200 | moduleId=1 (control)+flag=200
+(b) flash-sales/items: no moduleId=403 | no moduleId+flag=403 | moduleId=999999=403 | moduleId=999999+flag=403 | moduleId=abc=403 | moduleId=abc+flag=403 | moduleId=0=403 | moduleId=0+flag=403 | moduleId=1 (control)=200 | moduleId=1 (control)+flag=200
+    sample 403 body: {"errors":[{"code":"moduleId","message":"Module id required"}]}
+--- (c) category_ids of another module on module-1 popular
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1&category_ids=14  [zoneId: [2], moduleId: 1] -> HTTP 200
+(c) category_ids=14: HTTP 200 total_size=0 products=0 filters=present
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1&category_ids=24  [zoneId: [2], moduleId: 1] -> HTTP 200
+(c) category_ids=24: HTTP 200 total_size=0 products=0 filters=present
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1&category_ids=14,24  [zoneId: [2], moduleId: 1] -> HTTP 200
+(c) category_ids=14,24: HTTP 200 total_size=0 products=0 filters=present
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1&category_ids=14,3  [zoneId: [2], moduleId: 1] -> HTTP 200
+(c) category_ids=14,3: HTTP 200 total_size=36 products=5 filters=present
+GET /api/v1/items/popular?limit=5&offset=1&category_ids=14  [zoneId: [2], moduleId: 1] -> HTTP 200
+(c) unflagged category_ids=14: HTTP 200 total_size=200 (legacy semantics)

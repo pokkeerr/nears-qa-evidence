@@ -1,0 +1,62 @@
+
+##### DELTA1-replay-transcript.txt
+--- 1a replay of the pass-1 failing request + omitted/counted matrix (popular)
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+popular [2,417] m1: HTTP 200 total=500 counts_omitted=True category options=30 foreign-module=[] ids14-28=[] dead-end(total 0 when selected)=[] all counts null=True unselected zero-count options=[]
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+popular [1,2] m1: HTTP 200 total=303 counts_omitted=True category options=35 foreign-module=[] ids14-28=[] dead-end(total 0 when selected)=[] all counts null=True unselected zero-count options=[]
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+popular [2] m1: HTTP 200 total=200 counts_omitted=False category options=27 foreign-module=[] ids14-28=[] dead-end(total 0 when selected)=[] all counts null=False unselected zero-count options=[]
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [417], moduleId: 1] -> HTTP 200
+popular [417] m1: HTTP 200 total=300 counts_omitted=False category options=14 foreign-module=[] ids14-28=[] dead-end(total 0 when selected)=[] all counts null=False unselected zero-count options=[]
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+popular [1] m1: HTTP 200 total=103 counts_omitted=False category options=28 foreign-module=[] ids14-28=[] dead-end(total 0 when selected)=[] all counts null=False unselected zero-count options=[]
+--- most-reviewed / brand / flash / in-store search (counted scopes; cap 5000/500/5000/5000 not reachable)
+GET /api/v1/items/most-reviewed?limit=5&offset=1&with_filters=1  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+most-reviewed [2,417] m1: HTTP 200 total=4 counts_omitted=False category options=5 foreign-module=[] ids14-28=[] dead-end(total 0 when selected)=[] all counts null=False unselected zero-count options=[]
+GET /api/v1/items/most-reviewed?limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+most-reviewed [2] m1: HTTP 200 total=4 counts_omitted=False category options=5 foreign-module=[] ids14-28=[] dead-end(total 0 when selected)=[] all counts null=False unselected zero-count options=[]
+GET /api/v1/brand/items/4?limit=5&offset=1&with_filters=1  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+brand 4 [1,2] m1: HTTP 200 total=4 counts_omitted=False category options=5 foreign-module=[] ids14-28=[] dead-end(total 0 when selected)=[] all counts null=False unselected zero-count options=[]
+GET /api/v1/flash-sales/items?flash_sale_id=1&limit=5&offset=1&with_filters=1  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+flash sale 1 [1,2] m1: HTTP 200 total=15 counts_omitted=False category options=14 foreign-module=[] ids14-28=[] dead-end(total 0 when selected)=[] all counts null=False unselected zero-count options=[]
+GET /api/v1/items/search?store_id=2&name=a&limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+in-store search store 2 [1] m1: HTTP 200 total=28 counts_omitted=False category options=20 foreign-module=[] ids14-28=[] dead-end(total 0 when selected)=[] all counts null=False unselected zero-count options=[]
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [1,2], moduleId: 2] -> HTTP 200
+popular food [1,2] m2: HTTP 200 total=145 counts_omitted=False category options=10 foreign-module=[] ids14-28=['14', '15', '16', '17', '18', '19', '20', '21', '22', '23'] dead-end(total 0 when selected)=[] all counts null=False unselected zero-count options=[]
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [3], moduleId: 4] -> HTTP 200
+popular module4 [3] m4: HTTP 200 total=6 counts_omitted=False category options=1 foreign-module=[] ids14-28=[] dead-end(total 0 when selected)=[] all counts null=False unselected zero-count options=[]
+--- category items (cap 300, no category facet by design)
+GET /api/v1/categories/items/3?limit=5&offset=1&with_filters=1  [zoneId: [2,417,431,410,440,437], moduleId: 1] -> HTTP 200
+category 3 [2,417,431,410,440,437]: HTTP 200 total=673 counts_omitted=True category_ids facet=absent
+GET /api/v1/categories/items/3?limit=5&offset=1&with_filters=1  [zoneId: [417], moduleId: 1] -> HTTP 200
+category 3 [417]: HTTP 200 total=140 counts_omitted=False category_ids facet=absent
+--- cap boundary
+cap [417] popular total_size=300 counts_omitted=False sample counts=[300]
+cap [1,2] popular total_size=303 counts_omitted=True sample counts=[None]
+cap [2,417] popular total_size=500 counts_omitted=True sample counts=[None]
+
+##### DELTA1-replay-transcript.txt
+--- brand omitted scope: clone-only fixture brand nears-4197-big-brand (ecommerce_item_details rows for module-1 items of zones 2 and 417), cap brand_items=500
+GET /api/v1/brand/items/nears-4197-big-brand?limit=5&offset=1&with_filters=1  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+brand big [2,417]: HTTP 200 total=495 counts_omitted=False category options=29
+GET /api/v1/brand/items/nears-4197-big-brand?limit=5&offset=1&with_filters=1  [zoneId: [417], moduleId: 1] -> HTTP 200
+brand big [417]: HTTP 200 total=300 counts_omitted=False category options=14
+GET /api/v1/brand/items/nears-4197-big-brand?limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+brand big [2]: HTTP 200 total=195 counts_omitted=False category options=26
+
+##### DELTA1-replay-transcript.txt
+GET /api/v1/brand/items/nears-4197-big-brand?limit=5&offset=1&with_filters=1  [zoneId: [1,2,417], moduleId: 1] -> HTTP 200
+brand big [1,2,417]: HTTP 200 total=595 counts_omitted=True category options=35 foreign-module=[] dead-end=['111'] counts null=True
+GET /api/v1/brand/items/nears-4197-big-brand?limit=5&offset=1&with_filters=1  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+brand big [1,2]: HTTP 200 total=295 counts_omitted=False category options=34 foreign-module=[] dead-end=[] counts null=False
+GET /api/v1/brand/items/nears-4197-big-brand?limit=5&offset=1&with_filters=1  [zoneId: [417], moduleId: 1] -> HTTP 200
+brand big [417]: HTTP 200 total=300 counts_omitted=False category options=14 foreign-module=[] dead-end=[] counts null=False
+
+##### DELTA1-replay-transcript.txt
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1&category_ids=14  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+BE-log scoped by X-Request-Id a3b6926f-6050-4fe3-955c-536d95ffd578 (/api/v1/items/popular [2,417]): HTTP 200, matching log lines: none (clean)
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1&category_ids=14  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+BE-log scoped by X-Request-Id 6b978f35-1cf3-4711-9609-7f3fddfc5f4c (/api/v1/items/popular [1,2]): HTTP 200, matching log lines: none (clean)
+GET /api/v1/brand/items/nears-4197-big-brand?limit=5&offset=1&with_filters=1&category_ids=14  [zoneId: [1,2,417], moduleId: 1] -> HTTP 200
+BE-log scoped by X-Request-Id 02b51b3d-9268-4e0f-9302-d40026e1bfd8 (/api/v1/brand/items/nears-4197-big-brand [1,2,417]): HTTP 200, matching log lines: none (clean)
