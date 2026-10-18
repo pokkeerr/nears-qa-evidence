@@ -1,0 +1,37 @@
+
+##### QApoints-allzone-module7-transcript.txt
+Fixture (clone only, via INSERT..SELECT in fx7.py): module 7 module_zone rows for zones 1,2; store 91158 zone 1 (6 items, price 1.5-6), store 91159 zone 2 (4 items, price 204-700), copied from stores 2/12 items. Module 7 had NO active store/items on the clone before.
+sql: module7 all_zone_service=1
+item category_ids sample: [{"id":"3","position":1},{"id":"4","position":2}]
+GET /api/v1/items/popular?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 7] -> HTTP 200
+GET /api/v1/items/popular?limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 7] -> HTTP 200
+GET /api/v1/items/popular?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 7] -> HTTP 200
+GET /api/v1/items/popular?limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 7] -> HTTP 200
+M7 popular: zone1 total=6 bounds={'min': 1.5, 'max': 6} ids=[91152, 91153, 91154, 91155, 91156, 91157] | zone2 total=4 bounds={'min': 204, 'max': 700} ids=[91159, 91160, 91161, 91162]
+      facet counts zone1=[('min_rating', [6]), ('in_stock', [6]), ('discounted', [2]), ('category_ids', [4, 2, 2, 2, 1, 1])] zone2=[('in_stock', [4]), ('discounted', [1]), ('category_ids', [4, 2, 2])] ; warm repeat identical zone1=True zone2=True ; zone blocks differ (not cross-served)=True
+GET /api/v1/items/latest?store_id=91158&category_id=0&limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 7] -> HTTP 200
+GET /api/v1/items/latest?store_id=91158&category_id=0&limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 7] -> HTTP 200
+GET /api/v1/items/latest?store_id=91158&category_id=0&limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 7] -> HTTP 200
+GET /api/v1/items/latest?store_id=91158&category_id=0&limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 7] -> HTTP 200
+M7 latest store A: zone1 total=6 bounds={'min': 1.5, 'max': 6} ids=[91152, 91153, 91154, 91155, 91156, 91157] | zone2 total=6 bounds={'min': 1.5, 'max': 6} ids=[91152, 91153, 91154, 91155, 91156, 91157]
+      facet counts zone1=[('min_rating', [6]), ('in_stock', [6]), ('discounted', [2])] zone2=[('min_rating', [6]), ('in_stock', [6]), ('discounted', [2])] ; warm repeat identical zone1=True zone2=True ; zone blocks differ (not cross-served)=False
+GET /api/v1/items/latest?store_id=91159&category_id=0&limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 7] -> HTTP 200
+GET /api/v1/items/latest?store_id=91159&category_id=0&limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 7] -> HTTP 200
+GET /api/v1/items/latest?store_id=91159&category_id=0&limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 7] -> HTTP 200
+GET /api/v1/items/latest?store_id=91159&category_id=0&limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 7] -> HTTP 200
+M7 latest store B: zone1 total=4 bounds={'min': 204, 'max': 700} ids=[91159, 91160, 91161, 91162] | zone2 total=4 bounds={'min': 204, 'max': 700} ids=[91159, 91160, 91161, 91162]
+      facet counts zone1=[('in_stock', [4]), ('discounted', [1])] zone2=[('in_stock', [4]), ('discounted', [1])] ; warm repeat identical zone1=True zone2=True ; zone blocks differ (not cross-served)=False
+GET /api/v1/categories/items/3?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 7] -> HTTP 200
+GET /api/v1/categories/items/3?limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 7] -> HTTP 200
+GET /api/v1/categories/items/3?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 7] -> HTTP 200
+GET /api/v1/categories/items/3?limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 7] -> HTTP 200
+M7 category 3: zone1 total=35 bounds={'min': 1.5, 'max': 300} ids=[40, 42, 47, 72, 73, 76, 85, 99, 102, 103, 105, 106, 109, 111, 112, 113, 347, 351, 352, 355, 363, 367, 368, 372, 374] | zone2 total=36 bounds={'min': 1.8, 'max': 22.98} ids=[236, 240, 241, 251, 252, 254, 256, 262, 264, 268, 280, 286, 290, 300, 309, 311, 317, 318, 319, 321, 322, 325, 330, 340, 91108]
+      facet counts zone1=[('min_rating', [21]), ('in_stock', [35]), ('organic', [6]), ('discounted', [17])] zone2=[('min_rating', [22]), ('in_stock', [35]), ('organic', [21]), ('discounted', [12])] ; warm repeat identical zone1=True zone2=True ; zone blocks differ (not cross-served)=True
+GET /api/v1/items/most-reviewed?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 7] -> HTTP 200
+GET /api/v1/items/most-reviewed?limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 7] -> HTTP 200
+GET /api/v1/items/most-reviewed?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 7] -> HTTP 200
+GET /api/v1/items/most-reviewed?limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 7] -> HTTP 200
+M7 most-reviewed: zone1 total=0 bounds={'min': None, 'max': None} ids=[] | zone2 total=0 bounds={'min': None, 'max': None} ids=[]
+      facet counts zone1=[] zone2=[] ; warm repeat identical zone1=True zone2=True ; zone blocks differ (not cross-served)=False
+GET /api/v1/items/popular?limit=25&offset=1&with_filters=1  [zoneId: [1,2], moduleId: 7] -> HTTP 200
+M7 popular zones [1,2]: total=10 bounds={'min': 1.5, 'max': 700} (union of both)

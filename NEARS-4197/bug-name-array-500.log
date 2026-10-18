@@ -1,0 +1,8 @@
+BUG (pre-existing, Low): array-valued term params answer HTTP 500 instead of 200
+GET /api/v1/items/search?store_id=2&name[]=x&limit=5&offset=1&with_filters=1 (zoneId [1], moduleId 1) -> HTTP 500 {"message":"Something went wrong"}  (same unflagged)
+GET /api/v1/items/popular?search[]=x&limit=5&offset=1 (zoneId [2], moduleId 1, UNflagged) -> HTTP 500 ; same on /api/v1/items/most-reviewed
+(flagged popular/most-reviewed with search[]=x -> 200, type[]=x on all lists -> 200 as the contract promises)
+laravel.log (grep -F of the server-minted X-Request-Id 7c556c39-fb2e-42f4-bc95-3e14049b1e0a):
+[2026-10-18 05:51:29] production.ERROR: [FAIL] exception_reported {"trace_id":"26553e48550fd092a32edba9f6aa7cf2","correlation_id":"7c556c39-fb2e-42f4-bc95-3e14049b1e0a","type":"TypeError","code":0,"file":"app/Http/Controllers/Api/V1/ItemController.php","line":106,"endpoint":"/api/v1/items/search"}
+Cause: explode(' ', $request['name']) at ItemController.php:106 (baseline 88d9979fc:97) and ProductLogic::searchClause explode(' ', $search) (baseline :670) on an array. Lines pre-date this change.
+Note: api-shapes.md says an array-valued base-scope param on a flagged list answers 200; `name` is listed as a base-scope param but is not covered by ItemListGarbageParamsTest.

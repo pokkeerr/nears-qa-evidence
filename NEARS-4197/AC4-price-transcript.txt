@@ -1,0 +1,52 @@
+
+##### AC4-price-transcript.txt
+store 2 prices (sql): min=1.5 max=1000.0 n=29  price==3.5 ids=[2]
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=3.5&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 min-only 3.5: /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=3.5&with_filters=1  -> HTTP 200 total_size=22 expected=22 OK
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&max_price=3.5&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 max-only 3.5: /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&max_price=3.5&with_filters=1  -> HTTP 200 total_size=8 expected=8 OK
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=3.5&max_price=3.5&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 min==max 3.5: /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=3.5&max_price=3.5&with_filters=1  -> HTTP 200 total_size=1 expected=1 OK
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=2&max_price=5&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 both 2..5: /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=2&max_price=5&with_filters=1  -> HTTP 200 total_size=9 expected=9 OK
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=0&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 min=0 only: /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=0&with_filters=1  -> HTTP 200 total_size=29 expected=29 OK
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=0&max_price=3&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 min=0 max=3: /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=0&max_price=3&with_filters=1  -> HTTP 200 total_size=7 expected=7 OK
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=10&max_price=2&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 min>max (10>2): /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=10&max_price=2&with_filters=1  -> HTTP 200 total_size=29
+     min>max semantics: engine drops both -> returns all 29? total=29
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=abc&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 garbage min=abc: /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=abc&with_filters=1  -> HTTP 200 total_size=29
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&max_price=abc&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 garbage max=abc: /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&max_price=abc&with_filters=1  -> HTTP 200 total_size=29
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=abc&max_price=5&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 garbage min=abc max=5: /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=abc&max_price=5&with_filters=1  -> HTTP 200 total_size=11 expected=11 OK
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=-5&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 negative min=-5: /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=-5&with_filters=1  -> HTTP 200 total_size=29
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=&max_price=5&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4 empty min= max=5 flagged: /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=&max_price=5&with_filters=1  -> HTTP 200 total_size=11 expected=11 OK
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=5&offset=1&with_filters=1&min_price=3.5  [zoneId: [1], moduleId: 1] -> HTTP 200
+   selection echo min-only: {'min': 3.5, 'max': None} ; applied=['min_price']
+--- legacy (unflagged) byte-identical check vs development baseline
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=&max_price=5  [zoneId: [1], moduleId: 1] -> HTTP 200
+4L unflagged min_price=(empty)&max_price=5: HTTP 200 total=11 (legacy: min applied only when both sent -> empty min is ignored and max? see baseline)
+
+##### AC4-price-transcript.txt
+--- 4L UNFLAGGED legacy on items/latest (store 2). Baseline = 88d9979fc ProductLogic::get_latest_products: min falsy -> 1e-8; applies whereBetween(min,max) only when min && max truthy
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&max_price=5  [zoneId: [1], moduleId: 1] -> HTTP 200
+4L max only 5: HTTP 200 total=11 expected(baseline semantics)=11 OK  filters-key-present=False
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=&max_price=5  [zoneId: [1], moduleId: 1] -> HTTP 200
+4L empty min + max 5: HTTP 200 total=11 expected(baseline semantics)=11 OK  filters-key-present=False
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=3.5  [zoneId: [1], moduleId: 1] -> HTTP 200
+4L min only 3.5 (ignored): HTTP 200 total=29 expected(baseline semantics)=29 OK  filters-key-present=False
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=2&max_price=5  [zoneId: [1], moduleId: 1] -> HTTP 200
+4L both 2..5: HTTP 200 total=9 expected(baseline semantics)=9 OK  filters-key-present=False
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=0&max_price=5  [zoneId: [1], moduleId: 1] -> HTTP 200
+4L min=0 max=5: HTTP 200 total=11 expected(baseline semantics)=11 OK  filters-key-present=False
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1&min_price=10&max_price=2  [zoneId: [1], moduleId: 1] -> HTTP 200
+4L min>max 10>2: HTTP 200 total=0 expected(baseline semantics)=0 OK  filters-key-present=False
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=100&offset=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+4L none: HTTP 200 total=29 expected(baseline semantics)=29 OK  filters-key-present=False
+GET /api/v1/items/popular?min_price=0.0&max_price=9999999999.0&limit=5&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+4L popular unflagged shipped-client shape min_price=0.0&max_price=9999999999.0: HTTP 200 total=200 (=200 baseline total) filters=False

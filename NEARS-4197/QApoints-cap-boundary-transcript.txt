@@ -1,0 +1,47 @@
+
+##### QApoints-cap-boundary-transcript.txt
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [417], moduleId: 1] -> HTTP 200
+CAP popular zone 417 (single zone, visible items?): HTTP 200 total_size=300 counts_omitted=False {'price': {'bounds': {'min': 2.13, 'max': 40}}, 'in_stock': {'n_opts': 1, 'counts': [300]}, 'organic': {'n_opts': 1, 'counts': [100]}, 'discounted': {'n_opts': 1, 'counts': [80]}, 'category_ids': {'n_opts': 14, 'counts': [60, 140, 60, 60, 20, 20]}}
+     category_ids options=14 (counts: [20, 40, 60, 140])
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+CAP popular zone [2,417]: HTTP 200 total_size=500 counts_omitted=True {'price': {'bounds': {'min': None, 'max': None}}, 'min_rating': {'n_opts': 1, 'counts': [None]}, 'in_stock': {'n_opts': 1, 'counts': [None]}, 'organic': {'n_opts': 1, 'counts': [None]}, 'discounted': {'n_opts': 1, 'counts': [None]}, 'available_now': {'n_opts': 1, 'counts': [None]}, 'category_ids': {'n_opts': 45, 'counts': [None, None, None, None, None, None]}}
+     category_ids options=45 (counts: [None])
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+CAP popular zone [1,2]: HTTP 200 total_size=303 counts_omitted=True {'price': {'bounds': {'min': None, 'max': None}}, 'min_rating': {'n_opts': 1, 'counts': [None]}, 'in_stock': {'n_opts': 1, 'counts': [None]}, 'organic': {'n_opts': 1, 'counts': [None]}, 'discounted': {'n_opts': 1, 'counts': [None]}, 'available_now': {'n_opts': 1, 'counts': [None]}, 'category_ids': {'n_opts': 50, 'counts': [None, None, None, None, None, None]}}
+     category_ids options=50 (counts: [None])
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+CAP popular zone 2 (200): HTTP 200 total_size=200 counts_omitted=False {'price': {'bounds': {'min': 1.8, 'max': 500}}, 'min_rating': {'n_opts': 1, 'counts': [101]}, 'in_stock': {'n_opts': 1, 'counts': [189]}, 'organic': {'n_opts': 1, 'counts': [70]}, 'discounted': {'n_opts': 1, 'counts': [63]}, 'category_ids': {'n_opts': 27, 'counts': [21, 36, 14, 20, 24, 11]}}
+     category_ids options=27 (counts: [1, 2, 3, 6, 8])
+
+##### QApoints-cap-boundary-transcript.txt
+CAP-cat popular [2,417] category_ids options 45 == union(zone2 27, zone417 14)=30 : False ; counts_omitted=True
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1&organic=1  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+CAP selection under omission organic=1 on [2,417]: HTTP 200 total_size=170 (zone2 70 + zone417 100 = 170 expected) counts_omitted=True organic option count=[None] selected=[True]
+     paged total=170 collected=170 dup=0
+GET /api/v1/categories/items/3?limit=5&offset=1&with_filters=1  [zoneId: [2,417,431,410,440,437], moduleId: 1] -> HTTP 200
+CAP category_items 3 zones [2,417,431,410,440,437]: HTTP 200 total_size=673 counts_omitted=True keys=['price', 'min_rating', 'in_stock', 'organic', 'discounted'] counts={'min_rating': [None], 'in_stock': [None], 'organic': [None], 'discounted': [None]}
+GET /api/v1/categories/items/3?limit=5&offset=1&with_filters=1  [zoneId: [417], moduleId: 1] -> HTTP 200
+CAP category_items 3 single zone 417: total_size=140 counts_omitted=False
+GET /api/v1/categories/items/3?limit=5&offset=1&with_filters=1  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+CAP category_items 3 zones [2,417]: total_size=176 counts_omitted=False (below 300 -> counts kept)
+GET /api/v1/items/most-reviewed?limit=5&offset=1&with_filters=1  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+CAP most-reviewed [2,417] (cap 5000): total_size=4 counts_omitted=False
+
+##### QApoints-cap-boundary-transcript.txt
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+CAP-cat extras beyond the union of per-zone popular facets: 15 [('14', 'Burgers'), ('15', 'Classic Burgers'), ('16', 'Pizza'), ('17', 'Thin Crust'), ('18', 'Deep Dish'), ('19', 'Sushi & Japanese'), ('20', 'Appetizers'), ('21', 'Desserts'), ('22', 'Drinks'), ('23', 'Sides'), ('24', 'Pain Relief'), ('25', 'Cold & Flu'), ('26', 'Vitamins & Supplements'), ('27', 'First Aid'), ('28', 'Personal Care')]
+CAP-cat options in omitted scope that return total_size=0 when selected: 15 [('14', 'Burgers'), ('15', 'Classic Burgers'), ('16', 'Pizza'), ('17', 'Thin Crust'), ('18', 'Deep Dish'), ('19', 'Sushi & Japanese'), ('20', 'Appetizers'), ('21', 'Desserts'), ('22', 'Drinks'), ('23', 'Sides'), ('24', 'Pain Relief'), ('25', 'Cold & Flu'), ('26', 'Vitamins & Supplements'), ('27', 'First Aid'), ('28', 'Personal Care')]
+GET /api/v1/categories?limit=200&offset=1  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+/api/v1/categories zone [2,417]: 29 categories listed; offered-in-facet but not in rail: ['14', '15', '16', '17', '18', '19', '20', '21', '22', '23']
+
+##### QApoints-cap-boundary-transcript.txt
+GET /api/v1/items/popular?limit=1&offset=1&with_filters=1  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+leak-check /api/v1/items/popular [1,2]: counts_omitted=True category_ids facet=50 options, other-module ids present: ['14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28']
+GET /api/v1/categories/items/3?limit=1&offset=1&with_filters=1  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+leak-check /api/v1/categories/items/3 [1,2]: counts_omitted=False category_ids facet=n/a (no such facet)
+GET /api/v1/items/popular?limit=1&offset=1&with_filters=1  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+leak-check /api/v1/items/popular [2,417]: counts_omitted=True category_ids facet=45 options, other-module ids present: ['14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28']
+GET /api/v1/categories/items/3?limit=1&offset=1&with_filters=1  [zoneId: [2,417], moduleId: 1] -> HTTP 200
+leak-check /api/v1/categories/items/3 [2,417]: counts_omitted=False category_ids facet=n/a (no such facet)
+GET /api/v1/items/popular?limit=1&offset=1&with_filters=1  [zoneId: [1,2], moduleId: 2] -> HTTP 200
+food module popular [1,2]: total=145 counts_omitted=False

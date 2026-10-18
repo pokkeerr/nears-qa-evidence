@@ -1,0 +1,16 @@
+
+##### BE-log-check-transcript.txt
+GET /api/v1/items/search?store_id=2&name[]=x&limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1, X-Request-Id: qa4197-be-log-check-0001] -> HTTP 500
+request: GET /api/v1/items/search?store_id=2&name[]=x&limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1, X-Request-Id: qa4197-be-log-check-0001] -> HTTP 500
+response header x-request-id echoed: {'X-Request-Id': 'b69dc185-43dd-4bd9-8b00-4f4e9061bebb'} ; body={"message": "Something went wrong"}
+grep -F qa4197-be-log-check-0001 laravel.log:
+
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1&organic=1  [zoneId: [2], moduleId: 1, X-Request-Id: qa4197-be-log-check-0002] -> HTTP 200
+clean flagged request GET /api/v1/items/popular?limit=5&offset=1&with_filters=1&organic=1  HTTP 200 -> grep -F qa4197-be-log-check-0002 laravel.log: []
+grep -c filters_block_failed laravel.log -> 1119 (no block failed during this run)
+
+##### BE-log-check-transcript.txt
+GET /api/v1/items/search?store_id=2&name[]=x&limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 500
+failure path: GET /api/v1/items/search?store_id=2&name[]=x&limit=5&offset=1&with_filters=1  -> HTTP 500 ; server-minted X-Request-Id=7c556c39-fb2e-42f4-bc95-3e14049b1e0a (a client-sent X-Request-Id is replaced by a server UUID)
+grep -F 7c556c39-fb2e-42f4-bc95-3e14049b1e0a laravel.log -> [2026-10-18 05:51:29] production.ERROR: [FAIL] exception_reported {"trace_id":"26553e48550fd092a32edba9f6aa7cf2","correlation_id":"7c556c39-fb2e-42f4-bc95-3e14049b1e0a","type":"TypeError","code":0,"file":"app/Http/Controllers/Api/V1/ItemController.php","line":106,"endpoint":"/api/v1/items/search"}
+grep -F 7c556c39-fb2e-42f4-bc95-3e14049b1e0a laravel-structured.log -> {"tag":"[FAIL]","timestamp":"2026-10-18T05:51:29.766934+04:00","correlation_id":"7c556c39-fb2e-42f4-bc95-3e14049b1e0a","level":"error","message":"[FAIL] exception_reported","context":{"trace_id":"26553e48550fd092a32edba9f6aa7cf2","type":"TypeError","code":0,"file":"app/Http/Controllers/Api/V1/ItemController.php","line":106,"endpoint":"/api/v1/items/search"}}

@@ -1,0 +1,15 @@
+BUG: counts_omitted popular view-all offers categories from OTHER modules (dead-end options)
+Request (module 1 grocery, overlapping zones, 500 visible items > popular cap 300):
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1   headers zoneId: [2,417], moduleId: 1 -> HTTP 200
+  total_size=500, filters.counts_omitted=true, category_ids facet = 45 options
+  union of the per-zone (non-omitted) category_ids facets for [2] and [417] = 30
+  15 extra options: 14 Burgers, 15 Classic Burgers, 16 Pizza, 17 Thin Crust, 18 Deep Dish, 19 Sushi & Japanese, 20 Appetizers,
+  21 Desserts, 22 Drinks, 23 Sides (categories.module_id=2 food) and 24 Pain Relief, 25 Cold & Flu, 26 Vitamins & Supplements,
+  27 First Aid, 28 Personal Care (module_id=3 pharmacy).
+  Selecting any of the 15 -> total_size=0 (15/15 dead ends). GET /api/v1/categories (same headers) lists none of them (29 categories).
+Same on zoneId [1,2] (303 items): 50 options, same 15 foreign ids.
+Non-omitted single zone [2] (200 items): 27 options, none foreign, all with counts.
+Probable cause (leads, not proof): omitted-mode pruning ItemFilterLogic::onlyVisibleCategories() filters by CategoryLogic::visible_category_counts(),
+which is built on CategoryLogic::visibleItems(); that scope is unchanged from 88d9979fc and does not constrain items.module_id to the header module
+(it only requires the store's zone to offer the module), so food/pharmacy categories of the same zones pass the "visible" test.
+Contract text: api-shapes.md "Counts cap and omission": category options come from the visible domain (a category is offered iff the rail would list it).

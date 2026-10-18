@@ -1,0 +1,81 @@
+
+##### QApoints-reviewer-checks-transcript.txt
+GET /api/v1/items/latest?store_id=2&category_id=5&limit=50&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+GET /api/v1/items/latest?store_id=2&category_id=05&limit=50&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+GET /api/v1/items/latest?store_id=2&category_id=005&limit=50&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+QA-b items/latest store 2 tab category_id=5|05|005 flagged=1: HTTP [200, 200, 200] total_size=[5, 5, 5] ids=[111, 112, 75, 4, 5] | identical ids=True identical totals=True identical filters-block=True
+GET /api/v1/items/latest?store_id=2&category_id=5&limit=50&offset=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+GET /api/v1/items/latest?store_id=2&category_id=05&limit=50&offset=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+GET /api/v1/items/latest?store_id=2&category_id=005&limit=50&offset=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+QA-b items/latest store 2 tab category_id=5|05|005 flagged=0: HTTP [200, 200, 200] total_size=[5, 5, 5] ids=[111, 112, 75, 4, 5] | identical ids=True identical totals=True identical filters-block=True
+GET /api/v1/categories/items/3?limit=100&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+GET /api/v1/categories/items/fruits-vegetables?limit=100&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+GET /api/v1/categories/items/4?limit=100&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+GET /api/v1/categories/items/fresh-fruits?limit=100&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-c category numeric vs slug flagged=1 zone2: {'3': (200, 36, 36), 'fruits-vegetables': (200, 0, 0), '4': (200, 14, 14), 'fresh-fruits': (200, 14, 14)}
+GET /api/v1/categories/items/3?limit=100&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+GET /api/v1/categories/items/fruits-vegetables?limit=100&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+GET /api/v1/categories/items/4?limit=100&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+GET /api/v1/categories/items/fresh-fruits?limit=100&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-c category numeric vs slug flagged=0 zone2: {'3': (200, 36, 36), 'fruits-vegetables': (200, 0, 0), '4': (200, 14, 14), 'fresh-fruits': (200, 14, 14)}
+   sql: categories 3 children=4,5,49,50,51 ; slug of 4=fresh-fruits
+GET /api/v1/brand/items/4?limit=5&offset=999999999&with_filters=1  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+GET /api/v1/brand/items/4?limit=5&offset=10000&with_filters=1  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+QA-d brand flagged=1 offset=999999999 -> HTTP 200 offset=10000 products=0 total=4 | offset=10000 -> HTTP 200 offset=10000 products=0 | same body=True
+GET /api/v1/brand/items/4?limit=5&offset=999999999  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+GET /api/v1/brand/items/4?limit=5&offset=10000  [zoneId: [1,2], moduleId: 1] -> HTTP 200
+QA-d brand flagged=0 offset=999999999 -> HTTP 200 offset=10000 products=0 total=4 | offset=10000 -> HTTP 200 offset=10000 products=0 | same body=True
+GET /api/v1/categories/items/3?limit=5&offset=999999999&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+GET /api/v1/categories/items/3?limit=5&offset=10000&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-d category flagged=1 offset=999999999 -> HTTP 200 offset=10000 products=0 total=36 | offset=10000 -> HTTP 200 offset=10000 products=0 | same body=True
+GET /api/v1/categories/items/3?limit=5&offset=999999999  [zoneId: [2], moduleId: 1] -> HTTP 200
+GET /api/v1/categories/items/3?limit=5&offset=10000  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-d category flagged=0 offset=999999999 -> HTTP 200 offset=10000 products=0 total=36 | offset=10000 -> HTTP 200 offset=10000 products=0 | same body=True
+GET /api/v1/flash-sales/items?flash_sale_id=1&limit=5&offset=999999999&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+GET /api/v1/flash-sales/items?flash_sale_id=1&limit=5&offset=10000&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+QA-d flash flagged=1 offset=999999999 -> HTTP 200 offset=10000 products=0 total=13 | offset=10000 -> HTTP 200 offset=10000 products=0 | same body=True
+GET /api/v1/flash-sales/items?flash_sale_id=1&limit=5&offset=999999999  [zoneId: [1], moduleId: 1] -> HTTP 200
+GET /api/v1/flash-sales/items?flash_sale_id=1&limit=5&offset=10000  [zoneId: [1], moduleId: 1] -> HTTP 200
+QA-d flash flagged=0 offset=999999999 -> HTTP 200 offset=10000 products=0 total=13 | offset=10000 -> HTTP 200 offset=10000 products=0 | same body=True
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=5&offset=999999999&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=5&offset=10000&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+QA-d latest flagged=1 offset=999999999 -> HTTP 200 offset=10000 products=0 total=29 | offset=10000 -> HTTP 200 offset=10000 products=0 | same body=True
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=5&offset=999999999  [zoneId: [1], moduleId: 1] -> HTTP 200
+GET /api/v1/items/latest?store_id=2&category_id=0&limit=5&offset=10000  [zoneId: [1], moduleId: 1] -> HTTP 200
+QA-d latest flagged=0 offset=999999999 -> HTTP 200 offset=10000 products=0 total=29 | offset=10000 -> HTTP 200 offset=10000 products=0 | same body=True
+GET /api/v1/items/popular?type[]=x&limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-e popular type[] flagged=1: HTTP 200 total=200 filters=present
+GET /api/v1/items/popular?type[]=x&limit=5&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-e popular type[] flagged=0: HTTP 200 total=200 filters=absent
+GET /api/v1/items/popular?search[]=x&limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-e popular search[] flagged=1: HTTP 200 total=200 filters=present
+GET /api/v1/items/popular?search[]=x&limit=5&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 500
+QA-e popular search[] flagged=0: HTTP 500 total=None filters=absent
+GET /api/v1/items/most-reviewed?type[]=x&limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-e most-reviewed type[] flagged=1: HTTP 200 total=4 filters=present
+GET /api/v1/items/most-reviewed?type[]=x&limit=5&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-e most-reviewed type[] flagged=0: HTTP 200 total=4 filters=absent
+GET /api/v1/items/most-reviewed?search[]=x&limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-e most-reviewed search[] flagged=1: HTTP 200 total=4 filters=present
+GET /api/v1/items/most-reviewed?search[]=x&limit=5&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 500
+QA-e most-reviewed search[] flagged=0: HTTP 500 total=None filters=absent
+GET /api/v1/items/search?store_id=2&name=a&type[]=x&limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+QA-e in-store search type[] flagged flagged=1: HTTP 200 total=28 filters=present
+GET /api/v1/items/search?store_id=2&name=a&type[]=x&limit=5&offset=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+QA-e in-store search type[] flagged flagged=0: HTTP 200 total=28 filters=absent
+GET /api/v1/items/search?store_id=2&name[]=x&limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 500
+QA-e in-store search name[] flagged flagged=1: HTTP 500 total=None filters=absent
+GET /api/v1/items/search?store_id=2&name[]=x&limit=5&offset=1  [zoneId: [1], moduleId: 1] -> HTTP 500
+QA-e in-store search name[] flagged flagged=0: HTTP 500 total=None filters=absent
+GET /api/v1/items/latest?store_id=2&category_id=0&type[]=x&limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+QA-e latest type[] flagged flagged=1: HTTP 200 total=29 filters=present
+GET /api/v1/items/latest?store_id=2&category_id=0&type[]=x&limit=5&offset=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+QA-e latest type[] flagged flagged=0: HTTP 200 total=29 filters=absent
+GET /api/v1/categories/items/3?type[]=x&limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-e category type[] flagged flagged=1: HTTP 200 total=36 filters=present
+GET /api/v1/categories/items/3?type[]=x&limit=5&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-e category type[] flagged flagged=0: HTTP 200 total=36 filters=absent
+GET /api/v1/items/popular?min_rating[]=x&sort[]=x&category_ids[]=x&limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-e popular min_rating[] garbage flagged=1: HTTP 200 total=200 filters=present
+GET /api/v1/items/popular?min_rating[]=x&sort[]=x&category_ids[]=x&limit=5&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+QA-e popular min_rating[] garbage flagged=0: HTTP 200 total=75 filters=absent

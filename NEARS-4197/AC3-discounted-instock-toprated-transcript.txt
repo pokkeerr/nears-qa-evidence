@@ -1,0 +1,28 @@
+
+##### AC3-discounted-instock-toprated-transcript.txt
+-- sql truth: items 51,53 discount/stock:
+51	0.00	96
+53	0.00	99
+
+3a items/latest store 1 zone [1] discounted=1: total=14 of 14; wanted [103, 106, 107] all present=True; non-matching(rest) example not-discounted items excluded=0
+3a items/latest store 2 zone [1] discounted=1: total=12 of 29; wanted [3, 89] all present=True; non-matching(rest) example not-discounted items excluded=17
+3a popular zone2 discounted=1 total=63: contains 186=False 251=True 3=False 89=False
+3a category 3 zone2 discounted=1 total=12: contains 186=False 251=True 3=False 89=False
+3a store 1: all 14 active items vs discounted=1 14 (store discount id1 10% window 2026-08-01..2027-08-30 covers all; an option equal to whole scope is dropped by contract -> facet absent)
+GET /api/v1/items/latest?store_id=1&category_id=0&with_filters=1&limit=5&offset=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+   store1 discounted facet offered: False
+3b lapsed: brand 4 items [2, 3, 51, 53]; discounted=1 -> [2, 3] (items 51,53 sit only in past/future/unpublished sales 5/6/7, discount 0: must be absent: True)
+3c stock=0 active grocery items zone1/2: ['1', '61534', '91109', '91110', '91111', '91112', '91113', '91114', '91115', '91116', '91117', '91118', '91108']
+3c popular zone [1]: base 103 (stock0 present in base: [1, 61534]); in_stock=1 -> 101; stock0 ids in in_stock result: []
+3c popular zone [2]: base 200 (stock0 present in base: [91108, 91109, 91110, 91111, 91112, 91113, 91114, 91115, 91116, 91117, 91118]); in_stock=1 -> 189; stock0 ids in in_stock result: []
+3d top_rated popular z2: n=200 (review_count,avg_rating) first 8=[(5, 4.8), (5, 3.5), (3, 5.0), (2, 5.0), (0, 5.0), (0, 5.0), (0, 5.0), (0, 5.0)] ordered(review count desc then rating desc)=True
+      differs from rating-only order: True
+3d top_rated category 3 z2: n=36 (review_count,avg_rating) first 8=[(5, 4.8), (2, 5.0), (0, 5.0), (0, 4.9), (0, 4.9), (0, 4.8), (0, 4.7), (0, 4.7)] ordered(review count desc then rating desc)=True
+      differs from rating-only order: True
+3d top_rated store 2: n=29 (review_count,avg_rating) first 8=[(0, 4.9), (0, 4.8), (0, 4.6), (0, 4.5), (0, 4.5), (0, 4.4), (0, 4.3), (0, 4.3)] ordered(review count desc then rating desc)=True
+      differs from rating-only order: False
+
+##### AC3-discounted-instock-toprated-transcript.txt
+popular zone [1] total=103: 186 in base=False in discounted=False | 251 in base=False discounted=False
+popular zone [2] total=200: 186 in base=False in discounted=False | 251 in base=True discounted=True
+popular zone [1,2] total=303: 186 in base=False in discounted=False | 251 in base=True discounted=True

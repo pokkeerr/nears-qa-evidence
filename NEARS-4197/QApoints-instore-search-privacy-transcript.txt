@@ -1,0 +1,21 @@
+
+##### QApoints-instore-search-privacy-transcript.txt
+GET /api/v1/items/search?store_id=2&name=Banana&limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+privacy request name=Banana sel={} -> HTTP 200 total=1 filters=present
+GET /api/v1/items/search?store_id=2&name=Banana&limit=5&offset=1&with_filters=1&in_stock=1&sort=price_asc  [zoneId: [1], moduleId: 1] -> HTTP 200
+privacy request name=Banana sel={'in_stock': 1, 'sort': 'price_asc'} -> HTTP 200 total=1 filters=present
+GET /api/v1/items/search?store_id=2&name=Banana&limit=5&offset=1&with_filters=1&min_price=1&max_price=abc  [zoneId: [1], moduleId: 1] -> HTTP 200
+privacy request name=Banana sel={'min_price': 1, 'max_price': 'abc'} -> HTTP 200 total=1 filters=present
+GET /api/v1/items/search?store_id=2&name=zqxprivterm4197&limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+privacy request name=zqxprivterm4197 sel={} -> HTTP 200 total=0 filters=present
+GET /api/v1/items/search?store_id=2&name=zqxprivterm4197&limit=5&offset=1&with_filters=1&in_stock=1&sort=price_asc  [zoneId: [1], moduleId: 1] -> HTTP 200
+privacy request name=zqxprivterm4197 sel={'in_stock': 1, 'sort': 'price_asc'} -> HTTP 200 total=0 filters=present
+GET /api/v1/items/search?store_id=2&name=zqxprivterm4197&limit=5&offset=1&with_filters=1&min_price=1&max_price=abc  [zoneId: [1], moduleId: 1] -> HTTP 200
+privacy request name=zqxprivterm4197 sel={'min_price': 1, 'max_price': 'abc'} -> HTTP 200 total=0 filters=present
+grep -c -F -i "Banana" laravel.log -> 0
+grep -c -F -i "Banana" laravel-structured.log -> 0
+cache table (clone) rows whose key/value contain "Banana": 0 
+grep -c -F -i "zqxprivterm4197" laravel.log -> 0
+grep -c -F -i "zqxprivterm4197" laravel-structured.log -> 0
+cache table (clone) rows whose key/value contain "zqxprivterm4197": 0 
+grep -rIl zqxprivterm4197 under Admin/storage: []

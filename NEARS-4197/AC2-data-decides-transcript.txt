@@ -1,0 +1,66 @@
+
+##### AC2-data-decides-transcript.txt
+GET /api/v1/categories/items/4?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+2a base zone1 cat4: GET /api/v1/categories/items/4?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+   total=13 ids=[368, 372, 347, 355, 103, 105, 109, 99, 47, 72, 2, 3, 12]
+   facets={'price': {'min': 1.5, 'max': 300}, 'min_rating': [('4', 7)], 'in_stock': [('1', 13)], 'organic': [('1', 1)], 'discounted': [('1', 7)]}
+GET /api/v1/categories/items/4?limit=25&offset=1&with_filters=1&organic=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+2a select organic=1: GET /api/v1/categories/items/4?limit=25&offset=1&with_filters=1&organic=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+   total=1 ids=[347] (expect [347])  applied=['organic']
+   organic facet after selection: [('1', 1, True)]
+GET /api/v1/items/popular?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 2] -> HTTP 200
+2b food m2 z1 popular: GET /api/v1/items/popular?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 2] -> HTTP 200
+   total=85 organic_option=absent  filter keys=['price', 'min_rating', 'discounted', 'available_now', 'category_ids']
+GET /api/v1/items/popular?limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 2] -> HTTP 200
+2b food m2 z2 popular: GET /api/v1/items/popular?limit=25&offset=1&with_filters=1  [zoneId: [2], moduleId: 2] -> HTTP 200
+   total=60 organic_option=absent  filter keys=['price', 'min_rating', 'discounted', 'category_ids']
+GET /api/v1/items/most-reviewed?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 2] -> HTTP 200
+2b food m2 z1 most-reviewed: GET /api/v1/items/most-reviewed?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 2] -> HTTP 200
+   total=30 organic_option=absent  filter keys=['price', 'min_rating', 'discounted', 'available_now', 'category_ids']
+GET /api/v1/items/popular?limit=3&offset=1  [zoneId: [1], moduleId: 2] -> HTTP 200
+   (food category chosen from a popular item: None)
+GET /api/v1/categories/items/None?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 2] -> HTTP 200
+2b food m2 category items: GET /api/v1/categories/items/None?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 2] -> HTTP 200
+   total=0 organic_option=absent  filter keys=['price']
+GET /api/v1/items/popular?limit=25&offset=1&with_filters=1  [zoneId: [3], moduleId: 4] -> HTTP 200
+2b module4 z3 popular: GET /api/v1/items/popular?limit=25&offset=1&with_filters=1  [zoneId: [3], moduleId: 4] -> HTTP 200
+   total=6 organic_option=absent  filter keys=['price', 'in_stock', 'discounted', 'category_ids']
+GET /api/v1/items/latest?store_id=59&category_id=0&limit=25&offset=1&with_filters=1  [zoneId: [3], moduleId: 4] -> HTTP 200
+2b module4 z3 store59 latest: GET /api/v1/items/latest?store_id=59&category_id=0&limit=25&offset=1&with_filters=1  [zoneId: [3], moduleId: 4] -> HTTP 200
+   total=6 organic_option=absent  filter keys=['price', 'in_stock', 'discounted']
+2c zero-count scan: 63 flagged requests over 9 scopes x 7 selections; unselected options with count 0 returned: 0 []
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+GET /api/v1/items/popular?min_rating=4&limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+2d popular select {'min_rating': 4}: total=101 | own facet min_rating counts base=[('4', 101)] selected=[('4', 101)] -> UNCHANGED
+       other facets narrowed to {'in_stock': [('1', 101)], 'organic': [('1', 45)], 'discounted': [('1', 29)], 'category_ids': [('1', 14), ('3', 22), ('4', 10), ('5', 12), ('6', 17), ('7', 9), ('8', 8), ('9', 18), ('10', 8), ('11', 20), ('12', 4), ('13', 5), ('101', 7), ('102', 4), ('108', 5), ('109', 5)]}
+GET /api/v1/items/popular?category_ids=3&limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+2d popular select {'category_ids': '3'}: total=36 | own facet category_ids counts base=[('1', 21), ('3', 36), ('4', 14), ('5', 20), ('6', 24), ('7', 11)] selected=[('1', 21), ('3', 36), ('4', 14), ('5', 20), ('6', 24), ('7', 11)] -> UNCHANGED
+       other facets narrowed to {'min_rating': [('4', 22)], 'in_stock': [('1', 35)], 'organic': [('1', 21)], 'discounted': [('1', 12)]}
+GET /api/v1/items/popular?organic=1&limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+2d popular select {'organic': 1}: total=70 | own facet organic counts base=[('1', 70)] selected=[('1', 70)] -> UNCHANGED
+       other facets narrowed to {'min_rating': [('4', 45)], 'in_stock': [('1', 70)], 'discounted': [('1', 20)], 'category_ids': [('1', 7), ('3', 21), ('4', 10), ('5', 11), ('6', 8), ('7', 2), ('8', 6), ('9', 8), ('10', 2), ('11', 11), ('12', 4), ('13', 7), ('101', 6), ('102', 4), ('108', 3), ('109', 2)]}
+GET /api/v1/items/popular?in_stock=1&limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+2d popular select {'in_stock': 1}: total=189 | own facet in_stock counts base=[('1', 189)] selected=[('1', 189)] -> UNCHANGED
+       other facets narrowed to {'min_rating': [('4', 101)], 'organic': [('1', 70)], 'discounted': [('1', 63)], 'category_ids': [('1', 21), ('3', 35), ('4', 14), ('5', 19), ('6', 24), ('7', 11), ('8', 19), ('9', 29), ('10', 11), ('11', 33), ('12', 8), ('13', 10), ('47', 2), ('48', 1), ('50', 1), ('51', 1), ('62', 1), ('101', 12), ('102', 8), ('108', 9), ('109', 8), ('111', 2), ('112', 3), ('114', 1), ('137', 2), ('144', 12), ('145', 6)]}
+GET /api/v1/items/popular?discounted=1&limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+2d popular select {'discounted': 1}: total=63 | own facet discounted counts base=[('1', 63)] selected=[('1', 63)] -> UNCHANGED
+       other facets narrowed to {'min_rating': [('4', 29)], 'in_stock': [('1', 63)], 'organic': [('1', 20)], 'category_ids': [('1', 8), ('3', 12), ('4', 4), ('5', 7), ('6', 9), ('7', 3), ('8', 7), ('9', 7), ('10', 3), ('11', 9), ('12', 1), ('13', 2), ('50', 1), ('101', 5), ('102', 1), ('108', 3), ('109', 2), ('112', 1), ('144', 12)]}
+GET /api/v1/categories/items/144?limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+2e category 144 items zone [2]: GET /api/v1/categories/items/144?limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200 total=12
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+   popular category_ids facet zone [2]: 144 offered=[('144', 12)]
+GET /api/v1/categories?limit=100&offset=1  [zoneId: [2], moduleId: 1] -> HTTP 200
+   /api/v1/categories zone [2]: 144 listed=True (n=27)
+GET /api/v1/categories/items/144?limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+2e category 144 items zone [1]: GET /api/v1/categories/items/144?limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200 total=0
+GET /api/v1/items/popular?limit=5&offset=1&with_filters=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+   popular category_ids facet zone [1]: 144 offered=[]
+GET /api/v1/categories?limit=100&offset=1  [zoneId: [1], moduleId: 1] -> HTTP 200
+   /api/v1/categories zone [1]: 144 listed=False (n=27)
+
+##### AC2-data-decides-transcript.txt
+GET /api/v1/items/popular?limit=3&offset=1&with_filters=1  [zoneId: [1], moduleId: 2] -> HTTP 200
+food category chosen from popular category_ids facet: 14
+GET /api/v1/categories/items/14?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 2] -> HTTP 200
+2b food m2 category items: GET /api/v1/categories/items/14?limit=25&offset=1&with_filters=1  [zoneId: [1], moduleId: 2] -> HTTP 200 total=24 organic_option=absent filter keys=['price', 'min_rating', 'discounted']
+   in_stock offered in food category scope: False (contract: not offered for food)
