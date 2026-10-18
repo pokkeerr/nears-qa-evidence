@@ -1,0 +1,49 @@
+passes 297 fails 0
+---ac2
+FAIL u5-hist {'store': ['35'], 'status_group': 'canceled'} store absent legit offered {'35'}
+FAIL u5-run {'store': ['35']} store absent legit offered {'4', '35'}
+FAIL u3-hist {'store': ['35'], 'status_group': 'canceled'} store absent legit offered {'35'}
+passes 1109 fails 3
+u5 False [('placed', [])]
+u5 True []
+---ac3
+today 2026-10-18 d7 2026-10-11 d8 2026-10-10
+PASS from d7 inclusive start-of-day (7d-start row 92003 in, minus1s row 92004 out) {'placed_from': '2026-10-11'} status 200 total 12 
+PASS from d8 includes minus1s row {'placed_from': '2026-10-10'} status 200 total 13 
+PASS to d1 (yesterday last second 92005 in) {'placed_to': '2026-10-17'} status 200 total 91 
+PASS to d2 (92005 out) {'placed_to': '2026-10-16'} status 200 total 89 
+PASS equal bounds d1 = one day {'placed_from': '2026-10-17', 'placed_to': '2026-10-17'} status 200 total 2 
+PASS equal bounds d7 {'placed_from': '2026-10-11', 'placed_to': '2026-10-11'} status 200 total 1 
+PASS only from {'placed_from': '2026-10-11'} status 200 total 12 
+PASS only to {'placed_to': '2026-10-11'} status 200 total 80 
+PASS range {'placed_from': '2026-10-10', 'placed_to': '2026-10-17'} status 200 total 13 
+PASS dropped: inverted {'placed_from': '2026-10-17', 'placed_to': '2026-10-10'} status 200 total 91 
+PASS dropped: feb30 {'placed_from': '2026-02-30'} status 200 total 91 
+PASS dropped: nopad {'placed_from': '2026-1-5'} status 200 total 91 
+PASS dropped: iso datetime {'placed_from': '2026-10-10T00:00:00Z'} status 200 total 91 
+PASS dropped: iso dt space {'placed_to': '2026-10-10 00:00:00'} status 200 total 91 
+PASS array from status 200 total 91
+PASS dropped: letters {'placed_from': 'abc'} status 200 total 91 
+PASS dropped: long {'placed_from': '22222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222
+PASS dropped: year1969 {'placed_from': '1969-12-31'} status 200 total 91 
+PASS dropped: year2101 {'placed_to': '2101-01-01'} status 200 total 91 
+PASS dropped: slashes {'placed_from': '2026/10/10'} status 200 total 91 
+PASS dropped: both bad {'placed_from': 'x', 'placed_to': 'y'} status 200 total 91 
+PASS valid from + invalid to {'placed_from': '2026-10-11', 'placed_to': '2026-02-30'} status 200 total 12 
+PASS invalid from + valid to {'placed_from': 'bad', 'placed_to': '2026-10-11'} status 200 total 80 
+running from d1 200 6 exp 6
+running malformed 200 57 57
+selection echo {'min': '2026-10-10', 'max': '2026-10-17'} bounds {'min': '2026-05-17', 'max': '2026-10-17'} applied ['placed_from', 'placed_to']
+inverted applied [] {'min': None, 'max': None}
+unflagged total 91 False expected 91
+ALL OK
+---ac4
+FAIL loyalty u6 {'transaction_type': 'order_place', 'date_from': '2026-10-16', 'date_to': '2026-10-10'} ids 200 got [166, 160, 159, 158, 157, 155, 154, 153, 151, 150, 149, 147, 146, 145, 144, 142, 141, 138, 137, 136] exp []
+FAIL loyalty u6 {'transaction_type': 'order_place', 'date_from': '2026-10-16', 'date_to': '2026-10-10'} totals [20, 20, 20, 20] 0
+loyalty u 6 counts {'order_place': 1, 'point_to_wallet': 1, 'trip_booking': 1} sum 3 total 3
+FAIL wallet u5 group counts ignore own selection {'order': 0} {}
+passes 219 fails 3
+--- ac4 rerun (model fixed: inverted range dropped, 0-count selected option retained)
+loyalty u 6 counts {'order_place': 1, 'point_to_wallet': 1, 'trip_booking': 1} sum 3 total 3
+passes 222 fails 0
+NOTE ac2: the 3 FAIL lines are harness-model artefacts (a store id the principal never ordered at is dropped by the engine, so my 'offered' model wrongly counted it as selected); every per-option count, option set and selected flag matched (1109 passes).

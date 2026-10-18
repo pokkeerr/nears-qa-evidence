@@ -1,0 +1,6 @@
+# NEARS-4198 task_bug (Low): superseded chip tap still fires filter_applied, with the wrong result_count
+# two chips tapped 150ms apart (History: Delivered, then Refunds & returns): 2 requests, 2 events within 1 ms, BOTH result_count=6 (delivered has 43 rows)
+06:35:53.413 📊 analytics: filter_applied {screen: order_screen, section: quick, zone_id: 1, source: orders, applied_filters_count: 1, list_id: history, filter_key: status_group, value: delivered, result_count: 6}
+06:35:53.414 📊 analytics: filter_applied {screen: order_screen, section: quick, zone_id: 1, source: orders, applied_filters_count: 1, list_id: history, filter_key: status_group, value: refund, result_count: 6}
+proxy: 06:35:54 GET .../order/list?status_group=delivered ... 200 ; 06:35:54 GET .../order/list?status_group=refund ... 200
+spec: docs/design/NEARS-4198-analytics-spec.md filter_applied fire point: 'per settled change, never per ... superseded tap'; verify step 4: 'a rapid double-tap on two chips yields one filter_applied for the settled change'

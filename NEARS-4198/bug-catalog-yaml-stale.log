@@ -1,0 +1,62 @@
+# NEARS-4198 task_bug (Low): packages/nears_dls/catalog.yaml is stale against the sidecars this ticket edited
+$ cd packages/nears_dls && /Users/Apple/Tools/flutter/bin/dart run tool/generate_catalog.dart --check
+STALE: catalog.yaml is out of date. Regenerate with: dart run tool/generate_catalog.dart
+# regenerating (then reverted with git checkout -- catalog.yaml) yields this diff:
+diff --git a/packages/nears_dls/catalog.yaml b/packages/nears_dls/catalog.yaml
+index e419f83e0..c72f0ae16 100644
+--- a/packages/nears_dls/catalog.yaml
++++ b/packages/nears_dls/catalog.yaml
+@@ -487,11 +487,15 @@ components:
+       quick_pick_math: "Last 7/30/90 resolve to DateTimeRange(start: now - N days, end: now) at Apply time, via an injectable now (testability, defaults to DateTime.now). Pure client-side date math — no fetch, so loading/error states are N
+       option_row_reuse: "Quick-pick rows reuse NFilterOptionRow (n_filter_sort_sheet.dart, package-internal — NOT exported via nears_dls.dart) — the identical single-select row F1's sort section uses, so the two sheets share ONE header/foo
+       rtl: "Quick-pick rows mirror via the same NFilterOptionRow F1 uses; the calendar grid's own week/day layout is locale-driven by the SDK (Directionality/Locale already threaded app-wide) — no new RTL work here."
++      shared_body: "NEARS-4198: the four quick-pick rows, the conditional inline calendar and the resolve math moved into NDateRangeBody (package-internal, NOT exported; n_date_range_body.dart) so NFilterSortSheet's dateRange section rende
+       getx_free: "Every string arrives already translated; onApply/onResetAll are the only way a picked range leaves this widget. Fetching, .tr, analytics (sort_applied is NOT this component — see filter_applied/quick-filter events) and Ap
+     versions:
+       - version: v1
+         since: NEARS-3655
+         note: "Initial build — foundation-only (packages/nears_dls scope). The one live showDateRangePicker call site (UserApp order_screen.dart:233) is untouched pending a separate scope decision; this component's own Playground/Custom-ra
++      - version: v2
++        since: NEARS-4198
++        note: "Internal refactor only: the sheet body is now NDateRangeBody (shared with NFilterSortSheet's dateRange section). Public API, render, semantics and tests are unchanged. A calendar seed outside firstDate..lastDate is now dropp
+     widgetbook:
+       Playground: "#/?path=components/ndaterangesheet/ndaterangesheet/playground"
+       "Quick pick selected": "#/?path=components/ndaterangesheet/ndaterangesheet/quick-pick-selected"
+@@ -733,16 +737,17 @@ components:
+     status: stable
+     since: NEARS-3655
+     source: "lib/components/nfiltersortsheet/n_filter_sort_sheet.dart"
+-    what: "The unified filter/sort bottom-sheet body, presented via NBottomSheet.show(context, child: NFilterSortSheet(...)). Config-driven: the caller supplies a List<NFilterSection> covering only the sections a given screen needs (sort/p
++    what: "The unified filter/sort bottom-sheet body, presented via NBottomSheet.show(context, child: NFilterSortSheet(...)). Config-driven: the caller supplies a List<NFilterSection> covering only the sections a given screen needs (sort/p
+     variants: []
+     sizes: []
+     statuses: []
+-    props: [sections, onApply, onResetAll, title, applyLabel, clearLabel, resetLabel, hasActiveSelection, initialSectionId, isApplyLoading, groupHeading, id, searchable, rangeValues, presets]
++    props: [sections, onApply, onResetAll, title, applyLabel, clearLabel, resetLabel, hasActiveSelection, initialSectionId, isApplyLoading, groupHeading, id, searchable, rangeValues, presets, dateRange, onDateRangeChanged]
+     axes: {}
+     notes:
+       section_config_unit: "NFilterSection is a plain value object (the NModuleSwitcherItem dependency- boundary shape — GetX-free, no app model, no fetching). hiddenOptionKeys (F5) is the ONE data-driven filtering hook: the caller compute
+       section_kinds: "sort → vertical NFilterOptionRow list (radio glyph, single-select). priceRange → two AED labels + a themed RangeSlider (_NPriceRangeSlider, private internal — no DLS range-slider element existed yet; promote only if a
+       generic_kinds: "NEARS-4195 (additive, the six kinds above render byte-identically). choice → Wrap of NFilterChip variant:secondary tagStyle showCheck:false (navy selected, surface2 rest, no check glyph so a live-commit Wrap never ref
++      date_range_kind: "NEARS-4198 (additive; every other kind renders byte-identically). NFilterSectionKind.dateRange renders NDateRangeBody (package-internal, shared with NDateRangeSheet) IN PLACE under the section title: four 44dp singl
+       states: "Default as above. Loading (isLoading:true) → a per-kind shape-matched skeleton (_loadingSkeleton, v2), never one generic template: pill-shaped Wrap skeletons for rating/category/deliveryType (matches the real chip Wrap), a s
+       option_row_reuse: "NFilterOptionRow (public class, NOT exported via nears_dls.dart — package- internal by convention, promote only per the rubric) is shared by this component's sort section AND NDateRangeSheet's quick-picks — one sin
+       a11y_container_boundary: "NFilterOptionRow wraps NInkWell (whose own Semantics(button:...) lacks container:true — dls-semantics-missing-container-boundary, latent, flagged separately) in ExcludeSemantics and re-supplies ONE outer Sem
+@@ -767,6 +772,9 @@ components:
+       - version: v6
+         since: NEARS-4196
+         note: "The footer Apply button passes NButton(labelMaxLines: 2): at large text (320dp x 1.3x) a long label such as \"Show 29 results\" wraps to two lines and the button grows (footer stays pinned) instead of ellipsizing the count. 
++      - version: v7
++        since: NEARS-4198
++        note: "Additive NFilterSectionKind.dateRange + NDateRangeConfig + NFilterSection.dateRange/onDateRangeChanged (see notes.date_range_kind): the NDateRangeSheet body rendered in place inside the sheet. The sheet also keeps a private 
+     widgetbook:
+       Playground: "#/?path=components/nfiltersortsheet/nfiltersortsheet/playground"
+       "Two sections": "#/?path=components/nfiltersortsheet/nfiltersortsheet/two-sections"
+@@ -775,6 +783,7 @@ components:
+       "Error section (sibling stays interactive)": "#/?path=components/nfiltersortsheet/nfiltersortsheet/error-section-%28sibling-stays-interactive%29"
+       "Generic kinds (choice + range)": "#/?path=components/nfiltersortsheet/nfiltersortsheet/generic-kinds-%28choice-%2B-range%29"
+       "Grouped sections (Stores / Items)": "#/?path=components/nfiltersortsheet/nfiltersortsheet/grouped-sections-%28stores-%2F-items%29"
++      "Date range section": "#/?path=components/nfiltersortsheet/nfiltersortsheet/date-range-section"
+   NGroupedList:
+     name: NGroupedList
+     category: component

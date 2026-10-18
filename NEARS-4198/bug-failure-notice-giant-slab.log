@@ -1,0 +1,6 @@
+# NEARS-4198 task_bug: failure-over-list notice renders as a ~75%-screen navy slab (NToast action row Align expands in the overlay's bounded height)
+# repro: My Orders History, stop backend, tap any chip; screenshot at +1.5s and +2s identical (bug-failure-notice-giant-slab.png)
+[FAIL] endpoint=/api/v1/customer/order/list http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=5384bcd7-9b3c-45d8-8883-ed0308accb27
+[FAIL] endpoint=/api/v1/customer/order/list http_status=null type=ApiFailure transport_error=socket msg="api request threw" correlation_id=4af77060-34dd-4589-9609-aa82d585904b
+n_toast.dart:158-166  ConstrainedBox(minHeight: tapMin) > Align(center) inside the Row -> Align takes the max height it is offered; NSnackBar.showOverlay offers the screen height (Align topCenter, no heightFactor)
+other showOverlay+actionLabel callers: UserApp/lib/features/search/widgets/search_filter_sheet.dart:51 (F4, same defect), dynamic_filter_sheet.dart:78, transaction_history_section.dart:81
