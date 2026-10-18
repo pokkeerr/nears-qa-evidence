@@ -1,0 +1,12 @@
+# NEARS-4204 QA progress (tested sha ee1f9ab57, own backend :8204, clone multi_food_db_test_qa4204)
+- AC5 PASS: clone migrate: items/temp_products cols appear (tinyint unsigned NULL no default); COUNT(preparation_time)=0 of 14964 items, 0 temp; rollback drops both; up() again + up() twice idempotent; multi_food_db has no column (untouched).
+- AC1 Vendor API create (food john.smith st4 / grocery sara.ali): 0,61,-1,12.5,abc,'',absent(food),12.0,1e1,999999 -> HTTP 402 {errors}, no row; 1,60,' 12'(trim)->200 stored (temp_products + items carry value, approval ON); grocery ''/absent -> NULL, 5 ->5.
+- AC1 Vendor API update (POST _method=put as the app does): food 0/61/-1/12.5/abc/'' -> 402, stored unchanged; absent keeps; 1,60,30 ok. grocery blank -> NULL (7->NULL), 0/61/abc/12.5 -> 402.
+- IDOR: john update of store5 item 22 -> 404, unchanged. details payload preparation_time int|null.
+- note: raw PUT multipart (harness error) -> pre-existing 500 TypeError at ItemController:529 count(null translations) -> regression candidate (low).
+- AC5/AC6/backstop: phpunit filter 103 tests OK (636 assertions); mutation proofs M1 nocap / M2 noextra / M3 noitem red as expected; VendorApp flutter test 57 pass.
+- AC2 VendorApp food edit (legacy NULL item 16): blank/0/61/123 snackbars (required / out-of-range) w/o request; 60 saved, round-trips (EditText=60); price 0 -> HTTP 402 server msg 'The price must be at least 0.01.' + [FAIL] unhandled api response; backend stopped -> 'Could not save the item. Please try again.' + [FAIL] api request threw. Field height 144px@480dpi = 48dp same as siblings.
+- Admin/Store Panel create+update matrices via authenticated session HTTP: all invalid -> HTTP 200 {errors}, no row; 1/60 accepted; absent keeps; blank non-food -> NULL; food blank update rejected.
+- Approval path: Vendor API update with Update_anything_in_product_details=1 (clone setting flipped then restored) -> temp_products carries 41, items unchanged until admin /approved -> items=41.
+- Store Panel cross-store update -> 500 (pre-existing, see bug-panel-cross-store-update-500.log). Admin AR RTL ok. VendorApp AR toasts translated.
+- Non-food (grocery) VendorApp: label unstarred, stored 15 prefilled, cleared -> saved NULL.
