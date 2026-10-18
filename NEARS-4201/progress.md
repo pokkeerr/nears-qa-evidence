@@ -1,0 +1,14 @@
+# NEARS-4201 QA progress (checkpoint log)
+- Backend: own php artisan serve :8421 from worktree @ db05da525 serving DB multi_food_db_qa_nears4201 (token rows landed on clone only; shared untouched)
+- Device emulator-5554 (Pixel_10_Pro AVD booted by QA), UserApp unsuffixed com.izzes.nears (google-services copied for FA), API_HOST=10.0.2.2:8421
+- AC3/AC4/AC13 API matrix: see api-matrix.txt (+ apartment_building/office_commercial rerun) -> all 200, stored values match
+- AC1: Tower -> "Which floor? *" row; empty save blocked "Floor is required for a tower."; "-" -> "Enter a valid floor number."; no row written. Ground chip -> tower/0 saved (row 138). 
+- AC10 partial: FA-SVC observed address_building_type_selected + address_floor_saved(kind=ground_lobby)
+- AC2 PASS (villa hides floor, typed 7 cleared -> row 139 villa/NULL; apartment_building floor "(Optional)" saves empty row 140)
+- AC5 PASS edit prefill tower/0 + Ground chip; -1 selects Basement; -2/-3 none; update row 138 tower/-1; tower->villa clears floor
+- AC6: prompt shown for saved null-type address (141); Not now/system back/scrim/drag all skip + unblocked; same-visit reselect no re-prompt; save tower+14 -> row 141 tower/14, never prompts again; id-less current location no prompt. BUG: new address added from checkout w/o type (row 143) DOES prompt immediately (design: new address never prompts) -> bug-new-address-from-checkout-prompts.{png,log}
+- AC10: FA-SVC visible: building_type_selected/floor_saved(kind ground_lobby, basement, numbered)/prompt_shown/prompt_skipped, flows add/edit/lazy_prompt
+- note: pre-existing: add address from checkout where address zone != store zone saves row (200) but app shows 'different zone' error snackbar (AppLogger.error paired)
+- AC6 mid-save dismiss PASS (server SIGSTOP, Save, system back; CONT -> row 143 villa, address refreshed, no prompt_skipped logged)
+- AC9 PASS client: server killed, edit save -> [FAIL] endpoint=/api/v1/customer/address/update/138 http_status=null type=ApiFailure transport_error=socket correlation_id=...; [ERR] snackbar; typed tower name/floor absent from logcat (only my adb input cmd echo). laravel.log has no lines for this run's requests (request never reached BE); server restarted afterwards (own pids)
+- AC8: AR 320dp(960x2100@480) x 1.3 font: dropdown 144px=48dp, options >=159px, chips 132px=44dp, helper wraps, errors AR; -1 pixel check: bar x683-700 (18x4) then stem x711-725 (15x42) = '-1' order (typed + chip path); numeric keypad. FINDING: lazy prompt w/ keyboard up at 320dp 1.3x AR: Save/Not now hidden under keyboard (reachable after dismissing keyboard); Eastern-Arabic digit entry NOT RUN (adb cannot inject); pre-existing: checkout_screen_shimmer_view RenderFlex overflow 63px at 320dp 1.3x

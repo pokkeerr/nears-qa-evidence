@@ -1,0 +1,13 @@
+# rerun with the real enum values (first run used 'apartment'/'office' which are NOT enum members -> null, expected)
+create type=apartment_building floor=3                  http=200 stored=apartment_building 3
+create type=office_commercial floor=3                   http=200 stored=office_commercial 3
+create type=APARTMENT_BUILDING floor=3                  http=200 stored=apartment_building 3
+create type=office floor=3 (old alias, expect null)     http=200 stored=NULL 3
+apartment_building floor 12                             http=200 stored=apartment_building 12
+office_commercial floor ''                              http=200 stored=office_commercial NULL
+office_commercial no floor key                          http=200 stored=office_commercial NULL
+UPD villa -> apartment_building floor ' -3 '            http=200 before=villa/NULL after=apartment_building/-3
+UPD -> office_commercial floor 'abc'                    http=200 after=office_commercial/NULL
+UPD -> other floor ''                                   http=200 after=other/NULL
+UPD building_type[]=tower floor 2 (array)               http=200 after=NULL/2
+UPD floor[]=1 on tower                                  http=200 after=tower/NULL
