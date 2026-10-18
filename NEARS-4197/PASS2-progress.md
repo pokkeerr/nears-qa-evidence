@@ -1,0 +1,16 @@
+# NEARS-4197 PASS 2 progress (tip 25f808d86, git status clean at start)
+- BE own server pid 44229 :8197 cwd=/Users/Apple/Projects/nears-NEARS-4197-item-lists @25f808d86, DB clone multi_food_db_qa4197 proven (brand nears-4197-second-brand served). Backend-freshness PASS.
+- BE smoke transcripts: PASS2-BE-contract-smoke.txt, PASS2-BE-packsize-domain-cache.txt, PASS2-phpunit.txt: all as expected (see envelope)
+- Device: emulator-5556 lock acquired (key NEARS-4197), adb reverse tcp:80->8197, app pkg com.izzes.nears.nears_nears_4197_item_lists, API_HOST=10.0.2.2:8197
+- (a) food ordering: premise (OOS newer => LAST) NOT met: observed FIRST in default (UI + API), flagged==legacy; code skips sink for food (ProductLogic latest default_status=1 hardcoded; sink only !food). item 17 created_at restored.
+- (a) store items grocery store 2: entry 44x44dp, badge, strip below pinned row, scroll-away, tab change keeps selection (2 requests per tab change: filtered + plain unfiltered base), filter-empty + Clear filters OK, reset on leave OK; food store 4 sheet no In-stock. Toggle-row label not tappable (only NSwitch) -> regression/followup (DLS sheet, base).
+- (b) in-store search: entry hidden idle, visible after term (44x48), labels equal facets, Organic->organic=1, Discounted->discounted=1, same term keeps, different term clears, leave clears. events store_item_search/store_item_search/store_search.
+- (c) category 3 -> sub 4: no category facet, strip first child, selection kept across sub-chip, cleared on leave + module switch.
+- FA: suffixed pkg -> only debug mirror '📊 analytics:' (nav guide L853)
+- device defaults recorded: wm size 1080x2400 physical, density 420, font_scale=1.0
+- (d) popular z1 (103) + reviewed food z1 (30): entry end of (n) row, (n) filtered, category facet, available_now toggle, sort vocab OK; search submit/clear resets; multi-zone [417,2] (500) counts omitted: sheet labels w/o counts, renders, no crash.
+- (e) flash (z1): entry app bar, strip under timer, no discounted, reopen clean, ended sale 403 -> error state + [FAIL] correlation; brand z2 (harness: proxy rewrites moduleId->1 for brand/items, brand 5 module NULL clone write): both brands, selection per brand, clean on open another.
+- (f) failing refetch: sheet notice pill ok (no slab); after close the body shows full 'Something went wrong' + Retry (list not intact) on flash+brand; superseded sort taps -> 1 event; reverted toggle -> 0 events.
+- (j) 320dp x 1.3: store entry/strip/filter-empty + view-all popular OK. wm size / font_scale RESTORED.
+- (h) analytics: all 5 events x 7 list kinds (store/search/category/viewall/flash/brand + reviewed viewall food z1 partial) via debug mirror; privacy grep clean (adbd driver lines only); (i) drift cache clean.
+- AR + DARK captured (store, category, flash, view-all AR; view-all + store DARK): DEFERRED, not passed. Language restored EN, Appearance restored System.
