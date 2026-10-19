@@ -1,0 +1,185 @@
+Running on Pixel_10_Pro_2
+ > Flow NEARS-4270 pilot 05 - order tracking (places a real COD order - clone DB only)
+Run subflows/fresh-login.yaml...
+  Launch app "${APP_ID}" with clear state... COMPLETED
+  Set location (24.453884, 54.3773438)... COMPLETED
+  Assert that "Choose Your Language" is visible... COMPLETED
+  Tap on "English"... COMPLETED
+  Tap on "Next"... COMPLETED
+  Assert that "Use my current location" is visible... COMPLETED
+  Repeat while "Confirm Location", enabled is not visible (up to 4 times)...
+  Repeat while "Confirm Location", enabled is not visible (up to 4 times)... SKIPPED
+  Assert that "Confirm Location", enabled is visible... COMPLETED
+  Tap on "Confirm Location"... COMPLETED
+  Assert that "Login/Sign Up" is visible... COMPLETED
+  Tap on "Login/Sign Up"... COMPLETED
+  Assert that "Email/Phone" is visible... COMPLETED
+  Tap on "Email/Phone"... COMPLETED
+  Input text ${USER_EMAIL}... COMPLETED
+  Tap on "Password"... COMPLETED
+  Input text ${USER_PASS}... COMPLETED
+  Hide Keyboard... COMPLETED
+  Tap on "Sign In"... COMPLETED
+  Assert that "Profile" is visible... COMPLETED
+  Run dismiss-dialogs.yaml...
+    Wait for animation to end... COMPLETED
+    Run flow when "Congratulations !" is visible...
+    Run flow when "Congratulations !" is visible... SKIPPED
+    Run flow when "Your payment was Incomplete" is visible...
+    Run flow when "Your payment was Incomplete" is visible... SKIPPED
+  Run dismiss-dialogs.yaml... COMPLETED
+Run subflows/fresh-login.yaml... COMPLETED
+Run subflows/open-my-orders.yaml...
+  Retry 2 times...
+    Run dismiss-dialogs.yaml...
+      Wait for animation to end... COMPLETED
+      Run flow when "Congratulations !" is visible...
+      Run flow when "Congratulations !" is visible... SKIPPED
+      Run flow when "Your payment was Incomplete" is visible...
+      Run flow when "Your payment was Incomplete" is visible... SKIPPED
+    Run dismiss-dialogs.yaml... COMPLETED
+    Run flow when "Profile" is not visible...
+    Run flow when "Profile" is not visible... SKIPPED
+    Run dismiss-dialogs.yaml...
+      Wait for animation to end... COMPLETED
+      Run flow when "Congratulations !" is visible...
+      Run flow when "Congratulations !" is visible... SKIPPED
+      Run flow when "Your payment was Incomplete" is visible...
+      Run flow when "Your payment was Incomplete" is visible... SKIPPED
+    Run dismiss-dialogs.yaml... COMPLETED
+    Tap on "Profile"... COMPLETED
+    Assert that "My Orders" is visible... COMPLETED
+  Retry 2 times... COMPLETED
+  Tap on "My Orders"... COMPLETED
+  Assert that "Ongoing" is visible... COMPLETED
+  Tap on "Ongoing"... COMPLETED
+  Assert that "[^\n]+\n[^\n]*#\d+\nOrder status, [\s\S]*" is visible... COMPLETED
+Run subflows/open-my-orders.yaml... COMPLETED
+Copy text from element with "[^\n]+\n[^\n]*#\d+\nOrder status, [\s\S]*", Index: 0... COMPLETED
+Run ${output.beforeId = parseInt(maestro.copiedText.match(/#(\d+)/)[1])}... COMPLETED
+Run subflows/relaunch-home.yaml...
+  Launch app "${APP_ID}"... COMPLETED
+  Repeat while "Search" is not visible (up to 15 times)...
+    Run dismiss-dialogs.yaml...
+      Wait for animation to end... COMPLETED
+      Run flow when "Congratulations !" is visible...
+      Run flow when "Congratulations !" is visible... SKIPPED
+      Run flow when "Your payment was Incomplete" is visible...
+        Tap on "Close"... COMPLETED
+        Wait for animation to end... COMPLETED
+      Run flow when "Your payment was Incomplete" is visible... COMPLETED
+    Run dismiss-dialogs.yaml... COMPLETED
+    Assert that (Optional) "Search" is visible... COMPLETED
+  Repeat while "Search" is not visible (up to 15 times)... COMPLETED
+  Assert that "Search" is visible... COMPLETED
+  Run dismiss-dialogs.yaml...
+    Wait for animation to end... COMPLETED
+    Run flow when "Congratulations !" is visible...
+    Run flow when "Congratulations !" is visible... SKIPPED
+    Run flow when "Your payment was Incomplete" is visible...
+    Run flow when "Your payment was Incomplete" is visible... SKIPPED
+  Run dismiss-dialogs.yaml... COMPLETED
+Run subflows/relaunch-home.yaml... COMPLETED
+Run subflows/open-fresh-local.yaml...
+  Tap on "Grocery(,[\s\S]*)?"... COMPLETED
+  Wait for animation to end within 15000 ms... COMPLETED
+  Scrolling DOWN until "Fresh local\n[\s\S]*Popular:[\s\S]*" is visible with speed 20, visibility percentage 60%, timeout 60000 ms, with centering enabled... COMPLETED
+  Tap on "Fresh local\n[\s\S]*Popular:[\s\S]*"... COMPLETED
+  Assert that "All Products" is visible... COMPLETED
+Run subflows/open-fresh-local.yaml... COMPLETED
+Run subflows/add-latus-to-basket.yaml...
+  Scrolling DOWN until "(\d+\n)?Latus( \(\w+\))?\n[\s\S]*" is visible with speed 20, visibility percentage 60%, timeout 60000 ms, with centering enabled... COMPLETED
+  Run flow when "Latus( \(\w+\))?\n[\s\S]*" is visible...
+    Tap on "Latus( \(\w+\))?\n[\s\S]*"... COMPLETED
+    Assert that "Add To Cart" is visible... COMPLETED
+    Tap on "Add To Cart"... COMPLETED
+  Run flow when "Latus( \(\w+\))?\n[\s\S]*" is visible... COMPLETED
+  Assert that "View Cart" is visible... COMPLETED
+  Tap on "View Cart"... COMPLETED
+  Assert that "Proceed to Checkout" is visible... COMPLETED
+  Repeat while "Remove (?!Latus$).+" is visible (up to 10 times)...
+  Repeat while "Remove (?!Latus$).+" is visible (up to 10 times)... SKIPPED
+  Assert that "Remove (?!Latus$).+" is not visible... COMPLETED
+Run subflows/add-latus-to-basket.yaml... COMPLETED
+Run subflows/place-cod-order.yaml...
+  Run ${output.addressLabel = (typeof SAVED_ADDRESS_LABEL === 'undefined' || !SAVED_ADDRESS_LABEL) ? 'Home' : SAVED_ADDRESS_LABEL}... COMPLETED
+  Tap on "Proceed to Checkout"... COMPLETED
+  Assert that "Place Order" is visible... COMPLETED
+  Tap on "Change", Right of "Edit address"... COMPLETED
+  Assert that "Select Your Address" is visible... COMPLETED
+  Tap on "${output.addressLabel}\n[\s\S]+"... COMPLETED
+  Wait for animation to end... COMPLETED
+  Run flow when "Tell us about your building" is visible...
+    Tap on "Not now"... COMPLETED
+    Wait for animation to end... COMPLETED
+  Run flow when "Tell us about your building" is visible... COMPLETED
+  Assert that "${output.addressLabel},[\s\S]*" is visible... COMPLETED
+  Assert that "Place Order", enabled is visible... COMPLETED
+  Tap on "Place Order"... COMPLETED
+  Assert that "Confirm your order" is visible... COMPLETED
+  Assert that "CASH ON DELIVERY" is visible... COMPLETED
+  Tap on "Confirm & place order"... COMPLETED
+  Assert that "Track Order" is visible... COMPLETED
+Run subflows/place-cod-order.yaml... COMPLETED
+Assert that "Fresh local" is visible... COMPLETED
+Assert that "Waiting for store to accept your order" is visible... COMPLETED
+Run subflows/relaunch-home.yaml...
+  Launch app "${APP_ID}"... COMPLETED
+  Repeat while "Search" is not visible (up to 15 times)...
+    Run dismiss-dialogs.yaml...
+      Wait for animation to end... COMPLETED
+      Run flow when "Congratulations !" is visible...
+      Run flow when "Congratulations !" is visible... SKIPPED
+      Run flow when "Your payment was Incomplete" is visible...
+        Tap on "Close"... COMPLETED
+        Wait for animation to end... COMPLETED
+      Run flow when "Your payment was Incomplete" is visible... COMPLETED
+    Run dismiss-dialogs.yaml... COMPLETED
+    Assert that (Optional) "Search" is visible... WARNED
+        Tap on "Close"... COMPLETED
+        Wait for animation to end... COMPLETED
+  Repeat while "Search" is not visible (up to 15 times)... COMPLETED
+  Assert that "Search" is visible... COMPLETED
+  Run dismiss-dialogs.yaml...
+    Wait for animation to end... COMPLETED
+    Run flow when "Congratulations !" is visible...
+    Run flow when "Congratulations !" is visible... SKIPPED
+    Run flow when "Your payment was Incomplete" is visible...
+    Run flow when "Your payment was Incomplete" is visible... SKIPPED
+  Run dismiss-dialogs.yaml... COMPLETED
+Run subflows/relaunch-home.yaml... COMPLETED
+Run subflows/open-my-orders.yaml...
+  Retry 2 times...
+    Run dismiss-dialogs.yaml...
+      Wait for animation to end... COMPLETED
+      Run flow when "Congratulations !" is visible...
+      Run flow when "Congratulations !" is visible... SKIPPED
+      Run flow when "Your payment was Incomplete" is visible...
+      Run flow when "Your payment was Incomplete" is visible... SKIPPED
+    Run dismiss-dialogs.yaml... COMPLETED
+    Run flow when "Profile" is not visible...
+      Tap on "Grocery(,[\s\S]*)?"... COMPLETED
+      Assert that "Profile" is visible... COMPLETED
+    Run flow when "Profile" is not visible... COMPLETED
+    Run dismiss-dialogs.yaml...
+      Wait for animation to end... COMPLETED
+      Run flow when "Congratulations !" is visible...
+      Run flow when "Congratulations !" is visible... SKIPPED
+      Run flow when "Your payment was Incomplete" is visible...
+      Run flow when "Your payment was Incomplete" is visible... SKIPPED
+    Run dismiss-dialogs.yaml... COMPLETED
+    Tap on "Profile"... COMPLETED
+    Assert that "My Orders" is visible... COMPLETED
+  Retry 2 times... COMPLETED
+  Tap on "My Orders"... COMPLETED
+  Assert that "Ongoing" is visible... COMPLETED
+  Tap on "Ongoing"... COMPLETED
+  Assert that "[^\n]+\n[^\n]*#\d+\nOrder status, [\s\S]*" is visible... COMPLETED
+Run subflows/open-my-orders.yaml... COMPLETED
+Copy text from element with "[^\n]+\n[^\n]*#\d+\nOrder status, [\s\S]*", Index: 0... COMPLETED
+Run ${output.afterId = parseInt(maestro.copiedText.match(/#(\d+)/)[1])}... COMPLETED
+Assert that ${output.afterId > output.beforeId} is true... COMPLETED
+Assert that "Fresh local\n[^\n]*#${output.afterId}\nOrder status, Pending[\s\S]*" is visible... COMPLETED
+Tap on "Track Order", Index: 0... COMPLETED
+Assert that "Waiting for store to accept your order" is visible... COMPLETED
+Assert that "Fresh local" is visible... COMPLETED

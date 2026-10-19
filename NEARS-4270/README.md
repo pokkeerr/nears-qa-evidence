@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4270
 
-**NEARS-4270 [8] QA - Maestro pilot phase 1**
+**NEARS-4270 [8] QA delta cycle 1 - AC5(b) + TB1 + L1**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -31,11 +31,14 @@
 - [`ac3-tok_between.py`](ac3-tok_between.py)
 - [`ac4-wrong-appid`](ac4-wrong-appid)
 - [`ac5a-control`](ac5a-control)
+- [`ac5b-green-5eb3ad75a`](ac5b-green-5eb3ad75a)
+- [`ac5b-red-88d9979fc`](ac5b-red-88d9979fc)
 - [`bug-cart-add-viewcart-missing.log`](bug-cart-add-viewcart-missing.log)
 - [`bug-maestro-phone-home-update-check.log`](bug-maestro-phone-home-update-check.log)
 - [`bug-maestro-tests-dir-cleartext-creds.log`](bug-maestro-tests-dir-cleartext-creds.log)
 - [`bug-relaunch-home-dialog-before-search.log`](bug-relaunch-home-dialog-before-search.log)
 - [`qa-flows`](qa-flows)
+- [`tb1-flow05-recheck`](tb1-flow05-recheck)
 - [`telemetry-ab`](telemetry-ab)
 
 ---
