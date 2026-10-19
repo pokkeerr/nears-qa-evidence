@@ -1,0 +1,17 @@
+NEARS-4185 AC6 [api] live matrix, twin multi_food_db_qa4185, own server :8185 (worktree b9d427767), customer@nears.com (user 6)
+GET customer/order/track?order_id=<id> and GET customer/order/running-orders (both HTTP 200, key estimated_delivery_at present in every row)
+computed 16-18 (order 91416 created 19:44:48 => created+max = 20:02:48 at EVERY state, no pickup tightening)
+91416 pending          track est=2026-10-19 20:02:48 | running est=2026-10-19 20:02:48
+91416 confirmed        est=20:02:48 | est=20:02:48
+91416 processing       est=20:02:48 | est=20:02:48
+91416 handover dm=5    est=20:02:48 | est=20:02:48
+91416 picked_up dm=5   est=20:02:48 | est=20:02:48   (picked_up=now ~19:45:29; legacy tightening would give 20:00:29)
+91417 selfdelivery store, no courier, picked_up: created 19:44:55 -> est=20:02:55
+91418 eta_source=legacy max=30, picked_up: created 19:44:56 -> est=20:14:56 (created+30)
+91419 eta_source=NULL store delivery_time '30-40 min': pending est=20:24:57 (created+40); picked_up est=20:00:29 (picked_up+15 tightening kept for NULL source)
+91421 take_away (eta_source none): est=null (key present)
+91420 hidden walking store (computed, NULL window): est=null (key present)
+Forbidden keys: raw-body grep for eta_source|eta_inputs|eta_quoted|eta_accept|eta_promised = 0 hits in track (6 orders), running-orders, details.
+Security probes: customer B (qa.singlestore, user 409) track A's 91416 -> 404 {"errors":[{"code":"order","message":"Not found"}]}
+ guest 1994 with its own valid guest token on 91416 and on hidden-walking 91420 -> 404 Not found
+ guest_id without/with wrong token -> 401 Unauthorized (APIGuestMiddleware, stricter than 'not found')
