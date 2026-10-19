@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4185
 
-**NEARS-4185 QA cycle0 PASS-pending-verdict**
+**NEARS-4185 QA cycle0 evidence**
 
-**49 screenshot(s).** Click any thumbnail for full resolution.
+**50 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -73,19 +73,20 @@
 <tr>
 <td align="center" width="33%"><a href="ac5-tracking-sheet-91425-pending.png"><img src="ac5-tracking-sheet-91425-pending.png" width="240"></a><br><sub>ac5 tracking sheet 91425 pending</sub></td>
 <td align="center" width="33%"><a href="ac5c-group-tracking.png"><img src="ac5c-group-tracking.png" width="240"></a><br><sub>ac5c group tracking</sub></td>
-<td align="center" width="33%"><a href="qa-item-sheet-pill-1.3x.png"><img src="qa-item-sheet-pill-1.3x.png" width="240"></a><br><sub>qa item sheet pill 1.3x</sub></td>
+<td align="center" width="33%"><a href="bug-order-details-stepper-label-clip-320dp.png"><img src="bug-order-details-stepper-label-clip-320dp.png" width="240"></a><br><sub>bug order details stepper label clip 320dp</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="qa-item-sheet-pill-1.3x.png"><img src="qa-item-sheet-pill-1.3x.png" width="240"></a><br><sub>qa item sheet pill 1.3x</sub></td>
 <td align="center" width="33%"><a href="qa-order-details-320dp-1.3x.png"><img src="qa-order-details-320dp-1.3x.png" width="240"></a><br><sub>qa order details 320dp 1.3x</sub></td>
 <td align="center" width="33%"><a href="qa-order-details-91427-320dp-1.3x.png"><img src="qa-order-details-91427-320dp-1.3x.png" width="240"></a><br><sub>qa order details 91427 320dp 1.3x</sub></td>
-<td align="center" width="33%"><a href="qa-rail-320dp-1.3x.png"><img src="qa-rail-320dp-1.3x.png" width="240"></a><br><sub>qa rail 320dp 1.3x</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="qa-rail-320dp-1.3x.png"><img src="qa-rail-320dp-1.3x.png" width="240"></a><br><sub>qa rail 320dp 1.3x</sub></td>
 <td align="center" width="33%"><a href="qa-stacked-besideLogo-card-eta-1.3x.png"><img src="qa-stacked-besideLogo-card-eta-1.3x.png" width="240"></a><br><sub>qa stacked besideLogo card eta 1.3x</sub></td>
 <td align="center" width="33%"><a href="qa-store-page-header-1.3x.png"><img src="qa-store-page-header-1.3x.png" width="240"></a><br><sub>qa store page header 1.3x</sub></td>
-<td align="center" width="33%"><a href="regress-pharmacy-home.png"><img src="regress-pharmacy-home.png" width="240"></a><br><sub>regress pharmacy home</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="regress-pharmacy-home.png"><img src="regress-pharmacy-home.png" width="240"></a><br><sub>regress pharmacy home</sub></td>
 <td align="center" width="33%"><a href="regress-search-results.png"><img src="regress-search-results.png" width="240"></a><br><sub>regress search results</sub></td>
 </tr>
 </table>
@@ -96,6 +97,9 @@
 - [`ac5-late-boundary-sampler.log`](ac5-late-boundary-sampler.log)
 - [`ac6-api-matrix.log`](ac6-api-matrix.log)
 - [`ac7-ac8-flutter-tests.log`](ac7-ac8-flutter-tests.log)
+- [`bug-legacy-null-source-promise-parse.log`](bug-legacy-null-source-promise-parse.log)
+- [`bug-payment-incomplete-sheet-overflow-320dp.log`](bug-payment-incomplete-sheet-overflow-320dp.log)
+- [`bug-search-a11y-tree-stub.log`](bug-search-a11y-tree-stub.log)
 - [`progress.md`](progress.md)
 
 ---
