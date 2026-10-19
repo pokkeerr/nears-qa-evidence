@@ -1,0 +1,21 @@
+--- BEFORE confirm
+id	order_status	accepted_at	confirmed	qmin	qmax	amin	amax	eta_promised_by	promised_minus_accepted_min	accept_block
+91418	pending	NULL	NULL	12	14	NULL	NULL	NULL	NULL	NULL
+--- PUT confirmed
+{"errors":[{"code":"vendor_type","message":"Vendor type required"}]}
+id	order_status	accepted_at	confirmed	qmin	qmax	amin	amax	eta_promised_by	promised_minus_accepted_min	accept_block
+91418	pending	NULL	NULL	12	14	NULL	NULL	NULL	NULL	NULL
+--- PUT confirmed (vendor_type owner)
+{"message":"Status updated"}
+id	order_status	accepted_at	confirmed	qmin	qmax	amin	amax	eta_promised_by	promised_minus_accepted_sec	accept_block
+91418	confirmed	2026-10-19 15:19:29	2026-10-19 15:19:29	12	14	10	12	2026-10-19 15:31:29	720	{"raw": 10.1667, "legs": {"prep": 2.0, "floor": 2.3333333333333335, "travel": 2.0, "handover": 1.0}, "typical": 7.333333333333334, "version": "r1.2619ad92", "prep_items_minutes": 2.0}
+--- SECOND-WRITER PROBES (sha2 over accepted_at|accept cols|promised|eta_inputs)
+t0: 6dc19d2c989a547c	2026-10-19 15:19:29	10	12	2026-10-19 15:31:29	confirmed
+re-confirm: {"message":"Status updated"}
+t1: 6dc19d2c989a547c	2026-10-19 15:19:29	10	12	2026-10-19 15:31:29	confirmed
+processing: {"message":"Status updated"}
+t2: 6dc19d2c989a547c	2026-10-19 15:19:29	10	12	2026-10-19 15:31:29	processing
+re-confirm after processing: {"message":"Status updated"}
+t3: 6dc19d2c989a547c	2026-10-19 15:19:29	10	12	2026-10-19 15:31:29	confirmed
+handover: {"message":"Status updated"}
+t4: 6dc19d2c989a547c	2026-10-19 15:19:29	10	12	2026-10-19 15:31:29	handover

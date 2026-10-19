@@ -1,0 +1,18 @@
+order=91428 (placed normally)
+log lines before:    15222
+vendor confirm with EtaLogic modules lookup failing: {"message":"Something went wrong"} http=500
+Tables_in_multi_food_db_qa4267 (modules)
+modules
+id	order_status	accepted_at	accepted_by_type	eta_source	eta_quoted_min_minutes	eta_quoted_max_minutes	eta_accept_min_minutes	eta_accept_max_minutes	eta_promised_by
+91428	pending	NULL	NULL	computed	12	14	NULL	NULL	NULL
+--- scoped log grep (new lines only, '[FAIL] eta' / order 91428)
+[2026-10-19 15:23:24] production.ERROR: [FAIL] exception_reported {"trace_id":"330d2883c488979d3a87035118afb2ce","correlation_id":"2146a9f4-0553-4897-b6c4-b3437e4df068","type":"Illuminate\\Database\\QueryException","code":"42S02","driver_code":1146,"file":"app/Http/Middleware/VendorTokenIsValid.php","line":104,"endpoint":"/api/v1/vendor/update-order-status"} 
+DB=multi_food_db_qa4267
+before: {"order_status":"pending","accepted_at":null,"eta_source":"computed","eta_quoted_min_minutes":12,"eta_accept_min_minutes":null,"eta_accept_max_minutes":null,"eta_promised_by":null}
+snapshotEtaQuote returned normally (no exception escaped)
+bool(true)
+after: {"order_status":"pending","accepted_at":"2026-10-19 15:25:56","eta_source":"computed","eta_quoted_min_minutes":12,"eta_accept_min_minutes":null,"eta_accept_max_minutes":null,"eta_promised_by":null}
+modules restored: 9 rows
+--- scoped log grep (new lines, '[FAIL] eta')
+[2026-10-19 15:25:56] production.ERROR: [FAIL] eta quote snapshot failed {"order_id":91428,"reason":"quote","exception_type":"Illuminate\\Database\\QueryException"} 
+[2026-10-19 15:25:56] production.ERROR: [FAIL] eta acceptance snapshot failed {"order_id":91428,"reason":"acceptance","exception_type":"Illuminate\\Database\\QueryException"} 

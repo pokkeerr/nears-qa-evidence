@@ -1,0 +1,17 @@
+details far tower f12: {"id":12,"name":"Fresh local","eta_min_minutes":30,"eta_max_minutes":32,"eta_hidden":false,"open":1}
+order=91423
+--- before
+id	order_status	delivery_man_id	accepted_at	accepted_by_type	dm_assigned_at	qmin	qmax	amin	amax	eta_promised_by	prom_minus_acc_sec	accept
+91423	pending	NULL	NULL	NULL	NULL	30	32	NULL	NULL	NULL	NULL	NULL
+--- DM accept-order
+{"message":"Order accepted successfully"}
+id	order_status	delivery_man_id	accepted_at	accepted_by_type	dm_assigned_at	qmin	qmax	amin	amax	eta_promised_by	prom_minus_acc_sec	accept
+91423	accepted	23	2026-10-19 15:21:06	delivery_man	2026-10-19 15:21:06	30	32	28	30	2026-10-19 15:51:06	1800	{"raw": 29.75, "legs": {"prep": 2.0, "floor": 4.0, "travel": 16.0, "handover": 1.0}, "typical": 23.0, "version": "r1.2619ad92", "prep_items_minutes": 2.0}
+--- SECOND WRITER probes after DM claim
+t0: f65d826a9e0c27a6	2026-10-19 15:21:06	28	30	2026-10-19 15:51:06	accepted
+re-claim by same DM: {"errors":[{"code":"order","message":"Can not accept"}]} http=404
+t1: f65d826a9e0c27a6	2026-10-19 15:21:06	28	30	2026-10-19 15:51:06	accepted
+store confirm after claim: {"message":"Status updated"}
+t2: f65d826a9e0c27a6	2026-10-19 15:21:06	28	30	2026-10-19 15:51:06	confirmed
+store processing: {"message":"Status updated"}
+t3: f65d826a9e0c27a6	2026-10-19 15:21:06	28	30	2026-10-19 15:51:06	processing

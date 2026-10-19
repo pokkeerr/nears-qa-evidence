@@ -1,0 +1,56 @@
+NOTE: first matrix (scratch with symlinked vendor) was INVALID - base_path() still resolved to the real worktree, every mutant stayed green (instrument measured the wrong file). Redone below with a cp -Rc cloned vendor; probe printed BASE_PATH=<scratch>.
+### M0 baseline unmutated
+OK (5 tests, 12 assertions)
+(restored, cmp ok)
+86:            ? EtaLogic::forStore($store, $context, items: null, atAcceptance: true)
+87:            : EtaLogic::forStore($store, $context, items: $store->items, atAcceptance: false);
+### M1 quote call passes items: $store->items
+1) Tests\Feature\EtaForStoreCallSitesTest::test_both_adapter_calls_pass_null_items_and_cover_quote_and_acceptance
+items must be null: $store, $context, items: $store->items, atAcceptance: false
+Failed asserting that false is true.
+FAILURES!
+Tests: 5, Assertions: 11, Failures: 1.
+(restored, cmp ok)
+86:            ? EtaLogic::forStore($store, $context, $store->items, atAcceptance: true)
+87:            : EtaLogic::forStore($store, $context, items: null, atAcceptance: false);
+### M2 acceptance call passes items positionally
+1) Tests\Feature\EtaForStoreCallSitesTest::test_both_adapter_calls_pass_null_items_and_cover_quote_and_acceptance
+items must be null: $store, $context, $store->items, atAcceptance: true
+Failed asserting that false is true.
+FAILURES!
+Tests: 5, Assertions: 10, Failures: 1.
+(restored, cmp ok)
+86:            ? EtaLogic::forStore($store, $context, items: null, atAcceptance: false)
+87:            : EtaLogic::forStore($store, $context, items: null, atAcceptance: true);
+### M3 flags swapped between branches
+1) Tests\Feature\EtaForStoreCallSitesTest::test_the_true_flag_is_on_the_acceptance_branch_and_the_false_flag_on_the_quote_branch
+Failed asserting that '<?php\n
+FAILURES!
+Tests: 5, Assertions: 12, Failures: 1.
+(restored, cmp ok)
+forStore( count now: 3
+### M4 third literal call site added
+1) Tests\Feature\EtaForStoreCallSitesTest::test_both_adapter_calls_pass_null_items_and_cover_quote_and_acceptance
+Failed asserting that actual size 3 matches expected size 2.
+FAILURES!
+Tests: 5, Assertions: 9, Failures: 1.
+(restored, cmp ok)
+### M5 checkout surface (OrderPlacementService) calls EtaLogic::forStore
+OK (5 tests, 12 assertions)
+(restored, cmp ok)
+### M6 final baseline
+OK (5 tests, 12 assertions)
+(restored, cmp ok)
+(M5 above was VACUOUS: BSD sed '0,/re/' did not apply, grep printed no EtaLogic::forStore line in the surface. Redone with python:)
+593:    private function snapshotEtaQuote_x() { \App\CentralLogics\EtaLogic::forStore(null, null, null, false); }
+### M5b checkout surface calls EtaLogic::forStore
+1) Tests\Feature\EtaForStoreCallSitesTest::test_no_checkout_surface_calls_forstore
+Failed asserting that two arrays are identical.
+2) Tests\Feature\EtaForStoreCallSitesTest::test_the_adapter_is_the_only_caller_of_forstore_in_the_order_flow
+callers: app/CentralLogics/OrderEtaCapture.php, app/Services/Order/OrderPlacementService.php
+Failed asserting that false is true.
+FAILURES!
+Tests: 5, Assertions: 12, Failures: 2.
+(restored, cmp ok)
+### final baseline
+OK (5 tests, 12 assertions)
