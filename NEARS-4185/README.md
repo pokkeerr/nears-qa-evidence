@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4185
 
-**NEARS-4185 QA cycle0 evidence**
+**Delta QA cycle 1: AC d UNVERIFIABLE on device (b: Module is not available / pick map), baseline compare BLOCKED by mem-guard**
 
-**50 screenshot(s).** Click any thumbnail for full resolution.
+**62 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -76,6 +76,26 @@
 <td align="center" width="33%"><a href="bug-order-details-stepper-label-clip-320dp.png"><img src="bug-order-details-stepper-label-clip-320dp.png" width="240"></a><br><sub>bug order details stepper label clip 320dp</sub></td>
 </tr>
 <tr>
+<td align="center" width="33%"><a href="d-01-first-run-enable-location.png"><img src="d-01-first-run-enable-location.png" width="240"></a><br><sub>d 01 first run enable location</sub></td>
+<td align="center" width="33%"><a href="d-02-pick-map-no-address.png"><img src="d-02-pick-map-no-address.png" width="240"></a><br><sub>d 02 pick map no address</sub></td>
+<td align="center" width="33%"><a href="d-03-after-logout-tap-home.png"><img src="d-03-after-logout-tap-home.png" width="240"></a><br><sub>d 03 after logout tap home</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="d-04-cold-start-no-address.png"><img src="d-04-cold-start-no-address.png" width="240"></a><br><sub>d 04 cold start no address</sub></td>
+<td align="center" width="33%"><a href="d-05-zoneids-null-cold-start.png"><img src="d-05-zoneids-null-cold-start.png" width="240"></a><br><sub>d 05 zoneids null cold start</sub></td>
+<td align="center" width="33%"><a href="d-06-deeplink-cold-initial-module.png"><img src="d-06-deeplink-cold-initial-module.png" width="240"></a><br><sub>d 06 deeplink cold initial module</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="d-07-change-location-no-address.png"><img src="d-07-change-location-no-address.png" width="240"></a><br><sub>d 07 change location no address</sub></td>
+<td align="center" width="33%"><a href="d-08-login-from-access-location-loading.png"><img src="d-08-login-from-access-location-loading.png" width="240"></a><br><sub>d 08 login from access location loading</sub></td>
+<td align="center" width="33%"><a href="d-09-loggedin-noaddress-home.png"><img src="d-09-loggedin-noaddress-home.png" width="240"></a><br><sub>d 09 loggedin noaddress home</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="d-10-no-internet-try-again-result.png"><img src="d-10-no-internet-try-again-result.png" width="240"></a><br><sub>d 10 no internet try again result</sub></td>
+<td align="center" width="33%"><a href="d-11-cached-module-no-address-try-again.png"><img src="d-11-cached-module-no-address-try-again.png" width="240"></a><br><sub>d 11 cached module no address try again</sub></td>
+<td align="center" width="33%"><a href="d-12-after-module-not-available-ok.png"><img src="d-12-after-module-not-available-ok.png" width="240"></a><br><sub>d 12 after module not available ok</sub></td>
+</tr>
+<tr>
 <td align="center" width="33%"><a href="qa-item-sheet-pill-1.3x.png"><img src="qa-item-sheet-pill-1.3x.png" width="240"></a><br><sub>qa item sheet pill 1.3x</sub></td>
 <td align="center" width="33%"><a href="qa-order-details-320dp-1.3x.png"><img src="qa-order-details-320dp-1.3x.png" width="240"></a><br><sub>qa order details 320dp 1.3x</sub></td>
 <td align="center" width="33%"><a href="qa-order-details-91427-320dp-1.3x.png"><img src="qa-order-details-91427-320dp-1.3x.png" width="240"></a><br><sub>qa order details 91427 320dp 1.3x</sub></td>
@@ -97,9 +117,15 @@
 - [`ac5-late-boundary-sampler.log`](ac5-late-boundary-sampler.log)
 - [`ac6-api-matrix.log`](ac6-api-matrix.log)
 - [`ac7-ac8-flutter-tests.log`](ac7-ac8-flutter-tests.log)
+- [`baseline-compare-BLOCKED-memguard-refusals.log`](baseline-compare-BLOCKED-memguard-refusals.log)
 - [`bug-legacy-null-source-promise-parse.log`](bug-legacy-null-source-promise-parse.log)
 - [`bug-payment-incomplete-sheet-overflow-320dp.log`](bug-payment-incomplete-sheet-overflow-320dp.log)
 - [`bug-search-a11y-tree-stub.log`](bug-search-a11y-tree-stub.log)
+- [`d-03-after-logout-tap-home.uilist.txt`](d-03-after-logout-tap-home.uilist.txt)
+- [`d-06-deeplink-cold-unmatched-stuck-splash.log`](d-06-deeplink-cold-unmatched-stuck-splash.log)
+- [`d-09-loggedin-noaddress-home.uilist.txt`](d-09-loggedin-noaddress-home.uilist.txt)
+- [`d-11-cached-module-no-address-try-again.uilist.txt`](d-11-cached-module-no-address-try-again.uilist.txt)
+- [`d-11-initial-route-module-no-address.log`](d-11-initial-route-module-no-address.log)
 - [`progress.md`](progress.md)
 
 ---
