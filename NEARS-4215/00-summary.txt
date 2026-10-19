@@ -1,0 +1,12 @@
+NEARS-4215 QA [8] fix_cycle 0 - HEAD 75651e911 base ac4bdb542
+All phpunit runs: "NEARS-1199: using private test DB multi_food_db_test_nears_nears_4215_store_funded_free_deliv" (scratch runs set DB_DATABASE to that clone explicitly; shared multi_food_db: SELECT only).
+01 new file: OK 17 tests 102 assertions
+02 siblings: OrderCommissionFallback 3/15, Round937CreateTransactionLock 5/18, Nears4083SettlementGuard 66/218, Nears4100OrderEditSettlement 61/335, Nears4100VendorEditTwins 16/46 - all OK
+03a neutralise subtraction -> RED: vendor-funded, subscription non-self, coupon x2, negative-store_amount (5 failures); customer/admin/self-delivery x2/parcel/refund-net/warnings green
+03b drop sub_self_delivery gate -> RED: self-delivery pin x2 (+ self-delivery warning test's store_amount assertion)
+03c warning under gate -> RED: self-delivery warning test
+04 new tests vs BASE OrderLogic: GREEN = customer, admin, self-delivery x2, parcel, refund-net, warning-absent x3, no-historical-rewrite; RED = the 5 new-behaviour + 2 warning-present
+05 scratch: flag store (id 3, free_delivery=1, commission 12): new store_amount 830 (sum 1020 = order_amount); BASE 880 (sum 1070 = order_amount + OD)
+06 dev DB read-only: order 91132 / 91198 / 14 flagged stores
+07 guards + greps
+NOTE: first mutation attempt used a symlinked vendor/ which resolved autoload to the live worktree (mutations had no effect, all green); discarded, redone with a copied vendor/. Live worktree OrderLogic.php never modified (git status clean of it).

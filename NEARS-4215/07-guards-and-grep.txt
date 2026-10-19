@@ -1,0 +1,64 @@
+## logging-lint (diff)
+#     not a clean one (§7). NEARS-1804's own diff is exactly that shape.
+# Exit: 0 clean / only WARNs | 1 hard FAIL | 2 usage error
+# ── diff source ───────────────────────────────────────────────────────────────
+# Returns 10 for "no diff could be obtained". The dispatchers below translate that to exit 4 — the
+awk: towc: multibyte conversion failure on: '�'
+
+ input record number 389200, file 
+ source line number 7
+SKIP  logging-lint (git diff origin/feat/reivew-code..HEAD (default)): the diff carries ZERO added lines, so no line was scanned — NOTHING WAS ASSERTED.
+        Remedy: stage the change (or pass a range that contains it), then re-run
+        validity: 0 added line(s) in scope, 0 added line(s) examined, 0 assertion(s)
+rc=0
+## lessons-enforcement-guard
+FAIL: [dls-semantics-missing-container-boundary] packages/nears_dls/lib/components/nstorecard/n_store_card.dart has 2 site(s), baseline ceiling is 1.
+INFO: [logging-contract-manual-request-id-duplicates-correlation-id] Admin/app/Http/Middleware/VendorMiddleware.php dropped from 2 to 0 site(s) — the baseline ceiling could be lowered (re-run --generate-baseline after confirming intent).
+INFO: [test-file-changelog-comment-vs-oneline-tag] Admin/tests/Feature/Security/LandingZipSlipTest.php dropped from 1 to 0 site(s) — the baseline ceiling could be lowered (re-run --generate-baseline after confirming intent).
+FAIL: lessons-enforcement-guard found file(s) exceeding their baselined ceiling.
+rc=
+logging-lint (advisory backstop — NEARS-582): scanning ADDED lines for logging anti-patterns.
+  source: git diff ac4bdb542..HEAD
+OK    logging-lint: clean (no logging anti-patterns in added lines).
+        validity: 515 added line(s) in scope, 515 added line(s) examined, 515 assertion(s)
+rc=
+## lessons-guard note: FAIL is n_store_card.dart (NEARS-4167, not in this diff; packages/ changed in ac4bdb542..HEAD:        0 files)
+## php -l
+No syntax errors detected in Admin/app/CentralLogics/OrderLogic.php
+No syntax errors detected in Admin/tests/Feature/Nears4215StoreFundedFreeDeliveryTest.php
+## grep store_amount
+178:        $comission_on_store_amount = 0;
+182:        $store_amount = 0;
+277:                    $store_amount = $order->original_delivery_charge ?? 0;
+285:                $comission_on_store_amount = 0;
+289:                $comission_on_store_amount = ($comission ? ($order_amount / 100) * $comission : 0);
+294:            $comission_amount = $comission_on_store_amount + $comission_on_actual_delivery_fee;
+307:        $store_amount = $store_amount + $order_amount + $order->total_tax_amount + $order->extra_packaging_amount - $comission_on_store_amount - $store_coupon_discount_subsidy - $flash_store_discount_amount - $store_funded_delivery;
+314:                'store_amount' => $type == 'parcel' ? 0 : $store_amount,
+315:                // 'store_amount'=>$type=='parcel' ? 0 : $order_amount + $order->total_tax_amount - $comission_on_store_amount,
+360:                    // $vendorWallet->total_earning = $vendorWallet->total_earning+($order_amount + $order->total_tax_amount - $comission_on_store_amount);
+361:                    $vendorWallet->total_earning = $vendorWallet->total_earning + $store_amount;
+603:                'store_amount' => 0,
+895:            $vendorWallet->total_earning = $vendorWallet->total_earning - $order_transaction->store_amount;
+1016:            $cash_in_hand_overflow_store_amount = BusinessSetting::where('key', 'cash_in_hand_overflow_store_amount')->first()?->value;
+1018:            if ($Payable_Balance == 1 &&  $cash_in_hand_overflow && $vendor?->wallet?->balance < 0 &&  $cash_in_hand_overflow_store_amount <= abs($vendor?->wallet?->collected_cash)) {
+## other 'store_amount' writers in app/ (non-OrderLogic)
+app/CentralLogics/StoreLogic.php:1287:        $monthly_earning = OrderTransaction::whereMonth('created_at', date('m'))->NotRefunded()->where('vendor_id', $vendor_id)->sum('store_amount');
+app/CentralLogics/StoreLogic.php:1288:        $weekly_earning = OrderTransaction::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->NotRefunded()->where('vendor_id', $vendor_id)->sum('store_amount');
+app/CentralLogics/StoreLogic.php:1289:        $daily_earning = OrderTransaction::whereDate('created_at', now())->NotRefunded()->where('vendor_id', $vendor_id)->sum('store_amount');
+app/Http/Controllers/Admin/ReportController.php:216:            ->sum(DB::raw('store_amount'));
+app/Http/Controllers/Admin/ReportController.php:430:                ->sum(DB::raw('store_amount'));
+app/Http/Controllers/Admin/ReportController.php:1518:            ->withSum('transaction', 'store_amount')
+app/Http/Controllers/Api/V1/Vendor/VendorController.php:100:            $vendor['todays_earning'] =(float)$vendor->todays_earning()->sum('store_amount');
+app/Http/Controllers/Api/V1/Vendor/VendorController.php:101:            $vendor['this_week_earning'] =(float)$vendor->this_week_earning()->sum('store_amount');
+app/Http/Controllers/Api/V1/Vendor/VendorController.php:102:            $vendor['this_month_earning'] =(float)$vendor->this_month_earning()->sum('store_amount');
+## report blades
+resources/views/file-exports/transaction-report.blade.php
+resources/views/admin-views/report/order-transaction-statement.blade.php
+resources/views/admin-views/report/day-wise-report.blade.php
+## blade lines
+resources/views/file-exports/transaction-report.blade.php:144:                        <td>{{ \App\CentralLogics\Helpers::format_currency($ot->discount_amount_by_store + $ot->order['flash_store_discount_amount']) }}
+resources/views/admin-views/report/order-transaction-statement.blade.php:372:                    <td>{{ \App\CentralLogics\Helpers::format_currency($order_transaction->discount_amount_by_store+$order_transaction->order['flash_store_discount_amount']) }}</td>
+resources/views/admin-views/report/day-wise-report.blade.php:488:                                    <td class="white-space-nowrap">{{ \App\CentralLogics\Helpers::format_currency($ot->discount_amount_by_store+$ot->order['flash_store_discount_amount']) }}</td>
+## git diff touching these files:
+       0
