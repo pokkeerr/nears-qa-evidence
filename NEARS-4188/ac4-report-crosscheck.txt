@@ -1,0 +1,70 @@
+## AC4/AC11 independent SELECTs vs report (db=multi_food_db_qa4188_rep, unseeded fresh clone)
++------------------+-------------------+
+| tower_name_total | tower_name_active |
++------------------+-------------------+
+|                4 |                 2 |
++------------------+-------------------+
++----------------------+----------------------+-----+
+| store_business_model | self_delivery_system | n   |
++----------------------+----------------------+-----+
+| commission           |                    0 | 587 |
+| subscription         |                    1 |   1 |
+| commission           |                    1 |   1 |
++----------------------+----------------------+-----+
++------------+
+| active_car |
++------------+
+|        589 |
++------------+
++----------------+
+| zone417_active |
++----------------+
+|             20 |
++----------------+
++-------------+--------------+
+| like_active | exact_active |
++-------------+--------------+
+|         526 |          515 |
++-------------+--------------+
+section=self_delivery_system_by_store_business_model (active stores; the seeder never writes it)
+self_delivery store_business_model=commission self_delivery_system=0 stores=587
+self_delivery store_business_model=commission self_delivery_system=1 stores=1
+self_delivery store_business_model=subscription self_delivery_system=1 stores=1
+section=mode_write_paths
+mode_write_path Baqala import (BaqalaImportLogic::insertStore) => bicycle
+mode_write_path Admin bulk import, insert and update sites (Admin/VendorController) => bicycle
+mode_write_path Admin store create and edit forms, Vendor API => the submitted delivery_mode (the Car option is the form default)
+mode_write_path stores.delivery_mode column default => car
+mode_write_path Nears4188DeliveryModelSeeder (this ticket, owner action) => bicycle for active stores still on car, plus the mock set
+section=money_facts (information only, never written)
+money admin_commission=5
+money admin_free_delivery_status=1
+money delivery_charge_comission=0
+money admin_free_delivery_option=free_delivery_to_all_store
+money active_stores_with_free_delivery=13
+section=part_d_plan
+plan active_stores=589 bicycle_default_rows=573 mock_mode_rows=14 mock_prep_cells=8 tower_name_cells=5 schedule_order_cells=1
+plan stores_rows=589 store_schedule_rows=1 closing_minutes=13 pilot_tower_name=default
+plan skipped_owner_edited_mode=0 ids=none
+plan skipped_owner_edited_prep=0 ids=none
+mock store=3338 role=walking origin=O1 distance_m=255 mode=car->walking store_prep=4 effective_prep=4 window=18-20 window_same_tower=n/a distance_o2_m=3301 hidden_at_o2=yes
+mock store=3184 role=walking origin=O1 distance_m=531 mode=car->walking store_prep=6 effective_prep=6 window=30-32 window_same_tower=n/a distance_o2_m=3847 hidden_at_o2=yes
+mock store=3449 role=walking origin=O1 distance_m=659 mode=car->walking store_prep=8 effective_prep=8 window=34-36 window_same_tower=n/a distance_o2_m=4008 hidden_at_o2=yes
+mock store=4 role=motorcycle origin=Z1 distance_m=1506 mode=car->motorcycle store_prep=10 effective_prep=10 window=24-26 window_same_tower=n/a distance_o2_m=n/a hidden_at_o2=n/a
+mock store=5 role=motorcycle origin=Z1 distance_m=755 mode=car->motorcycle store_prep=12 effective_prep=12 window=24-26 window_same_tower=n/a distance_o2_m=n/a hidden_at_o2=n/a
+mock store=6 role=motorcycle origin=Z1 distance_m=300 mode=car->motorcycle store_prep=16 effective_prep=16 window=26-28 window_same_tower=n/a distance_o2_m=n/a hidden_at_o2=n/a
+mock store=49 role=car origin=A45 distance_m=1113 mode=car->car store_prep=12 effective_prep=12 window=28-30 window_same_tower=n/a distance_o2_m=n/a hidden_at_o2=n/a
+mock store=50 role=car origin=A45 distance_m=3186 mode=car->car store_prep=18 effective_prep=18 window=42-44 window_same_tower=n/a distance_o2_m=n/a hidden_at_o2=n/a
+mock store=3291 role=same_tower_pair origin=O1 distance_m=33 mode=car->bicycle store_prep=none effective_prep=2 window=10-12 window_same_tower=6-8 distance_o2_m=n/a hidden_at_o2=n/a
+mock store=3406 role=same_tower_pair origin=O1 distance_m=38 mode=car->bicycle store_prep=none effective_prep=2 window=10-12 window_same_tower=6-8 distance_o2_m=n/a hidden_at_o2=n/a
+mock store=3222 role=pilot origin=O1 distance_m=255 mode=car->bicycle store_prep=none effective_prep=2 window=10-12 window_same_tower=n/a distance_o2_m=n/a hidden_at_o2=n/a
+mock store=3224 role=pilot origin=O1 distance_m=211 mode=car->bicycle store_prep=none effective_prep=2 window=10-12 window_same_tower=n/a distance_o2_m=n/a hidden_at_o2=n/a
+mock store=3226 role=pilot origin=O1 distance_m=165 mode=car->bicycle store_prep=none effective_prep=2 window=10-12 window_same_tower=n/a distance_o2_m=n/a hidden_at_o2=n/a
+mock store=3624 role=closing_soon origin=O1 distance_m=149 mode=car->bicycle store_prep=none effective_prep=2 window=10-12 window_same_tower=n/a distance_o2_m=n/a hidden_at_o2=n/a
+mock store=3935 role=scheduling origin=O1 distance_m=98 mode=car->bicycle store_prep=none effective_prep=2 window=10-12 window_same_tower=n/a distance_o2_m=n/a hidden_at_o2=n/a
+mock store=4047 role=one_person origin=O1 distance_m=135 mode=car->bicycle store_prep=none effective_prep=2 window=10-12 window_same_tower=n/a distance_o2_m=n/a hidden_at_o2=n/a
+ROW_DELTA=590 (distinct stores rows + store_schedule rows the seeder would change; NEARS_SEED_CONFIRM_ROWS must equal it)
+stores/store_subscriptions/store_schedule CHECKSUM before == after:
+multi_food_db_qa4188_rep.stores	1106498602	multi_food_db_qa4188_rep.stores	1106498602
+multi_food_db_qa4188_rep.store_subscriptions	2570552592	multi_food_db_qa4188_rep.store_subscriptions	2570552592
+multi_food_db_qa4188_rep.store_schedule	3582092472	multi_food_db_qa4188_rep.store_schedule	3582092472

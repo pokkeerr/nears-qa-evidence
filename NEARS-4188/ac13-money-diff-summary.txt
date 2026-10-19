@@ -1,0 +1,16 @@
+1:== seed twins verified: pre unseeded (store 1 car); post seeded (3 walking, 3 motorcycle, 581 bicycle); money, subscription and settings tables identical; flip list 1,8 (store 1 seeded, store 8 inactive = never written)
+2:== seed mode: SAME code on both sides = b9be8e98b (0 uncommitted path(s) under Admin/app and Admin/database); no base worktree
+3:== snapshot runs (explicit DB_DATABASE per side, proven inside the test)
+8:== NEARS-4188 diff: pre (multi_food_db_qa4188_money_pre, unseeded) vs post (multi_food_db_qa4188_money_post, seeded), same code
+9:IDENTICAL: 77 money rows (order_transactions=43, store_wallets=26, admin_wallets=1, delivery_man_wallets=7)
+10:== CONTROL 1: head code, stores 1,8 set to delivery_model='rider' (AC22: rider computes as self, so still identical)
+13:IDENTICAL: 77 money rows (order_transactions=43, store_wallets=26, admin_wallets=1, delivery_man_wallets=7)
+14:== CONTROL 2: scratch-mutated head code + the same rider data: the diff MUST go red and name rows
+15:== scratch mutation (copy at /private/tmp/claude-501/-Users-Apple-Projects-nears/fea29b0d-6f65-4911-8e04-fc3fef180182/scratchpad/qa4188/money-out/mutant/Admin/app/CentralLogics/OrderLogic.php, real worktree untouched):
+28:DIFFERENT: 6 difference(s)
+37:== CONTROL 2b (seed mode): a money column perturbed DIRECTLY on the seeded twin: the diff MUST go red and name rows
+40:DIFFERENT: 8 difference(s)
+51:== CONTROL 3: real head code again, no mutation, data restored: green again
+53:IDENTICAL: 77 money rows (order_transactions=43, store_wallets=26, admin_wallets=1, delivery_man_wallets=7)
+54:RESULT: CONTROL OK (rider data: identical; code mutation: red with named rows; stores.comission perturbed on a seeded store: red with named rows; both removed: identical)
+55:RESULT: identical. twins kept: multi_food_db_qa4188_money_pre, multi_food_db_qa4188_money_post. Re-run: bash scripts/eta-money-diff.sh [--control]

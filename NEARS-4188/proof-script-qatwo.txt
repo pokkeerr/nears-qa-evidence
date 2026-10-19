@@ -1,0 +1,78 @@
+## proof script run clone=multi_food_db_qa4188_qatwo (clean shell: env -i HOME PATH TMPDIR; bash scripts/eta-store-data-proof.sh --suffix qatwo --drop)
+PASS  eta_oracle.py --check-docs exit: 0
+PASS  eta_oracle.py --check-constants exit: 0
+PASS  pending migration count: 10
+PASS  pending list equals the 9 + 2026_10_19_170000 of the solution doc
+PASS  pending after migrate: 0
+PASS  the report wrote nothing (CHECKSUM stores, store_schedule before/after): 1106498602 3582092472 
+PASS  report names no seeder refusal: 0
+PASS  ROW_DELTA = stores rows + store_schedule rows: 590
+PASS  seeder run 1 exit: 0
+PASS  run 1 changed stores + store_schedule rows == ROW_DELTA: 590
+PASS  rollback ledger written: /Users/Apple/.nears/seed-ledgers/NEARS-4188-multi_food_db_qa4188_qatwo.json (mode 600)
+PASS  stores NON-written columns: rows whose sha2 changed (1042 rows, every column except delivery_mode, prep_time_minutes, tower_name, schedule_order): 0
+PASS  inactive stores (453): full-row sha2 changed: 0
+PASS  stores rows whose written columns changed: 589
+PASS  store_schedule rows changed: 1
+PASS  business_settings rows changed (money rows included): 0
+PASS  money business_settings rows (additional_charge=<NULL> additional_charge_status=<NULL> admin_commission=5 admin_free_delivery_option=free_delivery_to_all_store admin_free_delivery_status=1 delivery_charge_comission=0 dm_tips
+PASS  CHECKSUM of store_subscriptions store_wallets admin_wallets delivery_man_wallets order_transactions: multi_food_db_qa4188_qatwo.store_subscriptions 2570552592;multi_food_db_qa4188_qatwo.store_wallets 8962395;multi_food_db_qa
+PASS  delivery_mode cells == plan bicycle_default + mock_mode: 587
+PASS  prep_time_minutes cells == plan mock_prep_cells: 8
+PASS  tower_name cells == plan tower_name_cells: 5
+PASS  schedule_order cells == plan schedule_order_cells: 1
+  3338   walking                O1         254.5       255 walking         4     4 18-20     18-20     PASS
+  3184   walking                O1         531.0       531 walking         6     6 30-32     30-32     PASS
+  3449   walking                O1         658.8       659 walking         8     8 34-36     34-36     PASS
+  4      motorcycle             Z1        1505.7      1506 motorcycle     10    10 24-26     24-26     PASS
+  5      motorcycle             Z1         754.9       755 motorcycle     12    12 24-26     24-26     PASS
+  6      motorcycle             Z1         300.1       300 motorcycle     16    16 26-28     26-28     PASS
+  49     car                    A45       1113.1      1113 car            12    12 28-30     28-30     PASS
+  50     car                    A45       3185.5      3186 car            18    18 42-44     42-44     PASS
+  3291   same_tower_pair        O1          33.0        33 bicycle         2     2 10-12     10-12     PASS
+  3291   same_tower_pair+header O1          33.0        33 bicycle         2     2 6-8       6-8       PASS
+  3406   same_tower_pair        O1          38.1        38 bicycle         2     2 10-12     10-12     PASS
+  3406   same_tower_pair+header O1          38.1        38 bicycle         2     2 6-8       6-8       PASS
+  3222   pilot                  O1         255.0       255 bicycle         2     2 10-12     10-12     PASS
+  3224   pilot                  O1         211.3       211 bicycle         2     2 10-12     10-12     PASS
+  3226   pilot                  O1         164.9       165 bicycle         2     2 10-12     10-12     PASS
+  3624   closing_soon           O1         149.2       149 bicycle         2     2 10-12     10-12     PASS
+  3935   scheduling             O1          97.9        98 bicycle         2     2 10-12     10-12     PASS
+  4047   one_person             O1         135.0       135 bicycle         2     2 10-12     10-12     PASS
+PASS  every hand-check row equals the oracle
+PASS  listener on 127.0.0.1:65476 is our own php -S pid: 88622
+PASS  own backend cwd is this worktree's Admin: /Users/Apple/Projects/nears-NEARS-4188-store-eta-data/Admin
+PASS  origin check by SELECT: O1 in zone 417
+PASS  origin check by SELECT: O2 in zone 431
+PASS  target proof: detail.delivery_mode == walking after the UPDATE on multi_food_db_qa4188_qatwo
+PASS  flip list presence at O2: mode=walking listed=False expected=False
+PASS  target proof: detail.delivery_mode == bicycle after the UPDATE on multi_food_db_qa4188_qatwo
+PASS  flip list presence at O2: mode=bicycle listed=True expected=True
+PASS  target proof: detail.delivery_mode == motorcycle after the UPDATE on multi_food_db_qa4188_qatwo
+PASS  flip list presence at O2: mode=motorcycle listed=True expected=True
+PASS  target proof: detail.delivery_mode == car after the UPDATE on multi_food_db_qa4188_qatwo
+PASS  flip list presence at O2: mode=car listed=True expected=True
+PASS  scratch flip restored by checksum: row hash 43b40e8273ab before, 43b40e8273ab after (mode back to bicycle)
+PASS  positive control: the 3 walking stores are IN the O1 list (list size 58)
+PASS  the 3 walking stores are ABSENT from the O2 list (list size 55, distances 3300, 3846, 4008 m)
+PASS  the O2 list is exactly 3 shorter than the O1 list over the same zones (55 vs 58)
+PASS  non-walking stores of the same towers stay listed at O2 (5/5)
+PASS  API section: every comparison green, no store closed
+PASS  stores (ALL columns) after the API section and the scratch flip == before it: rows differing: 0
+PASS  store_schedule after the API section == before it: rows differing: 0
+PASS  down() exit: 0
+PASS  stores (ALL columns, every row) after down() vs pre-seed: rows differing: 0
+PASS  store_schedule after down() vs pre-seed: rows differing: 0
+PASS  business_settings after down() vs pre-seed: rows differing: 0
+PASS  money tables after down(): multi_food_db_qa4188_qatwo.store_subscriptions 2570552592;multi_food_db_qa4188_qatwo.store_wallets 8962395;multi_food_db_qa4188_qatwo.admin_wallets 3722587180;multi_food_db_qa4188_qatwo.delivery_ma
+PASS  report ROW_DELTA after down() == the first one (same state, closing time re-anchored): 590
+PASS  seeder run 2 exit: 0
+PASS  stores (ALL columns) after the re-apply == after run 1: rows differing: 0
+PASS  re-run: stores rows planned: 0
+PASS  re-run ROW_DELTA: 1
+PASS  seeder run 3 exit: 0
+PASS  run 3 changed stores rows: 0
+PASS  stores (ALL columns, every row) run 3 vs run 2: rows differing: 0
+PASS  multi_food_db CHECKSUM (stores, store_schedule, migrations) before == after: multi_food_db.stores 1293562109;multi_food_db.store_schedule 3582092472;multi_food_db.migrations 1301218981;
+PROOF-SUMMARY clone=multi_food_db_qa4188_qatwo row_delta_run1=590 stores_rows_run1=589 schedule_rows_run1=1 row_delta_rerun=1 down_restored=590 api="RAN" fails=0
+RESULT: ALL GREEN (DB-level, oracle and API)

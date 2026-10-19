@@ -1,0 +1,34 @@
+## AC10 docs
++> **Legacy text is a last resort; importers write none (NEARS-4188).** `App\CentralLogics\StoreImportDefaults` is the only
++> definition of what an importer writes when the sheet has no value: `DELIVERY_TIME_PLACEHOLDER = ''` and `DELIVERY_MODE = 'bicycle'`.
++> `BaqalaImportLogic` and both inserts of the Admin store bulk import (`import` and `update`) use them; a valid sheet `DeliveryTime`
++> is kept, the importers never write `prep_time_minutes` (NULL), and the update branch never rewrites an existing store's mode.
++> An EMPTY `delivery_time` means "no legacy text": the computed window is the ETA (`docs/backend/eta-logic.md`), and the
++> vendor's min/max replaces the text on the first save through a write path. The column default is `''` (migration
++> `2026_10_19_170000_set_stores_delivery_time_default`, guarded, rows untouched). Every remaining `explode('-')` reader is
++> empty-safe: the `[1]` reads in `order_data_formatting` and `track_order` use `(int) (explode(...)[1] ?? 0)`, because
++> `(int) explode(...)[1] ?? 0` does not cover the cast and throws `Undefined array key 1` on `''`.
++> Accepting an order no longer reads this text either (`PrepTimeLogic::acceptProcessingMinutes`, `docs/backend/prep-time-logic.md`).
++
++## Remaining `explode` readers of `delivery_time` (audited by NEARS-4188, none throws on `''`)
++The importers now write an EMPTY `delivery_time` (see the NEARS-4188 note at the top), so every reader was re-checked against `''`. What is left,
++and why each is safe; do not add a new inline `explode(...)[1]`, call `EtaLogic::legacyWindow`:
++- `Admin/app/CentralLogics/Helpers.php` (`order_estimated_delivery_at` :1528, the item and order formatters :1555/:1556 and :1605/:1606) and
++  `Admin/app/Http/Controllers/Api/V1/OrderController.php` (`track_order` :148/:149): `[0]` always exists (`(int) ''` is 0); every `[1]` read is
++  `(int) (explode(...)[1] ?? 0)`. These three `[1]` reads used the broken `(int) explode(...)[1] ?? 0` form (a no-dash value such as `'1 hour'` already
++  returned HTTP 500 there) and were fixed by NEARS-4188.
++- The three accept paths (`Api/V1/Vendor/VendorController`, `Vendor/OrderController`, `Admin/OrderController`, all under `Admin/app/Http/Controllers/`) and the Store Panel accept dialog
++  prefill (`Admin/resources/views/vendor-views/order/order-view.blade.php`) no longer read this text: `PrepTimeLogic::acceptProcessingMinutes`.
++- `Admin/resources/views/admin-views/order/order-view.blade.php:27` reads `[0]` into a variable nothing uses (left alone).
++- `Admin/resources/views/admin-views/vendor/edit.blade.php:19-26` is guarded by a `preg_match` that needs `N-N <unit>` and falls back to 10 / 30 / `min`.
++- `stores.prep_time_minutes` is a vendor-entered override only, never a copy of a default (NEARS-4188): ordinary stores carry NULL and resolve to the module default at read time, so a later `prep_module_defaults` edit reaches them.
++- Accept fallback (NEARS-4188): `acceptProcessingMinutes(Store): int` is what `orders.processing_time` gets when the vendor entered none. It reuses `EtaLogic::storePrep` (clamped store prep, else the module default) and the unresolved-module branch above; the
+-- data-qa note heading:
+1595:## 36. Store ETA data: delivery-mode seeder, report and twin proof (NEARS-4188) - twin first, the owner applies it to `multi_food_db`
+1597:**Twin-first.** Everything below was built and proven on private clones `multi_food_db_qa4188*`; running it on `multi_food_db` is the owner's action. Solut
+1608:**Ledger and rollback.** Originals go to `$HOME/.nears/seed-ledgers/NEARS-4188-<db>.json` (0600; `NEARS_SEED_LEDGER_FILE` overrides; never inside the repo;
+-- seeder header (scope / row delta / rollback):
+14:// NEARS-4188: scope, ROW_DELTA, ledger and run commands live in docs/data-qa/dev-seed-qa-fixtures.md (section 36); a twin runs it freely, multi_food_db sits behind two more gates.
+docs/data-qa/dev-seed-qa-fixtures.md:0
+docs/backend/delivery-time-parsing.md:0
+docs/backend/prep-time-logic.md:1
