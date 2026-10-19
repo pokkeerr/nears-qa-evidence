@@ -1,0 +1,17 @@
+# task_bug: UserApp/.maestro/store/store-oos-listed-last.yaml ordering check passes in the progressive-load state where SP7 ordering is violated
+# flow step: assertNotVisible <available-card> below <first NEARS-1177 Beverage card> -> COMPLETED (run 20261020-025646-84814)
+# cards on screen at the failing step (Maestro screen-hierarchy step-044), y,x,label:
+#   (657,30) Popcorn | (657,687) SOLD OUT Beverage 01 | (1386,*) SOLD OUT Beverage 02/03 | (2121,*) 04/05 | (2856,*) 06/07
+# items/latest pages loaded at that moment: page 1 only (NET 03:00:58 in the 92420 replay); pages 2+3 loaded only when QA hand-scrolled (03:02:27, 03:02:31):
+# items/latest NET lines (pagination loads):
+10-20 03:00:57.821 21689 21689 I flutter : [NET] GET endpoint=/api/v1/items/latest
+10-20 03:00:58.826 21689 21689 I flutter : [NET] endpoint=/api/v1/items/latest http_status=200
+10-20 03:02:27.314 21689 21689 I flutter : [NET] GET endpoint=/api/v1/items/latest
+10-20 03:02:27.891 21689 21689 I flutter : [NET] endpoint=/api/v1/items/latest http_status=200
+10-20 03:02:31.268 21689 21689 I flutter : [NET] GET endpoint=/api/v1/items/latest
+10-20 03:02:31.913 21689 21689 I flutter : [NET] endpoint=/api/v1/items/latest http_status=200
+# API page 1 (limit 13 = kStoreItemsPageLimit) returns the 10 stock-0 Beverages FIRST, then Pure Ghee/Mozzarella/Popcorn; 18 available items arrive on pages 2-3.
+# => with only page 1 loaded, the 'nothing available below the first OOS card' assert is vacuous: the 18 unloaded available items are not on screen to be found.
+# Method A (hand) judged ordering FAIL for this state (10 SOLD OUT cards between Popcorn and 18 later available items until pages 2-3 load) and PASS for the fully-loaded state (SOLD OUT at positions 22-31 of 31).
+# Effect on AC6: verdict parity held this run only because the later 'Out of stock' label assert fails first; once NEARS-3587 renders the AC's label, the wrapper would PASS SP7 while the hand method FAILs it.
+# fix direction (flow-only): scroll to the end of All Products (e.g. until 'NEARS-1177 Beverage 10' and no further load) before asserting, or assert on the last available card being above the first OOS card after full load.

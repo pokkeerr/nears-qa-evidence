@@ -1,0 +1,8 @@
+# regression_bug (NEARS-3587 SP7, product, pre-existing): OOS items list before available items until later pages load
+# GET /api/v1/items/latest?store_id=12&offset=N&limit=13 on :8272 (clone, same data as shared): 
+#  offset 1 [('NEARS-1177 Beverage 01', 0), ('NEARS-1177 Beverage 02', 0), ('NEARS-1177 Beverage 03', 0), ('NEARS-1177 Beverage 04', 0), ('NEARS-1177 Beverage 05', 0), ('NEARS-1177 Beverage 06', 0), ('NEARS-1177 Beverage 07', 0), ('NEARS-1177 Beverage 08', 0), ('NEARS-1177 Beverage 09', 0), ('NEARS-1177 Beverage 10', 0), ('Pure Ghee 400g', 53), ('Mozzarella 200g', 117), ('Popcorn', 34)]
+#  offset 2 [('Whole Milk 1L', 171), ('Watermelon', 144), ('Carrots', 35), ('Rice 5kg', 153), ('Brown Dinner Rolls', 96), ('Hamburger Buns', 99), ('Oreo Choco Cookies', 996), ('Round Wheat Bread', 99), ('Butterfly Fry Shrimp', 99), ('Mini Caramel Rolls', 99), ('4X4 Rubiks Cube', 3000), ('Latus', 1000), ('Fresh Organic Tomato', 9980)]
+#  offset 3 [('Premium Aromatice Atop Rice', 4998), ('Tones Mild Chili Powder', 3999), ("Lay's Classic Chips", 3000), ('Bathroom Foam Cleaner', 500), ('Multi-Purpose Cleaner', 99)]
+# UI with page 1 loaded (Method A dumps n01/n02): Pure Ghee, Mozzarella, Popcorn, SOLD OUT Beverage 01..10 -> the user scrolls through 10 SOLD OUT cards before 18 available items exist on screen; the grid re-sorts when page 2 lands (n03-n05).
+# fully loaded (u00-u06): 31 grid cards; 10 SOLD OUT; first SO index 22 ; last available index 21
+# backend orders page 1 newest-first without stock ordering; client sorts only the loaded set.

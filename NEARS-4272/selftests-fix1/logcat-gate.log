@@ -1,0 +1,45 @@
+== logcat-gate.test.sh ==
+  ok   G1 a pid reused by another package stops being attributed (rc=0)
+  ok   G1 only the line before the reuse counts
+  ok   G2 the app's :remote sub-process is a different process -> nothing attributed -> DEAD (rc=3)
+  ok   G3 [ERR]/[FAIL] counts only on flutter-tagged lines (rc=0)
+  ok   G3 ... while every app-pid line counts for liveness
+  ok   G4 a pid from pidof at start is attributed (rc=1)
+  ok   G4 the offending line is printed
+  ok   G5 no start pid and no Start proc -> DEAD in the JSON too
+  ok   G6 an unreadable logcat file is DEAD, never CLEAN (rc=3)
+-- liveness markers (F1)
+  ok   M1 both markers + an app line -> CLEAN (rc=0)
+  ok   M1 the JSON records the END marker
+  ok   M2 END marker missing -> DEAD (the stream died or never flushed) (rc=3)
+  ok   M2 says which marker
+  ok   M3 START marker missing -> DEAD (rc=3)
+  ok   M3 says which marker
+  ok   M4 markers carrying another run's nonce do not count (rc=3)
+  ok   M5 --channel died -> DEAD even with both markers (rc=3)
+  ok   M5 says why
+  ok   M6 an [ERR]/[FAIL] that did arrive wins over a dead channel (DIRTY, not DEAD) (rc=1)
+  ok   M7 without --nonce the markers are not required (unit default) (rc=0)
+  ok   M8 an unknown --channel value is a usage error (rc=2)
+-- app-only line export (SEC-4272-2)
+  ok   X1 exactly the 2 app-attributed lines are exported
+  ok   X1 the app's flutter line is exported
+  ok   X1 the app's non-flutter line is exported
+  ok   X1 another pid's line is not
+  ok   X1 the system line is not
+-- known noise: several entries, each with its own reason, fixed strings
+  ok   K1 a line no entry covers still fails the run (rc=1)
+  ok   K1 entry 1 counted per entry
+  ok   K1 entry 2 counted per entry
+  ok   K1 a near-miss is not suppressed ([ ] are literal, not a class)
+  ok   K2 '.' in an entry is a literal dot, not a regex wildcard
+  ok   N1 a well-formed noise file passes --check-noise (rc=0)
+  ok   N1 counts its entries
+  ok   N2 one reason line covers one entry only (rc=2)
+  ok   N3 an empty reason is not a reason (rc=2)
+  ok   N4 the committed known-noise.txt is well-formed (rc=0)
+  ok   N4 ... and holds no entry yet (TD: empty at first)
+  ok   X missing arguments are a usage error (rc=2)
+
+38 assertion(s); floor 38
+PASS

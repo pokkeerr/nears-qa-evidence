@@ -1,0 +1,9 @@
+# regression_bug (NEARS-3587 SP7, product, pre-existing): OOS label renders 'SOLD OUT', AC text says 'Out of stock'
+# a11y dump (uiautomator, Method A) ac6-methodA-dumps/n06.txt..n30.txt and Maestro hierarchy ac6-methodA-dumps/hierarchy.json
+# positive control node present in the same dump: label="SOLD OUT
+NEARS-1177 Beverage 01
+10.00 AED" (bounds [687,2143][1314,2848] in hierarchy.json)
+# 'Out of stock' occurrences across all 38 Method A dumps + hierarchy: 0
+# 'SOLD OUT' card labels across Method A dumps: 210
+# Method B: maestro-stdout 'Assertion is false: "[\s\S]*Out of stock[\s\S]*" is visible' (run 20261020-025646-84814, screenshot step-044)
+# code: item_card.dart closedLabel 'sold_out'.tr, upper-cased by n_item_card.dart _StatusChip (per flow header; not re-read)

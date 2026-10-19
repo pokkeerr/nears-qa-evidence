@@ -1,0 +1,22 @@
+# task_bug: scripts/qa-maestro/known-noise.txt is empty -> every per-worktree UserApp run is DIRTY (rc 1) on the Firebase-unconfigured class alone
+# measured run: /Users/Apple/Projects/nears-NEARS-4272-maestro-run-wrapper/docs/qa-evidence/NEARS-4272/maestro/20261020-024125-94002 (flows 01-login + 02-browse-store, both junit SUCCESS, maestro exit 0, wrapper rc 1 'FAIL (log has [ERR]/[FAIL])')
+# tag=flutter level=I, app-pid attributed (Start proc pids 15103, 15592), exactly 4 [FAIL] per cold launch; 0 [ERR]; 0 E-level flutter lines
+10-20 02:41:33.933 15103 15103 I flutter : [FAIL] endpoint=null http_status=null type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+10-20 02:41:34.210 15103 15103 I flutter : [FAIL] endpoint=null http_status=null type=KilledLaunchNotificationFailure msg="killed-launch getInitialMessage failed (FirebaseException)"
+10-20 02:41:40.807 15103 15103 I flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="FCM registration id fetch failed"
+10-20 02:42:00.397 15103 15103 I flutter : [FAIL] endpoint=null http_status=null type=FcmTopicConfigFailure msg="configureFirebaseMessaging: FCM topic subscribe/unsubscribe failed"
+10-20 02:42:33.964 15592 15592 I flutter : [FAIL] endpoint=null http_status=null type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+10-20 02:42:34.218 15592 15592 I flutter : [FAIL] endpoint=null http_status=null type=KilledLaunchNotificationFailure msg="killed-launch getInitialMessage failed (FirebaseException)"
+10-20 02:42:40.396 15592 15592 I flutter : [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="FCM registration id fetch failed"
+10-20 02:42:46.928 15592 15592 I flutter : [FAIL] endpoint=null http_status=null type=FcmTopicConfigFailure msg="configureFirebaseMessaging: FCM topic subscribe/unsubscribe failed"
+# non-gated follow-ons of the same class (no [FAIL]/[ERR] token; not counted by the gate):
+10-20 02:41:32.677 15103 15103 W FirebaseApp: Default FirebaseApp failed to initialize because no default options were found. This usually means that com.google.gms:google-services was not applied to your gradle project.
+10-20 02:41:32.677 15103 15103 I FirebaseInitProvider: FirebaseApp initialization unsuccessful
+10-20 02:41:33.420 15103 15186 E FA      : Missing google_app_id. Firebase Analytics disabled. See https://goo.gl/NAOOOI
+10-20 02:41:34.210 15103 15103 I flutter : AnalyticsService: FirebaseAnalytics.instance unresolvable: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+10-20 02:42:32.796 15592 15592 W FirebaseApp: Default FirebaseApp failed to initialize because no default options were found. This usually means that com.google.gms:google-services was not applied to your gradle project.
+10-20 02:42:32.796 15592 15592 I FirebaseInitProvider: FirebaseApp initialization unsuccessful
+10-20 02:42:33.507 15592 15648 E FA      : Missing google_app_id. Firebase Analytics disabled. See https://goo.gl/NAOOOI
+10-20 02:42:34.218 15592 15592 I flutter : AnalyticsService: FirebaseAnalytics.instance unresolvable: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+# same 4 lines, same order, in every other run this cycle: control 8418, SIGINT-invalid 18252, AC6 84814, crosskey 92420 (err_fail=4 per launch); hand-method window on pid 21689 after boot: none
+# reproduce: any wrapper run against a qa-run.sh worktree build (no google-services.json, verification-checks.md SS NEARS-3698)
