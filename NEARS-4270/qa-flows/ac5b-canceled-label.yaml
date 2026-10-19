@@ -1,0 +1,30 @@
+appId: ${APP_ID}
+name: NEARS-4270 QA AC5(b) - My Orders card shows the merged NEARS-4198 label "Canceled" (was "Cancelled")
+tags:
+  - NEARS-4270-AC5
+---
+- runFlow: ../../../../UserApp/.maestro/pilot/subflows/fresh-login.yaml
+- tapOn: "Profile"
+- extendedWaitUntil:
+    visible: "My Orders"
+    timeout: 20000
+- tapOn: "My Orders"
+# My Orders tab bar differs between the two shas (parent: All Orders|Ongoing|Cancelled,
+# default All Orders; merge: Ongoing|History) - navigation only, never the assertion
+- extendedWaitUntil:
+    visible: "Ongoing"
+    timeout: 20000
+- runFlow:
+    when:
+      visible: "History"
+    commands:
+      - tapOn: "History"
+# CONTROL (loose, passes on both builds): a canceled-order card rendered in either spelling
+- scrollUntilVisible:
+    element: "[\\s\\S]*Order status, Cancel+ed[\\s\\S]*"
+    speed: 20
+    visibilityPercentage: 60
+    centerElement: true
+    timeout: 90000
+# TIGHT: the merged copy (en.json "canceled": "Canceled", order_view_widget semanticLabel)
+- assertVisible: "[\\s\\S]*Order status, Canceled[\\s\\S]*"

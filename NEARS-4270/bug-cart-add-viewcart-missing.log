@@ -1,0 +1,26 @@
+AC1 run3 flow 05 (after relaunch-home): Add To Cart on the Latus item sheet -> server 200 -> no 'View Cart' bar for 20 s; Latus card shows no in-cart quantity prefix.
+Device logcat (app pid 12335) - the app fires GET cart/list in the same millisecond as POST cart/add:
+10-19 19:57:59.873 I/flutter (12335): [NET] GET endpoint=/api/v1/items/details/87
+10-19 19:58:00.447 I/flutter (12335): [NET] endpoint=/api/v1/items/details/87 http_status=200
+10-19 19:58:02.424 I/flutter (12335): [NET] GET endpoint=/api/v1/cashback/list
+10-19 19:58:02.424 I/flutter (12335): [NET] GET endpoint=/api/v1/customer/wish-list
+10-19 19:58:02.425 I/flutter (12335): [NET] POST endpoint=/api/v1/customer/cart/add
+10-19 19:58:02.425 I/flutter (12335): [NET] GET endpoint=/api/v1/customer/cart/list
+10-19 19:58:02.949 I/flutter (12335): [NET] endpoint=/api/v1/customer/cart/add http_status=200
+10-19 19:58:02.952 I/flutter (12335): 📊 analytics: add_to_cart {item_id: 87, price: 150.0, quantity: 1 ...}
+10-19 19:58:02.953 I/flutter (12335): [NET] endpoint=/api/v1/customer/wish-list http_status=200
+10-19 19:58:02.953 I/flutter (12335): [NET] endpoint=/api/v1/cashback/list http_status=200
+10-19 19:58:02.954 I/flutter (12335): [NET] endpoint=/api/v1/customer/cart/list http_status=200
+
+maestro.log (host clock):
+19:58:07.117onCommandStart: Tap on "Add To Cart" RUNNING
+19:58:09.735onCommandFinished: Tap on "Add To Cart" COMPLETED
+19:58:09.735onCommandStart: Assert that "View Cart" is visible RUNNING
+19:58:30.253onCommandFinished: Assert that "View Cart" is visible FAILED
+19:58:30.254mands: [Command execution] CommandFailed: Assertion is false: "View Cart" is visible
+
+Next flow in the same run (03, fresh clearState, same account) found Latus ALREADY in the server-side cart (item-sheet branch skipped):
+19:59:47.390onCommandStart: Run flow when "Latus( \(\w+\))?\n[\s\S]*" is visible RUNNING
+19:59:54.457onCommandFinished: Run flow when "Latus( \(\w+\))?\n[\s\S]*" is visible SKIPPED
+
+Same concurrent GET cart/list + POST cart/add pair appears on every add in runs 1 and 3 (passing flows too) - nondeterministic server processing order.
