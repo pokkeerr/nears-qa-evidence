@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4188
 
-**QA FAIL: 1 existing test red (EtaServiceTest delivery_model guard), 1 docs gap; all other ACs demonstrated**
+**QA delta cycle 1: PASS (TB1/TB2 closed)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -27,6 +27,7 @@
 - [`ac8-guard-refusals-live.txt`](ac8-guard-refusals-live.txt)
 - [`ac9-logging.txt`](ac9-logging.txt)
 - [`bug-etaservice-delivery-model-guard.log`](bug-etaservice-delivery-model-guard.log)
+- [`delta1-tests.txt`](delta1-tests.txt)
 - [`lessons-enforcement-guard.txt`](lessons-enforcement-guard.txt)
 - [`proof-script-qaone.txt`](proof-script-qaone.txt)
 - [`proof-script-qatwo.txt`](proof-script-qatwo.txt)
