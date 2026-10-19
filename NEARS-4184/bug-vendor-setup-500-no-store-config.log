@@ -1,0 +1,6 @@
+# pre-existing: PUT /api/v1/vendor/update-business-setup returns 500 when the store has no store_configs row and extra_packaging_amount is omitted (same on BASE b326327ec, port 8192)
+store_configs rows for store 22: 0
+BASE b326327ec :8192 -> HTTP 500 {'message': 'Something went wrong'} | stores.delivery_time AFTER the 500: 21-31 min | store_configs rows: 0
+HEAD 610e68043 :8191 -> HTTP 500 {'message': 'Something went wrong'} | stores.delivery_time AFTER the 500: 21-31 min | store_configs rows: 0
+HEAD laravel.log line for the 500 (logged, so not a silent path): [2026-10-19 07:36:20] production.ERROR: [FAIL] exception_reported {"type":"Illuminate\\Database\\QueryException","code":"23000","driver_code":1048,"file":"app/Http/Controllers/Api/V1/Vendor/BusinessSettingsController.php","line":157,"endpoint":"/api/v1/vendor/update-business-setup"}
+cause: StoreConfig::firstOrNew inserts extra_packaging_amount=NULL (NOT NULL column) when the request omits it; stores.delivery_time was already saved above it (partial write). Same code path at base: pre-existing, unrelated to delivery_mode.

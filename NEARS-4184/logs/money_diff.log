@@ -1,0 +1,42 @@
+== twins verified: base has no 2026_10_19_* rows; head has the 4204 + 3 4184 stamps; every head store is self; money tables start identical
+== base worktree /Users/Apple/Projects/nears-NEARS-4184-base-money at b326327ec (no delivery_model in app/), head tree has it
+== snapshot runs (explicit DB_DATABASE per side, proven inside the test)
+   base: ETA-MONEY-DB expected=multi_food_db_qa4184_money_base configured=multi_food_db_qa4184_money_base live=multi_food_db_qa4184_money_base
+   head: ETA-MONEY-DB expected=multi_food_db_qa4184_money_head configured=multi_food_db_qa4184_money_head live=multi_food_db_qa4184_money_head
+   base: misdirected runs refused (wrong database, shared database name), nothing written
+   head: misdirected runs refused (wrong database, shared database name), nothing written
+== AC22 diff: base (multi_food_db_qa4184_money_base, base code) vs head (multi_food_db_qa4184_money_head, head code)
+IDENTICAL: 77 money rows (order_transactions=43, store_wallets=26, admin_wallets=1, delivery_man_wallets=7)
+== CONTROL 1: head code, stores 1,35 set to delivery_model='rider' (AC22: rider computes as self, so still identical)
+   multi_food_db_qa4184_money_head: stores 1,35 -> delivery_model='rider' (2 rider rows)
+   head-rider: ETA-MONEY-DB expected=multi_food_db_qa4184_money_head configured=multi_food_db_qa4184_money_head live=multi_food_db_qa4184_money_head
+IDENTICAL: 77 money rows (order_transactions=43, store_wallets=26, admin_wallets=1, delivery_man_wallets=7)
+== CONTROL 2: scratch-mutated head code + the same rider data: the diff MUST go red and name rows
+== scratch mutation (copy at /private/tmp/claude-501/-Users-Apple-Projects-nears/fea29b0d-6f65-4911-8e04-fc3fef180182/scratchpad/k4184/qa/money_out/mutant/Admin/app/CentralLogics/OrderLogic.php, real worktree untouched):
+--- /private/tmp/claude-501/-Users-Apple-Projects-nears/fea29b0d-6f65-4911-8e04-fc3fef180182/scratchpad/k4184/qa/money_out/OrderLogic.orig.php	2026-10-19 06:25:18
++++ /private/tmp/claude-501/-Users-Apple-Projects-nears/fea29b0d-6f65-4911-8e04-fc3fef180182/scratchpad/k4184/qa/money_out/mutant/Admin/app/CentralLogics/OrderLogic.php	2026-10-19 06:25:18
+@@ -251,7 +251,7 @@
+             // comission in delivery charge
+             $delivery_charge_comission = BusinessSetting::where('key', 'delivery_charge_comission')->first();
+             $delivery_charge_comission_percentage = $delivery_charge_comission ? $delivery_charge_comission->value : 0;
+-            $comission_on_delivery = $delivery_charge_comission_percentage * ($order->original_delivery_charge / 100);
++            $comission_on_delivery = ($order->store->delivery_model === 'rider' ? 0 : 1) * $delivery_charge_comission_percentage * ($order->original_delivery_charge / 100);
+ 
+             if ($order->store->sub_self_delivery) {
+                 $comission_on_actual_delivery_fee = 0;
+   mutant-rider: ETA-MONEY-DB expected=multi_food_db_qa4184_money_head configured=multi_food_db_qa4184_money_head live=multi_food_db_qa4184_money_head
+DIFFERENT: 6 difference(s)
+  order_transactions order_id=9800001 changed: admin_commission: 3.7000 -> 2.7000; delivery_fee_comission: 1.0000 -> 0.0000; original_delivery_charge: 9.0000 -> 10.0000
+  order_transactions order_id=9800002 changed: admin_commission: -8.4500 -> -9.6500; delivery_fee_comission: 1.2000 -> 0.0000; original_delivery_charge: 10.8000 -> 12.0000
+  order_transactions order_id=9800003 changed: admin_commission: 1.9500 -> 1.1500; delivery_fee_comission: 0.8000 -> 0.0000; original_delivery_charge: 7.2000 -> 8.0000
+  order_transactions order_id=9800004 changed: admin_commission: 2.2000 -> 1.7000; delivery_fee_comission: 0.5000 -> 0.0000; original_delivery_charge: 4.5000 -> 5.0000
+  admin_wallets admin_id=1 changed: total_commission_earning: 46.5500 -> 44.2500
+  delivery_man_wallets delivery_man_id=98001 changed: total_earning: 26.7000 -> 29.0000
+   (red as required)
+   multi_food_db_qa4184_money_head: restored, every store is delivery_model='self'
+== CONTROL 3: real head code again, no mutation, data restored: green again
+   head-after: ETA-MONEY-DB expected=multi_food_db_qa4184_money_head configured=multi_food_db_qa4184_money_head live=multi_food_db_qa4184_money_head
+IDENTICAL: 77 money rows (order_transactions=43, store_wallets=26, admin_wallets=1, delivery_man_wallets=7)
+RESULT: CONTROL OK (rider data: identical; mutation: red with named rows; mutation removed: identical)
+RESULT: identical. twins kept: multi_food_db_qa4184_money_base, multi_food_db_qa4184_money_head. Re-run: bash scripts/eta-money-diff.sh [--control]
+removed base worktree /Users/Apple/Projects/nears-NEARS-4184-base-money

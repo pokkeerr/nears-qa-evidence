@@ -1,0 +1,181 @@
+===== zonewide base list  flags=['Using filesort', 'Using temporary']
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	PRIMARY	modules	NULL	ALL	PRIMARY	NULL	NULL	NULL	9	11.11	Using where; Using temporary; Using filesort
+1	PRIMARY	stores	NULL	ref	stores_module_id_foreign,stores_zone_id_status_idx	stores_module_id_foreign	8	multi_food_db_qa4184_load.modules.id	269	5.36	Using where
+17	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+17	DEPENDENT SUBQUERY	<derived18>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+18	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+12	DEPENDENT SUBQUERY	stores	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.stores.id	1	10.00	Using where
+12	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	1.00	Using index condition; Using where
+14	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+14	DEPENDENT SUBQUERY	<derived15>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+15	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+8	DEPENDENT SUBQUERY	stores	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.stores.id	1	10.00	Using where
+8	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	1.00	Using index condition; Using where
+10	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+10	DEPENDENT SUBQUERY	<derived11>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+11	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+7	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	33.33	Using where
+6	DEPENDENT SUBQUERY	orders	NULL	ref	orders_store_id_order_status_schedule_at_index	orders_store_id_order_status_schedule_at_index	9	multi_food_db_qa4184_load.stores.id	6	100.00	Using index
+5	DEPENDENT SUBQUERY	items	NULL	ref	PRIMARY,items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	100.00	Using index
+5	DEPENDENT SUBQUERY	reviews	NULL	ref	reviews_item_id_index	reviews_item_id_index	8	multi_food_db_qa4184_load.items.id	1	100.00	Using index
+4	DEPENDENT SUBQUERY	campaign_store	NULL	ALL	NULL	NULL	NULL	NULL	3	33.33	Using where
+4	DEPENDENT SUBQUERY	campaigns	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.campaign_store.campaign_id	1	100.00	Using index
+3	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	100.00	Using index
+2	DEPENDENT SUBQUERY	store_schedule	NULL	ref	store_schedule_store_id_day_index	store_schedule_store_id_day_index	12	multi_food_db_qa4184_load.stores.id,const	1	11.11	Using where
+
+--- ANALYZE (top)
+EXPLAIN
+-> Limit: 25 row(s)  (actual time=45.3..45.3 rows=25 loops=1)\n    -> Sort row IDs: `open` DESC, stores.id, limit input to 25 row(s) per chunk  (actual time=45.3..45.3 rows=25 loops=1)\n        -> Table scan on <temporary>  (cost=85.4..87.8 rows=14.4) (actual time=44.8..45.2 rows=1149 loops=1)\n            -> Temporary table  (cost=85.2..85.2 rows=14.4) (actual time=44.8..44.8 rows=1149 loops=1)\n                -> Nested loop inner join  (cost=81.9 rows=14.4) (actual time=0.177..10.6 rows=1149 loops=1)\n                    -> Filter: (modules.`status` = 1)  (cost=1.15 rows=1) (actual time=0.0409..0.0458 rows=9 loops=1)\n                        -> Table scan on modules  (cost=1.15 rows=9) (actual time=0.0384..0.0423 rows=9 loops=1)\n                    -> Filter: ((stores.zone_id = 2) and (stores.`active` = 1) and (stores.`status` = 1) and ((stores.store_business_model = 'commission') or exists(select #17)))  (cost=55.2 rows=14.4) (actual time=0.0201..1.17 rows=128 loops=9)\n                        -> Index lookup on stores using stores_module_id_foreign (module_id = modules.id)  (cost=55.2 rows=269) (actual time=0.00938..1.02 rows=238 loops=9)\n                        -> Select #17 (subquery in condition; dependent)\n                            -> Limit: 1 row(s)  (cost=1.05 rows=1) (actual time=0.0394..0.0395 rows=1 loops=1)\n                                -> Nested loop inner join  (cost=1.05 rows=2) (actual time=0.0391..0.0391 rows=1 loops=1)\n                   
+
+===== zonewide base count  flags=['Using temporary']
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	PRIMARY	modules	NULL	ALL	PRIMARY	NULL	NULL	NULL	9	11.11	Using where
+1	PRIMARY	stores	NULL	ref	stores_module_id_foreign,stores_zone_id_status_idx	stores_module_id_foreign	8	multi_food_db_qa4184_load.modules.id	269	5.36	Using where
+3	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+3	DEPENDENT SUBQUERY	<derived4>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+4	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+
+--- ANALYZE (top)
+EXPLAIN
+-> Aggregate: count(0)  (cost=85.2 rows=1) (actual time=1.46..1.46 rows=1 loops=1)\n    -> Nested loop inner join  (cost=81.9 rows=14.4) (actual time=0.0259..1.44 rows=1149 loops=1)\n        -> Filter: (modules.`status` = 1)  (cost=1.15 rows=1) (actual time=0.00721..0.00946 rows=9 loops=1)\n            -> Table scan on modules  (cost=1.15 rows=9) (actual time=0.00692..0.00883 rows=9 loops=1)\n        -> Filter: ((stores.zone_id = 2) and (stores.`active` = 1) and (stores.`status` = 1) and ((stores.store_business_model = 'commission') or exists(select #3)))  (cost=55.2 rows=14.4) (actual time=0.00513..0.154 rows=128 loops=9)\n            -> Index lookup on stores using stores_module_id_foreign (module_id = modules.id)  (cost=55.2 rows=269) (actual time=0.00422..0.137 rows=238 loops=9)\n            -> Select #3 (subquery in condition; dependent)\n                -> Limit: 1 row(s)  (cost=1.05 rows=1) (actual time=0.0141..0.0141 rows=1 loops=1)\n                    -> Nested loop inner join  (cost=1.05 rows=2) (actual time=0.014..0.014 rows=1 loops=1)\n                        -> Filter: ((store_subscriptions.`status` = 1) and (stores.id = store_subscriptions.store_id) and ((store_subscriptions.max_order = 'unlimited') or (store_subscriptions.max_order > 0)))  (cost=0.35 rows=1) (actual time=0.0025..0.0025 rows=1 loops=1)\n                            -> Table scan on store_subscriptions  (cost=0.35 rows=1) (actual time=0.00229..0.00229 rows=1 loops=1)\n                    
+
+===== zonewide head list  flags=['Using filesort', 'Using temporary']
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	PRIMARY	modules	NULL	ALL	PRIMARY	NULL	NULL	NULL	9	11.11	Using where; Using temporary; Using filesort
+1	PRIMARY	stores	NULL	ref	stores_module_id_foreign,stores_zone_id_status_idx	stores_module_id_foreign	8	multi_food_db_qa4184_load.modules.id	269	5.36	Using where
+18	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+18	DEPENDENT SUBQUERY	<derived19>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+19	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+13	DEPENDENT SUBQUERY	stores	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.stores.id	1	10.00	Using where
+13	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	1.00	Using index condition; Using where
+15	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+15	DEPENDENT SUBQUERY	<derived16>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+16	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+9	DEPENDENT SUBQUERY	stores	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.stores.id	1	10.00	Using where
+9	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	1.00	Using index condition; Using where
+11	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+11	DEPENDENT SUBQUERY	<derived12>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+12	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+8	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	33.33	Using where
+7	DEPENDENT SUBQUERY	orders	NULL	ref	orders_store_id_order_status_schedule_at_index	orders_store_id_order_status_schedule_at_index	9	multi_food_db_qa4184_load.stores.id	6	100.00	Using index
+6	DEPENDENT SUBQUERY	items	NULL	ref	PRIMARY,items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	100.00	Using index
+6	DEPENDENT SUBQUERY	reviews	NULL	ref	reviews_item_id_index	reviews_item_id_index	8	multi_food_db_qa4184_load.items.id	1	100.00	Using index
+5	DEPENDENT SUBQUERY	campaign_store	NULL	ALL	NULL	NULL	NULL	NULL	3	33.33	Using where
+5	DEPENDENT SUBQUERY	campaigns	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.campaign_store.campaign_id	1	100.00	Using index
+4	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	100.00	Using index
+3	DEPENDENT SUBQUERY	modules	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.stores.module_id	1	100.00	NULL
+2	DEPENDENT SUBQUERY	store_schedule	NULL	ref	store_schedule_store_id_day_index	store_schedule_store_id_day_index	12	multi_food_db_qa4184_load.stores.id,const	1	11.11	Using where
+
+--- ANALYZE (top)
+EXPLAIN
+-> Limit: 25 row(s)  (actual time=31.5..31.5 rows=25 loops=1)\n    -> Sort row IDs: `open` DESC, stores.id, limit input to 25 row(s) per chunk  (actual time=31.5..31.5 rows=25 loops=1)\n        -> Table scan on <temporary>  (cost=85.4..87.8 rows=14.4) (actual time=31.2..31.5 rows=1047 loops=1)\n            -> Temporary table  (cost=85.2..85.2 rows=14.4) (actual time=31.2..31.2 rows=1047 loops=1)\n                -> Nested loop inner join  (cost=81.9 rows=14.4) (actual time=0.0325..3.87 rows=1047 loops=1)\n                    -> Filter: (modules.`status` = 1)  (cost=1.15 rows=1) (actual time=0.00788..0.0122 rows=9 loops=1)\n                        -> Table scan on modules  (cost=1.15 rows=9) (actual time=0.00758..0.0112 rows=9 loops=1)\n                    -> Filter: ((stores.zone_id = 2) and (stores.`active` = 1) and (stores.`status` = 1) and ((stores.store_business_model = 'commission') or exists(select #18)) and ((stores.delivery_mode <> 'walking') or (0 = coalesce(((case when (regexp_like(stores.latitude,'^-?[0-9]+([.][0-9]+)?$') and regexp_like(stores.longitude,'^-?[0-9]+([.][0-9]+)?$') and (cast(stores.latitude as decimal(10,7)) between <cache>(-(90)) and 90) and (cast(stores.longitude as decimal(11,7)) between <cache>(-(180)) and 180)) then st_distance_sphere(point(stores.longitude,stores.latitude),<cache>(point(54.37734379999999845E0,24.45388399999999862E0))) end) > 1000.00000000000000000E0),0))))  (cost=55.2 rows=14.4) (actual time=0.0076..0.424 rows=116 loops
+
+===== zonewide head count  flags=['Using temporary']
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	PRIMARY	modules	NULL	ALL	PRIMARY	NULL	NULL	NULL	9	11.11	Using where
+1	PRIMARY	stores	NULL	ref	stores_module_id_foreign,stores_zone_id_status_idx	stores_module_id_foreign	8	multi_food_db_qa4184_load.modules.id	269	5.36	Using where
+3	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+3	DEPENDENT SUBQUERY	<derived4>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+4	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+
+--- ANALYZE (top)
+EXPLAIN
+-> Aggregate: count(0)  (cost=85.2 rows=1) (actual time=1.82..1.82 rows=1 loops=1)\n    -> Nested loop inner join  (cost=81.9 rows=14.4) (actual time=0.0273..1.8 rows=1047 loops=1)\n        -> Filter: (modules.`status` = 1)  (cost=1.15 rows=1) (actual time=0.00946..0.0127 rows=9 loops=1)\n            -> Table scan on modules  (cost=1.15 rows=9) (actual time=0.00921..0.0118 rows=9 loops=1)\n        -> Filter: ((stores.zone_id = 2) and (stores.`active` = 1) and (stores.`status` = 1) and ((stores.store_business_model = 'commission') or exists(select #3)) and ((stores.delivery_mode <> 'walking') or (0 = coalesce(((case when (regexp_like(stores.latitude,'^-?[0-9]+([.][0-9]+)?$') and regexp_like(stores.longitude,'^-?[0-9]+([.][0-9]+)?$') and (cast(stores.latitude as decimal(10,7)) between <cache>(-(90)) and 90) and (cast(stores.longitude as decimal(11,7)) between <cache>(-(180)) and 180)) then st_distance_sphere(point(stores.longitude,stores.latitude),<cache>(point(54.37734379999999845E0,24.45388399999999862E0))) end) > 1000.00000000000000000E0),0))))  (cost=55.2 rows=14.4) (actual time=0.00575..0.195 rows=116 loops=9)\n            -> Index lookup on stores using stores_module_id_foreign (module_id = modules.id)  (cost=55.2 rows=269) (actual time=0.00498..0.157 rows=238 loops=9)\n            -> Select #3 (subquery in condition; dependent)\n                -> Limit: 1 row(s)  (cost=1.05 rows=1) (actual time=0.0192..0.0193 rows=1 loops=1)\n                    -> Nested loop i
+
+===== food base list  flags=['Using filesort', 'Using temporary']
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	PRIMARY	zones	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	Using index; Using temporary; Using filesort
+1	PRIMARY	modules	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	Using index
+1	PRIMARY	modules	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	NULL
+1	PRIMARY	stores	NULL	index_merge	stores_module_id_foreign,stores_zone_id_status_idx	stores_zone_id_status_idx,stores_module_id_foreign	10,8	NULL	262	9.98	Using intersect(stores_zone_id_status_idx,stores_module_id_foreign); Using where
+1	PRIMARY	module_zone	NULL	ALL	NULL	NULL	NULL	NULL	103	1.00	Using where; FirstMatch(stores); Using join buffer (hash join)
+17	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+17	DEPENDENT SUBQUERY	<derived18>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+18	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+12	DEPENDENT SUBQUERY	stores	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.stores.id	1	10.00	Using where
+12	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	1.00	Using index condition; Using where
+14	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+14	DEPENDENT SUBQUERY	<derived15>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+15	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+8	DEPENDENT SUBQUERY	stores	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.stores.id	1	10.00	Using where
+8	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	1.00	Using index condition; Using where
+10	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+10	DEPENDENT SUBQUERY	<derived11>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+11	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+7	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	33.33	Using where
+6	DEPENDENT SUBQUERY	orders	NULL	ref	orders_store_id_order_status_schedule_at_index	orders_store_id_order_status_schedule_at_index	9	multi_food_db_qa4184_load.stores.id	6	100.00	Using index
+5	DEPENDENT SUBQUERY	items	NULL	ref	PRIMARY,items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	100.00	Using index
+5	DEPENDENT SUBQUERY	reviews	NULL	ref	reviews_item_id_index	reviews_item_id_index	8	multi_food_db_qa4184_load.items.id	1	100.00	Using index
+4	DEPENDENT SUBQUERY	campaign_store	NULL	ALL	NULL	NULL	NULL	NULL	3	33.33	Using where
+4	DEPENDENT SUBQUERY	campaigns	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.campaign_store.campaign_id	1	100.00	Using index
+3	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	100.00	Using index
+2	DEPENDENT SUBQUERY	store_schedule	NULL	ref	store_schedule_store_id_day_index	store_schedule_store_id_day_index	12	multi_food_db_qa4184_load.stores.id,const	1	11.11	Using where
+
+--- ANALYZE (top)
+EXPLAIN
+-> Limit: 25 row(s)  (actual time=10.9..11 rows=25 loops=1)\n    -> Sort row IDs: `open` DESC, stores.id, limit input to 25 row(s) per chunk  (actual time=10.9..11 rows=25 loops=1)\n        -> Table scan on <temporary>  (cost=16.1..16.1 rows=0.262) (actual time=10.8..10.9 rows=480 loops=1)\n            -> Temporary table  (cost=13.6..13.6 rows=0.262) (actual time=10.8..10.8 rows=480 loops=1)\n                -> Hash semijoin (FirstMatch) (no condition)  (cost=13.5 rows=0.262) (actual time=0.0489..1.31 rows=480 loops=1)\n                    -> Filter: ((stores.zone_id = 2) and (stores.module_id = 2) and (stores.`active` = 1) and (stores.`status` = 1) and ((stores.store_business_model = 'commission') or exists(select #17)))  (cost=75.2 rows=26.2) (actual time=0.0349..1.24 rows=480 loops=1)\n                        -> Intersect rows sorted by row ID  (cost=75.2 rows=263) (actual time=0.0325..1.14 rows=481 loops=1)\n                            -> Index range scan on stores using stores_zone_id_status_idx over (zone_id = 2 AND status = 1)  (cost=765e-6..0.882 rows=1153) (actual time=0.0153..0.238 rows=1142 loops=1)\n                            -> Index range scan on stores using stores_module_id_foreign over (module_id = 2)  (cost=997e-6..0.488 rows=490) (actual time=0.00479..0.0802 rows=490 loops=1)\n                        -> Select #17 (subquery in condition; dependent)\n                            -> Limit: 1 row(s)  (cost=1.05 rows=1) (never executed)\n               
+
+===== food base count  flags=['Using temporary']
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	PRIMARY	zones	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	Using index
+1	PRIMARY	modules	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	Using index
+1	PRIMARY	modules	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	NULL
+1	PRIMARY	module_zone	NULL	ALL	NULL	NULL	NULL	NULL	103	1.00	Using where; Start temporary
+1	PRIMARY	stores	NULL	index_merge	stores_module_id_foreign,stores_zone_id_status_idx	stores_zone_id_status_idx,stores_module_id_foreign	10,8	NULL	262	9.98	Using intersect(stores_zone_id_status_idx,stores_module_id_foreign); Using where; End temporary; Using join buffer (hash join)
+3	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+3	DEPENDENT SUBQUERY	<derived4>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+4	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+
+--- ANALYZE (top)
+EXPLAIN
+-> Aggregate: count(0)  (cost=88.7 rows=1) (actual time=0.754..0.754 rows=1 loops=1)\n    -> Remove duplicate stores rows using temporary table (weedout)  (cost=88 rows=2.69) (actual time=0.0549..0.744 rows=480 loops=1)\n        -> Filter: ((stores.store_business_model = 'commission') or exists(select #3))  (cost=88 rows=2.69) (actual time=0.053..0.691 rows=480 loops=1)\n            -> Inner hash join (no condition)  (cost=88 rows=2.69) (actual time=0.0519..0.659 rows=480 loops=1)\n                -> Filter: ((stores.zone_id = 2) and (stores.module_id = 2) and (stores.`active` = 1) and (stores.`status` = 1))  (cost=75.2 rows=26.2) (actual time=0.0316..0.613 rows=480 loops=1)\n                    -> Intersect rows sorted by row ID  (cost=75.2 rows=263) (actual time=0.0303..0.584 rows=481 loops=1)\n                        -> Index range scan on stores using stores_zone_id_status_idx over (zone_id = 2 AND status = 1)  (cost=765e-6..0.882 rows=1153) (actual time=0.0165..0.15 rows=1142 loops=1)\n                        -> Index range scan on stores using stores_module_id_foreign over (module_id = 2)  (cost=997e-6..0.488 rows=490) (actual time=0.00579..0.0564 rows=490 loops=1)\n                -> Hash\n                    -> Filter: ((module_zone.module_id = 2) and (module_zone.zone_id = 2))  (cost=10.6 rows=1.03) (actual time=0.0114..0.0172 rows=1 loops=1)\n                        -> Table scan on module_zone  (cost=10.6 rows=103) (actual time=0.0103..0.0143 rows=103 loops
+
+===== food head list  flags=['Using filesort', 'Using temporary']
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	PRIMARY	zones	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	Using index; Using temporary; Using filesort
+1	PRIMARY	modules	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	Using index
+1	PRIMARY	modules	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	NULL
+1	PRIMARY	stores	NULL	index_merge	stores_module_id_foreign,stores_zone_id_status_idx	stores_zone_id_status_idx,stores_module_id_foreign	10,8	NULL	262	9.98	Using intersect(stores_zone_id_status_idx,stores_module_id_foreign); Using where
+1	PRIMARY	module_zone	NULL	ALL	NULL	NULL	NULL	NULL	103	1.00	Using where; FirstMatch(stores); Using join buffer (hash join)
+18	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+18	DEPENDENT SUBQUERY	<derived19>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+19	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+13	DEPENDENT SUBQUERY	stores	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.stores.id	1	10.00	Using where
+13	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	1.00	Using index condition; Using where
+15	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+15	DEPENDENT SUBQUERY	<derived16>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+16	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+9	DEPENDENT SUBQUERY	stores	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.stores.id	1	10.00	Using where
+9	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	1.00	Using index condition; Using where
+11	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+11	DEPENDENT SUBQUERY	<derived12>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+12	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+8	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	33.33	Using where
+7	DEPENDENT SUBQUERY	orders	NULL	ref	orders_store_id_order_status_schedule_at_index	orders_store_id_order_status_schedule_at_index	9	multi_food_db_qa4184_load.stores.id	6	100.00	Using index
+6	DEPENDENT SUBQUERY	items	NULL	ref	PRIMARY,items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	100.00	Using index
+6	DEPENDENT SUBQUERY	reviews	NULL	ref	reviews_item_id_index	reviews_item_id_index	8	multi_food_db_qa4184_load.items.id	1	100.00	Using index
+5	DEPENDENT SUBQUERY	campaign_store	NULL	ALL	NULL	NULL	NULL	NULL	3	33.33	Using where
+5	DEPENDENT SUBQUERY	campaigns	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.campaign_store.campaign_id	1	100.00	Using index
+4	DEPENDENT SUBQUERY	items	NULL	ref	items_store_id_index	items_store_id_index	8	multi_food_db_qa4184_load.stores.id	14	100.00	Using index
+3	DEPENDENT SUBQUERY	modules	NULL	eq_ref	PRIMARY	PRIMARY	8	multi_food_db_qa4184_load.stores.module_id	1	100.00	NULL
+2	DEPENDENT SUBQUERY	store_schedule	NULL	ref	store_schedule_store_id_day_index	store_schedule_store_id_day_index	12	multi_food_db_qa4184_load.stores.id,const	1	11.11	Using where
+
+--- ANALYZE (top)
+EXPLAIN
+-> Limit: 25 row(s)  (actual time=11.6..11.6 rows=25 loops=1)\n    -> Sort row IDs: `open` DESC, stores.id, limit input to 25 row(s) per chunk  (actual time=11.6..11.6 rows=25 loops=1)\n        -> Table scan on <temporary>  (cost=16.1..16.1 rows=0.262) (actual time=11.4..11.5 rows=437 loops=1)\n            -> Temporary table  (cost=13.6..13.6 rows=0.262) (actual time=11.4..11.4 rows=437 loops=1)\n                -> Hash semijoin (FirstMatch) (no condition)  (cost=13.5 rows=0.262) (actual time=0.0451..1.17 rows=437 loops=1)\n                    -> Filter: ((stores.zone_id = 2) and (stores.module_id = 2) and (stores.`active` = 1) and (stores.`status` = 1) and ((stores.store_business_model = 'commission') or exists(select #18)) and ((stores.delivery_mode <> 'walking') or (0 = coalesce(((case when (regexp_like(stores.latitude,'^-?[0-9]+([.][0-9]+)?$') and regexp_like(stores.longitude,'^-?[0-9]+([.][0-9]+)?$') and (cast(stores.latitude as decimal(10,7)) between <cache>(-(90)) and 90) and (cast(stores.longitude as decimal(11,7)) between <cache>(-(180)) and 180)) then st_distance_sphere(point(stores.longitude,stores.latitude),<cache>(point(54.37734379999999845E0,24.45388399999999862E0))) end) > 1000.00000000000000000E0),0))))  (cost=75.2 rows=26.2) (actual time=0.033..1.13 rows=437 loops=1)\n                        -> Intersect rows sorted by row ID  (cost=75.2 rows=263) (actual time=0.0303..0.942 rows=481 loops=1)\n                            -> Index range scan on stores u
+
+===== food head count  flags=['Using temporary']
+id	select_type	table	partitions	type	possible_keys	key	key_len	ref	rows	filtered	Extra
+1	PRIMARY	zones	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	Using index
+1	PRIMARY	modules	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	Using index
+1	PRIMARY	modules	NULL	const	PRIMARY	PRIMARY	8	const	1	100.00	NULL
+1	PRIMARY	module_zone	NULL	ALL	NULL	NULL	NULL	NULL	103	1.00	Using where; Start temporary
+1	PRIMARY	stores	NULL	index_merge	stores_module_id_foreign,stores_zone_id_status_idx	stores_zone_id_status_idx,stores_module_id_foreign	10,8	NULL	262	9.98	Using intersect(stores_zone_id_status_idx,stores_module_id_foreign); Using where; End temporary; Using join buffer (hash join)
+3	DEPENDENT SUBQUERY	store_subscriptions	NULL	ALL	PRIMARY	NULL	NULL	NULL	1	100.00	Using where
+3	DEPENDENT SUBQUERY	<derived4>	NULL	ref	<auto_key0>	<auto_key0>	17	multi_food_db_qa4184_load.store_subscriptions.id,multi_food_db_qa4184_load.stores.id	2	100.00	Using where; Using index
+4	DERIVED	store_subscriptions	NULL	ALL	NULL	NULL	NULL	NULL	1	100.00	Using temporary
+
+--- ANALYZE (top)
+EXPLAIN
+-> Aggregate: count(0)  (cost=88.7 rows=1) (actual time=0.865..0.865 rows=1 loops=1)\n    -> Remove duplicate stores rows using temporary table (weedout)  (cost=88 rows=2.69) (actual time=0.0468..0.856 rows=437 loops=1)\n        -> Filter: ((stores.store_business_model = 'commission') or exists(select #3))  (cost=88 rows=2.69) (actual time=0.045..0.795 rows=437 loops=1)\n            -> Inner hash join (no condition)  (cost=88 rows=2.69) (actual time=0.0446..0.764 rows=437 loops=1)\n                -> Filter: ((stores.zone_id = 2) and (stores.module_id = 2) and (stores.`active` = 1) and (stores.`status` = 1) and ((stores.delivery_mode <> 'walking') or (0 = coalesce(((case when (regexp_like(stores.latitude,'^-?[0-9]+([.][0-9]+)?$') and regexp_like(stores.longitude,'^-?[0-9]+([.][0-9]+)?$') and (cast(stores.latitude as decimal(10,7)) between <cache>(-(90)) and 90) and (cast(stores.longitude as decimal(11,7)) between <cache>(-(180)) and 180)) then st_distance_sphere(point(stores.longitude,stores.latitude),<cache>(point(54.37734379999999845E0,24.45388399999999862E0))) end) > 1000.00000000000000000E0),0))))  (cost=75.2 rows=26.2) (actual time=0.0277..0.724 rows=437 loops=1)\n                    -> Intersect rows sorted by row ID  (cost=75.2 rows=263) (actual time=0.0259..0.607 rows=481 loops=1)\n                        -> Index range scan on stores using stores_zone_id_status_idx over (zone_id = 2 AND status = 1)  (cost=765e-6..0.882 rows=1153) (actual time=0.0135..0.163 ro

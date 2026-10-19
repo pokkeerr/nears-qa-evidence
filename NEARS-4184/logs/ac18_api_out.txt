@@ -1,0 +1,23 @@
+vendor A store 22 vendor B store 17
+initial modes walking bicycle
+GET vendor/profile 200 store keys delivery_model/prep_time_minutes: self None delivery_mode walking
+  keys anywhere in profile payload: [('.stores[]', 'delivery_model'), ('.stores[]', 'prep_time_minutes')]
+PUT walking 200 {'message': 'Store settings updated'} -> DB walking
+PUT bicycle 200 {'message': 'Store settings updated'} -> DB bicycle
+PUT motorcycle 200 {'message': 'Store settings updated'} -> DB motorcycle
+PUT car 200 {'message': 'Store settings updated'} -> DB car
+profile after motorcycle: delivery_mode = motorcycle
+PUT delivery_mode='scooter'    -> 403 {'errors': [{'code': 'delivery_mode', 'message': 'The selected delivery mode is invalid.'}]}  DB still motorcycle
+PUT delivery_mode=''           -> 403 {'errors': [{'code': 'delivery_mode', 'message': 'The selected delivery mode is invalid.'}]}  DB still motorcycle
+PUT delivery_mode='Car'        -> 403 {'errors': [{'code': 'delivery_mode', 'message': 'The selected delivery mode is invalid.'}]}  DB still motorcycle
+PUT delivery_mode='WALKING'    -> 403 {'errors': [{'code': 'delivery_mode', 'message': 'The selected delivery mode is invalid.'}]}  DB still motorcycle
+PUT delivery_mode='truck'      -> 403 {'errors': [{'code': 'delivery_mode', 'message': 'The selected delivery mode is invalid.'}]}  DB still motorcycle
+PUT delivery_mode='car;drop'   -> 403 {'errors': [{'code': 'delivery_mode', 'message': 'The selected delivery mode is invalid.'}]}  DB still motorcycle
+PUT delivery_mode='null'       -> 403 {'errors': [{'code': 'delivery_mode', 'message': 'The selected delivery mode is invalid.'}]}  DB still motorcycle
+PUT delivery_mode=None         -> 403 {'errors': [{'code': 'delivery_mode', 'message': 'The selected delivery mode is invalid.'}]}  DB still motorcycle
+PUT delivery_mode=123          -> 403 {'errors': [{'code': 'delivery_mode', 'message': 'The selected delivery mode is invalid.'}]}  DB still motorcycle
+PUT delivery_mode=['car']      -> 403 {'errors': [{'code': 'delivery_mode', 'message': 'The selected delivery mode is invalid.'}]}  DB still motorcycle
+PUT absent delivery_mode -> 200  DB mode kept = motorcycle
+PUT A with store_id=B -> 200 A mode walking B mode bicycle
+PUT B -> 200 A mode walking B mode bicycle
+PUT no token 401 {'errors': [{'code': 'auth-001', 'message': 'Unauthorized.'}]}

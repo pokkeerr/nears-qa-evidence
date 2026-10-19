@@ -1,0 +1,7 @@
+# pre-existing ordering (Admin\VendorController::store, vendor saved at the top, store saved later inside try): a failed store save leaves the vendor row behind
+# QA u4 run, twin multi_food_db_qa4184, forced failure = BEFORE INSERT trigger on stores for name 'QA4184 create-fail%'
+vendors count before the two failed creates + two successful creates: 92
+vendors count after:  96   (2 successful creates -> 2 expected; 2 failed creates -> 2 ORPHAN vendors: qa4184-create-fail-en@nears.test, qa4184-create-fail-ar@nears.test)
+stores count: 1138 -> 1140 (only the 2 successes). No stores row for the failed attempts.
+effect: after the (now generic) toast "Could not save the store. Please try again." a retry with the same email fails with "The email has already been taken." until the orphan vendor is removed.
+log for the failed create (paired, allow-listed): [FAIL] store save failed {"surface":"admin_store_create","store_id":null,"exception":"Illuminate\\Database\\QueryException","code":"45000"}

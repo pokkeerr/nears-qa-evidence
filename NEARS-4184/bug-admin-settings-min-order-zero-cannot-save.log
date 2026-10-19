@@ -1,0 +1,6 @@
+# pre-existing (validator Admin\VendorController::updateStoreSettings 'minimum_order' => 'required' and view settings.blade.php:327 value="{{$store->minimum_order>0?$store->minimum_order:''}}"; neither line is touched by 4184)
+twin store 17 (minimum_order 0.00, delivery_time "2-3 hours" -> form prefill min 2, max 3, hours), /admin/store/view/17/settings, only delivery_mode changed to bicycle, Save:
+  POST /admin/store/update-settings/17 -> 302 back
+  toast: "The minimum order field is required."   (form value of minimum_order = '' because 0 renders empty)
+  DB after: delivery_mode unchanged (motorcycle)
+effect: any store with minimum_order = 0 cannot be saved from this page (incl. the new delivery-mode change) until an amount > 0 is typed in.
