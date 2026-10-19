@@ -1,0 +1,73 @@
+== FA analytics events (adb logcat -s FA:V), actor_type + order_id only
+origin=app,name=order_accept,params=Bundle[{actor_type=delivery_man, order_id=98203}]
+origin=app,name=order_accept,params=Bundle[{actor_type=delivery_man, order_id=98204}]
+origin=app,name=order_picked_up,params=Bundle[{actor_type=delivery_man, order_id=98204}]
+origin=app,name=order_delivered,params=Bundle[{actor_type=delivery_man, order_id=98204}]
+origin=app,name=order_picked_up,params=Bundle[{actor_type=store, order_id=98209}]
+origin=app,name=order_picked_up,params=Bundle[{actor_type=store_employee, ga_screen(_sn)=/order-details, order_id=98218}]
+origin=app,name=order_delivered,params=Bundle[{actor_type=store_employee, ga_screen(_sn)=/order-details, order_id=98218}]
+
+== app [FAIL] lines paired with error states
+I flutter : [FAIL] endpoint=/api/v1/delivery-man/accept-order http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=a189df1a-d498-4bf9-8826-031325308afb
+I flutter : [FAIL] endpoint=/api/v1/delivery-man/accept-order http_status=404 type=ApiFailure msg="order accept lost or refused" correlation_id=a189df1a-d498-4bf9-8826-031325308afb
+I flutter : [FAIL] endpoint=/api/v1/delivery-man/accept-order http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=92d8037a-c7b2-44f4-8df0-e7ed2c402923
+I flutter : [FAIL] endpoint=/api/v1/delivery-man/accept-order http_status=404 type=ApiFailure msg="order accept lost or refused" correlation_id=92d8037a-c7b2-44f4-8df0-e7ed2c402923
+I flutter : [FAIL] endpoint=/api/v1/delivery-man/accept-order http_status=404 type=ApiFailure msg="unhandled api response" correlation_id=ce3c5cde-cec8-427f-b0a2-c9e6bb57d9d9
+I flutter : [FAIL] endpoint=/api/v1/delivery-man/accept-order http_status=404 type=ApiFailure msg="order accept lost or refused" correlation_id=ce3c5cde-cec8-427f-b0a2-c9e6bb57d9d9
+I flutter : [FAIL] endpoint=/api/v1/vendor/update-order-status http_status=403 type=ApiFailure msg="unhandled api response" correlation_id=a7891254-a048-4dff-8eeb-f1bf673d704d
+I flutter : [FAIL] endpoint=/api/v1/vendor/update-order-status http_status=403 type=ApiFailure msg="store status tap failed (picked_up)" correlation_id=a7891254-a048-4dff-8eeb-f1bf673d704d
+
+== actors on twin (accepted_by_*, picked_up_by_*, delivered_by_*)
+id	store_id	order_status	dm	abt	abi	pbt	pbi	dbt	dbi
+98201	98201	processing	98202	delivery_man	98202	NULL	NULL	NULL	NULL
+98202	98202	pending	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+98203	98201	picked_up	98201	delivery_man	98201	delivery_man	98201	NULL	NULL
+98204	98201	delivered	98201	delivery_man	98201	delivery_man	98201	delivery_man	98201
+98205	98201	pending	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+98206	98201	pending	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+98207	98202	confirmed	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+98208	98202	processing	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+98209	98203	picked_up	NULL	NULL	NULL	store	98203	NULL	NULL
+98210	98204	handover	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+98211	98205	handover	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+98212	98206	handover	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+98213	98207	delivered	NULL	NULL	NULL	NULL	NULL	admin	1
+98214	98203	picked_up	98203	NULL	NULL	delivery_man	98203	NULL	NULL
+98215	98203	handover	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+98216	98204	handover	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+98217	98203	delivered	NULL	NULL	NULL	store	98203	store	98203
+98218	98203	delivered	NULL	NULL	NULL	store_employee	98203	store_employee	98203
+98219	98203	delivered	NULL	NULL	NULL	store	98203	store	98203
+
+== store alert rows (user_notifications for vendor)
+id	vendor_id	oid	title	body
+614	98201	98204	"nears4211-qa-dm b accepted order #98204 for delivery"	"Keep preparing order #98204. Your delivery staff will collect it."
+615	98201	98203	"nears4211-qa-dm a accepted order #98203 for delivery"	"Keep preparing order #98203. Your delivery staff will collect it."
+616	98201	98201	"nears4211-qa-dm b accepted order #98201 for delivery"	"Keep preparing order #98201. Your delivery staff will collect it."
+617	98201	98204	"nears4211-qa-dm b accepted order #98204 for delivery"	"Keep preparing order #98204. Your delivery staff will collect it."
+618	98201	98201	"nears4211-qa-dm b accepted order #98201 for delivery"	"Keep preparing order #98201. Your delivery staff will collect it."
+619	98201	98204	"nears4211-qa-dm b accepted order #98204 for delivery"	"Keep preparing order #98204. Your delivery staff will collect it."
+620	98201	98201	"nears4211-qa-dm b accepted order #98201 for delivery"	"Keep preparing order #98201. Your delivery staff will collect it."
+621	98201	98204	"nears4211-qa-dm b accepted order #98204 for delivery"	"Keep preparing order #98204. Your delivery staff will collect it."
+622	98201	98201	"nears4211-qa-dm b accepted order #98201 for delivery"	"Keep preparing order #98201. Your delivery staff will collect it."
+633	98201	98201	"nears4211-qa-dm b accepted order #98201 for delivery"	"Keep preparing order #98201. Your delivery staff will collect it."
+
+== BE log: production [WARN]/[FAIL] lines of this ticket (13:30+), fields allow-listed
+[2026-10-19 13:41:42] production.WARNING: [WARN] courier accept lost the claim {"trace_id":"35e3bfe7a01179e105efc215abaaef72","correlation_id":"a6440459-2ff3-4ea4-9d01-d7da1f7d2bb9","endpoint":"/api/v1/delivery-man/accept-order","order_id":98203,"rea
+[2026-10-19 13:41:47] production.WARNING: [WARN] courier accept lost the claim {"trace_id":"f263c369a4eb8fb875a665c599aa41d4","correlation_id":"5c8345f8-78d2-424c-b05b-9e6a40de6ee9","endpoint":"/api/v1/delivery-man/accept-order","order_id":98204,"rea
+[2026-10-19 13:42:07] production.WARNING: [WARN] courier accept lost the claim {"trace_id":"9e2be559e88f2d28302c07780add54f8","correlation_id":"9ffe52a3-d4d8-459b-9705-a389fb158934","endpoint":"/api/v1/delivery-man/accept-order","order_id":98217,"rea
+[2026-10-19 13:42:11] production.WARNING: [WARN] store tap refused {"trace_id":"158ba72cc6da7ea29121cc0136002541","correlation_id":"320fbc94-4d99-403b-b0bf-9686dbbf172d","endpoint":"/api/v1/vendor/update-order-status","order_id":98218,"status":"picke
+[2026-10-19 13:42:16] production.WARNING: [WARN] courier accept lost the claim {"trace_id":"1d554d003a0aa9324cf9a8f5f6679f58","correlation_id":"52a26140-7fa9-46cf-9c68-23613ee43eb8","endpoint":"/api/v1/delivery-man/accept-order","order_id":98219,"rea
+[2026-10-19 13:43:19] production.WARNING: [WARN] store tap refused {"trace_id":"fefd76612ce0196b271547deef4bf8e1","correlation_id":"3e972f9d-5061-47e3-9719-7303a273ee90","endpoint":"/api/v1/vendor/update-order-status","order_id":98210,"status":"picke
+[2026-10-19 13:43:20] production.WARNING: [WARN] store tap refused {"trace_id":"28f7b34a57322187190de13b24ade170","correlation_id":"115d6f7d-a5df-4942-bb18-2de9f040979b","endpoint":"/api/v1/vendor/update-order-status","order_id":98213,"status":"picke
+[2026-10-19 13:43:20] production.WARNING: [WARN] store tap refused {"trace_id":"d594bc8d3b6979f73f0046391d4dcc0f","correlation_id":"d9f39752-f9b6-4404-a0cc-58dc681d2b49","endpoint":"/api/v1/vendor/update-order-status","order_id":98215,"status":"picke
+[2026-10-19 13:43:20] production.WARNING: [WARN] store tap refused {"trace_id":"da5c4eaaf966a62652cb76c07d27009a","correlation_id":"a6b934b2-40ab-489d-87b1-0b91c01d9687","endpoint":"/api/v1/vendor/update-order-status","order_id":98216,"status":"picke
+[2026-10-19 13:43:20] production.WARNING: [WARN] store tap refused {"trace_id":"f40e24b06e6ece3746930e6c4a32138c","correlation_id":"da7695b7-b04f-4b1b-8ae4-e5b963fad709","endpoint":"/api/v1/vendor/update-order-status","order_id":98209,"status":"picke
+[2026-10-19 13:43:20] production.WARNING: [WARN] store tap refused {"trace_id":"9464915f53d8446a3c6b7166b68fa1df","correlation_id":"ef95d3cb-d0b3-4252-b76a-aab217bcc9e9","endpoint":"/api/v1/vendor/update-order-status","order_id":98214,"status":"picke
+[2026-10-19 13:43:36] production.WARNING: [WARN] store tap refused {"trace_id":"c88501880e054e55a0ae02756d153b48","correlation_id":"b5754198-88d2-4170-bc42-793fd7da5deb","endpoint":"/api/v1/vendor/update-order-status","order_id":98219,"status":"picke
+[2026-10-19 13:43:36] production.WARNING: [WARN] store tap refused {"trace_id":"c763879fe70130347ec4cff875147d19","correlation_id":"eb1cd4de-9d9d-4bcf-88a8-947378fbf098","endpoint":"/api/v1/vendor/update-order-status","order_id":98219,"status":"deliv
+[2026-10-19 13:43:37] production.WARNING: [WARN] store tap refused {"trace_id":"de16beb8d29d67b2a9e110d3b107ac7a","correlation_id":"509494b3-67b4-4c72-9e79-bed753d06e7c","endpoint":"/api/v1/vendor/update-order-status","order_id":98218,"status":"picke
+[2026-10-19 13:43:37] production.WARNING: [WARN] store tap refused {"trace_id":"1dacfd0a13a540c6a9cd874911b8ce07","correlation_id":"97dc39a1-cb7c-4909-bbfa-e24b40e010f6","endpoint":"/api/v1/vendor/update-order-status","order_id":98218,"status":"deliv
+[2026-10-19 13:43:38] production.WARNING: [WARN] store tap refused {"trace_id":"678c28ae895c09efceebb5f6e9151fae","correlation_id":"ded15276-e3c0-4fd6-a1b1-b21b0c4e04ad","endpoint":"/api/v1/vendor/update-order-status","order_id":98210,"status":"deliv
+[2026-10-19 13:43:39] production.WARNING: [WARN] store tap refused {"trace_id":"16bdd22688ee0645b0a700521aa7f8fd","correlation_id":"002475aa-6b53-4d5b-bd22-beb0f6b0b8d7","endpoint":"/api/v1/vendor/update-order-status","order_id":98213,"status":"deliv
+[2026-10-19 13:44:39] production.WARNING: [WARN] store tap refused {"trace_id":"e28f9f6510f8e7e97f955013e5b807b8","correlation_id":"b865e2d4-ca36-4754-8b8c-6350783d4771","endpoint":"/api/v1/vendor/update-order-status","order_id":98204,"status":"picke
