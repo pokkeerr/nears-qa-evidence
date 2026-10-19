@@ -1,0 +1,75 @@
+## AC18 literal run on multi_food_db (owner authorization: Jira comment 25678, read-only scope)
+tree: /Users/Apple/Projects/nears-NEARS-4188-store-eta-data
+branch: feat/NEARS-4188-store-eta-data  HEAD: 732038c43
+HEAD contains 732038c43: yes
+config cache file: ls: Admin/bootstrap/cache/config.php: No such file or directory
+DATABASE_URL in shell env: <unset>
+DATABASE_URL lines in Admin/.env: 0
+resolved DB_DATABASE (process env wins over .env): multi_food_db; SELECT database() = multi_food_db
+
+### BASELINE (immediately before the run)
+date -u: 2026-10-19T10:36:36Z
+stores_count	1042
+stores_columns	64
+store_schedule_count	7238
+business_settings_count	171
+store_subscriptions_count	1
+migrations_count	271
+cache_count	899
+multi_food_db.stores	2082732488
+multi_food_db.store_schedule	3582092472
+multi_food_db.business_settings	3388298983
+multi_food_db.store_subscriptions	2570552592
+multi_food_db.migrations	1301218981
+multi_food_db.cache	1189213424
+
+report_exit=0
+
+### REPORT OUTPUT (counts/ids only; head and tail of 260 lines; exit 0)
+NEARS-4188 store ETA data report (read-only)
+database=multi_food_db
+section=totals
+stores_total=1042
+stores_active=589
+stores_inactive=453
+active_suspended=n/a (stores.suspended_at is absent)
+active_delivery_time_exact_30_40=515
+active_delivery_time_like_30_40=526
+active_delivery_time_empty=0
+...
+section=totals
+section=prep_null_by_module_zone reference=car@499m option1=no store value (module default) option2=store value = module default clamped
+section=review_lists (active stores; listed, never modified)
+section=delivery_mode
+section=tower_name
+section=self_delivery_system_by_store_business_model (active stores; the seeder never writes it)
+section=mode_write_paths
+section=money_facts (information only, never written)
+section=part_d_plan
+seeder would REFUSE: stores.delivery_mode has no motorcycle value; stores.prep_time_minutes is missing; stores.delivery_model is missing (run the NEARS-4184 migrations first); the figures below are an estimate
+ROW_DELTA=590 (distinct stores rows + store_schedule rows the seeder would change; NEARS_SEED_CONFIRM_ROWS must equal it)
+
+### FORCED WRITE (single connection)
+START TRANSACTION READ ONLY; UPDATE stores SET id = id WHERE 1 = 0; ROLLBACK;
+ERROR 1792 (25006) at line 1: Cannot execute statement in a READ ONLY transaction.
+mysql_exit=1
+
+### END (immediately after)
+date -u: 2026-10-19T10:36:45Z
+stores_count	1042
+stores_columns	64
+store_schedule_count	7238
+business_settings_count	171
+store_subscriptions_count	1
+migrations_count	271
+cache_count	899
+multi_food_db.stores	2082732488
+multi_food_db.store_schedule	3582092472
+multi_food_db.business_settings	3388298983
+multi_food_db.store_subscriptions	2570552592
+multi_food_db.migrations	1301218981
+multi_food_db.cache	1189213424
+
+### COMPARE baseline vs end (count + checksum lines, date excluded)
+IDENTICAL
+(also identical after the report and before the forced write: yes)

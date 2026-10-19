@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4188
 
-**QA delta cycle 1: PASS (TB1/TB2 closed)**
+**AC18 literal run on multi_food_db: PASS (cycle 2)**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -14,6 +14,7 @@
 - [`ac13-money-diff-summary.txt`](ac13-money-diff-summary.txt)
 - [`ac14-delivered-tap.txt`](ac14-delivered-tap.txt)
 - [`ac16-roles.txt`](ac16-roles.txt)
+- [`ac18-literal-run.txt`](ac18-literal-run.txt)
 - [`ac18-readonly-1792.txt`](ac18-readonly-1792.txt)
 - [`ac2-manual.txt`](ac2-manual.txt)
 - [`ac2-writesites-tests.txt`](ac2-writesites-tests.txt)
