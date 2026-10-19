@@ -33,6 +33,7 @@
 - [`ac5a-control`](ac5a-control)
 - [`bug-cart-add-viewcart-missing.log`](bug-cart-add-viewcart-missing.log)
 - [`bug-maestro-phone-home-update-check.log`](bug-maestro-phone-home-update-check.log)
+- [`bug-maestro-tests-dir-cleartext-creds.log`](bug-maestro-tests-dir-cleartext-creds.log)
 - [`bug-relaunch-home-dialog-before-search.log`](bug-relaunch-home-dialog-before-search.log)
 - [`qa-flows`](qa-flows)
 - [`telemetry-ab`](telemetry-ab)
