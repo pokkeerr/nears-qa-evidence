@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4188
 
-**AC18 literal run on multi_food_db: PASS (cycle 2)**
+**post-merge: processing_time unvalidated confirmed**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -30,6 +30,7 @@
 - [`bug-etaservice-delivery-model-guard.log`](bug-etaservice-delivery-model-guard.log)
 - [`delta1-tests.txt`](delta1-tests.txt)
 - [`lessons-enforcement-guard.txt`](lessons-enforcement-guard.txt)
+- [`processing-time-unvalidated.txt`](processing-time-unvalidated.txt)
 - [`proof-script-qaone.txt`](proof-script-qaone.txt)
 - [`proof-script-qatwo.txt`](proof-script-qatwo.txt)
 - [`regression-tests.txt`](regression-tests.txt)

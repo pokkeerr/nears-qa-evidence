@@ -1,0 +1,16 @@
+## processing_time unvalidated at the accept paths (post-merge confirmation), worktree @ 31947afad (= merged code), private twin multi_food_db_qa4188_pt (dump 09:16 + all migrations), own php -S, DB target read back with ps eww
+orders.processing_time = varchar(10); Order cast integer; mysql strict=false (conductor-stated, behaviour below confirms silent truncation)
+
+case | route | http | stored (quote / hex / length) | returned track-order processing_time | returned vendor current-orders processing_time | admin order details page
+sent='about 30' | api | 200 | 'about 30' / 61626F7574203330 / len 8 | 0 | 0 | 200
+sent='12345678901234' | api | 200 | '1234567890' / 31323334353637383930 / len 10 | 1234567890 | 1234567890 | 200
+sent='-5' | api | 200 | '-5' / 2D35 / len 2 | -5 | -5 | 200
+sent='999999' | api | 200 | '999999' / 393939393939 / len 6 | 999999 | 999999 | 200
+sent='about 30' | panel | 302 | 'about 30' / 61626F7574203330 / len 8 | 0 | 0 | 200
+sent='12345678901234' | panel | 302 | '1234567890' / 31323334353637383930 / len 10 | 1234567890 | 1234567890 | 200
+sent='-5' | panel | 302 | '-5' / 2D35 / len 2 | -5 | -5 | 200
+sent='999999' | panel | 302 | '999999' / 393939393939 / len 6 | 999999 | 999999 | 200
+
+estimated_delivery_at after accept: null in all 8 (fixture stores have empty delivery_time; Helpers::order_estimated_delivery_at never reads processing_time)
+laravel.log: no ERROR/exception lines (FCM noise excluded) during the 8 accepts and the reads
+customer order/details and vendor order-details returned 404 for my fixture orders (no order_details rows); not exercised
