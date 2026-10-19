@@ -1,0 +1,14 @@
+# NEARS-4201 cycle 3 (HEAD 877a22e1d) - flutter debug mirror lines (adb logcat -s flutter:I), per leg; logcat -c between legs. No floor digits / address text in any param.
+## TB3 leg 1: saved typed address E active; add new untyped row 155 (Home) from checkout Add New Address
+analytics: address_saved {screen: add_address, section: save_cta, source: checkout, address_type: home, has_tower: false, zone_id: 1, location_source: gps}
+analytics: address_changed {result: selected, screen: checkout, section: delivery, zone_id: 1}
+## pick NEW row 155 same visit -> only address_changed (NO address_floor_prompt_shown)
+analytics: address_changed {result: selected, screen: checkout, section: delivery, zone_id: 1}
+## second new row 156 (Office): address_saved {... address_type: office ...}; pick 156 -> only address_changed; re-pick 155 -> only address_changed (no prompt events)
+## control: pick PRE-EXISTING untyped D (row 149)
+analytics: address_changed {result: selected, screen: checkout, section: delivery, zone_id: 1}
+analytics: address_floor_prompt_shown {screen: checkout, section: building_type_prompt, source: checkout, flow: lazy_prompt, module_id: 2, module_slug: food-restaurant, zone_id: 1}
+analytics: address_floor_prompt_skipped {screen: checkout, section: building_type_prompt, source: checkout, flow: lazy_prompt, module_id: 2, module_slug: food-restaurant, zone_id: 1}
+## same-visit re-pick of D: no second shown. typed E pick: no prompt. id-less current location: no prompt.
+## fresh visit, pick untyped D again: shown + skipped again (asks again)
+## first-ever address (customer 424, 0 prior rows, row 157): address_saved ... location_source: map_pin ; address_changed selected ; NO address_floor_* events

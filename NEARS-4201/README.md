@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4201
 
-**cycle2 delta: PASS - AC6 TB1 + TB2 verified, 1 low residual task bug**
+**cycle 3 delta PASS: TB3 fixed (new rows from checkout never prompt, pre-existing untyped control still prompts once); 237 UserApp tests pass**
 
-**39 screenshot(s).** Click any thumbnail for full resolution.
+**45 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -70,6 +70,16 @@
 <td align="center" width="33%"><a href="cycle2-tb2-en-1.0x-keypad-down.png"><img src="cycle2-tb2-en-1.0x-keypad-down.png" width="240"></a><br><sub>cycle2 tb2 en 1.0x keypad down</sub></td>
 <td align="center" width="33%"><a href="cycle2-tb2-en-1.0x-keypad-up.png"><img src="cycle2-tb2-en-1.0x-keypad-up.png" width="240"></a><br><sub>cycle2 tb2 en 1.0x keypad up</sub></td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="cycle3-ac6-first-ever-address-no-prompt.png"><img src="cycle3-ac6-first-ever-address-no-prompt.png" width="240"></a><br><sub>cycle3 ac6 first ever address no prompt</sub></td>
+<td align="center" width="33%"><a href="cycle3-ac6-fresh-visit-untyped-asks-again.png"><img src="cycle3-ac6-fresh-visit-untyped-asks-again.png" width="240"></a><br><sub>cycle3 ac6 fresh visit untyped asks again</sub></td>
+<td align="center" width="33%"><a href="cycle3-tb3-add-form-no-type.png"><img src="cycle3-tb3-add-form-no-type.png" width="240"></a><br><sub>cycle3 tb3 add form no type</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="cycle3-tb3-control-preexisting-untyped-prompts.png"><img src="cycle3-tb3-control-preexisting-untyped-prompts.png" width="240"></a><br><sub>cycle3 tb3 control preexisting untyped prompts</sub></td>
+<td align="center" width="33%"><a href="cycle3-tb3-new-row-picked-no-prompt.png"><img src="cycle3-tb3-new-row-picked-no-prompt.png" width="240"></a><br><sub>cycle3 tb3 new row picked no prompt</sub></td>
+<td align="center" width="33%"><a href="cycle3-tb3-second-new-row-picked-no-prompt.png"><img src="cycle3-tb3-second-new-row-picked-no-prompt.png" width="240"></a><br><sub>cycle3 tb3 second new row picked no prompt</sub></td>
+</tr>
 </table>
 
 ### Other artifacts
@@ -82,6 +92,7 @@
 - [`bug-new-address-picked-same-visit-prompts.log`](bug-new-address-picked-same-visit-prompts.log)
 - [`bug-prompt-keyboard-covers-save-320dp.log`](bug-prompt-keyboard-covers-save-320dp.log)
 - [`cycle2-analytics-lines.txt`](cycle2-analytics-lines.txt)
+- [`cycle3-analytics-lines.txt`](cycle3-analytics-lines.txt)
 - [`progress.md`](progress.md)
 
 ---
