@@ -1,0 +1,97 @@
+NEARS-4213 zone reshape report (read-only) on database multi_food_db
+
+"45+" proxy (NEARS-4184 draft v5 formula; the stage-3 gate evidence is the real-formula re-measure in NEARS-4269, this proxy does NOT satisfy it):
+  typical = prep + travel + handover + floor; raw = 1.25 x typical + 1 + allowance; upper = max(6, ceil(raw / 2) x 2); "45+" = upper > 45, i.e. raw > 44
+  browse case: prep 2 (grocery default, so this radius is a FLOOR on exposure: restaurants resolve a higher prep), handover 1, floor 0, allowance 2.
+  travel = ceil(distance x road 1.3 / car 20 km/h x 60). First exposed travel time 30 min  =>  R = 7.4359 km (a store is exposed when some point of its zone is farther than R).
+  Without the whole-minute ceiling the same inequality gives 7.6410 km; the ceiling is in the formula, so R = 7.4359 km is the figure used.
+Grid: cell edge 1.5 km, hard cap 2 km on the bbox extent (max of width and height), overlap margin 0 m.
+
+Per zone (stores: raw / status=1 / status=1 AND active=1; exposed uses the same three predicates):
++-----+----------------------+----+--------+---------------+-------------------+------+-----------+-----+-----+-----+--------+-------+-------+-----------------------+-------+--------------------+
+| id  | name                 | on | ext km | W x H km      | stores raw/s1/s1a | addr | DM zw/all | adm | ban | ntf | orders | users | trend | overlap area/in/touch | cells | exposed raw/s1/s1a |
++-----+----------------------+----+--------+---------------+-------------------+------+-----------+-----+-----+-----+--------+-------+-------+-----------------------+-------+--------------------+
+| 1   | Main Service Zone    | 1  | 6.34   | 6.34 x 3.65   | 27/22/22          | 6    | 7/7       | 0   | 6   | 0   | 72     | 0     | 6     | 0/0/0                 | 5     | 0/0/0              |
+| 2   | Abu Dhabi Zone       | 1D | 25.31  | 25.31 x 22.24 | 64/57/53          | 4    | 2/2       | 4   | 6   | 1   | 93     | 0     | 0     | 0/68/0                | 33    | 64/57/53           |
+| 3   | Single Store QA Zone | 1  | 11.12  | 10.07 x 11.12 | 1/1/1             | 1    | 0/0       | 0   | 0   | 0   | 9      | 0     | 0     | 0/0/0                 | 1     | 1/1/1              |
+| 454 | QA-3450-1789112669   | 1  | 6.27   | 6.27 x 1.52   | 0/0/0             | 2    | 0/0       | 0   | 0   | 0   | 0      | 0     | 0     | 0/0/0                 | 1     | 0/0/0              |
++-----+----------------------+----+--------+---------------+-------------------+------+-----------+-----+-----+-----+--------+-------+-------+-----------------------+-------+--------------------+
+Not printed above: 90 zones within the 2 km cap (largest 0.50 km), 513 stores status=1, 0 exposed to 45+.
+Totals: 94 zones, 4 over the cap holding 80 status=1 stores; exposed to 45+ now: 58 (status=1), 54 (status=1 AND active=1), 65 (raw).
+
+== Zone 1 (Main Service Zone), proposed plan sha256 5565dd97d380aeb74fe01cd345fa9bb78aaba8b84e36005d9a7dc87b3a5a8b80
+  cells: 5 of 15 possible; largest cell extent 1.5000 km, diagonal 2.1213 km (cap diagonal 2.83 km).
+  stores whose zone changes: 27 (status=1: 22); status=0 stores left on the inactive parent (no populated cell): 0; outside the polygon: 0; bad coordinates: 0.
+  (a) saved addresses whose zone changes: 6, customers affected: 2; addresses outside the polygon: 0.
+  (b) customers who LOSE service (a saved address or an order-history delivery point in no materialised cell and in no other active zone): 0 customers; 0 of 74 points (0 saved addresses, 0 order points).
+  (c) (customer point, store) pairs within 300 m that land in different cells, by overlap margin (owner confirms the value):
+        margin    0 m: 8 pairs over 4 point(s)
+        margin  100 m: 5 pairs over 1 point(s)
+        margin  200 m: 0 pairs over 0 point(s)
+        margin  300 m: not plannable, cell + 2 x margin exceeds the cap
+  (d) is_default: the parent is not the default zone; the header-less default consumers (Helpers::setZoneIds, ModuleController) are unchanged.
+  (e) stores inside a tower zone that move to a grid cell, not the tower: 0 status=1 (0 of any status).
+  NULL-zone stores lying inside the polygon, left untouched: 0 (0 with status=1).
+  45+ share of zone area beyond R per status=1 store: mean 0, max 0; after the reshape the farthest point of any store's cell is 2.073 km, stores exposed: 0.
+  not remapped, owner decision (Tier C): 0 zone admin(s), 7 zone_wise delivery man(men), 6 banner(s), 0 notification(s), 0 user row(s), 6 trending search row(s), 0 surge price row(s).
+  history kept on the parent id: 72 orders, 4 order groups, 4 order transactions.
+
+== Zone 2 (Abu Dhabi Zone), proposed plan sha256 a13838d3f7223fa0eee821cf7019a5b4b54e5af94bafcb9dbb68e9b1233206d9
+  cells: 33 of 255 possible; largest cell extent 1.5000 km, diagonal 2.1211 km (cap diagonal 2.83 km).
+  stores whose zone changes: 62 (status=1: 57); status=0 stores left on the inactive parent (no populated cell): 2; outside the polygon: 0; bad coordinates: 0.
+  (a) saved addresses whose zone changes: 4, customers affected: 3; addresses outside the polygon: 0.
+  (b) customers who LOSE service (a saved address or an order-history delivery point in no materialised cell and in no other active zone): 0 customers; 0 of 97 points (0 saved addresses, 0 order points).
+  (c) (customer point, store) pairs within 300 m that land in different cells, by overlap margin (owner confirms the value):
+        margin    0 m: 0 pairs over 0 point(s)
+        margin  100 m: 0 pairs over 0 point(s)
+        margin  200 m: 0 pairs over 0 point(s)
+        margin  300 m: not plannable, cell + 2 x margin exceeds the cap
+  (d) is_default: the parent is the default zone; the header-less default consumers (Helpers::setZoneIds, ModuleController) resolve to Nears Grid Z2-R08C05 (5 live stores), the child with the most live stores.
+  (e) stores inside a tower zone that move to a grid cell, not the tower: 7 status=1 (7 of any status).
+  NULL-zone stores lying inside the polygon, left untouched: 166 (166 with status=1).
+  45+ share of zone area beyond R per status=1 store: mean 0.7044, max 0.7882; after the reshape the farthest point of any store's cell is 2.066 km, stores exposed: 0.
+  not remapped, owner decision (Tier C): 4 zone admin(s), 2 zone_wise delivery man(men), 6 banner(s), 1 notification(s), 0 user row(s), 0 trending search row(s), 0 surge price row(s).
+  history kept on the parent id: 93 orders, 11 order groups, 30 order transactions.
+
+== Zone 3 (Single Store QA Zone), proposed plan sha256 bd5227c8fd62f34f085854a2a133c47c837851780ba088d6a1d8fb1ade9362f4
+  cells: 1 of 56 possible; largest cell extent 1.5000 km, diagonal 2.1209 km (cap diagonal 2.83 km).
+  stores whose zone changes: 1 (status=1: 1); status=0 stores left on the inactive parent (no populated cell): 0; outside the polygon: 0; bad coordinates: 0.
+  (a) saved addresses whose zone changes: 1, customers affected: 1; addresses outside the polygon: 0.
+  (b) customers who LOSE service (a saved address or an order-history delivery point in no materialised cell and in no other active zone): 0 customers; 0 of 10 points (0 saved addresses, 0 order points).
+  (c) (customer point, store) pairs within 300 m that land in different cells, by overlap margin (owner confirms the value):
+        margin    0 m: 0 pairs over 0 point(s)
+        margin  100 m: 0 pairs over 0 point(s)
+        margin  200 m: 0 pairs over 0 point(s)
+        margin  300 m: not plannable, cell + 2 x margin exceeds the cap
+  (d) is_default: the parent is not the default zone; the header-less default consumers (Helpers::setZoneIds, ModuleController) are unchanged.
+  (e) stores inside a tower zone that move to a grid cell, not the tower: 0 status=1 (0 of any status).
+  NULL-zone stores lying inside the polygon, left untouched: 0 (0 with status=1).
+  45+ share of zone area beyond R per status=1 store: mean 0, max 0; after the reshape the farthest point of any store's cell is 1.432 km, stores exposed: 0.
+  not remapped, owner decision (Tier C): 0 zone admin(s), 0 zone_wise delivery man(men), 0 banner(s), 0 notification(s), 0 user row(s), 0 trending search row(s), 0 surge price row(s).
+  history kept on the parent id: 9 orders, 0 order groups, 0 order transactions.
+
+== Zone 454 (QA-3450-1789112669), proposed plan sha256 55bf35e254ad3c9219191c89fd0bb0f40f25a928d40490644b26ac11d2017352
+  cells: 1 of 10 possible; largest cell extent 1.5000 km, diagonal 2.1213 km (cap diagonal 2.83 km).
+  stores whose zone changes: 0 (status=1: 0); status=0 stores left on the inactive parent (no populated cell): 0; outside the polygon: 0; bad coordinates: 0.
+  (a) saved addresses whose zone changes: 2, customers affected: 1; addresses outside the polygon: 0.
+  (b) customers who LOSE service (a saved address or an order-history delivery point in no materialised cell and in no other active zone): 0 customers; 0 of 2 points (0 saved addresses, 0 order points).
+  (c) (customer point, store) pairs within 300 m that land in different cells, by overlap margin (owner confirms the value):
+        margin    0 m: 0 pairs over 0 point(s)
+        margin  100 m: 0 pairs over 0 point(s)
+        margin  200 m: 0 pairs over 0 point(s)
+        margin  300 m: not plannable, cell + 2 x margin exceeds the cap
+  (d) is_default: the parent is not the default zone; the header-less default consumers (Helpers::setZoneIds, ModuleController) are unchanged.
+  (e) stores inside a tower zone that move to a grid cell, not the tower: 0 status=1 (0 of any status).
+  NULL-zone stores lying inside the polygon, left untouched: 0 (0 with status=1).
+  45+ share of zone area beyond R per status=1 store: mean n/a, max 0; after the reshape the farthest point of any store's cell is 0.000 km, stores exposed: 0.
+  not remapped, owner decision (Tier C): 0 zone admin(s), 0 zone_wise delivery man(men), 0 banner(s), 0 notification(s), 0 user row(s), 0 trending search row(s), 0 surge price row(s).
+  history kept on the parent id: 0 orders, 0 order groups, 0 order transactions.
+
+Checksums (CHECKSUM TABLE) before / after, queries ran in START TRANSACTION READ ONLY:
+  zones                  1745152769   1745152769  EQUAL
+  stores                 2082732488   2082732488  EQUAL
+  module_zone            4126439860   4126439860  EQUAL
+  customer_addresses     2595976418   2595976418  EQUAL
+RESULT: zero rows modified by this report.
+Plan for zone 2: 33 cells, sha256 a13838d3f7223fa0eee821cf7019a5b4b54e5af94bafcb9dbb68e9b1233206d9 written to /private/tmp/claude-501/-Users-Apple-Projects-nears/fea29b0d-6f65-4911-8e04-fc3fef180182/scratchpad/k4213/qa-plan-shared.json
+Id lists (stores, customers, pairs; not logged) written to /private/tmp/claude-501/-Users-Apple-Projects-nears/fea29b0d-6f65-4911-8e04-fc3fef180182/scratchpad/k4213/qa-ids-shared.json
