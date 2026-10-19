@@ -1,0 +1,522 @@
+== qa-lock-guard.test.sh (QA_LOCKS_DIR=/var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T/tmp.C0bcd4e49A/locks) ==
+-- R: pre-fix protocol (dead $$) vs qa_lock_acquire
+  ok   R-red: the pre-fix writer pid 65706 is dead one shell later (the defect)
+  ok   R-red: a lock written by the OLD protocol reads reclaimable (defect reproduced) (rc=0)
+  ok   R-green: qa_lock_acquire succeeded on a free serial
+  ok   R-green: the pid qa_lock_acquire recorded (45831) is ALIVE (session anchor, not $$)
+  ok   R-green: recorded pid is NOT this shell's $$ (65693) -- it outlives the Bash call
+  ok   A: no lock dir -> allowed (rc=0)
+  ok   B: lock dir with no owner.json -> fail-open, allowed (rc=0)
+  ok   C1: unparseable owner.json -> fail-open, allowed (rc=0)
+  ok   C2: non-numeric pid -> fail-open, allowed (rc=0)
+  ok   D: foreign + LIVE pid (not an ancestor) -> BLOCKED (rc=1)
+  ok   D: block message names the condition
+  ok   D: block message names the holder key
+  ok   D: block message names the holder pid
+  ok   E: same lock after the owner DIES -> reclaimable (AC2, the over-correction guard) (rc=0)
+  ok   E: reclaim message says stale
+  ok   F: acquire-then-check in the SAME session, SAME lane -> allowed (no self-block) (rc=0)
+  ok   G1: without override, foreign live -> blocked (rc=1)
+  ok   G2: QA_LOCK_OWNER_PID=<holder> forces self -> allowed (same lane) (rc=0)
+  ok   H1: OLD-format lock (no pid_kind/anchor_started), live pid -> blocked, no crash (rc=1)
+  ok   H2: OLD-format lock, dead pid -> reclaimable, exactly as before (rc=0)
+  ok   I: anchor_started MATCHES the live pid -> still blocked (rc=1)
+  ok   I2: RAW (un-normalised, trailing-blank) anchor_started for a LIVE owner -> still BLOCKED, not falsely reclaimable (rc=1)
+  ok   I3: _qa_lock_norm_started collapses the double space and trims trailing blanks
+  ok   I4: both sides of the comparison normalise identically (write side == read side)
+  ok   J: anchor_started MISMATCHED (simulated pid reuse) -> stale, reclaimable (rc=0)
+  ok   J: message says the pid was recycled
+  ok   K1: qa_lock_acquire on a live foreign lock -> refused (rc=1)
+  ok   K2: refused acquire did NOT clobber owner.json
+  ok   L1: qa_lock_acquire reclaims a dead-pid lock (rc=0)
+  ok   L2: reclaimed lock now records our key
+  ok   M1: concurrent acquire on one serial -> exactly one winner (racer 2)
+  ok   M2: owner.json holds the WINNER's key -- the loser did not clobber it
+-- M2: deterministic reclaim race (B parked between verdict and claim)
+  ok   M2a: racer B parked on the reclaim seam (deterministic, not timed)
+  ok   M2b: racer A reclaimed the stale lock while B was parked
+  ok   M2c: racer B, released into a now-VALID lock, LOST instead of clobbering it
+  ok   M2d: owner.json still holds racer A's key — B did not carry off A's lock
+  ok   M2e: racer A's owner pid is still live (its lock means something)
+  ok   M2f: no orphaned .reclaimed.* directory left behind
+-- M4: reclaim-slot uniqueness (300 sibling pairs) + anti-nesting
+  ok   M4a: sibling subshells DO share $$ (the premise: uniqueness cannot rest on it)
+  ok   M4b: _qa_lock_self_pid returns DISTINCT pids for sibling subshells
+  ok   M4c: BASHPID is EMPTY under this repo's bash — ${BASHPID:-$$} would be a silent no-op, hence the fork
+  ok   M4d: 300 sibling pairs produced 600 reservations
+  ok   M4e: ZERO duplicate reclaim slots across 600 concurrent reservations
+  ok   M4f: every reservation is a real, separately-created directory (mkdir enforced it)
+  ok   M4g: a reserved holder is a fresh EMPTY directory
+  ok   M4h: the mv destination $holder/lock does not pre-exist -> mv renames, it cannot nest
+  ok   M4i: a second reservation on the same serial takes a DIFFERENT slot, never the existing one
+  ok   M4j: no reclaimed lock nested inside a serial directory after the earlier reclaims
+-- M3: seam wait is bounded (gate never released)
+  ok   M3a: qa_lock_acquire returned on an unreleased gate instead of hanging
+  ok   M3b: expiry is announced loudly, naming the gate, not silently swallowed
+  ok   M3c: on expiry it PROCEEDS (rc=0) -- a leaked var must not make stale locks permanently unreclaimable
+  ok   N1: acquire falls back to a sentinel when no harness ancestor matches
+  ok   N2: pid_kind records that the degraded path was taken
+  ok   N3: sentinel pid 73495 is alive
+  ok   N4: sentinel is a SIBLING, so the owner self-blocks -- the documented residual, asserted not assumed (rc=1)
+  ok   N5: the documented remedy (QA_LOCK_OWNER_PID) unblocks it (same lane) (rc=0)
+  ok   N6: this session resolves a real harness anchor to simulate the launcher's own capture
+  ok   N7: acquire with QA_LOCK_OWNER_PID pre-set succeeds even though the ancestry walk is broken
+  ok   N8: the recorded owner pid is the pre-set QA_LOCK_OWNER_PID, not a fresh sentinel
+  ok   N9: pid_kind is recorded as 'anchor', not 'sentinel'
+  ok   N10: a LATER qa_lock_check (plain ancestry walk, no override) recognizes it as self, not BLOCKED (rc=0)
+  ok   N11: release of the QA_LOCK_OWNER_PID-primed anchor lock succeeds (rc=0)
+  ok   N12: a normal (non-detached) acquire, with no QA_LOCK_OWNER_PID set, still resolves via the ordinary ancestry walk
+  ok   N13: pid_kind is 'anchor' via the ordinary walk (unaffected by the override path)
+  ok   N14: normal launch's self-check still passes silently (no regression) (rc=0)
+  ok   N15: a genuinely foreign session's lock still blocks (no regression) (rc=1)
+  ok   N16: BLOCKED message names QA_LOCK_OWNER_PID as the override hint
+  ok   N17: the foreign process is alive and NOT anchor-named ('sleep', default QA_LOCK_ANCHOR_NAMES='claude')
+  ok   N18: acquire still succeeds -- rejecting the override degrades to the sentinel path, it does not error
+  ok   N19: the recorded owner pid is NOT the foreign non-anchor pid -- override rejected
+  ok   N20: pid_kind falls through to 'sentinel', not 'anchor', for the rejected override
+  ok   N21: acquire with a genuine anchor-named override pid still succeeds
+  ok   N22: the recorded owner pid IS the genuine anchor override (positive control, not vacuous)
+  ok   N23: pid_kind is 'anchor' for the accepted genuine override (positive control)
+  ok   O1: release of a sentinel lock succeeds (rc=0)
+  ok   O2: release removed the lock dir
+  ok   O3: release killed the sentinel process
+  ok   O4: release of our own anchor lock succeeds (rc=0)
+  ok   O5: release did NOT kill the anchor pid 45831 (that is our own harness)
+  ok   O6: releasing another LIVE session's lock is refused (rc=1)
+  ok   O7: the refusal is loud, not a silent no-op
+  ok   O8: the foreign lock dir was left intact
+  ok   O9: releasing a serial with no lock is a clean no-op (rc=0)
+  ok   P1: sourcing the guard changed no shell option
+  ok   P2: usable under set -euo pipefail without exiting the caller
+-- Q: device-occupancy probe (a lock-free device is not a free device)
+  ok   Q1: idle enumerated device, no app pid, no driver -> ALLOWED (negative control) (rc=0)
+  ok   Q1b: verdict=free
+  ok   Q1c: all three app-id signals were actually answered
+  ok   Q1d: nothing was left un-interrogated
+  ok   Q13: the probe line is emitted on the allow path, carrying the validity count
+  ok   Q2: no lock but a FOREIGN driver pins the serial -> rc 3, refused (positive control) (rc=3)
+  ok   Q2b: verdict=occupied
+  ok   Q2c: exactly one foreign driver counted
+  ok   Q2d: the refusal names the serial
+  ok   Q2e: the refusal names the driver pid
+  ok   Q2f: the refusal quotes the driver argv
+  ok   Q2g: the refusal explains WHY there is no lock to point at
+  ok   Q3: a driver sharing OUR session anchor -> allowed, not blocked (rc=0)
+  ok   Q3b: verdict=self-driven
+  ok   Q3c: a same-session driver is NOT counted as foreign
+  ok   Q3d: the same-session driver is still announced
+  ok   Q4: app running with NO driver -> residue, ALLOWED (pool-starvation guard) (rc=0)
+  ok   Q4b: verdict=residue
+  ok   Q4c: the residue warning names the package and its pid
+  ok   Q4d: the residue warning points at the state-preserving recovery
+  ok   Q5: adb exits non-zero -> rc 4 INDETERMINATE, never a grant (rc=4)
+  ok   Q5b: verdict=indeterminate
+  ok   Q5c: zero signals were answered
+  ok   Q5d: signals_answered==0 did NOT return 0 -- '0 conflicts' is unreachable from '0 probed'
+  ok   Q5e: adb AND the host snapshot both unusable -> rc 4, still not a grant (rc=4)
+  ok   Q5f: signals_answered=0 with both instruments blind
+  ok   Q6: a serial absent from the enumerated pool -> rc 5, REFUSED (rc=5)
+  ok   Q6b: verdict=absent, kept distinct from indeterminate
+  ok   Q6c: and it is an ANSWER (signals_answered>=1) -- a confident negative, not a silence
+  ok   Q6d: the message says NOT ATTACHED, not 'could not be interrogated'
+  ok   Q6e: the validity count still prints on the refusal path
+  ok   Q6f: POSITIVE CONTROL -- an ATTACHED serial from the SAME enumeration is still granted (rc=0)
+  ok   Q6g: qa_lock_acquire on a not-attached serial -> rc 5, refused (rc=5)
+  ok   Q6h: and NO owner.json was written -- the orphan-lock source is closed
+  ok   Q6i: and no blind lock dir was left behind
+  ok   Q24: --no-probe on a non-device slug still returns 0 (account claims are not device-gated) (rc=0)
+  ok   Q24b: and reports verdict=disabled
+  ok   Q24c: CONTROL -- the SAME slug WITHOUT the flag is refused rc 5, so Q24 pins the flag rather than a no-op (rc=5)
+  ok   Q25: baseline -- a foreign driver on a lock-free device is refused (rc=3)
+  ok   Q25b: QA_LOCK_OWNER_PID pointed AT that driver does NOT suppress it (rc=3)
+  ok   Q25c: it is still COUNTED as foreign and was not silently excluded (drivers/excluded)
+  ok   Q25d: CONTROL -- a live foreign LOCK still blocks without the override (rc=1)
+  ok   Q25e: CONTROL -- and QA_LOCK_OWNER_PID still forces self for LOCK ownership, so the seam is narrowed, not broken (rc=0)
+  ok   Q26: the override naming an ABSENT serial does not unblock it (rc=5)
+  ok   Q26b: and it says why, rather than failing silently
+  ok   Q26c: qa_lock_acquire under the override still writes NO owner.json for a device that is not in the pool
+  ok   Q26d: CONTROL -- the SAME override still overrules rc 3 on an attached device, so Q26 is not passing on a dead override (rc=0)
+  ok   Q7: serial listed offline/unauthorized -> rc 4, fail closed (rc=4)
+  ok   Q8: self, ancestor and descendant tool processes are EXCLUDED (0 foreign drivers)
+  ok   Q8b: so the guard does not refuse us our own device (rc=0)
+  ok   Q8c: and all 3 were SEEN and counted as exclusions -- Q8 cannot pass on a scanner that matched nothing
+  ok   Q9: qa_lock_acquire on a lock-free but occupied device -> rc 3, refused (rc=3)
+  ok   Q9b: owner.json was never written
+  ok   Q9c: the just-created lock dir was rmdir'd -- no blind lock denying the device to everyone
+  ok   Q10: qa_lock_acquire on a genuinely free device -> granted (no new false negative) (rc=0)
+  ok   Q10b: owner.json was written with our key
+  ok   Q10c: and it was granted on a PROBED verdict, not an unprobed one
+  ok   Q11: --no-probe still allows (rc=0)
+  ok   Q11a: and reports verdict=disabled rather than a stale previous verdict
+  ok   Q11b: it really did not call adb (call log unchanged)
+  ok   Q11c: qa_lock_release accepts --no-probe as a serial-position-safe no-op (rc=0)
+  ok   Q12: a LIVE foreign lock on an ATTACHED serial still returns 1 (2 > 1 > 3 > 5 > 4 > 0) (rc=1)
+  ok   Q12b: the pool was enumerated exactly ONCE -- attachment is now the prerequisite question (NEARS-1989)
+  ok   Q12c: and the whole cost of asking is 4 adb calls (1 enumerate + 3 pidof) -- the accepted spend is PINNED, so a regression in it is visible
+  ok   Q16: QA_LOCK_PROBE_OVERRIDE naming a DIFFERENT serial does not unblock this one (rc=3)
+  ok   Q16b: naming THIS serial forces the allow (rc=0)
+  ok   Q16c: and it says so loudly every time it fires
+  ok   Q15: under the default fixture a fake serial still reads free (the 67 legacy cases are unperturbed) (rc=0)
+  ok   Q15b: via verdict=free, i.e. probed and answered -- not via an unprobed shortcut
+  ok   Q20: an enumerated device with ZERO occupancy questions asked -> rc 4, never a grant (rc=4)
+  ok   Q20b: answered=0 with indeterminate=0 -- the refusal came from the invariant, not from a failure
+  ok   Q17: a foreign process that merely MENTIONS the serial is tier-2, not a refusal (rc=0)
+  ok   Q17b: zero drivers counted from two mentions
+  ok   Q17c: and both were still seen and published as context
+  ok   Q22: a tool pinned to qprobe-b0 does not occupy qprobe-b (serial boundary, not substring) (rc=0)
+  ok   Q22b: zero drivers on the prefix serial
+  ok   Q22c: and the SAME fixture does refuse qprobe-b0 -- the positive half, so Q22 cannot pass on a blind scanner (rc=3)
+  ok   Q21: a non-tool wrapper that pins the serial is tier-2, not a driver (rc=0)
+  ok   Q21b: zero drivers -- both halves of tier-1 are required, not either
+  ok   Q18: both qa_lock_acquire failure paths clear our own lock dir with rmdir
+  ok   Q18b: and none of them uses rm -rf on it
+  ok   Q19: a genuinely stale lock is still reclaimed (the probe did not regress the reclaim path) (rc=0)
+  ok   Q19b: the reclaim enumerated the pool exactly ONCE -- the re-check on the moved-aside dir spent no adb call
+  ok   Q14: exactly 7 probe-gate call sites (6 return-0 paths in qa_lock_check — the TTL-stale leg joined them in NEARS-2489 — + the mkdir-success path in qa_lock_acquire)
+  ok   Q14b: all 9 `return 0` sites in qa_lock_check/qa_lock_acquire are probe-gated or annotated (unguarded/total; 9th = the NEARS-2489 TTL-stale leg, probe-gated)
+-- Q23: QA_LOCK_ANCHOR_NAMES splitting, cross-shell
+  ok   Q23: zsh + a MULTI-name QA_LOCK_ANCHOR_NAMES still resolves the anchor
+  ok   Q23b: and it resolved the RIGHT pid, not merely a non-empty one
+  ok   Q23c: POSITIVE control -- a single-name list under zsh resolves, so the probe is live, not inert
+  ok   Q23d: NEGATIVE control -- a list matching nothing still returns 1, so Q23 cannot pass on an always-match
+  ok   Q23e: cross-shell control -- bash does split, so it was already correct and stays correct
+  ok   S11: zsh resolves the SAME lane key and the SAME source as bash
+  ok   S11b: POSITIVE control -- the bash side really resolved a lane ('NEARS-4272/derived'), so S11 is not an equality between two failures
+  ok   S11c: and zsh resolved it FROM THE PATH (source=derived), not from an inherited env var
+-- IOS: iOS Simulator UDID device-occupancy probe (NEARS-2426)
+  ok   IOS0: a UUID-shaped identifier classifies as ios
+  ok   IOS0b: NEGATIVE control -- an adb serial still classifies as android, not ios
+  ok   IOS1: a known-but-not-booted UDID -> ALLOWED, not rc 5 (AC1, the not-booted half) (rc=0)
+  ok   IOS1b: verdict=free
+  ok   IOS1c: the probe line is emitted, same as the Android path
+  ok   IOS2: booted + idle, no foreign driver -> ALLOWED (AC1, negative control) (rc=0)
+  ok   IOS2b: verdict=free
+  ok   IOS2c: one Booted simulator counted
+  ok   IOS2d: AC3 -- qa_lock_acquire <live iOS UDID> WITHOUT --no-probe no longer returns rc 5 (rc=0)
+  ok   IOS2e: and it actually acquired -- a live anchor pid was recorded
+  ok   IOS3: booted + a FOREIGN flutter driver pins the UDID -> rc 3, refused (AC2, positive control) (rc=3)
+  ok   IOS3b: verdict=occupied
+  ok   IOS3c: exactly one foreign driver counted
+  ok   IOS3d: the refusal names the driver pid
+  ok   IOS3e: the refusal quotes the driver argv
+  ok   IOS3f: a bare exec'd 'simctl spawn <UDID> ...' driver (no xcrun token, real post-exec shape) is ALSO caught (positional, not flag-shaped) (rc=3)
+  ok   IOS4: a driver sharing OUR session anchor -> allowed, not blocked (rc=0)
+  ok   IOS4b: verdict=self-driven
+  ok   IOS4c: the same-session driver is still announced
+  ok   IOS5: a UDID not present in simctl's list AT ALL -> rc 5, REFUSED (rc=5)
+  ok   IOS5b: verdict=absent
+  ok   IOS5c: POSITIVE CONTROL -- a UDID from the SAME simctl output that IS listed is still granted (rc=0)
+  ok   IOS6: xcrun exits non-zero -> rc 4 INDETERMINATE, never a grant (rc=4)
+  ok   IOS6b: verdict=indeterminate
+  ok   IOS6c: zero signals were answered
+  ok   IOS7: a driver pinning a LONGER token that merely starts with our UDID does NOT match (boundary discipline) (rc=0)
+  ok   IOS7b: the near-miss still counts as a tier-2 MENTION, not silently dropped
+  ok   IOS8: an Android serial's probe calls xcrun ZERO times
+  ok   IOS8b: an iOS UDID's probe calls adb ZERO times
+  ok   IOS9: booted + driver-detached + app alive in the simulator -> rc 3 occupied (AC1) (rc=3)
+  ok   IOS9b: verdict=occupied
+  ok   IOS9c: zero HOST drivers counted -- this is the device-side signal alone, not a host-driver false read
+  ok   IOS9d: the refusal names the device-side app pid
+  ok   IOS10: qa_lock_acquire on a driver-detached-but-app-alive simulator refuses (AC2)
+  ok   IOS10b: acquire wrote NO lock file (AC2)
+  ok   IOS11: a REGISTERED-but-not-running app (dormant PID '-') does not read as occupied (AC3) (rc=0)
+  ok   IOS11b: verdict=free, not occupied
+  ok   IOS12: genuinely free/idle booted simulator -> still free with the new signal active (AC3) (rc=0)
+  ok   IOS12b: the new 'simctl spawn <udid> launchctl list' call actually fired (path is active, not dead code)
+-- S: same-session lane exclusion (a shared anchor is not an identity)
+  ok   S0: premise -- the holder pid 45831 reads as SELF, so these cases really do exercise the same-session path
+  ok   S1: a sibling lane's lock on a SHARED anchor -> REFUSED (positive control) (rc=1)
+  ok   S1b: the refusal names the condition
+  ok   S1c: and names the HOLDER's lane
+  ok   S1d: and names OUR lane
+  ok   S1e: and names the escape, with the serial
+  ok   S1f: and says the live holder pid is our own anchor -- without this an operator reads 'pid N, alive', finds it is their own harness, and concludes the guard is broken
+  ok   S1g: verdict is machine-readable, not only prose
+  ok   S1h: and the published match says why
+  ok   S2: the SAME lane re-entering its own lock -> ALLOWED (negative control) (rc=0)
+  ok   S2b: match=yes
+  ok   S2c: verdict=self-lane
+  ok   S2d: and no refusal banner is printed on the allow path
+  ok   S2e: the comparison is PRINTED on the allow path too -- 'allowed' must never be printable without the comparison that produced it
+  ok   S2f: and again from a SEPARATE shell invocation -- a lane's identity is stable across its own processes (rc=0)
+  ok   S2g: a lane key is derivable with NO caller cooperation ('NEARS-4272')
+  ok   S2h: a keyless lane is allowed onto its OWN lock (derived == derived) (rc=0)
+  ok   S2i: and again from a second, separate process -- the derivation is stable, unlike an exported env var (rc=0)
+  ok   S3: qa_lock_acquire over a sibling lane's live lock -> refused (rc=1)
+  ok   S3b: and owner.json is byte-identical -- the holder's identity was NOT overwritten (H2)
+  ok   S3c: still refused with qa_lock_check stubbed to ALLOW -- the re-affirm path is independently gated (rc=1)
+  ok   S3d: and still byte-identical after that
+  ok   S4: releasing a sibling lane's lock -> refused (rc=1)
+  ok   S4b: the other lane's lock dir is intact
+  ok   S4c: and its owner.json is byte-identical
+  ok   S4d: the refusal is LOUD -- the pre-fix failure was an empty stderr
+  ok   S4e: and it names the escape, so a lock with an unrecoverable key can never deadlock the resource
+  ok   S5: QA_LOCK_LANE_OVERRIDE naming THIS serial forces the allow (rc=0)
+  ok   S5b: verdict=lane-override, not silently self-lane
+  ok   S5c: and it says so loudly every time it fires
+  ok   S5d: an override naming a DIFFERENT serial does not unblock this one -- one blanket value would be the defect wearing a flag (rc=1)
+  ok   S5e: the override is honoured at the RELEASE site too (no unclearable lock) (rc=0)
+  ok   S5f: and the lock really was removed under it
+  ok   S6: QA_LOCK_OWNER_PID alone does NOT confer lane identity -> still refused (rc=1)
+  ok   S6b: it is refused AS a lane collision, having passed the pid test
+  ok   S6c: CONTROL -- the SAME override with the matching lane is allowed, so S6 is not passing on a dead seam (rc=0)
+  ok   S7: an unidentified claim in our own session is not ours to take -> refused (rc=1)
+  ok   S7b: and it is published as unknown, not guessed
+  ok   S8: if WE cannot show which lane we are, we cannot claim the lock -> refused (S2h is the same call, allowed, with the derivation intact) (rc=1)
+  ok   S8b: and an unresolvable identity is reported as unknown rather than as an empty key
+  ok   S9: a worktree path yields the ticket key, and says the source was the path
+  ok   S9b: the PRIMARY tree has no ticket key -> a loud weak identity, never an empty one
+  ok   S9c: and the '..' shape worktree-liveness.sh really sources it by still derives correctly
+  ok   S9d: an explicit argument wins over the environment
+  ok   S9e: and the environment wins over the derivation
+  ok   S10: holder 'nears-9999' vs ours 'NEARS-9999 ' -> the same lane (case + trailing blank normalised on BOTH sides) (rc=0)
+  ok   S10b: CONTROL -- a genuinely different key against the SAME lock is still refused, so S10 is not passing on an always-equal comparison (rc=1)
+  ok   S12: a genuinely FOREIGN live lock is still refused (rc=1)
+  ok   S12b: and is published as foreign-session, distinguishable from a same-session lane WITHOUT a new exit code
+  ok   S12c: with its ORIGINAL message, unchanged
+  ok   S12d: and not the new one -- the two diagnoses stay distinct
+  ok   S13: lane A claims a test account through the wrapper (email-slug shape) (rc=0)
+  ok   S13b: lane B, in ANOTHER worktree but sharing the anchor, is REFUSED the same account (rc=1)
+  ok   S13c: and lane A's claim is byte-identical -- its identity was not overwritten
+  ok   S13d: and lane B cannot release lane A's claim either (rc=1)
+  ok   S13e: and lane A CAN release its own claim keylessly -- claiming with a key must never strand the claimer (rc=0)
+  ok   S13f: the claim really was cleared
+  ok   S14: lane one claims from a shared worktree (rc=0)
+  ok   S14b: a second lane in the SAME worktree is treated as the same lane (documented residual: one tree, one identity -- which is exactly why every run gets its own worktree) (rc=0)
+-- L: acquire/check/release lifecycle in production shape
+  ok   L1: worktree, NO key passed (pure derivation) -- acquire/check/release all succeed
+  ok   L2: worktree, explicit key EQUAL to the derived one -- all succeed
+  ok   L3: worktree, explicit key DIFFERENT from the derived one -- all succeed (was 0/1/1 ORPHANED: self-locked out of its own device)
+  ok   L4: PRIMARY tree + the documented `qa_lock_acquire <device-id> <KEY>` call -- all succeed (was 0/1/1 ORPHANED: the reachable High)
+  ok   L5: across 6 acquire shapes (tree x key), ZERO left a lock its own lane could not release without the override
+  ok   L5b: CONTROL -- the override really is absent from those child environments, so L1-L5 cannot be passing through the escape hatch
+  ok   L6: an anonymous lock is still REFUSED at check -- ambiguity does not become 'free' (rc=1)
+  ok   L6b: but it IS released, because no lane can ever match it and a refusal would strand the device forever (rc=0)
+  ok   L6c: and the carve-out is named in the verdict, not silent
+  ok   L6d: and announced loudly
+  ok   L6e: CONTROL -- a NAMED sibling lane's lock is still refused at release, so L6b widened nothing (H3 intact) (rc=1)
+  ok   L7: an OLD-format lock (key, no lane) belonging to another lane is still refused (rc=1)
+  ok   L7b: and its OWN lane is still allowed through the key channel -- the fallback keeps old locks working (rc=0)
+  ok   L8: qa_lock_check <serial> <key> honours an explicitly passed lane (rc=0)
+  ok   L8b: and a wrong one is still refused, so L8 is not passing on an ignored argument (rc=1)
+  ok   L8c: qa_lock_release <serial> <key> likewise (rc=0)
+  ok   L9: a lock is acquired carrying the label NEARS-LABEL (rc=0)
+  ok   L9b: and its lane records the DERIVABLE identity, not the label
+  ok   L9c: the same lane re-acquires with a different label -- matched on the lane channel, allowed (rc=0)
+  ok   L9d: and the holder's OWN label survived -- re-affirm recognises, it does not relabel
+-- W: write-side guards (an unidentifiable lock is never created)
+  ok   W1: an acquire that can resolve NEITHER channel is REFUSED at the write (rc 2, a caller precondition, not a busy device) (rc=2)
+  ok   W1b: and nothing was created -- no lock dir, so no unidentifiable lock exists to be released by anyone
+  ok   W1c: the refusal names the DERIVED channel as the thing that decides (NEARS-1727 narrowed it; the old text blamed 'no key argument' for half the cause)
+  ok   W1d: and names the remedy -- a refusal with no remedy is just the orphan again
+  ok   W2: the SAME relative-source acquire is STILL refused when a key is passed (was: expected rc 0 -- that expectation encoded the NEARS-1727 defect) (rc=2)
+  ok   W2b: and nothing was written, so a key-labelled lock carrying lane='<unknown>' cannot exist
+  ok   W2c: CONTROL -- and a keyless acquire succeeds when the guard is sourced absolutely (rc=0)
+  ok   W2d: deriving its lane from the worktree, as every production consumer does
+  ok   W3: premise -- a gate path really does populate QA_LOCK_LANE_DERIVED (else W3b proves nothing)
+  ok   W3b: a later call that never reaches the lane gate leaves NO stale identity behind -- a published global read after it would otherwise report the PREVIOUS call's lane as this one's
+  ok   W4: a genuinely stale lock is still reclaimed (the write guard did not regress the reclaim path) (rc=0)
+  ok   W4b: and the reclaimed lock records the lane THIS tree derives ('NEARS-4272') -- the nested qa_lock_check clears the globals, so an empty lane here would mean the write read one of them
+-- CT: qa_lock_release cross-tree lane derivation (NEARS-2030)
+  ok   CT1: AC1 -- acquire (this worktree, explicit key NEARS-2030) then a KEYLESS release from a DIFFERENT (primary-shaped) tree -- both succeed, no override (was 0/1: the exact repro)
+  ok   CT1b: and the lock dir is ACTUALLY removed, not a false rc 0
+  ok   CT1c: the verdict names the carve-out, not a silent same-session allow
+  ok   CT1d: and it is announced loudly on stderr, not silent
+  ok   CT2: two lanes sharing ONE anchor pid -- a keyless release of the OTHER lane's serial is still REFUSED (does not over-widen to 'any lock this pid could reach') (rc=1)
+  ok   CT2b: verdict is the ordinary same-session refusal, not the sole-lock carve-out
+  ok   CT2c: ct-b's lock is intact
+  ok   CT2d: refused loudly, the ordinary same-session refusal message
+-- R: NEARS-1727 write-side narrowing (lane_derived alone decides)
+  ok   R1: PRESERVED -- a tree whose name yields NO ticket key still acquires (weak-but-resolvable is not '<unknown>') (rc=0)
+  ok   R1b: recording the weak identity it will re-derive at release, not '<unknown>'
+  ok   R1c: and the whole acquire/check/release cycle completes with the override STRIPPED -- the weak lane really does release its own lock
+  ok   R2: the refusal SAYS a key is not a remedy, so the caller is not sent to retry with one
+  ok   R3: under a relative source _QA_LOCK_SELF is NON-empty ('./qa-lock-guard.sh') -- so an emptiness check on it is the wrong test
+  ok   R3b: yet the lane still derives '<unknown>' -- the underivable WORKTREE is the real cause
+-- X: phantom hold (a live holder on a serial that has LEFT the pool)
+  ok   X0: premise -- the REAL writer created the lock (holder pid 85659), so these cases exercise a real live hold
+  ok   X0b: and that holder is ALIVE and FOREIGN (not self, not an ancestor) -- the live-hold path, not the stale one
+  ok   X1: live holder + serial NOT in the pool -> rc 5, distinguishable from a genuine live hold (rc=5)
+  ok   X1b: published as its own verdict, so a caller asserts a VALUE rather than parsing prose
+  ok   X1c: and the probe's own verdict is published, not overwritten with 'locked'
+  ok   X1d: the banner names the holder pid
+  ok   X1e: and the holder key
+  ok   X1f: and the lock file, so the operator can act on it
+  ok   X1g: and the false claim is GONE -- this is AC1's distinguishing half
+  ok   X1h: the lock is NAMED, never cleared -- the holder is live and may be mid-reattach
+  ok   X1i: the banner says which half is wrong
+  ok   X1j: and says the lock was left in place, so 'phantom' is not read as 'reclaimed'
+  ok   X1k: carrying the validity count -- a verdict is never printable without the number of questions behind it
+  ok   X2: CONTROL -- the SAME lock with the serial ATTACHED still BLOCKS rc 1 (nothing weakened) (rc=1)
+  ok   X2b: with its ORIGINAL message, unchanged
+  ok   X2c: and its original published verdict
+  ok   X2d: the fall-through re-stamps the probe globals, so the new probe leaves no residue
+  ok   X2e: including the counters -- the attached case publishes exactly what it published before
+  ok   X3: --no-probe on a not-attached serial still BLOCKS rc 1 (the account-claim path) (rc=1)
+  ok   X3b: with the original message, not a phantom banner
+  ok   X3c: and it really did not call adb (call log unchanged)
+  ok   X4: QA_LOCK_PROBE=0 on a not-attached serial still BLOCKS rc 1 (rc=1)
+  ok   X4b: and spends no adb call either
+  ok   X5: QA_LOCK_PROBE_OVERRIDE naming THIS serial does not turn a phantom into a live hold (rc=5)
+  ok   X5b: the verdict stands
+  ok   X5c: CONTROL -- the SAME override still overrules rc 3 on an attached device, so X5 is not passing on a dead variable (rc=0)
+  ok   X6: adb enumeration FAILS -> still rc 1, the live hold stands (an unanswerable probe is not evidence of absence) (rc=1)
+  ok   X6b: the serial listed OFFLINE -> still rc 1; offline is un-interrogable, not absent (rc=1)
+  ok   X6c: CONTROL -- the SAME lock with a HEALTHY probe is rc 5, so X6/X6b are not passing on an unreachable path (rc=5)
+  ok   X7: qa_lock_acquire on a phantom-held serial -> rc 5 propagated, not 'locked by another session' (rc=5)
+  ok   X7b: and owner.json is byte-identical -- a refused acquire never rewrites the holder's identity
+  ok   X8: qa_lock_check calls the shared phantom-probe helper exactly once -- the phantom path went through the probe, not the gate
+  ok   X8b: and it has exactly one `return 5` -- one new exit, reusing the existing NOT-ATTACHED code rather than minting a sixth
+  ok   X8c: and the shared helper itself never calls the gate -- the raw probe only, so QA_LOCK_PROBE_OVERRIDE cannot reach rc 5 (X5)
+-- X9+: phantom hold refuse-and-report at qa_lock_release (NEARS-2077)
+  ok   X9: premise -- the REAL writer created the lock (holder pid 87109) for the release-side family
+  ok   X9b: and that holder is ALIVE and FOREIGN (not self, not an ancestor) -- the live-hold path, not the reclaim path
+  ok   X10: attached-unchanged CONTROL -- releasing an ATTACHED live foreign lock still refuses rc 1 (rc=1)
+  ok   X10b: with its ORIGINAL message, unchanged
+  ok   X10c: and the lock dir is left intact
+  ok   X11: absent-phantom at RELEASE -> rc 5, refused-and-reported, not force-cleared (rc=5)
+  ok   X11b: the banner names the condition
+  ok   X11c: and the holder pid
+  ok   X11d: and the holder key
+  ok   X11e: and the lock file, so an operator can act on it
+  ok   X11f: the ordinary refusal prose is GONE -- AC1's distinguishing half
+  ok   X11g: and the report is release-specific -- names refusing to FORCE-CLEAR, not check's 'boot or reattach' framing alone
+  ok   X11h: the lock dir was LEFT IN PLACE -- never force-cleared (the owner ruling)
+  ok   X11i: and owner.json is byte-identical to before the refused release
+  ok   X12: --no-probe on a not-attached serial still refuses rc 1 at release (the account-claim path), never rc 5 (rc=1)
+  ok   X12b: with the ORIGINAL message, not a phantom banner
+  ok   X12c: and it really did not call adb (call log unchanged)
+  ok   X12d: and the lock dir is still intact (an ordinary live-session refusal, not a force-clear)
+  ok   X13: QA_LOCK_PROBE=0 on a not-attached serial still refuses rc 1 at release (rc=1)
+  ok   X13b: and spends no adb call either
+  ok   X14: adb enumeration FAILS at release -> still rc 1, the live hold stands (an unanswerable probe is not evidence of absence) (rc=1)
+  ok   X14b: the serial listed OFFLINE at release -> still rc 1; offline is un-interrogable, not absent (rc=1)
+  ok   X14c: POSITIVE CONTROL -- the SAME lock with a HEALTHY absent probe reaches rc 5 at release (rc=5)
+  ok   X15: qa_lock_release calls the shared phantom-probe helper exactly once
+  ok   X15b: and it has exactly one `return 5` -- reusing the existing rc, not minting a sixth
+-- Y: qa_lock_survey (pool aggregation, NEARS-2078)
+  ok   Y0: qa_lock_survey's implementation is grep-confirmed free of acquire/release/mkdir/rm/mv calls
+  ok   Y1a: the free serial reports attached, unlocked, effective
+  ok   Y1b: the locked serial names its holder and is NOT counted as effective
+  ok   Y1c: occupied-without-a-lock is reported as its OWN distinct status, not folded into 'locked'
+  ok   Y1d: the not-in-the-pool serial reports attached=no, status=absent -- distinct from both locked and occupied-without-lock
+  ok   Y1e: effective_capacity is 1 (the ONE free serial) out of 4 surveyed -- not 4, not 0
+  ok   Y1f: QA_LOCK_SURVEY_CAPACITY global matches the printed count
+  ok   Y2a: a LIVE holder pid -> locked, not effective (two-sided control, alive side)
+  ok   Y2b: a DEAD holder pid -> stale, reclaimable, reported free/effective (two-sided control, dead side)
+  ok   Y2c: alive and dead pids yield genuinely different status strings, not the same value by coincidence
+  ok   Y3a: the real qa_lock_survey leaves QA_LOCKS_DIR byte-identical after surveying a free device -- read-only
+  ok   Y3b: the SAME before/after check goes RED against a mutated survey that internally acquires -- Y3a is not vacuously green
+  ok   Y3c: cleanup -- releasing the mutation-canary lock restores the pre-mutation state
+-- Y4: qa_lock_survey cross-shell pool splitting (NEARS-2078 fix-cycle 1)
+  ok   Y4a: zsh surveys ALL 3 pool serials, not 1 -- word-split + read-only-$status fix
+  ok   Y4b: zsh does not abort assigning the local -- $status is no longer shadowed
+  ok   Y4c: POSITIVE control -- bash surveys all 3 too, so Y4a is a real cross-shell difference, not a broken fixture
+-- Y5/Y6: qa_lock_survey pool resolution (NEARS-2489)
+  ok   Y5a: a serial ABSENT from the constant list is surveyed when adb lists it (live enumeration)
+  ok   Y5b: every live-enumerated serial is surveyed
+  ok   Y5c: the trailing line names the live-adb pool mode
+  ok   Y5d: the constant fallback pool was NOT consulted while adb answered
+  ok   Y5e: both live serials counted, none invented
+  ok   Y5f: QA_LOCK_SURVEY_MODE global matches the printed mode
+  ok   Y6a: adb unanswerable -> the trailing line names the fallback mode
+  ok   Y6b: the fallback announces itself loudly on stderr, naming the guess for what it is
+  ok   Y6c: the constant pool is what got surveyed
+  ok   Y6d: 3 constant serials surveyed, none granted capacity off an unanswerable adb
+  ok   Y6e: QA_LOCK_POOL_SERIALS outranks the live enumeration and is reported as mode env
+  ok   Y6f: the env-pinned serial is what got surveyed
+-- T: anchor-lock TTL (NEARS-2489)
+  ok   T1: a live-pid lock older than QA_LOCK_ANCHOR_TTL is stale-reclaimable (rc=0)
+  ok   T1b: the reclaim report names the TTL that expired the hold
+  ok   T1c: the reclaim report names the OLD holder's key
+  ok   T1d: the printed age (214606143 s) is a real number over the TTL, not a placeholder
+  ok   T2: a live-pid lock YOUNGER than the TTL still blocks (rc=1)
+  ok   T2b: the fresh hold blocks with the unchanged live-session message
+  ok   T3: raising QA_LOCK_ANCHOR_TTL above the age un-expires the hold -> blocked again (rc=1)
+  ok   T3b: QA_LOCK_ANCHOR_TTL=0 disables the leg -> the live hold blocks as before NEARS-2489 (rc=1)
+  ok   T3c: a 120s-old hold expires under QA_LOCK_ANCHOR_TTL=10 -> the knob, not a constant, decides (rc=0)
+  ok   T4: an aged SELF-owned lock is still allowed (self, not reclaim) (rc=0)
+  ok   T4b: no TTL reclaim fired on the self-owned lock — it stayed SELF
+  ok   T4c: the lane gate's self verdict is what allowed it
+  ok   T5: qa_lock_acquire reclaims a TTL-expired live-pid lock (rc=0)
+  ok   T5b: the acquire path printed the TTL-stale report (old holder + age + TTL) before reclaiming
+  ok   T5c: the reclaimed lock now records the new lane's key
+  ok   T6: an unparseable started stamp falls through to the live-holder block — age unknown is never age expired (rc=1)
+-- RP: qa_lock_reap (NEARS-2489)
+  ok   RP1: dry-run reap returns 0 (rc=0)
+  ok   RP1b: exactly the one foreign driver pinning reap-a is inventoried
+  ok   RP1c: the report names the orphan driver's pid
+  ok   RP1d: the dry-run says it acted on nothing
+  ok   RP1e: the aged owner-less dir is reported
+  ok   RP1f: a FRESH empty dir is inside the grace window — not reported (a live acquire mid-write must never read as crashed)
+  ok   RP1g: both driver processes are still alive after the dry-run
+  ok   RP1h: the reported dir still exists after the dry-run
+  ok   RP2: --kill reap returns 0 (rc=0)
+  ok   RP2b: the kill is logged, naming pid and serial
+  ok   RP2c: reap-a's orphan driver is dead after --kill
+  ok   RP2d: the OTHER serial's driver SURVIVES — the kill is serial-scoped, never a pattern
+  ok   RP2e: --kill alone did not sweep the aged dir (kill and sweep are separate consents)
+  ok   RP3: the sweep names what it removed
+  ok   RP3b: the sweep logs the removal as an action, not a report
+  ok   RP3c: the aged owner-less dir is gone after --sweep
+  ok   RP3d: the fresh empty dir SURVIVES the sweep (grace window)
+  ok   RP3e: an AGED dir that carries owner.json survives — only owner-LESS dirs are ever swept
+  ok   RP4: qa_lock_reap without a serial is a usage error (rc=2)
+  ok   OR1: rp_a's reap-report line still names the pid after RP2 killed it
+  ok   OR1b: rp_a (ppid=1 in the fixture) reports orphaned=yes
+  ok   OR2: rp_b's reap-report line names the pid
+  ok   OR2b: rp_b (ppid=1 in the fixture) reports orphaned=yes too
+  ok   OR3: a live-parent driver's reap-report line names the pid
+  ok   OR3b: a live, resolvable non-1 ppid reports orphaned=no
+  ok   OR3c: and never also yes on a single-driver report
+  ok   OR4: an unresolvable-ppid driver's reap-report line names the pid
+  ok   OR4b: a ppid that does not resolve reports orphaned=unknown
+  ok   OR4c: -- never silently collapsed into a negative finding
+  ok   OR5: --kill on an orphaned=no driver still returns 0 (rc=0)
+  ok   OR5b: --kill signals it exactly like an orphaned=yes driver -- orphan status never gates eligibility
+  ok   OR5c: exactly one pid killed -- the same count RP2's orphaned=yes case produced
+  ok   OR5d: reap-c's orphaned=no driver is dead after --kill -- identical outcome to RP2's orphaned=yes case
+  ok   OR6: lock-less device + single PPID-1 driver -> rc 3 OCCUPIED (NEARS-1738 repro shape) (rc=3)
+  ok   OR6b: the banner fires
+  ok   OR6c: the rc-3 message NAMES the orphan signal -- AC1's 'distinguishably from a genuinely busy device'
+  ok   OR7: a genuinely-parented driver is STILL occupied -- rc 3 unchanged, this is reporting-only (rc=3)
+  ok   OR7b: but the message distinguishes it -- orphaned=no
+  ok   OR7c: -- the busy case is never mislabeled orphaned
+-- DK: qa_disk_reclaim (NEARS-2489)
+  ok   DK1: report mode returns 0 (rc=0)
+  ok   DK1b: free MB is read, compared to the 800MB floor, and verdicted
+  ok   DK1c: /data/local/tmp inventory is listed
+  ok   DK1d: stale /sdcard QA screenshots are listed
+  ok   DK1e: the inventory is counted
+  ok   DK1f: report mode says it reclaimed nothing
+  ok   DK1g: the call log shows ZERO mutating adb calls in report mode
+  ok   DK2: --clean on an answerable df returns 0 (rc=0)
+  ok   DK2b: the below-floor reading is reported before cleaning
+  ok   DK2c: pm trim-caches (cache dirs only) is the sanctioned package-level lever
+  ok   DK2d: POSITIVE CONTROL half 1 — a deletable tmp fixture produces a logged deletion
+  ok   DK2e: POSITIVE CONTROL half 2 — that deletion REACHED adb (the zero-izzes grep below is proven against a live deletion path, not a clean that deletes nothing)
+  ok   DK2f: the izzes-named path is skipped, loudly
+  ok   DK2g: the call log carries ZERO izzes-touching or pm clear/uninstall calls — the never-touch rule held under a live clean
+  ok   DK2h: the stale QA screenshot deletion reached adb too
+  ok   DK2i: the MANDATORY floor re-check prints genuine before/after MB
+  ok   DK2j: a quote-breakout-shaped tmp name is REJECTED with its own loud skip line (F1)
+  ok   DK2k: a quote-breakout-shaped sdcard path is REJECTED in the shot loop too (F1)
+  ok   DK2l: NO rm for either breakout-shaped name reached adb — rejection, not escaping, and the benign sibling's deletion (DK2d/DK2e) in this same run proves the check is not skipping everything
+  ok   DK3: --clean on an unanswerable df returns 4, not success (rc=4)
+  ok   DK3b: the report says the reading is indeterminate
+  ok   DK3c: the refusal names the rule
+  ok   DK3d: ZERO mutating adb calls were made off the indeterminate reading
+  ok   DK4: qa_disk_reclaim without a serial is a usage error (rc=2)
+  ok   DK5: the guard contains ZERO pm clear / pm uninstall device commands
+  ok   DK5b: the com.izzes never-touch skip guard exists in both rm loops (2 sites)
+  ok   Z1: every NEARS-1805 case id executed and asserted
+  ok   Z3: every NEARS-1810 lane case id executed and asserted
+  ok   Z4: every NEARS-1727 case id executed and asserted
+  ok   Z5: every NEARS-1989 phantom case id executed and asserted
+  ok   Z6: every NEARS-2426 iOS-probe case id executed and asserted
+  ok   Z7: every NEARS-2489 case id executed and asserted
+  ok   Z8: every NEARS-2031 orphan-classification case id executed and asserted
+
+assertions executed: 497
+assertion count matches the pin (497)
+PASS: qa-lock-guard.test.sh

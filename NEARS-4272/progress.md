@@ -1,0 +1,6 @@
+# NEARS-4272 QA [8] progress (cycle 0)
+- AC3: PASS - all 9 self-tests green (wrapper 217, flows 14, catalog 16, check-asserts 17, check-ac-coverage 18, check-ids 29, logcat-gate 38, junit-ac-table 50, secret-forms 18); lock-guard 497 unchanged green; guards live on real corpus (selftests/, ac3-guards-live-corpus.log)
+- AC2 cloud half: PASS live - cloud/--analyze/--include-tags --api-key/--api-key/login/mcp each rc 2, 0 JVMs, 0 tests folders (ac2-cloud-flag-refusals.log)
+- AC2 lock half: PASS live - foreign sentinel hold in temp QA_LOCKS_DIR -> rc 2 'qa_lock_acquire emulator-5572 refused', owner.json unchanged (ac2-foreign-lock-refusal.log)
+- Build BLOCKED: mem-guard exit 96, swap 6.3 GB > 6.0 GB, flat 00:44-01:06 (blocked-memguard-swap.log)
+- AC1/AC4/AC5/AC6 live: not run (no APK)
