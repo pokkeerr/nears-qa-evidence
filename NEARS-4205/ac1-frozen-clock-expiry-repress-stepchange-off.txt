@@ -1,0 +1,27 @@
+== A: expiry boundary (busy +10 pressed at T0)
+press -> 200 until=2026-10-20T03:47:45+04:00 (T0=2026-10-20T02:47:45+04:00)
+T+0:01 details                                                 got=26-28 want=26-28 OK
+T+59:59 details                                                got=26-28 want=26-28 OK
+T+59:59 list                                                   got=26-28 want=26-28 OK
+T+60:00 details                                                got=16-18 want=16-18 OK
+T+60:00 list                                                   got=16-18 want=16-18 OK
+T+60:01 details                                                got=16-18 want=16-18 OK
+events after expiry (no busy_off expected): 1
+== B: re-press at T+40 ends T+100 (not T+60)
+re-press at T+40 -> 200 until=2026-10-20T07:47:45+04:00 expected 2026-10-20T07:47:45+04:00
+T+60:01 (would be base without re-press)                       got=26-28 want=26-28 OK
+T+99:59                                                        got=26-28 want=26-28 OK
+T+100:00                                                       got=16-18 want=16-18 OK
+== C: step change +10 -> +30 at T+40, expiry T+100
+T+39 still +10                                                 got=26-28 want=26-28 OK
+step change -> 200 minutes=30 until=2026-10-20T11:07:45+04:00 expected 2026-10-20T11:07:45+04:00
+T+40 next request uses +30 details                             got=46-48 want=46-48 OK
+T+40 list                                                      got=46-48 want=46-48 OK
+T+99:59 +30                                                    got=46-48 want=46-48 OK
+T+100 base                                                     got=16-18 want=16-18 OK
+== D: manual off
+busy +20 live                                                  got=36-38 want=36-38 OK
+off -> 200 {"eta_busy":{"active":false,"minutes":0,"until":null,"remaining_seconds":0,"steps":[10,20,30]}}
+after off details                                              got=16-18 want=16-18 OK
+after off list                                                 got=16-18 want=16-18 OK
+off again (nothing on) -> 200 rows delta=0 (expect 0)

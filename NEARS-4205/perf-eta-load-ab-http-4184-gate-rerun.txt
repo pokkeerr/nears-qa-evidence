@@ -1,0 +1,21 @@
+dataset check (each server must see >= 437 stores in the list):
+  http://127.0.0.1:8922 total_size=437
+  http://127.0.0.1:8921 total_size=437
+ab -n 200 -c 4, 3 runs per server per path, warm-up 15, output /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//etaloadab.TTnKwA
+path1: /api/v1/stores/get-stores/all?limit=25&offset=1&type=all
+  base path1 run1  p50=162ms p95=174ms p99=210ms 24.43 req/s (clean 2xx)
+  head path1 run1  p50=164ms p95=185ms p99=322ms 23.76 req/s (clean 2xx)
+  head path1 run2  p50=161ms p95=198ms p99=322ms 23.80 req/s (clean 2xx)
+  base path1 run2  p50=156ms p95=174ms p99=308ms 24.88 req/s (clean 2xx)
+  base path1 run3  p50=152ms p95=179ms p99=246ms 25.55 req/s (clean 2xx)
+  head path1 run3  p50=161ms p95=174ms p99=323ms 23.97 req/s (clean 2xx)
+  => path1 median p95: base=174ms head=185ms ratio=1.063 (tolerance 10%) WITHIN
+path2: /api/v1/stores/get-stores/all?limit=25&offset=1&type=all&store_type=fastest
+  base path2 run1  p50=160ms p95=176ms p99=272ms 24.41 req/s (clean 2xx)
+  head path2 run1  p50=160ms p95=174ms p99=327ms 24.21 req/s (clean 2xx)
+  head path2 run2  p50=161ms p95=172ms p99=310ms 24.10 req/s (clean 2xx)
+  base path2 run2  p50=162ms p95=177ms p99=314ms 23.98 req/s (clean 2xx)
+  base path2 run3  p50=163ms p95=180ms p99=327ms 23.43 req/s (clean 2xx)
+  head path2 run3  p50=160ms p95=172ms p99=175ms 24.96 req/s (clean 2xx)
+  => path2 median p95: base=177ms head=172ms ratio=0.972 (tolerance 10%) WITHIN
+results: /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//etaloadab.TTnKwA/results.tsv

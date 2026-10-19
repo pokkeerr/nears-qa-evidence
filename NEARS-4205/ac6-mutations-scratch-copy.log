@@ -1,0 +1,55 @@
+scratch copy == worktree HEAD 2cb9b2c7f bytes (EtaLogic 63db5093b5ee, EtaBusy 6b3e86c82f56)
+== control (unmutated)
+OK (459 tests, 6634 assertions)
+== M1 busy BEFORE x1.25
+<         $raw = round($s->bufferFactor * $typical + $s->bufferMin + $allowance + $input->busyMinutes, 4);
+>         $raw = round($s->bufferFactor * ($typical + $input->busyMinutes) + $s->bufferMin + $allowance, 4);
+1) Tests\Feature\EtaBusyAcceptanceTest::test_an_order_placed_before_busy_but_accepted_during_it_gets_the_busy_window_and_promise
+2) Tests\Feature\EtaBusyAcceptanceTest::test_an_order_placed_during_busy_is_quoted_and_accepted_with_it
+3) Tests\Feature\EtaBusyAcceptanceTest::test_acceptance_after_the_window_lapsed_carries_no_busy
+4) Tests\Feature\EtaBusyWindowTest::test_busy_raises_the_upper_bound_of_the_list_and_details_windows_by_exactly_the_step_with_no_cache_clear with data set "car 499 m" ('car', 499.0, [16, 18], [[26, 28
+5) Tests\Feature\EtaBusyWindowTest::test_busy_raises_the_upper_bound_of_the_list_and_details_windows_by_exactly_the_step_with_no_cache_clear with data set "bicycle 800 m" ('bicycle', 800.0, [22, 24], 
+6) Tests\Feature\EtaBusyWindowTest::test_busy_raises_the_upper_bound_of_the_list_and_details_windows_by_exactly_the_step_with_no_cache_clear with data set "walking 400 m" ('walking', 400.0, [24, 26], 
+7) Tests\Feature\EtaBusyWindowTest::test_busy_is_added_after_the_buffer_factor_not_before_it
+8) Tests\Feature\EtaBusyWindowTest::test_the_busy_window_lapses_at_exactly_one_hour_for_both_readers
+9) Tests\Feature\EtaBusyWindowTest::test_malformed_busy_columns_never_move_the_window
+10) Tests\Feature\EtaLogicParityTest::test_busy_active_expired_and_null_agree_between_php_and_sql_including_the_expiry_instant
+11) Tests\Feature\EtaLogicParityTest::test_the_expiry_instant_moves_both_readers_together
+12) Tests\Unit\EtaLogicTest::test_compute_equals_the_oracle with data set "same tower busy+10 acceptance" ([8, 'car', 0.0, null, null, true, 0, 10, 1.25, 1, null], '22-24', 22.4583, 9.166666666666666)
+13) Tests\Unit\EtaLogicTest::test_compute_equals_the_oracle with data set "busy +10 car 499 checkout" ([8, 'car', 499.0, null, null, false, 2, 10, 1.25, 1, null], '26-28', 26.9583, 11.166666666666666)
+14) Tests\Unit\EtaLogicTest::test_compute_equals_the_oracle with data set "busy +20 car 499 checkout" ([8, 'car', 499.0, null, null, false, 2, 20, 1.25, 1, null], '36-38', 36.9583, 11.166666666666666)
+15) Tests\Unit\EtaLogicTest::test_compute_equals_the_oracle with data set "busy +30 car 499 checkout" ([8, 'car', 499.0, null, null, false, 2, 30, 1.25, 1, null], '46-48', 46.9583, 11.166666666666666)
+16) Tests\Unit\EtaLogicTest::test_compute_equals_the_oracle with data set "overcap busy+30" ([8, 'car', 499.0, null, null, false, 2, 30, 1.25, 1, null], '46-48', 46.9583, 11.166666666666666)
+17) Tests\Unit\EtaLogicTest::test_compute_raw_and_typical_equal_the_oracle with data set "same tower busy+10 acceptance" ([8, 'car', 0.0, null, null, true, 0, 10, 1.25, 1, null], '22-24', 22.4583, 9.1
+18) Tests\Unit\EtaLogicTest::test_compute_raw_and_typical_equal_the_oracle with data set "busy +10 car 499 checkout" ([8, 'car', 499.0, null, null, false, 2, 10, 1.25, 1, null], '26-28', 26.9583, 11.1
+19) Tests\Unit\EtaLogicTest::test_compute_raw_and_typical_equal_the_oracle with data set "busy +20 car 499 checkout" ([8, 'car', 499.0, null, null, false, 2, 20, 1.25, 1, null], '36-38', 36.9583, 11.1
+20) Tests\Unit\EtaLogicTest::test_compute_raw_and_typical_equal_the_oracle with data set "busy +30 car 499 checkout" ([8, 'car', 499.0, null, null, false, 2, 30, 1.25, 1, null], '46-48', 46.9583, 11.1
+21) Tests\Unit\EtaLogicTest::test_compute_raw_and_typical_equal_the_oracle with data set "overcap busy+30" ([8, 'car', 499.0, null, null, false, 2, 30, 1.25, 1, null], '46-48', 46.9583, 11.16666666666
+22) Tests\Unit\EtaLogicTest::test_allowance_and_busy_are_added_after_the_factor
+23) Tests\Unit\EtaLogicTest::test_over_cap_keeps_the_uncapped_ints_and_flags_it
+Tests: 459, Assertions: 1990, Failures: 23.
+restored-identical
+== M2 busy applied to accepted orders (retroactive promise bump in EtaBusy::set)
+>         DB::table('orders')->where('store_id', $store->id)->whereIn('order_status', ['confirmed', 'processing'])->whereNotNull('eta_promised_by')->update(['eta_promised_by' => DB::raw('DATE_ADD(eta_promised_b
+1) Tests\Feature\EtaBusyAcceptanceTest::test_an_order_accepted_before_busy_was_switched_on_keeps_every_promise_column
+Tests: 459, Assertions: 6630, Failures: 1.
+restored-identical
+== M3 busy ignored at acceptance
+<             busyMinutes: (float) EtaBusy::activeMinutes($store->getAttributes()),
+>             busyMinutes: $atAcceptance ? 0.0 : (float) EtaBusy::activeMinutes($store->getAttributes()),
+1) Tests\Feature\EtaBusyAcceptanceTest::test_an_order_placed_before_busy_but_accepted_during_it_gets_the_busy_window_and_promise
+2) Tests\Feature\EtaBusyAcceptanceTest::test_an_order_placed_during_busy_is_quoted_and_accepted_with_it
+3) Tests\Feature\EtaBusyWindowTest::test_the_busy_leg_is_recorded_on_the_result_for_the_quote_and_the_acceptance_snapshot
+4) Tests\Feature\EtaStageBComputedPathTest::test_a_live_busy_leg_is_a_numeric_minutes_leaf_inside_the_allow_list
+Tests: 459, Assertions: 6501, Failures: 4.
+restored-identical
+== M4 re-quote >= (240 s pushes)
+<         return $new->getTimestamp() - $old->getTimestamp() > self::requoteThresholdSeconds();
+>         return $new->getTimestamp() - $old->getTimestamp() >= self::requoteThresholdSeconds();
+1) Tests\Feature\EtaNeedMoreTimeTest::test_the_comparator_is_strictly_greater_than_the_threshold_in_seconds with data set #1 (240, false)
+2) Tests\Feature\EtaNeedMoreTimeTest::test_a_four_minute_move_sends_no_requote_and_a_five_minute_move_does
+3) Tests\Feature\EtaNeedMoreTimeTest::test_the_threshold_is_tunable_and_the_default_steps_always_exceed_it
+Tests: 459, Assertions: 6623, Failures: 3.
+restored-identical
+== control after all restores
+OK (459 tests, 6634 assertions)

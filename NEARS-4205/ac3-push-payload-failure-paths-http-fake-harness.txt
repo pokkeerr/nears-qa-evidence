@@ -1,0 +1,20 @@
+cache driver in harness: array
+fcm project in harness: qa-fake
+S1 EN: HTTP 200 {"order_id":91437,"minutes":10,"requoted":true,"used_minutes":10} posts=1
+   token=qa4205-fake-token-en title=Your order needs a few more minutes
+   body=The store needs a few more minutes to prepare order #91437. Delivery is now promised by 03:15.
+S1 one FCM post to the customer token                                         OK
+S1 body states new by-time 03:15                                              OK
+S2 AR: HTTP 200 posts=1 title=طلبك يحتاج إلى بضع دقائق إضافية
+   body=يحتاج المتجر إلى بضع دقائق إضافية لتجهيز الطلب رقم 91438. موعد التوصيل المحدّث: 03:15.
+S2 Arabic text + by-time                                                      OK
+S3 notify_order_updates=0 -> HTTP 200, requoted=true, 0 FCM posts, extension keptOK
+S4 guest -> HTTP 200, 1 FCM post to the guest token, 0 inbox rows             OK
+S5 FCM HTTP 500 -> HTTP 200, promise moved, event row kept                    OK
+S6 notice failure: HTTP 200 body={"order_id":91442,"minutes":10,"requoted":true,"used_minutes":10}
+   log: [2026-10-20 02:51:59] production.ERROR: [FAIL] eta requote notice failed {"trace_id":"c1c413480a9817e3bb7ca83416dd48ab","correlation_id":"ae6e42cb-9a72-41e1-a0c1-2935b3d537e3","order_id":91442,"store_id":4,"exception_type":"RuntimeException"} 
+S6 200 + promise moved + [FAIL] eta requote notice failed (ids+class only, no message)OK
+S7 lookup failure: HTTP 200
+   log: [2026-10-20 02:51:59] production.ERROR: [FAIL] eta requote lookup failed {"trace_id":"f43471ba33734d417d11c7ce36ba26a8","correlation_id":"d3856dbd-7bad-4af3-ae7d-8dee145d318a","order_id":91443,"exception_type":"RuntimeException"} 
+S7 200 + promise moved + [FAIL] eta requote lookup failed (ids+class only)    OK
+rolled back; orders>91429 remaining: 0 (committed earlier live ones excluded)

@@ -1,0 +1,15 @@
+server env: CACHE_DRIVER=database DB=DB_DATABASE=multi_food_db_qa4205  (php artisan serve :8905, own PID)
+post-response callback ran under CACHE_DRIVER=database: customer inbox rows written after the 200 for requoted orders, FCM attempt logged per push
+id	user_id	created_at	description
+589	1	2026-10-20 02:50:19	The store needs a few more minutes to prepare order #91420. Delivery is now promised by 03:14.
+591	1	2026-10-20 02:50:20	The store needs a few more minutes to prepare order #91421. Delivery is now promised by 03:14.
+595	1	2026-10-20 02:50:47	The store needs a few more minutes to prepare order #91424. Delivery is now promised by 03:09.
+597	1	2026-10-20 02:50:48	The store needs a few more minutes to prepare order #91425. Delivery is now promised by 03:08.
+623	1	2026-10-20 02:52:17	The store needs a few more minutes to prepare order #91444. Delivery is now promised by 03:16.
+625	1	2026-10-20 02:52:17	The store needs a few more minutes to prepare order #91445. Delivery is now promised by 03:11.
+
+FCM attempt log lines (push reached send_push_notif_to_device post-response; twin FCM config blanked on purpose): 288
+
+refusal warn line sample (ids + reason only):
+[2026-10-20 03:26:15] production.WARNING: [WARN] eta more time refused {"correlation_id":"611c4e8a-dfee-4f55-ba43-c2755c74e46a","endpoint":"/api/v1/vendor/order-need-more-time","order_id":91523,"store_id":3,"reason":"eta_more_time_unavailable"} 
+[2026-10-20 03:26:15] production.WARNING: [WARN] eta more time refused {"correlation_id":"8154d180-3b2a-4f72-8663-13b136a45557","endpoint":"/api/v1/vendor/order-need-more-time","order_id":91524,"store_id":4,"reason":"eta_more_time_unavailable"} 

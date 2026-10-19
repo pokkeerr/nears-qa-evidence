@@ -1,0 +1,30 @@
+order 91420 promise before 2026-10-20 03:04:19
+own owner +10 -> 200 {'order_id': 91420, 'minutes': 10, 'requoted': True, 'used_minutes': 10}
+ promise after 2026-10-20 03:14:19
+ delta seconds = 600.0 OK
+ 200 body has promised_by? False (want False)
+ event row: more_time	10	2026-10-20 03:04:19	2026-10-20 03:14:19	1	store	4	4
+second call -> 403 {'errors': [{'code': 'eta_more_time_used', 'message': 'Extra time was already added to this order.'}]} promise unchanged: True event rows: 1
+second call different step -> 403 {'errors': [{'code': 'eta_more_time_used', 'message': 'Extra time was already added to this order.'}]} event rows: 1
+customer bearer -> 401 {'errors': [{'code': 'auth-001', 'message': 'Unauthorized.'}]}
+customer bearer no vendorType -> 403 {'errors': [{'code': 'vendor_type', 'message': 'Vendor type required'}]}
+delivery-man bearer -> 401 {'errors': [{'code': 'auth-001', 'message': 'Unauthorized.'}]}
+delivery-man bearer no vendorType-> 403 {'errors': [{'code': 'vendor_type', 'message': 'Vendor type required'}]}
+missing vendorType -> 403 {'errors': [{'code': 'vendor_type', 'message': 'Vendor type required'}]}
+garbage token -> 401 {'errors': [{'code': 'auth-001', 'message': 'Unauthorized.'}]}
+no token -> 401 {'errors': [{'code': 'auth-001', 'message': 'Unauthorized.'}]}
+ O2 promise untouched by negatives: True events: 0
+employee store_setup only (no order module) -> 403 {'errors': [{'code': 'access_denied', 'message': 'Access denied'}]}
+employee item only -> 403 {'errors': [{'code': 'access_denied', 'message': 'Access denied'}]}
+employee WITH order module -> 200 {'order_id': 91421, 'minutes': 10, 'requoted': True, 'used_minutes': 10} promise delta 600.0
+other store order -> 403 {'errors': [{'code': 'eta_more_time_unavailable', 'message': 'Extra time is not available for this order.'}]}
+nonexistent id   -> 403 {'errors': [{'code': 'eta_more_time_unavailable', 'message': 'Extra time is not available for this order.'}]}
+ byte-identical: True
+ O3 untouched: True
+invalid {'order_id': 91421, 'minutes': 7} -> 403 {'errors': [{'code': 'minutes', 'message': 'The selected minutes is invalid.'}]}
+invalid {'order_id': 91421} -> 403 {'errors': [{'code': 'minutes', 'message': 'The minutes field is required.'}]}
+invalid {'minutes': 10} -> 403 {'errors': [{'code': 'order_id', 'message': 'The order id field is required.'}]}
+invalid {'order_id': 'abc', 'minutes': 10} -> 403 {'errors': [{'code': 'order_id', 'message': 'The order id must be an integer.'}]}
+invalid {'order_id': 91421, 'minutes': 'x'} -> 403 {'errors': [{'code': 'minutes', 'message': 'The minutes must be an integer.'}]}
+invalid {'order_id': 91421, 'minutes': -5} -> 403 {'errors': [{'code': 'minutes', 'message': 'The selected minutes is invalid.'}]}
+invalid {'order_id': 91421, 'minutes': 0} -> 403 {'errors': [{'code': 'minutes', 'message': 'The selected minutes is invalid.'}]}
