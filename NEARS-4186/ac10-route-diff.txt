@@ -1,0 +1,51 @@
+# AC10 route diff vs base 02fac58848fc38cd917134d3d7ea9d3836ca9cfd
+-- git diff --stat base..HEAD -- Admin/routes Admin/Modules (route files):
+(empty above = no route file touched)
+-- files changed overall:
+ Admin/app/CentralLogics/EtaAccuracyReport.php      | 230 +++++++++
+ Admin/app/CentralLogics/OrderEtaCapture.php        | 165 ++++++
+ Admin/app/CentralLogics/OrderTimeline.php          | 183 +++++++
+ .../Console/Commands/EtaAccuracyReportCommand.php  | 129 +++++
+ Admin/app/Models/Order.php                         |  37 ++
+ Admin/app/Services/Order/OrderPlacementService.php |  25 +-
+ Admin/bootstrap/app.php                            |   3 +
+ ..._10_19_160000_add_eta_quote_to_orders_table.php |  69 +++
+ ...160100_add_lifecycle_stamps_to_orders_table.php |  58 +++
+ .../seeders/Nears4186EtaCaptureQaFixtureSeeder.php | 214 ++++++++
+ Admin/tests/Feature/EtaAccuracyReportTest.php      | 481 +++++++++++++++++
+ Admin/tests/Feature/EtaCaptureMigrationsTest.php   |  88 ++++
+ .../Feature/EtaCaptureSchemaProvisioningTest.php   |  81 +++
+ ...EtaCaptureSchemaProvisioningTransactionTest.php |  55 ++
+ .../tests/Feature/EtaCaptureSerialisationTest.php  | 140 +++++
+ Admin/tests/Feature/EtaDataCaptureDocsTest.php     |  46 ++
+ Admin/tests/Feature/EtaForStoreCallSitesTest.php   | 129 +++++
+ .../Feature/EtaQuoteSnapshotPlacementTest.php      | 420 +++++++++++++++
+ .../Nears4186EtaCaptureQaFixtureSeederTest.php     | 194 +++++++
+ Admin/tests/Feature/OrderTimelineStampsTest.php    | 569 +++++++++++++++++++++
+ Admin/tests/Support/EtaCaptureDouble.php           |  60 +++
+ Admin/tests/Support/ProvisionsEtaCaptureSchema.php |  69 +++
+ Admin/tests/Support/ThrowingOrderTimeline.php      |  19 +
+ Admin/tests/TestCase.php                           |   3 +
+ docs/backend/api-shapes.md                         |   8 +-
+ docs/catalog.json                                  |   7 +
+ docs/data-qa/dev-seed-qa-fixtures.md               |  24 +
+ docs/index.md                                      |   1 +
+ docs/platform/eta-data-capture.md                  |  73 +++
+ docs/solutions/NEARS-4186-eta-data-capture.md      |  28 +
+ users_test_data.md                                 |   7 +
+ 31 files changed, 3613 insertions(+), 2 deletions(-)
+-- bootstrap/app.php diff:
+diff --git a/Admin/bootstrap/app.php b/Admin/bootstrap/app.php
+index f2e23c015..1168aaea6 100644
+--- a/Admin/bootstrap/app.php
++++ b/Admin/bootstrap/app.php
+@@ -60,6 +60,9 @@ return Application::configure(basePath: dirname(__DIR__))
+ 
+         // NEARS-3033: purge revoked + expired(>24h) Passport OAuth tokens (unbounded growth — 1,097 rows / 422 expired / 78 revoked found by audit AUD-PERF-58).
+         $schedule->command('passport:purge --hours=24')->daily();
++
++        // NEARS-4186: the D11 guardrail instrument; a breach exits non-zero and writes the [FAIL] line.
++        $schedule->command('eta:accuracy-report')->daily();
+     })
+ 
+     ->withMiddleware(function (Middleware $middleware) {

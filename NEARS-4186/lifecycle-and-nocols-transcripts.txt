@@ -1,0 +1,183 @@
+# NEARS-4186 lifecycle stamp transcripts (twin multi_food_db_qa4186, backend :8186). Tokens are never written here.
+
+######## lifecycle1
+== T1 store OWNER taps confirmed on pending 91416
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91416	pending	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+{"message":"Status updated"}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91416	confirmed	NULL	NULL	2026-10-19 06:13:17	store	1	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+== T2 store_employee taps processing on pending 91417
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91417	pending	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+{"message":"Status updated"}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91417	processing	NULL	NULL	2026-10-19 06:13:18	store_employee	2	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+== T3 wallet-paid born-confirmed 91433 (no stamp at placement) then store tap processing
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91433	confirmed	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+{"message":"Status updated"}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91433	processing	NULL	NULL	2026-10-19 06:13:18	store	1	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+== T4 second writer: owner taps processing then employee taps handover on 91416 (already stamped by owner confirmed): stamps unchanged
+{"message":"Status updated"}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91416	processing	NULL	NULL	2026-10-19 06:13:17	store	1	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+{"message":"Status updated"}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91416	handover	NULL	NULL	2026-10-19 06:13:17	store	1	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+
+######## lifecycle2
+== T5 customer cancel of pending 91418 WITH client-posted vendor/delivery_man body claims (request-bag spoof): all stamps stay NULL
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91418	pending	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+{"message":"Order canceled successfully"}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91418	canceled	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+== T6 customer wallet-pay of pending 91419 (confirmed by payment path Api/V1/OrderController walletPayment) WITH spoofed body: accepted_at stays NULL
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91419	pending	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+{"message":"Order payment successfully"}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91419	confirmed	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+
+######## lifecycle4
+== T7a DM accepts 91417 (already store_employee-stamped, status processing): dm_assigned_at stamped, accepted_at/by UNCHANGED
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91417	processing	NULL	NULL	2026-10-19 06:13:18	store_employee	2	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+{"message":"Order accepted successfully"}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91417	processing	2026-10-19 06:13:51	2	2026-10-19 06:13:18	store_employee	2	2026-10-19 06:13:51	NULL	NULL	NULL	NULL	NULL	NULL
+== T7b DM accepts 91419 (wallet-confirmed by payment, accepted_at NULL): accepted_at stamped by delivery_man + dm_assigned_at
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91419	confirmed	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+{"errors":[{"code":"dm_maximum_order_exceed","message":"Dm maximum order exceed warning"}]}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91419	confirmed	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+== T7c DM re-accept of 91419 (second writer / already assigned): refused, stamps unchanged
+{"errors":[{"code":"dm_maximum_order_exceed","message":"Dm maximum order exceed warning"}]}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91419	confirmed	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+== T7b DM(id 3, carlos) accepts 91419 (wallet-confirmed by payment, accepted_at NULL): accepted_at stamped by delivery_man + dm_assigned_at
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91419	confirmed	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+{"message":"Order accepted successfully"}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91419	accepted	2026-10-19 06:14:01	3	2026-10-19 06:14:01	delivery_man	3	2026-10-19 06:14:01	NULL	NULL	NULL	NULL	NULL	NULL
+== T7c second accept attempt on 91419 by david(2) (already assigned): refused, stamps unchanged
+{"errors":[{"code":"order","message":"Can not accept"}]}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91419	accepted	2026-10-19 06:14:01	3	2026-10-19 06:14:01	delivery_man	3	2026-10-19 06:14:01	NULL	NULL	NULL	NULL	NULL	NULL
+
+######## lifecycle5
+== T8 rider picked_up then delivered on 91419
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91419	accepted	2026-10-19 06:14:01	3	2026-10-19 06:14:01	delivery_man	3	2026-10-19 06:14:01	NULL	NULL	NULL	NULL	NULL	NULL
+{"message":"Status updated"}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91419	picked_up	2026-10-19 06:14:01	3	2026-10-19 06:14:01	delivery_man	3	2026-10-19 06:14:01	delivery_man	3	NULL	NULL	NULL	NULL
+{"message":"Status updated"}
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91419	delivered	2026-10-19 06:14:01	3	2026-10-19 06:14:01	delivery_man	3	2026-10-19 06:14:01	delivery_man	3	delivery_man	3	NULL	NULL
+id	order_status	picked_up	delivered	failed
+91419	delivered	2026-10-19 06:14:07	2026-10-19 06:14:07	NULL
+
+######## lifecycle6
+== T9 super-admin assigns DM 3 to pending 91420 (no prior stamp)
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91420	pending	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+[]
+HTTP 200
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91420	accepted	2026-10-19 06:17:40	3	2026-10-19 06:17:40	admin	1	2026-10-19 06:17:40	NULL	NULL	NULL	NULL	NULL	NULL
+== T10 zone-restricted admin (admin id 5, zone 2, ZoneScope in force) assigns DM 1 (zone 2) to wallet-confirmed zone-2 order 91435
+id	zone_id	order_status	delivery_man_id
+91435	2	confirmed	NULL
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91435	confirmed	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+{"message":"Deliveryman not available!"}
+HTTP 400
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91435	confirmed	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+== T10 (retry, twin fixture current_orders=0 for DM 1) zone-restricted admin id 5 (zone 2, ZoneScope in force) assigns DM 1 to zone-2 order 91435
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91435	confirmed	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+[]
+HTTP 200
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91435	accepted	2026-10-19 06:17:52	1	2026-10-19 06:17:52	admin	5	2026-10-19 06:17:52	NULL	NULL	NULL	NULL	NULL	NULL
+== T10b ZoneScope is REAL: the same zone-2 admin cannot see/assign a zone-1 order via the scoped path? (informational: assign DM 3 to zone-1 order 91421 as zone-2 admin)
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91421	pending	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+{"message":"Deliveryman not available!"}
+HTTP 400
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91421	pending	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
+
+######## lifecycle7
+== T11 second assignment: super-admin REASSIGNS 91420 from DM 3 to DM 1 -> delivery_man_id changes, dm_assigned_at / accepted_at / accepted_by (FIRST) unchanged
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91420	accepted	2026-10-19 06:17:40	3	2026-10-19 06:17:40	admin	1	2026-10-19 06:17:40	NULL	NULL	NULL	NULL	NULL	NULL
+[]
+HTTP 200
+id	st	accepted_flag	dm	accepted_at	ab_t	ab_id	dm_assigned_at	pu_t	pu_id	dl_t	dl_id	eta_promised_by	am
+91420	accepted	2026-10-19 06:18:00	1	2026-10-19 06:17:40	admin	1	2026-10-19 06:17:40	NULL	NULL	NULL	NULL	NULL	NULL
+
+######## NOCOLS twin (16 columns absent): AC2 + hook degrade
+--- order 2 sent X-Request-Id=4a26ba8b-8001-462e-bcbf-50ac65b90a5a; HTTP/1.1 200 OK
+X-Request-Id: 4a26ba8b-8001-462e-bcbf-50ac65b90a5a
+{"message":"Order placed successfully","order_id":91417}
+FAIL lines carrying this request id:
+[2026-10-19 06:18:29] production.ERROR: [FAIL] eta quote snapshot failed {"trace_id":"ebe558497f82aafe40d6e7c3967f7218","correlation_id":"4a26ba8b-8001-462e-bcbf-50ac65b90a5a","order_id":91417,"reason":"unknown_column","exception_type":"Illuminate\\Database\\QueryException","request_id":"4a26ba8b-8001-462e-bcbf-50ac65b90a5a"} 
+count of '[FAIL] eta quote snapshot failed' in this window: 1
+--- order 3 sent X-Request-Id=a3b1d8a5-96a8-4300-925b-db919b669def; HTTP/1.1 200 OK
+X-Request-Id: a3b1d8a5-96a8-4300-925b-db919b669def
+{"message":"Order placed successfully","order_id":91418}
+FAIL lines carrying this request id:
+[2026-10-19 06:18:31] production.ERROR: [FAIL] eta quote snapshot failed {"trace_id":"7afc9b93fe7bc0e2cb658c56d5676d17","correlation_id":"a3b1d8a5-96a8-4300-925b-db919b669def","order_id":91418,"reason":"unknown_column","exception_type":"Illuminate\\Database\\QueryException","request_id":"a3b1d8a5-96a8-4300-925b-db919b669def"} 
+count of '[FAIL] eta quote snapshot failed' in this window: 1
+== NOCOLS twin: store taps confirmed on 91416 with the 16 columns absent (hook must not break the tap)
+{"message":"Status updated"}
+id	order_status
+91416	confirmed
+log lines for request 1bcc010d-e213-42a4-a3b1-d75b77944db6:
+[2026-10-19 06:18:42] production.ERROR: [FAIL] order timeline stamp failed {"trace_id":"46d9c3f06a9c05f6e57cee01546d2c23","correlation_id":"1bcc010d-e213-42a4-a3b1-d75b77944db6","order_id":91416,"reason":"unknown_column","exception_type":"Illuminate\\Database\\QueryException","request_id":"1bcc010d-e213-42a4-a3b1-d75b77944db6"} 
+[2026-10-19 06:18:42] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"46d9c3f06a9c05f6e57cee01546d2c23","correlation_id":"1bcc010d-e213-42a4-a3b1-d75b77944db6","cache_key":"fcm_oauth_access_token_nears-1d39b"} 
+[2026-10-19 06:18:42] production.WARNING: FCM Sending notification {"trace_id":"46d9c3f06a9c05f6e57cee01546d2c23","correlation_id":"1bcc010d-e213-42a4-a3b1-d75b77944db6","message_type":"topic"} 
+[2026-10-19 06:18:42] production.WARNING: FCM Send Success {"trace_id":"46d9c3f06a9c05f6e57cee01546d2c23","correlation_id":"1bcc010d-e213-42a4-a3b1-d75b77944db6","status":200,"order_id":"91416"} 
+[2026-10-19 06:18:42] production.WARNING: [WARN] FCM OAuth access token cache hit {"trace_id":"46d9c3f06a9c05f6e57cee01546d2c23","correlation_id":"1bcc010d-e213-42a4-a3b1-d75b77944db6","cache_key":"fcm_oauth_access_token_nears-1d39b"} 
+[2026-10-19 06:18:42] production.WARNING: FCM Sending notification {"trace_id":"46d9c3f06a9c05f6e57cee01546d2c23","correlation_id":"1bcc010d-e213-42a4-a3b1-d75b77944db6","message_type":"topic"} 
+[2026-10-19 06:18:43] production.WARNING: FCM Send Success {"trace_id":"46d9c3f06a9c05f6e57cee01546d2c23","correlation_id":"1bcc010d-e213-42a4-a3b1-d75b77944db6","status":200,"order_id":"91416"} 
+
+######## POS order born delivered keeps all 16 columns NULL (id 94157)
+*************************** 1. row ***************************
+                    id: 94157
+            order_type: pos
+          order_status: delivered
+            eta_source: NULL
+           eta_version: NULL
+eta_quoted_min_minutes: NULL
+eta_quoted_max_minutes: NULL
+            eta_inputs: NULL
+           accepted_at: NULL
+        dm_assigned_at: NULL
+      accepted_by_type: NULL
+        accepted_by_id: NULL
+     picked_up_by_type: NULL
+     delivered_by_type: NULL
+
+######## payload key scan (AC10); instrument control = control_row.json finds 9 of the new keys
+c_details.json order_objects=0 of_which_91417=0 new_keys_found=[]
+c_list.json order_objects=50 of_which_91417=0 new_keys_found=[]
+c_running.json order_objects=50 of_which_91417=1 new_keys_found=[]
+c_track.json order_objects=1 of_which_91417=1 new_keys_found=[]
+control_row.json order_objects=0 of_which_91417=0 new_keys_found=["accepted_at","accepted_by_type","delivered_by_type","dm_assigned_at","eta_inputs","eta_promised_by","eta_quoted_min_minutes","eta_source","picked_up_by_id"]
+d_all.json order_objects=3 of_which_91417=0 new_keys_found=[]
+d_current.json order_objects=2 of_which_91417=1 new_keys_found=[]
+d_details.json order_objects=0 of_which_91417=0 new_keys_found=[]
+d_latest.json order_objects=4 of_which_91417=0 new_keys_found=[]
+d_order.json order_objects=1 of_which_91417=1 new_keys_found=[]
+v_all.json order_objects=25 of_which_91417=1 new_keys_found=[]
+v_current.json order_objects=25 of_which_91417=1 new_keys_found=[]
+v_details.json order_objects=0 of_which_91417=0 new_keys_found=[]
+v_order.json order_objects=1 of_which_91417=1 new_keys_found=[]

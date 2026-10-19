@@ -1,0 +1,65 @@
+######## OK cohort (day 2026-10-12, n=100: 76 within, 20 late<=5, 4 late_by_5 -> 76% / 4%)
+$ php artisan eta:accuracy-report --from=2026-10-12 --to=2026-10-12
+basis: quote
+window: 2026-10-12 00:00:00 .. 2026-10-12 23:59:59
+delivered_total: 100
+excluded.scheduled: 0
+excluded.not_delivery: 0
+excluded.pre_capture: 0
+excluded.source_none_or_legacy: 0
+excluded.hidden_or_overcap: 0
+excluded.noise: 0
+eligible: 100
+all.quote.n: 100
+all.quote.within_window_pct: 76.0
+all.quote.late_by_5_pct: 4.0
+all.quote.in_band_pct: 76.0
+all.promise.within_window_pct: 76.0
+all.promise.unextended_within_window_pct: 76.0
+cohort:qa-ok.quote.within_window_pct: 76.0
+cohort:qa-ok.promise.within_window_pct: 76.0
+cohort:qa-ok.promise.unextended_within_window_pct: 76.0
+verdict[qa-ok] (basis=quote): GUARDRAIL OK n=100 within_window_pct=76.0 late_by_5_pct=4.0
+exit=0
+######## BREACH cohort (day 2026-10-14, n=100, 74 within -> 74%)
+$ php artisan eta:accuracy-report --from=2026-10-14 --to=2026-10-14
+basis: quote
+eligible: 100
+all.quote.n: 100
+all.quote.within_window_pct: 74.0
+all.quote.late_by_5_pct: 0.0
+all.quote.in_band_pct: 74.0
+verdict[qa-breach] (basis=quote): GUARDRAIL BREACH n=100 within_window_pct=74.0 late_by_5_pct=0.0
+exit=1
+######## EDGE 75 cohort (day 2026-10-16, exactly 75/100)
+$ php artisan eta:accuracy-report --from=2026-10-16 --to=2026-10-16
+eligible: 100
+all.quote.n: 100
+all.quote.within_window_pct: 75.0
+all.quote.late_by_5_pct: 0.0
+verdict[qa-edge75] (basis=quote): GUARDRAIL OK n=100 within_window_pct=75.0 late_by_5_pct=0.0
+exit=0
+######## late50 (n=1000, 50 late_by_5 = 5.0%) day 2026-10-17
+$ php artisan eta:accuracy-report --from=2026-10-17 --to=2026-10-17
+eligible: 1000
+all.quote.n: 1000
+all.quote.within_window_pct: 95.0
+all.quote.late_by_5_pct: 5.0
+verdict[qa-late50] (basis=quote): GUARDRAIL OK n=1000 within_window_pct=95.0 late_by_5_pct=5.0
+exit=0
+######## late51 (n=1000, 51 late_by_5 = 5.1%) day 2026-10-18
+$ php artisan eta:accuracy-report --from=2026-10-18 --to=2026-10-18
+eligible: 1000
+all.quote.n: 1000
+all.quote.within_window_pct: 94.9
+all.quote.late_by_5_pct: 5.1
+verdict[qa-late51] (basis=quote): GUARDRAIL BREACH n=1000 within_window_pct=94.9 late_by_5_pct=5.1
+exit=1
+######## small cohort n=10 (day 2026-10-11) -> INSUFFICIENT DATA exit 0
+$ php artisan eta:accuracy-report --from=2026-10-11 --to=2026-10-11
+eligible: 10
+verdict[qa-small] (basis=quote): INSUFFICIENT DATA n=10 within_window_pct=100.0 late_by_5_pct=0.0
+exit=0
+######## breach-log lines written by the runs above:
+[2026-10-19 06:21:02] production.ERROR: [FAIL] eta guardrail breach {"eta_version":"qa-breach","basis":"quote","n":100,"within_window_pct":74.0,"late_by_5_pct":0.0} 
+[2026-10-19 06:21:02] production.ERROR: [FAIL] eta guardrail breach {"eta_version":"qa-late51","basis":"quote","n":1000,"within_window_pct":94.9,"late_by_5_pct":5.1} 

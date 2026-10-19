@@ -1,0 +1,88 @@
+######## basis cohort (day 10-15): quote vs promise verdict on the SAME fixture
+$ php artisan eta:accuracy-report --from=2026-10-15 --to=2026-10-15
+basis: quote
+eligible: 100
+all.quote.within_window_pct: 74.0
+all.quote.late_by_5_pct: 16.0
+all.promise.n: 100
+all.promise.within_window_pct: 84.0
+all.promise.late_by_5_pct: 16.0
+all.promise.unextended_within_window_pct: 84.0
+all.promise.unextended_late_by_5_pct: 16.0
+all.promise.unextended_after_accept_mean_min: 15.0
+verdict[qa-basis] (basis=quote): GUARDRAIL BREACH n=100 within_window_pct=74.0 late_by_5_pct=16.0
+exit=1
+$ php artisan eta:accuracy-report --from=2026-10-15 --to=2026-10-15 --basis=promise
+basis: promise
+eligible: 100
+all.promise.n: 100
+all.promise.within_window_pct: 84.0
+all.promise.late_by_5_pct: 16.0
+all.promise.unextended_within_window_pct: 84.0
+all.promise.unextended_late_by_5_pct: 16.0
+all.promise.unextended_after_accept_mean_min: 15.0
+verdict[qa-basis] (basis=promise): GUARDRAIL BREACH n=100 within_window_pct=84.0 late_by_5_pct=16.0
+exit=1
+######## AC25 bucket fixture day 10-10 (1 per bucket + 1 eligible + 2 precedence rows)
+
+$ php artisan eta:accuracy-report --from=2026-10-10 --to=2026-10-10 --min-orders=1
+ETA accuracy report
+basis: quote
+window: 2026-10-10 00:00:00 .. 2026-10-10 23:59:59
+module: all
+zone: all
+max_actual_minutes: 180
+min_orders: 1
+delivered_total: 9
+excluded.scheduled: 2
+excluded.not_delivery: 2
+excluded.pre_capture: 1
+excluded.source_none_or_legacy: 1
+excluded.hidden_or_overcap: 1
+######## AC15 displayed-value basis, band cohort day 10-09 (954s,966s,870s,720s on a 14-16 window) --min-orders=1
+$ php artisan eta:accuracy-report --from=2026-10-09 --to=2026-10-09 --min-orders=1
+basis: quote
+eligible: 4
+all.quote.n: 4
+all.quote.within_window_pct: 75.0
+all.quote.late_by_5_pct: 0.0
+all.quote.in_band_pct: 50.0
+all.quote.mae_min: 1.4
+all.quote.p50_error_min: 0.1
+all.quote.p90_error_min: 4.0
+all.quote.bias_min: -1.4
+verdict[qa-band] (basis=quote): GUARDRAIL OK n=4 within_window_pct=75.0 late_by_5_pct=0.0
+exit=0
+######## AC26 promise-extended cohort day 10-08, --basis=promise --min-orders=1
+$ php artisan eta:accuracy-report --from=2026-10-08 --to=2026-10-08 --min-orders=1 --basis=promise
+basis: promise
+eligible: 4
+all.promise.n: 4
+all.promise.within_window_pct: 100.0
+all.promise.late_by_5_pct: 0.0
+all.promise.unextended_within_window_pct: 100.0
+all.promise.unextended_late_by_5_pct: 0.0
+all.promise.promised_after_accept_mean_min: 25.0
+all.promise.unextended_after_accept_mean_min: 15.0
+all.promise.extended_n: 4
+all.promise.placed_to_accepted_mean_min: 2.0
+all.promise.placed_to_accepted_p50_min: 2.0
+all.promise.placed_to_delivered_mean_min: 15.0
+all.promise.placed_to_delivered_p50_min: 15.0
+verdict[qa-promise] (basis=promise): GUARDRAIL OK n=4 within_window_pct=100.0 late_by_5_pct=0.0
+exit=0
+######## two eta_version cohorts in one window judged separately (10-12..10-16)
+$ php artisan eta:accuracy-report --from=2026-10-12 --to=2026-10-16
+basis: quote
+delivered_total: 402
+eligible: 400
+verdict[qa-ok] (basis=quote): GUARDRAIL OK n=100 within_window_pct=76.0 late_by_5_pct=4.0
+verdict[qa-breach] (basis=quote): GUARDRAIL BREACH n=100 within_window_pct=74.0 late_by_5_pct=0.0
+verdict[qa-basis] (basis=quote): GUARDRAIL BREACH n=100 within_window_pct=74.0 late_by_5_pct=16.0
+verdict[qa-edge75] (basis=quote): GUARDRAIL OK n=100 within_window_pct=75.0 late_by_5_pct=0.0
+exit=1
+######## breach lines in this block:
+[2026-10-19 06:21:12] production.ERROR: [FAIL] eta guardrail breach {"eta_version":"qa-basis","basis":"quote","n":100,"within_window_pct":74.0,"late_by_5_pct":16.0} 
+[2026-10-19 06:21:12] production.ERROR: [FAIL] eta guardrail breach {"eta_version":"qa-basis","basis":"promise","n":100,"within_window_pct":84.0,"late_by_5_pct":16.0} 
+[2026-10-19 06:21:13] production.ERROR: [FAIL] eta guardrail breach {"eta_version":"qa-breach","basis":"quote","n":100,"within_window_pct":74.0,"late_by_5_pct":0.0} 
+[2026-10-19 06:21:13] production.ERROR: [FAIL] eta guardrail breach {"eta_version":"qa-basis","basis":"quote","n":100,"within_window_pct":74.0,"late_by_5_pct":16.0} 

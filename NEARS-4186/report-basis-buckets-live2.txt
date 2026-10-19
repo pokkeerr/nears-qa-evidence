@@ -1,0 +1,153 @@
+######## AC14 verdict basis switch on the SAME fixture (day 10-07: 74@15m, 10@16.5m, 16@18m; promise bound = accepted+15 = created+17m)
+$ php artisan eta:accuracy-report --from=2026-10-07 --to=2026-10-07
+basis: quote
+eligible: 100
+all.quote.within_window_pct: 74.0
+all.quote.late_by_5_pct: 0.0
+all.promise.within_window_pct: 84.0
+all.promise.late_by_5_pct: 0.0
+all.promise.unextended_within_window_pct: 84.0
+all.promise.unextended_late_by_5_pct: 0.0
+all.promise.unextended_after_accept_mean_min: 15.0
+verdict[qa-basis2] (basis=quote): GUARDRAIL BREACH n=100 within_window_pct=74.0 late_by_5_pct=0.0
+exit=1
+$ php artisan eta:accuracy-report --from=2026-10-07 --to=2026-10-07 --basis=promise
+basis: promise
+eligible: 100
+all.promise.within_window_pct: 84.0
+all.promise.late_by_5_pct: 0.0
+all.promise.unextended_within_window_pct: 84.0
+all.promise.unextended_late_by_5_pct: 0.0
+all.promise.unextended_after_accept_mean_min: 15.0
+verdict[qa-basis2] (basis=promise): GUARDRAIL OK n=100 within_window_pct=84.0 late_by_5_pct=0.0
+exit=0
+######## AC25 full output, bucket fixture day 10-10 (expect 2/2/1/1/1/1 + eligible 1: precedence rows add to scheduled and not_delivery); noise = 1255-minute chain
+
+$ php artisan eta:accuracy-report --from=2026-10-10 --to=2026-10-10 --min-orders=1
+ETA accuracy report
+basis: quote
+window: 2026-10-10 00:00:00 .. 2026-10-10 23:59:59
+module: all
+zone: all
+max_actual_minutes: 180
+min_orders: 1
+delivered_total: 9
+excluded.scheduled: 2
+excluded.not_delivery: 2
+excluded.pre_capture: 1
+excluded.source_none_or_legacy: 1
+excluded.hidden_or_overcap: 1
+excluded.noise: 1
+reconcile: scheduled 2 + not_delivery 2 + pre_capture 1 + source_none_or_legacy 1 + hidden_or_overcap 1 + noise 1 + eligible 1 = 9 = delivered_total
+######## clean fixture window with no deliveries (day 2026-10-01): every bucket 0
+
+$ php artisan eta:accuracy-report --from=2026-10-01 --to=2026-10-01
+ETA accuracy report
+basis: quote
+window: 2026-10-01 00:00:00 .. 2026-10-01 23:59:59
+module: all
+zone: all
+max_actual_minutes: 180
+min_orders: 100
+delivered_total: 0
+excluded.scheduled: 0
+excluded.not_delivery: 0
+excluded.pre_capture: 0
+excluded.source_none_or_legacy: 0
+excluded.hidden_or_overcap: 0
+excluded.noise: 0
+######## filters: --module 1 --zone 1 on day 10-12; --zone 2 (no matching rows); --max-actual-minutes=16 (turns 18/25m rows into noise); --min-orders=200
+$ php artisan eta:accuracy-report --from=2026-10-12 --to=2026-10-12 --module=1 --zone=1
+module: 1
+zone: 1
+delivered_total: 100
+eligible: 100
+verdict[qa-ok] (basis=quote): GUARDRAIL OK n=100 within_window_pct=76.0 late_by_5_pct=4.0
+exit=0
+$ php artisan eta:accuracy-report --from=2026-10-12 --to=2026-10-12 --zone=2
+zone: 2
+delivered_total: 0
+eligible: 0
+verdict[none] (basis=quote): INSUFFICIENT DATA n=0
+exit=0
+$ php artisan eta:accuracy-report --from=2026-10-12 --to=2026-10-12 --max-actual-minutes=16
+max_actual_minutes: 16
+delivered_total: 100
+excluded.noise: 24
+eligible: 76
+verdict[qa-ok] (basis=quote): INSUFFICIENT DATA n=76 within_window_pct=100.0 late_by_5_pct=0.0
+exit=0
+$ php artisan eta:accuracy-report --from=2026-10-12 --to=2026-10-12 --min-orders=200
+min_orders: 200
+eligible: 100
+verdict[qa-ok] (basis=quote): INSUFFICIENT DATA n=100 within_window_pct=76.0 late_by_5_pct=4.0
+exit=0
+######## cap and invalid input
+
+$ php artisan eta:accuracy-report --from=2026-09-01 --to=2026-10-19
+--from..--to may span at most 31 days.
+exit=2
+$ php artisan eta:accuracy-report --from=2026-09-19 --to=2026-10-19
+window: 2026-09-19 00:00:00 .. 2026-10-19 23:59:59
+all.quote.within_window_pct: 90.9
+all.promise.within_window_pct: 91.7
+all.promise.unextended_within_window_pct: 91.7
+cohort:qa-ok.quote.within_window_pct: 76.0
+cohort:qa-ok.promise.within_window_pct: 76.0
+cohort:qa-ok.promise.unextended_within_window_pct: 76.0
+cohort:qa-breach.quote.within_window_pct: 74.0
+cohort:qa-breach.promise.within_window_pct: 74.0
+cohort:qa-breach.promise.unextended_within_window_pct: 74.0
+cohort:qa-basis.quote.within_window_pct: 74.0
+cohort:qa-basis.promise.within_window_pct: 84.0
+cohort:qa-basis.promise.unextended_within_window_pct: 84.0
+cohort:qa-edge75.quote.within_window_pct: 75.0
+cohort:qa-edge75.promise.within_window_pct: 75.0
+cohort:qa-edge75.promise.unextended_within_window_pct: 75.0
+cohort:qa-late50.quote.within_window_pct: 95.0
+cohort:qa-late50.promise.within_window_pct: 95.0
+cohort:qa-late50.promise.unextended_within_window_pct: 95.0
+cohort:qa-late51.quote.within_window_pct: 94.9
+cohort:qa-late51.promise.within_window_pct: 94.9
+cohort:qa-late51.promise.unextended_within_window_pct: 94.9
+cohort:qa-small.quote.within_window_pct: 100.0
+cohort:qa-small.promise.within_window_pct: 100.0
+cohort:qa-small.promise.unextended_within_window_pct: 100.0
+cohort:qa-band.quote.within_window_pct: 75.0
+cohort:qa-band.promise.within_window_pct: 100.0
+cohort:qa-band.promise.unextended_within_window_pct: 100.0
+cohort:qa-bucket.quote.within_window_pct: 100.0
+cohort:qa-bucket.promise.within_window_pct: 100.0
+cohort:qa-bucket.promise.unextended_within_window_pct: 100.0
+cohort:qa-promise.quote.within_window_pct: 100.0
+cohort:qa-promise.promise.within_window_pct: 100.0
+cohort:qa-promise.promise.unextended_within_window_pct: 100.0
+cohort:qa-basis2.quote.within_window_pct: 74.0
+cohort:qa-basis2.promise.within_window_pct: 84.0
+cohort:qa-basis2.promise.unextended_within_window_pct: 84.0
+verdict[qa-ok] (basis=quote): GUARDRAIL OK n=100 within_window_pct=76.0 late_by_5_pct=4.0
+verdict[qa-breach] (basis=quote): GUARDRAIL BREACH n=100 within_window_pct=74.0 late_by_5_pct=0.0
+verdict[qa-basis] (basis=quote): GUARDRAIL BREACH n=100 within_window_pct=74.0 late_by_5_pct=16.0
+verdict[qa-edge75] (basis=quote): GUARDRAIL OK n=100 within_window_pct=75.0 late_by_5_pct=0.0
+verdict[qa-late50] (basis=quote): GUARDRAIL OK n=1000 within_window_pct=95.0 late_by_5_pct=5.0
+verdict[qa-late51] (basis=quote): GUARDRAIL BREACH n=1000 within_window_pct=94.9 late_by_5_pct=5.1
+verdict[qa-small] (basis=quote): INSUFFICIENT DATA n=10 within_window_pct=100.0 late_by_5_pct=0.0
+verdict[qa-band] (basis=quote): INSUFFICIENT DATA n=4 within_window_pct=75.0 late_by_5_pct=0.0
+verdict[qa-bucket] (basis=quote): INSUFFICIENT DATA n=1 within_window_pct=100.0 late_by_5_pct=0.0
+verdict[qa-promise] (basis=quote): INSUFFICIENT DATA n=4 within_window_pct=100.0 late_by_5_pct=0.0
+verdict[qa-basis2] (basis=quote): GUARDRAIL BREACH n=100 within_window_pct=74.0 late_by_5_pct=0.0
+exit=1
+
+$ php artisan eta:accuracy-report --basis=bogus
+--basis must be quote or promise.
+exit=2
+
+$ php artisan eta:accuracy-report --from=notadate
+--from and --to must be dates.
+exit=2
+######## breach lines in this block:
+[2026-10-19 06:21:27] production.ERROR: [FAIL] eta guardrail breach {"eta_version":"qa-basis2","basis":"quote","n":100,"within_window_pct":74.0,"late_by_5_pct":0.0} 
+[2026-10-19 06:21:29] production.ERROR: [FAIL] eta guardrail breach {"eta_version":"qa-breach","basis":"quote","n":100,"within_window_pct":74.0,"late_by_5_pct":0.0} 
+[2026-10-19 06:21:29] production.ERROR: [FAIL] eta guardrail breach {"eta_version":"qa-basis","basis":"quote","n":100,"within_window_pct":74.0,"late_by_5_pct":16.0} 
+[2026-10-19 06:21:29] production.ERROR: [FAIL] eta guardrail breach {"eta_version":"qa-late51","basis":"quote","n":1000,"within_window_pct":94.9,"late_by_5_pct":5.1} 
+[2026-10-19 06:21:29] production.ERROR: [FAIL] eta guardrail breach {"eta_version":"qa-basis2","basis":"quote","n":100,"within_window_pct":74.0,"late_by_5_pct":0.0} 
