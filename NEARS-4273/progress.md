@@ -1,0 +1,23 @@
+# NEARS-4273 QA [8] progress (fix_cycle 0) - head 9e6c1f05d, base feat/qa-maestro 9f34be000
+
+- Shared DB baseline: multi_food_db.orders COUNT=179 MAX(id)=91415 (14:02)
+- Backend: /Users/Apple/Projects/nears-NEARS-4273-scenario-first-workflow @ 9e6c1f05d on :8273, DB multi_food_db_qa4273 (request-level marker proof on items/details/1, restored)
+- Device: emulator-5576 (2.4 GB free /data), lock NEARS-4273 anchor 45831; account [redacted] claimed
+- AC3 PASS: 18/18 rows quoted (ac3/ac3-row-quotes.txt), research §7b 18 rows == §11.5 18 rows; deletion audit 14 removed lines = 2 flutter_driver tokens + rewords that keep/extend
+- S1 PASS: .mcp.json dart = sh -c exec "${NEARS_FLUTTER_ROOT:-/Users/Apple/Tools/flutter}/bin/dart" mcp-server; that dart = 3.11.5; stdio initialize+tools/list -> server 0.1.2+1, 27 tools (s1-s2-mcp/pinned-tools-list.json)
+- S2 PASS: nears-qa.md 4 dart names all in pinned list; control bare PATH dart (3.12.2, server 0.1.4, 13 tools) lacks 3 of them (s1-s2-mcp/bare-path-dart-tools-list.json)
+- S3 PASS: no flutter_driver tools entry in any agent; nears-qa.md step 2 says unusable; profile MCP-availability note present; dev-tooling-mcp.md shows the same command line; no enableFlutterDriverExtension in any app
+- Guards: flow-edit-check.test 85/85, check-ids.test 53/53, qa-maestro-run.test 277, catalog.test 16, check-ac-coverage.test 18, check-asserts.test 17, workflow-json-drift 93/93, envelope-shape-gate 69, audit-crosscheck --self-test PASS (131 PASS asserts), json-dupkey PASS x3
+- flow-edit-check live run file: PASS; scratch copy minus catalog.json: FAIL naming UserApp/.maestro/catalog.json
+- cache-churn-check --since started_epoch: rc 1 CHURN (report only; the ticket's own deliverables + worktree birth after [1])
+- AC4 static: check-ids head PRESENT (order_tracking_screen.dart:646); --absent-at feat/qa-maestro ABSENT
+- AC4 head replay run 1 (20261020-141215-65456): rc 1, failed in subflows/fresh-login.yaml at Tap on "Password" (Element not found) under host load avg ~50; API timeouts /banners, /cart/list + framework_error RenderEditable.selectWord null check on long press (login field). Environmental; not a verdict. Backend restarted with PHP_CLI_SERVER_WORKERS=4; retry launched.
+- AC4 head replay run 2 (maestro/20261020-141711-12989): PASS rc 0; logs-first gate CLEAN (app_lines 1359, err_fail 0, 10 known-noise Firebase/FCM suppressed); junit COVERED 1/1 SUCCESS; credential residue 0. Executed flow 05 lines 18-23 (assertVisible id, copyTextFrom id, digits assert) + 27 (My Orders card #id Pending) + 31-40 (reopen Track Order, same id). Order 91416 on clone (delivery, store 12, pending). Shared DB still 179/91415.
+- AC4 a11y head: a11y/track-order-head-delivery-91416.xml - node resource-id=order_tracking_order_id, content-desc '91416' (= placed order), own leaf (0 children), bounds [0,1356][3,1359], clickable=false, focusable=true
+- AC4 corner head: tap at (1,1357) (from dump bounds) = no-op; drag up from it scrolls the sheet (Fresh local top 1380->622), id node moves with sheet (a11y/head-after-corner-*.xml)
+- AC4 head screenshot: ac4-track-order-head-91416.png (EN light, night mode: no)
+- AC4 red proof (option a, base build from throwaway detached tree /Users/Apple/Projects/nears-qa4273-base @ 9f34be000, pkg com.izzes.nears.nears_qa4273_base): head flow 05 replay maestro/20261020-142735-12610 rc 1, log gate CLEAN; every step through "Waiting for store to accept your order" COMPLETED, then FAILED at line 18 with "Assertion is false: id: order_tracking_order_id is visible". Order 91417 on clone.
+- AC4 a11y base vs head: a11y/sibling-diff-base-vs-head.txt - 19 sibling nodes identical (class, rid, clickable, focusable, label, bounds); only clock ETA strings differ; id node is the single addition (positive control: instrument detects it)
+- AC4 corner base: same tap (1,1357) = no-op; same drag moves sheet 1380->622 (identical to head)
+- AC4 visual: visual-diff-base-vs-head.txt - map stage identical; sheet differs only in 2 bands inside the ETA text boxes; corner pixels diff 0
+- Widget tests (pinned 3.41.9, mem-guard peak 1.44 GB): order_tracking_screen_test.dart + baseline_order_tracking_golden_test.dart 53/53 PASS incl. both id tests + 14 golden cases, 0 skipped
