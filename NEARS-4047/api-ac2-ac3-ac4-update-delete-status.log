@@ -1,0 +1,23 @@
+# AC2 update  (banner A=91109)
+list before: [(91109, 'QA4047 Alpha', True)]
+[AC2 UPDATE (POST _method=put, id+translations)] http=200 rid=3f8bde8a-003d-445e-8a9d-acebf334086e body={"message":"Banner updated successfully"}
+list after:  [(91109, 'QA4047 Alpha EDITED', True)]
+edit after:  91109 QA4047 Alpha EDITED https://example.test/a2 ['QA4047 Alpha EDITED']
+[AC2b UPDATE with image replace (VendorApp shape)] http=200 rid=a2bf273b-6258-4f54-b70a-43e60f91c31d body={"message":"Banner updated successfully"}
+# AC4 status
+[AC4 STATUS ->0] http=200 rid=553e6e48-2195-4ea0-86f5-198f52e46563 body={"message":"Banner status updated"}
+list: [(91109, 'QA4047 Alpha EDITED', False)]
+db status	0
+[AC4 STATUS ->1] http=200 rid=62c01dfa-883f-4d0b-88ed-f7f4edb9fd29 body={"message":"Banner status updated"}
+list: [(91109, 'QA4047 Alpha EDITED', True)]
+db status	1
+T list (must not see A): []
+# AC3 delete
+[ADD banner B (S) for delete] http=200 rid=0425417c-32f6-4b10-af63-07111c44a54d body={"message":"Banner added successfully"}
+list: [(91110, 'QA4047 Beta', True), (91109, 'QA4047 Alpha EDITED', True)]
+[AC3 DELETE B=91110] http=200 rid=104ff8fc-e82e-4f28-8466-f63c99592b2d body={"message":"Banner deleted successfully"}
+list: [(91109, 'QA4047 Alpha EDITED', True)]
+db rows for B	0
+db translations for B	0
+[AC3 edit deleted B (expect 400)] http=400 rid=bb7cf799-fed9-4da8-871e-6a9d2ec7d1f9 body={"message":"Banner not found."}
+[AC3 delete B again (expect 404)] http=404 rid=ff95dc62-bce9-45db-9bbb-eeb68c035a39 body={     "message": "No query results for model [App\Models\Banner] 91110" }

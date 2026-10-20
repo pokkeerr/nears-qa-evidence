@@ -1,0 +1,21 @@
+# regression smoke: public GET /api/v1/banners (UserApp), zone [1], module 1
+http=200
+top keys ['campaigns', 'banners']
+n banners 6 keys of first ['id', 'image', 'image_full_url', 'item', 'link', 'store', 'title', 'type']
+store-created (A) visible in public: False
+# vendor list guard: no auth -> 401
+no-token list http=401
+# BE log window grep
+laravel.log lines now:     7538 (baseline 7538)
+window lines:        0
+Unknown column hits in window: 0
+store_id hits in window: 0
+ERROR/CRITICAL lines in window mentioning banner:
+all ERROR/CRITICAL in window:
+scoped by request ids of 4 bug endpoints (edit/update/delete/status):
+f641ba3e-7d1a-43e6-84af-e038d21d230e -> 0 lines; level: 
+3f8bde8a-003d-445e-8a9d-acebf334086e -> 0 lines; level: 
+553e6e48-2195-4ea0-86f5-198f52e46563 -> 0 lines; level: 
+104ff8fc-e82e-4f28-8466-f63c99592b2d -> 0 lines; level: 
+laravel-structured.log
+laravel.log
