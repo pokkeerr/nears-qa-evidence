@@ -1,0 +1,14 @@
+# NEARS-4047 AC7 cycle 1 live VendorApp e2e (EN + light), emulator-5590, build APK sha1-12 df385074a8f4 from worktree aa097e940, BASE_URL=http://10.0.2.2:8047, DB clone multi_food_db_qa4047
+Backend: /Users/Apple/Projects/nears-NEARS-4047-vendor-banner-store-id @ aa097e940 (pid 60549, php -S via artisan serve --no-reload; backend-freshness-check PASS)
+mem-guard: python3 ~/.nears/bin/mem-guard.py --label qa4047-vendorapp --max-swap-gb 12 -- flutter build apk --debug --dart-define=BASE_URL=http://10.0.2.2:8047 -> rc=0 peak_tree_rss=0.23 GB (cap 6.0)
+--- step log
+01:53:49 app Add Banner #1 -> [FAIL] /vendor/banner/store 422 (invalid_upload: clone cache table still held local_storage=0; env, clone cache cleared; unrelated to 4047 code; FE paired [FAIL] line present)
+01:5x app Add Banner #2 -> list shows QA4047Alpha (list() via scopeOwnedByStore OK)
+app pencil -> Update Banner screen pre-filled (GET edit/{id} 200)
+app Update Banner (title QA4047Alpha -> QA4047Beta) -> list shows QA4047Beta; DB:
+  91109 QA4047Beta data=1 created_by=store updated_at 2026-10-21 01:55:32
+app bin + Yes -> list no longer shows QA4047Beta; DB: select count(*) from banners where id=91109 -> 0
+FE logs after edit and delete: grep FAIL|ERR over logcat -s flutter = none; ui_errors 0 match(es) x2
+BE: grep -c 'Unknown column' Admin/storage/logs/laravel.log = 0; laravel.log mtime 01:00 (before my 01:49+ run window; no new lines written by the app run)
+Shared dev DB sentinel: multi_food_db.banners created_by='store' = 0; business_settings.local_storage = 0 (untouched); multi_food_db.cache rows = 895 (untouched)
+Stray: one curl-added row 'probe' id 91108 (clone only) created while diagnosing the 422
