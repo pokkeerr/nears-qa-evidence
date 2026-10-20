@@ -1,0 +1,29 @@
+# NEARS-4275 QA [8-fix1] round 4 rider first attempt (run 20261020-173831-34391, emulator-5594, com.izzes.nearsdelivery)
+# device clock ~7.3s behind host. Maestro launchApp clearState:true at host 17:39:46.3 = device ~17:39:39; pid 23661 created device 17:39:40.73 (by that launch).
+# Rider flow UI steps all passed (report.xml 2 testcases, 0 failures); log gate DIRTY err_fail=6. Retry 20261020-174216-53718 CLEAN -> did not reproduce.
+# Mechanism: foreground FCM order_request arrives while the app is on the logged-out login screen; handler fetches rider endpoints without a session -> 401 -> logout call 401.
+2:10-20 17:39:40.731 23661 23661 I Zygote  : Process 23661 created for com.izzes.nearsdelivery
+102:10-20 17:39:46.740 23661 23661 I flutter : [NET] GET endpoint=/api/v1/config
+105:10-20 17:39:47.893 23661 23661 I flutter : [NET] endpoint=/api/v1/config http_status=200
+108:10-20 17:39:48.327 23661 23661 I flutter : [INFO] msg="fcm onMessage type=order_request"
+109:10-20 17:39:48.332 23661 23661 I flutter : [NET] GET endpoint=/api/v1/delivery-man/current-orders
+110:10-20 17:39:48.334 23661 23661 I flutter : [NET] GET endpoint=/api/v1/delivery-man/latest-orders
+111:10-20 17:39:48.335 23661 23661 I flutter : [NET] GET endpoint=/api/v1/delivery-man/notifications
+114:10-20 17:39:49.386 23661 23661 I flutter : [NET] endpoint=/api/v1/delivery-man/notifications http_status=401
+129:10-20 17:39:49.464 23661 23661 I flutter : [FAIL] endpoint=/api/v1/delivery-man/notifications http_status=401 type=ApiFailure msg="api request failed" correlation_id=5ad29bfb-a82e-464e-9fed-21e20b0b3c7c
+130:10-20 17:39:49.864 23661 23661 I flutter : [NET] POST endpoint=/api/v1/delivery-man/logout
+132:10-20 17:39:49.877 23661 23661 I flutter : [NET] endpoint=/api/v1/delivery-man/current-orders http_status=401
+148:10-20 17:39:49.879 23661 23661 I flutter : [FAIL] endpoint=/api/v1/delivery-man/current-orders http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=2fc4e700-f1f9-4518-b263-80511a40c6bf
+162:10-20 17:39:49.880 23661 23661 I flutter : [FAIL] endpoint=/api/v1/delivery-man/current-orders http_status=401 type=ApiFailure msg="api request failed" correlation_id=2fc4e700-f1f9-4518-b263-80511a40c6bf
+163:10-20 17:39:49.906 23661 23661 I flutter : [NET] endpoint=/api/v1/delivery-man/latest-orders http_status=401
+177:10-20 17:39:49.906 23661 23661 I flutter : [FAIL] endpoint=/api/v1/delivery-man/latest-orders http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=24110ed4-461a-40c0-9af3-a15892b1e207
+189:10-20 17:39:49.907 23661 23661 I flutter : [FAIL] endpoint=/api/v1/delivery-man/latest-orders http_status=401 type=ApiFailure msg="api request failed" correlation_id=24110ed4-461a-40c0-9af3-a15892b1e207
+191:10-20 17:39:50.785 23661 23661 I flutter : [NET] endpoint=/api/v1/delivery-man/logout http_status=401
+201:10-20 17:39:50.787 23661 23661 I flutter : [FAIL] endpoint=/api/v1/delivery-man/logout http_status=401 type=ApiFailure msg="unhandled api response" correlation_id=350a594a-2516-432a-b45f-9438f9e5ec42
+202:10-20 17:39:50.789 23661 23661 I flutter : [WARN] msg="logout revoke request failed during teardown"
+245:10-20 17:40:06.278 23661 23661 I flutter : [NET] POST endpoint=/api/v1/auth/delivery-man/login
+246:10-20 17:40:07.690 23661 23661 I flutter : [NET] endpoint=/api/v1/auth/delivery-man/login http_status=200
+247:10-20 17:40:07.712 23661 23661 I flutter : [NET] POST endpoint=/api/v1/delivery-man/update-fcm-token
+248:10-20 17:40:09.427 23661 23661 I flutter : [NET] endpoint=/api/v1/delivery-man/update-fcm-token http_status=200
+249:10-20 17:40:09.429 23661 23661 I flutter : [NET] GET endpoint=/api/v1/delivery-man/profile
+250:10-20 17:40:10.048 23661 23661 I flutter : [NET] endpoint=/api/v1/delivery-man/profile http_status=200

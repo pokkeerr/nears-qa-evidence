@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4275
 
-**NEARS-4275 QA [8] FAIL - AC1 PASS (Vendor 0/15, Delivery 0/10 by rule, raw 1/10), AC2 FAIL (flow customer stops at interest picker; assisted chain reaches picked_up), AC3 PASS (shared orders 179/91415 unchanged)**
+**NEARS-4275 QA [8-fix1] delta re-QA: PASS (AC1 Vendor 0/15, Delivery 0/10 rule raw 1/10; AC2 unattended chain 91422 to picked_up; AC3 shared 179/91415 unchanged)**
 
 **2 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -29,6 +29,7 @@
 - [`maestro`](maestro)
 - [`maestro-ops`](maestro-ops)
 - [`progress.md`](progress.md)
+- [`re-qa-fix1`](re-qa-fix1)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-4275/` · public-repo scrub policy (no live secrets; verified clean).*
