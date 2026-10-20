@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4205
 
-**QA part 1 (API/behavioural) PASS: AC1-3,5-7 live; AC4 PENDING_DEVICE**
+**QA part 2 (VendorApp UI AC4) light EN+AR emu-5572 PASS**
 
 **0 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -30,6 +30,7 @@
 - [`regress-base-vs-head-window-sweep.txt`](regress-base-vs-head-window-sweep.txt)
 - [`regress-filters-dir-head.txt`](regress-filters-dir-head.txt)
 - [`regress-known-reds-at-base.txt`](regress-known-reds-at-base.txt)
+- [`ui`](ui)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-4205/` · public-repo scrub policy (no live secrets; verified clean).*
