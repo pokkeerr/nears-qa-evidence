@@ -1,0 +1,12 @@
+get-data http 200 ['total_size', 'limit', 'offset', 'stores']
+PASS AC1/AC8 get-data param ignored (not extended) http=200 n=35
+PASS AC get-data with_filters+param: unchanged, no filters block 
+unified 200 ['products', 'total_items', 'stores', 'total_stores', 'results', 'limit', 'offset', 'filters']
+PASS AC1 unified max_delivery_minutes=10 ignored http=200 n0=20 n1=20
+PASS AC1 unified stores[max_delivery_minutes]=10 ignored http=200 n0=20 n1=20
+PASS AC1 unified stores[max_delivery_minutes]=15 ignored http=200 n0=20 n1=20
+PASS AC2/regression search results never carry delivery_time section stores facet keys=['delivery_type', 'open_now']
+PASS search module 2: no delivery_time keys=['delivery_type', 'open_now']
+PASS search module 3: no delivery_time keys=['delivery_type', 'open_now', 'open_24h']
+PASS search module 9: no delivery_time keys=['delivery_type', 'open_now']
+FAIL search food stores half keeps cuisine (food override not dropped) keys=['delivery_type', 'open_now'] http=200

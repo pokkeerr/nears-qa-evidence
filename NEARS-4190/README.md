@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4190
 
-**Delta re-QA fix cycle 2 (b45efd874): FAIL - AC14 warm no-step gate; Gate A no admissible FAIL; AC1-13,15-22 PASS**
+**BLOCKED at AC14 (mem-guard exit 96, swap 11.6 GB): L4 functional/backstop all green, latency unmeasured**
 
 **13 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -77,6 +77,25 @@
 - [`r2-api-matrices-head.out`](r2-api-matrices-head.out)
 - [`r2-byte-for-byte-grid.json`](r2-byte-for-byte-grid.json)
 - [`r2-filters-dir-red-5.txt`](r2-filters-dir-red-5.txt)
+- [`r3-ac14-memguard-refusal.log`](r3-ac14-memguard-refusal.log)
+- [`r3-api_a.out`](r3-api_a.out)
+- [`r3-api_b.out`](r3-api_b.out)
+- [`r3-api_c.out`](r3-api_c.out)
+- [`r3-api_d.out`](r3-api_d.out)
+- [`r3-api_e.out`](r3-api_e.out)
+- [`r3-api_f.out`](r3-api_f.out)
+- [`r3-api_g.out`](r3-api_g.out)
+- [`r3-explain3_zone.out`](r3-explain3_zone.out)
+- [`r3-extra-suites-green.txt`](r3-extra-suites-green.txt)
+- [`r3-filters-dir-971-5red.txt`](r3-filters-dir-971-5red.txt)
+- [`r3-filters-dir-red-5.txt`](r3-filters-dir-red-5.txt)
+- [`r3-grid.out`](r3-grid.out)
+- [`r3-l4_b.out`](r3-l4_b.out)
+- [`r3-l4_f.out`](r3-l4_f.out)
+- [`r3-sqllog_b45_1_r.out`](r3-sqllog_b45_1_r.out)
+- [`r3-sqllog_b45_zone_r.out`](r3-sqllog_b45_zone_r.out)
+- [`r3-sqllog_head_1_r.out`](r3-sqllog_head_1_r.out)
+- [`r3-sqllog_head_zone_r.out`](r3-sqllog_head_zone_r.out)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-4190/` · public-repo scrub policy (no live secrets; verified clean).*
