@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4206
 
-**NEARS-4206 delta re-QA: ROW A PASS (AR 12h Latin AM/PM), ROW B CONFIRMED (guest notification leak)**
+**NEARS-4206 re-QA ROW C: scheduled_time_confirmed live PASS**
 
 **5 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -19,6 +19,7 @@
 ### Other artifacts
 - [`ac1_boundary.txt`](ac1_boundary.txt)
 - [`ac5_timeout_fcm.txt`](ac5_timeout_fcm.txt)
+- [`analytics_scheduled_time_confirmed.log`](analytics_scheduled_time_confirmed.log)
 - [`bug-guest-notification-leak.log`](bug-guest-notification-leak.log)
 - [`flutter_test_userapp.txt`](flutter_test_userapp.txt)
 - [`flutter_test_vendorapp.txt`](flutter_test_vendorapp.txt)

@@ -1,0 +1,36 @@
+# NEARS-4206 ROW C - scheduled_time_confirmed, live (VendorApp debug APK from worktree HEAD 2782baa44, emulator-5586, own backend :8208, twin DB multi_food_db_qa4206)
+# Instrument (docs/platform/analytics-events.md "Verify live", logging-contract [evt]): adb shell setprop log.tag.FA VERBOSE; setprop log.tag.FA-SVC VERBOSE;
+#   setprop debug.firebase.analytics.app com.izzes.nearsvendor; force-stop + relaunch; adb logcat -s FA FA-SVC | grep "Logging event".
+#   Liveness control: the same capture showed origin=app app_open and screen_view events right after relaunch.
+# FA lines below are verbatim, trimmed to the params bundle; ga_* keys are Firebase's own auto params (screen class/id/route), not app params.
+# Logcat was cleared between steps, so each step's lines were read right after its save.
+
+## 1. owner accepts 91416 (pending COD slot 20:00-21:00) keeping the offered default 08:00 PM -> 'Confirm time'
+Logging event: origin=app,name=scheduled_time_confirmed,params=Bundle[{actor_type=store, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen(_sn)=/order-details, mode=kept, order_id=91416}]
+   DB: orders.id=91416 order_status=confirmed schedule_expected_at=2026-10-20 20:00:00
+
+## 2. owner accepts 91417 moving 08:00 PM -> 08:10 PM (2 x 'Later by 5 minutes') -> 'Confirm time'
+Logging event: origin=app,name=scheduled_time_confirmed,params=Bundle[{actor_type=store, ..., ga_screen(_sn)=/order-details, mode=adjusted, order_id=91417}]
+   DB: 91417 confirmed, schedule_expected_at=2026-10-20 20:10:00
+
+## 3. owner adjusts confirmed 91418 via 'Update time' sheet 08:10 PM -> 08:25 PM
+cumulative scheduled_time_confirmed count = 3 (one per save so far)
+Logging event: origin=app,name=scheduled_time_confirmed,params=Bundle[{actor_type=store, ..., mode=adjusted, order_id=91418}]
+   DB: 91418 schedule_expected_at=2026-10-20 20:25:00
+
+## 4a. REFUSED save: 91419 opened in the adjust sheet, order canceled on the twin, then 'Update time' (logcat cleared first)
+sheet showed inline "This order is closed or already picked up, so the time can't be changed."
+scheduled_time_confirmed lines after the tap: 0
+flutter: [FAIL] endpoint=/api/v1/vendor/order-scheduled-time http_status=403 type=ApiFailure msg="scheduled time save failed (schedule_order_closed)"
+
+## 4b. REFUSED save: 91420 adjust sheet, wifi+data disabled (svc), then 'Update time' (logcat cleared first)
+sheet showed inline "No internet connection. Check it and try again."
+scheduled_time_confirmed lines after the tap: 0
+flutter: [FAIL] endpoint=/api/v1/vendor/order-scheduled-time http_status=0 type=ApiFailure msg="scheduled time save failed (offline)"
+   DB: 91420 schedule_expected_at unchanged (2026-10-20 20:10:00); network re-enabled afterwards
+
+## 5. vendor EMPLOYEE (twin-created vendor_employees row, role modules ["order"], store 12) accepts 91421 keeping default 08:00 PM
+Logging event: origin=app,name=scheduled_time_confirmed,params=Bundle[{actor_type=store_employee, ga_event_origin(_o)=app, ga_screen_class(_sc)=MainActivity, ga_screen(_sn)=/order-details, mode=kept, order_id=91421}]
+   DB: 91421 confirmed, schedule_expected_at=2026-10-20 20:00:00
+
+## PII check: the only app-supplied params in every event are order_id, mode, actor_type. No time, slot, name, phone, email or token key in any captured line.
