@@ -1,0 +1,17 @@
+# NEARS-4274 [8] bug: UserApp reports 'No internet connection' on the iOS 27.0 simulator while the backend answers 200
+# Host en0 Wi-Fi reachable (scutil --nwi); sim status bar Wi-Fi 3/3; every [NET] call to 127.0.0.1:8274 returns 200.
+# ConnectivityHelper.isConnected() -> connectivity_plus 7.1.1 checkConnectivity() -> [none] -> NoInternetScreen.
+## run 1 (official, worktree flows), flow 01, app pid 64522:
+10-20 23:00:29.817 64522 58900170 I flutter : [NET] GET endpoint=/api/v1/config
+10-20 23:00:30.225 64522 58900170 I flutter : [NET] endpoint=/api/v1/config http_status=200
+10-20 23:00:32.713 64522 58900170 I flutter : [NET] GET endpoint=/api/v1/module
+10-20 23:00:32.875 64522 58900170 I flutter : [NET] endpoint=/api/v1/module http_status=200
+10-20 23:00:34.733 64522 58900170 I flutter : [NET] POST endpoint=/api/v1/auth/guest/request
+10-20 23:00:34.965 64522 58900170 I flutter : [NET] endpoint=/api/v1/auth/guest/request http_status=200
+10-20 23:00:34.976 64522 58900170 I flutter : LocationNoInternetAbort
+10-20 23:00:34.977 64522 58900170 I flutter : [FAIL] endpoint=null http_status=null type=LocationNoInternetAbort msg="location: _checkPermission aborted — no internet"
+10-20 23:00:35.233 64522 58900170 I flutter : [NET] GET endpoint=/api/v1/zone/list
+10-20 23:00:36.255 64522 58900170 I flutter : [NET] endpoint=/api/v1/zone/list http_status=200
+## diag (no-credential flow): after 'Try Again' the check passes and the app re-routes to 'Set Location' (not the pick map)
+## exploration 2, flow 05: the same screen reappears mid-flow (hierarchy: 'Oops!', 'No internet connection', 'Try Again')
+LocationNoInternetAbort lines in exploration 2: 12

@@ -1,0 +1,7 @@
+# NEARS-4274 [8] env bug: UserApp iOS build fails on Xcode 27.0 (27A266a) with the §12.2 recipe as written
+UserApp/ios/Pods/Pods.xcodeproj: error: The iOS Simulator deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 13.0, but the range of supported deployment target versions is 15.0 to 27.0.x. (in target 'pointer_interceptor_ios' from project 'Pods')
+UserApp/ios/Pods/Pods.xcodeproj: error: The iOS Simulator deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 13.0, but the range of supported deployment target versions is 15.0 to 27.0.x. (in target 'google_sign_in_ios' from project 'Pods')
+UserApp/ios/Pods/Pods.xcodeproj: error: The iOS Simulator deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 14.0, but the range of supported deployment target versions is 15.0 to 27.0.x. (in target 'google_maps_flutter_ios' from project 'Pods')
+... (73 Pods targets) -> ** BUILD FAILED ** rc=65
+# workaround used at [8] (command-line build setting, no file edit): xcodebuild ... IPHONEOS_DEPLOYMENT_TARGET=15.0 -> rc=0
+# second recipe gap: Runner.xcodeproj references UserApp/ios/GoogleService-Info.plist (not ios/Runner/); build fails 'Build input file cannot be found' until copied there
