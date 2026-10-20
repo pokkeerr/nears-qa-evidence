@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4212
 
-**NEARS-4212 QA cycle 0: store promised-by (API, VendorApp, Store Panel)**
+**DELTA RE-QA (fix cycle 1) b5a3b3d25: FIR-1 PASS, FIR-2 PASS, ACs re-confirmed**
 
-**36 screenshot(s).** Click any thumbnail for full resolution.
+**56 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -62,8 +62,42 @@
 </tr>
 <tr>
 <td align="center" width="33%"><a href="E-panel-detail-94004-en-12h.png"><img src="E-panel-detail-94004-en-12h.png" width="240"></a><br><sub>E panel detail 94004 en 12h</sub></td>
+<td align="center" width="33%"><a href="F1-panel-list-94002-ar.png"><img src="F1-panel-list-94002-ar.png" width="240"></a><br><sub>F1 panel list 94002 ar</sub></td>
+<td align="center" width="33%"><a href="F1-panel-list-94002-en.png"><img src="F1-panel-list-94002-en.png" width="240"></a><br><sub>F1 panel list 94002 en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="F1-panel-list-ar.png"><img src="F1-panel-list-ar.png" width="240"></a><br><sub>F1 panel list ar</sub></td>
+<td align="center" width="33%"><a href="F1-panel-list-en.png"><img src="F1-panel-list-en.png" width="240"></a><br><sub>F1 panel list en</sub></td>
+<td align="center" width="33%"><a href="F2-details-94002-after-extend-en.png"><img src="F2-details-94002-after-extend-en.png" width="240"></a><br><sub>F2 details 94002 after extend en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="F2-details-94002-before-extend-en.png"><img src="F2-details-94002-before-extend-en.png" width="240"></a><br><sub>F2 details 94002 before extend en</sub></td>
+<td align="center" width="33%"><a href="F2-details-94003-after-extend-ar.png"><img src="F2-details-94003-after-extend-ar.png" width="240"></a><br><sub>F2 details 94003 after extend ar</sub></td>
+<td align="center" width="33%"><a href="F2-details-94009-backend-down-en.png"><img src="F2-details-94009-backend-down-en.png" width="240"></a><br><sub>F2 details 94009 backend down en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="F2-details-94009-refused-other-en.png"><img src="F2-details-94009-refused-other-en.png" width="240"></a><br><sub>F2 details 94009 refused other en</sub></td>
+<td align="center" width="33%"><a href="F2-details-94010-403-used-en.png"><img src="F2-details-94010-403-used-en.png" width="240"></a><br><sub>F2 details 94010 403 used en</sub></td>
+<td align="center" width="33%"><a href="F2-list-94002-after-extend-no-refresh-en.png"><img src="F2-list-94002-after-extend-no-refresh-en.png" width="240"></a><br><sub>F2 list 94002 after extend no refresh en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="F2-list-94003-after-extend-no-refresh-ar.png"><img src="F2-list-94003-after-extend-no-refresh-ar.png" width="240"></a><br><sub>F2 list 94003 after extend no refresh ar</sub></td>
+<td align="center" width="33%"><a href="F2-list-94010-after-403-no-refresh-en.png"><img src="F2-list-94010-after-403-no-refresh-en.png" width="240"></a><br><sub>F2 list 94010 after 403 no refresh en</sub></td>
+<td align="center" width="33%"><a href="F2-panel-detail-94002-after-extend-en.png"><img src="F2-panel-detail-94002-after-extend-en.png" width="240"></a><br><sub>F2 panel detail 94002 after extend en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="F2-panel-list-94002-after-extend-en.png"><img src="F2-panel-list-94002-after-extend-en.png" width="240"></a><br><sub>F2 panel list 94002 after extend en</sub></td>
+<td align="center" width="33%"><a href="G-details-error-delta-en.png"><img src="G-details-error-delta-en.png" width="240"></a><br><sub>G details error delta en</sub></td>
+<td align="center" width="33%"><a href="P-parcel-94012-details-en.png"><img src="P-parcel-94012-details-en.png" width="240"></a><br><sub>P parcel 94012 details en</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="P-parcel-rx-94011-details-en.png"><img src="P-parcel-rx-94011-details-en.png" width="240"></a><br><sub>P parcel rx 94011 details en</sub></td>
 <td align="center" width="33%"><a href="R-busy-card-after-tap.png"><img src="R-busy-card-after-tap.png" width="240"></a><br><sub>R busy card after tap</sub></td>
 <td align="center" width="33%"><a href="R-filter-list-error-block.png"><img src="R-filter-list-error-block.png" width="240"></a><br><sub>R filter list error block</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="R2-details-94008-slot-en.png"><img src="R2-details-94008-slot-en.png" width="240"></a><br><sub>R2 details 94008 slot en</sub></td>
+<td align="center" width="33%"><a href="R2-home-busy-card-after-tap.png"><img src="R2-home-busy-card-after-tap.png" width="240"></a><br><sub>R2 home busy card after tap</sub></td>
 </tr>
 </table>
 
@@ -72,6 +106,9 @@
 - [`C-details-error-en-dump.xml`](C-details-error-en-dump.xml)
 - [`C-details-loaded-en-dump.xml`](C-details-loaded-en-dump.xml)
 - [`C-details-retry-spinner-ar-dump.xml`](C-details-retry-spinner-ar-dump.xml)
+- [`G-details-error-delta-en-dump.xml`](G-details-error-delta-en-dump.xml)
+- [`G-logs-delta.log`](G-logs-delta.log)
+- [`P-parcel-94012-details.log`](P-parcel-94012-details.log)
 - [`progress.md`](progress.md)
 
 ---

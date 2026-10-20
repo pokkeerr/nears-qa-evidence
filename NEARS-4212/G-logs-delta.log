@@ -1,0 +1,11 @@
+# NEARS-4212 delta QA (b5a3b3d25) — expected FE [FAIL] lines, each paired with the induced fault (paths only, no bodies/PII)
+22:00:49.613 [FAIL] endpoint=/api/v1/vendor/order-need-more-time http_status=403 msg="unhandled api response" correlation_id=ce8b9114-eafa-44be-b64f-57a1898697a8
+22:00:49.616 [FAIL] endpoint=/api/v1/vendor/order-need-more-time http_status=403 msg="order need-more-time failed (403)" correlation_id=ce8b9114-eafa-44be-b64f-57a1898697a8
+   BE laravel.log 22:01:01 WARNING [WARN] eta more time refused {"correlation_id":"ce8b9114-eafa-44be-b64f-57a1898697a8","endpoint":"/api/v1/vendor/order-need-more-time","order_id":94010,"store_id":2,"reason":"eta_more_time_used"}   <- join OK
+22:02:04.169 [FAIL] endpoint=/api/v1/vendor/order-need-more-time http_status=403 (order status flipped to picked_up in twin: eta_more_time_unavailable) correlation_id=26a7ae8e-bfc9-4df3-a2f6-9ac62a8d69c7
+22:02:53.175 [FAIL] endpoint=/api/v1/vendor/order-need-more-time http_status=null msg="api request threw" (backend stopped) correlation_id=32dface0-026e-4f5c-b272-49da37f15da7
+22:02:53.175 [FAIL] endpoint=/api/v1/vendor/order-need-more-time http_status=0 msg="order need-more-time failed (0)"
+22:03:40.697 [FAIL] endpoint=/api/v1/vendor/order http_status=null msg="order details load failed" (details open with backend stopped -> error block + Try Again)
+21:54:57-21:55:40 [FAIL] profile/current-orders/notifications/completed-orders http_status=null "api request threw" -> php built-in server segfault (php-2026-10-20-215514.ips, EXC_BAD_ACCESS), env flake, server restarted
+22:12-22:13 parcel 94012: [FAIL] endpoint=/api/v1/vendor/order-details http_status=null msg="order details load failed (_TypeError)"  (see P-parcel-94012-details.log)
+22:1x 401s after the host-side curl login rotated the vendor token (expected, single-session vendor login)
