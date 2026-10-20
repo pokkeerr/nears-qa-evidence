@@ -1,0 +1,63 @@
+NEARS-4276 QA [8] cycle 1 - independent checks (QA's own reads, not the job's self-report). tested_sha d2b8921dd0ca8f1e2df5604468d675f5b891cc7d
+Script run: /Users/Apple/Projects/nears-NEARS-4276-maestro-nightly/scripts/qa-maestro-nightly.sh (shipped bytes at d2b8921dd, unmodified)
+
+== Baseline (11:13, before any run)
+orders COUNT/MAX: 179	91415
+multi_food_db_qa% DBs: 32 (identical list to cycle-0 baseline)
+nears-qa-nightly_* worktrees: 0; qa-locks: none; account locks: none; crontab: none
+
+== .env guard (QA-TB1) on the REAL primary Admin/.env
+primary Admin/.env: line 21 DB_DATABASE=<shared> (non-comment, rewritten), line 152 '#' comment naming the shared DB
+base run tree copy (read while the run was live): line 21 DB_DATABASE=<clone>, line 152 comment=1 (still present) -> guard did not block; run proceeded to clone_config
+
+== Log gate (QA-TB2): independent grep of each row's logcat-app.txt for [FAIL]/[ERR] lines outside the 5 known-noise entries
+base 01-02-browse-store-wrong-assert: FAIL/ERR=6 outside-noise=0 token-update=1
+base 02-01-login: FAIL/ERR=6 outside-noise=0 token-update=1
+base 03-02-browse-store: FAIL/ERR=6 outside-noise=0 token-update=1
+base 04-03-add-to-cart: FAIL/ERR=6 outside-noise=0 token-update=1
+base 05-04-checkout: FAIL/ERR=6 outside-noise=0 token-update=1
+base 06-05-order-tracking: FAIL/ERR=16 outside-noise=0 token-update=4
+base 07-store-oos-listed-last: FAIL/ERR=6 outside-noise=0 token-update=1
+ac2 01-02-browse-store-wrong-assert: FAIL/ERR=6 outside-noise=0 token-update=1
+ac2 02-01-login: FAIL/ERR=6 outside-noise=0 token-update=1
+ac2 03-02-browse-store: FAIL/ERR=6 outside-noise=0 token-update=1
+ac2 04-03-add-to-cart: FAIL/ERR=6 outside-noise=0 token-update=1
+ac2 05-04-checkout: FAIL/ERR=6 outside-noise=0 token-update=1
+ac2 06-05-order-tracking: FAIL/ERR=16 outside-noise=0 token-update=4
+ac2 07-store-oos-listed-last: FAIL/ERR=6 outside-noise=0 token-update=1
+differing case: cycle-0 runs (pre-fix noise file) failed every row on this same token-update line (bug-fcm-update-token-noise.log)
+
+== AC2 failure point: control branch file pilot/01-login.yaml line 13 assertVisible "My Orders" COMPLETED, line 14 assertVisible "Edit Profile" FAILED (commands.json); en.json edit_profile = "Edit Profile QA4276" at 5201fc30d
+
+== AC3 reads after each run
+base orders: same (179	91415)
+base qa DBs: identical (32)
+base nightly worktrees: 0; dirs: 0
+base qa-locks: [] account-locks: [] runlock: []
+base adb devices: [emulator-5576 device  ]
+base emulator procs for 2414/2424: 0; php serve on 8276: 0
+base credential files in /Users/Apple/.maestro/tests: 0
+base credential files in /Users/Apple/.nears/qa-nightly/qa4276-c1-base: 0
+base primary branch: feat/human-qa-uiux
+ac2 orders: same (179	91415)
+ac2 qa DBs: identical (32)
+ac2 nightly worktrees: 0; dirs: 0
+ac2 qa-locks: [] account-locks: [] runlock: []
+ac2 adb devices: [emulator-5576 device  ]
+ac2 emulator procs for 2414/2424: 0; php serve on 8276: 0
+ac2 credential files in /Users/Apple/.maestro/tests: 0
+ac2 credential files in /Users/Apple/.nears/qa-nightly/qa4276-c1-ac2: 0
+ac2 primary branch: feat/human-qa-uiux
+blocked orders: same (179	91415)
+blocked qa DBs: identical (32)
+blocked nightly worktrees: 0; dirs: 0
+blocked qa-locks: [] account-locks: [] runlock: []
+blocked adb devices: [emulator-5576 device  ]
+blocked emulator procs for 2414/2424: 0; php serve on 8276: 0
+blocked credential files in /Users/Apple/.maestro/tests: 0
+blocked credential files in /Users/Apple/.nears/qa-nightly/qa4276-c1-blocked: 0
+blocked primary branch: feat/human-qa-uiux
+credential grep positive controls: plain form vs the env file -> 1 hit; base64 form vs a planted file -> 1 hit
+evidence sweep (this folder): plain/base64/urlencoded customer_a email+password, APP_KEY=, DB_PASSWORD=, base64:, PUSHER_APP_SECRET, private key, AIza -> 0 files each
+
+== Cleanup: AC2 temp worktree removed right after the commit; branch qa/NEARS-4276-ac2-broken-label deleted (was 5201fc30d); env file deleted
