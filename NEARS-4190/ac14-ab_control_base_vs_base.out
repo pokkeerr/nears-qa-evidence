@@ -1,0 +1,14 @@
+dataset check (each server must see >= 900 stores in the list):
+  http://127.0.0.1:8194 total_size=980
+  http://127.0.0.1:8194 total_size=980
+ab -n 200 -c 4, 3 runs per server per path, warm-up 15, output /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//etaloadab.fdxHsw
+path1: /api/v1/stores/get-stores/all?limit=25&offset=1&type=all&with_filters=1
+  base path1 run1  p50=239ms p95=372ms p99=445ms 15.73 req/s (clean 2xx)
+  head path1 run1  p50=201ms p95=310ms p99=466ms 17.88 req/s (clean 2xx)
+  head path1 run2  p50=277ms p95=331ms p99=375ms 14.07 req/s (clean 2xx)
+  base path1 run2  p50=279ms p95=577ms p99=697ms 13.32 req/s (clean 2xx)
+  base path1 run3  p50=408ms p95=686ms p99=822ms 9.34 req/s (clean 2xx)
+  head path1 run3  p50=336ms p95=1016ms p99=1445ms 8.87 req/s (clean 2xx)
+  => path1 median p95: base=577ms head=331ms ratio=0.574 (tolerance 10%) WITHIN
+results: /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//etaloadab.fdxHsw/results.tsv
+mem-guard[nears4190-qa]: done rc=0 peak_tree_rss=0.01 GB (cap 6.0)

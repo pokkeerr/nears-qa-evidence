@@ -1,0 +1,23 @@
+http 200
+=== LIST {"p50":456.05,"p95":569.6,"min":259.73} first-seen-in-request 376.47 ms
+sql: select *, IF(((select count(*) from `store_schedule` where `stores`.`id` = `store_schedule`.`store_id` and `store_schedule`.`day` = 2 and `store_schedule`.`opening_time` < "14:24:40" and `store_schedule`.`closing_time` >...
+  EXPLAIN raw {"EXPLAIN":"-> Limit: 25 row(s)\n    -> Sort row IDs: open DESC, stores.id, limit input to 25 row(s) per chunk\n        -> Table scan on <temporary>  (cost=633..636 rows=14.9)\n            -> Temporary table  (cost=633..633 rows=14.9)\n                -> Nested loop semijoin (FirstMatch)  (cost=629 rows=14.9)\n                    -> Nested loop inner join  (cost=582 rows=134)\n                        ->
+  ANALYZE: -> Limit: 25 row(s)  (actual time=479..479 rows=25 loops=1)
+    -> Sort row IDs: `open` DESC, stores.id, limit input to 25 row(s) per chunk  (actual time=479..479 rows=25 loops=1)
+        -> Table scan on <temporary>  (cost=633..636 rows=14.9) (actual time=479..479 rows=953 loops=1)
+            -> Temporary table  (cost=633..633 rows=14.9) (actual time=479..479 rows=953 loops=1)
+                ->
+=== PAGINATOR COUNT {"p50":334.87,"p95":417.92,"min":262.34} first-seen-in-request 278.15 ms
+sql: select count(*) as aggregate from `stores` where exists (select * from `modules` where `stores`.`module_id` = `modules`.`id` and `status` = ?) and `status` = ? and (`store_business_model` = ? or exists (select * from `st...
+  EXPLAIN raw {"EXPLAIN":"-> Aggregate: count(0)  (cost=665 rows=1)\n    -> Nested loop semijoin (FirstMatch)  (cost=664 rows=1.66)\n        -> Nested loop semijoin (FirstMatch)  (cost=629 rows=14.9)\n            -> Nested loop inner join  (cost=582 rows=134)\n                -> Filter: (modules.`status` = 1)  (cost=1.15 rows=1)\n                    -> Table scan on modules  (cost=1.15 rows=9)\n                -> Fil
+  ANALYZE: -> Aggregate: count(0)  (cost=665 rows=1) (actual time=326..326 rows=1 loops=1)
+    -> Nested loop semijoin (FirstMatch)  (cost=664 rows=1.66) (actual time=0.0981..326 rows=953 loops=1)
+        -> Nested loop semijoin (FirstMatch)  (cost=629 rows=14.9) (actual time=0.0964..324 rows=953 loops=1)
+            -> Nested loop inner join  (cost=582 rows=134) (actual time=0.0898..317 rows=955 loops=1)
+  
+=== COUNTS AGGREGATE (delivery_time) {"p50":1253.92,"p95":1916.25,"min":871.12} first-seen-in-request 1406.3 ms
+sql: select COALESCE(SUM((CASE WHEN (stores.delivery_mode = 'walking' AND COALESCE(CASE WHEN stores.latitude REGEXP '^-?[0-9]+([.][0-9]+)?$' AND stores.longitude REGEXP '^-?[0-9]+([.][0-9]+)?$' AND CAST(stores.latitude AS DEC...
+  EXPLAIN raw {"EXPLAIN":"-> Limit: 1 row(s)  (cost=633 rows=1)\n    -> Aggregate: sum(((case when ((stores.delivery_mode = 'walking') and (0 <> coalesce(((case when (regexp_like(stores.latitude,'^-?[0-9]+([.][0-9]+)?$') and regexp_like(stores.longitude,'^-?[0-9]+([.][0-9]+)?$') and (cast(stores.latitude as decimal(10,7)) between -(90) and 90) and (cast(stores.longitude as decimal(11,7)) between -(180) and 180)) then
+  ANALYZE: -> Limit: 1 row(s)  (cost=633 rows=1) (actual time=1753..1753 rows=1 loops=1)
+    -> Aggregate: sum(((case when ((stores.delivery_mode = 'walking') and (0 <> coalesce(((case when (regexp_like(stores.latitude,'^-?[0-9]+([.][0-9]+)?$') and regexp_like(stores.longitude,'^-?[0-9]+([.][0-9]+)?$') and (cast(stores.latitude as decimal(10,7)) between -(90) and 90) and (cast(stores.longitude as decimal(11,
+mem-guard[nears4190-qa]: done rc=0 peak_tree_rss=0.07 GB (cap 6.0)

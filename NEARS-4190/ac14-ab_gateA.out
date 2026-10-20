@@ -1,0 +1,22 @@
+dataset check (each server must see >= 900 stores in the list):
+  http://127.0.0.1:8194 total_size=980
+  http://127.0.0.1:8195 total_size=980
+ab -n 200 -c 4, 3 runs per server per path, warm-up 15, output /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//etaloadab.mtdCy5
+path1: /api/v1/stores/get-stores/all?limit=25&offset=1&type=all&with_filters=1&max_delivery_minutes=20
+  base path1 run1  p50=184ms p95=269ms p99=344ms 20.02 req/s (clean 2xx)
+  head path1 run1  p50=233ms p95=267ms p99=473ms 16.71 req/s (clean 2xx)
+  head path1 run2  p50=254ms p95=404ms p99=436ms 13.80 req/s (clean 2xx)
+  base path1 run2  p50=207ms p95=302ms p99=316ms 17.98 req/s (clean 2xx)
+  base path1 run3  p50=190ms p95=204ms p99=346ms 20.65 req/s (clean 2xx)
+  head path1 run3  p50=313ms p95=409ms p99=654ms 12.88 req/s (clean 2xx)
+  => path1 median p95: base=269ms head=404ms ratio=1.502 (tolerance 10%) EXCEEDS
+path2: /api/v1/stores/get-stores/all?limit=25&offset=1&type=all&with_filters=1
+  base path2 run1  p50=186ms p95=277ms p99=388ms 19.77 req/s (clean 2xx)
+  head path2 run1  p50=299ms p95=453ms p99=689ms 13.10 req/s (clean 2xx)
+  head path2 run2  p50=236ms p95=379ms p99=520ms 14.99 req/s (clean 2xx)
+  base path2 run2  p50=265ms p95=310ms p99=343ms 14.67 req/s (clean 2xx)
+  base path2 run3  p50=201ms p95=257ms p99=378ms 19.19 req/s (clean 2xx)
+  head path2 run3  p50=210ms p95=294ms p99=415ms 17.82 req/s (clean 2xx)
+  => path2 median p95: base=277ms head=379ms ratio=1.368 (tolerance 10%) EXCEEDS
+results: /var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T//etaloadab.mtdCy5/results.tsv
+mem-guard[nears4190-qa]: done rc=1 peak_tree_rss=0.00 GB (cap 6.0)
