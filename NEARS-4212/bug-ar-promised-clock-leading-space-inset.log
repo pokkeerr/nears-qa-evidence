@@ -1,0 +1,6 @@
+NEARS-4212 UX-4b @16cb4a2c7, emulator-5586, VendorApp AR, order 94002 details (1344x2992 px, density 3.0)
+Dump node bounds (B-details-94002-ar-UX4-dump.xml), left edges: Order Date value [45,501][499,561]; Promised-by clock text ' 10:58 PM' [45,615][240,675]; Order Type value [45,726][245,792]  -> all 45 (node boxes flush)
+Screenshot INK left edge (leftmost pixel <140 luminance in each row band): date=49  promised=60  type=48  -> promised clock digits inset 11 px (~3.7 dp) vs Order Date, tolerance 2 px
+EN control (same method, rightmost ink): date=1293 promised=1294 type=1297 -> flush within 1 px of Order Date
+Cause (source, order_details_screen.dart _promisedByRow): Text(' $clock', textDirection: TextDirection.ltr) - the leading space is part of a forced-LTR run, so in the RTL row it lands on the OUTER left edge (in EN it sits between icon and digits, invisible). The Order Date value inherits RTL base direction so its leading space lands next to the icon.
+Suggested fix direction (not applied): replace leading space with SizedBox(width:..) between Icon and Text.
