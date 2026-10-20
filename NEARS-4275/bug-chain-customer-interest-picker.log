@@ -1,0 +1,12 @@
+# NEARS-4275 AC2 step 1 - flow customer cannot complete pilot/04-checkout on a fresh clone
+run: docs/qa-evidence/NEARS-4275/maestro/20261020-160341-37138 (emulator-5592, com.izzes.nears.nears_nears_4275_maestro_vendor_delivery, clone multi_food_db_qa4275_q1517)
+maestro: [Failed] NEARS-4270 pilot 04 - checkout (places a real COD order - clone DB only) (2m 7s) (No visible element found: "Fresh local
+[\s\S]*Popular:[\s\S]*")
+passed before failure: Choose Your Language -> English/Next -> Use my current location -> Confirm Location -> Login/Sign Up -> Email/Phone + Password -> Sign In -> Profile visible (login + onboarding OK)
+failing screen (hierarchy step-033): 17 chips '<category>, not selected' + 'Save & Continue' = the interest interstitial (route 'interest')
+trigger: UserApp/lib/helper/interest_page_helper.dart shouldShowInterestPage(): module 1 not in user's selected modules
+data (read-only SELECTs): shared users.id 435 interest=NULL module_ids=NULL (every fresh clone inherits this); customer_a id1 / customer_b id3 have interests set
+0-selection Save & Continue = _skipPersonalization() (no POST), so the picker returns on every fresh login
+logcat-gate: CLEAN (only the 5 Firebase-unconfigured known-noise lines)
+fallback per topic doc 6.4 (customer_b + --chain-order): refused by design on this dump - 16 open zone-2 unassigned orders share address 54 text 'Abu Dhabi - United Arab Emirates' (clone SELECT 2026-10-20 16:06)
+assisted proof: one UI pass on 5592 (tap 'Fresh Fruits, not selected', 'Save & Continue') -> clone users 435 interest=[4] module_ids=[1]; pilot/04-checkout then PASS (20261020-160756-59608, order 91458)
