@@ -1,0 +1,18 @@
+# bug-env-comment-guard (NEARS-4276 QA [8], 2026-10-20) — real shipped script at bc3dda85c, --ref feat/human-qa-uiux
+## nightly output (qa4276-base, wall 7 s)
+qa-maestro-nightly: report dir: /Users/Apple/.nears/qa-nightly/qa4276-base
+qa-maestro-nightly: self-check clone_name: pass - multi_food_db_qa4276_20261020_091618_20198
+qa-maestro-nightly: clone multi_food_db_qa4276_20261020_091618_20198 created; filling it from a mysqldump of the shared DB
+qa-maestro-nightly: BLOCKED: the copied .env still names the shared DB
+qa-maestro-nightly: teardown drop_clone: ok - multi_food_db_qa4276_20261020_091618_20198
+qa-maestro-nightly: teardown remove_tree: ok - /Users/Apple/Projects/nears-qa-nightly_20261020-091614-20198
+nightly-report: BLOCKED rc=2 - the copied .env still names the shared DB
+qa-maestro-nightly: report: /Users/Apple/.nears/qa-nightly/qa4276-base/report.json (rc 2)
+## guard: scripts/qa-maestro-nightly.sh:600-602
+[ "$(grep -c '^DB_DATABASE=' "$TREE/Admin/.env")" = 1 ] && [ "$(sed -n 's/^DB_DATABASE=//p' "$TREE/Admin/.env")" = "$CLONE" ] \
+  || block "the copied .env does not name exactly the clone"
+if grep -qE 'multi_food_db([^_]|$)' "$TREE/Admin/.env"; then block "the copied .env still names the shared DB"; fi
+## primary Admin/.env lines matching 'multi_food_db([^_]|$)' (line:key-or-comment) — line 21 is rewritten to the clone in the copy; line 152 is a COMMENT and survives the copy
+21:DB_DATABASE=<rewritten to the clone in the copy>
+152:#   mysql -u root multi_food_db < "$NEARS_DB_BACKUP"
+## consequence: every run on this host ends BLOCKED rc 2 at step 4 with 0 rows; no flow can ever run.

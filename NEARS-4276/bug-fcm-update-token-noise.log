@@ -1,0 +1,51 @@
+# bug-fcm-update-token-noise (NEARS-4276 QA [8], 2026-10-20) — exploratory run qa4276-base-x (scratch copy, line 602 comment-skip only), AVD NEARS_2414_QA fresh boot, fresh install com.izzes.nears.qanightly
+== 01-02-browse-store-wrong-assert
+qa-maestro-run: maestro exit 1 (a flow failed)
+qa-maestro-run: logcat-gate: DIRTY app_lines=713 err_fail=1 suppressed=5 app_pids=5289
+qa-maestro-run: logcat-gate: offending [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"
+qa-maestro-run: FAIL (a flow failed) rc=1 key=NEARS-4270 evidence-key=NEARS-4276 serial=emulator-5580 evidence=/Users/Apple/Projects/nears-qa-nightly_20261020-091745-22522/docs/qa-evidence/NEARS-4276/
+== 02-01-login
+qa-maestro-run: maestro exit 0 (flows passed)
+qa-maestro-run: logcat-gate: DIRTY app_lines=547 err_fail=1 suppressed=5 app_pids=5289,6463
+qa-maestro-run: logcat-gate: offending [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"
+qa-maestro-run: FAIL (log has [ERR]/[FAIL]) rc=1 key=NEARS-4270 evidence-key=NEARS-4276 serial=emulator-5580 evidence=/Users/Apple/Projects/nears-qa-nightly_20261020-091745-22522/docs/qa-evidence/NEAR
+== 03-02-browse-store
+qa-maestro-run: maestro exit 0 (flows passed)
+qa-maestro-run: logcat-gate: DIRTY app_lines=708 err_fail=1 suppressed=5 app_pids=6463,7303
+qa-maestro-run: logcat-gate: offending [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"
+qa-maestro-run: FAIL (log has [ERR]/[FAIL]) rc=1 key=NEARS-4270 evidence-key=NEARS-4276 serial=emulator-5580 evidence=/Users/Apple/Projects/nears-qa-nightly_20261020-091745-22522/docs/qa-evidence/NEAR
+== 04-03-add-to-cart
+qa-maestro-run: maestro exit 0 (flows passed)
+qa-maestro-run: logcat-gate: DIRTY app_lines=737 err_fail=1 suppressed=5 app_pids=7303,8479
+qa-maestro-run: logcat-gate: offending [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"
+qa-maestro-run: FAIL (log has [ERR]/[FAIL]) rc=1 key=NEARS-4270 evidence-key=NEARS-4276 serial=emulator-5580 evidence=/Users/Apple/Projects/nears-qa-nightly_20261020-091745-22522/docs/qa-evidence/NEAR
+== 05-04-checkout
+qa-maestro-run: maestro exit 0 (flows passed)
+qa-maestro-run: logcat-gate: DIRTY app_lines=918 err_fail=1 suppressed=5 app_pids=8479,9460
+qa-maestro-run: logcat-gate: offending [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"
+qa-maestro-run: FAIL (log has [ERR]/[FAIL]) rc=1 key=NEARS-4270 evidence-key=NEARS-4276 serial=emulator-5580 evidence=/Users/Apple/Projects/nears-qa-nightly_20261020-091745-22522/docs/qa-evidence/NEAR
+== 06-05-order-tracking
+qa-maestro-run: maestro exit 0 (flows passed)
+qa-maestro-run: logcat-gate: DIRTY app_lines=1698 err_fail=4 suppressed=12 app_pids=9460,10462,10822,11210
+qa-maestro-run: logcat-gate: offending [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"
+qa-maestro-run: logcat-gate: offending [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"
+qa-maestro-run: logcat-gate: offending [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"
+qa-maestro-run: logcat-gate: offending [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"
+qa-maestro-run: FAIL (log has [ERR]/[FAIL]) rc=1 key=NEARS-4270 evidence-key=NEARS-4276 serial=emulator-5580 evidence=/Users/Apple/Projects/nears-qa-nightly_20261020-091745-22522/docs/qa-evidence/NEAR
+== 07-store-oos-listed-last
+qa-maestro-run: maestro exit 0 (flows passed)
+qa-maestro-run: logcat-gate: DIRTY app_lines=1024 err_fail=1 suppressed=5 app_pids=11210,11797
+qa-maestro-run: logcat-gate: offending [FAIL] endpoint=null http_status=null type=FcmTokenFetchFailure msg="firebase messaging unavailable during token update"
+qa-maestro-run: FAIL (log has [ERR]/[FAIL]) rc=1 key=NEARS-3587 evidence-key=NEARS-4276 serial=emulator-5580 evidence=/Users/Apple/Projects/nears-qa-nightly_20261020-091745-22522/docs/qa-evidence/NEAR
+## emitter: UserApp/lib/features/auth/domain/repositories/auth_repository.dart:333-338 (feat/human-qa-uiux)
+      } catch (e, st) {
+        AppLogger.failure(
+          FcmTokenFetchFailure(e.runtimeType),
+          st,
+          'firebase messaging unavailable during token update',
+        );
+## scripts/qa-maestro/known-noise.txt (NEARS-4272) active entries: FcmTokenFetchFailure is pinned ONLY to msg="FCM registration id fetch failed"
+type=FirebaseInitFailure msg="firebase init failed (PlatformException)"
+type=KilledLaunchNotificationFailure msg="killed-launch getInitialMessage failed (FirebaseException)"
+type=FcmTokenFetchFailure msg="FCM registration id fetch failed"
+type=FcmTopicConfigFailure msg="configureFirebaseMessaging: FCM topic subscribe/unsubscribe failed"
