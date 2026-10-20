@@ -1,0 +1,26 @@
+# NEARS-4272 QA [8] fix-cycle 2 - task_bug: SP7 flow card regex misses discounted cards (TB5 flow)
+# Flow: UserApp/.maestro/store/store-oos-listed-last.yaml + store/subflows/available-above-first-oos.yaml @ 0056ef779
+# Run (Method B): docs/qa-evidence/NEARS-4272/maestro/20261020-041335-91883 (wrapper --key NEARS-3587 --evidence-key NEARS-4272, emulator-5576)
+#
+# Failing step: commands.json step 079, 3rd subflow call (SP7_ITEM "Oreo Choco Cookies"), the UP scrollUntilVisible:
+[Failed] NEARS-3587 SP7 - store 12 out-of-stock items carry the label and list last (read-only) (4m 27s) (No visible element found: "(\d+\n)?Oreo Choco Cookies( \(\w+\))?\n[\s\S]*", Below "All Products")
+# The list WAS fully loaded before it (logcat-app.txt, pid 11165):
+10-20 04:14:54.263 [NET] GET endpoint=/api/v1/items/latest -> 200 ; 04:15:06.434 -> 200 ; 04:15:14.005 -> 200   (pages 1-3)
+# Hierarchy at failure (screen-hierarchy/step-079...json): the search scrolled to the top of the store page:
+[30,2352][376,2436] All Products
+[687,2658][1314,2920] 19% OFF\nMozzarella 200g (kg)\nORGANIC\n⁦18.10 AED⁩\n⁦22.34 AED⁩      <- a discounted grid card: the label STARTS with the badge line
+# Live grid labels (Method A dumps ac6-fix2-methodA/dumps/p3-*.txt): 6 of the 21 available cards start with a discount badge line,
+# so the anchored regex "(\d+\n)?<name>( \(\w+\))?\n[\s\S]*" full-matches only 15/21:
+20% OFF\nOreo Choco Cookies (kg)\n...
+⁦70.00 AED⁩ OFF\n4X4 Rubiks Cube (gm)\n...
+10% OFF\nPremium Aromatice Atop Rice (kg)\n...
+30% OFF\nTones Mild Chili Powder (gm)\n...
+19% OFF\nMozzarella 200g (kg)\nORGANIC\n...
+5% OFF\nCarrots (kg)\nORGANIC\n...
+# Consequences: (1) the subflow's UP search fails for each of these 6 -> the flow FAILs on a correctly ordered list (false FAIL; AC6 parity broken);
+# (2) the same regex sits in both "assertNotVisible ... below <first OOS card>" steps, so a DISCOUNTED available card listed below an
+#     out-of-stock card would never be seen -> that half of the ordering check is vacuous for 6/21 items.
+# Diagnostic (QA scratch copy, NOT committed; ac6-fix2-diag-flow/): ONLY change = card-regex prefix "(\d+\n)?" -> "((\d+|[^\n]* OFF)\n)*"
+#   offline: 21/21 live grid labels match, 0 SOLD OUT labels match.
+#   live: run 20261020-041940-16947 -> PASS rc 0 (all 21 subflow calls + label step pass, gate CLEAN suppressed=4, ac_table SP7 PASS).
+# The data dependency (discounts on store-12 items) is the same class as code-review L1 "data-pinned": the flow pins label shapes, not just names.

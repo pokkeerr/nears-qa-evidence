@@ -1,0 +1,19 @@
+# NEARS-4272 QA [8] fix-cycle 2, AC1 parity live provocation. NOT committed, QA scratch only.
+# READ-ONLY: relaunches the signed-in app (pilot relaunch-home.yaml, copied unchanged, closes the
+# NEARS-4271 payment-incomplete sheet via Close only), stops QA's OWN backend (:8272) mid-flow
+# through a host-side control endpoint, then pull-to-refreshes Home; never taps a write button.
+appId: ${APP_ID}
+name: NEARS-4272 QA parity - passing flow, own backend stopped mid-flow
+tags:
+  - NEARS-4272-AC1
+---
+- runFlow: subflows/relaunch-home.yaml
+- evalScript: ${output.stop = http.get('http://127.0.0.1:18272/stop').body}
+- assertTrue: ${output.stop == 'stopped'}
+- swipe:
+    start: 50%, 35%
+    end: 50%, 75%
+    duration: 800
+- waitForAnimationToEnd:
+    timeout: 8000
+- assertVisible: "Search"

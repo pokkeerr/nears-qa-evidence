@@ -1,0 +1,67 @@
+== junit-ac-table.test.sh ==
+  ok   J1 the table is written (rc=0)
+  ok   J1 AC1 PASS: both tagged flows passed, log clean
+  ok   J1 SP7 PASS
+  ok   J1 AC2 PASS: a nameless flow joins on its file stem
+  ok   J1 AC3 UNVERIFIABLE: two flows share the name 'dup'
+  ok   J1 rows have exactly the nears-qa.md ac_table keys
+  ok   J1 logs column says clean
+  ok   J2 AC1 FAIL: one of its flows failed
+  ok   J2 SP7 FAIL
+  ok   J2 AC2 unaffected
+  ok   J3 a tagged flow that did not run -> UNVERIFIABLE
+  ok   J3 a skipped tagged flow -> UNVERIFIABLE
+  ok   J4 a testcase with no flow file is reported
+  ok   J4 ... and no row reads PASS while the join is broken
+  ok   J5 a DIRTY log fails a row whose flows passed
+  ok   J5 the logs column carries the excerpt
+  ok   J6 a DEAD log channel -> UNVERIFIABLE
+  ok   J6 an unreadable gate file reads as DEAD, never clean
+  ok   J7 no JUnit report -> every row UNVERIFIABLE
+  ok   J7 a truncated report -> UNVERIFIABLE
+  ok   J8 a listed AC no flow carries -> UNVERIFIABLE
+  ok   J8 --acs limits the rows
+-- T: no tagged flow ran -> UNVERIFIABLE even on a DIRTY log (TB6)
+  ok   T1 AC2's only flow is absent from the report: DIRTY does not make it FAIL
+  ok   T1 the evidence says no tagged flow ran
+  ok   T1 control: AC1's flows ran, so the same DIRTY log still fails it
+  ok   T2 a SKIP tagged flow did not run: UNVERIFIABLE on a DIRTY log
+  ok   T2 a CANCELED tagged flow did not run: UNVERIFIABLE on a DIRTY log
+  ok   T2 a PENDING tagged flow did not run: UNVERIFIABLE on a DIRTY log
+  ok   T3 a WARNING flow did run, so a DIRTY log fails its AC
+  ok   T4 a name shared by two flows is not a run of either: UNVERIFIABLE on a DIRTY log
+  ok   T5 one of AC1's two flows ran: the DIRTY log fails it
+  ok   T5 SP7's only flow (b) did not run: UNVERIFIABLE
+-- FlowStatus whitelist (F5)
+  ok   S1 status WARNING (no failure child) is never PASS
+  ok   S1 status CANCELED (no failure child) is never PASS
+  ok   S1 status STOPPED (no failure child) is never PASS
+  ok   S1 status PENDING (no failure child) is never PASS
+  ok   S1 status RUNNING (no failure child) is never PASS
+  ok   S1 the evidence names the status
+  ok   S2 status ERROR without a <failure> child is FAIL
+  ok   S3 no status and no failure/error/skipped child is PASS
+  ok   S4 the SUCCESS match is case-insensitive
+  ok   S5 a non-PASS case for the same flow is not overwritten by a PASS one
+-- V: --cover report gate (F6)
+  ok   V1 one SUCCESS testcase per requested flow -> covered (rc=0)
+  ok   V1 counts
+  ok   V2 <testsuites/> -> UNVERIFIABLE (rc=3)
+  ok   V2 says why
+  ok   V3 a missing report -> UNVERIFIABLE (rc=3)
+  ok   V3 an unparseable report -> UNVERIFIABLE (rc=3)
+  ok   V4 a requested flow with no testcase -> UNVERIFIABLE (rc=3)
+  ok   V4 names it
+  ok   V5 a testcase for no requested flow -> UNVERIFIABLE (rc=3)
+  ok   V6 a FAILED testcase -> rc 1 (rc=1)
+  ok   V6 names it
+  ok   V7 a WARNING testcase -> UNVERIFIABLE (rc=3)
+  ok   V8 two testcases for one flow -> UNVERIFIABLE (rc=3)
+  ok   V9 --include-tags narrows the expected flows to the tagged ones (rc=0)
+  ok   V10 two requested flows sharing a name cannot be covered (rc=3)
+  ok   V11 --cover without --junit/paths is a usage error (rc=2)
+  ok   W1 an unwritable --out is rc 2 with a message, never a traceback or rc 0 (rc=2)
+  ok   X missing arguments are a usage error (rc=2)
+
+60 assertion(s); floor 60
+PASS

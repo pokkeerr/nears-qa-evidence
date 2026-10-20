@@ -1,0 +1,100 @@
+# NEARS-3587 SP7, out-of-stock half only (the closed-store banner half needs a closed store and
+# is not scripted here). READ-ONLY: it signs in and scrolls; it never taps Add To Cart or any
+# write button. Written at NEARS-4272 [6] from code + DB reads; the fully-loaded ordering check
+# (fix-3 TB5) is UNRUN until QA [8] replays it.
+# SP7 text: "out-of-stock items display the label "Out of stock" and list after all available
+# items in All Products". The label copy is superseded by NEARS-3817 c21746 (AC7): "Sold Out".
+appId: ${APP_ID}
+name: QA-DIAG badge-regex NEARS-3587 SP7 - store 12 out-of-stock items carry the label and list last (read-only)
+tags:
+  - NEARS-3587-SP7
+  - userapp-store
+---
+- runFlow: ../pilot/subflows/fresh-login.yaml
+- runFlow: ../pilot/subflows/open-fresh-local.yaml
+# Positive control for the shape used below: an available store-12 card is rendered and matches.
+# Names: the 21 items with stock > 0 in store 12 (read-only SELECT on multi_food_db, 2026-10-19,
+# re-read 2026-10-20; no EN translation rows, so the app shows items.name). Card shape
+# "(<qty>\n)?<name>( (<unit>))?\n…" is the live-dump shape 02-browse-store.yaml uses for Latus.
+- scrollUntilVisible:
+    element: "((\\d+|[^\\n]* OFF)\\n)*(Brown Dinner Rolls|Hamburger Buns|Oreo Choco Cookies|Round Wheat Bread|Butterfly Fry Shrimp|Mini Caramel Rolls|4X4 Rubiks Cube|Latus|Fresh Organic Tomato|Premium Aromatice Atop Rice|Tones Mild Chili Powder|Lay's Classic Chips|Bathroom Foam Cleaner|Multi-Purpose Cleaner|Pure Ghee 400g|Mozzarella 200g|Popcorn|Whole Milk 1L|Watermelon|Carrots|Rice 5kg)( \\(\\w+\\))?\\n[\\s\\S]*"
+    speed: 20
+    visibilityPercentage: 60
+    centerElement: true
+    timeout: 60000
+# Loose control: an out-of-stock card is reached. Items 91109-91118 "NEARS-1177 Beverage 01..10",
+# stock 0 (same SELECT); live label "SOLD OUT\n<name>\n<price>" (nav-guide §7a), so the name is
+# matched anywhere in it.
+- scrollUntilVisible:
+    element: "[\\s\\S]*NEARS-1177 Beverage \\d\\d[\\s\\S]*"
+    speed: 20
+    visibilityPercentage: 60
+    centerElement: true
+    timeout: 90000
+- assertVisible: "[\\s\\S]*NEARS-1177 Beverage \\d\\d[\\s\\S]*"
+# Load every page first. items/latest pages are 13 items (31 items = pages 1-3), page 1 holds 3
+# available + the 10 out-of-stock cards, and the app re-sorts only the pages it has loaded, so an
+# order check on page 1 alone passes whatever pages 2-3 do (QA 25739). A page is requested when
+# the grid reaches its end; with out-of-stock last, Beverage 10 is the last card at every stage.
+# The small swipe back gives the next pass a real scroll delta (nav-guide §7a: a swipe already at
+# max extent fires no load). 5 passes for 2 page loads leaves room for a slow response.
+- repeat:
+    times: 5
+    commands:
+      - scrollUntilVisible:
+          element: "[\\s\\S]*NEARS-1177 Beverage 10[\\s\\S]*"
+          speed: 40
+          visibilityPercentage: 100
+          timeout: 90000
+      - waitForAnimationToEnd:
+          timeout: 10000
+      - swipe:
+          start: 50%, 40%
+          end: 50%, 70%
+          duration: 600
+# Back above the grid, by search (not by swipes, which could reach the top and pull-to-refresh
+# page 1 again). The Recommended carousel sits right above All Products.
+- scrollUntilVisible:
+    element: "[\\s\\S]*Recommended For You[\\s\\S]*"
+    direction: UP
+    speed: 40
+    visibilityPercentage: 60
+    timeout: 90000
+# SP7 ordering, on the fully loaded list: every available item is loaded AND above the first
+# out-of-stock card (the subflow). 21 found above it = all 3 pages loaded and no available item
+# after it. A missing page or an available item listed after an out-of-stock one fails the
+# subflow's UP search or its assert. Not covered: an available card directly RIGHT of an
+# out-of-stock one in the same grid row (same top edge, so not "below"). Runs before the label
+# check so the ordering verdict is visible even when the label check fails.
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Brown Dinner Rolls"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Hamburger Buns"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Oreo Choco Cookies"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Round Wheat Bread"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Butterfly Fry Shrimp"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Mini Caramel Rolls"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "4X4 Rubiks Cube"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Latus"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Fresh Organic Tomato"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Premium Aromatice Atop Rice"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Tones Mild Chili Powder"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Lay's Classic Chips"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Bathroom Foam Cleaner"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Multi-Purpose Cleaner"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Pure Ghee 400g"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Mozzarella 200g"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Popcorn"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Whole Milk 1L"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Watermelon"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Carrots"}}
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Rice 5kg"}}
+# The first out-of-stock card again, for the label check below.
+- scrollUntilVisible:
+    element: "[\\s\\S]*NEARS-1177 Beverage \\d\\d[\\s\\S]*"
+    speed: 20
+    visibilityPercentage: 60
+    centerElement: true
+    timeout: 90000
+# SP7's "Out of stock" copy is superseded by NEARS-3817 c21746 (AC7): 'sold_out'.tr, upper-cased
+# "SOLD OUT" by n_item_card.dart _StatusChip. The transient page-1 ordering is NEARS-4279, not
+# asserted here.
+- assertVisible: "(?i)[\\s\\S]*sold out[\\s\\S]*NEARS-1177 Beverage \\d\\d[\\s\\S]*"

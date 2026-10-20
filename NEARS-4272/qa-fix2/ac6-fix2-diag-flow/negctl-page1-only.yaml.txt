@@ -1,0 +1,11 @@
+# NEARS-4272 QA [8] fix-cycle 2 negative control for TB5 (QA scratch, not committed). READ-ONLY.
+# Store 12 opened, NO full-load loop: page 1 only (3 available + 10 out-of-stock). Brown Dinner
+# Rolls (item 51) sits on page 3, so the subflow's UP search must NOT find it: this flow must FAIL.
+appId: ${APP_ID}
+name: QA-NEGCTL TB5 subflow on page-1-only list must FAIL
+tags:
+  - NEARS-4272-NEGCTL
+---
+- runFlow: ../pilot/subflows/fresh-login.yaml
+- runFlow: ../pilot/subflows/open-fresh-local.yaml
+- runFlow: {file: subflows/available-above-first-oos.yaml, env: {SP7_ITEM: "Brown Dinner Rolls"}}

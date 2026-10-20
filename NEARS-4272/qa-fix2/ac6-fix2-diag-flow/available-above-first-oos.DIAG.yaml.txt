@@ -1,0 +1,36 @@
+# One store-12 AVAILABLE item (env SP7_ITEM, an items.name) must sit above the FIRST out-of-stock
+# card of the All Products grid. Caller: ../store-oos-listed-last.yaml, after it loaded every page.
+# READ-ONLY: scrolls and asserts only.
+appId: ${APP_ID}
+---
+# Down to the nearest out-of-stock card. The caller starts above the grid and every earlier call
+# ends on an item above the first such card, so this always lands on the FIRST one.
+- scrollUntilVisible:
+    element: "[\\s\\S]*NEARS-1177 Beverage \\d\\d[\\s\\S]*"
+    direction: DOWN
+    speed: 20
+    visibilityPercentage: 60
+    centerElement: true
+    timeout: 90000
+- assertNotVisible:
+    text: "((\\d+|[^\\n]* OFF)\\n)*(Brown Dinner Rolls|Hamburger Buns|Oreo Choco Cookies|Round Wheat Bread|Butterfly Fry Shrimp|Mini Caramel Rolls|4X4 Rubiks Cube|Latus|Fresh Organic Tomato|Premium Aromatice Atop Rice|Tones Mild Chili Powder|Lay's Classic Chips|Bathroom Foam Cleaner|Multi-Purpose Cleaner|Pure Ghee 400g|Mozzarella 200g|Popcorn|Whole Milk 1L|Watermelon|Carrots|Rice 5kg)( \\(\\w+\\))?\\n[\\s\\S]*"
+    below:
+      text: "[\\s\\S]*NEARS-1177 Beverage \\d\\d[\\s\\S]*"
+# UP from the first out-of-stock card: found only if the item is loaded AND above it (or on the
+# same screen, where the assert below catches it under an out-of-stock card). "below All
+# Products" keeps the search on grid cards: the header is pinned over the grid, and the
+# Recommended carousel (same ItemCard, 5 of these names) sits above it.
+- scrollUntilVisible:
+    element:
+      text: "((\\d+|[^\\n]* OFF)\\n)*${SP7_ITEM}( \\(\\w+\\))?\\n[\\s\\S]*"
+      below:
+        text: "All Products"
+    direction: UP
+    speed: 20
+    visibilityPercentage: 60
+    centerElement: true
+    timeout: 90000
+- assertNotVisible:
+    text: "((\\d+|[^\\n]* OFF)\\n)*(Brown Dinner Rolls|Hamburger Buns|Oreo Choco Cookies|Round Wheat Bread|Butterfly Fry Shrimp|Mini Caramel Rolls|4X4 Rubiks Cube|Latus|Fresh Organic Tomato|Premium Aromatice Atop Rice|Tones Mild Chili Powder|Lay's Classic Chips|Bathroom Foam Cleaner|Multi-Purpose Cleaner|Pure Ghee 400g|Mozzarella 200g|Popcorn|Whole Milk 1L|Watermelon|Carrots|Rice 5kg)( \\(\\w+\\))?\\n[\\s\\S]*"
+    below:
+      text: "[\\s\\S]*NEARS-1177 Beverage \\d\\d[\\s\\S]*"

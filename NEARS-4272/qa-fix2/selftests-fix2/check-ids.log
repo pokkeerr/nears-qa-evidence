@@ -1,0 +1,38 @@
+== check-ids.test.sh ==
+-- shapes S1-S4 each found (one positive per shape)
+  ok   P 'store_header' is PRESENT (rc=0)
+  ok   P 'store_header' verdict line
+  ok   P 'basket_bar' is PRESENT (rc=0)
+  ok   P 'basket_bar' verdict line
+  ok   P 'item_card' is PRESENT (rc=0)
+  ok   P 'item_card' verdict line
+  ok   P 'raw_id$x' is PRESENT (rc=0)
+  ok   P 'raw_id$x' verdict line
+  ok   P a regex-shaped id that fullmatches a literal is PRESENT (rc=0)
+-- negatives never count
+  ok   N 'commented_out' is not proven present (rc=1)
+  ok   N 'commented_out' is MISSING
+  ok   N 'block_commented' is not proven present (rc=1)
+  ok   N 'block_commented' is MISSING
+  ok   N 'nested_not_semantics' is not proven present (rc=1)
+  ok   N 'nested_not_semantics' is MISSING
+  ok   N 'inside_a_string' is not proven present (rc=1)
+  ok   N 'inside_a_string' is MISSING
+-- unverifiable shapes fail, never pass
+  ok   U an id built with ${...} fails (rc=1)
+  ok   U ... as UNVERIFIABLE
+  ok   U a value only a constant-valued identifier could produce fails (rc=1)
+  ok   U ... as UNVERIFIABLE, never PRESENT
+  ok   U both non-literal identifiers are counted
+-- flow side: only selector ids
+  ok   F an id: inside an env: map is data, not a selector (rc=0)
+  ok   F ... so the flow has 0 ids
+  ok   F an id nested in retry/commands + a relative selector is still checked (rc=1)
+  ok   F subflow selectors are checked too
+-- a corpus with no id: selectors passes and says it is vacuous (fixture, not the live corpus)
+  ok   V a zero-id corpus passes (rc=0)
+  ok   V the zero-id pass is announced as vacuous
+  ok   X usage error is rc 2 (rc=2)
+
+29 assertion(s); floor 29
+PASS
