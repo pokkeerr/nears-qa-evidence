@@ -1,0 +1,8 @@
+# NEARS-4208 cycle 1: the single deliberate real push (order 93301, customer 6, emulator-5586 own token)
+# conditions verified before send: foreign tokens users/guests/vendors/delivery_men/vendor_employees all blank except user 6 (the emulator's own, len 142); guest 1995 (the emulator's own guest row, same token) blanked to '@'; push_notification_service_file_content restored ONLY for the send, re-blanked right after (len 0), cache:clear with DB_DATABASE=multi_food_db_qa4208; no held orders, no admin topic push
+# sweep: orders:acceptance-timeout-sweep offered=1 held=0 canceled=0
+[2026-10-21 10:15:27] production.WARNING: FCM Sending notification {"message_type":"token"} 
+[2026-10-21 10:15:27] production.WARNING: FCM Send Success {"status":200,"order_id":"93301"} 
+# notification row (user_notifications, order 93301):
+{"title":"Your order is taking longer than usual","description":"Order #93301 has not been accepted yet. You can cancel it, pick a new time, or keep waiting.","order_id":93301,"status":"confirmed","order_status":"confirmed","image":"","type":"order_status","acceptance_event":"offered"}
+# emulator side: dumpsys notification shows no com.izzes.nears notification ~3 min after FCM Send Success status 200; no c2dm RECEIVE for the app; app brought to foreground, no onMessage handling logged. Tap path = UNVERIFIABLE, no second push sent.
