@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4190
 
-**BLOCKED at AC14 (mem-guard exit 96, swap 11.6 GB): L4 functional/backstop all green, latency unmeasured**
+**AC14 PASS on c7c749a47 (delta-2 final): Gate A PASS all runs, warm no-step PASS zone/grocery 2/2 + food 2/3 (1 NO VERDICT recorded), cap-scale scan measured below cap**
 
 **13 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -96,6 +96,42 @@
 - [`r3-sqllog_b45_zone_r.out`](r3-sqllog_b45_zone_r.out)
 - [`r3-sqllog_head_1_r.out`](r3-sqllog_head_1_r.out)
 - [`r3-sqllog_head_zone_r.out`](r3-sqllog_head_zone_r.out)
+- [`r4-aggregate_m2_final.txt`](r4-aggregate_m2_final.txt)
+- [`r4-cap_many_base.json`](r4-cap_many_base.json)
+- [`r4-cap_many_base.stderr`](r4-cap_many_base.stderr)
+- [`r4-cap_many.json`](r4-cap_many.json)
+- [`r4-cap_many.stderr`](r4-cap_many.stderr)
+- [`r4-cap_zone2.json`](r4-cap_zone2.json)
+- [`r4-cap_zone2.stderr`](r4-cap_zone2.stderr)
+- [`r4-cap-summary.txt`](r4-cap-summary.txt)
+- [`r4-load.log`](r4-load.log)
+- [`r4-proof_slowed_zone.json`](r4-proof_slowed_zone.json)
+- [`r4-proof_unslowed_zone.json`](r4-proof_unslowed_zone.json)
+- [`r4-r1_1.json`](r4-r1_1.json)
+- [`r4-r1_1.stderr`](r4-r1_1.stderr)
+- [`r4-r1_1.stdout`](r4-r1_1.stdout)
+- [`r4-r1_2.json`](r4-r1_2.json)
+- [`r4-r1_2.stderr`](r4-r1_2.stderr)
+- [`r4-r1_2.stdout`](r4-r1_2.stdout)
+- [`r4-r1_zone.json`](r4-r1_zone.json)
+- [`r4-r1_zone.stderr`](r4-r1_zone.stderr)
+- [`r4-r1_zone.stdout`](r4-r1_zone.stdout)
+- [`r4-r2_1.json`](r4-r2_1.json)
+- [`r4-r2_1.stderr`](r4-r2_1.stderr)
+- [`r4-r2_1.stdout`](r4-r2_1.stdout)
+- [`r4-r2_2.json`](r4-r2_2.json)
+- [`r4-r2_2.stderr`](r4-r2_2.stderr)
+- [`r4-r2_2.stdout`](r4-r2_2.stdout)
+- [`r4-r2_zone.json`](r4-r2_zone.json)
+- [`r4-r2_zone.stderr`](r4-r2_zone.stderr)
+- [`r4-r2_zone.stdout`](r4-r2_zone.stdout)
+- [`r4-r3_2.json`](r4-r3_2.json)
+- [`r4-r3_2.stderr`](r4-r3_2.stderr)
+- [`r4-r3_2.stdout`](r4-r3_2.stdout)
+- [`r4-w1.stderr`](r4-w1.stderr)
+- [`r4-w1.stdout`](r4-w1.stdout)
+- [`r4-w2.stderr`](r4-w2.stderr)
+- [`r4-w2.stdout`](r4-w2.stdout)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-4190/` · public-repo scrub policy (no live secrets; verified clean).*
