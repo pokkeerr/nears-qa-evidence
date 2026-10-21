@@ -1,8 +1,8 @@
 # QA Evidence — NEARS-4214
 
-**BLOCKED(resourcing: backstop mem-guard refused) - live QA: AC1-AC10,AC12,AC13 demonstrated; AC12 task_bug (event fires on basket); AC14 pending [10]**
+**delta: AC12 fix PASS live; AC3 filter not driven by cap setting; vendor item/search 500 pre-existing**
 
-**18 screenshot(s).** Click any thumbnail for full resolution.
+**24 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
@@ -33,13 +33,26 @@
 <tr>
 <td align="center" width="33%"><a href="ar-checkout-mixed2.png"><img src="ar-checkout-mixed2.png" width="240"></a><br><sub>ar checkout mixed2</sub></td>
 <td align="center" width="33%"><a href="ar-list-over-cap.png"><img src="ar-list-over-cap.png" width="240"></a><br><sub>ar list over cap</sub></td>
+<td align="center" width="33%"><a href="d1-checkout-after-placement.png"><img src="d1-checkout-after-placement.png" width="240"></a><br><sub>d1 checkout after placement</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="d1-checkout-mixed-fixed-b.png"><img src="d1-checkout-mixed-fixed-b.png" width="240"></a><br><sub>d1 checkout mixed fixed b</sub></td>
+<td align="center" width="33%"><a href="d1-checkout-single-vegan.png"><img src="d1-checkout-single-vegan.png" width="240"></a><br><sub>d1 checkout single vegan</sub></td>
+<td align="center" width="33%"><a href="d1-checkout-under-cap.png"><img src="d1-checkout-under-cap.png" width="240"></a><br><sub>d1 checkout under cap</sub></td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="d1-confirm-sheet.png"><img src="d1-confirm-sheet.png" width="240"></a><br><sub>d1 confirm sheet</sub></td>
+<td align="center" width="33%"><a href="d1-store-page-vegan.png"><img src="d1-store-page-vegan.png" width="240"></a><br><sub>d1 store page vegan</sub></td>
 <td align="center" width="33%"><a href="reg-home-rail-takeaway.png"><img src="reg-home-rail-takeaway.png" width="240"></a><br><sub>reg home rail takeaway</sub></td>
 </tr>
 </table>
 
 ### Other artifacts
+- [`ac12-delta-mixed-journey.log`](ac12-delta-mixed-journey.log)
+- [`ac12-delta-single-journey.log`](ac12-delta-single-journey.log)
 - [`bug-eta-over-cap-fires-on-basket.log`](bug-eta-over-cap-fires-on-basket.log)
 - [`progress.md`](progress.md)
+- [`vendor-item-search-500.log`](vendor-item-search-500.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-4214/` · public-repo scrub policy (no live secrets; verified clean).*

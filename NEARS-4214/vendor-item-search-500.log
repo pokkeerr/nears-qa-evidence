@@ -1,0 +1,4 @@
+POST /api/v1/vendor/item/search as organicshop@demo.com, body {"name":"Banana"} -> HTTP 500 {"message":"Something went wrong"}
+laravel.log (scoped by server-side correlation_id 5e2f00fe-22c1-409d-820b-95d1791ae731; the supplied X-Request-Id was not echoed): [FAIL] exception_reported type=Illuminate\Database\Eloquent\RelationNotFoundException file=app/Http/Controllers/Api/V1/Vendor/ItemController.php line=921 endpoint=/api/v1/vendor/item/search (log carries class+file+line only, no message)
+Message reproduced via tinker on the twin with the controller's exact clause Item::active()->with(['rating'])...->get(): "Call to undefined relationship [rating] on model [App\Models\Item]."
+Item::tags() exists (Models/Item.php:313); the missing relation is rating (ItemController.php:898 with(['rating'])), not tags.
