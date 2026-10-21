@@ -1,0 +1,22 @@
+# NEARS-4208 window (d): SIMULATED tap intent (launcher intent with FCM-shaped extras + a pre-seeded plugin store record), NOT a delivered push. No FCM credential, no token, no push sent.
+# method: firebase_messaging 16.7.0 FlutterFirebaseMessagingPlugin resolves a tap only if the intent carries google.message_id AND a RemoteMessage with that id exists in the in-memory map or the persisted store (SharedPreferences io.flutter.plugins.firebase.messaging, written by FlutterFirebaseMessagingReceiver on a real delivery). A bare 'am start' with extras finds no stored message -> getInitialMessage()/onMessageOpenedApp stay silent (explains the cycle-1 landing on home). QA seeded the store via run-as (debug APK) with records shaped like the backend payload (data + notification, acceptance_event) and launched: am start -n com.izzes.nears/.MainActivity --es google.message_id <id> --es google.sent_time 1792547000000 --es from 612345678 --es type order_status --es order_id <id> --es status confirmed [--es acceptance_event offered|held]
+== w_off
+📊 analytics: acceptance_timeout_choice {order_id: 94001, choice: ignore}
+📊 analytics: acceptance_timeout_shown {order_id: 94001, state: offered, source: push}
+📊 analytics: order_tracking_opened {order_id: 94001, order_status: confirmed, screen: order_tracking, section: sheet}
+[INFO] msg="FCM onMessageOpenedApp type=order_status"
+== w_held
+📊 analytics: acceptance_timeout_shown {order_id: 94002, state: held, source: tracking}
+📊 analytics: order_tracking_opened {order_id: 94002, order_status: confirmed, screen: order_tracking, section: sheet}
+[INFO] msg="FCM onMessageOpenedApp type=order_status"
+== w_ctl
+📊 analytics: order_details_opened {order_id: 94003, order_status: confirmed, module: grocery, screen: order_details, source: notification}
+[INFO] msg="FCM onMessageOpenedApp type=order_status"
+== c_off2
+📊 analytics: acceptance_timeout_shown {order_id: 94001, state: offered, source: push}
+📊 analytics: order_tracking_opened {order_id: 94001, order_status: confirmed, screen: order_tracking, section: sheet}
+== c_held
+📊 analytics: acceptance_timeout_shown {order_id: 94002, state: held, source: push}
+📊 analytics: order_tracking_opened {order_id: 94002, order_status: confirmed, screen: order_tracking, section: sheet}
+== c_ctl
+📊 analytics: order_details_opened {order_id: 94003, order_status: confirmed, module: grocery, screen: order_details, source: notification}

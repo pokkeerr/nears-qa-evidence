@@ -1,6 +1,6 @@
 # QA Evidence — NEARS-4208
 
-**QA cycle 1 delta: AC3 320dp x1.3 matrix PASS EN+AR, tap path UNVERIFIABLE**
+**QA window (d): simulated notification-tap intent resolves tracking+dialog/held card**
 
 **3 screenshot(s).** Click any thumbnail for full resolution.
 
@@ -21,6 +21,7 @@
 - [`cycle1-real-push.log`](cycle1-real-push.log)
 - [`hold-branch-rows.md`](hold-branch-rows.md)
 - [`progress.md`](progress.md)
+- [`window-d-simulated-tap.log`](window-d-simulated-tap.log)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-4208/` · public-repo scrub policy (no live secrets; verified clean).*
