@@ -1,0 +1,18 @@
+# NEARS-4291 QA [8] progress (cycle 0)
+- AC3 device-free: logcat-gate.test.sh 59/59 PASS (N4 entries=5, O1 DIRTY); qa-maestro-nightly.test.sh 335/335 PASS
+- AC4: unit test HEAD 6/6 PASS; base scratch copy (a)(c)(c2)(e) red, (b)(d) green
+- Backend: /Users/Apple/Projects/nears-NEARS-4291-withdraw-method-module-gate @ ff613f9dc, :8291, clone multi_food_db_qa4291_10251456 (disbursement_type=automated already)
+- Device emulator-5590 (AVD NEARS_2414_QA), VendorApp debug sha256 cd213a15...
+- AC2 owner store-13 owner (seeded) fresh sign-in 15:00:15: 1x GET profile, 1x GET withdraw-method/list 200, attention dialog shown (store 13 has no methods), 0 [FAIL]
+- AC2 owner cold start (splash): list requested 200, dialog shown, 0 [FAIL]
+- Regression: dialog CTA -> Withdraw Methods screen renders ("No Method Found"), get-withdraw-method-list 200 + withdraw-method/list 200
+- Clone write via API: store 13 default method id 5 (clone only; shared store13 count 0) => proves server reads clone
+- Optional: stale token cold start -> profile 401 -> [INFO] "disbursement warning skipped: module permission unknown", 0 withdraw-method lines
+- AC2 owner fresh sign-in with default method: list requested 200, NO dialog (dump: 0 "Attention Please", Home present), 1x profile
+- AC1 employee qa.maestro.vendor fresh sign-in 15:04:48: 0 withdraw-method lines, 0 [FAIL], 1x profile GET, Home shown, no Attention dialog (dump), no snackbar in 6 polls
+- AC1 employee cold start 15:05:41: 0 withdraw-method lines, 0 [FAIL]; Home behind OS notification-permission prompt (pm clear side effect)
+- CLONE DML: employee_roles id 4 modules -> [order,wallet_method] at 15:10:43 (revert after)
+- CLONE DML reverted: employee_roles id 4 modules -> [order] at 15:13:00
+- AC2 wallet_method employee fresh sign-in 15:11:19: profile 1x, '2 role(s)', list 200, dialog shown (store 12 no method)
+- Regression: wallet_method employee Menu shows Disbursement card -> Disbursement Method Setup -> withdraw screen, get-withdraw-method-list 200 + list 200, dialog (fromDashboard=false) as base
+- Opt5 manual (clone) owner veganmarket fresh sign-in 15:14:20: 0 withdraw-method lines, no dialog, Home; clone reverted to automated

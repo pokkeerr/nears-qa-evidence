@@ -1,0 +1,357 @@
+== qa-maestro-nightly.test.sh (TMP=/private/var/folders/3h/sqkq965x0txbhvm4fyntmkh00000gn/T/qa-maestro-nightly.test.hi3R7v) ==
+  ok   Z1 HOME and both lock dirs are inside the temp dir
+  ok   Z2 no real mysql/mysqldump/php/composer/maestro/adb/emulator/flutter on PATH outside the stubs
+  ok   Z3 mysql and mysqldump resolve to the stubs
+  ok   Z4 the pinned flutter is the stub
+-- G: script greps
+  ok   G1 exactly one line executes $MAESTRO_BIN
+  ok   G1 ... and it is the --version check (Maestro is otherwise reached only through the wrapper)
+  ok   G2 no bare 'maestro' command
+  ok   G3 the script never runs launchctl or crontab (installing is the owner's step)
+  ok   G4 no cache:clear, no mysqldump --databases, no timeout binary
+  ok   G5 every wrapper call carries --evidence-key $EKEY
+  ok   G5 ... which is NEARS-4276
+  ok   G6 the clone source is the pinned mysqldump
+-- B: BLOCKED preflight
+  ok   B1 swap over 7.5 GB is BLOCKED (rc=2)
+  ok   B1 report.json status BLOCKED
+  ok   B1 the reason names the swap reading
+  ok   B1: mysql never called
+  ok   B1: no worktree was added
+  ok   B1: no emulator call
+  ok   B1: report.md written
+  ok   B2 23:45 is BLOCKED (rc=2)
+  ok   B2 the reason names the window
+  ok   B2: mysql never called
+  ok   B2: no worktree was added
+  ok   B2: no emulator call
+  ok   B2: report.md written
+  ok   B2b 00:03 is BLOCKED (rc=2)
+  ok   B2c 00:06 passes the window and is then BLOCKED on Maestro 2.12.0 (rc=2)
+  ok   B2c the reason is the version pin, not the clock
+  ok   B2c: mysql never called
+  ok   B2c: no worktree was added
+  ok   B2c: no emulator call
+  ok   B2c: report.md written
+  ok   B3 a missing mem-guard is BLOCKED (rc=2)
+  ok   B3 says why
+  ok   B4 a missing env file is BLOCKED (rc=2)
+  ok   B4 says which
+  ok   B4: mysql never called
+  ok   B4: no worktree was added
+  ok   B4: no emulator call
+  ok   B4: report.md written
+  ok   B5 an unknown argument is BLOCKED (rc=2)
+  ok   B5 names it
+  ok   B6 an unresolvable --ref is BLOCKED (rc=2)
+  ok   B6: mysql never called
+  ok   B6: no worktree was added
+  ok   B6: no emulator call
+  ok   B6: report.md written
+  ok   B7 a second nightly while one runs is BLOCKED (rc=2)
+  ok   B7 names the running one
+  ok   B7 the running nightly's lock is left alone
+scripts/qa-maestro-nightly.test.sh: line 161: 18206 Terminated: 15          bash "$TMP/other/qa-maestro-nightly.sh"
+  ok   B7b a live pid that is not a nightly (a recycled pid) does not hold the lock
+  ok   B7b ... the lock is reclaimed and says so
+  ok   B7b the reclaiming run released its lock
+scripts/qa-maestro-nightly.test.sh: line 161: 18342 Terminated: 15          sleep 60
+  ok   B7c a nightly pid whose start time differs (recycled) is stale
+scripts/qa-maestro-nightly.test.sh: line 161: 18500 Terminated: 15          bash "$TMP/other/qa-maestro-nightly.sh"
+  ok   B7d an empty pid file is reclaimed after the grace
+  ok   B7d ... only after waiting the 3 s grace (a holder between mkdir and its pid write)
+  ok   B7e a pid written during the grace is honoured (rc=2)
+  ok   B7e ... BLOCKED on it
+scripts/qa-maestro-nightly.test.sh: line 161: 19222 Terminated: 15          bash "$TMP/other/qa-maestro-nightly.sh"
+  ok   B7f a lock that no longer holds this run's pid is not removed at the end
+  ok   B7f fixture: the run reached composer
+  ok   B10 a --report-dir that already holds a run is refused (rc=2)
+  ok   B10 ... and says why
+  ok   B10 the earlier report is untouched
+  ok   B11 CACHE_DRIVER=redis in the copied .env is BLOCKED (rc=2)
+  ok   B11 ... naming the shared store
+  ok   B11 ... before composer ran
+  ok   B11 the clone and tree are still given back
+  ok   B15 fixture: the primary .env carries an indented comment naming the shared DB
+  ok   B15 a comment line naming the shared DB does not BLOCK the run
+  ok   B15 ... the run goes on to composer install
+  ok   B15 no mysql call wrote the shared DB or carried the comment line
+  ok   B16 fixture: the primary .env carries a non-comment DB_URL naming the shared DB
+  ok   B16 a non-comment line naming the shared DB is BLOCKED (rc=2)
+  ok   B16 ... naming why
+  ok   B16 ... before composer ran
+  ok   B16 no mysql call wrote the shared DB or carried the DB_URL line
+  ok   B16 the clone and tree are still given back
+  ok   B12 a composer failure is BLOCKED (rc=2)
+  ok   B12 the reason carries the step's last log lines
+  ok   B12 logs/composer.out kept in the report
+  ok   B12 logs/create.out kept in the report
+  ok   B12 logs/dump.out kept in the report
+  ok   B12 logs/wt-add.out kept in the report
+  ok   B12 logs/td.out kept in the report
+  ok   B12 logs/shared.out (item data) is not copied
+  ok   B12 logs/clone.out (item data) is not copied
+  ok   B12 every log is 0600
+  ok   B12 the report dir, logs/ and ~/.nears/qa-nightly are 0700
+  ok   B13 a failed backend-freshness-check is BLOCKED (rc=2)
+  ok   B13 the reason carries the check's last log lines
+  ok   B14 a failed git worktree add is BLOCKED (rc=2)
+  ok   B14 the reason carries git's last log lines
+  ok   B14 no tree was made, so no remove_tree row and no TEARDOWN_INCOMPLETE
+  ok   B14 ... and the run says so
+  ok   B8 no spare AVD (the only one is running) is BLOCKED (rc=2)
+  ok   B8 says why
+  ok   B8 the running AVD was never booted a second time
+  ok   B8 teardown stop_server ok
+  ok   B8 teardown drop_clone ok
+  ok   B8 teardown remove_tree ok
+  ok   B8 no lock release (none was taken)
+  ok   B8 the throwaway tree is gone
+  ok   B8 the backend is stopped
+  ok   B9 mem-guard refusing the build (swap) is BLOCKED (rc=2)
+  ok   B9 says why
+  ok   B9 teardown stop_emulator ok
+  ok   B9 teardown lock_release ok
+  ok   B9 teardown drop_clone ok
+  ok   B9 teardown remove_tree ok
+  ok   B9 no device lock is left
+  ok   B9 the emulator is stopped
+-- A: failed install / reverse
+  ok   A1 a failed adb install is BLOCKED (rc 2), not TEARDOWN_INCOMPLETE (rc=2)
+  ok   A1 says why
+  ok   A1 teardown: the app that never installed is not a failed uninstall
+  ok   A1 ... and the row says it was not installed
+  ok   A1 fixture: teardown did try the uninstall (and the stub refused it)
+  ok   A1 teardown complete
+  ok   A2 a failed adb reverse is BLOCKED (rc 2), not TEARDOWN_INCOMPLETE (rc=2)
+  ok   A2 says why
+  ok   A2 teardown: a reverse that was never made is not a failed removal
+  ok   A2 fixture: teardown did try the removal (and the stub refused it)
+  ok   A2 the installed app is uninstalled
+  ok   A2 teardown complete
+  ok   A3 an installed app that does not uninstall is still a teardown failure (rc 1) (rc=1)
+  ok   A3 status TEARDOWN_INCOMPLETE over the BLOCKED
+  ok   A3 the uninstall row fails: the package is still listed
+-- H: happy path
+  ok   H1 rc 0 (rc=0)
+  ok   H1 status PASS
+  ok   H1 the report records the replayed sha
+  ok   H2 one row per catalog flow, each flow's own key, control FAILed as it must
+  ok   H2 the JUnit status is read per row
+  ok   H3 all seven AC3 legs pass
+  ok   H4 the clone is a lowercase nightly name (multi_food_db_qa4276_20261025_144902_36470)
+  ok   H4 one CREATE DATABASE
+  ok   H4 ... of the clone
+  ok   H4 one DROP DATABASE
+  ok   H4 ... of exactly the recorded clone
+  ok   H4 nothing wrote the shared DB
+  ok   H4 every statement naming the shared DB is a SELECT
+  ok   H4 the dump loads into the clone
+  ok   H4 mysqldump argv is the pinned read
+  ok   H5 migrate runs on the clone
+  ok   H5 a caller's exported DB_DATABASE never reaches artisan
+  ok   H5 the backend serves on 8276
+  ok   H5 the marker request carries item 1's zone and module
+  ok   H5 backend-freshness-check ran on the port
+  ok   H6 flutter build apk against the own port
+  ok   H6 package suffix qanightly
+  ok   H6 Gradle heap 2560m
+  ok   H6 Kotlin in-process (system property)
+  ok   H6 Kotlin in-process (project property)
+  ok   H6 the build runs under mem-guard 6 / 7.5
+  ok   H7 a spare AVD on a free port, headless
+  ok   H7 the serial is recorded
+  ok   H8 every wrapper call re-affirmed the nightly's lock instead of taking its own
+  ok   H8 no wrapper call released the nightly's lock
+  ok   H9 row 1 evidence copied into the report dir
+  ok   H9 row 1 evidence is under the report dir
+  ok   H9 row 2 evidence copied into the report dir
+  ok   H9 row 2 evidence is under the report dir
+  ok   H9 row 3 evidence copied into the report dir
+  ok   H9 row 3 evidence is under the report dir
+  ok   H10 the publish line names the primary tree's script and a NEARS-4276 run folder
+  ok   H10 ... and the report copy, not the removed tree
+  ok   H11 fixture: the recorder sees the MAESTRO_ names the wrapper sets
+  ok   H11 MAESTRO_CLOUD_API_KEY / MAESTRO_API_KEY never reached Maestro
+  ok   H11 the preflight 'maestro --version' already runs with MAESTRO_CLI_NO_ANALYTICS
+  ok   H11 the preflight 'maestro --version' already runs with MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED
+  ok   H11 the preflight 'maestro --version' already runs with MAESTRO_DISABLE_UPDATE_CHECK
+  ok   H5 every artisan call sees exactly one MAIL_MAILER=log in the copied .env
+  ok   H5 the copied .env's cache is the clone's own table (CACHE_DRIVER=database)
+  ok   H2 each row carries the wrapper's final verdict
+  ok   H12 teardown runs every step in reverse order
+  ok   H12 teardown complete
+  ok   H12 the throwaway tree and its worktree entry are gone
+  ok   H12 no device lock and no account claim left
+  ok   H12 the emulator is stopped
+  ok   H12 the backend is stopped
+  ok   H12 the app is uninstalled
+  ok   H13 the host env file and the primary Admin/.env are untouched
+  ok   H13 the run marker is released
+  ok   H14 report.md carries the rows
+  ok   H14 no credential value anywhere in the report dir
+-- S: sentinel-owned lock
+  ok   S1 rc 0 with a sentinel-owned lock (rc=0)
+  ok   S1 fixture: the lock was a sentinel
+  ok   S1 the lock key is NEARS-4276
+  ok   S2 the wrapper re-affirms a sentinel-owned lock (QA_LOCK_OWNER_PID = the recorded owner)
+  ok   S4 the sentinel TTL covers the bounds: 0 heavy wait + 3600 build + 3600 + 3 flows x (3600 + 900)
+  ok   S4 ... and the lock guard's sentinel got it (not the 4 h default)
+  ok   S3 the sentinel is gone after the release
+  ok   S3 no device lock left
+-- V: flow FAIL + control inversion
+  ok   V1 rc 1 (rc=1)
+  ok   V1 status FAIL
+  ok   V1 the reason is the vacuous control
+  ok   V2 control FAIL (it passed), 01 FAIL, 02 PASS
+  ok   V2 the control row says the run is vacuous
+  ok   V3 teardown complete on a FAIL
+-- L: device lost
+  ok   L1 rc 1 (rc=1)
+  ok   L1 status UNVERIFIABLE
+  ok   L2 the flows after the loss are BLOCKED, never PASS
+  ok   L2 says the device is gone
+  ok   L2 Maestro ran once
+-- M: AC3 legs turned red
+  ok   M1 a marker that does not come back is rc 1 (rc=1)
+  ok   M1 leg request_marker fails
+  ok   M1 the reason names it
+  ok   M1 nothing after the proof ran
+  ok   M1 clone dropped, tree removed
+  ok   M2 artisan config not on the clone is rc 1 (rc=1)
+  ok   M2 leg clone_config fails
+  ok   M2 migrate never ran
+  ok   M3 a changed shared orders COUNT/MAX is rc 1 (rc=1)
+  ok   M3 leg shared_orders_unchanged fails
+  ok   M3 ... as 'cannot prove'
+  ok   M3 ... with both readings
+  ok   M4 a marker restore that does not match the shared read is rc 1 (a leg beats BLOCKED) (rc=1)
+  ok   M4 leg marker_restored fails
+  ok   M5 mutation landed: the wrapper argv carries a 'cloud' token
+  ok   M5 a cloud token in the wrapper argv is rc 1 (rc=1)
+  ok   M5 leg no_cloud_argv fails
+  ok   M5 ... naming the token class
+  ok   M5 the wrapper never ran Maestro
+  ok   M5 teardown complete
+-- C: drop only the recorded clone
+  ok   C1 BLOCKED at composer, then a refused drop: rc 1, not 2 (rc=1)
+  ok   C1 status TEARDOWN_INCOMPLETE, BLOCKED kept as the verdict before it
+  ok   C1 teardown refuses the drop
+  ok   C1 ... naming the mismatch
+  ok   C1 no DROP DATABASE ran
+  ok   C1 fixture: the clone had been created
+  ok   C1b teardown refuses to drop another nightly's clone
+  ok   C1b ... because it is not the one this run created
+  ok   C1b no DROP DATABASE ran
+  ok   C2 mutation landed: the clone name is a foreign clone's
+  ok   C2 a foreign clone name is refused (rc 1) (rc=1)
+  ok   C2 leg clone_name fails
+  ok   C2 no CREATE and no DROP ran
+  ok   C2 mysqldump never ran
+  ok   C3 a failed CREATE DATABASE is BLOCKED (rc=2)
+  ok   C3 nothing to drop: the clone never existed
+  ok   C3 no DROP DATABASE ran
+  ok   C3 teardown checked the recorded name's existence instead
+  ok   C4 a CREATE that failed after creating the clone still gets it dropped
+  ok   C4 ... exactly the recorded clone, once
+  ok   C5 mutation landed: an off-charset clone name with the creation gate removed
+  ok   C5 fixture: the gate is gone, so the clone was created
+  ok   C5 teardown's own name check refuses the drop
+  ok   C5 ... as not a nightly clone name
+  ok   C5 no DROP DATABASE ran
+  ok   C6 a failed DROP of the clone makes a passing run rc 1 (rc=1)
+  ok   C6 status TEARDOWN_INCOMPLETE
+  ok   C6 the reason names the step
+  ok   C6 the PASS it replaced is kept
+  ok   C7 a clone from an earlier run is reported
+  ok   C7 so is a tree from an earlier run
+  ok   C7 only this run's clone is dropped
+  ok   C7 the earlier tree is left in place
+-- K: bounded step trees
+  ok   K1 a build past its bound is BLOCKED (rc=2)
+  ok   K1 ... naming the bound
+  ok   K1 fixture: flutter ran under mem-guard in its own session
+  ok   K1 flutter (mem-guard's new-session child) is stopped
+  ok   K1 flutter's own child is stopped
+  ok   K1 teardown complete
+  ok   K2 a clone fill past its bound is BLOCKED (rc=2)
+  ok   K2 ... naming the bound
+  ok   K2 fixture: mysqldump ran inside the pipeline
+  ok   K2 mysqldump is stopped
+  ok   K2 mysqldump's child is stopped
+  ok   K2 the half-filled clone is dropped
+-- E: never boots
+  ok   E1 an AVD that never boots is BLOCKED (rc=2)
+  ok   E1 says why
+  ok   E1 the emulator it started is stopped
+  ok   E1 no device lock is taken or left
+  ok   E1 clone dropped, tree removed
+  ok   E1 an emulator stopped after a failed boot leaves no failure row
+  ok   E2 an emulator that survives its stop after a failed boot makes the run rc 1 (rc=1)
+  ok   E2 status TEARDOWN_INCOMPLETE over the BLOCKED
+  ok   E2 the surviving emulator is a stop_emulator failure row
+  ok   E2 fixture: only the ps shim reports it - the real stub process is gone
+-- W: credential residue
+  ok   W1 a control whose wrapper said CREDENTIAL RESIDUE is UNVERIFIABLE, never CONTROL OK
+  ok   W1 ... and says so
+  ok   W2 only wrapper-output.txt is copied from a run with residue
+  ok   W2 ... one folder per row
+  ok   M6 a non-hex item-1 name read fails request_marker
+  ok   M6 ... and is never interpolated into clone SQL
+-- T: SIGTERM
+  ok   T1 fixture: the replay is mid-flow
+  ok   T2 SIGTERM ends the run with rc 1 (rc=1)
+  ok   T2 the report says SIGTERM
+  ok   T2 status UNVERIFIABLE, never PASS
+  ok   T3 teardown uninstall_app ok after SIGTERM
+  ok   T3 teardown reverse_remove ok after SIGTERM
+  ok   T3 teardown account_release ok after SIGTERM
+  ok   T3 teardown stop_server ok after SIGTERM
+  ok   T3 teardown stop_emulator ok after SIGTERM
+  ok   T3 teardown lock_release ok after SIGTERM
+  ok   T3 teardown drop_clone ok after SIGTERM
+  ok   T3 teardown delete_env_copy ok after SIGTERM
+  ok   T3 teardown remove_tree ok after SIGTERM
+  ok   T3 no tree and no lock left
+  ok   T3 the in-flight Maestro is stopped
+  ok   T3 the run lock is released
+  ok   T4 fixture: the replay is mid-flow
+  ok   T4 SIGINT ends the run with rc 1 (rc=1)
+  ok   T4 the report says SIGINT
+  ok   T4 teardown complete, no tree, no lock
+  ok   T4 the in-flight Maestro is stopped
+  ok   T5 fixture: composer is running
+  ok   T5 SIGTERM during setup ends the run with rc 1 (rc=1)
+  ok   T5 the report says SIGTERM
+  ok   T5 composer is stopped
+  ok   T5 composer's child is stopped
+  ok   T5 the clone and tree are given back; no server had started
+  ok   T5 no tree left
+  ok   t-hup fixture: maestro.ready seen before the HUP
+  ok   T6 SIGHUP ends the run with rc 1 (rc=1)
+  ok   T6 the report says SIGHUP, status UNVERIFIABLE
+  ok   T6 teardown complete, no tree, no lock
+  ok   T6 the in-flight Maestro is stopped
+  ok   T6 the run lock is released
+  ok   t-wt-after fixture: git-add.ready seen before the TERM
+  ok   T7 fixture: SIGTERM landed while git worktree add was still running, its tree already made
+  ok   T7 rc 1 (rc=1)
+  ok   T7 the tree the interrupted add made is removed
+  ok   T7 no tree and no worktree entry left
+  ok   T7 the interrupted git is stopped
+  ok   t-wt-before fixture: git-add.ready seen before the TERM
+  ok   T8 fixture: SIGTERM landed inside git worktree add before it made anything
+  ok   T8 nothing to remove is not a TEARDOWN_INCOMPLETE
+  ok   T8 ... and the run says so
+  ok   T8 no tree and no worktree entry
+-- P: templates
+  ok   P1 plutil -lint passes on the plist template (rc=0)
+  ok   P2 the cron line fires at the plist's time
+  ok   P3 the fire time 0315 is outside the 23:30-00:05 BLOCKED window
+  ok   P4 the plist runs the nightly from the primary tree
+  ok   P4 so does the cron line
+  ok   P5 ProcessType Standard (Background throttling stretches the job's bounds)
+  ok   P5 ExitTimeOut 900 s leaves teardown room after SIGTERM
+
+335 assertion(s); floor 335
+PASS
