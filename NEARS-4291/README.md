@@ -1,13 +1,14 @@
 # QA Evidence — NEARS-4291
 
-**NEARS-4291 QA [8] cycle 0: PASS (AC1-AC4)**
+**NEARS-4291 [8b] regression-confirm empty-modules**
 
-**2 screenshot(s).** Click any thumbnail for full resolution.
+**3 screenshot(s).** Click any thumbnail for full resolution.
 
 <table>
 <tr>
 <td align="center" width="33%"><a href="ac1-employee-fresh-signin-home-no-snackbar.png"><img src="ac1-employee-fresh-signin-home-no-snackbar.png" width="240"></a><br><sub>ac1 employee fresh signin home no snackbar</sub></td>
 <td align="center" width="33%"><a href="ac2-owner-fresh-signin-attention-dialog.png"><img src="ac2-owner-fresh-signin-attention-dialog.png" width="240"></a><br><sub>ac2 owner fresh signin attention dialog</sub></td>
+<td align="center" width="33%"><a href="rc-empty-modules-menu-full-access.png"><img src="rc-empty-modules-menu-full-access.png" width="240"></a><br><sub>rc empty modules menu full access</sub></td>
 </tr>
 </table>
 
@@ -22,6 +23,7 @@
 - [`ac4-unit-base-red.log`](ac4-unit-base-red.log)
 - [`ac4-unit-head.log`](ac4-unit-head.log)
 - [`backend-freshness.txt`](backend-freshness.txt)
+- [`bug-empty-modules-full-access.log`](bug-empty-modules-full-access.log)
 - [`logcat-ac1-employee-coldstart-after-revert.log`](logcat-ac1-employee-coldstart-after-revert.log)
 - [`logcat-ac1-employee-coldstart.log`](logcat-ac1-employee-coldstart.log)
 - [`logcat-ac1-employee-fresh-signin.log`](logcat-ac1-employee-fresh-signin.log)
@@ -35,6 +37,7 @@
 - [`maestro`](maestro)
 - [`maestro-ops`](maestro-ops)
 - [`progress.md`](progress.md)
+- [`rc-empty-modules-menu-dump.xml`](rc-empty-modules-menu-dump.xml)
 
 ---
 *From `nears/docs/qa-evidence/NEARS-4291/` · public-repo scrub policy (no live secrets; verified clean).*
